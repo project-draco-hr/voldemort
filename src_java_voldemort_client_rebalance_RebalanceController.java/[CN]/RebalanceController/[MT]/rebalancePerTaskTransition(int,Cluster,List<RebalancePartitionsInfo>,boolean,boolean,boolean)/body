@@ -15,13 +15,11 @@
   }
  catch (  VoldemortRebalancingException e) {
     logger.error("Failure while migrating partitions for stealer node " + globalStealerNodeId);
-    for (    RebalanceTask task : successfulTasks) {
-      try {
-        adminClient.individualStateChange(task.getRebalancePartitionsInfo().getStealerId(),currentCluster,Lists.newArrayList(task.getRebalancePartitionsInfo()),hasReadWriteStores && hasReadOnlyStores && finishedReadOnlyStores,hasReadWriteStores && finishedReadOnlyStores,(hasReadOnlyStores && hasReadWriteStores && finishedReadOnlyStores) || (hasReadOnlyStores && hasReadWriteStores && !finishedReadOnlyStores) || (hasReadOnlyStores && !hasReadWriteStores && !finishedReadOnlyStores)|| (!hasReadOnlyStores && hasReadWriteStores && finishedReadOnlyStores),true,true);
-      }
- catch (      Exception exception) {
-        RebalanceUtils.printErrorLog(globalStealerNodeId,logger,"Problem while reverting back successful tasks " + task.getRebalancePartitionsInfo(),exception);
-      }
+    if (hasReadOnlyStores && hasReadWriteStores && finishedReadOnlyStores) {
+      adminClient.rebalanceStateChange(null,currentCluster,null,true,true,false,false);
+    }
+ else     if (hasReadWriteStores && finishedReadOnlyStores) {
+      adminClient.rebalanceStateChange(null,currentCluster,null,false,true,false,false);
     }
     throw e;
   }
