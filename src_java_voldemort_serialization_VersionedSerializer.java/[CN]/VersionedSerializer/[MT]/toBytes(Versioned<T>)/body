@@ -1,0 +1,7 @@
+{
+  byte[] versionBytes=null;
+  if (versioned.getVersion() == null)   versionBytes=new byte[]{-1};
+ else   versionBytes=((VectorClock)versioned.getVersion()).toBytes();
+  byte[] objectBytes=innerSerializer.toBytes(versioned.getValue());
+  return ByteUtils.cat(versionBytes,objectBytes);
+}

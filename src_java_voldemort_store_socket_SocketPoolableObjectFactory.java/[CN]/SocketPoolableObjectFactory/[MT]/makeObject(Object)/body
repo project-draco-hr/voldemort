@@ -1,0 +1,12 @@
+{
+  SocketDestination dest=(SocketDestination)key;
+  Socket s=new Socket();
+  s.setReceiveBufferSize(3000);
+  s.setSendBufferSize(3000);
+  s.setTcpNoDelay(true);
+  s.setSoTimeout(timeoutMs);
+  s.connect(new InetSocketAddress(dest.getHost(),dest.getPort()));
+  int numCreated=created.incrementAndGet();
+  if (logger.isDebugEnabled())   logger.debug("Created socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort());
+  return new SocketAndStreams(s);
+}

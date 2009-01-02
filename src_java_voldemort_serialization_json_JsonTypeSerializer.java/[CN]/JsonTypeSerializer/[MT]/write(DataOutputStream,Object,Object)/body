@@ -1,0 +1,51 @@
+{
+  try {
+    if (type instanceof Map) {
+      if (object != null && !(object instanceof Map))       throw new SerializationException("Expected Map, but got " + object.getClass() + ": "+ object);
+      writeMap(output,(Map<String,Object>)object,(Map<String,Object>)type);
+    }
+ else     if (type instanceof List) {
+      if (object != null && !(object instanceof List))       throw new SerializationException("Expected List but got " + object.getClass() + ": "+ object);
+      writeList(output,(List<Object>)object,(List<Object>)type);
+    }
+ else     if (type instanceof JsonTypes) {
+      JsonTypes jsonType=(JsonTypes)type;
+switch (jsonType) {
+case STRING:
+        writeString(output,(String)object);
+      break;
+case INT8:
+    writeInt8(output,(Byte)object);
+  break;
+case INT16:
+writeInt16(output,coerceToShort(object));
+break;
+case INT32:
+writeInt32(output,coerceToInteger(object));
+break;
+case INT64:
+writeInt64(output,coerceToLong(object));
+break;
+case FLOAT32:
+writeFloat32(output,coerceToFloat(object));
+break;
+case FLOAT64:
+writeFloat64(output,coerceToDouble(object));
+break;
+case DATE:
+writeDate(output,coerceToDate(object));
+break;
+case BYTES:
+writeBytes(output,(byte[])object);
+break;
+case BOOLEAN:
+writeBoolean(output,(Boolean)object);
+default :
+throw new SerializationException("Unknown type: " + type);
+}
+}
+}
+ catch (ClassCastException e) {
+throw new SerializationException("Expected type " + type + " but got object of incompatible type "+ object.getClass().getName()+ ".");
+}
+}

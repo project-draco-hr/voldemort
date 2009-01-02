@@ -1,0 +1,24 @@
+{
+  StoreUtils.assertValidKey(k);
+  KeyWrapper key=new KeyWrapper(k);
+  if (version == null)   return delete(key);
+  List<Versioned<V>> values=map.get(key);
+  if (values == null) {
+    return false;
+  }
+ else {
+synchronized (values) {
+      boolean deletedSomething=false;
+      Iterator<Versioned<V>> iterator=values.iterator();
+      while (iterator.hasNext()) {
+        Versioned<V> item=iterator.next();
+        if (item.getVersion().compare(version) == Occured.BEFORE) {
+          iterator.remove();
+          deletedSomething=true;
+        }
+      }
+      if (values.size() == 0)       map.remove(key);
+      return deletedSomething;
+    }
+  }
+}

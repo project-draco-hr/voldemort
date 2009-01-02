@@ -1,0 +1,9 @@
+{
+  logger.debug("Acquiring lock to perform data cleanup on \"" + store.getName() + "\".");
+  try {
+    this.cleanupPermits.acquire();
+  }
+ catch (  InterruptedException e) {
+    throw new IllegalStateException("Datacleanup interrupted while waiting for cleanup permit.");
+  }
+}

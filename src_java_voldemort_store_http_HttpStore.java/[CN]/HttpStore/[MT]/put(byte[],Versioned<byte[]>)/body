@@ -1,0 +1,22 @@
+{
+  StoreUtils.assertValidKey(key);
+  String url=getUrl(key);
+  PutMethod method=null;
+  try {
+    method=new PutMethod(url);
+    VectorClock clock=(VectorClock)versioned.getVersion();
+    method.setRequestHeader(VERSION_EXTENSION,new String(Base64.encodeBase64(clock.toBytes()),"UTF-8"));
+    method.setRequestEntity(new ByteArrayRequestEntity(versioned.getValue()));
+    int response=httpClient.executeMethod(method);
+    if (response != HttpURLConnection.HTTP_OK)     httpResponseCodeErrorMapper.throwError(response,method.getStatusText());
+  }
+ catch (  HttpException e) {
+    throw new VoldemortException(e);
+  }
+catch (  IOException e) {
+    throw new UnreachableStoreException("Could not connect to " + url + " for "+ storeName,e);
+  }
+ finally {
+    if (method != null)     method.releaseConnection();
+  }
+}

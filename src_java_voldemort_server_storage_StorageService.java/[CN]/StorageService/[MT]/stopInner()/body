@@ -1,0 +1,39 @@
+{
+  try {
+    if (metadataStore != null)     metadataStore.close();
+  }
+ catch (  VoldemortException e) {
+    logger.error("Error while closing metadata store:",e);
+  }
+  try {
+    if (slopStore != null)     slopStore.close();
+  }
+ catch (  VoldemortException e) {
+    logger.error("Error while closing metadata store:",e);
+  }
+  VoldemortException exception=null;
+  logger.info("Closing stores:");
+  for (  Store<byte[],byte[]> s : this.storeMap.values()) {
+    try {
+      logger.info("Closing " + s.getName() + ".");
+      s.close();
+    }
+ catch (    VoldemortException e) {
+      logger.error(e);
+      exception=e;
+    }
+  }
+  this.storeMap.clear();
+  logger.info("Closing storage configurations:");
+  for (  StorageConfiguration config : storageConfigurations.values()) {
+    try {
+      logger.info("Closing storage configuration for " + config.getType());
+      config.close();
+    }
+ catch (    VoldemortException e) {
+      logger.error("Error when shutting down storage configuration: ",e);
+    }
+  }
+  if (exception != null)   throw exception;
+  logger.info("All stores closed.");
+}

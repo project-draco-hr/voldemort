@@ -1,0 +1,34 @@
+{
+  skipWhitespace();
+  Object o=null;
+switch (current()) {
+case '{':
+    o=readObject();
+  break;
+case '[':
+o=readArray();
+break;
+case '"':
+case '\'':
+o=readString();
+break;
+case 't':
+case 'f':
+o=readBoolean();
+break;
+case 'n':
+o=readNull();
+break;
+case -1:
+throw new EndOfFileException();
+default :
+if (Character.isDigit(current()) || current() == '-') {
+o=readNumber();
+}
+ else {
+throw new SerializationException("Unacceptable initial character " + currentChar() + " found when parsing object at line "+ getCurrentLineNumber()+ " character "+ getCurrentLineOffset());
+}
+}
+skipWhitespace();
+return o;
+}

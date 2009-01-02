@@ -1,0 +1,13 @@
+{
+  if (minHeap.peek() == null)   return endOfData();
+  Item curr=minHeap.poll();
+  FileAndStream fas=inputs.get(curr.getIndex());
+  try {
+    V v=readValue(fas.getInputStream());
+    if (v != null)     minHeap.add(new Item(curr.getIndex(),v));
+  }
+ catch (  EOFException e) {
+    fas.closeAndDelete();
+  }
+  return curr.getValue();
+}

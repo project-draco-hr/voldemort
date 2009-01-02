@@ -1,0 +1,38 @@
+{
+  if (type instanceof Map) {
+    return readMap(stream,(Map<String,Object>)type);
+  }
+ else   if (type instanceof List) {
+    return readList(stream,(List<?>)type);
+  }
+ else   if (type instanceof JsonTypes) {
+    JsonTypes jsonType=(JsonTypes)type;
+switch (jsonType) {
+case BOOLEAN:
+      return readBoolean(stream);
+case INT8:
+    return readInt8(stream);
+case INT16:
+  return readInt16(stream);
+case INT32:
+return readInt32(stream);
+case INT64:
+return readInt64(stream);
+case FLOAT32:
+return readFloat32(stream);
+case FLOAT64:
+return readFloat64(stream);
+case DATE:
+return readDate(stream);
+case BYTES:
+return readBytes(stream);
+case STRING:
+return readString(stream);
+default :
+throw new SerializationException("Unknown type: " + type);
+}
+}
+ else {
+throw new SerializationException("Unknown type of class " + type.getClass());
+}
+}

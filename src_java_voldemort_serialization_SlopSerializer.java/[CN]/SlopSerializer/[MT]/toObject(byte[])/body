@@ -1,0 +1,22 @@
+{
+  DataInputStream input=new DataInputStream(new ByteArrayInputStream(bytes));
+  try {
+    String storeName=input.readUTF();
+    Slop.Operation op=Slop.Operation.valueOf(input.readUTF());
+    int keySize=input.readInt();
+    byte[] key=new byte[keySize];
+    ByteUtils.read(input,key);
+    int size=input.readInt();
+    byte[] value=null;
+    if (size >= 0) {
+      value=new byte[size];
+      ByteUtils.read(input,value);
+    }
+    int nodeId=input.readInt();
+    Date arrived=new Date(input.readLong());
+    return new Slop(storeName,op,key,value,nodeId,arrived);
+  }
+ catch (  IOException e) {
+    throw new SerializationException(e);
+  }
+}

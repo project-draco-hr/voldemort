@@ -1,0 +1,14 @@
+{
+  int size=items.size();
+  if (size <= 1)   return items;
+  Collections.sort(items,new Versioned.HappenedBeforeComparator<T>());
+  List<Versioned<T>> concurrent=Lists.newArrayList();
+  Versioned<T> last=items.get(items.size() - 1);
+  concurrent.add(last);
+  for (int i=items.size() - 2; i >= 0; i--) {
+    Versioned<T> curr=items.get(i);
+    if (curr.getVersion().compare(last.getVersion()) == Occured.CONCURRENTLY)     concurrent.add(curr);
+ else     break;
+  }
+  return concurrent;
+}

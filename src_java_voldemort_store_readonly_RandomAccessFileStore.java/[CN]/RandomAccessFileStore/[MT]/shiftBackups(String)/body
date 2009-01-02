@@ -1,0 +1,10 @@
+{
+  for (int i=numBackups - 1; i > 0; i--) {
+    File theFile=new File(storageDir,name + suffix + "."+ i);
+    if (theFile.exists()) {
+      File theDest=new File(storageDir,name + suffix + "."+ i+ 1);
+      boolean succeeded=theFile.renameTo(theDest);
+      if (!succeeded)       throw new VoldemortException("Rename of " + theFile + " to "+ theDest+ " failed.");
+    }
+  }
+}

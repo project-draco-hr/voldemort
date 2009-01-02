@@ -1,0 +1,18 @@
+{
+  logger.info("Shutting down voldemort socket server on port " + port + ".");
+  threadGroup.interrupt();
+  interrupt();
+  threadPool.shutdownNow();
+  try {
+    threadPool.awaitTermination(1,TimeUnit.SECONDS);
+  }
+ catch (  InterruptedException e) {
+    logger.warn("Interrupted while waiting for tasks to complete: ",e);
+  }
+  try {
+    if (!serverSocket.isClosed())     serverSocket.close();
+  }
+ catch (  IOException e) {
+    logger.warn("Exception while closing server socket: ",e);
+  }
+}

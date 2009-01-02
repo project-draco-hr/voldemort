@@ -1,0 +1,23 @@
+{
+  this.inputs=new ArrayList<FileAndStream>(files.size());
+  for (  File f : files) {
+    try {
+      DataInputStream inputStream=new DataInputStream(new BufferedInputStream(new FileInputStream(f),readBufferSize));
+      this.inputs.add(new FileAndStream(f,inputStream));
+    }
+ catch (    IOException e) {
+      throw new VoldemortException(e);
+    }
+  }
+  this.minHeap=new PriorityQueue<Item>(inputs.size());
+  for (int i=0; i < inputs.size(); i++) {
+    FileAndStream fas=inputs.get(i);
+    try {
+      V v=readValue(fas.getInputStream());
+      minHeap.add(new Item(i,v));
+    }
+ catch (    EOFException e) {
+      fas.closeAndDelete();
+    }
+  }
+}

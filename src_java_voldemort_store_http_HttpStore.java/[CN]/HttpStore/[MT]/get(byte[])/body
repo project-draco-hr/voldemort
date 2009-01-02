@@ -1,0 +1,35 @@
+{
+  StoreUtils.assertValidKey(key);
+  String url=getUrl(key);
+  GetMethod method=null;
+  try {
+    method=new GetMethod(url);
+    int response=httpClient.executeMethod(method);
+    if (response != HttpURLConnection.HTTP_OK)     httpResponseCodeErrorMapper.throwError(response,method.getStatusText());
+    DataInputStream input=new DataInputStream(new ByteArrayInputStream(method.getResponseBody()));
+    List<Versioned<byte[]>> items=new ArrayList<Versioned<byte[]>>();
+    try {
+      while (true) {
+        int size=input.readInt();
+        byte[] bytes=new byte[size];
+        input.read(bytes);
+        VectorClock clock=new VectorClock(bytes);
+        byte[] data=ByteUtils.copy(bytes,clock.sizeInBytes(),bytes.length);
+        items.add(new Versioned<byte[]>(data,clock));
+      }
+    }
+ catch (    EOFException e) {
+      input.close();
+    }
+    return items;
+  }
+ catch (  HttpException e) {
+    throw new VoldemortException(e);
+  }
+catch (  IOException e) {
+    throw new UnreachableStoreException("Could not connect to " + url + " for "+ storeName,e);
+  }
+ finally {
+    if (method != null)     method.releaseConnection();
+  }
+}

@@ -1,0 +1,14 @@
+{
+  try {
+    int size=stream.readInt();
+    byte[] bytes=new byte[size];
+    ByteUtils.read(stream,bytes);
+    return serializer.toObject(bytes);
+  }
+ catch (  EOFException e) {
+    throw e;
+  }
+catch (  IOException e) {
+    throw new VoldemortException(e);
+  }
+}

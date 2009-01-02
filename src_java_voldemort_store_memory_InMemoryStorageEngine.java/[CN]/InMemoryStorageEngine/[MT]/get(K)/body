@@ -1,0 +1,13 @@
+{
+  StoreUtils.assertValidKey(k);
+  KeyWrapper key=new KeyWrapper(k);
+  List<Versioned<V>> results=map.get(key);
+  if (results == null) {
+    return new ArrayList<Versioned<V>>(0);
+  }
+ else {
+synchronized (results) {
+      return new ArrayList<Versioned<V>>(results);
+    }
+  }
+}

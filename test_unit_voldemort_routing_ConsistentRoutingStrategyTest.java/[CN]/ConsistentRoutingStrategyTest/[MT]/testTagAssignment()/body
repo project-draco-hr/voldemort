@@ -1,0 +1,6 @@
+{
+  List<Node> nodes=getTestNodes();
+  ConsistentRoutingStrategy router=getRouter(new FnvHashFunction(),3);
+  for (  Node n : nodes)   for (  Integer tag : n.getPartitionIds())   assertEquals(router.getNodeByPartition(tag),n);
+  for (int i=0; i < nodes.size(); i++)   assertEquals("Unexpected tag assignment for tag " + i + ": ",new HashSet<Integer>(nodes.get(i).getPartitionIds()),router.getPartitionsByNode(nodes.get(i)));
+}

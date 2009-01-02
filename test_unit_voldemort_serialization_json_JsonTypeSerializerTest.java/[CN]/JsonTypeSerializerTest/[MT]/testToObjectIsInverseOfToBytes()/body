@@ -1,0 +1,32 @@
+{
+  assertInverse(str("int8"),(byte)127);
+  assertInverse(str("int16"),(short)12700);
+  assertInverse(str("int32"),12754555);
+  assertInverse(str("int64"),293847238433L);
+  assertInverse(str("float32"),12345.1234f);
+  assertInverse(str("float64"),12345.1234d);
+  assertInverse(str("string"),"asdfasdf d");
+  assertInverse(str("string"),"");
+  assertInverse(str("date"),new Date(1234L));
+  assertInverse(str("string"),null);
+  assertInverse(str("int8"),null);
+  assertInverse(str("int16"),null);
+  assertInverse(str("int32"),null);
+  assertInverse(str("int64"),null);
+  assertInverse(str("float32"),null);
+  assertInverse(str("float64"),null);
+  assertInverse(str("date"),null);
+  assertInverse("[\"int32\"]",null);
+  assertInverse("[\"int64\"]",null);
+  assertInverse("{}",null);
+  assertInverse("[\"string\"]",new ArrayList<String>());
+  assertInverse("[\"string\"]",asList("hello","there"));
+  assertInverse("{\"name\":\"string\", \"color\":\"string\"}",ImmutableMap.of("name","jay","color","pale"));
+  Map<String,Object> m=Maps.newHashMap();
+  m.put("name","jay");
+  m.put("arms",asList("right","left"));
+  Map<String,Object> m2=Maps.newHashMap();
+  m2.put("foo",45);
+  m.put("random",m2);
+  assertInverse("{\"name\":\"string\", \"arms\":[\"string\"], \"random\":{\"foo\":\"int32\"}}",m);
+}

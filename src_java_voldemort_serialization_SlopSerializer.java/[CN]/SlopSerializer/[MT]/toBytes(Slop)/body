@@ -1,0 +1,23 @@
+{
+  ByteArrayOutputStream byteOutput=new ByteArrayOutputStream();
+  DataOutputStream data=new DataOutputStream(byteOutput);
+  try {
+    data.writeUTF(slop.getStoreName());
+    data.writeUTF(slop.getOperation().toString());
+    data.writeInt(slop.getKey().length);
+    data.write(slop.getKey());
+    if (slop.getValue() == null) {
+      data.writeInt(-1);
+    }
+ else {
+      data.writeInt(slop.getValue().length);
+      data.write(slop.getValue());
+    }
+    data.writeInt(slop.getNodeId());
+    data.writeLong(slop.getArrived().getTime());
+    return byteOutput.toByteArray();
+  }
+ catch (  IOException e) {
+    throw new SerializationException(e);
+  }
+}

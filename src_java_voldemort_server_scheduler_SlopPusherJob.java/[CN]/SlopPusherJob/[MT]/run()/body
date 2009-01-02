@@ -1,0 +1,43 @@
+{
+  logger.debug("Pushing slop...");
+  int slopsPushed=0;
+  int attemptedPushes=0;
+  ClosableIterator<Entry<byte[],Versioned<Slop>>> iterator=null;
+  try {
+    iterator=slopStore.entries();
+    while (iterator.hasNext()) {
+      attemptedPushes++;
+      if (Thread.currentThread().isInterrupted())       throw new InterruptedException("Task cancelled!");
+      try {
+        Entry<byte[],Versioned<Slop>> entry=iterator.next();
+        Versioned<Slop> versioned=entry.getValue();
+        Slop slop=versioned.getValue();
+        Store<byte[],byte[]> store=stores.get(slop.getNodeId());
+        try {
+          if (slop.getOperation() == Operation.PUT)           store.put(entry.getKey(),new Versioned<byte[]>(slop.getValue(),versioned.getVersion()));
+ else           store.delete(entry.getKey(),versioned.getVersion());
+          slopStore.delete(slop.makeKey(),versioned.getVersion());
+          slopsPushed++;
+        }
+ catch (        ObsoleteVersionException e) {
+          slopStore.delete(slop.makeKey(),versioned.getVersion());
+        }
+      }
+ catch (      Exception e) {
+        logger.error(e);
+      }
+    }
+  }
+ catch (  Exception e) {
+    logger.error(e);
+  }
+ finally {
+    try {
+      if (iterator != null)       iterator.close();
+    }
+ catch (    Exception e) {
+      logger.error("Failed to close iterator.",e);
+    }
+  }
+  logger.log(attemptedPushes > 0 ? Level.INFO : Level.DEBUG,"Attempted " + attemptedPushes + " hinted handoff pushes of which "+ slopsPushed+ " succeeded.");
+}

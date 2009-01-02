@@ -1,0 +1,31 @@
+{
+  RandomAccessFile index=null;
+  RandomAccessFile data=null;
+  try {
+    fileModificationLock.readLock().lock();
+    index=indexFiles.poll(waitTimeoutMs,TimeUnit.MILLISECONDS);
+    long valueLocation=getValueLocation(index,key);
+    if (valueLocation < 0) {
+      return Collections.emptyList();
+    }
+ else {
+      data=dataFiles.poll(waitTimeoutMs,TimeUnit.MILLISECONDS);
+      data.seek(valueLocation);
+      int size=data.readInt();
+      byte[] value=new byte[size];
+      data.readFully(value);
+      return Collections.singletonList(new Versioned<byte[]>(value,new VectorClock()));
+    }
+  }
+ catch (  InterruptedException e) {
+    throw new VoldemortException("Thread was interrupted.",e);
+  }
+catch (  IOException e) {
+    throw new PersistenceFailureException(e);
+  }
+ finally {
+    fileModificationLock.readLock().unlock();
+    if (index != null)     indexFiles.add(index);
+    if (data != null)     dataFiles.add(data);
+  }
+}

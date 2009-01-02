@@ -1,0 +1,14 @@
+{
+  try {
+    pool.returnObject(destination,socket);
+  }
+ catch (  Exception e) {
+    try {
+      pool.invalidateObject(destination,socket);
+    }
+ catch (    Exception e2) {
+      logger.error("Error while destroying socket:",e2);
+    }
+    throw new UnreachableStoreException("Failure while checking out socket for " + destination + ": ",e);
+  }
+}

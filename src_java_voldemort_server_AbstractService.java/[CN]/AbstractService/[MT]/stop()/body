@@ -1,0 +1,10 @@
+{
+  logger.info("Stopping " + getName());
+synchronized (this) {
+    if (!isStarted()) {
+      logger.info("The service is already stopped, ignoring duplicate attempt.");
+    }
+    stopInner();
+    isStarted.set(false);
+  }
+}

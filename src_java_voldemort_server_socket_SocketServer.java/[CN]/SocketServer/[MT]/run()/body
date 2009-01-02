@@ -1,0 +1,35 @@
+{
+  logger.info("Starting voldemort socket server on port " + port + ".");
+  try {
+    serverSocket=new ServerSocket();
+    serverSocket.bind(new InetSocketAddress(port));
+    isStarted.countDown();
+    while (!isInterrupted() && !serverSocket.isClosed()) {
+      final Socket socket=serverSocket.accept();
+      socket.setReceiveBufferSize(10000);
+      socket.setSendBufferSize(10000);
+      socket.setTcpNoDelay(true);
+      this.threadPool.execute(new SocketServerSession(socket));
+    }
+  }
+ catch (  BindException e) {
+    logger.error("Could not bind to port " + port + ".");
+    throw new VoldemortException(e);
+  }
+catch (  SocketException e) {
+    if (!isInterrupted())     logger.error("Error in server: ",e);
+  }
+catch (  IOException e) {
+    throw new VoldemortException(e);
+  }
+ finally {
+    if (serverSocket != null) {
+      try {
+        serverSocket.close();
+      }
+ catch (      IOException e) {
+        logger.warn("Error while shutting down server.",e);
+      }
+    }
+  }
+}

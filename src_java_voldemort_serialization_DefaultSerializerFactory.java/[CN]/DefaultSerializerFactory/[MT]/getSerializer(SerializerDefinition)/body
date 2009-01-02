@@ -1,0 +1,20 @@
+{
+  String name=serializerDef.getName();
+  if (name.equals(JAVA_SERIALIZER_TYPE_NAME)) {
+    return new ObjectSerializer<Object>();
+  }
+ else   if (name.equals(STRING_SERIALIZER_TYPE_NAME)) {
+    return new StringSerializer(serializerDef.getCurrentSchemaInfo());
+  }
+ else   if (name.equals(IDENTITY_SERIALIZER_TYPE_NAME)) {
+    return new IdentitySerializer();
+  }
+ else   if (name.equals(JSON_SERIALIZER_TYPE_NAME)) {
+    Map<Integer,JsonTypeDefinition> versions=new HashMap<Integer,JsonTypeDefinition>();
+    for (    Map.Entry<Integer,String> entry : serializerDef.getAllSchemaInfoVersions().entrySet())     versions.put(entry.getKey(),JsonTypeDefinition.fromJson(entry.getValue()));
+    return new JsonTypeSerializer(versions);
+  }
+ else {
+    throw new IllegalArgumentException("No known serializer type: " + serializerDef.getName());
+  }
+}

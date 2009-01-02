@@ -1,0 +1,23 @@
+{
+  try {
+    logger.info("Client " + socket.getRemoteSocketAddress() + " connected.");
+    StreamStoreRequestHandler handler=new StreamStoreRequestHandler(storeMap,new DataInputStream(new BufferedInputStream(socket.getInputStream(),1000)),new DataOutputStream(new BufferedOutputStream(socket.getOutputStream(),1000)));
+    while (!Thread.currentThread().isInterrupted()) {
+      handler.handleRequest();
+    }
+  }
+ catch (  EOFException e) {
+    logger.info("Client " + socket.getRemoteSocketAddress() + " disconnected.");
+  }
+catch (  IOException e) {
+    logger.error(e);
+  }
+ finally {
+    try {
+      socket.close();
+    }
+ catch (    Exception e) {
+      logger.error("Error while closing socket",e);
+    }
+  }
+}

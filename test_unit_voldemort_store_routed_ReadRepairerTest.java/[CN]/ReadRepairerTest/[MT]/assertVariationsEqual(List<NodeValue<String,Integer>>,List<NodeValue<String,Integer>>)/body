@@ -1,0 +1,13 @@
+{
+  List<NodeValue<String,Integer>> copy=new ArrayList<NodeValue<String,Integer>>(input);
+  for (int i=0; i < Math.min(5,copy.size()); i++) {
+    int j=random.nextInt(copy.size());
+    int k=random.nextInt(copy.size());
+    Collections.swap(copy,j,k);
+    Set<NodeValue<String,Integer>> expSet=Sets.newHashSet(expected);
+    List<NodeValue<String,Integer>> repairs=repairer.getRepairs(copy);
+    Set<NodeValue<String,Integer>> repairSet=Sets.newHashSet(repairs);
+    assertEquals("Repairs list contains duplicates on iteration" + i + ".",repairs.size(),repairSet.size());
+    assertEquals("Expected repairs do not equal found repairs on iteration " + i + " : ",expSet,repairSet);
+  }
+}

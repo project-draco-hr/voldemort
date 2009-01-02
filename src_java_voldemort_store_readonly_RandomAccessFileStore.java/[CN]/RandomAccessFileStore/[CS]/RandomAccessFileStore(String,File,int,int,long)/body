@@ -1,0 +1,14 @@
+{
+  this.storageDir=storageDir;
+  this.numBackups=numBackups;
+  this.indexFile=new File(storageDir,name + ".index");
+  this.dataFile=new File(storageDir,name + ".data");
+  this.name=Objects.nonNull(name);
+  this.waitTimeoutMs=waitTimeoutMs;
+  this.dataFiles=new ArrayBlockingQueue<RandomAccessFile>(numFileHandles);
+  this.indexFiles=new ArrayBlockingQueue<RandomAccessFile>(numFileHandles);
+  this.numFileHandles=numFileHandles;
+  this.fileModificationLock=new ReentrantReadWriteLock();
+  if (indexFileSize % (KEY_HASH_SIZE + POSITION_SIZE) != 0)   throw new IllegalArgumentException("Invalid index file, file length must be a multiple of " + (KEY_HASH_SIZE + POSITION_SIZE) + ".");
+  open();
+}

@@ -1,0 +1,14 @@
+{
+  if (!Utils.isReadableDir(voldemortHome))   throw new ConfigurationException("Attempt to load configuration from VOLDEMORT_HOME, " + voldemortHome + " failed. That is not a readable directory.");
+  String propertiesFile=voldemortHome + File.separator + "config"+ File.separator+ "server.properties";
+  if (!Utils.isReadableFile(propertiesFile))   throw new ConfigurationException(propertiesFile + " is not a readable configuration file.");
+  Props properties=null;
+  try {
+    properties=new Props(new File(propertiesFile));
+    properties.put("voldemort.home",voldemortHome);
+  }
+ catch (  IOException e) {
+    throw new ConfigurationException(e);
+  }
+  return new VoldemortConfig(properties);
+}

@@ -1,0 +1,30 @@
+{
+  if (args.length < 3) {
+    System.err.println("USAGE: java HttpClientBench url numThreads numRequests");
+    System.exit(1);
+  }
+  final String url=args[0];
+  final int numThreads=Integer.parseInt(args[1]);
+  final int numRequests=Integer.parseInt(args[2]);
+  System.out.println("Benchmarking against " + url);
+  final HttpClient client=createClient();
+  PerformanceTest perfTest=new PerformanceTest(){
+    public void doOperation(    int index){
+      GetMethod get=new GetMethod(url);
+      try {
+        client.executeMethod(get);
+        byte[] bytes=get.getResponseBody();
+      }
+ catch (      Exception e) {
+        e.printStackTrace();
+      }
+ finally {
+        get.releaseConnection();
+      }
+    }
+  }
+;
+  perfTest.run(numRequests,numThreads);
+  perfTest.printStats();
+  System.exit(1);
+}

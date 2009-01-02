@@ -1,0 +1,45 @@
+{
+  try {
+    this.nodeId=props.getInt("node.id");
+  }
+ catch (  UndefinedPropertyException e) {
+    this.nodeId=getIntEnvVariable(VOLDEMORT_NODE_ID_VAR_NAME);
+  }
+  this.voldemortHome=props.getString("voldemort.home");
+  this.dataDirectory=props.getString("data.directory",this.voldemortHome + File.separator + "data");
+  this.metadataDirectory=props.getString("metadata.directory",voldemortHome + File.separator + "config");
+  this.enableBdbEngine=props.getBoolean("enable.bdb.engine",true);
+  this.enableMysqlEngine=props.getBoolean("enable.mysql.engine",false);
+  this.enableMemoryEngine=props.getBoolean("enable.memory.engine",true);
+  this.enableCacheEngine=props.getBoolean("enable.cache.engine",true);
+  this.bdbCacheSize=props.getBytes("bdb.cache.size",200 * 1024 * 1024);
+  this.bdbSyncTransactions=props.getBoolean("bdb.sync.transactions",false);
+  this.bdbDataDirectory=props.getString("bdb.data.directory",this.dataDirectory + File.separator + "bdb");
+  this.bdbMaxLogFileSize=props.getBytes("bdb.max.logfile.size",1024 * 1024 * 1024);
+  this.bdbBtreeFanout=props.getInt("bdb.btree.fanout",512);
+  this.bdbCheckpointBytes=props.getLong("bdb.checkpoint.interval.bytes",20 * 1024 * 1024);
+  this.bdbCheckpointMs=props.getLong("bdb.checkpoint.interval.ms",30 * Time.MS_PER_SECOND);
+  this.enableReadOnlyEngine=props.getBoolean("enable.readonly.engine",false);
+  this.readOnlyFileWaitTimeoutMs=props.getLong("readonly.file.wait.timeout.ms",4000L);
+  this.readOnlyBackups=props.getInt("readonly.backups",1);
+  this.readOnlyFileHandles=props.getInt("readonly.file.handles",5);
+  this.readOnlyStorageDir=props.getString("readonly.data.directory",this.dataDirectory + File.separator + "readonly");
+  this.slopStoreType=StorageEngineType.fromDisplay(props.getString("slop.store.engine",StorageEngineType.BDB.toDisplay()));
+  this.mysqlUsername=props.getString("mysql.user","root");
+  this.mysqlPassword=props.getString("mysql.password","");
+  this.mysqlHost=props.getString("mysql.host","localhost");
+  this.mysqlPort=props.getInt("mysql.port",3306);
+  this.maxThreads=props.getInt("max.threads",100);
+  this.coreThreads=props.getInt("core.threads",Math.max(1,maxThreads / 2));
+  this.socketTimeoutMs=props.getInt("socket.timeout.ms",4000);
+  this.routingTimeoutMs=props.getInt("routing.timeout.ms",5000);
+  this.enableHttpServer=props.getBoolean("http.enable",true);
+  this.enableSocketServer=props.getBoolean("socket.enable",true);
+  this.enableJmx=props.getBoolean("jmx.enable",true);
+  this.enableSlopDetection=props.getBoolean("slop.detection.enable",false);
+  this.enableVerboseLogging=props.getBoolean("enable.verbose.logging",true);
+  this.enableStatTracking=props.getBoolean("enable.stat.tracking",true);
+  this.pusherPollMs=props.getInt("pusher.poll.ms",2 * 60 * 1000);
+  this.schedulerThreads=props.getInt("scheduler.threads",3);
+  validateParams();
+}

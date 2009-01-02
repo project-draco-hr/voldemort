@@ -1,0 +1,10 @@
+{
+synchronized (registeredBeans) {
+    if (mbeanServer.isRegistered(name)) {
+      logger.warn("Overwriting mbean " + name);
+      JmxUtils.unregisterMbean(mbeanServer,name);
+    }
+    JmxUtils.registerMbean(mbeanServer,JmxUtils.createModelMBean(o),name);
+    this.registeredBeans.add(name);
+  }
+}

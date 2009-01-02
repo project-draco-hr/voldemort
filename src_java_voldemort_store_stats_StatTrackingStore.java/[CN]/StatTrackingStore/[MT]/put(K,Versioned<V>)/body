@@ -1,0 +1,15 @@
+{
+  callsToPut++;
+  long start=System.nanoTime();
+  try {
+    super.put(key,value);
+  }
+ catch (  VoldemortException e) {
+    exceptionsThrown++;
+    throw e;
+  }
+ finally {
+    long elapsed=System.nanoTime() - start;
+    avgPutCompletionTime+=(elapsed - avgPutCompletionTime) / callsToPut;
+  }
+}

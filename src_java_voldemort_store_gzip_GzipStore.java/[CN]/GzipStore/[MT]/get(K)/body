@@ -1,0 +1,11 @@
+{
+  List<Versioned<byte[]>> found=getInnerStore().get(key);
+  List<Versioned<byte[]>> results=new ArrayList<Versioned<byte[]>>(found.size());
+  try {
+    for (    Versioned<byte[]> item : found)     results.add(new Versioned<byte[]>(IOUtils.toByteArray(new GZIPInputStream(new ByteArrayInputStream(item.getValue()))),(VectorClock)item.getVersion()));
+  }
+ catch (  IOException e) {
+    throw new VoldemortException(e);
+  }
+  return results;
+}

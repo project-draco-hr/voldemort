@@ -1,0 +1,16 @@
+{
+  final Store<byte[],byte[]> store=getStore();
+  final AtomicInteger val=new AtomicInteger(0);
+  final CountDownLatch latch=new CountDownLatch(100);
+  Executor exec=Executors.newCachedThreadPool();
+  for (int i=0; i < 100; i++) {
+    exec.execute(new Runnable(){
+      public void run(){
+        store.put(TestUtils.randomString("abcdefghijklmnopqrs",10).getBytes(),new Versioned<byte[]>(TestUtils.randomBytes(8)));
+        latch.countDown();
+      }
+    }
+);
+  }
+  latch.await();
+}

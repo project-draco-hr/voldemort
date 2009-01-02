@@ -1,0 +1,15 @@
+{
+  this.fileModificationLock.writeLock().lock();
+  try {
+    while (this.indexFiles.size() > 0) {
+      RandomAccessFile f=this.indexFiles.poll();
+      f.close();
+    }
+  }
+ catch (  IOException e) {
+    throw new VoldemortException("Error while closing store.",e);
+  }
+ finally {
+    this.fileModificationLock.writeLock().unlock();
+  }
+}

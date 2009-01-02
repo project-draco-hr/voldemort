@@ -1,0 +1,9 @@
+{
+  Store<byte[],byte[]> store=getStore();
+  VectorClock clock=new VectorClock();
+  VectorClock copy=clock.clone();
+  store.put(aKey,new Versioned<byte[]>(getValue(),clock));
+  List<Versioned<byte[]>> found=store.get(aKey);
+  assertEquals("Invalid number of items found.",1,found.size());
+  assertEquals("Version not incremented properly",Occured.BEFORE,copy.compare(found.get(0).getVersion()));
+}

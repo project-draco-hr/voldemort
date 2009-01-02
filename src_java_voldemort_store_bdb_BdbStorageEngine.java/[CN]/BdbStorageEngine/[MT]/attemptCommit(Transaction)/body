@@ -1,0 +1,10 @@
+{
+  try {
+    transaction.commit();
+  }
+ catch (  DatabaseException e) {
+    logger.error("Transaction commit failed!",e);
+    attemptAbort(transaction);
+    throw new PersistenceFailureException(e);
+  }
+}

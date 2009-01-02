@@ -1,0 +1,19 @@
+{
+  this.executor.shutdown();
+  try {
+    this.executor.awaitTermination(10,TimeUnit.SECONDS);
+  }
+ catch (  InterruptedException e) {
+    this.executor.shutdownNow();
+  }
+  VoldemortException exception=null;
+  for (  Store<byte[],byte[]> client : innerStores.values()) {
+    try {
+      client.close();
+    }
+ catch (    VoldemortException v) {
+      exception=v;
+    }
+  }
+  if (exception != null)   throw exception;
+}

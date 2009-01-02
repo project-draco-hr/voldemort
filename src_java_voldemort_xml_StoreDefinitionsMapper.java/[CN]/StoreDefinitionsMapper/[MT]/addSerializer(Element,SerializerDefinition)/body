@@ -1,0 +1,11 @@
+{
+  parent.addContent(new Element(STORE_SERIALIZATION_TYPE_ELMT).setText(def.getName()));
+  if (def.hasSchemaInfo()) {
+    for (    Map.Entry<Integer,String> entry : def.getAllSchemaInfoVersions().entrySet()) {
+      Element schemaElmt=new Element(STORE_SERIALIZATION_META_ELMT);
+      schemaElmt.setAttribute(STORE_VERSION_ATTR,Integer.toString(entry.getKey()));
+      schemaElmt.setText(entry.getValue());
+      parent.addContent(schemaElmt);
+    }
+  }
+}

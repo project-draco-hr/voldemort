@@ -1,0 +1,10 @@
+{
+  ByteArrayOutputStream out=new ByteArrayOutputStream();
+  DataOutputStream dataOut=new DataOutputStream(out);
+  ByteUtils.writeVarNumber(value,dataOut);
+  dataOut.flush();
+  ByteArrayInputStream in=new ByteArrayInputStream(out.toByteArray());
+  DataInputStream dataIn=new DataInputStream(in);
+  long found=ByteUtils.readVarNumber(dataIn);
+  assertEquals(value,found);
+}

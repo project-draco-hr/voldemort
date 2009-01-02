@@ -1,0 +1,9 @@
+{
+  ConcurrentMap<String,Store<byte[],byte[]>> stores=getStores(storeName,clusterXml,storesXml);
+  Server server=new Server(port);
+  server.setSendServerVersion(false);
+  Context context=new Context(server,"/",Context.NO_SESSIONS);
+  context.addServlet(new ServletHolder(new StoreServlet(stores)),"/*");
+  server.start();
+  return context;
+}

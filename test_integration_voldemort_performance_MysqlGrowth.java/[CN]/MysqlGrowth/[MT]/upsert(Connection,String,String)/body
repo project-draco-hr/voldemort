@@ -1,0 +1,17 @@
+{
+  String upsert="insert into test_table (key_, value_) values (?, ?) on duplicate key update value_ = ?";
+  PreparedStatement stmt=conn.prepareStatement(upsert);
+  try {
+    stmt.setString(1,key);
+    stmt.setString(2,value);
+    stmt.setString(3,value);
+    stmt.executeUpdate();
+  }
+  finally {
+    try {
+      stmt.close();
+    }
+ catch (    Exception e) {
+    }
+  }
+}

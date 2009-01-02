@@ -1,0 +1,22 @@
+{
+  String[] path=SLASH_PATTERN.split(request.getPathInfo());
+  byte[] key=getKey(path);
+  String storeName=getStoreName(path);
+  Store<byte[],byte[]> store=getStore(storeName);
+  DataOutputStream stream=new DataOutputStream(response.getOutputStream());
+  try {
+    List<Versioned<byte[]>> values=store.get(key);
+    for (    Versioned<byte[]> versioned : values) {
+      byte[] clock=((VectorClock)versioned.getVersion()).toBytes();
+      byte[] value=versioned.getValue();
+      stream.writeInt(clock.length + value.length);
+      stream.write(clock);
+      stream.write(value);
+    }
+  }
+ catch (  VoldemortException v) {
+    HttpResponseCodeErrorMapper.ResponseCode code=httpResponseCodeErrorMapper.mapErrorToResponseCode(v);
+    response.setContentType("text/xml");
+    response.sendError(code.getCode(),errorXml(v,code.getText()));
+  }
+}

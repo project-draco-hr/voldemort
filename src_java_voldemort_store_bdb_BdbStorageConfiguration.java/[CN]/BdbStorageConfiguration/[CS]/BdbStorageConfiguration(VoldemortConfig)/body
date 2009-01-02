@@ -1,0 +1,23 @@
+{
+  try {
+    environmentConfig=new EnvironmentConfig();
+    environmentConfig.setCacheSize(config.getBdbCacheSize());
+    environmentConfig.setTxnNoSync(!config.syncBdbTransactions());
+    environmentConfig.setAllowCreate(true);
+    environmentConfig.setTransactional(true);
+    environmentConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX,Long.toString(config.getBdbMaxLogFileSize()));
+    environmentConfig.setConfigParam(EnvironmentConfig.CHECKPOINTER_BYTES_INTERVAL,Long.toString(config.getBdbCheckpointBytes()));
+    environmentConfig.setConfigParam(EnvironmentConfig.CHECKPOINTER_WAKEUP_INTERVAL,Long.toString(config.getBdbCheckpointMs() * Time.US_PER_MS));
+    databaseConfig=new DatabaseConfig();
+    databaseConfig.setAllowCreate(true);
+    databaseConfig.setNodeMaxEntries(config.getBdbBtreeFanout());
+    databaseConfig.setTransactional(true);
+    File bdbDir=new File(config.getBdbDataDirectory());
+    if (!bdbDir.exists())     bdbDir.mkdir();
+    environment=new Environment(bdbDir,environmentConfig);
+    isInitialized=true;
+  }
+ catch (  DatabaseException e) {
+    throw new StorageInitializationException(e);
+  }
+}

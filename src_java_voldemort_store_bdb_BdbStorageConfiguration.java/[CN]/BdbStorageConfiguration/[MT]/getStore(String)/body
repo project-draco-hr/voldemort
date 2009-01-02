@@ -1,0 +1,17 @@
+{
+  if (!isInitialized)   throw new StorageInitializationException("Attempt to get store for uninitialized storage configuration!");
+  if (stores.containsKey(storeName)) {
+    return stores.get(storeName);
+  }
+ else {
+    try {
+      Database db=environment.openDatabase(null,storeName,databaseConfig);
+      BdbStorageEngine engine=new BdbStorageEngine(storeName,environment,db);
+      stores.put(storeName,engine);
+      return engine;
+    }
+ catch (    DatabaseException d) {
+      throw new StorageInitializationException(d);
+    }
+  }
+}

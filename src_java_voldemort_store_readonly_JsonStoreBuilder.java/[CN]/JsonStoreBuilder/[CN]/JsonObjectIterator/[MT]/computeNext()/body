@@ -1,0 +1,18 @@
+{
+  try {
+    Object key=reader.read();
+    Object value=null;
+    try {
+      value=reader.read();
+    }
+ catch (    EndOfFileException e) {
+      throw new VoldemortException("Invalid file: reached end of file with key but no matching value.");
+    }
+    byte[] keyBytes=keySerializer.toBytes(key);
+    byte[] valueBytes=valueSerializer.toBytes(value);
+    return new KeyValuePair(keyBytes,valueBytes);
+  }
+ catch (  EndOfFileException e) {
+    return endOfData();
+  }
+}

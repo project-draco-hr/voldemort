@@ -1,0 +1,10 @@
+{
+  Entry<byte[],Versioned<byte[]>> next=iterator.next();
+  if (next == null) {
+    return null;
+  }
+ else {
+    Versioned<byte[]> versioned=next.getValue();
+    return new Entry<K,Versioned<V>>(getKeySerializer().toObject(next.getKey()),new Versioned<V>(getValueSerializer().toObject(versioned.getValue()),versioned.getVersion()));
+  }
+}

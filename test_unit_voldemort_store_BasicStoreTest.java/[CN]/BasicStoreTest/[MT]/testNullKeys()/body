@@ -1,0 +1,21 @@
+{
+  Store<K,V> store=getStore();
+  try {
+    store.put(null,new Versioned<V>(getValue()));
+    fail("Store should not put null keys!");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+  try {
+    store.get(null);
+    fail("Store should not get null keys!");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+  try {
+    store.delete(null,new VectorClock());
+    fail("Store should not delete null keys!");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+}

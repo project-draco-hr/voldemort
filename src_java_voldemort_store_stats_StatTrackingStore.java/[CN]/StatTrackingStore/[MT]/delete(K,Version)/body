@@ -1,0 +1,15 @@
+{
+  callsToDelete++;
+  long start=System.nanoTime();
+  try {
+    return super.delete(key,version);
+  }
+ catch (  VoldemortException e) {
+    exceptionsThrown++;
+    throw e;
+  }
+ finally {
+    long elapsed=System.nanoTime() - start;
+    avgDeleteCompletionTime+=(elapsed - avgDeleteCompletionTime) / callsToDelete;
+  }
+}

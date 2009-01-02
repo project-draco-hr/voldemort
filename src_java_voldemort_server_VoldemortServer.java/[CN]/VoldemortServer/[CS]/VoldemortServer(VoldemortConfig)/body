@@ -1,0 +1,9 @@
+{
+  super("voldemort-server");
+  this.voldemortConfig=config;
+  this.storeMap=new ConcurrentHashMap<String,Store<byte[],byte[]>>();
+  this.metadataStore=new MetadataStore(new FilesystemStorageEngine(MetadataStore.METADATA_STORE_NAME,voldemortConfig.getMetadataDirectory()),storeMap);
+  this.cluster=this.metadataStore.getCluster();
+  this.identityNode=this.cluster.getNodeById(voldemortConfig.getNodeId());
+  this.services=createServices();
+}

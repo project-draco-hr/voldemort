@@ -1,0 +1,17 @@
+{
+  Map<Integer,JsonTypeDefinition> defs=Maps.newHashMap();
+  int count=0;
+  assertTrue("Must have an equal number of versions and type defs.",versions.length % 2 == 0);
+  Integer key=null;
+  for (  Object o : versions) {
+    if (count % 2 == 0) {
+      key=(Integer)o;
+      defs.put(key,null);
+    }
+ else {
+      defs.put(key,JsonTypeDefinition.fromJson((String)o));
+    }
+    count++;
+  }
+  return new JsonTypeSerializer(defs);
+}

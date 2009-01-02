@@ -1,0 +1,19 @@
+{
+  try {
+    logger.info("Creating application...");
+    VoldemortServer server=new VoldemortServer(VoldemortConfig.loadFromEnvironmentVariable());
+    event.getServletContext().setAttribute(SERVER_KEY,server);
+    event.getServletContext().setAttribute(SERVER_CONFIG_KEY,server.getVoldemortConfig());
+    event.getServletContext().setAttribute(VELOCITY_ENGINE_KEY,new VelocityEngine(VOLDEMORT_TEMPLATE_DIR));
+    server.start();
+    logger.info("Application created.");
+  }
+ catch (  ConfigurationException e) {
+    logger.info("Error loading voldemort server:",e);
+    throw e;
+  }
+catch (  Exception e) {
+    logger.error("Error loading voldemort server:",e);
+    throw new ConfigurationException(e);
+  }
+}

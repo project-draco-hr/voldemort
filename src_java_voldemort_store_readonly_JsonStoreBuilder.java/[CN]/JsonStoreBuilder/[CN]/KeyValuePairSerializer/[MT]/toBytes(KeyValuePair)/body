@@ -1,0 +1,10 @@
+{
+  byte[] key=pair.getKey();
+  byte[] value=pair.getValue();
+  byte[] bytes=new byte[key.length + value.length + 8];
+  ByteUtils.writeInt(bytes,key.length,0);
+  ByteUtils.writeInt(bytes,value.length,4);
+  System.arraycopy(key,0,bytes,8,key.length);
+  System.arraycopy(value,0,bytes,8 + key.length,value.length);
+  return bytes;
+}

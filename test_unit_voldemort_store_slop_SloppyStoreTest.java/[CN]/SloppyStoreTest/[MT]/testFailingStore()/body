@@ -1,0 +1,11 @@
+{
+  SloppyStore store=getSloppyStore(new FailingStore<byte[],byte[]>("test",new UnreachableStoreException("Unreachable store.")));
+  try {
+    store.put(testVal,new Versioned<byte[]>(testVal));
+    fail("Failing store doesn't fail.");
+  }
+ catch (  UnreachableStoreException e) {
+    Slop slop=new Slop("test",Slop.Operation.PUT,testVal,testVal,NODE_ID,new Date());
+    assertBackupHasOperation(slop,store.getBackupStores());
+  }
+}

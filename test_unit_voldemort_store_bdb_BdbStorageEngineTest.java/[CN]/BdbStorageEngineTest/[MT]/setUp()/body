@@ -1,0 +1,17 @@
+{
+  super.setUp();
+  this.random=new Random();
+  EnvironmentConfig environmentConfig=new EnvironmentConfig();
+  environmentConfig=new EnvironmentConfig();
+  environmentConfig.setTxnNoSync(true);
+  environmentConfig.setAllowCreate(true);
+  environmentConfig.setTransactional(true);
+  this.tempDir=TestUtils.getTempDirectory();
+  this.environment=new Environment(this.tempDir,environmentConfig);
+  this.databaseConfig=new DatabaseConfig();
+  databaseConfig.setAllowCreate(true);
+  databaseConfig.setTransactional(true);
+  databaseConfig.setSortedDuplicates(true);
+  this.database=environment.openDatabase(null,"test",databaseConfig);
+  this.store=new BdbStorageEngine("test",this.environment,this.database);
+}

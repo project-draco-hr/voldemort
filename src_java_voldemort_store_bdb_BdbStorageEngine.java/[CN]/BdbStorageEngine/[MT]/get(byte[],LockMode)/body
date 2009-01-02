@@ -1,0 +1,20 @@
+{
+  StoreUtils.assertValidKey(key);
+  Cursor cursor=null;
+  try {
+    DatabaseEntry keyEntry=new DatabaseEntry(key);
+    DatabaseEntry valueEntry=new DatabaseEntry();
+    List<Versioned<byte[]>> results=new ArrayList<Versioned<byte[]>>();
+    cursor=bdbDatabase.openCursor(null,null);
+    for (OperationStatus status=cursor.getSearchKey(keyEntry,valueEntry,lockMode); status == OperationStatus.SUCCESS; status=cursor.getNextDup(keyEntry,valueEntry,lockMode)) {
+      results.add(serializer.toObject(valueEntry.getData()));
+    }
+    return results;
+  }
+ catch (  DatabaseException e) {
+    throw new PersistenceFailureException(e);
+  }
+ finally {
+    attemptClose(cursor);
+  }
+}

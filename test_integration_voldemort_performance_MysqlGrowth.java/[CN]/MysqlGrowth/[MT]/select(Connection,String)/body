@@ -1,0 +1,18 @@
+{
+  String upsert="select value_ from test_table where key_ = ?";
+  PreparedStatement stmt=conn.prepareStatement(upsert);
+  ResultSet results=null;
+  try {
+    stmt.setString(1,key);
+    results=stmt.executeQuery();
+    if (results.next())     return results.getString(1);
+ else     return null;
+  }
+  finally {
+    try {
+      stmt.close();
+    }
+ catch (    Exception e) {
+    }
+  }
+}

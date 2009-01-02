@@ -1,0 +1,12 @@
+{
+  ClusterMapper mapper=new ClusterMapper();
+  Cluster cluster=mapper.readCluster(new StringReader(VoldemortTestConstants.getOneNodeClusterXml()));
+  assertEquals(cluster.getNumberOfNodes(),1);
+  assertEquals(cluster.getName(),"mycluster");
+  Node node=cluster.getNodes().iterator().next();
+  assertNotNull(node);
+  assertEquals(node.getId(),0);
+  List<Integer> tags=node.getPartitionIds();
+  assertTrue("Tag not found.",tags.contains(0));
+  assertTrue("Tag not found.",tags.contains(1));
+}

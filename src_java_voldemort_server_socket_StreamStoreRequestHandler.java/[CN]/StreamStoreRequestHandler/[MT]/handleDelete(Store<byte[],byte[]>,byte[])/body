@@ -1,0 +1,14 @@
+{
+  int versionSize=inputStream.readShort();
+  byte[] versionBytes=new byte[versionSize];
+  ByteUtils.read(inputStream,versionBytes);
+  VectorClock version=new VectorClock(versionBytes);
+  try {
+    boolean succeeded=store.delete(key,version);
+    outputStream.writeShort(0);
+    outputStream.writeBoolean(succeeded);
+  }
+ catch (  VoldemortException e) {
+    writeException(outputStream,e);
+  }
+}

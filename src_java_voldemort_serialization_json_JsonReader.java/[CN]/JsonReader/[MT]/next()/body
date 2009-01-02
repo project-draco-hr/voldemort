@@ -1,0 +1,17 @@
+{
+  try {
+    this.current=this.reader.read();
+    this.charsRead++;
+    this.lineOffset++;
+    if (this.current == this.lineBreak) {
+      this.line++;
+      this.lineOffset=1;
+    }
+    this.contextBuffer[this.contextOffset]=(char)this.current;
+    this.contextOffset=(contextOffset + 1) % this.contextBuffer.length;
+    return this.current;
+  }
+ catch (  IOException e) {
+    throw new SerializationException("Error reading from JSON stream.",e);
+  }
+}

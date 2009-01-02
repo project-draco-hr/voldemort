@@ -1,0 +1,10 @@
+{
+  ConcurrentMap<String,Store<byte[],byte[]>> stores=new ConcurrentHashMap<String,Store<byte[],byte[]>>(1);
+  stores.put(storeName,new InMemoryStorageEngine<byte[],byte[]>(storeName));
+  Store<String,String> metadataInner=new InMemoryStorageEngine<String,String>("metadata");
+  metadataInner.put("cluster.xml",new Versioned<String>(clusterXml));
+  metadataInner.put("stores.xml",new Versioned<String>(storesXml));
+  MetadataStore metadata=new MetadataStore(metadataInner,stores);
+  stores.put(MetadataStore.METADATA_STORE_NAME,metadata);
+  return stores;
+}

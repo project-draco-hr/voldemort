@@ -1,0 +1,9 @@
+{
+  Versioned<Integer> v1=getVersioned(2,1,2,3);
+  Versioned<Integer> v2=v1.cloneVersioned();
+  assertEquals(v1,v2);
+  assertTrue(v1 != v2);
+  assertTrue(v1.getVersion() != v2.getVersion());
+  ((VectorClock)v2.getVersion()).incrementVersion(1,System.currentTimeMillis());
+  assertTrue(!v1.equals(v2));
+}

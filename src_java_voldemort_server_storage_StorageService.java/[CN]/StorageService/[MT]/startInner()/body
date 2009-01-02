@@ -1,0 +1,26 @@
+{
+  this.storeMap.clear();
+  this.storeMap.put(MetadataStore.METADATA_STORE_NAME,metadataStore);
+  Store<byte[],byte[]> slopStorage=getStore("slop",voldemortConfig.getSlopStoreType());
+  this.slopStore=new SerializingStore<byte[],Slop>(slopStorage,new IdentitySerializer(),new SlopSerializer());
+  Cluster cluster=this.metadataStore.getCluster();
+  List<StoreDefinition> storeDefs=this.metadataStore.getStores();
+  logger.info("Initializing stores:");
+  for (  StoreDefinition def : storeDefs) {
+    if (!def.getName().equals(MetadataStore.METADATA_STORE_NAME)) {
+      logger.info("Opening " + def.getName() + ".");
+      StorageEngine<byte[],byte[]> engine=getStore(def.getName(),def.getType());
+      rawEngines.put(engine.getName(),engine);
+      Store<byte[],byte[]> store=engine;
+      if (voldemortConfig.isSlopDetectionEnabled()) {
+        RoutingStrategy routingStrategy=new ConsistentRoutingStrategy(cluster.getNodes(),def.getReplicationFactor());
+        store=new SlopDetectingStore(store,this.slopStore,def.getReplicationFactor(),cluster.getNodeById(this.voldemortConfig.getNodeId()),routingStrategy);
+      }
+      if (voldemortConfig.isVerboseLoggingEnabled())       store=new LoggingStore<byte[],byte[]>(store);
+      if (voldemortConfig.isStatTrackingEnabled())       store=new StatTrackingStore<byte[],byte[]>(store);
+      this.storeMap.put(def.getName(),store);
+    }
+  }
+  logger.info("All stores initialized.");
+  scheduleCleanupJobs(storeDefs,rawEngines);
+}

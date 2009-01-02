@@ -1,0 +1,63 @@
+{
+  if (args.length != 3) {
+    System.err.println("USAGE: java MySQLGrowth total_size increment threads");
+    System.exit(1);
+  }
+  final int totalSize=Integer.parseInt(args[0]);
+  final int increment=Integer.parseInt(args[1]);
+  final int threads=Integer.parseInt(args[2]);
+  BasicDataSource ds=new BasicDataSource();
+  ds.setDriverClassName("com.mysql.jdbc.Driver");
+  ds.setUsername("root");
+  ds.setPassword("");
+  ds.setUrl("jdbc:mysql://127.0.0.1:3306/test");
+  final Connection conn=ds.getConnection();
+  conn.createStatement().execute("truncate table test_table");
+  final Random rand=new Random();
+  int iterations=totalSize / increment;
+  long[] readTimes=new long[iterations];
+  long[] writeTimes=new long[iterations];
+  ExecutorService service=Executors.newFixedThreadPool(threads);
+  for (int i=0; i < iterations; i++) {
+    System.out.println("Starting iteration " + i);
+    List<Future<Object>> results=new ArrayList<Future<Object>>(increment);
+    long startTime=System.currentTimeMillis();
+    final int fi=i;
+    for (int j=0; j < increment; j++) {
+      final int fj=j;
+      results.add(service.submit(new Callable<Object>(){
+        public Object call() throws Exception {
+          upsert(conn,Integer.toString(fi * increment + fj),Integer.toString(fi * increment + fj));
+          return null;
+        }
+      }
+));
+    }
+    for (int j=0; j < increment; j++)     results.get(j).get();
+    writeTimes[i]=System.currentTimeMillis() - startTime;
+    System.out.println("write: " + (writeTimes[i] / (double)increment));
+    results.clear();
+    startTime=System.currentTimeMillis();
+    for (int j=0; j < increment; j++) {
+      final int fj=j;
+      results.add(service.submit(new Callable<Object>(){
+        public Object call() throws Exception {
+          return select(conn,Integer.toString(rand.nextInt((fi + 1) * increment)));
+        }
+      }
+));
+    }
+    for (int j=0; j < increment; j++)     results.get(j).get();
+    readTimes[i]=(System.currentTimeMillis() - startTime);
+    System.out.println("read: " + (readTimes[i] / (double)increment));
+  }
+  conn.close();
+  System.out.println();
+  System.out.println("iteration read write:");
+  for (int i=0; i < iterations; i++) {
+    System.out.print(i);
+    System.out.print(" " + readTimes[i] / (double)increment);
+    System.out.println(" " + writeTimes[i] / (double)increment);
+  }
+  System.exit(0);
+}

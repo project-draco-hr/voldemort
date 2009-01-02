@@ -1,0 +1,9 @@
+{
+  ConcurrentMap<StorageEngineType,StorageConfiguration> configs=new ConcurrentHashMap<StorageEngineType,StorageConfiguration>();
+  if (config.iseBdbEngineEnabled())   configs.put(StorageEngineType.BDB,new BdbStorageConfiguration(config));
+  if (config.isMysqlEngineEnabled())   configs.put(StorageEngineType.MYSQL,new MysqlStorageConfiguration(config));
+  if (config.isMemoryEngineEnabled())   configs.put(StorageEngineType.MEMORY,new InMemoryStorageConfiguration());
+  if (config.isCacheEngineEnabled())   configs.put(StorageEngineType.CACHE,new CacheStorageConfiguration());
+  if (configs.size() == 0)   throw new ConfigurationException("No storage engine has been enabled!");
+  return configs;
+}

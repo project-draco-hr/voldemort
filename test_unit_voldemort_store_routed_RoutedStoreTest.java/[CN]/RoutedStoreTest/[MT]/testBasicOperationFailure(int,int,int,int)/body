@@ -1,0 +1,23 @@
+{
+  VectorClock clock=getClock(1);
+  Versioned<byte[]> versioned=new Versioned<byte[]>(aValue,clock);
+  RoutedStore routedStore=getStore(cluster,reads,cluster.getNumberOfNodes(),writes,threads,failures,0,new RouteToAllStrategy(cluster.getNodes()),new UnreachableStoreException("no go"));
+  try {
+    routedStore.put(aKey,versioned);
+    fail("Put succeeded with too few operational nodes.");
+  }
+ catch (  InsufficientOperationalNodesException e) {
+  }
+  try {
+    routedStore.get(aKey);
+    fail("Get succeeded with too few operational nodes.");
+  }
+ catch (  InsufficientOperationalNodesException e) {
+  }
+  try {
+    routedStore.delete(aKey,versioned.getVersion());
+    fail("Get succeeded with too few operational nodes.");
+  }
+ catch (  InsufficientOperationalNodesException e) {
+  }
+}

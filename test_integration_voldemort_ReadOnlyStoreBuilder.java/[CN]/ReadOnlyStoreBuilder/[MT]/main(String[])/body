@@ -1,0 +1,38 @@
+{
+  if (args.length != 6)   Utils.croak("USAGE: java MmapStoreBuilder store_name input_file output_dir cluster.xml stores.xml sort_buffer_size");
+  String storeName=args[0];
+  String inputFile=args[1];
+  String outputDir=args[2];
+  String clusterFile=args[3];
+  String storesFile=args[4];
+  int sortBufferSize=Integer.parseInt(args[5]);
+  BufferedReader reader=new BufferedReader(new FileReader(inputFile),5000000);
+  JsonReader jsonReader=new JsonReader(reader);
+  Pattern tab=Pattern.compile("\t");
+  SortedMap<ByteKey,String> lines=new TreeMap<ByteKey,String>();
+  for (String line=reader.readLine(); line != null; line=reader.readLine()) {
+    String[] pieces=tab.split(line.trim());
+    if (pieces.length != 2)     Utils.croak("Invalid line: " + line);
+    lines.put(new ByteKey(ByteUtils.md5(pieces[0].getBytes())),line);
+  }
+  reader.close();
+  DataOutputStream index=null;
+  DataOutputStream data=null;
+  long position=0;
+  for (  ByteKey key : lines.keySet()) {
+    String line=lines.get(key);
+    String[] pieces=tab.split(line);
+    index.write(ByteUtils.md5(pieces[0].getBytes()));
+    index.writeLong(position);
+    System.out.println("Wrote " + pieces[0] + " "+ pieces[0].getBytes()+ " to "+ position);
+    byte[] theValue=pieces[1].getBytes();
+    data.writeInt(theValue.length);
+    data.write(theValue);
+    byte[] theKey=pieces[0].getBytes();
+    data.writeInt(theKey.length);
+    data.write(theKey);
+    position+=theKey.length + theValue.length + 4+ 4;
+  }
+  index.close();
+  data.close();
+}

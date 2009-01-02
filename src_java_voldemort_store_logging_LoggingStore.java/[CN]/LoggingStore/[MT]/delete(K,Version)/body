@@ -1,0 +1,16 @@
+{
+  long startTimeNs=0;
+  boolean succeeded=false;
+  if (logger.isDebugEnabled())   startTimeNs=time.getNanoseconds();
+  try {
+    boolean deletedSomething=getInnerStore().delete(key,version);
+    succeeded=true;
+    return deletedSomething;
+  }
+  finally {
+    if (logger.isDebugEnabled()) {
+      double elapsedMs=(time.getNanoseconds() - startTimeNs) / (double)Time.NS_PER_MS;
+      logger.debug("DELETE from store '" + getName() + "' completed "+ (succeeded ? "successfully" : "unsuccessfully")+ " in "+ elapsedMs+ " ms.");
+    }
+  }
+}

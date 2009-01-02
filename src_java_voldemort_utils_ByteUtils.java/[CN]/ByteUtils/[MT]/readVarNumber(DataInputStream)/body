@@ -1,0 +1,30 @@
+{
+  int b=0xFF & input.readByte();
+  if ((b & MASK_10000000) == 0) {
+    return MASK_01111111 & b;
+  }
+ else   if ((b & MASK_11000000) == MASK_10000000) {
+    long val=(b & MASK_00111111) << Byte.SIZE;
+    val|=0xFF & input.readByte();
+    return val;
+  }
+ else   if ((b & MASK_11100000) == MASK_11000000) {
+    long val=(b & MASK_00011111);
+    for (int i=0; i < 3; i++) {
+      val<<=Byte.SIZE;
+      val|=0xFF & input.readByte();
+    }
+    return val;
+  }
+ else   if ((b & MASK_11100000) == MASK_11100000) {
+    long val=(b & MASK_00011111);
+    for (int i=0; i < 7; i++) {
+      val<<=Byte.SIZE;
+      val|=0xFF & input.readByte();
+    }
+    return val;
+  }
+ else {
+    throw new IllegalArgumentException("Unknown prefix!");
+  }
+}

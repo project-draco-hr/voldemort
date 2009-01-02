@@ -1,0 +1,10 @@
+{
+  int id=Integer.parseInt(server.getChildText(SERVER_ID_ELMT));
+  String host=server.getChildText(HOST_ELMT);
+  int httpPort=Integer.parseInt(server.getChildText(HTTP_PORT_ELMT));
+  int socketPort=Integer.parseInt(server.getChildText(SOCKET_PORT_ELMT));
+  String partitionsText=server.getChildText(SERVER_PARTITIONS_ELMT).trim();
+  List<Integer> partitions=new ArrayList<Integer>();
+  for (  String aPartition : COMMA_SEP.split(partitionsText))   partitions.add(Integer.parseInt(aPartition.trim()));
+  return new Node(id,host,httpPort,socketPort,partitions);
+}

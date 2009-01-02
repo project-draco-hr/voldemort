@@ -1,0 +1,13 @@
+{
+  super();
+  this.name=Objects.nonNull(name);
+  this.schemaInfoByVersion=new HashMap<Integer,String>();
+  int max=-1;
+  for (  Integer key : metaInfos.keySet()) {
+    if (key < 0)     throw new IllegalArgumentException("Version cannot be less than 0.");
+ else     if (key > Byte.MAX_VALUE)     throw new IllegalArgumentException("Version cannot be more than " + Byte.MAX_VALUE);
+    if (key > max)     max=key;
+    this.schemaInfoByVersion.put(key,metaInfos.get(key));
+  }
+  this.currentSchemaVersion=max;
+}

@@ -1,0 +1,15 @@
+{
+  skipWhitespace();
+  int intPiece=readInt();
+  if (isTerminator(current()))   return intPiece;
+  double doublePiece=intPiece;
+  if (current() == '.')   doublePiece+=readFraction();
+  if (current() == 'e' || current() == 'E') {
+    next();
+    skipIf('+');
+    int frac=readInt();
+    doublePiece*=Math.pow(10,frac);
+  }
+  if (isTerminator(current()))   return doublePiece;
+ else   throw new SerializationException("Invalid number format for number on line " + lineOffset + ": "+ getCurrentContext());
+}

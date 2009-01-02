@@ -1,0 +1,19 @@
+{
+  fileModificationLock.writeLock().lock();
+  try {
+    this.indexFileSize=getFileSize(indexFiles);
+    this.dataFileSize=getFileSize(dataFiles);
+    this.indexFiles=new ArrayBlockingQueue<RandomAccessFile>(numFileHandles);
+    this.dataFiles=new ArrayBlockingQueue<RandomAccessFile>(numFileHandles);
+    for (int i=0; i < numFileHandles; i++) {
+      indexFiles.add(new RandomAccessFile(indexFile,"r"));
+      dataFiles.add(new RandomAccessFile(dataFile,"r"));
+    }
+  }
+ catch (  FileNotFoundException e) {
+    throw new VoldemortException("Could not open store.",e);
+  }
+ finally {
+    fileModificationLock.writeLock().unlock();
+  }
+}

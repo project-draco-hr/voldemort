@@ -1,0 +1,15 @@
+{
+  Connection conn=null;
+  PreparedStatement stmt=null;
+  ResultSet rs=null;
+  String select="select key_, version_, value_ from " + name;
+  try {
+    conn=datasource.getConnection();
+    stmt=conn.prepareStatement(select);
+    rs=stmt.executeQuery();
+    return new MysqlClosableIterator(conn,stmt,rs);
+  }
+ catch (  SQLException e) {
+    throw new PersistenceFailureException("Fix me!",e);
+  }
+}

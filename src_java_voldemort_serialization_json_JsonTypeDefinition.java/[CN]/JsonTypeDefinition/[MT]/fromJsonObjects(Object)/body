@@ -1,0 +1,23 @@
+{
+  if (o instanceof Map) {
+    Map<String,Object> m=(Map<String,Object>)o;
+    Map<String,Object> newM=new LinkedHashMap<String,Object>(m.size());
+    List<String> keys=new ArrayList<String>((m.keySet()));
+    Collections.sort(keys);
+    for (    String key : keys)     newM.put(key,fromJsonObjects(m.get(key)));
+    return newM;
+  }
+ else   if (o instanceof List) {
+    List<?> l=(List<?>)o;
+    if (l.size() != 1)     throw new SerializationException("List type must have a single entry specifying entry type.");
+    List<Object> newL=new ArrayList<Object>(1);
+    newL.add(fromJsonObjects(l.get(0)));
+    return newL;
+  }
+ else   if (o instanceof String) {
+    return JsonTypes.fromDisplay((String)o);
+  }
+ else {
+    throw new SerializationException(o + " is not a string, an array, or an object, " + "so it is not valid in a type definition.");
+  }
+}

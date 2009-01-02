@@ -1,0 +1,9 @@
+{
+  for (  Versioned<Slop> s : slops)   slopStore.put(s.getValue().makeKey(),s);
+  pusher.run();
+  for (  Versioned<Slop> vs : slops) {
+    Slop slop=vs.getValue();
+    assertEquals("Slop remains.",0,slopStore.get(slop.makeKey()).size());
+    assertTrue(bytesEqual(slop.getValue(),stores.get(slop.getNodeId()).get(slop.makeKey()).get(0).getValue()));
+  }
+}

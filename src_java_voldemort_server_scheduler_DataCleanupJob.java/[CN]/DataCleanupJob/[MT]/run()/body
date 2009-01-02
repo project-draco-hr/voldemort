@@ -1,0 +1,36 @@
+{
+  acquireCleanupPermit();
+  ClosableIterator<Entry<K,Versioned<V>>> iterator;
+  try {
+    logger.info("Starting data cleanup on store \"" + store.getName() + "\"...");
+    int deleted=0;
+    long now=time.getMilliseconds();
+    iterator=store.entries();
+    try {
+      while (iterator.hasNext()) {
+        if (Thread.currentThread().isInterrupted()) {
+          logger.info("Datacleanup job halted.");
+          return;
+        }
+        Entry<K,Versioned<V>> entry=iterator.next();
+        VectorClock clock=(VectorClock)entry.getValue().getVersion();
+        if (now - clock.getTimestamp() > maxAgeMs) {
+          store.delete(entry.getKey(),clock);
+          deleted++;
+        }
+      }
+    }
+ catch (    RuntimeException e) {
+      iterator.close();
+      logger.error("Error during data cleanup",e);
+      throw e;
+    }
+ finally {
+      if (iterator != null)       iterator.close();
+    }
+    logger.info("Data cleanup on store \"" + store.getName() + "\" is complete; "+ deleted+ " items deleted.");
+  }
+  finally {
+    this.cleanupPermits.release();
+  }
+}

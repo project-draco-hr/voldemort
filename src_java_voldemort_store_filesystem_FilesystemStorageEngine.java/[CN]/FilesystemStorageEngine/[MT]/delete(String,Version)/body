@@ -1,0 +1,12 @@
+{
+  StoreUtils.assertValidKey(key);
+  File[] files=this.directory.listFiles();
+  boolean deletedSomething=false;
+  for (  File file : files) {
+    if (file.getName().startsWith(key)) {
+      VectorClock clock=getVersion(file);
+      if (clock.compare(version) == Occured.BEFORE)       deletedSomething|=file.delete();
+    }
+  }
+  return deletedSomething;
+}

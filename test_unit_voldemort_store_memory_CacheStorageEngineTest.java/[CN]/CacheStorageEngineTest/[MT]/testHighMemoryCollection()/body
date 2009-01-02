@@ -1,0 +1,6 @@
+{
+  long maxMemory=Runtime.getRuntime().maxMemory();
+  int objectSize=Math.max((int)maxMemory / NUM_OBJECTS,1);
+  StorageEngine<byte[],byte[]> engine=getStorageEngine();
+  for (int i=0; i < NUM_OBJECTS; i++)   engine.put(Integer.toString(i).getBytes(),new Versioned<byte[]>(TestUtils.randomBytes(objectSize)));
+}

@@ -1,0 +1,8 @@
+{
+  InconsistencyResolver<Versioned<V>> secondaryResolver=new TimeBasedInconsistencyResolver();
+  if (inconsistencyResolver != null)   secondaryResolver=inconsistencyResolver;
+  Store store=new VersionIncrementingStore(new InMemoryStorageEngine(storeName),nodeId,time);
+  if (isSerialized())   store=new SerializingStore(store,keySerializer,valueSerializer);
+  Store<K,V> consistentStore=new InconsistencyResolvingStore<K,V>(store,new ChainedResolver<Versioned<V>>(new VectorClockInconsistencyResolver(),secondaryResolver));
+  return new DefaultStoreClient(consistentStore,keySerializer,valueSerializer,null);
+}

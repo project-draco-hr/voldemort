@@ -1,0 +1,25 @@
+{
+  try {
+    Connector connector=new SelectChannelConnector();
+    connector.setLowResourceMaxIdleTime(3000);
+    connector.setPort(this.port);
+    BoundedThreadPool threadPool=new BoundedThreadPool();
+    threadPool.setName("VoldemortHttp");
+    threadPool.setMaxThreads(this.numberOfThreads);
+    Server httpServer=new Server();
+    httpServer.setConnectors(new Connector[]{connector});
+    httpServer.setThreadPool(threadPool);
+    httpServer.setSendServerVersion(false);
+    httpServer.setSendDateHeader(false);
+    Context context=new Context(httpServer,"/",Context.NO_SESSIONS);
+    context.setAttribute(VoldemortServletContextListener.SERVER_CONFIG_KEY,server);
+    context.addServlet(new ServletHolder(new AdminServlet(server,velocityEngine)),"/admin");
+    context.addServlet(new ServletHolder(new StoreServlet(server.getStoreMap())),"/*");
+    this.context=context;
+    this.httpServer=httpServer;
+    this.httpServer.start();
+  }
+ catch (  Exception e) {
+    throw new VoldemortException(e);
+  }
+}

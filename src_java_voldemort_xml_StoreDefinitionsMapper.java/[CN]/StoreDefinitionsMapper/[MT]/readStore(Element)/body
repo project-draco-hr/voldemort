@@ -1,0 +1,20 @@
+{
+  String name=store.getChildText(STORE_NAME_ELMT);
+  StorageEngineType storeType=StorageEngineType.fromDisplay(store.getChildText(STORE_PERSISTENCE_ELMT));
+  int replicationFactor=Integer.parseInt(store.getChildText(STORE_REPLICATION_FACTOR_ELMT));
+  int requiredReads=Integer.parseInt(store.getChildText(STORE_REQUIRED_READS_ELMT));
+  int requiredWrites=Integer.parseInt(store.getChildText(STORE_REQUIRED_WRITES_ELMT));
+  String preferredReadsStr=store.getChildText(STORE_PREFERRED_READS_ELMT);
+  Integer preferredReads=null;
+  if (preferredReadsStr != null)   preferredReads=Integer.parseInt(preferredReadsStr);
+  String preferredWritesStr=store.getChildText(STORE_PREFERRED_WRITES_ELMT);
+  Integer preferredWrites=null;
+  if (preferredWritesStr != null)   preferredWrites=Integer.parseInt(preferredWritesStr);
+  SerializerDefinition keySerializer=readSerializer(store.getChild(STORE_KEY_SERIALIZER_ELMT));
+  SerializerDefinition valueSerializer=readSerializer(store.getChild(STORE_VALUE_SERIALIZER_ELMT));
+  RoutingTier routingTier=RoutingTier.fromDisplay(store.getChildText(STORE_ROUTING_TIER_ELMT));
+  Element retention=store.getChild(STORE_RETENTION_POLICY_ELMT);
+  Integer retentionPolicyDays=null;
+  if (retention != null)   retentionPolicyDays=Integer.parseInt(retention.getText());
+  return new StoreDefinition(name,storeType,keySerializer,valueSerializer,routingTier,replicationFactor,preferredReads,requiredReads,preferredWrites,requiredWrites,retentionPolicyDays);
+}

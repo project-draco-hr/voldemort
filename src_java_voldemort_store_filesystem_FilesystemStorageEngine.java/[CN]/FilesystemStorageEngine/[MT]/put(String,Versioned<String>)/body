@@ -1,0 +1,20 @@
+{
+  StoreUtils.assertValidKey(key);
+  File[] files=this.directory.listFiles();
+  for (  File file : files) {
+    if (file.getName().startsWith(key)) {
+      VectorClock clock=getVersion(file);
+      if (clock.compare(value.getVersion()) == Occured.AFTER)       throw new ObsoleteVersionException("A successor version to this exists.");
+    }
+  }
+  VectorClock clock=(VectorClock)value.getVersion();
+  String path=this.directory.getAbsolutePath() + File.separator + key+ '-'+ new String(Hex.encodeHex(clock.toBytes()));
+  File newFile=new File(path);
+  try {
+    if (!newFile.createNewFile())     throw new ObsoleteVersionException("File " + path + " already exists.");
+    FileUtils.writeStringToFile(newFile,value.getValue(),"UTF-8");
+  }
+ catch (  IOException e) {
+    throw new VoldemortException(e);
+  }
+}

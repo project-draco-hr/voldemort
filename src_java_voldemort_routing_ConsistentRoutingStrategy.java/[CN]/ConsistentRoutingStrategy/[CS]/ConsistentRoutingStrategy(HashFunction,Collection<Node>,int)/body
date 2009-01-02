@@ -1,0 +1,16 @@
+{
+  this.numResults=numReplicas;
+  this.hash=hash;
+  SortedMap<Integer,Node> m=new TreeMap<Integer,Node>();
+  for (  Node n : nodes) {
+    for (    Integer partition : n.getPartitionIds()) {
+      if (m.containsKey(partition))       throw new IllegalArgumentException("Duplicate partition id " + partition + " in cluster configuration.");
+      m.put(partition,n);
+    }
+  }
+  this.partitionToNode=new Node[m.size()];
+  for (int i=0; i < m.size(); i++) {
+    if (!m.containsKey(i))     throw new IllegalArgumentException("Missing tag " + i);
+    this.partitionToNode[i]=m.get(i);
+  }
+}

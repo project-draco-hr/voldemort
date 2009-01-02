@@ -1,0 +1,17 @@
+{
+  try {
+    ByteArrayOutputStream byteOutput=new ByteArrayOutputStream();
+    DataOutputStream output=new DataOutputStream(byteOutput);
+    output.writeByte(opCode);
+    if (opCode != VoldemortOpCode.GET_OP_CODE)     output.write(version.toBytes());
+    output.writeUTF(key);
+    if (opCode == VoldemortOpCode.PUT_OP_CODE) {
+      output.writeInt(value.length);
+      output.write(value);
+    }
+    return byteOutput.toByteArray();
+  }
+ catch (  IOException e) {
+    throw new SerializationException(e);
+  }
+}

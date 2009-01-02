@@ -1,0 +1,13 @@
+{
+  String delete="delete from " + name + " where key_ = ? and version_ = ?";
+  PreparedStatement deleteStmt=null;
+  try {
+    deleteStmt=connection.prepareStatement(delete);
+    deleteStmt.setBytes(1,key);
+    deleteStmt.setBytes(2,version);
+    deleteStmt.executeUpdate();
+  }
+  finally {
+    tryClose(deleteStmt);
+  }
+}

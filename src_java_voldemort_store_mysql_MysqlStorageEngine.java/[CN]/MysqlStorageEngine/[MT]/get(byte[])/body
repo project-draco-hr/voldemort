@@ -1,0 +1,28 @@
+{
+  StoreUtils.assertValidKey(key);
+  Connection conn=null;
+  PreparedStatement stmt=null;
+  ResultSet rs=null;
+  String select="select version_, value_ from " + name + " where key_ = ?";
+  try {
+    conn=datasource.getConnection();
+    stmt=conn.prepareStatement(select);
+    stmt.setBytes(1,key);
+    rs=stmt.executeQuery();
+    List<Versioned<byte[]>> found=Lists.newArrayList();
+    while (rs.next()) {
+      byte[] version=rs.getBytes("version_");
+      byte[] value=rs.getBytes("value_");
+      found.add(new Versioned<byte[]>(value,new VectorClock(version)));
+    }
+    return found;
+  }
+ catch (  SQLException e) {
+    throw new PersistenceFailureException("Fix me!",e);
+  }
+ finally {
+    tryClose(rs);
+    tryClose(stmt);
+    tryClose(conn);
+  }
+}

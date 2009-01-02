@@ -1,0 +1,27 @@
+{
+  skip('{');
+  skipWhitespace();
+  Map<String,Object> values=new HashMap<String,Object>();
+  while (current() != '}') {
+    skipWhitespace();
+    String key=readString();
+    skipWhitespace();
+    skip(':');
+    skipWhitespace();
+    Object value=read();
+    values.put(key,value);
+    skipWhitespace();
+    if (current() == ',') {
+      next();
+      skipWhitespace();
+    }
+ else     if (current() == '}') {
+      break;
+    }
+ else {
+      throw new SerializationException("Unexpected character '" + currentChar() + "' in object definition, expected '}' or ',' but found: "+ getCurrentContext());
+    }
+  }
+  skip('}');
+  return values;
+}

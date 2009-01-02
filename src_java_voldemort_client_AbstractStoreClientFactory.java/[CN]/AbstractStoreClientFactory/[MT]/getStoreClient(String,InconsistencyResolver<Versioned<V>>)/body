@@ -1,0 +1,23 @@
+{
+  String clusterXml=bootstrapMetadata(MetadataStore.CLUSTER_KEY,bootstrapUrls);
+  Cluster cluster=clusterMapper.readCluster(new StringReader(clusterXml));
+  String storesXml=bootstrapMetadata(MetadataStore.STORES_KEY,bootstrapUrls);
+  List<StoreDefinition> storeDefs=storeMapper.readStoreList(new StringReader(storesXml));
+  StoreDefinition storeDef=null;
+  for (  StoreDefinition d : storeDefs)   if (d.getName().equals(storeName))   storeDef=d;
+  if (storeDef == null)   throw new BootstrapFailureException("Unknown store '" + storeName + "'.");
+  RoutingStrategy routingStrategy=new ConsistentRoutingStrategy(cluster.getNodes(),storeDef.getReplicationFactor());
+  Map<Integer,Store<byte[],byte[]>> clientMapping=Maps.newHashMap();
+  for (  Node node : cluster.getNodes()) {
+    Store<byte[],byte[]> store=getStore(storeDef.getName(),node.getHost(),getPort(node));
+    if (enableVerboseLogging)     store=new LoggingStore(store);
+    clientMapping.put(node.getId(),store);
+  }
+  Store<byte[],byte[]> store=new RoutedStore(storeName,clientMapping,routingStrategy,storeDef.getPreferredReads() == null ? storeDef.getRequiredReads() : storeDef.getPreferredReads(),storeDef.getRequiredReads(),storeDef.getPreferredWrites() == null ? storeDef.getRequiredWrites() : storeDef.getRequiredWrites(),storeDef.getRequiredWrites(),true,threadPool,routingTimeoutMs,nodeBannageMs,SystemTime.INSTANCE);
+  Serializer<K> keySerializer=(Serializer<K>)serializerFactory.getSerializer(storeDef.getKeySerializer());
+  Serializer<V> valueSerializer=(Serializer<V>)serializerFactory.getSerializer(storeDef.getValueSerializer());
+  Store<K,V> serializingStore=new SerializingStore<K,V>(store,keySerializer,valueSerializer);
+  InconsistencyResolver<Versioned<V>> secondaryResolver=inconsistencyResolver == null ? new TimeBasedInconsistencyResolver() : inconsistencyResolver;
+  Store<K,V> resolvingStore=new InconsistencyResolvingStore<K,V>(serializingStore,new ChainedResolver<Versioned<V>>(new VectorClockInconsistencyResolver(),secondaryResolver));
+  return new DefaultStoreClient<K,V>(resolvingStore,keySerializer,valueSerializer,routingStrategy);
+}

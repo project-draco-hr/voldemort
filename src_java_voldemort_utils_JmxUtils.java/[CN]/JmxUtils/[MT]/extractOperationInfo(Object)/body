@@ -1,0 +1,31 @@
+{
+  ArrayList<ModelMBeanOperationInfo> infos=new ArrayList<ModelMBeanOperationInfo>();
+  for (  Method m : object.getClass().getMethods()) {
+    JmxOperation jmxOperation=m.getAnnotation(JmxOperation.class);
+    JmxGetter jmxGetter=m.getAnnotation(JmxGetter.class);
+    JmxSetter jmxSetter=m.getAnnotation(JmxSetter.class);
+    if (jmxOperation != null || jmxGetter != null || jmxSetter != null) {
+      String description="";
+      int visibility=1;
+      int impact=ModelMBeanOperationInfo.UNKNOWN;
+      if (jmxOperation != null) {
+        description=jmxOperation.description();
+        impact=jmxOperation.impact();
+      }
+ else       if (jmxGetter != null) {
+        description=jmxGetter.description();
+        impact=ModelMBeanOperationInfo.INFO;
+        visibility=4;
+      }
+ else       if (jmxSetter != null) {
+        description=jmxSetter.description();
+        impact=ModelMBeanOperationInfo.ACTION;
+        visibility=4;
+      }
+      ModelMBeanOperationInfo info=new ModelMBeanOperationInfo(m.getName(),description,extractParameterInfo(m),m.getReturnType().getName(),impact);
+      info.getDescriptor().setField("visibility",Integer.toString(visibility));
+      infos.add(info);
+    }
+  }
+  return infos.toArray(new ModelMBeanOperationInfo[infos.size()]);
+}

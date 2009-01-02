@@ -1,0 +1,31 @@
+{
+  if (bytes == null || bytes.length <= 1)   throw new SerializationException("Not enough bytes to serialize");
+  DataInputStream inputStream=new DataInputStream(new ByteArrayInputStream(bytes));
+  try {
+    this.opCode=inputStream.readByte();
+switch (opCode) {
+case VoldemortOpCode.GET_OP_CODE:
+      this.version=null;
+    this.key=inputStream.readUTF();
+  this.value=null;
+break;
+case VoldemortOpCode.PUT_OP_CODE:
+this.version=new VectorClock(bytes,1);
+this.key=inputStream.readUTF();
+int valueSize=inputStream.readInt();
+this.value=new byte[valueSize];
+inputStream.read(this.value);
+break;
+case VoldemortOpCode.DELETE_OP_CODE:
+this.version=new VectorClock(bytes,1);
+this.key=inputStream.readUTF();
+this.value=null;
+break;
+default :
+throw new SerializationException("Unknown opcode: " + bytes[0]);
+}
+}
+ catch (IOException e) {
+throw new SerializationException(e);
+}
+}

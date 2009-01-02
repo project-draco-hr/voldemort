@@ -1,0 +1,11 @@
+{
+  try {
+    SchemaFactory factory=SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    Source source=new StreamSource(StoreDefinitionsMapper.class.getResourceAsStream("stores.xsd"));
+    Schema schema=factory.newSchema(source);
+    this.validator=schema.newValidator();
+  }
+ catch (  SAXException e) {
+    throw new MappingException(e);
+  }
+}

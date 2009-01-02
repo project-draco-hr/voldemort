@@ -1,0 +1,24 @@
+{
+  VectorClock newClock=new VectorClock();
+  int i=0;
+  int j=0;
+  while (i < this.versions.size() && j < clock.versions.size()) {
+    ClockEntry v1=this.versions.get(i);
+    ClockEntry v2=clock.versions.get(j);
+    if (v1.getNodeId() == v2.getNodeId()) {
+      newClock.versions.add(new ClockEntry(v1.getNodeId(),(short)Math.max(v1.getVersion(),v2.getVersion())));
+      i++;
+      j++;
+    }
+ else     if (v1.getNodeId() < v2.getNodeId()) {
+      newClock.versions.add((ClockEntry)v1.clone());
+      i++;
+    }
+ else {
+      newClock.versions.add((ClockEntry)v2.clone());
+    }
+  }
+  for (int k=i; k < this.versions.size(); k++)   newClock.versions.add((ClockEntry)this.versions.get(k).clone());
+  for (int k=j; k < this.versions.size(); k++)   newClock.versions.add((ClockEntry)clock.versions.get(k).clone());
+  return newClock;
+}

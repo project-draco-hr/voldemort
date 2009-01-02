@@ -1,0 +1,23 @@
+{
+  if (hasNextInCurrentList()) {
+    return getFromCurrentList();
+  }
+ else {
+    while (true) {
+      KeyWrapper key=null;
+      List<Versioned<V>> list=null;
+      do {
+        key=iterator.next();
+        list=map.get(key);
+      }
+ while (list == null);
+synchronized (list) {
+        if (list.size() == 0)         continue;
+        currentKey=(K)key.get();
+        currentList=new ArrayList<Versioned<V>>(list);
+        listIndex=0;
+        return getFromCurrentList();
+      }
+    }
+  }
+}

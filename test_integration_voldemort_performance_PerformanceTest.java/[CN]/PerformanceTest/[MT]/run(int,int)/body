@@ -1,0 +1,50 @@
+{
+  setUp();
+  try {
+    this.numberOfThreads=numThreads;
+    this.hasCompleted=false;
+    this.numberOfFailures.set(0);
+    this.operationTimes=new long[numRequests];
+    ExecutorService executor=Executors.newFixedThreadPool(numThreads);
+    final CountDownLatch latch=new CountDownLatch(numRequests);
+    final AtomicInteger index=new AtomicInteger(0);
+    long start=System.nanoTime();
+    for (int i=0; i < numRequests; i++) {
+      executor.execute(new Runnable(){
+        public void run(){
+          int current=index.getAndIncrement();
+          long begin=System.nanoTime();
+          try {
+            doOperation(current);
+          }
+ catch (          Exception e) {
+            numberOfFailures.getAndIncrement();
+            e.printStackTrace();
+          }
+ finally {
+            operationTimes[current]=System.nanoTime() - begin;
+            latch.countDown();
+          }
+        }
+      }
+);
+    }
+    try {
+      latch.await();
+    }
+ catch (    InterruptedException e) {
+      e.printStackTrace();
+    }
+    this.hasCompleted=true;
+    this.elapsedTimeNs=System.nanoTime() - start;
+    executor.shutdownNow();
+    try {
+      executor.awaitTermination(1,TimeUnit.SECONDS);
+    }
+ catch (    InterruptedException e) {
+    }
+  }
+  finally {
+    tearDown();
+  }
+}

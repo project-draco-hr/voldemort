@@ -1,0 +1,42 @@
+{
+  int numNodes=cluster.getNumberOfNodes();
+  DataOutputStream[] indexes=new DataOutputStream[numNodes];
+  DataOutputStream[] datas=new DataOutputStream[numNodes];
+  int current=0;
+  for (  Node node : cluster.getNodes()) {
+    File indexFile=new File(outputDir,node.getId() + ".index");
+    File dataFile=new File(outputDir,node.getId() + ".data");
+    indexes[current]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(indexFile)));
+    datas[current]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dataFile)));
+    current++;
+  }
+  String keySchema=storeDefinition.getKeySerializer().getCurrentSchemaInfo();
+  String valueSchema=storeDefinition.getValueSerializer().getCurrentSchemaInfo();
+  Serializer<Object> keySerializer=new JsonTypeSerializer(keySchema);
+  Serializer<Object> valueSerializer=new JsonTypeSerializer(valueSchema);
+  logger.info("Reading items...");
+  int count=0;
+  ExternalSorter<KeyValuePair> sorter=new ExternalSorter<KeyValuePair>(new KeyValuePairSerializer(),new KeyMd5Comparator(),internalSortSize);
+  JsonObjectIterator iter=new JsonObjectIterator(reader,keySerializer,valueSerializer);
+  long position=0;
+  for (  KeyValuePair pair : sorter.sorted(iter)) {
+    List<Node> nodes=this.routingStrategy.routeRequest(pair.getKey());
+    byte[] keyMd5=pair.getKeyMd5();
+    for (int i=0; i < this.storeDefinition.getReplicationFactor(); i++) {
+      int nodeId=nodes.get(i).getId();
+      int numBytes=pair.getValue().length;
+      datas[nodeId].writeInt(numBytes);
+      datas[nodeId].write(pair.getValue());
+      indexes[nodeId].write(keyMd5);
+      indexes[nodeId].writeLong(position);
+      position+=numBytes + 4;
+    }
+    count++;
+  }
+  logger.info(count + " items read.");
+  logger.info("Closing all store files");
+  for (int i=0; i < numNodes; i++) {
+    indexes[i].close();
+    datas[i].close();
+  }
+}
