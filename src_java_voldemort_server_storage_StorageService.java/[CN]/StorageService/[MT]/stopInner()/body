@@ -13,7 +13,7 @@
   }
   VoldemortException exception=null;
   logger.info("Closing stores:");
-  for (  Store<byte[],byte[]> s : this.storeMap.values()) {
+  for (  Store<byte[],byte[]> s : this.localStoreMap.values()) {
     try {
       logger.info("Closing " + s.getName() + ".");
       s.close();
@@ -23,7 +23,7 @@
       exception=e;
     }
   }
-  this.storeMap.clear();
+  this.localStoreMap.clear();
   logger.info("Closing storage configurations:");
   for (  StorageConfiguration config : storageConfigurations.values()) {
     try {
