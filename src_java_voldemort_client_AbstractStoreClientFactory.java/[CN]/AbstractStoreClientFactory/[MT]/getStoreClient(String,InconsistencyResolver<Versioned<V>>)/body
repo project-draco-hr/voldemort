@@ -9,7 +9,6 @@
   RoutingStrategy routingStrategy=new ConsistentRoutingStrategy(cluster.getNodes(),storeDef.getReplicationFactor());
   Map<Integer,Store<byte[],byte[]>> clientMapping=Maps.newHashMap();
   for (  Node node : cluster.getNodes()) {
-    logger.info("Adding node :" + node.getId() + " Store:"+ storeDef.getName()+ " host:"+ node.getHost()+ " port:"+ getPort(node));
     Store<byte[],byte[]> store=getStore(storeDef.getName(),node.getHost(),getPort(node));
     if (enableVerboseLogging)     store=new LoggingStore(store);
     clientMapping.put(node.getId(),store);

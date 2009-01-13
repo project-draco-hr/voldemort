@@ -1,14 +1,12 @@
 {
-  logger.info("Close called for read-only store.");
+  logger.debug("Close called for read-only store.");
   this.fileModificationLock.writeLock().lock();
   try {
     while (this.indexFiles.size() > 0) {
-      logger.info("close file channel Index");
-      RandomAccessFile f=this.indexFiles.poll();
+      RandomAccessFile f=this.indexFiles.take();
       f.close();
     }
     while (this.dataFiles.size() > 0) {
-      logger.info("close file channel Data");
       RandomAccessFile f=this.dataFiles.poll();
       f.close();
     }
@@ -16,9 +14,10 @@
  catch (  IOException e) {
     throw new VoldemortException("Error while closing store.",e);
   }
+catch (  InterruptedException e) {
+    throw new VoldemortException("Interrupted while waiting for file descriptor.");
+  }
  finally {
-    logger.info("Trying to unlock lock");
     this.fileModificationLock.writeLock().unlock();
   }
-  logger.info("read-only store closed.");
 }
