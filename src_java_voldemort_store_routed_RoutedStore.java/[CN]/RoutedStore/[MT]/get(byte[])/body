@@ -1,7 +1,6 @@
 {
   StoreUtils.assertValidKey(key);
   final List<Node> nodes=routingStrategy.routeRequest(key);
-  System.out.println("Get called: key:" + key);
   if (nodes.size() < this.requiredReads)   throw new InsufficientOperationalNodesException("Only " + nodes.size() + " nodes in preference list, but "+ this.requiredReads+ " reads required.");
   final List<Versioned<byte[]>> retrieved=Collections.synchronizedList(new ArrayList<Versioned<byte[]>>());
   final List<NodeValue<byte[],byte[]>> nodeValues=Collections.synchronizedList(new ArrayList<NodeValue<byte[],byte[]>>());
@@ -11,9 +10,7 @@
   int nodeIndex=0;
   for (; nodeIndex < this.preferredReads; nodeIndex++) {
     final Node node=nodes.get(nodeIndex);
-    System.out.println("Querying node:" + node.getId() + " key:"+ key);
     if (isAvailable(node)) {
-      System.out.println("Available node:" + node.getId() + " key:"+ key);
       this.executor.execute(new Runnable(){
         public void run(){
           try {
