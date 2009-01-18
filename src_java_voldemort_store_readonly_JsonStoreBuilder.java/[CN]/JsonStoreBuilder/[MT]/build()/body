@@ -10,10 +10,9 @@
     datas[current]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dataFile)));
     current++;
   }
-  String keySchema=storeDefinition.getKeySerializer().getCurrentSchemaInfo();
-  String valueSchema=storeDefinition.getValueSerializer().getCurrentSchemaInfo();
-  Serializer<Object> keySerializer=new JsonTypeSerializer(keySchema);
-  Serializer<Object> valueSerializer=new JsonTypeSerializer(valueSchema);
+  SerializerFactory factory=new DefaultSerializerFactory();
+  Serializer keySerializer=factory.getSerializer(storeDefinition.getKeySerializer());
+  Serializer valueSerializer=factory.getSerializer(storeDefinition.getValueSerializer());
   logger.info("Reading items...");
   int count=0;
   ExternalSorter<KeyValuePair> sorter=new ExternalSorter<KeyValuePair>(new KeyValuePairSerializer(),new KeyMd5Comparator(),internalSortSize);
