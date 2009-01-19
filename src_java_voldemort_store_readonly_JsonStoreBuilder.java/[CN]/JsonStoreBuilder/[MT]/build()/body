@@ -6,8 +6,8 @@
   for (  Node node : cluster.getNodes()) {
     File indexFile=new File(outputDir,node.getId() + ".index");
     File dataFile=new File(outputDir,node.getId() + ".data");
-    indexes[current]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(indexFile)));
-    datas[current]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dataFile)));
+    indexes[current]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(indexFile),1000000));
+    datas[current]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dataFile),1000000));
     current++;
   }
   SerializerFactory factory=new DefaultSerializerFactory();
@@ -21,7 +21,7 @@
   MessageDigest digest=ByteUtils.getDigest("MD5");
   for (  KeyValuePair pair : sorter.sorted(iter)) {
     List<Node> nodes=this.routingStrategy.routeRequest(pair.getKey());
-    byte[] keyMd5=pair.getKeyMd5(digest);
+    byte[] keyMd5=pair.getKeyMd5();
     digest.reset();
     for (int i=0; i < this.storeDefinition.getReplicationFactor(); i++) {
       int nodeId=nodes.get(i).getId();

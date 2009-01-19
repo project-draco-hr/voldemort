@@ -1,12 +1,21 @@
 {
   ExecutorService executor=new ThreadPoolExecutor(this.numThreads,this.numThreads,1000L,TimeUnit.MILLISECONDS,new SynchronousQueue<Runnable>(),new CallerRunsPolicy());
+  final AtomicInteger count=new AtomicInteger(0);
   final List<File> tempFiles=Collections.synchronizedList(new ArrayList<File>());
   while (input.hasNext()) {
-    final List<V> buffer=new ArrayList<V>(internalSortSize);
-    for (int i=0; i < internalSortSize && input.hasNext(); i++)     buffer.add(input.next());
+    final int chunkId=count.getAndIncrement();
+    final long chunkStart=System.currentTimeMillis();
+    logger.info("Chunk " + chunkId + ": filling sort buffer for chunk...");
+    @SuppressWarnings("unchecked") final V[] buffer=(V[])new Object[internalSortSize];
+    for (int i=0; i < internalSortSize && input.hasNext(); i++)     buffer[i]=input.next();
+    logger.info("Chunk " + chunkId + ": sort buffer filled...adding to sort queue.");
     executor.execute(new Runnable(){
       public void run(){
-        Collections.sort(buffer,comparator);
+        logger.info("Chunk " + chunkId + ": sorting buffer.");
+        long start=System.currentTimeMillis();
+        Arrays.sort(buffer,comparator);
+        long ellapsed=System.currentTimeMillis() - start;
+        logger.info("Chunk " + chunkId + ": sort completed in "+ ellapsed+ " ms, writing to temp file.");
         try {
           File tempFile=File.createTempFile("chunk-",".dat",tempDir);
           tempFile.deleteOnExit();
@@ -18,6 +27,8 @@
  catch (        IOException e) {
           throw new VoldemortException(e);
         }
+        long chunkEllapsed=System.currentTimeMillis() - chunkStart;
+        logger.info("Chunk " + chunkId + ": completed processing of chunk in "+ chunkEllapsed+ " ms.");
       }
     }
 );

@@ -5,5 +5,7 @@
   byte[] value=new byte[valueSize];
   System.arraycopy(bytes,8,key,0,keySize);
   System.arraycopy(bytes,8 + keySize,value,0,valueSize);
-  return new KeyValuePair(key,value);
+  byte[] md5=digest.digest(key);
+  digest.reset();
+  return new KeyValuePair(key,md5,value);
 }
