@@ -1,11 +1,12 @@
 {
-  if (args.length != 6)   Utils.croak("USAGE: java " + JsonStoreBuilder.class.getName() + " cluster.xml store_definitions.xml store_name sort_obj_buffer_size input_data output_dir");
+  if (args.length != 7)   Utils.croak("USAGE: java " + JsonStoreBuilder.class.getName() + " cluster.xml store_definitions.xml store_name sort_obj_buffer_size input_data output_dir num_threads");
   String clusterFile=args[0];
   String storeDefFile=args[1];
   String storeName=args[2];
   int sortBufferSize=Integer.parseInt(args[3]);
   String inputFile=args[4];
   File outputDir=new File(args[5]);
+  int numThreads=Integer.parseInt(args[6]);
   try {
     JsonReader reader=new JsonReader(new BufferedReader(new FileReader(inputFile)));
     Cluster cluster=new ClusterMapper().readCluster(new BufferedReader(new FileReader(clusterFile),1000000));
@@ -17,7 +18,7 @@
     if (storeDef == null)     Utils.croak("No store found with name \"" + storeName + "\"");
     if (!outputDir.exists())     Utils.croak("Directory \"" + outputDir.getAbsolutePath() + " does not exist.");
     ConsistentRoutingStrategy routingStrategy=new ConsistentRoutingStrategy(cluster.getNodes(),storeDef.getReplicationFactor());
-    new JsonStoreBuilder(reader,cluster,storeDef,routingStrategy,outputDir,sortBufferSize).build();
+    new JsonStoreBuilder(reader,cluster,storeDef,routingStrategy,outputDir,sortBufferSize,numThreads).build();
   }
  catch (  FileNotFoundException e) {
     Utils.croak(e.getMessage());

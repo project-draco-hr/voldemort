@@ -15,12 +15,14 @@
   Serializer valueSerializer=factory.getSerializer(storeDefinition.getValueSerializer());
   logger.info("Reading items...");
   int count=0;
-  ExternalSorter<KeyValuePair> sorter=new ExternalSorter<KeyValuePair>(new KeyValuePairSerializer(),new KeyMd5Comparator(),internalSortSize);
+  ExternalSorter<KeyValuePair> sorter=new ExternalSorter<KeyValuePair>(new KeyValuePairSerializer(),new KeyMd5Comparator(),internalSortSize,numThreads);
   JsonObjectIterator iter=new JsonObjectIterator(reader,keySerializer,valueSerializer);
   long position=0;
+  MessageDigest digest=ByteUtils.getDigest("MD5");
   for (  KeyValuePair pair : sorter.sorted(iter)) {
     List<Node> nodes=this.routingStrategy.routeRequest(pair.getKey());
-    byte[] keyMd5=pair.getKeyMd5();
+    byte[] keyMd5=pair.getKeyMd5(digest);
+    digest.reset();
     for (int i=0; i < this.storeDefinition.getReplicationFactor(); i++) {
       int nodeId=nodes.get(i).getId();
       int numBytes=pair.getValue().length;

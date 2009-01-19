@@ -1,21 +1,33 @@
 {
-  List<File> tempFiles=new ArrayList<File>();
-  List<V> buffer=new ArrayList<V>(internalSortSize);
+  ExecutorService executor=new ThreadPoolExecutor(this.numThreads,this.numThreads,1000L,TimeUnit.MILLISECONDS,new SynchronousQueue<Runnable>(),new CallerRunsPolicy());
+  final List<File> tempFiles=Collections.synchronizedList(new ArrayList<File>());
   while (input.hasNext()) {
+    final List<V> buffer=new ArrayList<V>(internalSortSize);
     for (int i=0; i < internalSortSize && input.hasNext(); i++)     buffer.add(input.next());
-    Collections.sort(buffer,comparator);
-    try {
-      File tempFile=File.createTempFile("chunk-",".dat",tempDir);
-      tempFile.deleteOnExit();
-      tempFiles.add(tempFile);
-      DataOutputStream output=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(tempFile),bufferSize));
-      for (      V v : buffer)       writeValue(output,v);
-      output.close();
-      buffer.clear();
+    executor.execute(new Runnable(){
+      public void run(){
+        Collections.sort(buffer,comparator);
+        try {
+          File tempFile=File.createTempFile("chunk-",".dat",tempDir);
+          tempFile.deleteOnExit();
+          tempFiles.add(tempFile);
+          DataOutputStream output=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(tempFile),bufferSize));
+          for (          V v : buffer)           writeValue(output,v);
+          output.close();
+        }
+ catch (        IOException e) {
+          throw new VoldemortException(e);
+        }
+      }
     }
- catch (    IOException e) {
-      throw new VoldemortException(e);
-    }
+);
   }
-  return new DefaultIterable<V>(new ExternalSorterIterator(tempFiles,bufferSize / tempFiles.size()));
+  executor.shutdown();
+  try {
+    executor.awaitTermination(Long.MAX_VALUE,TimeUnit.MILLISECONDS);
+    return new DefaultIterable<V>(new ExternalSorterIterator(tempFiles,bufferSize / tempFiles.size()));
+  }
+ catch (  InterruptedException e) {
+    throw new RuntimeException(e);
+  }
 }
