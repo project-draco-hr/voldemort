@@ -1,0 +1,16 @@
+{
+  if ("swap".equals(getRequired(req,"operation"))) {
+    String indexFile=getRequired(req,"index");
+    String dataFile=getRequired(req,"data");
+    String storeName=getRequired(req,"store");
+    if (!stores.containsKey(storeName))     throw new ServletException("'" + storeName + "' is not a registered read-only store.");
+    if (!Utils.isReadableFile(indexFile))     throw new ServletException("Index file '" + indexFile + "' is not a readable file.");
+    if (!Utils.isReadableFile(dataFile))     throw new ServletException("Data file '" + dataFile + "' is not a readable file.");
+    RandomAccessFileStore store=stores.get(storeName);
+    store.swapFiles(indexFile,dataFile);
+    resp.getWriter().write("Swap completed.");
+  }
+ else {
+    throw new IllegalArgumentException("Unknown operation parameter: " + req.getParameter("operation"));
+  }
+}

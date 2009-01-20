@@ -1,3 +1,7 @@
 {
-  return new RandomAccessFileStore(name,storageDir,numBackups,numFileHandles,fileAccessWaitTimeoutMs);
+  RandomAccessFileStore store=new RandomAccessFileStore(name,storageDir,numBackups,numFileHandles,fileAccessWaitTimeoutMs);
+  ObjectName objName=JmxUtils.createObjectName(JmxUtils.getPackageName(store.getClass()),name);
+  JmxUtils.registerMbean(ManagementFactory.getPlatformMBeanServer(),JmxUtils.createModelMBean(store),objName);
+  registeredBeans.add(objName);
+  return store;
 }

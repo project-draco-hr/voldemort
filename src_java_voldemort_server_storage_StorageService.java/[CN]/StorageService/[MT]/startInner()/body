@@ -11,6 +11,7 @@
       logger.info("Opening " + def.getName() + ".");
       StorageEngine<byte[],byte[]> engine=getStore(def.getName(),def.getType());
       rawEngines.put(engine.getName(),engine);
+      if (def.getType().equals(StorageEngineType.READONLY))       this.readOnlyStores.put(engine.getName(),(RandomAccessFileStore)engine);
       Store<byte[],byte[]> store=engine;
       if (voldemortConfig.isSlopDetectionEnabled()) {
         RoutingStrategy routingStrategy=new ConsistentRoutingStrategy(cluster.getNodes(),def.getReplicationFactor());
