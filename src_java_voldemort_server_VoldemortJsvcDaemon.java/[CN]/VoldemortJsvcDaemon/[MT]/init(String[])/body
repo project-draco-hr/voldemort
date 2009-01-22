@@ -1,0 +1,13 @@
+{
+  VoldemortConfig config=null;
+  try {
+    if (args.length == 0)     config=VoldemortConfig.loadFromEnvironmentVariable();
+ else     if (args.length == 1)     config=VoldemortConfig.loadFromVoldemortHome(args[0]);
+ else     croak("USAGE: java " + VoldemortJsvcDaemon.class.getName() + " [voldemort_home_dir]");
+  }
+ catch (  Exception e) {
+    logger.error(e);
+    croak("Error while loading configuration: " + e.getMessage());
+  }
+  server=new VoldemortServer(config);
+}
