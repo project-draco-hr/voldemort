@@ -3,7 +3,8 @@
   if (def.hasSchemaInfo()) {
     for (    Map.Entry<Integer,String> entry : def.getAllSchemaInfoVersions().entrySet()) {
       Element schemaElmt=new Element(STORE_SERIALIZATION_META_ELMT);
-      schemaElmt.setAttribute(STORE_VERSION_ATTR,Integer.toString(entry.getKey()));
+      if (def.hasVersion())       schemaElmt.setAttribute(STORE_VERSION_ATTR,Integer.toString(entry.getKey()));
+ else       schemaElmt.setAttribute(STORE_VERSION_ATTR,"none");
       schemaElmt.setText(entry.getValue());
       parent.addContent(schemaElmt);
     }

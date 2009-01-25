@@ -1,0 +1,16 @@
+{
+  if (args.length < 2 || args.length > 3)   Utils.croak("USAGE: java VoldemortClientShell store_name bootstrap_url [command_file]");
+  String storeName=args[0];
+  String bootstrapUrl=args[1];
+  StoreClientFactory factory=new SocketStoreClientFactory(2,2,3,10,2000,2000,2000,bootstrapUrl);
+  DefaultStoreClient<Object,Object> client=null;
+  try {
+    client=(DefaultStoreClient<Object,Object>)factory.getStoreClient(storeName);
+  }
+ catch (  Exception e) {
+    Utils.croak("Could not connect to server: " + e.getMessage());
+  }
+  System.out.println("Established connection to " + storeName + " via "+ bootstrapUrl);
+  client.get("hello");
+  System.out.println("Got value");
+}
