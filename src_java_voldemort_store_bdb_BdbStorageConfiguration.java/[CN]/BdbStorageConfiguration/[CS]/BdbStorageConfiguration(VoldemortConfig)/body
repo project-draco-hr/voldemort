@@ -23,7 +23,10 @@
     databaseConfig.setNodeMaxEntries(config.getBdbBtreeFanout());
     databaseConfig.setTransactional(true);
     File bdbDir=new File(config.getBdbDataDirectory());
-    if (!bdbDir.exists())     bdbDir.mkdir();
+    if (!bdbDir.exists()) {
+      logger.info("Creating BDB data directory '" + bdbDir.getAbsolutePath() + "'.");
+      bdbDir.mkdirs();
+    }
     environment=new Environment(bdbDir,environmentConfig);
     isInitialized=true;
   }
