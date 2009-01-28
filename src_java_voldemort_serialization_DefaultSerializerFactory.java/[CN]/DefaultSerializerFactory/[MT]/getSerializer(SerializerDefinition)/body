@@ -14,6 +14,9 @@
     for (    Map.Entry<Integer,String> entry : serializerDef.getAllSchemaInfoVersions().entrySet())     versions.put(entry.getKey(),JsonTypeDefinition.fromJson(entry.getValue()));
     return new JsonTypeSerializer(versions);
   }
+ else   if (name.equals(PROTO_BUF_TYPE_NAME)) {
+    return new ProtoBufSerializer<Message>(serializerDef.getCurrentSchemaInfo());
+  }
  else {
     throw new IllegalArgumentException("No known serializer type: " + serializerDef.getName());
   }

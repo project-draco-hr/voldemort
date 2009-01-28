@@ -1,0 +1,13 @@
+{
+  try {
+    this.messageClass=(Class<T>)Class.forName(getJavaFqnForMessage(currentSchemaInfo),false,Thread.currentThread().getContextClassLoader());
+    if (!Message.class.isAssignableFrom(messageClass))     throw new IllegalArgumentException("Class provided should be a subtype of Message");
+    parseFromMethod=messageClass.getMethod("parseFrom",byte[].class);
+  }
+ catch (  NoSuchMethodException e) {
+    throw new IllegalArgumentException("No parseFrom static method found, the provided class is not a Message.",e);
+  }
+catch (  ClassNotFoundException e) {
+    throw new IllegalArgumentException(e);
+  }
+}
