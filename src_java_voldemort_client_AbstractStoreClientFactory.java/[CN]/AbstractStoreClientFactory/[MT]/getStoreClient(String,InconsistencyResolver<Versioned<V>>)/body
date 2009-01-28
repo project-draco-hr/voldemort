@@ -13,7 +13,7 @@
     if (enableVerboseLogging)     store=new LoggingStore(store);
     clientMapping.put(node.getId(),store);
   }
-  Store<byte[],byte[]> store=new RoutedStore(storeName,clientMapping,routingStrategy,storeDef.getPreferredReads() == null ? storeDef.getRequiredReads() : storeDef.getPreferredReads(),storeDef.getRequiredReads(),storeDef.getPreferredWrites() == null ? storeDef.getRequiredWrites() : storeDef.getRequiredWrites(),storeDef.getRequiredWrites(),true,threadPool,routingTimeoutMs,nodeBannageMs,SystemTime.INSTANCE);
+  Store<byte[],byte[]> store=new RoutedStore(storeName,clientMapping,routingStrategy,storeDef.getPreferredReads() == null ? storeDef.getRequiredReads() : storeDef.getPreferredReads(),storeDef.getRequiredReads(),storeDef.getPreferredWrites() == null ? storeDef.getRequiredWrites() : storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),true,threadPool,routingTimeoutMs,nodeBannageMs,SystemTime.INSTANCE);
   Serializer<K> keySerializer=(Serializer<K>)serializerFactory.getSerializer(storeDef.getKeySerializer());
   Serializer<V> valueSerializer=(Serializer<V>)serializerFactory.getSerializer(storeDef.getValueSerializer());
   Store<K,V> serializingStore=new SerializingStore<K,V>(store,keySerializer,valueSerializer);
