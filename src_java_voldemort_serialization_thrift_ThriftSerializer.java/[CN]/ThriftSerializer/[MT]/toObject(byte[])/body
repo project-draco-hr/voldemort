@@ -1,0 +1,31 @@
+{
+  MemoryBuffer buffer=new MemoryBuffer();
+  try {
+    buffer.write(bytes);
+  }
+ catch (  TTransportException e) {
+    throw new SerializationException(e);
+  }
+  TProtocol protocol=createThriftProtocol(buffer);
+  T msg=null;
+  try {
+    msg=messageClass.newInstance();
+    deserializeMethod.invoke(msg,protocol);
+  }
+ catch (  SecurityException e) {
+    throw new SerializationException(e);
+  }
+catch (  InstantiationException e) {
+    throw new SerializationException(e);
+  }
+catch (  IllegalAccessException e) {
+    throw new SerializationException(e);
+  }
+catch (  IllegalArgumentException e) {
+    throw new SerializationException(e);
+  }
+catch (  InvocationTargetException e) {
+    throw new SerializationException(e);
+  }
+  return msg;
+}

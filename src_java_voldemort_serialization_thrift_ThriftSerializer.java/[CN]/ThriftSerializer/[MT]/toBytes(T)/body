@@ -1,0 +1,20 @@
+{
+  MemoryBuffer buffer=new MemoryBuffer();
+  TProtocol protocol=createThriftProtocol(buffer);
+  try {
+    serializeMethod.invoke(object,protocol);
+  }
+ catch (  SecurityException e) {
+    throw new SerializationException(e);
+  }
+catch (  IllegalArgumentException e) {
+    throw new SerializationException(e);
+  }
+catch (  IllegalAccessException e) {
+    throw new SerializationException(e);
+  }
+catch (  InvocationTargetException e) {
+    throw new SerializationException(e);
+  }
+  return buffer.toByteArray();
+}

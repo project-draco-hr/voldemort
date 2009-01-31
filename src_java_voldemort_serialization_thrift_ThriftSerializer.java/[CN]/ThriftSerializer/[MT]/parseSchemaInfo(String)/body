@@ -1,0 +1,25 @@
+{
+  String[] thriftInfo=new String[2];
+  String javaToken=null;
+  String[] tokens=schemaInfo.split(";");
+  for (int i=0; i < tokens.length; i++) {
+    if (tokens[i].trim().startsWith("java")) {
+      javaToken=tokens[i];
+      break;
+    }
+  }
+  if (javaToken == null) {
+    throw new IllegalArgumentException(ONLY_JAVA_CLIENTS_SUPPORTED);
+  }
+  tokens=javaToken.split(",");
+  for (int i=0; i < tokens.length; i++) {
+    tokens[i]=tokens[i].trim();
+    if (tokens[i].startsWith("java=")) {
+      thriftInfo[0]=tokens[i].substring("java=".length());
+    }
+ else     if (tokens[i].startsWith("protocol=")) {
+      thriftInfo[1]=tokens[i].substring("protocol=".length());
+    }
+  }
+  return thriftInfo;
+}

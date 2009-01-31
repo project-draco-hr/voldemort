@@ -1,0 +1,65 @@
+{
+  TStruct struct=new TStruct("MockMessage");
+  oprot.writeStructBegin(struct);
+  TField field=new TField();
+  if (this.name != null) {
+    field.name="name";
+    field.type=TType.STRING;
+    field.id=1;
+    oprot.writeFieldBegin(field);
+    oprot.writeString(this.name);
+    oprot.writeFieldEnd();
+  }
+  if (this.mappings != null) {
+    field.name="mappings";
+    field.type=TType.MAP;
+    field.id=2;
+    oprot.writeFieldBegin(field);
+{
+      oprot.writeMapBegin(new TMap(TType.I64,TType.MAP,this.mappings.size()));
+      for (      long _iter14 : this.mappings.keySet()) {
+        oprot.writeI64(_iter14);
+{
+          oprot.writeMapBegin(new TMap(TType.STRING,TType.I32,this.mappings.get(_iter14).size()));
+          for (          String _iter15 : this.mappings.get(_iter14).keySet()) {
+            oprot.writeString(_iter15);
+            oprot.writeI32(this.mappings.get(_iter14).get(_iter15));
+          }
+          oprot.writeMapEnd();
+        }
+      }
+      oprot.writeMapEnd();
+    }
+    oprot.writeFieldEnd();
+  }
+  if (this.intList != null) {
+    field.name="intList";
+    field.type=TType.LIST;
+    field.id=3;
+    oprot.writeFieldBegin(field);
+{
+      oprot.writeListBegin(new TList(TType.I16,this.intList.size()));
+      for (      short _iter16 : this.intList) {
+        oprot.writeI16(_iter16);
+      }
+      oprot.writeListEnd();
+    }
+    oprot.writeFieldEnd();
+  }
+  if (this.strSet != null) {
+    field.name="strSet";
+    field.type=TType.SET;
+    field.id=4;
+    oprot.writeFieldBegin(field);
+{
+      oprot.writeSetBegin(new TSet(TType.STRING,this.strSet.size()));
+      for (      String _iter17 : this.strSet) {
+        oprot.writeString(_iter17);
+      }
+      oprot.writeSetEnd();
+    }
+    oprot.writeFieldEnd();
+  }
+  oprot.writeFieldStop();
+  oprot.writeStructEnd();
+}
