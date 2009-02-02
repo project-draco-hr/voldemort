@@ -10,21 +10,15 @@
   T msg=null;
   try {
     msg=messageClass.newInstance();
-    deserializeMethod.invoke(msg,protocol);
+    msg.read(protocol);
   }
- catch (  SecurityException e) {
-    throw new SerializationException(e);
-  }
-catch (  InstantiationException e) {
+ catch (  InstantiationException e) {
     throw new SerializationException(e);
   }
 catch (  IllegalAccessException e) {
     throw new SerializationException(e);
   }
-catch (  IllegalArgumentException e) {
-    throw new SerializationException(e);
-  }
-catch (  InvocationTargetException e) {
+catch (  TException e) {
     throw new SerializationException(e);
   }
   return msg;

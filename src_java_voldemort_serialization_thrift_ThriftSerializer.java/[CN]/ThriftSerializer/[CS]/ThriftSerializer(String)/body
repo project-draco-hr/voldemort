@@ -12,8 +12,10 @@
   }
   try {
     this.messageClass=(Class<T>)Class.forName(thriftInfo[0]);
-    this.serializeMethod=messageClass.getMethod("write",TProtocol.class);
-    this.deserializeMethod=messageClass.getMethod("read",TProtocol.class);
+    T msgObj=messageClass.newInstance();
+    if (!(msgObj instanceof TBase)) {
+      throw new IllegalArgumentException(thriftInfo[0] + " is not a subtype of com.facebook.thrift.TBase");
+    }
   }
  catch (  ClassNotFoundException e) {
     throw new IllegalArgumentException(e);
@@ -21,7 +23,10 @@
 catch (  SecurityException e) {
     throw new IllegalArgumentException(e);
   }
-catch (  NoSuchMethodException e) {
+catch (  InstantiationException e) {
+    throw new IllegalArgumentException(e);
+  }
+catch (  IllegalAccessException e) {
     throw new IllegalArgumentException(e);
   }
 }

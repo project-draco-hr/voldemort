@@ -1,14 +1,12 @@
 {
-  if (this.protocol == ThriftProtocol.BINARY) {
+switch (this.protocol) {
+case BINARY:
     return new TBinaryProtocol(transport);
-  }
- else   if (this.protocol == ThriftProtocol.JSON) {
-    return new TJSONProtocol(transport);
-  }
- else   if (this.protocol == ThriftProtocol.JSON) {
-    return new TSimpleJSONProtocol(transport);
-  }
- else {
-    throw new IllegalArgumentException("Unknown Thrift Protocol.");
-  }
+case JSON:
+  return new TJSONProtocol(transport);
+case SIMPLE_JSON:
+return new TSimpleJSONProtocol(transport);
+default :
+throw new IllegalArgumentException("Unknown Thrift Protocol.");
+}
 }
