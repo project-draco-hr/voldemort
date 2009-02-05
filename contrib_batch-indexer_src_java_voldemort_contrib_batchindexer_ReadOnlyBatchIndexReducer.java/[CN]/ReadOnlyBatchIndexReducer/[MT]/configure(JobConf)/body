@@ -1,0 +1,16 @@
+{
+  try {
+    _position=0;
+    _conf=job;
+    _taskId=job.get("mapred.task.id");
+    indexFileName=new Path(_conf.get("voldemort.index.filename")).getName();
+    taskIndexFileName=_conf.getLocalPath(indexFileName + "_" + _taskId).toUri().getPath();
+    dataFileName=new Path(_conf.get("voldemort.data.filename")).getName();
+    taskValueFileName=_conf.getLocalPath(dataFileName + "_" + _taskId).toUri().getPath();
+    _indexFileStream=new DataOutputStream(new java.io.BufferedOutputStream(new FileOutputStream(new File(taskIndexFileName))));
+    _valueFileStream=new DataOutputStream(new java.io.BufferedOutputStream(new FileOutputStream(new File(taskValueFileName))));
+  }
+ catch (  IOException e) {
+    new RuntimeException("Failed to open Input/OutputStream",e);
+  }
+}

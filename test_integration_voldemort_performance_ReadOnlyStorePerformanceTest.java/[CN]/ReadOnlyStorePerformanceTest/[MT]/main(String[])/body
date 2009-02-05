@@ -1,0 +1,31 @@
+{
+  if (args.length != 4)   Utils.croak("USAGE: java " + ReadOnlyStorePerformanceTest.class.getName() + " num-threads num-requests server-properties-file storeName");
+  int numThreads=Integer.parseInt(args[0]);
+  int numRequests=Integer.parseInt(args[1]);
+  String serverPropsFile=args[2];
+  String storeName=args[3];
+  final Store<byte[],byte[]> store=new RandomAccessFileStorageConfiguration(new VoldemortConfig(new Props(new File(serverPropsFile)))).getStore(storeName);
+  final AtomicInteger obsoletes=new AtomicInteger(0);
+  final AtomicInteger nullResults=new AtomicInteger(0);
+  final AtomicInteger totalResults=new AtomicInteger(0);
+  PerformanceTest readWriteTest=new PerformanceTest(){
+    private final int MaxMemberID=(int)(30 * 1000 * 1000);
+    public void doOperation(    int index) throws Exception {
+      try {
+        byte[] bytes=(new Integer((int)(Math.random() * MaxMemberID))).toString().getBytes();
+        totalResults.incrementAndGet();
+        if (null == store.get(bytes)) {
+          nullResults.incrementAndGet();
+        }
+      }
+ catch (      ObsoleteVersionException e) {
+        obsoletes.incrementAndGet();
+      }
+    }
+  }
+;
+  readWriteTest.run(numRequests,numThreads);
+  System.out.println("Random Access Read Only store Results:");
+  System.out.println("null Reads ratio:" + (nullResults.doubleValue()) / totalResults.doubleValue());
+  readWriteTest.printStats();
+}

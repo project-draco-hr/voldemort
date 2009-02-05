@@ -1,0 +1,39 @@
+{
+  JobConf conf=new JobConf(getConf(),ReadOnlyBatchIndexer.class);
+  configure(conf);
+  try {
+    Cluster cluster=ContribUtils.getVoldemortClusterDetails(conf.get("voldemort.cluster.local.filePath"));
+    conf.setNumReduceTasks(cluster.getNumberOfNodes());
+  }
+ catch (  Exception e) {
+    logger.error("Failed to read Voldemort cluster details",e);
+    throw new RuntimeException("",e);
+  }
+  conf.setPartitionerClass(ReadOnlyBatchIndexPartitioner.class);
+  conf.setMapOutputKeyClass(BytesWritable.class);
+  conf.setMapOutputValueClass(BytesWritable.class);
+  conf.setReducerClass(ReadOnlyBatchIndexReducer.class);
+  conf.setOutputFormat(SequenceFileOutputFormat.class);
+  conf.setOutputKeyClass(BytesWritable.class);
+  conf.setOutputValueClass(BytesWritable.class);
+  String storeName=conf.get("voldemort.store.name");
+  conf.setStrings("voldemort.index.filename",storeName + ".index");
+  conf.setStrings("voldemort.data.filename",storeName + ".data");
+  Path clusterFile=new Path(conf.get("voldemort.cluster.local.filePath"));
+  Path storeFile=new Path(conf.get("voldemort.store.local.filePath"));
+  if (!conf.get("mapred.job.tracker").equals("local")) {
+    Path clusterHdfs=new Path("/tmp/" + conf.getJobName() + "/"+ "cluster.xml");
+    Path storeHdfs=new Path("/tmp/" + conf.getJobName() + "/"+ "store.xml");
+    FileSystem fs=clusterFile.getFileSystem(conf);
+    fs.copyFromLocalFile(clusterFile,clusterHdfs);
+    fs.copyFromLocalFile(storeFile,storeHdfs);
+    DistributedCache.addCacheFile(new URI(clusterHdfs.toString() + "#cluster.xml"),conf);
+    DistributedCache.addCacheFile(new URI(storeHdfs.toString() + "#store.xml"),conf);
+  }
+ else {
+    DistributedCache.addCacheFile(new URI(clusterFile.toString() + "#cluster.xml"),conf);
+    DistributedCache.addCacheFile(new URI(storeFile.toString() + "#store.xml"),conf);
+  }
+  JobClient.runJob(conf);
+  return 0;
+}

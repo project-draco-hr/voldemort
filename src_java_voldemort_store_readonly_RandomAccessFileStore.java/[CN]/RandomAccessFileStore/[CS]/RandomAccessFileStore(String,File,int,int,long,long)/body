@@ -9,5 +9,9 @@
   this.indexFiles=new ArrayBlockingQueue<RandomAccessFile>(numFileHandles);
   this.numFileHandles=numFileHandles;
   this.fileModificationLock=new ReentrantReadWriteLock();
+  int cacheElements=(int)Math.floor(cacheSize / 30);
+  _maxDepth=(int)Math.floor(Math.log(cacheElements) / Math.log(2));
+  _cache=new ConcurrentHashMap<Long,byte[]>(cacheElements);
+  logger.info("Cache configuration entries:" + cacheElements + " nIters:"+ _maxDepth);
   open();
 }

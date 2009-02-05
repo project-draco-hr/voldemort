@@ -4,12 +4,25 @@
   int chunkSize=KEY_HASH_SIZE + POSITION_SIZE;
   long low=0;
   long high=indexFileSize / chunkSize - 1;
+  int iteration=0;
   while (low <= high) {
+    iteration++;
     long mid=(low + high) / 2;
-    index.seek(mid * chunkSize);
-    index.readFully(foundKey);
+    boolean cached=true;
+    if (iteration < _maxDepth) {
+      readCachedKey(index,mid * chunkSize,foundKey);
+    }
+ else {
+      index.seek(mid * chunkSize);
+      index.readFully(foundKey);
+      cached=false;
+    }
     int cmp=ByteUtils.compare(foundKey,keyMd5);
     if (cmp == 0) {
+      if (cached) {
+        index.seek(mid * chunkSize);
+        index.readFully(foundKey);
+      }
       return index.readLong();
     }
  else     if (cmp > 0) {
