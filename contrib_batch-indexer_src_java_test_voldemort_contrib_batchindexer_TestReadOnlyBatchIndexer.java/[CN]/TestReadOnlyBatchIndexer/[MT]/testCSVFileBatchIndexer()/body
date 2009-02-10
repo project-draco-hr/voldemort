@@ -1,6 +1,9 @@
 {
-  ToolRunner.run(new Configuration(),new TextBatchIndexer(),null);
   File dataDir=new File("contrib/batch-indexer/temp-output/text");
+  if (dataDir.exists()) {
+    FileDeleteStrategy.FORCE.delete(dataDir);
+  }
+  ToolRunner.run(new Configuration(),new TextBatchIndexer(),null);
   new File(dataDir,"users.index_0").renameTo(new File(dataDir,"users.index"));
   new File(dataDir,"users.data_0").renameTo(new File(dataDir,"users.data"));
   SerializerDefinition serDef=new SerializerDefinition("string","UTF-8");
