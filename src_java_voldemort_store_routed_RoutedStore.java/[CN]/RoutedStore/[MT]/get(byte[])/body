@@ -14,9 +14,6 @@
       this.executor.execute(new Runnable(){
         public void run(){
           try {
-            for (            Store store : innerStores.values()) {
-              logger.info("storeID: " + store.getName() + " Class:"+ store.getClass().toString());
-            }
             List<Versioned<byte[]>> fetched=innerStores.get(node.getId()).get(key);
             retrieved.addAll(fetched);
             if (repairReads) {
@@ -65,6 +62,7 @@ catch (    Exception e) {
     }
     nodeIndex++;
   }
+  if (logger.isDebugEnabled())   logger.debug("GET retrieved the following node values: " + formatNodeValues(nodeValues));
   if (repairReads && retrieved.size() > 1) {
     this.executor.execute(new Runnable(){
       public void run(){
