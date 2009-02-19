@@ -1,35 +1,26 @@
 {
   byte[] keyMd5=ByteUtils.md5(key);
-  byte[] foundKey=new byte[KEY_HASH_SIZE];
-  int chunkSize=KEY_HASH_SIZE + POSITION_SIZE;
+  byte[] keyBuffer=new byte[KEY_HASH_SIZE];
   long low=0;
-  long high=indexFileSize / chunkSize - 1;
+  long high=indexFileSize / INDEX_ENTRY_SIZE - 1;
+  int cacheIndex=0;
   int iteration=0;
   while (low <= high) {
     iteration++;
     long mid=(low + high) / 2;
-    boolean cached=true;
-    if (iteration < _maxDepth) {
-      readCachedKey(index,mid * chunkSize,foundKey);
-    }
- else {
-      index.seek(mid * chunkSize);
-      index.readFully(foundKey);
-      cached=false;
-    }
+    byte[] foundKey=readKey(index,mid * INDEX_ENTRY_SIZE,keyBuffer,iteration,cacheIndex);
     int cmp=ByteUtils.compare(foundKey,keyMd5);
     if (cmp == 0) {
-      if (cached) {
-        index.seek(mid * chunkSize);
-        index.readFully(foundKey);
-      }
+      index.seek(mid * INDEX_ENTRY_SIZE + KEY_HASH_SIZE);
       return index.readLong();
     }
  else     if (cmp > 0) {
       high=mid - 1;
+      cacheIndex=2 * cacheIndex + 2;
     }
  else     if (cmp < 0) {
       low=mid + 1;
+      cacheIndex=2 * cacheIndex + 1;
     }
   }
   return -1;

@@ -4,14 +4,14 @@
   this.indexFile=new File(storageDir,name + ".index");
   this.dataFile=new File(storageDir,name + ".data");
   this.name=Objects.nonNull(name);
-  this.waitTimeoutMs=waitTimeoutMs;
+  this.fdWaitTimeoutMs=fdWaitTimeoutMs;
   this.dataFiles=new ArrayBlockingQueue<RandomAccessFile>(numFileHandles);
   this.indexFiles=new ArrayBlockingQueue<RandomAccessFile>(numFileHandles);
   this.numFileHandles=numFileHandles;
   this.fileModificationLock=new ReentrantReadWriteLock();
-  int cacheElements=(int)Math.floor(cacheSize / 30);
-  _maxDepth=(int)Math.floor(Math.log(cacheElements) / Math.log(2));
-  _cache=new ConcurrentHashMap<Long,byte[]>(cacheElements);
-  logger.info("Cache configuration size:" + (double)cacheSize / Math.pow(10,6) + "MB entries:" + (double)cacheElements / Math.pow(10,6) + " M maxCacheDepth:" + _maxDepth);
+  int cacheElements=(int)floor(maxCacheSize / KEY_HASH_SIZE);
+  this.maxCacheDepth=(int)floor(Math.log(cacheElements) / Math.log(2));
+  this.keyCache=new byte[(int)pow(2,maxCacheDepth)][];
+  this.isOpen=new AtomicBoolean(false);
   open();
 }
