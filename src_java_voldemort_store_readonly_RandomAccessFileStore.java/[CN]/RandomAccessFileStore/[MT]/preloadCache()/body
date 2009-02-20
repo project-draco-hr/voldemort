@@ -1,0 +1,18 @@
+{
+  logger.info("Starting cache preloading...");
+  try {
+    this.fileModificationLock.readLock().lock();
+    RandomAccessFile index=this.getFile(this.indexFiles);
+    preloadCache(index,0,0L,this.indexFileSize / INDEX_ENTRY_SIZE - 1,1,this.maxCacheDepth);
+    logger.info("Cache loading complete.");
+  }
+ catch (  IOException e) {
+    throw new PersistenceFailureException(e);
+  }
+catch (  InterruptedException e) {
+    throw new VoldemortException(e);
+  }
+ finally {
+    this.fileModificationLock.readLock().unlock();
+  }
+}

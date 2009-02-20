@@ -9,9 +9,10 @@
   this.indexFiles=new ArrayBlockingQueue<RandomAccessFile>(numFileHandles);
   this.numFileHandles=numFileHandles;
   this.fileModificationLock=new ReentrantReadWriteLock();
-  int cacheElements=(int)floor(maxCacheSize / KEY_HASH_SIZE);
-  this.maxCacheDepth=(int)floor(Math.log(cacheElements) / Math.log(2));
+  int cacheElements=(int)floor(maxCacheSize / (KEY_HASH_SIZE + 24));
+  this.maxCacheDepth=(int)floor(log(cacheElements) / log(2));
   this.keyCache=new byte[(int)pow(2,maxCacheDepth)][];
   this.isOpen=new AtomicBoolean(false);
   open();
+  preloadCache();
 }
