@@ -8,7 +8,10 @@
   writer.close();
   BufferedReader reader=new BufferedReader(new FileReader(dataFile));
   JsonReader jsonReader=new JsonReader(reader);
-  Cluster cluster=new Cluster("test",Collections.singletonList(new Node(0,"localhost",8080,6666,Arrays.asList(0,1,2,3,4))));
+  List<Node> nodes=new ArrayList<Node>();
+  nodes.add(new Node(0,"localhost",8080,6666,Arrays.asList(0,1,2,3,4)));
+  nodes.add(new Node(1,"localhost",8081,6667,Arrays.asList(5,6,7,8,9)));
+  Cluster cluster=new Cluster("test",nodes);
   SerializerDefinition serDef=new SerializerDefinition("json","'string'");
   StoreDefinition storeDef=new StoreDefinition("test",StorageEngineType.READONLY,serDef,serDef,RoutingTier.CLIENT,1,1,1,1,1,1);
   RoutingStrategy router=new ConsistentRoutingStrategy(cluster.getNodes(),1);
