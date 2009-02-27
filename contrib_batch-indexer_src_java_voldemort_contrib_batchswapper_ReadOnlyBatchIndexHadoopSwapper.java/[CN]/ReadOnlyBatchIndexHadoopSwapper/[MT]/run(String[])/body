@@ -5,20 +5,21 @@
   try {
     cluster=ContribUtils.getVoldemortClusterDetails(conf.get("voldemort.cluster.local.filePath"));
     conf.setNumReduceTasks(0);
+    conf.setMapperClass(getSwapperMapperClass());
     conf.setInputFormat(NonSplitableDummyFileInputFormat.class);
-    conf.setMapperClass(SwapperMapper.class);
     String storeName=conf.get("voldemort.store.name");
     moveMetaDatatoHDFS(conf,new Path(conf.get("voldemort.cluster.local.filePath")));
-    FileInputFormat.setInputPaths(conf,new Path(conf.get("source.HDFS.path")));
-    FileOutputFormat.setOutputPath(conf,new Path(conf.get("destination.remote.path")));
+    FileInputFormat.setInputPaths(conf,new Path(conf.get("source.path")));
+    String tempHadoopDir=conf.get("hadoop.tmp.dir") + File.separatorChar + (int)(Math.random() * 1000000);
+    FileOutputFormat.setOutputPath(conf,new Path(tempHadoopDir));
     JobClient.runJob(conf);
+    new Path(tempHadoopDir).getFileSystem(conf).delete(new Path(tempHadoopDir),true);
     for (    Node node : cluster.getNodes()) {
-      SwapperUtils.doSwap(storeName,node,conf.get("destination.remote.path"));
+      SwapperUtils.doSwap(storeName,node,conf.get("destination.path"));
     }
   }
  catch (  Exception e) {
-    logger.error("Failed to read Voldemort cluster details",e);
-    throw new RuntimeException("",e);
+    throw new RuntimeException("Swap Job Failed",e);
   }
   return 0;
 }
