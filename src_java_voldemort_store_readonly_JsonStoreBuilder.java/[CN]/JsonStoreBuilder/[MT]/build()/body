@@ -2,10 +2,13 @@
   int numNodes=cluster.getNumberOfNodes();
   DataOutputStream[] indexes=new DataOutputStream[numNodes];
   DataOutputStream[] datas=new DataOutputStream[numNodes];
+  long[] positions=new long[numNodes];
   int current=0;
   for (  Node node : cluster.getNodes()) {
     File indexFile=new File(outputDir,node.getId() + ".index");
     File dataFile=new File(outputDir,node.getId() + ".data");
+    positions[current]=0;
+    outputDir.mkdirs();
     indexes[current]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(indexFile),1000000));
     datas[current]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dataFile),1000000));
     current++;
@@ -17,7 +20,6 @@
   int count=0;
   ExternalSorter<KeyValuePair> sorter=new ExternalSorter<KeyValuePair>(new KeyValuePairSerializer(),new KeyMd5Comparator(),internalSortSize,numThreads);
   JsonObjectIterator iter=new JsonObjectIterator(reader,keySerializer,valueSerializer);
-  long position=0;
   MessageDigest digest=ByteUtils.getDigest("MD5");
   for (  KeyValuePair pair : sorter.sorted(iter)) {
     List<Node> nodes=this.routingStrategy.routeRequest(pair.getKey());
@@ -29,8 +31,8 @@
       datas[nodeId].writeInt(numBytes);
       datas[nodeId].write(pair.getValue());
       indexes[nodeId].write(keyMd5);
-      indexes[nodeId].writeLong(position);
-      position+=numBytes + 4;
+      indexes[nodeId].writeLong(positions[nodeId]);
+      positions[nodeId]+=numBytes + 4;
     }
     count++;
   }
