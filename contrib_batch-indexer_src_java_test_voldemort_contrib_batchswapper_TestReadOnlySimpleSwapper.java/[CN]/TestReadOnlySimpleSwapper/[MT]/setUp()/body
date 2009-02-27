@@ -1,0 +1,14 @@
+{
+  FileDeleteStrategy.FORCE.delete(new File(baseDir));
+  String indexDir=makeReadOnlyIndex(1,4);
+  VoldemortConfig config=TestUtils.createServerConfig(0,baseDir,clusterFile,storerFile);
+  server1=new VoldemortServer(config);
+  FileUtils.copyFile(new File(indexDir,"0.index"),new File(config.getReadOnlyDataStorageDirectory(),storeName + ".index"));
+  FileUtils.copyFile(new File(indexDir,"0.data"),new File(config.getReadOnlyDataStorageDirectory(),storeName + ".data"));
+  server1.start();
+  config=TestUtils.createServerConfig(1,baseDir,clusterFile,storerFile);
+  server2=new VoldemortServer(config);
+  FileUtils.copyFile(new File(indexDir,"1.index"),new File(config.getReadOnlyDataStorageDirectory(),storeName + ".index"));
+  FileUtils.copyFile(new File(indexDir,"1.data"),new File(config.getReadOnlyDataStorageDirectory(),storeName + ".data"));
+  server2.start();
+}

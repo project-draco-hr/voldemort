@@ -1,8 +1,9 @@
 {
   _indexFileStream.close();
   _valueFileStream.close();
-  Path hdfsIndexFile=new Path(FileOutputFormat.getOutputPath(_conf),indexFileName + "_" + _nodeId);
-  Path hdfsValueFile=new Path(FileOutputFormat.getOutputPath(_conf),dataFileName + "_" + _nodeId);
-  hdfsIndexFile.getFileSystem(_conf).copyFromLocalFile(new Path(taskIndexFileName),hdfsIndexFile);
-  hdfsValueFile.getFileSystem(_conf).copyFromLocalFile(new Path(taskValueFileName),hdfsValueFile);
+  Path hdfsIndexFile=new Path(FileOutputFormat.getOutputPath(_conf),_nodeId + ".index");
+  Path hdfsValueFile=new Path(FileOutputFormat.getOutputPath(_conf),_nodeId + ".data");
+  FileSystem fs=hdfsIndexFile.getFileSystem(_conf);
+  fs.rename(taskIndexFileName,hdfsIndexFile);
+  fs.rename(taskValueFileName,hdfsValueFile);
 }

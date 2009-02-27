@@ -1,0 +1,20 @@
+{
+  JobConf conf=new JobConf(getConf(),ReadOnlyBatchIndexer.class);
+  configure(conf);
+  Cluster cluster=null;
+  try {
+    cluster=ContribUtils.getVoldemortClusterDetails(conf.get("voldemort.cluster.local.filePath"));
+  }
+ catch (  Exception e) {
+    logger.error("Failed to read Voldemort cluster details",e);
+    throw new RuntimeException("",e);
+  }
+  conf.setNumReduceTasks(0);
+  conf.setInputFormat(NonSplitableDummyFileInputFormat.class);
+  String storeName=conf.get("voldemort.store.name");
+  moveMetaDatatoHDFS(conf,new Path(conf.get("voldemort.cluster.local.filePath")));
+  JobClient.runJob(conf);
+  for (  Node node : cluster.getNodes()) {
+    SwapperUtils.doSwap(storeName,node,conf.get("destination.remote.path"));
+  }
+}

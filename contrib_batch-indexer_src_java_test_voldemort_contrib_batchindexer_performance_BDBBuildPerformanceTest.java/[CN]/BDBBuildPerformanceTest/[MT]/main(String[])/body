@@ -1,0 +1,29 @@
+{
+  if (args.length != 3)   Utils.croak("USAGE: java " + BDBBuildPerformanceTest.class.getName() + "serverPropsFile storeName jsonSequenceDataFile");
+  String serverPropsFile=args[0];
+  String storeName=args[1];
+  String jsonDataFile=args[2];
+  final Store<byte[],byte[]> store=new BdbStorageConfiguration(new VoldemortConfig(new Props(new File(serverPropsFile)))).getStore(storeName);
+  final AtomicInteger obsoletes=new AtomicInteger(0);
+  final AtomicInteger nullResults=new AtomicInteger(0);
+  Path jsonFilePath=new Path(jsonDataFile);
+  FileStatus jsonFileStatus=jsonFilePath.getFileSystem(new Configuration()).listStatus(jsonFilePath)[0];
+  final SequenceFileRecordReader<BytesWritable,BytesWritable> reader=new SequenceFileRecordReader<BytesWritable,BytesWritable>(new Configuration(),new FileSplit(jsonFilePath,0,jsonFileStatus.getLen(),(String[])null));
+  PerformanceTest readWriteTest=new PerformanceTest(){
+    public void doOperation(    int index) throws Exception {
+      try {
+        BytesWritable key=new BytesWritable();
+        BytesWritable value=new BytesWritable();
+        reader.next(key,value);
+        store.put(ByteUtils.copy(key.get(),0,key.getSize()),new Versioned(ByteUtils.copy(value.get(),0,value.getSize())));
+      }
+ catch (      ObsoleteVersionException e) {
+        obsoletes.incrementAndGet();
+      }
+    }
+  }
+;
+  readWriteTest.run(30 * 1000 * 1000,1);
+  System.out.println("Bdb write throuhput with one thread:");
+  readWriteTest.printStats();
+}

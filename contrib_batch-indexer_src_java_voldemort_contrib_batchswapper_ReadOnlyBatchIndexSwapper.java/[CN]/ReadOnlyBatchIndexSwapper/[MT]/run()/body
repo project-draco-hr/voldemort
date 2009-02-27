@@ -1,0 +1,54 @@
+{
+  final Props props=new Props();
+  configure(props);
+  Cluster cluster=ContribUtils.getVoldemortClusterDetails(props.get("voldemort.cluster.local.filePath"));
+  String storeName=props.get("voldemort.store.name");
+  final Path inputDir=new Path(props.get("source.local.path"));
+  final String indexFileName=storeName + ".index";
+  final String dataFileName=storeName + ".data";
+  ExecutorService executors=Executors.newFixedThreadPool(cluster.getNumberOfNodes());
+  final Semaphore semaphore=new Semaphore(0,false);
+  final boolean[] succeeded=new boolean[cluster.getNumberOfNodes()];
+  final String destinationDir=props.get("destination.remote.path");
+  for (  final Node node : cluster.getNodes()) {
+    executors.execute(new Runnable(){
+      public void run(){
+        int id=node.getId();
+        String indexFile=inputDir + "/" + Integer.toString(id)+ ".index";
+        String dataFile=inputDir + "/" + Integer.toString(id)+ ".data";
+        if (!(new File(indexFile).exists())) {
+          logger.warn("IndexFile for node " + id + " not available path:"+ indexFile);
+        }
+        if (!(new File(dataFile).exists())) {
+          logger.warn("DataFile for node " + id + " not available path:"+ dataFile);
+        }
+        if (new File(indexFile).exists() && new File(indexFile).exists()) {
+          String host=node.getHost();
+          boolean index=false;
+          boolean data=false;
+          try {
+            index=copyRemoteFile(host,indexFile,SwapperUtils.getIndexDestinationFile(node.getId(),destinationDir));
+            data=copyRemoteFile(host,dataFile,SwapperUtils.getDataDestinationFile(node.getId(),destinationDir));
+          }
+ catch (          IOException e) {
+            logger.error("copy to Remote node failed for node:" + node.getId(),e);
+          }
+          if (index && data) {
+            succeeded[node.getId()]=true;
+          }
+        }
+        semaphore.release();
+      }
+    }
+);
+  }
+  semaphore.acquire(cluster.getNumberOfNodes());
+  int counter=0;
+  for (  Node node : cluster.getNodes()) {
+    if (succeeded[node.getId()]) {
+      SwapperUtils.doSwap(storeName,node,destinationDir);
+      counter++;
+    }
+  }
+  logger.info(counter + " node out of " + cluster.getNumberOfNodes()+ " refreshed with fresh index/data for store '"+ storeName+ "'");
+}

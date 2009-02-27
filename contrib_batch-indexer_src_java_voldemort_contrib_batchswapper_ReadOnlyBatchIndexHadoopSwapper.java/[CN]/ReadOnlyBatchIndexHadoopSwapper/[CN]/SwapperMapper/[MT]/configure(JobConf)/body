@@ -1,0 +1,22 @@
+{
+  conf=job;
+  String mapFileName=conf.get("mapred.input.file");
+  if (mapFileName.contains("index") || mapFileName.contains("data")) {
+    System.out.println("handling file:" + mapFileName);
+    isIndexFile=mapFileName.contains("index");
+    String storeName=conf.get("voldemort.store.name");
+    String[] tempSplits=mapFileName.split("_");
+    int fileNodeId=Integer.parseInt(tempSplits[tempSplits.length - 1]);
+    try {
+      String clusterFilePath=ContribUtils.getFileFromCache(conf,"cluster.xml");
+      if (null == clusterFilePath) {
+        throw new RuntimeException("Mapper expects cluster.xml / stores.xml passed through Distributed cache.");
+      }
+      Cluster cluster=ContribUtils.getVoldemortClusterDetails(clusterFilePath);
+      node=cluster.getNodeById(fileNodeId);
+    }
+ catch (    Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+}
