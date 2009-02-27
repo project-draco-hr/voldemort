@@ -1,5 +1,6 @@
 {
   logger.debug("Close called for read-only store.");
+  this.isOpen.compareAndSet(true,false);
   this.fileModificationLock.writeLock().lock();
   try {
     while (this.indexFiles.size() > 0) {
