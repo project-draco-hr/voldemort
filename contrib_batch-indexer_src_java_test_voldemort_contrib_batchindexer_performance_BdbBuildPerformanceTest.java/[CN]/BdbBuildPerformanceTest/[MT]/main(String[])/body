@@ -1,9 +1,9 @@
 {
-  if (args.length != 3)   Utils.croak("USAGE: java " + MySQLBuildPerformanceTest.class.getName() + "serverPropsFile storeName jsonSequenceDataFile");
+  if (args.length != 3)   Utils.croak("USAGE: java " + BdbBuildPerformanceTest.class.getName() + "serverPropsFile storeName jsonSequenceDataFile");
   String serverPropsFile=args[0];
   String storeName=args[1];
   String jsonDataFile=args[2];
-  final Store<byte[],byte[]> store=new MysqlStorageConfiguration(new VoldemortConfig(new Props(new File(serverPropsFile)))).getStore(storeName);
+  final Store<byte[],byte[]> store=new BdbStorageConfiguration(new VoldemortConfig(new Props(new File(serverPropsFile)))).getStore(storeName);
   final AtomicInteger obsoletes=new AtomicInteger(0);
   final AtomicInteger nullResults=new AtomicInteger(0);
   Path jsonFilePath=new Path(jsonDataFile);
@@ -23,7 +23,7 @@
     }
   }
 ;
-  readWriteTest.run(1000,1);
-  System.out.println("MySQl write throuhput with one thread:");
+  readWriteTest.run(30 * 1000 * 1000,1);
+  System.out.println("Bdb write throuhput with one thread:");
   readWriteTest.printStats();
 }
