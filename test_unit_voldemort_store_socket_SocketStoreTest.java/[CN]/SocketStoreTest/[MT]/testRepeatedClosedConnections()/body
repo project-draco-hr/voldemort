@@ -1,0 +1,14 @@
+{
+  for (int i=0; i < 100; i++) {
+    Socket s=new Socket();
+    s.setTcpNoDelay(true);
+    s.setSoTimeout(1000);
+    s.connect(new InetSocketAddress("localhost",SOCKET_PORT));
+    logger.info("Client opened" + i);
+    assertTrue(s.isConnected());
+    assertTrue(s.isBound());
+    assertTrue(!s.isClosed());
+    s.close();
+    logger.info("Client closed" + i);
+  }
+}

@@ -1,7 +1,8 @@
 {
-  this.pool=new SocketPool(maxConnections,maxConnections,2000);
-  this.dest=new SocketDestination("localhost",port);
-  this.server=new SocketServer(new ConcurrentHashMap(),port,10,10);
+  this.pool=new SocketPool(maxConnections,maxConnections,1000,32 * 1024);
+  this.dest1=new SocketDestination("localhost",port);
+  this.dest2=new SocketDestination("localhost",port);
+  this.server=new SocketServer(new ConcurrentHashMap(),port,maxConnections,maxConnections,10000);
   this.server.start();
   this.server.awaitStartupCompletion();
 }

@@ -1,5 +1,7 @@
 {
   SocketAndStreams sands=(SocketAndStreams)value;
   Socket s=sands.getSocket();
-  return !s.isClosed() && s.isBound() && s.isConnected();
+  boolean isValid=!s.isClosed() && s.isBound() && s.isConnected();
+  if (!isValid)   logger.debug("Socket connection " + sands + " is no longer valid, closing.");
+  return isValid;
 }
