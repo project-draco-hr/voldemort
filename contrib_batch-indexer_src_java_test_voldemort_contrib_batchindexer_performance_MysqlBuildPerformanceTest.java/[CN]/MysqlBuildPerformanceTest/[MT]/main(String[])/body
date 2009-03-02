@@ -3,7 +3,7 @@
   String serverPropsFile=args[0];
   String storeName=args[1];
   String jsonDataFile=args[2];
-  final Store<byte[],byte[]> store=new MysqlStorageConfiguration(new VoldemortConfig(new Props(new File(serverPropsFile)))).getStore(storeName);
+  final Store<ByteArray,byte[]> store=new MysqlStorageConfiguration(new VoldemortConfig(new Props(new File(serverPropsFile)))).getStore(storeName);
   final AtomicInteger obsoletes=new AtomicInteger(0);
   final AtomicInteger nullResults=new AtomicInteger(0);
   Path jsonFilePath=new Path(jsonDataFile);
@@ -15,7 +15,7 @@
         BytesWritable key=new BytesWritable();
         BytesWritable value=new BytesWritable();
         reader.next(key,value);
-        store.put(ByteUtils.copy(key.get(),0,key.getSize()),new Versioned(ByteUtils.copy(value.get(),0,value.getSize())));
+        store.put(new ByteArray(ByteUtils.copy(key.get(),0,key.getSize())),new Versioned(ByteUtils.copy(value.get(),0,value.getSize())));
       }
  catch (      ObsoleteVersionException e) {
         obsoletes.incrementAndGet();

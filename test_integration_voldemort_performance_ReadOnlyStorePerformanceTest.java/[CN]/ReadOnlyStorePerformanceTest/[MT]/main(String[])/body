@@ -5,7 +5,7 @@
   String serverPropsFile=args[2];
   String storeName=args[3];
   final VoldemortConfig voldemortConfig=new VoldemortConfig(new Props(new File(serverPropsFile)));
-  final Store<byte[],byte[]> store=new RandomAccessFileStorageConfiguration(voldemortConfig).getStore(storeName);
+  final Store<ByteArray,byte[]> store=new RandomAccessFileStorageConfiguration(voldemortConfig).getStore(storeName);
   File storeFile=new File(voldemortConfig.getMetadataDirectory() + File.separatorChar + "stores.xml");
   final List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new java.io.FileReader(storeFile));
   final AtomicInteger obsoletes=new AtomicInteger(0);
@@ -30,10 +30,8 @@
       try {
         Integer memberId=new Integer((int)(Math.random() * MaxMemberID));
         totalResults.incrementAndGet();
-        List<Versioned<byte[]>> results=store.get(keySerializer.toBytes(memberId));
-        if (results.size() == 0) {
-          nullResults.incrementAndGet();
-        }
+        List<Versioned<byte[]>> results=store.get(new ByteArray(keySerializer.toBytes(memberId)));
+        if (results.size() == 0)         nullResults.incrementAndGet();
       }
  catch (      ObsoleteVersionException e) {
         obsoletes.incrementAndGet();

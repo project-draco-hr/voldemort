@@ -1,0 +1,79 @@
+{
+  StoreUtils.assertValidKey(key);
+  final List<Node> nodes=routingStrategy.routeRequest(key.get());
+  final int numNodes=nodes.size();
+  if (numNodes < this.requiredWrites)   throw new InsufficientOperationalNodesException("Only " + numNodes + " nodes in preference list, but "+ this.requiredWrites+ " writes required.");
+  final AtomicInteger successes=new AtomicInteger(0);
+  final Map<Integer,Exception> failures=Collections.synchronizedMap(new HashMap<Integer,Exception>(1));
+  Node master=null;
+  int currentNode=0;
+  Versioned<byte[]> versionedCopy=null;
+  for (; currentNode < numNodes; currentNode++) {
+    Node current=nodes.get(currentNode);
+    if (isAvailable(nodes.get(currentNode))) {
+      try {
+        versionedCopy=incremented(versioned,current.getId());
+        innerStores.get(current.getId()).put(key,versionedCopy);
+        successes.getAndIncrement();
+        current.getStatus().setAvailable();
+        master=current;
+        break;
+      }
+ catch (      UnreachableStoreException e) {
+        markUnavailable(current,e);
+        failures.put(current.getId(),e);
+      }
+catch (      ObsoleteVersionException e) {
+        throw e;
+      }
+catch (      Exception e) {
+        failures.put(currentNode,e);
+      }
+    }
+  }
+  if (successes.get() < 1)   throw new InsufficientOperationalNodesException("No master node succeeded!",failures.size() > 0 ? failures.get(0) : null);
+ else   currentNode++;
+  final Versioned<byte[]> finalVersionedCopy=versionedCopy;
+  final Semaphore semaphore=new Semaphore(0,false);
+  for (; currentNode < numNodes; currentNode++) {
+    final Node node=nodes.get(currentNode);
+    if (isAvailable(node)) {
+      this.executor.execute(new Runnable(){
+        public void run(){
+          try {
+            innerStores.get(node.getId()).put(key,finalVersionedCopy);
+            successes.incrementAndGet();
+            node.getStatus().setAvailable();
+          }
+ catch (          UnreachableStoreException e) {
+            markUnavailable(node,e);
+            failures.put(node.getId(),e);
+          }
+catch (          Exception e) {
+            logger.debug("Error in get.",e);
+            failures.put(node.getId(),e);
+          }
+ finally {
+            semaphore.release();
+          }
+        }
+      }
+);
+    }
+  }
+  for (int i=0; i < preferredWrites - 1; i++) {
+    try {
+      boolean acquired=semaphore.tryAcquire(timeoutMs,TimeUnit.MILLISECONDS);
+      if (!acquired)       logger.warn("Timed out waiting for put to succeed.");
+      if (successes.get() >= this.preferredWrites)       break;
+    }
+ catch (    InterruptedException e) {
+      throw new InsufficientOperationalNodesException("Put operation interrupted",e);
+    }
+  }
+  if (successes.get() < requiredWrites) {
+    throw new InsufficientOperationalNodesException(successes.get() + " writes succeeded, but " + this.requiredWrites+ " are required.",failures.values());
+  }
+  VectorClock versionedClock=(VectorClock)versioned.getVersion();
+  versionedClock.incrementVersion(master.getId(),time.getMilliseconds());
+}

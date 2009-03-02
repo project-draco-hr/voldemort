@@ -1,0 +1,30 @@
+{
+  StoreUtils.assertValidKey(key);
+  DatabaseEntry keyEntry=new DatabaseEntry(key.get());
+  boolean succeeded=false;
+  Transaction transaction=null;
+  Cursor cursor=null;
+  try {
+    transaction=this.environment.beginTransaction(null,null);
+    DatabaseEntry valueEntry=new DatabaseEntry();
+    cursor=bdbDatabase.openCursor(transaction,null);
+    for (OperationStatus status=cursor.getSearchKey(keyEntry,valueEntry,LockMode.RMW); status == OperationStatus.SUCCESS; status=cursor.getNextDup(keyEntry,valueEntry,LockMode.RMW)) {
+      VectorClock clock=new VectorClock(valueEntry.getData());
+      Occured occured=value.getVersion().compare(clock);
+      if (occured == Occured.BEFORE)       throw new ObsoleteVersionException("Key '" + new String(hexCodec.encode(key.get())) + "' "+ value.getVersion().toString()+ " is obsolete,"+ " current version is "+ clock+ ".");
+ else       if (occured == Occured.AFTER)       cursor.delete();
+    }
+    valueEntry=new DatabaseEntry(serializer.toBytes(value));
+    OperationStatus status=cursor.put(keyEntry,valueEntry);
+    if (status != OperationStatus.SUCCESS)     throw new PersistenceFailureException("Put operation failed with status: " + status);
+    succeeded=true;
+  }
+ catch (  DatabaseException e) {
+    throw new PersistenceFailureException(e);
+  }
+ finally {
+    attemptClose(cursor);
+    if (succeeded)     attemptCommit(transaction);
+ else     attemptAbort(transaction);
+  }
+}

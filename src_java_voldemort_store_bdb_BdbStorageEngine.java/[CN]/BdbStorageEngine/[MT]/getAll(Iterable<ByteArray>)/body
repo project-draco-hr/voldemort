@@ -1,0 +1,19 @@
+{
+  StoreUtils.assertValidKeys(keys);
+  Map<ByteArray,List<Versioned<byte[]>>> result=StoreUtils.newEmptyHashMap(keys);
+  Cursor cursor=null;
+  try {
+    cursor=bdbDatabase.openCursor(null,null);
+    for (    ByteArray key : keys) {
+      List<Versioned<byte[]>> values=get(cursor,key,LockMode.READ_UNCOMMITTED);
+      if (!values.isEmpty())       result.put(key,values);
+    }
+  }
+ catch (  DatabaseException e) {
+    throw new PersistenceFailureException(e);
+  }
+ finally {
+    attemptClose(cursor);
+  }
+  return result;
+}

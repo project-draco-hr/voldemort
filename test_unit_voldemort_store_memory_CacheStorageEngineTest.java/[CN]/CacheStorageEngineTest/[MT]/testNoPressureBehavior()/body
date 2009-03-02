@@ -1,7 +1,8 @@
 {
-  StorageEngine<byte[],byte[]> engine=getStorageEngine();
+  StorageEngine<ByteArray,byte[]> engine=getStorageEngine();
   byte[] bytes="abc".getBytes();
-  engine.put(bytes,new Versioned<byte[]>(bytes));
-  List<Versioned<byte[]>> found=engine.get(bytes);
+  ByteArray key=new ByteArray(bytes);
+  engine.put(key,new Versioned<byte[]>(bytes));
+  List<Versioned<byte[]>> found=engine.get(key);
   assertEquals(1,found.size());
 }

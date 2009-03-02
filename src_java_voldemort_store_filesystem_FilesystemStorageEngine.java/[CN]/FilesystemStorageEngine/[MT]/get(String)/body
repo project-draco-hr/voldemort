@@ -1,17 +1,4 @@
 {
   StoreUtils.assertValidKey(key);
-  File[] files=this.directory.listFiles();
-  List<Versioned<String>> found=new ArrayList<Versioned<String>>();
-  try {
-    for (    File file : files) {
-      if (file.getName().startsWith(key)) {
-        VectorClock clock=getVersion(file);
-        found.add(new Versioned<String>(FileUtils.readFileToString(file,"UTF-8"),clock));
-      }
-    }
-    return found;
-  }
- catch (  IOException e) {
-    throw new VoldemortException(e);
-  }
+  return get(key,this.directory.listFiles());
 }

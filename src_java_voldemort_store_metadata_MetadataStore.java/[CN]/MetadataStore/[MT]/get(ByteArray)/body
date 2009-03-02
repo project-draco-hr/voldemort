@@ -1,0 +1,12 @@
+{
+  String keyStr=new String(key.get());
+  if (!KNOWN_KEYS.contains(keyStr))   throw new IllegalArgumentException("Unknown metadata key: " + keyStr);
+  File file=new File(this.directory,keyStr);
+  if (!Utils.isReadableFile(file.getAbsolutePath()))   throw new VoldemortException("Attempt to read metadata failed: " + file.getAbsolutePath() + " is not a readable file!");
+  try {
+    return Collections.singletonList(new Versioned<byte[]>(FileUtils.readFileToByteArray(file)));
+  }
+ catch (  IOException e) {
+    throw new VoldemortException("Error reading metadata value '" + keyStr + "': ",e);
+  }
+}

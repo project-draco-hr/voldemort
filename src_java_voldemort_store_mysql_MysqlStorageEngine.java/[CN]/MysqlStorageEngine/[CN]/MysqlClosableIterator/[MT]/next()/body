@@ -1,11 +1,11 @@
 {
   try {
     if (!this.hasMore)     throw new PersistenceFailureException("Next called on iterator, but no more items available!");
-    byte[] key=rs.getBytes("key_");
+    ByteArray key=new ByteArray(rs.getBytes("key_"));
     byte[] value=rs.getBytes("value_");
     VectorClock clock=new VectorClock(rs.getBytes("version_"));
     this.hasMore=rs.next();
-    return new Entry<byte[],Versioned<byte[]>>(key,new Versioned<byte[]>(value,clock));
+    return new Entry<ByteArray,Versioned<byte[]>>(key,new Versioned<byte[]>(value,clock));
   }
  catch (  SQLException e) {
     throw new PersistenceFailureException(e);

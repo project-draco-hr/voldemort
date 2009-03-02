@@ -1,0 +1,18 @@
+{
+  Store<K,V> store=getStore();
+  int putCount=10;
+  List<K> keys=getKeys(putCount);
+  List<V> values=getValues(putCount);
+  for (int i=0; i < putCount; i++)   store.put(keys.get(i),new Versioned<V>(values.get(i)));
+  int countForGet=putCount / 2;
+  List<K> keysForGet=keys.subList(0,countForGet);
+  List<V> valuesForGet=values.subList(0,countForGet);
+  Map<K,List<Versioned<V>>> result=store.getAll(keysForGet);
+  assertEquals(countForGet,result.size());
+  for (int i=0; i < keysForGet.size(); ++i) {
+    K key=keysForGet.get(i);
+    V expectedValue=valuesForGet.get(i);
+    List<Versioned<V>> versioneds=result.get(key);
+    assertGetAllValues(expectedValue,versioneds);
+  }
+}

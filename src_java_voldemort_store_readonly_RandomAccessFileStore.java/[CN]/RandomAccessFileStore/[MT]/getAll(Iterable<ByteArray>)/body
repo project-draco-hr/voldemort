@@ -1,0 +1,37 @@
+{
+  StoreUtils.assertValidKeys(keys);
+  Map<ByteArray,List<Versioned<byte[]>>> result=StoreUtils.newEmptyHashMap(keys);
+  RandomAccessFile index=null;
+  RandomAccessFile data=null;
+  try {
+    fileModificationLock.readLock().lock();
+    index=getFile(indexFiles);
+    List<Pair<ByteArray,Long>> keysAndValueLocations=Lists.newArrayList();
+    for (    ByteArray key : keys) {
+      long valueLocation=getValueLocation(index,key.get());
+      if (valueLocation < 0)       result.put(key,Collections.<Versioned<byte[]>>emptyList());
+ else       keysAndValueLocations.add(Pair.create(key,valueLocation));
+    }
+    Collections.sort(keysAndValueLocations,KEYS_AND_VALUES_COMPARATOR);
+    for (    Pair<ByteArray,Long> keyAndValueLocation : keysAndValueLocations) {
+      data=getFile(dataFiles);
+      data.seek(keyAndValueLocation.getSecond());
+      int size=data.readInt();
+      byte[] value=new byte[size];
+      data.readFully(value);
+      result.put(keyAndValueLocation.getFirst(),Collections.singletonList(new Versioned<byte[]>(value,new VectorClock())));
+    }
+    return result;
+  }
+ catch (  InterruptedException e) {
+    throw new VoldemortException("Thread was interrupted.",e);
+  }
+catch (  IOException e) {
+    throw new PersistenceFailureException(e);
+  }
+ finally {
+    fileModificationLock.readLock().unlock();
+    if (index != null)     indexFiles.add(index);
+    if (data != null)     dataFiles.add(data);
+  }
+}

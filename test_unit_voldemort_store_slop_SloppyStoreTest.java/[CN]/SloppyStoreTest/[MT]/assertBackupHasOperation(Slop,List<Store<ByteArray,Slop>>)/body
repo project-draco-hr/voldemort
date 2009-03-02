@@ -1,0 +1,10 @@
+{
+  for (  Store<ByteArray,Slop> backup : backups) {
+    List<Versioned<Slop>> slops=backup.get(slop.makeKey());
+    for (    Versioned<Slop> found : slops) {
+      Slop foundSlop=found.getValue();
+      if (foundSlop.getKey().equals(slop.getKey()) && TestUtils.bytesEqual(foundSlop.getValue(),slop.getValue()) && foundSlop.getOperation().equals(slop.getOperation()))       return;
+    }
+  }
+  fail("Could not find slop " + slop + " in backup stores.");
+}

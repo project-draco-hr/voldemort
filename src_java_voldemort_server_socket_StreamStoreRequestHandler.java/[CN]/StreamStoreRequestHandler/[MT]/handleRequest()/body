@@ -2,9 +2,9 @@
   byte opCode=inputStream.readByte();
   String storeName=inputStream.readUTF();
   int keySize=inputStream.readInt();
-  byte[] key=new byte[keySize];
-  ByteUtils.read(inputStream,key);
-  Store<byte[],byte[]> store=storeMap.get(storeName);
+  ByteArray key=new ByteArray(new byte[keySize]);
+  ByteUtils.read(inputStream,key.get());
+  Store<ByteArray,byte[]> store=storeMap.get(storeName);
   if (store == null) {
     writeException(outputStream,new VoldemortException("No store named '" + storeName + "'."));
   }

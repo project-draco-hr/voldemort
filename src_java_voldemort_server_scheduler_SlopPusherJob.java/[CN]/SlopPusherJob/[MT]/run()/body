@@ -2,17 +2,17 @@
   logger.debug("Pushing slop...");
   int slopsPushed=0;
   int attemptedPushes=0;
-  ClosableIterator<Entry<byte[],Versioned<Slop>>> iterator=null;
+  ClosableIterator<Entry<ByteArray,Versioned<Slop>>> iterator=null;
   try {
     iterator=slopStore.entries();
     while (iterator.hasNext()) {
       attemptedPushes++;
       if (Thread.currentThread().isInterrupted())       throw new InterruptedException("Task cancelled!");
       try {
-        Entry<byte[],Versioned<Slop>> entry=iterator.next();
+        Entry<ByteArray,Versioned<Slop>> entry=iterator.next();
         Versioned<Slop> versioned=entry.getValue();
         Slop slop=versioned.getValue();
-        Store<byte[],byte[]> store=stores.get(slop.getNodeId());
+        Store<ByteArray,byte[]> store=stores.get(slop.getNodeId());
         try {
           if (slop.getOperation() == Operation.PUT)           store.put(entry.getKey(),new Versioned<byte[]>(slop.getValue(),versioned.getVersion()));
  else           store.delete(entry.getKey(),versioned.getVersion());

@@ -11,7 +11,7 @@
   databaseConfig.setTransactional(true);
   databaseConfig.setSortedDuplicates(false);
   Database database=environment.openDatabase(null,"test",databaseConfig);
-  StorageEngine<byte[],byte[]> store=new BdbStorageEngine("test",environment,database);
+  StorageEngine<ByteArray,byte[]> store=new BdbStorageEngine("test",environment,database);
   StorageEngine<String,String> stringStore=new SerializingStorageEngine<String,String>(store,new StringSerializer(),new StringSerializer());
   Iterator<Entry<String,Versioned<String>>> iter=stringStore.entries();
   while (iter.hasNext()) {

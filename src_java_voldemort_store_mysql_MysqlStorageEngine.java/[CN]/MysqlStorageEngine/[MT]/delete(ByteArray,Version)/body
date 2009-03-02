@@ -1,0 +1,31 @@
+{
+  StoreUtils.assertValidKey(key);
+  Connection conn=null;
+  PreparedStatement selectStmt=null;
+  ResultSet rs=null;
+  String select="select key_, version_ from " + name + " where key_ = ? for update";
+  try {
+    conn=datasource.getConnection();
+    selectStmt=conn.prepareStatement(select);
+    selectStmt.setBytes(1,key.get());
+    rs=selectStmt.executeQuery();
+    boolean deletedSomething=false;
+    while (rs.next()) {
+      byte[] theKey=rs.getBytes("key_");
+      byte[] version=rs.getBytes("version_");
+      if (new VectorClock(version).compare(maxVersion) == Occured.BEFORE) {
+        delete(conn,theKey,version);
+        deletedSomething=true;
+      }
+    }
+    return deletedSomething;
+  }
+ catch (  SQLException e) {
+    throw new PersistenceFailureException("Fix me!",e);
+  }
+ finally {
+    tryClose(rs);
+    tryClose(selectStmt);
+    tryClose(conn);
+  }
+}

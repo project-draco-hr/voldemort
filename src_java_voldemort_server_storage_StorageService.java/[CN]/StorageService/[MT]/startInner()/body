@@ -1,8 +1,8 @@
 {
   this.localStoreMap.clear();
   this.localStoreMap.put(MetadataStore.METADATA_STORE_NAME,metadataStore);
-  Store<byte[],byte[]> slopStorage=getStore("slop",voldemortConfig.getSlopStoreType());
-  this.slopStore=new SerializingStore<byte[],Slop>(slopStorage,new IdentitySerializer(),new SlopSerializer());
+  Store<ByteArray,byte[]> slopStorage=getStore("slop",voldemortConfig.getSlopStoreType());
+  this.slopStore=new SerializingStore<ByteArray,Slop>(slopStorage,new ByteArraySerializer(),new SlopSerializer());
   Cluster cluster=this.metadataStore.getCluster();
   List<StoreDefinition> storeDefs=this.metadataStore.getStores();
   logger.info("Initializing stores:");
@@ -10,16 +10,16 @@
   for (  StoreDefinition def : storeDefs) {
     if (!def.getName().equals(MetadataStore.METADATA_STORE_NAME)) {
       logger.info("Opening store '" + def.getName() + "'.");
-      StorageEngine<byte[],byte[]> engine=getStore(def.getName(),def.getType());
+      StorageEngine<ByteArray,byte[]> engine=getStore(def.getName(),def.getType());
       rawEngines.put(engine.getName(),engine);
       if (def.getType().equals(StorageEngineType.READONLY))       this.readOnlyStores.put(engine.getName(),(RandomAccessFileStore)engine);
-      Store<byte[],byte[]> store=engine;
+      Store<ByteArray,byte[]> store=engine;
       if (voldemortConfig.isSlopDetectionEnabled()) {
         RoutingStrategy routingStrategy=new ConsistentRoutingStrategy(cluster.getNodes(),def.getReplicationFactor());
         store=new SlopDetectingStore(store,this.slopStore,def.getReplicationFactor(),cluster.getNodeById(this.voldemortConfig.getNodeId()),routingStrategy);
       }
-      if (voldemortConfig.isVerboseLoggingEnabled())       store=new LoggingStore<byte[],byte[]>(store,cluster.getName(),time);
-      if (voldemortConfig.isStatTrackingEnabled())       store=new StatTrackingStore<byte[],byte[]>(store);
+      if (voldemortConfig.isVerboseLoggingEnabled())       store=new LoggingStore<ByteArray,byte[]>(store,cluster.getName(),time);
+      if (voldemortConfig.isStatTrackingEnabled())       store=new StatTrackingStore<ByteArray,byte[]>(store);
       this.localStoreMap.put(def.getName(),store);
     }
   }

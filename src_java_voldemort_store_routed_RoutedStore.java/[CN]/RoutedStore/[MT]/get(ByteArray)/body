@@ -1,0 +1,87 @@
+{
+  StoreUtils.assertValidKey(key);
+  final List<Node> nodes=routingStrategy.routeRequest(key.get());
+  if (nodes.size() < this.requiredReads)   throw new InsufficientOperationalNodesException("Only " + nodes.size() + " nodes in preference list, but "+ this.requiredReads+ " reads required.");
+  final List<Versioned<byte[]>> retrieved=Collections.synchronizedList(new ArrayList<Versioned<byte[]>>());
+  final List<NodeValue<ByteArray,byte[]>> nodeValues=Collections.synchronizedList(new ArrayList<NodeValue<ByteArray,byte[]>>());
+  final AtomicInteger successes=new AtomicInteger();
+  final List<Exception> failures=Collections.synchronizedList(new LinkedList<Exception>());
+  final CountDownLatch latch=new CountDownLatch(this.preferredReads);
+  int nodeIndex=0;
+  for (; nodeIndex < this.preferredReads; nodeIndex++) {
+    final Node node=nodes.get(nodeIndex);
+    if (isAvailable(node)) {
+      this.executor.execute(new Runnable(){
+        public void run(){
+          try {
+            List<Versioned<byte[]>> fetched=innerStores.get(node.getId()).get(key);
+            retrieved.addAll(fetched);
+            if (repairReads) {
+              for (              Versioned<byte[]> f : fetched)               nodeValues.add(new NodeValue<ByteArray,byte[]>(node.getId(),key,f));
+            }
+            successes.incrementAndGet();
+            node.getStatus().setAvailable();
+          }
+ catch (          UnreachableStoreException e) {
+            failures.add(e);
+            markUnavailable(node,e);
+          }
+catch (          Exception e) {
+            logger.debug("Error in get.",e);
+            failures.add(e);
+          }
+ finally {
+            latch.countDown();
+          }
+        }
+      }
+);
+    }
+  }
+  try {
+    boolean succeeded=latch.await(timeoutMs,TimeUnit.MILLISECONDS);
+    if (!succeeded)     logger.warn("Get operation timed out after " + timeoutMs + " ms.");
+  }
+ catch (  InterruptedException e) {
+    throw new InsufficientOperationalNodesException("Get operation interrupted!",e);
+  }
+  while (successes.get() < this.preferredReads && nodeIndex < nodes.size()) {
+    Node node=nodes.get(nodeIndex);
+    try {
+      retrieved.addAll(innerStores.get(node.getId()).get(key));
+      successes.incrementAndGet();
+      node.getStatus().setAvailable();
+    }
+ catch (    UnreachableStoreException e) {
+      failures.add(e);
+      markUnavailable(node,e);
+    }
+catch (    Exception e) {
+      logger.debug("Error in get.",e);
+      failures.add(e);
+    }
+    nodeIndex++;
+  }
+  if (logger.isDebugEnabled())   logger.debug("GET retrieved the following node values: " + formatNodeValues(nodeValues));
+  if (repairReads && retrieved.size() > 1) {
+    this.executor.execute(new Runnable(){
+      public void run(){
+        for (        NodeValue<ByteArray,byte[]> v : readRepairer.getRepairs(nodeValues)) {
+          try {
+            logger.debug("Doing read repair on node " + v.getNodeId() + " for key '"+ v.getKey()+ "' with version "+ v.getVersion()+ ".");
+            innerStores.get(v.getNodeId()).put(v.getKey(),v.getVersioned());
+          }
+ catch (          ObsoleteVersionException e) {
+            logger.debug("Read repair cancelled due to obsolete version on node " + v.getNodeId() + " for key '"+ v.getKey()+ "' with version "+ v.getVersion()+ ": "+ e.getMessage());
+          }
+catch (          Exception e) {
+            logger.debug("Read repair failed: ",e);
+          }
+        }
+      }
+    }
+);
+  }
+  if (successes.get() >= this.requiredReads)   return retrieved;
+ else   throw new InsufficientOperationalNodesException(this.requiredReads + " reads required, but " + successes.get()+ " succeeded.",failures);
+}
