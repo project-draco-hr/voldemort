@@ -1,8 +1,11 @@
 {
+  int[] ports=ServerTestUtils.findFreePorts(2);
+  this.port1=ports[0];
+  this.port2=ports[1];
   this.pool=new SocketPool(maxConnections,maxConnections,1000,32 * 1024);
-  this.dest1=new SocketDestination("localhost",port);
-  this.dest2=new SocketDestination("localhost",port);
-  this.server=new SocketServer(new ConcurrentHashMap(),port,maxConnections,maxConnections,10000);
+  this.dest1=new SocketDestination("localhost",port1);
+  this.dest2=new SocketDestination("localhost",port1);
+  this.server=new SocketServer(new ConcurrentHashMap(),port1,maxConnections,maxConnections,10000);
   this.server.start();
   this.server.awaitStartupCompletion();
 }

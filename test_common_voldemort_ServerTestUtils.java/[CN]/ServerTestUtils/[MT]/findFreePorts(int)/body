@@ -1,0 +1,23 @@
+{
+  int[] ports=new int[n];
+  ServerSocket[] sockets=new ServerSocket[n];
+  try {
+    for (int i=0; i < n; i++) {
+      sockets[i]=new ServerSocket(0);
+      ports[i]=sockets[i].getLocalPort();
+    }
+    return ports;
+  }
+ catch (  IOException e) {
+    throw new RuntimeException(e);
+  }
+ finally {
+    for (int i=0; i < n; i++) {
+      try {
+        if (sockets[i] != null)         sockets[i].close();
+      }
+ catch (      IOException e) {
+      }
+    }
+  }
+}

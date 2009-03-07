@@ -1,8 +1,8 @@
 {
   super.setUp();
-  Cluster cluster=VoldemortTestConstants.getOneNodeCluster();
+  Cluster cluster=ServerTestUtils.getLocalCluster(1);
   Node node=cluster.getNodes().iterator().next();
-  context=ServerTestUtils.getJettyServer(VoldemortTestConstants.getOneNodeClusterXml(),VoldemortTestConstants.getSimpleStoreDefinitionsXml(),"users",node.getHttpPort());
+  context=ServerTestUtils.getJettyServer(new ClusterMapper().writeCluster(cluster),VoldemortTestConstants.getSimpleStoreDefinitionsXml(),"users",node.getHttpPort());
   server=context.getServer();
   httpStore=ServerTestUtils.getHttpStore("users",node.getHttpPort());
 }
