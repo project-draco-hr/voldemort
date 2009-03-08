@@ -1,0 +1,24 @@
+{
+  File testDir=prepareTestDir();
+  File index=prepareIndexDir(testDir);
+  File data=prepareDataDir(testDir);
+  FileOutputStream indexOs=new FileOutputStream(index);
+  FileOutputStream dataOs=new FileOutputStream(data);
+  Map<ByteArray,byte[]> keysAndValues=Maps.newHashMap();
+  for (int i=0; i < 5; ++i) {
+    byte b=(byte)(i + 1);
+    byte[] key=new byte[]{b};
+    byte[] md5=ByteUtils.md5(key);
+    byte[] arrayValue=new byte[]{0,0,0,1,b};
+    dataOs.write(arrayValue);
+    indexOs.write(md5);
+    byte position=(byte)(i * 5);
+    indexOs.write(new byte[]{0,0,0,0,0,0,0,position});
+    keysAndValues.put(new ByteArray(key),key);
+  }
+  dataOs.close();
+  indexOs.close();
+  RandomAccessFileStore store=new RandomAccessFileStore("test",testDir,2,2,10,100);
+  Map<ByteArray,List<Versioned<byte[]>>> result=store.getAll(keysAndValues.keySet());
+  assertEquals(keysAndValues.keySet(),result.keySet());
+}
