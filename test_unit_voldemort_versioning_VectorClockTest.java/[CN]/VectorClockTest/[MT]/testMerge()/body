@@ -1,5 +1,9 @@
 {
   assertEquals("Two empty clocks merge to an empty clock.",getClock().merge(getClock()),getClock());
-  assertEquals("Merging two clocks should be the same as taking the max of their event counts.",getClock(1).merge(getClock(2)),getClock(1,2));
-  assertEquals("Merging two clocks should be the same as taking the max of their event counts.",getClock(1,1,1,2,3).merge(getClock(1,2,2,4)),getClock(1,1,1,2,2,3,4));
+  assertEquals("Merge of a clock with itself does nothing",getClock(1).merge(getClock(1)),getClock(1));
+  assertEquals(getClock(1).merge(getClock(2)),getClock(1,2));
+  assertEquals(getClock(1).merge(getClock(1,2)),getClock(1,2));
+  assertEquals(getClock(1,2).merge(getClock(1)),getClock(1,2));
+  assertEquals("Two-way merge fails.",getClock(1,1,1,2,3,5).merge(getClock(1,2,2,4)),getClock(1,1,1,2,2,3,4,5));
+  assertEquals(getClock(2,3,5).merge(getClock(1,2,2,4,7)),getClock(1,2,2,3,4,5,7));
 }

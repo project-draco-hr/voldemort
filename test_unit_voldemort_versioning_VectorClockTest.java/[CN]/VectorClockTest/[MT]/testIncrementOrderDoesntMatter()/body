@@ -1,0 +1,11 @@
+{
+  int numTests=10;
+  int numNodes=10;
+  int numValues=100;
+  VectorClock[] clocks=new VectorClock[numNodes];
+  for (int t=0; t < numTests; t++) {
+    int[] test=TestUtils.randomInts(numNodes,numValues);
+    for (int n=0; n < numNodes; n++)     clocks[n]=getClock(TestUtils.shuffle(test));
+    for (int n=0; n < numNodes - 1; n++)     assertEquals("Clock " + n + " and "+ (n + 1)+ " are not equal.",clocks[n],clocks[n + 1]);
+  }
+}

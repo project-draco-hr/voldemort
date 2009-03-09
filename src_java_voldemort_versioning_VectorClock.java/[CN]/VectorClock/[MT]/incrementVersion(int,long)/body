@@ -4,13 +4,20 @@
   boolean found=false;
   int index=0;
   for (; index < versions.size(); index++) {
-    if (versions.get(index).getNodeId() >= node) {
+    if (versions.get(index).getNodeId() == node) {
       found=true;
+      break;
+    }
+ else     if (versions.get(index).getNodeId() > node) {
+      found=false;
       break;
     }
   }
   if (found) {
     versions.set(index,versions.get(index).incremented());
+  }
+ else   if (index < versions.size() - 1) {
+    versions.add(index,new ClockEntry((short)node,(short)1));
   }
  else {
     if (versions.size() > MAX_NUMBER_OF_VERSIONS)     throw new IllegalStateException("Vector clock is full!");
