@@ -3,12 +3,12 @@
   StorageEngine<String,String> stringStore=new SerializingStorageEngine<String,String>(store,new StringSerializer(),new StringSerializer());
   Map<String,String> vals=ImmutableMap.of("a","a","b","b","c","c","d","d","e","e");
   for (  Map.Entry<String,String> entry : vals.entrySet())   stringStore.put(entry.getKey(),new Versioned<String>(entry.getValue()));
-  ClosableIterator<Entry<String,Versioned<String>>> iter=stringStore.entries();
+  ClosableIterator<Pair<String,Versioned<String>>> iter=stringStore.entries();
   int count=0;
   while (iter.hasNext()) {
-    Entry<String,Versioned<String>> entry=iter.next();
-    assertTrue(vals.containsKey(entry.getKey()));
-    assertEquals(vals.get(entry.getKey()),entry.getValue().getValue());
+    Pair<String,Versioned<String>> keyAndVal=iter.next();
+    assertTrue(vals.containsKey(keyAndVal.getFirst()));
+    assertEquals(vals.get(keyAndVal.getFirst()),keyAndVal.getSecond().getValue());
     count++;
   }
   assertEquals(count,vals.size());

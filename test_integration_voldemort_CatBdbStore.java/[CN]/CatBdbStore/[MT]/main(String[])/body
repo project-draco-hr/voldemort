@@ -13,9 +13,9 @@
   Database database=environment.openDatabase(null,"test",databaseConfig);
   StorageEngine<ByteArray,byte[]> store=new BdbStorageEngine("test",environment,database);
   StorageEngine<String,String> stringStore=new SerializingStorageEngine<String,String>(store,new StringSerializer(),new StringSerializer());
-  Iterator<Entry<String,Versioned<String>>> iter=stringStore.entries();
+  Iterator<Pair<String,Versioned<String>>> iter=stringStore.entries();
   while (iter.hasNext()) {
-    Entry<String,Versioned<String>> entry=iter.next();
-    System.out.println(entry.getKey() + " => " + entry.getValue().getValue());
+    Pair<String,Versioned<String>> entry=iter.next();
+    System.out.println(entry.getFirst() + " => " + entry.getSecond().getValue());
   }
 }

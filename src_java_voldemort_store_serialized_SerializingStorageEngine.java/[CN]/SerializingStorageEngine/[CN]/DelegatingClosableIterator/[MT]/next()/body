@@ -1,10 +1,10 @@
 {
-  Entry<ByteArray,Versioned<byte[]>> next=iterator.next();
-  if (next == null) {
+  Pair<ByteArray,Versioned<byte[]>> keyAndVal=iterator.next();
+  if (keyAndVal == null) {
     return null;
   }
  else {
-    Versioned<byte[]> versioned=next.getValue();
-    return new Entry<K,Versioned<V>>(getKeySerializer().toObject(next.getKey().get()),new Versioned<V>(getValueSerializer().toObject(versioned.getValue()),versioned.getVersion()));
+    Versioned<byte[]> versioned=keyAndVal.getSecond();
+    return Pair.create(getKeySerializer().toObject(keyAndVal.getFirst().get()),new Versioned<V>(getValueSerializer().toObject(versioned.getValue()),versioned.getVersion()));
   }
 }

@@ -1,6 +1,6 @@
 {
   acquireCleanupPermit();
-  ClosableIterator<Entry<K,Versioned<V>>> iterator;
+  ClosableIterator<Pair<K,Versioned<V>>> iterator;
   try {
     logger.info("Starting data cleanup on store \"" + store.getName() + "\"...");
     int deleted=0;
@@ -12,10 +12,10 @@
           logger.info("Datacleanup job halted.");
           return;
         }
-        Entry<K,Versioned<V>> entry=iterator.next();
-        VectorClock clock=(VectorClock)entry.getValue().getVersion();
+        Pair<K,Versioned<V>> keyAndVal=iterator.next();
+        VectorClock clock=(VectorClock)keyAndVal.getSecond().getVersion();
         if (now - clock.getTimestamp() > maxAgeMs) {
-          store.delete(entry.getKey(),clock);
+          store.delete(keyAndVal.getFirst(),clock);
           deleted++;
         }
       }
