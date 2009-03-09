@@ -7,7 +7,7 @@
   System.out.println("Creating client: ");
   final StoreClient<String,String> client=getStore(propertiesA,propertiesB);
   PerformanceTest writeTest=new PerformanceTest(){
-    public void doOperation(    int index) throws Exception {
+    @Override public void doOperation(    int index) throws Exception {
       String iStr=Integer.toString(index);
       client.put(iStr,new Versioned<String>(iStr));
     }
@@ -19,7 +19,7 @@
   writeTest.printStats();
   System.out.println();
   PerformanceTest readTest=new PerformanceTest(){
-    public void doOperation(    int index) throws Exception {
+    @Override public void doOperation(    int index) throws Exception {
       String iStr=Integer.toString(index);
       String found=client.getValue(iStr);
       if (!iStr.equals(found))       System.err.println("Not equal: " + iStr + ", "+ found);

@@ -10,7 +10,7 @@
   FileStatus jsonFileStatus=jsonFilePath.getFileSystem(new Configuration()).listStatus(jsonFilePath)[0];
   final SequenceFileRecordReader<BytesWritable,BytesWritable> reader=new SequenceFileRecordReader<BytesWritable,BytesWritable>(new Configuration(),new FileSplit(jsonFilePath,0,jsonFileStatus.getLen(),(String[])null));
   PerformanceTest readWriteTest=new PerformanceTest(){
-    public void doOperation(    int index) throws Exception {
+    @Override public void doOperation(    int index) throws Exception {
       try {
         BytesWritable key=new BytesWritable();
         BytesWritable value=new BytesWritable();
