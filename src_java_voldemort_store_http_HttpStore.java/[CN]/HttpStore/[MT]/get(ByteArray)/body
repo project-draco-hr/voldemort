@@ -6,7 +6,7 @@
     method=new GetMethod(url);
     int response=httpClient.executeMethod(method);
     if (response != HttpURLConnection.HTTP_OK)     httpResponseCodeErrorMapper.throwError(response,method.getStatusText());
-    DataInputStream input=new DataInputStream(new ByteArrayInputStream(method.getResponseBody()));
+    DataInputStream input=createDataInputStream(method);
     List<Versioned<byte[]>> items=new ArrayList<Versioned<byte[]>>();
     try {
       while (true) {
@@ -19,9 +19,11 @@
       }
     }
  catch (    EOFException e) {
-      input.close();
+      return items;
     }
-    return items;
+ finally {
+      StoreUtils.close(input);
+    }
   }
  catch (  HttpException e) {
     throw new VoldemortException(e);
