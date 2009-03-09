@@ -1,0 +1,8 @@
+{
+  VoldemortConfig config=TestUtils.createServerConfig(nodeId,baseDir,clusterFile,storerFile);
+  VoldemortServer server=new VoldemortServer(config);
+  FileUtils.copyFile(new File(indexDir,nodeId + ".index"),new File(config.getReadOnlyDataStorageDirectory(),storeName + ".index"));
+  FileUtils.copyFile(new File(indexDir,nodeId + ".data"),new File(config.getReadOnlyDataStorageDirectory(),storeName + ".data"));
+  server.start();
+  return server;
+}

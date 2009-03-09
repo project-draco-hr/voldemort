@@ -1,0 +1,23 @@
+{
+  if (args.length != 2)   Utils.croak("USAGE: java " + CatRandomAccessFileStore.class.getName() + " directory");
+  File dir=new File(args[0]);
+  String storeName=args[1];
+  Serializer<Object> serializer=new JsonTypeSerializer(JsonTypeDefinition.fromJson("'string'"),true);
+  RandomAccessFile index=new RandomAccessFile(new File(dir,storeName + ".index"),"r");
+  RandomAccessFile data=new RandomAccessFile(new File(dir,storeName + ".data"),"r");
+  byte[] keyMd5=new byte[16];
+  long position=-1;
+  try {
+    while (true) {
+      index.readFully(keyMd5);
+      position=index.readLong();
+      data.seek(position);
+      int size=data.readInt();
+      byte[] value=new byte[size];
+      data.readFully(value);
+      System.out.println(ByteUtils.toHexString(keyMd5) + "\t=>\t" + serializer.toObject(value).toString());
+    }
+  }
+ catch (  EOFException e) {
+  }
+}

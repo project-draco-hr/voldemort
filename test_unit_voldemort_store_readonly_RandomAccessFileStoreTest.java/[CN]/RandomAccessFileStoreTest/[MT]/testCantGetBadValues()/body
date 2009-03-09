@@ -1,0 +1,12 @@
+{
+  RandomAccessStoreTestInstance testData=RandomAccessStoreTestInstance.create(dir,TEST_SIZE,2,2);
+  for (int i=0; i < 3; i++) {
+    for (int j=0; j < TEST_SIZE; j++) {
+      String key=TestUtils.randomLetters(10);
+      if (!testData.getData().containsKey(key)) {
+        for (int k=0; k < testData.getNodeStores().size(); k++)         assertEquals("Found key in store where it should not be.",0,testData.getNodeStores().get(k).get(key).size());
+      }
+    }
+  }
+  testData.delete();
+}
