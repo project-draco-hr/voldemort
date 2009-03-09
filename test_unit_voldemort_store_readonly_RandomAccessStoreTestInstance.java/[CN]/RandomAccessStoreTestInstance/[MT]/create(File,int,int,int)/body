@@ -9,7 +9,7 @@
   SerializerDefinition serDef=new SerializerDefinition("json","'string'");
   StoreDefinition storeDef=new StoreDefinition("test",StorageEngineType.READONLY,serDef,serDef,RoutingTier.CLIENT,repFactor,1,1,1,1,1);
   RoutingStrategy router=new ConsistentRoutingStrategy(cluster.getNodes(),repFactor);
-  File outputDir=TestUtils.getTempDirectory(baseDir);
+  File outputDir=TestUtils.createTempDir(baseDir);
   JsonStoreBuilder storeBuilder=new JsonStoreBuilder(reader,cluster,storeDef,router,outputDir,testSize / 5,1);
   storeBuilder.build();
   @SuppressWarnings("unchecked") Serializer<String> serializer=(Serializer<String>)new DefaultSerializerFactory().getSerializer(serDef);
