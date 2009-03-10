@@ -1,0 +1,10 @@
+{
+  conf.set("job.name","testCSVBatchIndexer");
+  conf.set("voldemort.cluster.local.filePath","contrib/common/config/nine-node-cluster.xml");
+  conf.set("voldemort.store.local.filePath","contrib/common/config/stores.xml");
+  conf.set("voldemort.store.name","users");
+  FileInputFormat.addInputPaths(conf,"contrib/common/test-data/usersCSV.txt");
+  FileOutputFormat.setOutputPath(conf,new Path("contrib/batch-indexer/temp-output/text"));
+  conf.setMapperClass(TextBatchMapper.class);
+  conf.setInputFormat(TextInputFormat.class);
+}
