@@ -12,7 +12,7 @@
       logger.info("Opening store '" + def.getName() + "'.");
       StorageEngine<ByteArray,byte[]> engine=getStore(def.getName(),def.getType());
       rawEngines.put(engine.getName(),engine);
-      if (def.getType().equals(StorageEngineType.READONLY))       this.readOnlyStores.put(engine.getName(),(RandomAccessFileStore)engine);
+      if (def.getType().equals(RandomAccessFileStorageConfiguration.TYPE_NAME))       this.readOnlyStores.put(engine.getName(),(RandomAccessFileStore)engine);
       Store<ByteArray,byte[]> store=engine;
       if (voldemortConfig.isSlopDetectionEnabled()) {
         RoutingStrategy routingStrategy=new ConsistentRoutingStrategy(cluster.getNodes(),def.getReplicationFactor());

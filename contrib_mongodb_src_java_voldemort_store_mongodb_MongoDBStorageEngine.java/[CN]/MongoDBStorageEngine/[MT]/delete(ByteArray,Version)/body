@@ -1,0 +1,25 @@
+{
+  StoreUtils.assertValidKey(key);
+  setTls();
+  String strKey=new String(key.get());
+  boolean deleted=false;
+  DBCursor cur=null;
+  try {
+    cur=_coll.find(new Doc(KEY,strKey));
+    for (    Doc d : cur) {
+      VectorClock existingClock=new VectorClock(d.getBytes(CLOCK));
+      Occured occured=version.compare(existingClock);
+      if (occured == Occured.BEFORE) {
+        _coll.remove(new MongoSelector(d));
+        deleted=true;
+      }
+    }
+    return deleted;
+  }
+ catch (  MongoDBException e) {
+    throw new VoldemortException(e);
+  }
+ finally {
+    closeCursor(cur);
+  }
+}

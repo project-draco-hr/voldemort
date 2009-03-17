@@ -8,10 +8,6 @@
   this.voldemortHome=props.getString("voldemort.home");
   this.dataDirectory=props.getString("data.directory",this.voldemortHome + File.separator + "data");
   this.metadataDirectory=props.getString("metadata.directory",voldemortHome + File.separator + "config");
-  this.enableBdbEngine=props.getBoolean("enable.bdb.engine",true);
-  this.enableMysqlEngine=props.getBoolean("enable.mysql.engine",false);
-  this.enableMemoryEngine=props.getBoolean("enable.memory.engine",true);
-  this.enableCacheEngine=props.getBoolean("enable.cache.engine",true);
   this.bdbCacheSize=props.getBytes("bdb.cache.size",200 * 1024 * 1024);
   this.bdbWriteTransactions=props.getBoolean("bdb.write.transactions",false);
   this.bdbFlushTransactions=props.getBoolean("bdb.flush.transactions",false);
@@ -21,13 +17,12 @@
   this.bdbCheckpointBytes=props.getLong("bdb.checkpoint.interval.bytes",20 * 1024 * 1024);
   this.bdbCheckpointMs=props.getLong("bdb.checkpoint.interval.ms",30 * Time.MS_PER_SECOND);
   this.bdbSortedDuplicates=props.getBoolean("bdb.enable.sorted.duplicates",true);
-  this.enableReadOnlyEngine=props.getBoolean("enable.readonly.engine",true);
   this.readOnlyFileWaitTimeoutMs=props.getLong("readonly.file.wait.timeout.ms",4000L);
   this.readOnlyBackups=props.getInt("readonly.backups",1);
   this.readOnlyFileHandles=props.getInt("readonly.file.handles",5);
   this.readOnlyStorageDir=props.getString("readonly.data.directory",this.dataDirectory + File.separator + "read-only");
   this.readOnlyCacheSize=props.getInt("readonly.cache.size",100 * 1000 * 1000);
-  this.slopStoreType=StorageEngineType.fromDisplay(props.getString("slop.store.engine",StorageEngineType.BDB.toDisplay()));
+  this.slopStoreType=props.getString("slop.store.engine",BdbStorageConfiguration.TYPE_NAME);
   this.mysqlUsername=props.getString("mysql.user","root");
   this.mysqlPassword=props.getString("mysql.password","");
   this.mysqlHost=props.getString("mysql.host","localhost");
@@ -46,5 +41,7 @@
   this.enableStatTracking=props.getBoolean("enable.stat.tracking",true);
   this.pusherPollMs=props.getInt("pusher.poll.ms",2 * 60 * 1000);
   this.schedulerThreads=props.getInt("scheduler.threads",3);
+  this.storageConfigurations=props.getList("storage.configs",ImmutableList.of(BdbStorageConfiguration.class.getName(),InMemoryStorageConfiguration.class.getName(),CacheStorageConfiguration.class.getName(),RandomAccessFileStorageConfiguration.class.getName()));
+  this.allProps=props;
   validateParams();
 }

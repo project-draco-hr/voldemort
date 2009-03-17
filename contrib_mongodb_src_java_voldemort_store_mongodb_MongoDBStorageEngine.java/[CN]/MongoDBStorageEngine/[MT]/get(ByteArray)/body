@@ -1,0 +1,23 @@
+{
+  StoreUtils.assertValidKey(key);
+  setTls();
+  List<Versioned<byte[]>> list=new ArrayList<Versioned<byte[]>>();
+  String strKey=new String(key.get());
+  DBCursor cur=null;
+  try {
+    cur=_coll.find(new MongoSelector(KEY,strKey));
+    for (    Doc d : cur) {
+      BSONObject bo=new BSONObject();
+      bo.serialize(d.getDoc(VALUE));
+      Versioned<byte[]> val=new Versioned<byte[]>(bo.toArray(),new VectorClock(d.getBytes(CLOCK)));
+      list.add(val);
+    }
+  }
+ catch (  MongoDBException e) {
+    throw new VoldemortException(e);
+  }
+ finally {
+    closeCursor(cur);
+  }
+  return list;
+}

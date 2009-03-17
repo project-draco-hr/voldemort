@@ -1,0 +1,13 @@
+{
+  StorageEngine<ByteArray,byte[]> engine=getStore();
+  Doc d=new Doc("x",1);
+  Versioned<byte[]> v1=new Versioned<byte[]>(_mds.toBytes(d.add("x",1)),TestUtils.getClock(1));
+  Versioned<byte[]> v2=new Versioned<byte[]>(_mds.toBytes(d.add("x",2)),TestUtils.getClock(2));
+  Versioned<byte[]> v3=new Versioned<byte[]>(_mds.toBytes(d.add("x",3)),TestUtils.getClock(1,2));
+  ByteArray key=new ByteArray("foo".getBytes());
+  engine.put(key,v1);
+  engine.put(key,v2);
+  assertEquals(2,engine.get(key).size());
+  engine.put(key,v3);
+  assertEquals(1,engine.get(key).size());
+}
