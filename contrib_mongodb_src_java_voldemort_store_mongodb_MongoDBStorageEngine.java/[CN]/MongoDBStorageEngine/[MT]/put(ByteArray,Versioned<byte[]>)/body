@@ -17,7 +17,16 @@
     newData.put(CLOCK,((VectorClock)value.getVersion()).toBytes());
     _coll.insert(newData);
   }
- catch (  MongoDBException e) {
+ catch (  MongoDBIOException mioe) {
+    try {
+      init();
+    }
+ catch (    MongoDBException ee) {
+      ee.printStackTrace();
+    }
+    throw new VoldemortException(mioe);
+  }
+catch (  MongoDBException e) {
     throw new VoldemortException(e);
   }
  finally {
