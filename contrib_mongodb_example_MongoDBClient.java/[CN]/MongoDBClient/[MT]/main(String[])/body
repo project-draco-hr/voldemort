@@ -1,0 +1,19 @@
+{
+  int numThreads=10;
+  int maxQueuedRequests=10;
+  int maxConnectionsPerNode=10;
+  int maxTotalConnections=100;
+  String bootstrapUrl="tcp://localhost:6666";
+  StoreClientFactory factory=new SocketStoreClientFactory(new ThreadPoolExecutor(numThreads,numThreads,10000L,TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>(maxQueuedRequests),new DaemonThreadFactory("voldemort-client-thread-"),new ThreadPoolExecutor.CallerRunsPolicy()),maxConnectionsPerNode,maxTotalConnections,5000,AbstractStoreClientFactory.DEFAULT_ROUTING_TIMEOUT_MS,AbstractStoreClientFactory.DEFAULT_NODE_BANNAGE_MS,new MongoDBSerializationFactory(),bootstrapUrl);
+  StoreClient<String,Doc> client=factory.getStoreClient("test");
+  Versioned<Doc> v=client.get("key");
+  if (v == null) {
+    Doc d=new Doc("name","geir");
+    d.add("x",1);
+    v=new Versioned<Doc>(d);
+  }
+  client.put("key",v);
+  v=client.get("key");
+  System.out.println("value : " + v.getValue());
+  System.out.println("clock : " + v.getVersion());
+}
