@@ -1,0 +1,14 @@
+{
+  StoreClient<String,Doc> client=_factory.getStoreClient("test");
+  long start=System.currentTimeMillis();
+  int found=0;
+  for (int i=0; i < count; i++) {
+    Versioned<Doc> v=client.get(keyRoot + i);
+    if (v != null) {
+      found++;
+    }
+  }
+  long end=System.currentTimeMillis();
+  System.out.println("Found : " + found);
+  return end - start;
+}

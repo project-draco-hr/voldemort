@@ -1,0 +1,13 @@
+{
+  StoreClient<String,Doc> client=_factory.getStoreClient("test");
+  Versioned<Doc> v=client.get("key");
+  if (v == null) {
+    Doc d=new Doc("name","geir");
+    d.add("x",1);
+    v=new Versioned<Doc>(d);
+  }
+  client.put("key",v);
+  v=client.get("key");
+  System.out.println("value : " + v.getValue());
+  System.out.println("clock : " + v.getVersion());
+}
