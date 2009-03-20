@@ -1,0 +1,12 @@
+{
+  StoreClient<String,Doc> client=_factory.getStoreClient("test");
+  long start=System.currentTimeMillis();
+  for (int i=0; i < count; i++) {
+    Doc d=makeLargeDoc();
+    d.add("x",1);
+    Versioned<Doc> v=new Versioned<Doc>(d);
+    client.put(keyRoot + i,v);
+  }
+  long end=System.currentTimeMillis();
+  return end - start;
+}
