@@ -1,12 +1,5 @@
 {
-  File index=createFile("test.index");
-  File data=createFile("test.data");
-  FileOutputStream dataOs=new FileOutputStream(data);
-  for (int i=0; i < dataBytes; i++)   dataOs.write(i);
-  dataOs.close();
-  FileOutputStream indexOs=new FileOutputStream(index);
-  for (int i=0; i < indexBytes; i++)   indexOs.write(i);
-  indexOs.close();
+  createStoreFiles(indexBytes,dataBytes);
   try {
     new RandomAccessFileStore("test",dir,1,1,1000,100 * 1000 * 1000);
     if (!shouldWork)     fail("Able to open corrupt read-only store (index size = " + indexBytes + ", data bytes = "+ dataBytes+ ").");
