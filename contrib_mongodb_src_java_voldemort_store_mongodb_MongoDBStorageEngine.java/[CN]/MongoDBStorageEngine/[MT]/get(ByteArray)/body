@@ -1,13 +1,13 @@
 {
   StoreUtils.assertValidKey(key);
-  setTls();
+  DirectBufferTLS tls=getTLS();
   List<Versioned<byte[]>> list=new ArrayList<Versioned<byte[]>>();
   String strKey=new String(key.get());
   DBCursor cur=null;
   try {
     cur=_coll.find(new MongoSelector(KEY,strKey));
     for (    Doc d : cur) {
-      BSONObject bo=new BSONObject();
+      BSONObject bo=new BSONObject(tls.getReadBuffer());
       bo.serialize(d.getDoc(VALUE));
       Versioned<byte[]> val=new Versioned<byte[]>(bo.toArray(),new VectorClock(d.getBytes(CLOCK)));
       list.add(val);
