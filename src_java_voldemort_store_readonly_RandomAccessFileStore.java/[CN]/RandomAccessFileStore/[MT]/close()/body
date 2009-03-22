@@ -1,7 +1,7 @@
 {
   logger.debug("Close called for read-only store.");
-  this.isOpen.compareAndSet(true,false);
   this.fileModificationLock.writeLock().lock();
+  if (!isOpen)   throw new IllegalStateException("Attempt to close non-open store.");
   try {
     while (this.indexFiles.size() > 0) {
       RandomAccessFile f=this.indexFiles.take();
@@ -11,6 +11,7 @@
       RandomAccessFile f=this.dataFiles.poll();
       f.close();
     }
+    this.isOpen=false;
   }
  catch (  IOException e) {
     throw new VoldemortException("Error while closing store.",e);
