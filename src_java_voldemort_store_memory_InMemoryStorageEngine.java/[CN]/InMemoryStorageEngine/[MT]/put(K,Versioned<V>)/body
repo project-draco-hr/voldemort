@@ -1,12 +1,12 @@
 {
   StoreUtils.assertValidKey(key);
-  VectorClock clock=(VectorClock)value.getVersion();
+  Version version=value.getVersion();
   boolean success=false;
   while (!success) {
     List<Versioned<V>> items=map.get(key);
     if (items == null) {
       items=new ArrayList<Versioned<V>>();
-      items.add(new Versioned<V>(value.getValue(),clock));
+      items.add(new Versioned<V>(value.getValue(),version));
       success=map.putIfAbsent(key,items) == null;
     }
  else {
