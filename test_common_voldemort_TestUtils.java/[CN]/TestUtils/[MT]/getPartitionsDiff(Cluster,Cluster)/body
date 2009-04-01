@@ -1,0 +1,22 @@
+{
+  int diffPartition=0;
+  ArrayList<Node> nodeAList=new ArrayList<Node>(orig.getNodes());
+  for (int i=0; i < orig.getNodes().size(); i++) {
+    Node nodeA=nodeAList.get(i);
+    Node nodeB;
+    try {
+      nodeB=updated.getNodeById(nodeA.getId());
+    }
+ catch (    VoldemortException e) {
+      diffPartition+=nodeA.getNumberOfPartitions();
+      continue;
+    }
+    SortedSet<Integer> BpartitonSet=new TreeSet<Integer>(nodeB.getPartitionIds());
+    for (    int p : nodeA.getPartitionIds()) {
+      if (!BpartitonSet.contains(new Integer(p))) {
+        diffPartition++;
+      }
+    }
+  }
+  return diffPartition;
+}
