@@ -11,11 +11,10 @@
   store.put(aKey,new Versioned<byte[]>(anotherValue,clock));
   Iterables.get(cluster.getNodes(),1).getStatus().setUnavailable();
   Iterables.getLast(cluster.getNodes()).getStatus().setUnavailable();
-  store.get(aKey);
-  Thread.sleep(100);
   List<Versioned<byte[]>> versioneds=store.get(aKey);
   assertEquals(1,versioneds.size());
   assertEquals(new ByteArray(anotherValue),new ByteArray(versioneds.get(0).getValue()));
+  Thread.sleep(100);
   for (  Store<ByteArray,byte[]> innerStore : routedStore.getInnerStores().values()) {
     List<Versioned<byte[]>> innerVersioneds=innerStore.get(aKey);
     assertEquals(1,versioneds.size());
