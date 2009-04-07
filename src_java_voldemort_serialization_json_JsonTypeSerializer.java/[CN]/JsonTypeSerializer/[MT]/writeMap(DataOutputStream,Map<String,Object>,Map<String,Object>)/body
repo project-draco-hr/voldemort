@@ -8,7 +8,12 @@
     if (object.size() != type.size())     throw new SerializationException("Invalid map for serialization, expected: " + type + " but got "+ object);
     for (    Map.Entry<String,Object> entry : type.entrySet()) {
       if (!object.containsKey(entry.getKey()))       throw new SerializationException("Missing property: " + entry.getKey() + " in "+ type);
-      write(output,object.get(entry.getKey()),entry.getValue());
+      try {
+        write(output,object.get(entry.getKey()),entry.getValue());
+      }
+ catch (      SerializationException e) {
+        throw new SerializationException("Fail to write property: " + entry.getKey(),e);
+      }
     }
   }
 }
