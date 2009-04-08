@@ -1,4 +1,6 @@
 {
+  if (this == second)   return true;
+  if (second == null || second.getClass() != getClass())   return false;
   Cluster secondCluster=(Cluster)second;
   if (this.getNodes().size() != secondCluster.getNodes().size()) {
     return false;
@@ -8,11 +10,7 @@
     if (nodeA.getNumberOfPartitions() != nodeB.getNumberOfPartitions()) {
       return false;
     }
-    for (    int partitionId : nodeA.getPartitionIds()) {
-      if (!nodeB.getPartitionIds().contains(partitionId)) {
-        return false;
-      }
-    }
+    if (!Sets.newHashSet(nodeA.getPartitionIds()).equals(Sets.newHashSet(nodeB.getPartitionIds())))     return false;
   }
   return true;
 }
