@@ -1,14 +1,27 @@
 {
-  if (o instanceof Map) {
-    writeMap((Map<String,Object>)o);
-  }
- else   if (o instanceof List) {
-    writeList((List<Object>)o);
-  }
- else   if (o instanceof String) {
-    writer.write((String)o);
-  }
+  try {
+    if (null == o) {
+      writer.write("null");
+    }
+ else     if (o instanceof Map) {
+      writeMap((Map<String,Object>)o);
+    }
+ else     if (o instanceof List) {
+      writeList((List<Object>)o);
+    }
+ else     if (o instanceof Date) {
+      writeDate((Date)o);
+    }
+ else     if (o instanceof String) {
+      writer.write("'");
+      writer.write((String)o);
+      writer.write("'");
+    }
  else {
-    writer.write(o.toString());
+      writer.write(o.toString());
+    }
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("JsonWriter failed to write Object(" + o + ")  as String",e);
   }
 }
