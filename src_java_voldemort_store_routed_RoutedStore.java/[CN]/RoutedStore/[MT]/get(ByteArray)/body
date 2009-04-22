@@ -1,42 +1,41 @@
 {
   StoreUtils.assertValidKey(key);
-  final List<Node> nodes=routingStrategy.routeRequest(key.get());
+  final List<Node> nodes=availableNodes(routingStrategy.routeRequest(key.get()));
   if (nodes.size() < this.requiredReads)   throw new InsufficientOperationalNodesException("Only " + nodes.size() + " nodes in preference list, but "+ this.requiredReads+ " reads required.");
   final List<Versioned<byte[]>> retrieved=Collections.synchronizedList(new ArrayList<Versioned<byte[]>>());
   final List<NodeValue<ByteArray,byte[]>> nodeValues=Collections.synchronizedList(new ArrayList<NodeValue<ByteArray,byte[]>>());
   final AtomicInteger successes=new AtomicInteger();
   final List<Exception> failures=Collections.synchronizedList(new LinkedList<Exception>());
-  final CountDownLatch latch=new CountDownLatch(this.preferredReads);
+  int attempts=Math.min(this.preferredReads,nodes.size());
+  final CountDownLatch latch=new CountDownLatch(attempts);
   int nodeIndex=0;
-  for (; nodeIndex < this.preferredReads; nodeIndex++) {
+  for (; nodeIndex < attempts; nodeIndex++) {
     final Node node=nodes.get(nodeIndex);
-    if (isAvailable(node)) {
-      this.executor.execute(new Runnable(){
-        public void run(){
-          try {
-            List<Versioned<byte[]>> fetched=innerStores.get(node.getId()).get(key);
-            retrieved.addAll(fetched);
-            if (repairReads) {
-              for (              Versioned<byte[]> f : fetched)               nodeValues.add(new NodeValue<ByteArray,byte[]>(node.getId(),key,f));
-            }
-            successes.incrementAndGet();
-            node.getStatus().setAvailable();
+    this.executor.execute(new Runnable(){
+      public void run(){
+        try {
+          List<Versioned<byte[]>> fetched=innerStores.get(node.getId()).get(key);
+          retrieved.addAll(fetched);
+          if (repairReads) {
+            for (            Versioned<byte[]> f : fetched)             nodeValues.add(new NodeValue<ByteArray,byte[]>(node.getId(),key,f));
           }
- catch (          UnreachableStoreException e) {
-            failures.add(e);
-            markUnavailable(node,e);
-          }
-catch (          Exception e) {
-            logger.debug("Error in get.",e);
-            failures.add(e);
-          }
+          successes.incrementAndGet();
+          node.getStatus().setAvailable();
+        }
+ catch (        UnreachableStoreException e) {
+          failures.add(e);
+          markUnavailable(node,e);
+        }
+catch (        Exception e) {
+          logger.debug("Error in get.",e);
+          failures.add(e);
+        }
  finally {
-            latch.countDown();
-          }
+          latch.countDown();
         }
       }
-);
     }
+);
   }
   try {
     boolean succeeded=latch.await(timeoutMs,TimeUnit.MILLISECONDS);
