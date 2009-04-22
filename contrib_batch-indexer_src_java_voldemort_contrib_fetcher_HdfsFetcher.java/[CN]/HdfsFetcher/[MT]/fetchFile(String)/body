@@ -1,0 +1,17 @@
+{
+  Path filePath=new Path(fileUrl);
+  FileSystem fs=filePath.getFileSystem(new Configuration());
+  FSDataInputStream input=null;
+  OutputStream output=null;
+  try {
+    input=fs.open(filePath);
+    File outputFile=File.createTempFile("fetcher-",".dat");
+    output=new FileOutputStream(outputFile);
+    IOUtils.copyLarge(input,output);
+    return outputFile;
+  }
+  finally {
+    IOUtils.closeQuietly(output);
+    IOUtils.closeQuietly(input);
+  }
+}

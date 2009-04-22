@@ -1,4 +1,16 @@
 {
   this.stores=getReadOnlyStores(server);
   this.velocityEngine=Utils.notNull(engine);
+  String className=server.getVoldemortConfig().getAllProps().getString("file.fetcher.class",null);
+  if (className == null) {
+    this.fileFetcher=null;
+  }
+ else {
+    try {
+      this.fileFetcher=(FileFetcher)Class.forName(className).newInstance();
+    }
+ catch (    Exception e) {
+      throw new VoldemortException("Error loading file fetcher class " + className);
+    }
+  }
 }
