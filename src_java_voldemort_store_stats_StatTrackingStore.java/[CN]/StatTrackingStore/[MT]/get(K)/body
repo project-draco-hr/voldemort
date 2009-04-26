@@ -1,15 +1,13 @@
 {
-  callsToGet++;
   long start=System.nanoTime();
   try {
     return super.get(key);
   }
  catch (  VoldemortException e) {
-    exceptionsThrown++;
+    stats.recordTime(Tracked.EXCEPTION,System.nanoTime() - start);
     throw e;
   }
  finally {
-    long elapsed=System.nanoTime() - start;
-    avgGetCompletionTime+=(elapsed - avgGetCompletionTime) / callsToGet;
+    stats.recordTime(Tracked.GET,System.nanoTime() - start);
   }
 }

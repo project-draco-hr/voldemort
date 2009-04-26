@@ -7,5 +7,7 @@
   InconsistencyResolver<Versioned<String>> resolver=new VectorClockInconsistencyResolver<String>();
   Store<ByteArray,byte[]> store=new RoutedStore("test",clientMapping,routingStrategy,1,1,10,true,10000L);
   Store<String,String> serializingStore=new SerializingStore<String,String>(store,new StringSerializer(),new StringSerializer());
-  return new DefaultStoreClient<String,String>(new InconsistencyResolvingStore<String,String>(serializingStore,resolver),new StringSerializer(),new StringSerializer(),null);
+  Store<String,String> resolvingStore=new InconsistencyResolvingStore<String,String>(serializingStore,resolver);
+  StoreClientFactory factory=new StaticStoreClientFactory(resolvingStore);
+  return new DefaultStoreClient<String,String>(store.getName(),resolver,factory,1);
 }

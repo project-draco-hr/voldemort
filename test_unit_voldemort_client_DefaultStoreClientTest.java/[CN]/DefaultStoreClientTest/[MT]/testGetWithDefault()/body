@@ -1,0 +1,7 @@
+{
+  assertEquals("GET of missing key should return default.",new Versioned<String>("v"),client.get("k",new Versioned<String>("v")));
+  assertEquals("null should be an acceptable default value.",null,client.getValue("k",null));
+  client.put("k","v");
+  assertEquals("If there is a value for k, get(k) should return it.",new Versioned<String>("v",new VectorClock().incremented(nodeId,time.getMilliseconds())),client.get("k",new Versioned<String>("v2")));
+  assertNotNull(client.get("k").getVersion());
+}

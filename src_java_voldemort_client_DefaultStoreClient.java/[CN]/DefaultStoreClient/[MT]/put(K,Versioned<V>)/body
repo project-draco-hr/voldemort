@@ -1,3 +1,12 @@
 {
-  store.put(key,versioned);
+  for (int attempts=0; attempts < this.metadataRefreshAttempts; attempts++) {
+    try {
+      store.put(key,versioned);
+      return;
+    }
+ catch (    InvalidMetadataException e) {
+      reinit();
+    }
+  }
+  throw new InvalidMetadataException(this.metadataRefreshAttempts + " metadata refresh attempts failed.");
 }

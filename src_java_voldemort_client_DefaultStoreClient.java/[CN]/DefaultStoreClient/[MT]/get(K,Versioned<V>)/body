@@ -1,4 +1,12 @@
 {
-  List<Versioned<V>> items=store.get(key);
-  return getItemOrThrow(key,defaultValue,items);
+  for (int attempts=0; attempts < this.metadataRefreshAttempts; attempts++) {
+    try {
+      List<Versioned<V>> items=store.get(key);
+      return getItemOrThrow(key,defaultValue,items);
+    }
+ catch (    InvalidMetadataException e) {
+      reinit();
+    }
+  }
+  throw new InvalidMetadataException(this.metadataRefreshAttempts + " metadata refresh attempts failed.");
 }

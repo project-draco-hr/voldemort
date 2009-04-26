@@ -1,0 +1,8 @@
+{
+  assertFalse("Delete of non-existant key should be false.",client.delete("k"));
+  client.put("k",new Versioned<String>("v"));
+  assertFalse("Delete of a lesser version should be false.",client.delete("k",new VectorClock()));
+  assertNotNull("After failed delete, value should still be there.",client.get("k"));
+  assertTrue("Delete of k, with the current version should succeed.",client.delete("k",new VectorClock().incremented(nodeId,time.getMilliseconds())));
+  assertNull("After a successful delete(k), get(k) should return null.",client.get("k"));
+}

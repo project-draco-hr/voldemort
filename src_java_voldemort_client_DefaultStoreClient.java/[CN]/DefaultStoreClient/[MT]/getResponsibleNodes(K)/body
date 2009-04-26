@@ -1,4 +1,5 @@
 {
-  if (this.routingStragy == null)   throw new UnsupportedOperationException("This store client has no routing strategy.");
-  return this.routingStragy.routeRequest(keySerializer.toBytes(key));
+  RoutingStrategy strategy=(RoutingStrategy)store.getCapability(StoreCapabilityType.ROUTING_STRATEGY);
+  @SuppressWarnings("unchecked") Serializer<K> keySerializer=(Serializer<K>)store.getCapability(StoreCapabilityType.KEY_SERIALIZER);
+  return strategy.routeRequest(keySerializer.toBytes(key));
 }

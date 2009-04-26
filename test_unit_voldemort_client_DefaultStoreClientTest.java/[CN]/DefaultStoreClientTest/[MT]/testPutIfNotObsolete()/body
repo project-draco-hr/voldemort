@@ -1,0 +1,6 @@
+{
+  client.putIfNotObsolete("k",new Versioned<String>("v"));
+  assertEquals("PUT of non-obsolete version should succeed.","v",client.getValue("k"));
+  assertFalse(client.putIfNotObsolete("k",new Versioned<String>("v2")));
+  assertEquals("Failed PUT should not change the value stored.","v",client.getValue("k"));
+}

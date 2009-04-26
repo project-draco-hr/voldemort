@@ -1,3 +1,11 @@
 {
-  return store.delete(key,version);
+  for (int attempts=0; attempts < this.metadataRefreshAttempts; attempts++) {
+    try {
+      return store.delete(key,version);
+    }
+ catch (    InvalidMetadataException e) {
+      reinit();
+    }
+  }
+  throw new InvalidMetadataException(this.metadataRefreshAttempts + " metadata refresh attempts failed.");
 }

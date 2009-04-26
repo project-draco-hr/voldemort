@@ -1,15 +1,13 @@
 {
-  callsToPut++;
   long start=System.nanoTime();
   try {
     super.put(key,value);
   }
  catch (  VoldemortException e) {
-    exceptionsThrown++;
+    stats.recordTime(Tracked.EXCEPTION,System.nanoTime() - start);
     throw e;
   }
  finally {
-    long elapsed=System.nanoTime() - start;
-    avgPutCompletionTime+=(elapsed - avgPutCompletionTime) / callsToPut;
+    stats.recordTime(Tracked.PUT,System.nanoTime() - start);
   }
 }
