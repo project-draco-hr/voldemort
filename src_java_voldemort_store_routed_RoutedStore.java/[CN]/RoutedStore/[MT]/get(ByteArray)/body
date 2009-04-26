@@ -27,7 +27,7 @@
           markUnavailable(node,e);
         }
 catch (        Exception e) {
-          logger.debug("Error in get.",e);
+          logger.warn("Error in GET on node " + node.getId() + "("+ node.getHost()+ ")",e);
           failures.add(e);
         }
  finally {
@@ -60,12 +60,12 @@ catch (        Exception e) {
       markUnavailable(node,e);
     }
 catch (    Exception e) {
-      logger.debug("Error in get.",e);
+      logger.warn("Error in GET on node " + node.getId() + "("+ node.getHost()+ ")",e);
       failures.add(e);
     }
     nodeIndex++;
   }
-  if (logger.isDebugEnabled())   logger.debug("GET retrieved the following node values: " + formatNodeValues(nodeValues));
+  if (logger.isTraceEnabled())   logger.trace("GET retrieved the following node values: " + formatNodeValues(nodeValues));
   if (repairReads && retrieved.size() > 1) {
     this.executor.execute(new Runnable(){
       public void run(){
