@@ -1,0 +1,10 @@
+{
+  StoreRepository repository=getStores(storeName,clusterXml,storesXml);
+  Server server=new Server(port);
+  server.setSendServerVersion(false);
+  Context context=new Context(server,"/",Context.NO_SESSIONS);
+  RequestHandler handler=new RequestHandlerFactory(repository).getRequestHandler(requestFormat);
+  context.addServlet(new ServletHolder(new StoreServlet(handler)),"/stores");
+  server.start();
+  return context;
+}

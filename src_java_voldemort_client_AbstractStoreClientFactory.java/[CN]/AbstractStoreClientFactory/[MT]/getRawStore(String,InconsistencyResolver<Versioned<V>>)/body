@@ -9,15 +9,19 @@
   RoutingStrategy routingStrategy=new ConsistentRoutingStrategy(cluster.getNodes(),storeDef.getReplicationFactor());
   Map<Integer,Store<ByteArray,byte[]>> clientMapping=Maps.newHashMap();
   for (  Node node : cluster.getNodes()) {
-    Store<ByteArray,byte[]> store=getStore(storeDef.getName(),node.getHost(),getPort(node));
-    if (enableVerboseLogging)     store=new LoggingStore<ByteArray,byte[]>(store);
+    Store<ByteArray,byte[]> store=getStore(storeDef.getName(),node.getHost(),getPort(node),RequestFormatType.VOLDEMORT);
+    store=new LoggingStore(store);
     clientMapping.put(node.getId(),store);
   }
-  Store<ByteArray,byte[]> store=new RoutedStore(storeName,clientMapping,routingStrategy,storeDef.getPreferredReads() == null ? storeDef.getRequiredReads() : storeDef.getPreferredReads(),storeDef.getRequiredReads(),storeDef.getPreferredWrites() == null ? storeDef.getRequiredWrites() : storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),true,threadPool,routingTimeoutMs,nodeBannageMs,SystemTime.INSTANCE);
+  Store<ByteArray,byte[]> store=new RoutedStore(storeName,clientMapping,routingStrategy,storeDef.getPreferredReads(),storeDef.getRequiredReads(),storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),true,threadPool,routingTimeoutMs,nodeBannageMs,SystemTime.INSTANCE);
+  if (isJmxEnabled) {
+    store=new StatTrackingStore(store);
+    registerJmx(JmxUtils.createObjectName(JmxUtils.getPackageName(store.getClass()),store.getName()),store);
+  }
   Serializer<K> keySerializer=(Serializer<K>)serializerFactory.getSerializer(storeDef.getKeySerializer());
   Serializer<V> valueSerializer=(Serializer<V>)serializerFactory.getSerializer(storeDef.getValueSerializer());
-  Store<K,V> serializingStore=new SerializingStore<K,V>(store,keySerializer,valueSerializer);
+  Store<K,V> serializedStore=new SerializingStore<K,V>(store,keySerializer,valueSerializer);
   InconsistencyResolver<Versioned<V>> secondaryResolver=resolver == null ? new TimeBasedInconsistencyResolver() : resolver;
-  Store<K,V> resolvingStore=new InconsistencyResolvingStore<K,V>(serializingStore,new ChainedResolver<Versioned<V>>(new VectorClockInconsistencyResolver(),secondaryResolver));
-  return resolvingStore;
+  serializedStore=new InconsistencyResolvingStore<K,V>(serializedStore,new ChainedResolver<Versioned<V>>(new VectorClockInconsistencyResolver(),secondaryResolver));
+  return serializedStore;
 }

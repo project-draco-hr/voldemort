@@ -1,8 +1,8 @@
 {
   try {
-    Doc d=_cursor.getNextObject();
-    _bo.serialize(d.getDoc(VALUE));
-    Versioned<byte[]> val=new Versioned<byte[]>(_bo.toArray(),new VectorClock(d.getBytes(CLOCK)));
+    Doc d=cursor.getNextObject();
+    bo.serialize(d.getDoc(VALUE));
+    Versioned<byte[]> val=new Versioned<byte[]>(bo.toArray(),new VectorClock(d.getBytes(CLOCK)));
     return new Pair<ByteArray,Versioned<byte[]>>(new ByteArray(d.getString(KEY).getBytes()),val);
   }
  catch (  MongoDBException e) {

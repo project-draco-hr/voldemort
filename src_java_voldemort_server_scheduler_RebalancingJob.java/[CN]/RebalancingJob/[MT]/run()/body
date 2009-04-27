@@ -2,9 +2,9 @@
   logger.info("Rebalancing all keys...");
   int totalRebalanced=0;
   long start=System.currentTimeMillis();
-  for (  StorageEngine<ByteArray,byte[]> engine : localEngines.values()) {
+  for (  StorageEngine<ByteArray,byte[]> engine : storeRepository.getAllStorageEngines()) {
     logger.info("Rebalancing " + engine.getName());
-    Store<ByteArray,byte[]> remote=this.remoteStores.get(engine.getName());
+    Store<ByteArray,byte[]> remote=storeRepository.getRoutedStore(engine.getName());
     ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=engine.entries();
     int rebalanced=0;
     long currStart=System.currentTimeMillis();

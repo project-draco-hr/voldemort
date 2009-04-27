@@ -15,11 +15,12 @@
     context.setAttribute(VoldemortServletContextListener.SERVER_CONFIG_KEY,server);
     context.setAttribute(VoldemortServletContextListener.VELOCITY_ENGINE_KEY,velocityEngine);
     context.addServlet(new ServletHolder(new AdminServlet(server,velocityEngine)),"/admin");
-    context.addServlet(new ServletHolder(new StoreServlet(server.getStoreMap())),"/*");
+    context.addServlet(new ServletHolder(new StoreServlet(requestHandler)),"/stores");
     context.addServlet(new ServletHolder(new ReadOnlyStoreManagementServlet(server,velocityEngine)),"/read-only/mgmt");
     this.context=context;
     this.httpServer=httpServer;
     this.httpServer.start();
+    logger.info("HTTP service started on port " + this.port);
   }
  catch (  Exception e) {
     throw new VoldemortException(e);

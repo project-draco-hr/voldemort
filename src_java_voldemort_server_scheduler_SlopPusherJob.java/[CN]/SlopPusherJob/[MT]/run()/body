@@ -4,18 +4,20 @@
   int attemptedPushes=0;
   ClosableIterator<Pair<ByteArray,Versioned<Slop>>> iterator=null;
   try {
+    StorageEngine<ByteArray,Slop> slopStore=storeRepo.getSlopStore();
     iterator=slopStore.entries();
     while (iterator.hasNext()) {
+      if (Thread.interrupted())       throw new InterruptedException("Task cancelled!");
       attemptedPushes++;
-      if (Thread.currentThread().isInterrupted())       throw new InterruptedException("Task cancelled!");
       try {
         Pair<ByteArray,Versioned<Slop>> keyAndVal=iterator.next();
         Versioned<Slop> versioned=keyAndVal.getSecond();
         Slop slop=versioned.getValue();
-        Store<ByteArray,byte[]> store=stores.get(slop.getNodeId());
+        Store<ByteArray,byte[]> store=storeRepo.getNodeStore(slop.getStoreName(),slop.getNodeId());
         try {
           if (slop.getOperation() == Operation.PUT)           store.put(keyAndVal.getFirst(),new Versioned<byte[]>(slop.getValue(),versioned.getVersion()));
- else           store.delete(keyAndVal.getFirst(),versioned.getVersion());
+ else           if (slop.getOperation() == Operation.DELETE)           store.delete(keyAndVal.getFirst(),versioned.getVersion());
+ else           logger.error("Unknown slop operation: " + slop.getOperation());
           slopStore.delete(slop.makeKey(),versioned.getVersion());
           slopsPushed++;
         }

@@ -1,0 +1,12 @@
+{
+  try {
+    Class<?> configClass=Utils.loadClass(configClassName);
+    StorageConfiguration configuration=(StorageConfiguration)Utils.callConstructor(configClass,new Class<?>[]{VoldemortConfig.class},new Object[]{voldemortConfig});
+    logger.info("Initializing " + configuration.getType() + " storage engine.");
+    storageConfigs.put(configuration.getType(),configuration);
+  }
+ catch (  IllegalStateException e) {
+    logger.error("Error loading storage configuration '" + configClassName + "'.",e);
+  }
+  if (storageConfigs.size() == 0)   throw new ConfigurationException("No storage engine has been enabled!");
+}

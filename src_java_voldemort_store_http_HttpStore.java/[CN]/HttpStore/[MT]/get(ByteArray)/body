@@ -1,35 +1,15 @@
 {
   StoreUtils.assertValidKey(key);
-  String url=getUrl(key);
-  GetMethod method=null;
+  PostMethod method=null;
   try {
-    method=new GetMethod(url);
-    int response=httpClient.executeMethod(method);
-    if (response != HttpURLConnection.HTTP_OK)     httpResponseCodeErrorMapper.throwError(response,method.getStatusText());
-    DataInputStream input=createDataInputStream(method);
-    List<Versioned<byte[]>> items=new ArrayList<Versioned<byte[]>>();
-    try {
-      while (true) {
-        int size=input.readInt();
-        byte[] bytes=new byte[size];
-        ByteUtils.read(input,bytes);
-        VectorClock clock=new VectorClock(bytes);
-        byte[] data=ByteUtils.copy(bytes,clock.sizeInBytes(),bytes.length);
-        items.add(new Versioned<byte[]>(data,clock));
-      }
-    }
- catch (    EOFException e) {
-      return items;
-    }
- finally {
-      StoreUtils.close(input);
-    }
+    method=new PostMethod(this.storeUrl);
+    ByteArrayOutputStream outputBytes=new ByteArrayOutputStream();
+    requestFormat.writeGetRequest(new DataOutputStream(outputBytes),storeName,key,reroute);
+    DataInputStream input=executeRequest(method,outputBytes);
+    return requestFormat.readGetResponse(input);
   }
- catch (  HttpException e) {
-    throw new VoldemortException(e);
-  }
-catch (  IOException e) {
-    throw new UnreachableStoreException("Could not connect to " + url + " for "+ storeName,e);
+ catch (  IOException e) {
+    throw new UnreachableStoreException("Could not connect to " + storeUrl + " for "+ storeName,e);
   }
  finally {
     if (method != null)     method.releaseConnection();

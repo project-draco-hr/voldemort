@@ -1,0 +1,16 @@
+{
+  Map<Integer,Store<ByteArray,byte[]>> nodeStores=new HashMap<Integer,Store<ByteArray,byte[]>>(cluster.getNumberOfNodes());
+  for (  Node node : cluster.getNodes()) {
+    Store<ByteArray,byte[]> store;
+    if (node.getId() == localNode) {
+      store=this.storeRepository.getLocalStore(def.getName());
+    }
+ else {
+      store=new SocketStore(def.getName(),node.getHost(),node.getSocketPort(),socketPool,RequestFormatType.VOLDEMORT,false);
+    }
+    this.storeRepository.addNodeStore(node.getId(),store);
+    nodeStores.put(node.getId(),store);
+  }
+  RoutedStore routedStore=new RoutedStore(def.getName(),nodeStores,new ConsistentRoutingStrategy(cluster.getNodes(),def.getReplicationFactor()),def.getPreferredReads(),def.getRequiredReads(),def.getPreferredWrites(),def.getRequiredWrites(),true,this.clientThreadPool,voldemortConfig.getRoutingTimeoutMs(),voldemortConfig.getClientNodeBannageMs(),SystemTime.INSTANCE);
+  this.storeRepository.addRoutedStore(routedStore);
+}

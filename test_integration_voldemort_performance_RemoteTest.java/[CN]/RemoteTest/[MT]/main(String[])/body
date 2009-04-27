@@ -7,7 +7,7 @@
   int startNum=Integer.parseInt(args[3]);
   String ops="rwd";
   if (args.length > 4)   ops=args[4];
-  StoreClientFactory factory=new SocketStoreClientFactory(Executors.newFixedThreadPool(20),6,200,20000,20000,20000,64000,new DefaultSerializerFactory(),url);
+  StoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setMaxThreads(20).setBootstrapUrls(url));
   final StoreClient<String,String> store=factory.getStoreClient("test");
   final String value=new String(TestUtils.randomBytes(valueSize));
   ExecutorService service=Executors.newFixedThreadPool(8);

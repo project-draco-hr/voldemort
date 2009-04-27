@@ -1,0 +1,11 @@
+{
+  this.threadPool=new ClientThreadPool(config.getMaxThreads(),config.getThreadIdleTime(TimeUnit.MILLISECONDS),config.getMaxQueuedRequests());
+  this.serializerFactory=config.getSerializerFactory();
+  this.bootstrapUrls=validateUrls(config.getBootstrapUrls());
+  this.routingTimeoutMs=config.getRoutingTimeout(TimeUnit.MILLISECONDS);
+  this.nodeBannageMs=config.getNodeBannagePeriod(TimeUnit.MILLISECONDS);
+  this.isJmxEnabled=config.isJmxEnabled();
+  if (isJmxEnabled)   this.mbeanServer=ManagementFactory.getPlatformMBeanServer();
+ else   this.mbeanServer=null;
+  registerJmx(JmxUtils.createObjectName(threadPool.getClass()),threadPool);
+}

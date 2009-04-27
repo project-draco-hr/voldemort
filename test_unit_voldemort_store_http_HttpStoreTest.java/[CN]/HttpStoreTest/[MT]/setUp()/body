@@ -2,7 +2,7 @@
   super.setUp();
   Cluster cluster=ServerTestUtils.getLocalCluster(1);
   Node node=cluster.getNodes().iterator().next();
-  context=ServerTestUtils.getJettyServer(new ClusterMapper().writeCluster(cluster),VoldemortTestConstants.getSimpleStoreDefinitionsXml(),"users",node.getHttpPort());
+  context=ServerTestUtils.getJettyServer(new ClusterMapper().writeCluster(cluster),VoldemortTestConstants.getSimpleStoreDefinitionsXml(),"users",RequestFormatType.VOLDEMORT,node.getHttpPort());
   server=context.getServer();
-  httpStore=ServerTestUtils.getHttpStore("users",node.getHttpPort());
+  httpStore=ServerTestUtils.getHttpStore("users",RequestFormatType.VOLDEMORT,node.getHttpPort());
 }

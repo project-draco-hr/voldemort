@@ -1,39 +1,36 @@
 {
-  try {
-    if (metadataStore != null)     metadataStore.close();
-  }
- catch (  VoldemortException e) {
-    logger.error("Error while closing metadata store:",e);
-  }
-  try {
-    if (slopStore != null)     slopStore.close();
-  }
- catch (  VoldemortException e) {
-    logger.error("Error while closing metadata store:",e);
-  }
-  VoldemortException exception=null;
-  logger.info("Closing stores:");
-  for (  Store<ByteArray,byte[]> s : this.localStoreMap.values()) {
+  Exception lastException=null;
+  logger.info("Closing all stores.");
+  for (  Store<ByteArray,byte[]> store : this.storeRepository.getAllRoutedStores()) {
+    logger.info("Closing routed store for " + store.getName());
     try {
-      logger.info("Closing store '" + s.getName() + "'.");
-      s.close();
+      store.close();
     }
- catch (    VoldemortException e) {
-      logger.error(e);
-      exception=e;
+ catch (    Exception e) {
+      lastException=e;
     }
   }
-  this.localStoreMap.clear();
-  logger.info("Closing storage configurations:");
-  for (  StorageConfiguration config : storageConfigurations.values()) {
+  logger.info("All stores closed.");
+  if (this.storeRepository.hasSlopStore()) {
     try {
-      logger.info("Closing storage configuration for " + config.getType());
+      this.storeRepository.getSlopStore().close();
+    }
+ catch (    Exception e) {
+      lastException=e;
+    }
+  }
+  logger.info("Closing storage configurations.");
+  for (  StorageConfiguration config : storageConfigs.values()) {
+    logger.info("Closing " + config.getType() + " storage config.");
+    try {
       config.close();
     }
- catch (    VoldemortException e) {
-      logger.error("Error when shutting down storage configuration: ",e);
+ catch (    Exception e) {
+      lastException=e;
     }
   }
-  if (exception != null)   throw exception;
-  logger.info("All stores closed.");
+  this.clientThreadPool.shutdownNow();
+  logger.info("Closed client threadpool.");
+  if (lastException instanceof VoldemortException)   throw (VoldemortException)lastException;
+ else   if (lastException != null)   throw new VoldemortException(lastException);
 }

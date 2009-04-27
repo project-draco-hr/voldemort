@@ -9,6 +9,12 @@
     logger.error(e);
     Utils.croak("Error while loading configuration: " + e.getMessage());
   }
-  VoldemortServer server=new VoldemortServer(config);
+  final VoldemortServer server=new VoldemortServer(config);
   if (!server.isStarted())   server.start();
+  Runtime.getRuntime().addShutdownHook(new Thread(){
+    @Override public void run(){
+      if (server.isStarted())       server.stop();
+    }
+  }
+);
 }

@@ -1,0 +1,8 @@
+{
+  Cluster cluster=this.metadataStore.getCluster();
+  storeRepository.addStorageEngine(engine);
+  Store<ByteArray,byte[]> store=engine;
+  if (voldemortConfig.isVerboseLoggingEnabled())   store=new LoggingStore<ByteArray,byte[]>(store,cluster.getName(),SystemTime.INSTANCE);
+  if (voldemortConfig.isStatTrackingEnabled())   store=new StatTrackingStore<ByteArray,byte[]>(store);
+  storeRepository.addLocalStore(store);
+}

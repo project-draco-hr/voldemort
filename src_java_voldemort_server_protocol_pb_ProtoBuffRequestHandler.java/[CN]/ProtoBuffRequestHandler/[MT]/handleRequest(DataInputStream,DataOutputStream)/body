@@ -1,0 +1,20 @@
+{
+  VProto.VoldemortRequest request=VProto.VoldemortRequest.parseFrom(inputStream);
+  boolean shouldRoute=request.getShouldRoute();
+  String storeName=request.getStore();
+  Store<ByteArray,byte[]> store=getStore(storeName,shouldRoute);
+switch (request.getType()) {
+case GET:
+    handleGet(request.getGet(),store,outputStream);
+  break;
+case GET_ALL:
+handleGetAll(request.getGetAll(),store,outputStream);
+break;
+case PUT:
+handlePut(request.getPut(),store,outputStream);
+break;
+case DELETE:
+handleDelete(request.getDelete(),store,outputStream);
+break;
+}
+}

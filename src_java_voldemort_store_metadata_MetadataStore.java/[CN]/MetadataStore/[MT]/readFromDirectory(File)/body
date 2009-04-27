@@ -1,0 +1,12 @@
+{
+  if (!Utils.isReadableDir(dir))   throw new IllegalArgumentException("Metadata directory " + dir.getAbsolutePath() + " does not exist or can not be read.");
+  if (dir.listFiles() == null)   throw new IllegalArgumentException("No configuration found in " + dir.getAbsolutePath() + ".");
+  try {
+    Cluster cluster=clusterMapper.readCluster(new File(dir,CLUSTER_KEY));
+    List<StoreDefinition> defs=storeMapper.readStoreList(new File(dir,STORES_KEY));
+    return new MetadataStore(cluster,defs);
+  }
+ catch (  IOException e) {
+    throw new VoldemortException("Error reading configuration.",e);
+  }
+}

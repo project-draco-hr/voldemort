@@ -1,8 +1,9 @@
 {
   super.init();
-  if (this.stores == null) {
+  if (this.requestHandler == null) {
     ServletContext context=this.getServletContext();
     VoldemortServer server=(VoldemortServer)Utils.notNull(context.getAttribute(VoldemortServletContextListener.SERVER_CONFIG_KEY));
-    this.stores=server.getStoreMap();
+    HttpService httpService=(HttpService)server.getService(ServiceType.HTTP);
+    this.requestHandler=httpService.getRequestHandler();
   }
 }

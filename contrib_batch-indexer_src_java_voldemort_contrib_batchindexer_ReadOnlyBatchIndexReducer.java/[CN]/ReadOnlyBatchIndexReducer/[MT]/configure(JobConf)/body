@@ -1,13 +1,13 @@
 {
   try {
-    _position=0;
-    _conf=job;
-    _taskId=job.get("mapred.task.id");
-    taskIndexFileName=new Path(FileOutputFormat.getOutputPath(_conf),_conf.get("voldemort.index.filename") + "_" + _taskId);
-    taskValueFileName=new Path(FileOutputFormat.getOutputPath(_conf),_conf.get("voldemort.data.filename") + "_" + _taskId);
+    position=0;
+    conf=job;
+    taskId=job.get("mapred.task.id");
+    taskIndexFileName=new Path(FileOutputFormat.getOutputPath(conf),conf.get("voldemort.index.filename") + "_" + taskId);
+    taskValueFileName=new Path(FileOutputFormat.getOutputPath(conf),conf.get("voldemort.data.filename") + "_" + taskId);
     FileSystem fs=taskIndexFileName.getFileSystem(job);
-    _indexFileStream=fs.create(taskIndexFileName,(short)1);
-    _valueFileStream=fs.create(taskValueFileName,(short)1);
+    indexFileStream=fs.create(taskIndexFileName,(short)1);
+    valueFileStream=fs.create(taskValueFileName,(short)1);
   }
  catch (  IOException e) {
     throw new RuntimeException("Failed to open Input/OutputStream",e);

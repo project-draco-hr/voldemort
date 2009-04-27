@@ -1,21 +1,15 @@
 {
   StoreUtils.assertValidKey(key);
-  String url=getUrl(key);
-  DeleteMethod method=null;
+  PostMethod method=null;
   try {
-    method=new DeleteMethod(url);
-    VectorClock clock=(VectorClock)version;
-    method.setRequestHeader(VERSION_EXTENSION,new String(Base64.encodeBase64(clock.toBytes())));
-    int response=httpClient.executeMethod(method);
-    if (response == HttpURLConnection.HTTP_NOT_FOUND)     return false;
-    if (response != HttpURLConnection.HTTP_OK)     httpResponseCodeErrorMapper.throwError(response,method.getStatusText());
-    return true;
+    method=new PostMethod(this.storeUrl);
+    ByteArrayOutputStream outputBytes=new ByteArrayOutputStream();
+    requestFormat.writeDeleteRequest(new DataOutputStream(outputBytes),storeName,key,(VectorClock)version,reroute);
+    DataInputStream input=executeRequest(method,outputBytes);
+    return requestFormat.readDeleteResponse(input);
   }
- catch (  HttpException e) {
-    throw new VoldemortException(e);
-  }
-catch (  IOException e) {
-    throw new UnreachableStoreException("Could not connect to " + url + " for "+ storeName,e);
+ catch (  IOException e) {
+    throw new UnreachableStoreException("Could not connect to " + storeUrl + " for "+ storeName,e);
   }
  finally {
     if (method != null)     method.releaseConnection();

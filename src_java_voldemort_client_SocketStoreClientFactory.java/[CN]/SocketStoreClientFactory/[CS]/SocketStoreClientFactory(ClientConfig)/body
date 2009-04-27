@@ -1,0 +1,6 @@
+{
+  super(config);
+  this.routingTier=config.getRoutingTier();
+  this.socketPool=new SocketPool(config.getMaxConnectionsPerNode(),config.getMaxTotalConnections(),config.getConnectionTimeout(TimeUnit.MILLISECONDS),config.getSocketTimeout(TimeUnit.MILLISECONDS),config.getSocketBufferSize());
+  registerJmx(JmxUtils.createObjectName(SocketPool.class),socketPool);
+}

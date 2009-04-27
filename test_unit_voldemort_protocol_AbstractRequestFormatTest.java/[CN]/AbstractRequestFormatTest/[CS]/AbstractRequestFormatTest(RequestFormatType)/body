@@ -1,0 +1,9 @@
+{
+  this.storeName="test";
+  this.store=new InMemoryStorageEngine<ByteArray,byte[]>(storeName);
+  StoreRepository repository=new StoreRepository();
+  repository.addLocalStore(store);
+  repository.addRoutedStore(store);
+  this.clientWireFormat=new RequestFormatFactory().getRequestFormat(type);
+  this.serverWireFormat=new RequestHandlerFactory(repository).getRequestHandler(type);
+}

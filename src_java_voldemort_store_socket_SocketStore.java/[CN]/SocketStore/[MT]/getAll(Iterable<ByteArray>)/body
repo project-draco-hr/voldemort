@@ -1,4 +1,16 @@
 {
   StoreUtils.assertValidKeys(keys);
-  return StoreUtils.getAll(this,keys);
+  SocketAndStreams sands=pool.checkout(destination);
+  try {
+    requestFormat.writeGetAllRequest(sands.getOutputStream(),name,keys,reroute);
+    sands.getOutputStream().flush();
+    return requestFormat.readGetAllResponse(sands.getInputStream());
+  }
+ catch (  IOException e) {
+    close(sands.getSocket());
+    throw new VoldemortException(e);
+  }
+ finally {
+    pool.checkin(destination,sands);
+  }
 }

@@ -1,8 +1,9 @@
 {
-  slopStore=new InMemoryStorageEngine<ByteArray,Slop>("slop");
-  stores=new HashMap<Integer,Store<ByteArray,byte[]>>();
-  stores.put(0,new InMemoryStorageEngine<ByteArray,byte[]>("0"));
-  stores.put(1,new InMemoryStorageEngine<ByteArray,byte[]>("1"));
-  stores.put(2,new InMemoryStorageEngine<ByteArray,byte[]>("2"));
-  pusher=new SlopPusherJob(slopStore,stores);
+  repo=new StoreRepository();
+  repo.setSlopStore(new InMemoryStorageEngine<ByteArray,Slop>("slop"));
+  repo.addNodeStore(0,new InMemoryStorageEngine<ByteArray,byte[]>(STORE_NAME));
+  repo.addNodeStore(1,new InMemoryStorageEngine<ByteArray,byte[]>(STORE_NAME));
+  this.failingNodeId=2;
+  repo.addNodeStore(failingNodeId,new FailingStore<ByteArray,byte[]>(STORE_NAME));
+  pusher=new SlopPusherJob(repo);
 }

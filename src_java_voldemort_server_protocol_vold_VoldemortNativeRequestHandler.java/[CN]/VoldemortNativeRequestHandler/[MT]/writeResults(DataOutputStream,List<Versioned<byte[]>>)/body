@@ -1,0 +1,10 @@
+{
+  outputStream.writeInt(values.size());
+  for (  Versioned<byte[]> v : values) {
+    byte[] clock=((VectorClock)v.getVersion()).toBytes();
+    byte[] value=v.getValue();
+    outputStream.writeInt(clock.length + value.length);
+    outputStream.write(clock);
+    outputStream.write(value);
+  }
+}

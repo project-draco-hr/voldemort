@@ -1,10 +1,11 @@
 {
-  StorageEngine<ByteArray,byte[]> eng=getStorageEngine();
-  eng.put(new ByteArray("abc".getBytes()),new Versioned<byte[]>("cdef".getBytes()));
-  eng.close();
+  this.store.put(new ByteArray("abc".getBytes()),new Versioned<byte[]>("cdef".getBytes()));
+  this.store.close();
+  this.environment.close();
+  this.environment=new Environment(this.tempDir,envConfig);
   this.database=environment.openDatabase(null,"test",databaseConfig);
-  eng=new BdbStorageEngine("test",this.environment,this.database);
-  List<Versioned<byte[]>> vals=eng.get(new ByteArray("abc".getBytes()));
+  this.store=new BdbStorageEngine("test",this.environment,this.database);
+  List<Versioned<byte[]>> vals=store.get(new ByteArray("abc".getBytes()));
   assertEquals(1,vals.size());
   TestUtils.bytesEqual("cdef".getBytes(),vals.get(0).getValue());
 }

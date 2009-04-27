@@ -1,6 +1,9 @@
 {
   try {
-    return (SocketAndStreams)pool.borrowObject(destination);
+    long start=System.nanoTime();
+    SocketAndStreams sas=(SocketAndStreams)pool.borrowObject(destination);
+    updateStats(System.nanoTime() - start);
+    return sas;
   }
  catch (  Exception e) {
     throw new UnreachableStoreException("Failure while checking out socket for " + destination + ": ",e);

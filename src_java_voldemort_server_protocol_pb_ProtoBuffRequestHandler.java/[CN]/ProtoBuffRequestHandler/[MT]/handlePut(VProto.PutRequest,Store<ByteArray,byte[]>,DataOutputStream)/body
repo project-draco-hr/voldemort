@@ -1,0 +1,12 @@
+{
+  VProto.PutResponse.Builder response=VProto.PutResponse.newBuilder();
+  try {
+    ByteArray key=ProtoUtils.decodeBytes(request.getKey());
+    Versioned<byte[]> value=ProtoUtils.decodeVersioned(request.getVersioned());
+    store.put(key,value);
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(getErrorMapper(),e));
+  }
+  response.build().writeTo(outputStream);
+}

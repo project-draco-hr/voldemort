@@ -1,0 +1,12 @@
+{
+  checkException(stream);
+  int numResults=stream.readInt();
+  Map<ByteArray,List<Versioned<byte[]>>> results=new HashMap<ByteArray,List<Versioned<byte[]>>>(numResults);
+  for (int i=0; i < numResults; i++) {
+    int keySize=stream.readInt();
+    byte[] key=new byte[keySize];
+    stream.readFully(key);
+    results.put(new ByteArray(key),readResults(stream));
+  }
+  return results;
+}

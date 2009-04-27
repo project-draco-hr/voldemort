@@ -1,6 +1,7 @@
 {
   ByteArray key=new ByteArray("test".getBytes());
-  HttpStore badUrlHttpStore=new HttpStore("test",url,port,new HttpClient());
+  RequestFormat requestFormat=new RequestFormatFactory().getRequestFormat(RequestFormatType.VOLDEMORT);
+  HttpStore badUrlHttpStore=new HttpStore("test",url,port,new HttpClient(),requestFormat,false);
   try {
     badUrlHttpStore.put(key,new Versioned<byte[]>("value".getBytes(),new VectorClock()));
   }

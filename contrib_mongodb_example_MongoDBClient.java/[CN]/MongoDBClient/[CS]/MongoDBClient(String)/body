@@ -1,7 +1,3 @@
 {
-  int numThreads=10;
-  int maxQueuedRequests=10;
-  int maxConnectionsPerNode=10;
-  int maxTotalConnections=100;
-  _factory=new SocketStoreClientFactory(new ThreadPoolExecutor(numThreads,numThreads,10000L,TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>(maxQueuedRequests),new DaemonThreadFactory("voldemort-client-thread-"),new ThreadPoolExecutor.CallerRunsPolicy()),maxConnectionsPerNode,maxTotalConnections,5000,AbstractStoreClientFactory.DEFAULT_ROUTING_TIMEOUT_MS,AbstractStoreClientFactory.DEFAULT_NODE_BANNAGE_MS,new MongoDBSerializationFactory(),bootstrapURL);
+  factory=new SocketStoreClientFactory(new ClientConfig().setSerializerFactory(new MongoDBSerializationFactory()).setBootstrapUrls(bootstrapUrl));
 }

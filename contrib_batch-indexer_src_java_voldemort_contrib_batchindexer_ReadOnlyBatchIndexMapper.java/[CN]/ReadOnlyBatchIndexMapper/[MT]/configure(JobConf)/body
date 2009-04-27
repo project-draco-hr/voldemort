@@ -5,12 +5,12 @@
     if (null == clusterFilePath || null == storeFilePath) {
       throw new RuntimeException("Mapper expects cluster.xml / stores.xml passed through Distributed cache.");
     }
-    _cluster=ContribUtils.getVoldemortClusterDetails(clusterFilePath);
-    _storeDef=ContribUtils.getVoldemortStoreDetails(storeFilePath,conf.get("voldemort.store.name"));
-    _keySerializer=(Serializer<Object>)new DefaultSerializerFactory().getSerializer(_storeDef.getKeySerializer());
-    _valueSerializer=(Serializer<Object>)new DefaultSerializerFactory().getSerializer(_storeDef.getValueSerializer());
-    _routingStrategy=new ConsistentRoutingStrategy(_cluster.getNodes(),_storeDef.getReplicationFactor());
-    if (_routingStrategy == null) {
+    cluster=ContribUtils.getVoldemortClusterDetails(clusterFilePath);
+    storeDef=ContribUtils.getVoldemortStoreDetails(storeFilePath,conf.get("voldemort.store.name"));
+    keySerializer=(Serializer<Object>)new DefaultSerializerFactory().getSerializer(storeDef.getKeySerializer());
+    valueSerializer=(Serializer<Object>)new DefaultSerializerFactory().getSerializer(storeDef.getValueSerializer());
+    routingStrategy=new ConsistentRoutingStrategy(cluster.getNodes(),storeDef.getReplicationFactor());
+    if (routingStrategy == null) {
       throw new RuntimeException("Failed to create routing strategy");
     }
   }

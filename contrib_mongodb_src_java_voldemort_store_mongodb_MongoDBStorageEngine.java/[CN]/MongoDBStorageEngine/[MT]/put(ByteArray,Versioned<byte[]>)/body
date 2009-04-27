@@ -4,7 +4,7 @@
   String strKey=new String(key.get());
   DBCursor cur=null;
   try {
-    cur=_coll.find(new Doc(KEY,strKey));
+    cur=coll.find(new Doc(KEY,strKey));
     for (    Doc d : cur) {
       VectorClock existingClock=new VectorClock(d.getBytes(CLOCK));
       Occured occured=value.getVersion().compare(existingClock);
@@ -12,13 +12,13 @@
         throw new ObsoleteVersionException("Key '" + strKey + " is obsolete.");
       }
  else       if (occured == Occured.AFTER) {
-        _coll.remove(new MongoSelector(d));
+        coll.remove(new MongoSelector(d));
       }
     }
     Doc newData=new Doc(KEY,strKey);
     newData.put(VALUE,new BSONBytes(value.getValue()));
     newData.put(CLOCK,((VectorClock)value.getVersion()).toBytes());
-    _coll.insert(newData);
+    coll.insert(newData);
   }
  catch (  MongoDBIOException mioe) {
     try {
