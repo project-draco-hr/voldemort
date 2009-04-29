@@ -1,0 +1,12 @@
+{
+  client.put("k","v");
+  client.put("l","m");
+  client.put("a","b");
+  Map<String,Versioned<String>> result=client.getAll(Arrays.asList("k","l"));
+  assertEquals(2,result.size());
+  assertEquals("v",result.get("k").getValue());
+  assertEquals("m",result.get("l").getValue());
+  result=client.getAll(Arrays.asList("m","s"));
+  assertNotNull(client.get("k").getVersion());
+  assertEquals(0,result.size());
+}
