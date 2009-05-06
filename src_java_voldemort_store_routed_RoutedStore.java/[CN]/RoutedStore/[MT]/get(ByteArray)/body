@@ -1,7 +1,7 @@
 {
   StoreUtils.assertValidKey(key);
   final List<Node> nodes=availableNodes(routingStrategy.routeRequest(key.get()));
-  if (nodes.size() < this.requiredReads)   throw new InsufficientOperationalNodesException("Only " + nodes.size() + " nodes in preference list, but "+ this.requiredReads+ " reads required.");
+  checkRequiredReads(nodes);
   final List<Versioned<byte[]>> retrieved=Collections.synchronizedList(new ArrayList<Versioned<byte[]>>());
   final List<NodeValue<ByteArray,byte[]>> nodeValues=Collections.synchronizedList(new ArrayList<NodeValue<ByteArray,byte[]>>());
   final AtomicInteger successes=new AtomicInteger();
@@ -66,25 +66,7 @@ catch (    Exception e) {
     nodeIndex++;
   }
   if (logger.isTraceEnabled())   logger.trace("GET retrieved the following node values: " + formatNodeValues(nodeValues));
-  if (repairReads && retrieved.size() > 1) {
-    this.executor.execute(new Runnable(){
-      public void run(){
-        for (        NodeValue<ByteArray,byte[]> v : readRepairer.getRepairs(nodeValues)) {
-          try {
-            if (logger.isDebugEnabled())             logger.debug("Doing read repair on node " + v.getNodeId() + " for key '"+ v.getKey()+ "' with version "+ v.getVersion()+ ".");
-            innerStores.get(v.getNodeId()).put(v.getKey(),v.getVersioned());
-          }
- catch (          ObsoleteVersionException e) {
-            if (logger.isDebugEnabled())             logger.debug("Read repair cancelled due to obsolete version on node " + v.getNodeId() + " for key '"+ v.getKey()+ "' with version "+ v.getVersion()+ ": "+ e.getMessage());
-          }
-catch (          Exception e) {
-            logger.debug("Read repair failed: ",e);
-          }
-        }
-      }
-    }
-);
-  }
+  if (repairReads && retrieved.size() > 1)   repairReads(nodeValues);
   if (successes.get() >= this.requiredReads)   return retrieved;
  else   throw new InsufficientOperationalNodesException(this.requiredReads + " reads required, but " + successes.get()+ " succeeded.",failures);
 }
