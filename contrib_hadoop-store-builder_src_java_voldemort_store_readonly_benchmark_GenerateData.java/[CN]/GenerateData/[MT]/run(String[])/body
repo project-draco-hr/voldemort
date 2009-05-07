@@ -1,0 +1,23 @@
+{
+  if (args.length != 3)   Utils.croak("USAGE: GenerateData input-file output-dir value-size");
+  JobConf conf=new JobConf(getConf(),GenerateData.class);
+  conf.setJobName("generate-data");
+  conf.setOutputKeyClass(Text.class);
+  conf.setOutputValueClass(IntWritable.class);
+  conf.setMapperClass(GenerateDataMapper.class);
+  conf.setReducerClass(IdentityReducer.class);
+  conf.setNumReduceTasks(0);
+  conf.setInputFormat(TextInputFormat.class);
+  conf.setOutputFormat(SequenceFileOutputFormat.class);
+  conf.setOutputKeyClass(Text.class);
+  conf.setOutputValueClass(Text.class);
+  Path inputPath=new Path(args[0]);
+  FileInputFormat.setInputPaths(conf,inputPath);
+  Path outputPath=new Path(args[1]);
+  FileSystem fs=outputPath.getFileSystem(conf);
+  if (fs.exists(outputPath))   fs.delete(outputPath,true);
+  FileOutputFormat.setOutputPath(conf,outputPath);
+  conf.setInt("value.size",Integer.parseInt(args[2]));
+  JobClient.runJob(conf);
+  return 0;
+}

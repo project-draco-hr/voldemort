@@ -9,14 +9,19 @@
       post.addParameter("operation","swap");
       String indexFile=fetchFiles.get(nodeId)[0];
       String dataFile=fetchFiles.get(nodeId)[1];
-      logger.info("Swapping for node " + nodeId + " index = "+ indexFile+ ", data = "+ dataFile);
+      logger.info("Attempting swap for node " + nodeId + " index = "+ indexFile+ ", data = "+ dataFile);
       post.addParameter("index",indexFile);
       post.addParameter("data",dataFile);
       post.addParameter("store",storeName);
       int responseCode=httpClient.executeMethod(post);
       String response=post.getStatusText();
-      if (responseCode == 200)       successes++;
- else       throw new VoldemortException(response);
+      if (responseCode == 200) {
+        successes++;
+        logger.info("Swap succeeded for node " + node.getId());
+      }
+ else {
+        throw new VoldemortException(response);
+      }
     }
  catch (    Exception e) {
       exception=e;

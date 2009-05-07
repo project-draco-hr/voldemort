@@ -1,0 +1,35 @@
+{
+  Path filePath=new Path(fileUrl);
+  Configuration config=new Configuration();
+  config.setInt("io.file.buffer.size",64 * 1024);
+  FileSystem fs=filePath.getFileSystem(config);
+  IoThrottler throttler=null;
+  if (maxBytesPerSecond != null)   throttler=new IoThrottler(maxBytesPerSecond);
+  long bytesCopied=0;
+  long bytesSinceLastReport=0;
+  FSDataInputStream input=null;
+  OutputStream output=null;
+  try {
+    input=fs.open(filePath);
+    File outputFile=File.createTempFile("fetcher-",".dat");
+    output=new FileOutputStream(outputFile);
+    byte[] buffer=new byte[BUFFER_SIZE];
+    while (true) {
+      int read=input.read(buffer);
+      if (read < 0)       break;
+      output.write(buffer,0,read);
+      if (throttler != null)       throttler.maybeThrottle(read);
+      bytesSinceLastReport+=read;
+      bytesCopied+=read;
+      if (bytesSinceLastReport > REPORTING_INTERVAL_BYTES) {
+        logger.info(bytesCopied / (1024 * 1024) + " MB copied");
+        bytesSinceLastReport=0;
+      }
+    }
+    return outputFile;
+  }
+  finally {
+    IOUtils.closeQuietly(output);
+    IOUtils.closeQuietly(input);
+  }
+}

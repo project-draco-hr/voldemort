@@ -1,0 +1,22 @@
+{
+  long startTime=1000;
+  MockTime time=new MockTime(startTime);
+  IoThrottler throttler=new IoThrottler(time,throttledRate,50);
+  for (int i=0; i < numReads; i++) {
+    time.addMilliseconds(readTime);
+    throttler.maybeThrottle(readSize);
+  }
+  long doneTime=time.getMilliseconds();
+  long bytesRead=numReads * readSize;
+  double unthrottledSecs=readTime * numReads / (double)Time.MS_PER_SECOND;
+  double ellapsedSecs=(double)(doneTime - startTime) / Time.MS_PER_SECOND;
+  double observedRate=bytesRead / ellapsedSecs;
+  double unthrottledRate=bytesRead / unthrottledSecs;
+  if (unthrottledRate < throttledRate) {
+    assertEquals(unthrottledRate,observedRate,0.01);
+  }
+ else {
+    double percentMiss=Math.abs(observedRate - throttledRate) / throttledRate;
+    assertTrue("Observed I/O rate should be within 10% of throttle limit: observed = " + observedRate + ", expected = "+ throttledRate,percentMiss < 0.2);
+  }
+}

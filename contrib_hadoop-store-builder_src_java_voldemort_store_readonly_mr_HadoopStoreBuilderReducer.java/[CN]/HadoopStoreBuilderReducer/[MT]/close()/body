@@ -1,0 +1,12 @@
+{
+  indexFileStream.close();
+  valueFileStream.close();
+  Path indexFile=new Path(outputDir,nodeId + ".index");
+  Path valueFile=new Path(outputDir,nodeId + ".data");
+  FileSystem fs=indexFile.getFileSystem(conf);
+  fs.mkdirs(indexFile.getParent());
+  logger.info("Moving " + taskIndexFileName + " to "+ indexFile+ ".");
+  fs.rename(taskIndexFileName,indexFile);
+  logger.info("Moving " + taskValueFileName + " to "+ valueFile+ ".");
+  fs.rename(taskValueFileName,valueFile);
+}

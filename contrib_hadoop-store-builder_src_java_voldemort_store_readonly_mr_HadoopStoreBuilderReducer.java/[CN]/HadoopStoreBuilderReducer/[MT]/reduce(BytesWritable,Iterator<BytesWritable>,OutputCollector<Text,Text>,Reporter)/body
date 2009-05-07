@@ -1,0 +1,14 @@
+{
+  byte[] keyBytes=ByteUtils.copy(key.get(),0,key.getSize());
+  while (values.hasNext()) {
+    BytesWritable writable=values.next();
+    byte[] valueBytes=writable.get();
+    if (nodeId == -1)     nodeId=ByteUtils.readInt(valueBytes,0);
+    byte[] value=ByteUtils.copy(valueBytes,4,writable.getSize());
+    indexFileStream.write(keyBytes);
+    indexFileStream.writeLong(position);
+    valueFileStream.writeInt(value.length);
+    valueFileStream.write(value);
+    position+=4 + value.length;
+  }
+}

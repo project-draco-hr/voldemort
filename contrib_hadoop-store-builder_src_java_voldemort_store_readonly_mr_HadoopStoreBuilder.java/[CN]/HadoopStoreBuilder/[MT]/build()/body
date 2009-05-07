@@ -1,0 +1,29 @@
+{
+  JobConf conf=new JobConf(config);
+  conf.setInt("io.file.buffer.size",64 * 1024);
+  conf.set("cluster.xml",new ClusterMapper().writeCluster(cluster));
+  conf.set("stores.xml",new StoreDefinitionsMapper().writeStoreList(Collections.singletonList(storeDef)));
+  conf.setInt("store.output.replication.factor",replicationFactor);
+  conf.setNumReduceTasks(cluster.getNumberOfNodes());
+  conf.setPartitionerClass(HadoopStoreBuilderPartitioner.class);
+  conf.setMapperClass(mapperClass);
+  conf.setMapOutputKeyClass(BytesWritable.class);
+  conf.setMapOutputValueClass(BytesWritable.class);
+  conf.setReducerClass(HadoopStoreBuilderReducer.class);
+  conf.setOutputFormat(SequenceFileOutputFormat.class);
+  conf.setOutputKeyClass(BytesWritable.class);
+  conf.setOutputValueClass(BytesWritable.class);
+  conf.setInputFormat(inputFormatClass);
+  conf.setOutputFormat(SequenceFileOutputFormat.class);
+  FileInputFormat.setInputPaths(conf,inputPath);
+  conf.set("final.output.dir",outputDir.toString());
+  FileOutputFormat.setOutputPath(conf,tempDir);
+  try {
+    FileSystem fs=tempDir.getFileSystem(conf);
+    fs.delete(tempDir,true);
+    JobClient.runJob(conf);
+  }
+ catch (  IOException e) {
+    throw new VoldemortException(e);
+  }
+}

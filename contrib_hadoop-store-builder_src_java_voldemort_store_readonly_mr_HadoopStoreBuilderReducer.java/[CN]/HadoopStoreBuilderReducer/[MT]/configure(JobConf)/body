@@ -1,0 +1,19 @@
+{
+  super.configure(job);
+  try {
+    conf=job;
+    position=0;
+    outputDir=job.get("final.output.dir");
+    taskId=job.get("mapred.task.id");
+    taskIndexFileName=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + taskId+ ".index");
+    taskValueFileName=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + taskId+ ".data");
+    int replicationFactor=job.getInt("store.output.replication.factor",2);
+    logger.info("Opening " + taskIndexFileName + " and "+ taskValueFileName+ " for writing.");
+    FileSystem fs=taskIndexFileName.getFileSystem(job);
+    indexFileStream=fs.create(taskIndexFileName,(short)replicationFactor);
+    valueFileStream=fs.create(taskValueFileName,(short)replicationFactor);
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Failed to open Input/OutputStream",e);
+  }
+}

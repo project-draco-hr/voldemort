@@ -1,6 +1,7 @@
 {
   try {
-    if ("swap".equals(getRequired(req,"operation"))) {
+    String operation=getRequired(req,"operation").toLowerCase();
+    if ("swap".equals(operation)) {
       String indexFile=getRequired(req,"index");
       String dataFile=getRequired(req,"data");
       String storeName=getRequired(req,"store");
@@ -11,7 +12,7 @@
       store.swapFiles(indexFile,dataFile);
       resp.getWriter().write("Swap completed.");
     }
- else     if ("fetch".equals(getRequired(req,"operation"))) {
+ else     if ("fetch".equals(operation)) {
       String indexUrl=getRequired(req,"index");
       String dataUrl=getRequired(req,"data");
       File indexFile;
@@ -21,10 +22,10 @@
         dataFile=new File(dataUrl);
       }
  else {
-        logger.info("Executing fetch of " + indexUrl);
-        indexFile=fileFetcher.fetchFile(indexUrl);
         logger.info("Executing fetch of " + dataUrl);
         dataFile=fileFetcher.fetchFile(dataUrl);
+        logger.info("Executing fetch of " + indexUrl);
+        indexFile=fileFetcher.fetchFile(indexUrl);
         logger.info("Fetch complete.");
       }
       resp.getWriter().write(indexFile.getAbsolutePath());
