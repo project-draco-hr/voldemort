@@ -16,6 +16,12 @@
     if (!success) {
       logger.error("Failure while copying in new data files, restoring from backup and aborting.");
       success=firstIndexBackup.renameTo(indexFile) && firstDataBackup.renameTo(dataFile);
+      try {
+        open();
+      }
+ catch (      Exception e) {
+        success=false;
+      }
       if (success) {
         logger.error("Restored from backup.");
         throw new VoldemortException("Failure while copying in new data files, but managed to restore from backup.");
@@ -25,7 +31,6 @@
         throw new VoldemortException("Failure while copying in new data files, and restoration failed, everything is FUBAR.");
       }
     }
-    open();
   }
   finally {
     fileModificationLock.writeLock().unlock();
