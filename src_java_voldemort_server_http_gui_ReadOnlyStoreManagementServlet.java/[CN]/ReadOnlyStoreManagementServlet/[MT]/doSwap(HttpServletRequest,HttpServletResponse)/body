@@ -1,0 +1,11 @@
+{
+  String indexFile=getRequired(req,"index");
+  String dataFile=getRequired(req,"data");
+  String storeName=getRequired(req,"store");
+  RandomAccessFileStore store=this.getStore(storeName);
+  if (store == null)   throw new ServletException("'" + storeName + "' is not a registered read-only store.");
+  if (!Utils.isReadableFile(indexFile))   throw new ServletException("Index file '" + indexFile + "' is not a readable file.");
+  if (!Utils.isReadableFile(dataFile))   throw new ServletException("Data file '" + dataFile + "' is not a readable file.");
+  store.swapFiles(indexFile,dataFile);
+  resp.getWriter().write("Swap completed.");
+}

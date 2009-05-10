@@ -2,6 +2,15 @@
   fileModificationLock.writeLock().lock();
   try {
     if (isOpen)     throw new IllegalStateException("Attempt to open already open store.");
+    if (!indexFile.exists() && !dataFile.exists()) {
+      logger.info("Creating empty files " + indexFile + " and "+ dataFile+ " for store "+ name+ ".");
+      indexFile.getParentFile().mkdirs();
+      indexFile.createNewFile();
+      dataFile.createNewFile();
+    }
+ else     if (indexFile.exists() ^ dataFile.exists()) {
+      throw new VoldemortException("Invalid index and data file for store " + name + ", one exists but not the other.");
+    }
     this.indexFiles=new ArrayBlockingQueue<RandomAccessFile>(numFileHandles);
     this.dataFiles=new ArrayBlockingQueue<RandomAccessFile>(numFileHandles);
     for (int i=0; i < numFileHandles; i++) {
@@ -15,8 +24,8 @@
     clearCache();
     isOpen=true;
   }
- catch (  FileNotFoundException e) {
-    throw new VoldemortException("Could not open store.",e);
+ catch (  IOException e) {
+    throw new VoldemortException("Could not open store: " + e.getMessage(),e);
   }
  finally {
     fileModificationLock.writeLock().unlock();

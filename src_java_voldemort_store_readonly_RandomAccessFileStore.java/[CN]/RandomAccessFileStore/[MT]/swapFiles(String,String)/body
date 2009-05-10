@@ -11,17 +11,17 @@
     File firstDataBackup=new File(storageDir,name + ".data.1");
     boolean success=indexFile.getAbsoluteFile().renameTo(firstIndexBackup) && dataFile.getAbsoluteFile().renameTo(firstDataBackup);
     if (!success)     throw new VoldemortException("Error while renaming backups.");
-    logger.info("Setting primary data and index files for store '" + getName() + "'to "+ newDataFile+ " and "+ newIndexFile+ " respectively.");
+    logger.info("Setting primary data and index files for store '" + getName() + "' to "+ newDataFile+ " and "+ newIndexFile+ " respectively.");
     success=new File(newIndexFile).renameTo(indexFile) && new File(newDataFile).renameTo(dataFile);
+    try {
+      open();
+    }
+ catch (    Exception e) {
+      success=false;
+    }
     if (!success) {
       logger.error("Failure while copying in new data files, restoring from backup and aborting.");
       success=firstIndexBackup.renameTo(indexFile) && firstDataBackup.renameTo(dataFile);
-      try {
-        open();
-      }
- catch (      Exception e) {
-        success=false;
-      }
       if (success) {
         logger.error("Restored from backup.");
         throw new VoldemortException("Failure while copying in new data files, but managed to restore from backup.");
