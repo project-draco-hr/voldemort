@@ -21,7 +21,6 @@
   this.readOnlyBackups=props.getInt("readonly.backups",1);
   this.readOnlyFileHandles=props.getInt("readonly.file.handles",5);
   this.readOnlyStorageDir=props.getString("readonly.data.directory",this.dataDirectory + File.separator + "read-only");
-  this.readOnlyCacheSize=props.getInt("readonly.cache.size",100 * 1000 * 1000);
   this.slopStoreType=props.getString("slop.store.engine",BdbStorageConfiguration.TYPE_NAME);
   this.mysqlUsername=props.getString("mysql.user","root");
   this.mysqlPassword=props.getString("mysql.password","");
@@ -50,7 +49,7 @@
   this.pusherPollMs=props.getInt("pusher.poll.ms",2 * 60 * 1000);
   this.schedulerThreads=props.getInt("scheduler.threads",3);
   this.numCleanupPermits=props.getInt("num.cleanup.permits",1);
-  this.storageConfigurations=props.getList("storage.configs",ImmutableList.of(BdbStorageConfiguration.class.getName(),MysqlStorageConfiguration.class.getName(),InMemoryStorageConfiguration.class.getName(),CacheStorageConfiguration.class.getName(),RandomAccessFileStorageConfiguration.class.getName()));
+  this.storageConfigurations=props.getList("storage.configs",ImmutableList.of(BdbStorageConfiguration.class.getName(),MysqlStorageConfiguration.class.getName(),InMemoryStorageConfiguration.class.getName(),CacheStorageConfiguration.class.getName(),ReadOnlyStorageConfiguration.class.getName()));
   this.allProps=props;
   String requestFormatName=props.getString("request.format",RequestFormatType.VOLDEMORT.getName());
   this.requestFormatType=RequestFormatType.fromName(requestFormatName);

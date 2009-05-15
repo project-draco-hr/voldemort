@@ -1,0 +1,29 @@
+{
+  if (args.length != 1)   Utils.croak("USAGE: java " + CatReadOnlyStore.class.getName() + " directory");
+  File dir=new File(args[0]);
+  Serializer<Object> serializer=new JsonTypeSerializer(JsonTypeDefinition.fromJson("'string'"),true);
+  for (int chunk=0; ; chunk++) {
+    File indexFile=new File(dir,chunk + ".index");
+    File dataFile=new File(dir,chunk + ".data");
+    if (!indexFile.exists() || !dataFile.exists())     break;
+    RandomAccessFile index=new RandomAccessFile(indexFile,"r");
+    RandomAccessFile data=new RandomAccessFile(dataFile,"r");
+    System.out.println("Chunk " + chunk);
+    byte[] keyMd5=new byte[16];
+    long position=-1;
+    try {
+      while (true) {
+        index.readFully(keyMd5);
+        position=index.readInt();
+        data.seek(position);
+        int size=data.readInt();
+        byte[] value=new byte[size];
+        data.readFully(value);
+        System.out.println(ByteUtils.toHexString(keyMd5) + "\t=>\t" + serializer.toObject(value).toString());
+      }
+    }
+ catch (    EOFException e) {
+    }
+    System.out.println();
+  }
+}

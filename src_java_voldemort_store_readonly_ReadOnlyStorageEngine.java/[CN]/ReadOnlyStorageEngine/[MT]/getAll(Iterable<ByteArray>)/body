@@ -1,0 +1,23 @@
+{
+  StoreUtils.assertValidKeys(keys);
+  Map<ByteArray,List<Versioned<byte[]>>> results=StoreUtils.newEmptyHashMap(keys);
+  try {
+    fileModificationLock.readLock().lock();
+    List<KeyValueLocation> keysAndValueLocations=Lists.newArrayList();
+    for (    ByteArray key : keys) {
+      byte[] keyMd5=ByteUtils.md5(key.get());
+      int chunk=fileSet.getChunkForKey(keyMd5);
+      int valueLocation=getValueLocation(chunk,keyMd5);
+      if (valueLocation >= 0)       keysAndValueLocations.add(new KeyValueLocation(chunk,key,valueLocation));
+    }
+    Collections.sort(keysAndValueLocations);
+    for (    KeyValueLocation keyVal : keysAndValueLocations) {
+      byte[] value=readValue(keyVal.getChunk(),keyVal.getValueLocation());
+      results.put(keyVal.getKey(),Collections.singletonList(Versioned.value(value)));
+    }
+    return results;
+  }
+  finally {
+    fileModificationLock.readLock().unlock();
+  }
+}

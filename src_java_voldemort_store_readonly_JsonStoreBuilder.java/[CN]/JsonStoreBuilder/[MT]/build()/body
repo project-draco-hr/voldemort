@@ -1,17 +1,19 @@
 {
   int numNodes=cluster.getNumberOfNodes();
-  DataOutputStream[] indexes=new DataOutputStream[numNodes];
-  DataOutputStream[] datas=new DataOutputStream[numNodes];
-  long[] positions=new long[numNodes];
-  int current=0;
+  DataOutputStream[][] indexes=new DataOutputStream[numNodes][numChunks];
+  DataOutputStream[][] datas=new DataOutputStream[numNodes][numChunks];
+  int[][] positions=new int[numNodes][numChunks];
   for (  Node node : cluster.getNodes()) {
-    File indexFile=new File(outputDir,node.getId() + ".index");
-    File dataFile=new File(outputDir,node.getId() + ".data");
-    positions[current]=0;
-    outputDir.mkdirs();
-    indexes[current]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(indexFile),1000000));
-    datas[current]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dataFile),1000000));
-    current++;
+    int nodeId=node.getId();
+    File nodeDir=new File(outputDir,"node-" + Integer.toString(nodeId));
+    nodeDir.mkdirs();
+    for (int chunk=0; chunk < numChunks; chunk++) {
+      File indexFile=new File(nodeDir,chunk + ".index");
+      File dataFile=new File(nodeDir,chunk + ".data");
+      positions[nodeId][chunk]=0;
+      indexes[nodeId][chunk]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(indexFile),1000000));
+      datas[nodeId][chunk]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dataFile),1000000));
+    }
   }
   SerializerFactory factory=new DefaultSerializerFactory();
   Serializer keySerializer=factory.getSerializer(storeDefinition.getKeySerializer());
@@ -25,19 +27,23 @@
     byte[] keyMd5=pair.getKeyMd5();
     for (int i=0; i < this.storeDefinition.getReplicationFactor(); i++) {
       int nodeId=nodes.get(i).getId();
+      int chunk=ReadOnlyUtils.chunk(keyMd5,numChunks);
       int numBytes=pair.getValue().length;
-      datas[nodeId].writeInt(numBytes);
-      datas[nodeId].write(pair.getValue());
-      indexes[nodeId].write(keyMd5);
-      indexes[nodeId].writeLong(positions[nodeId]);
-      positions[nodeId]+=numBytes + 4;
+      datas[nodeId][chunk].writeInt(numBytes);
+      datas[nodeId][chunk].write(pair.getValue());
+      indexes[nodeId][chunk].write(keyMd5);
+      indexes[nodeId][chunk].writeInt(positions[nodeId][chunk]);
+      positions[nodeId][chunk]+=numBytes + 4;
+      checkOverFlow(chunk,positions[nodeId][chunk]);
     }
     count++;
   }
   logger.info(count + " items read.");
-  logger.info("Closing all store files");
-  for (int i=0; i < numNodes; i++) {
-    indexes[i].close();
-    datas[i].close();
+  logger.info("Closing all store files.");
+  for (int node=0; node < numNodes; node++) {
+    for (int chunk=0; chunk < numChunks; chunk++) {
+      indexes[node][chunk].close();
+      datas[node][chunk].close();
+    }
   }
 }

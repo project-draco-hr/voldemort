@@ -1,0 +1,11 @@
+{
+  File versionDir=new File(dir,"version-0");
+  createStoreFiles(versionDir,indexBytes,dataBytes,2);
+  try {
+    new ReadOnlyStorageEngine("test",dir,1,1,1000);
+    if (!shouldWork)     fail("Able to open corrupt read-only store (index size = " + indexBytes + ", data bytes = "+ dataBytes+ ").");
+  }
+ catch (  VoldemortException e) {
+    if (shouldWork)     fail("Unexpected failure:" + e.getMessage());
+  }
+}

@@ -5,7 +5,7 @@
   String serverPropsFile=args[2];
   String storeName=args[3];
   final VoldemortConfig voldemortConfig=new VoldemortConfig(new Props(new File(serverPropsFile)));
-  final Store<ByteArray,byte[]> store=new RandomAccessFileStorageConfiguration(voldemortConfig).getStore(storeName);
+  final Store<ByteArray,byte[]> store=new ReadOnlyStorageConfiguration(voldemortConfig).getStore(storeName);
   File storeFile=new File(voldemortConfig.getMetadataDirectory() + File.separatorChar + "stores.xml");
   final List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new java.io.FileReader(storeFile));
   final AtomicInteger obsoletes=new AtomicInteger(0);

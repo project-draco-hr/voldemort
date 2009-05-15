@@ -1,0 +1,15 @@
+{
+  logger.info("Rolling back store '" + getName() + ".");
+  fileModificationLock.writeLock().lock();
+  try {
+    if (isOpen)     close();
+    File backup=new File(storeDir,"version-1");
+    if (!backup.exists())     throw new VoldemortException("Backup 1 does not exists, nothing to roll back to.");
+    shiftBackupsLeft();
+    open();
+  }
+  finally {
+    fileModificationLock.writeLock().unlock();
+    logger.info("Rollback operation completed on '" + getName() + "', releasing lock.");
+  }
+}

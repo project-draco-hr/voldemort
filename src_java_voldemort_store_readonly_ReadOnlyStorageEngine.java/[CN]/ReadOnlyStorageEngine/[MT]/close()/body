@@ -1,0 +1,12 @@
+{
+  logger.debug("Close called for read-only store.");
+  this.fileModificationLock.writeLock().lock();
+  if (!isOpen)   throw new IllegalStateException("Attempt to close non-open store.");
+  try {
+    this.isOpen=false;
+    fileSet.close();
+  }
+  finally {
+    this.fileModificationLock.writeLock().unlock();
+  }
+}

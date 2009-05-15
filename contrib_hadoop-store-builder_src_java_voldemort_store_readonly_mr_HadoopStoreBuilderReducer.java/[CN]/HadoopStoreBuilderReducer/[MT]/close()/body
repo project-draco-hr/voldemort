@@ -1,12 +1,13 @@
 {
-  indexFileStream.close();
-  valueFileStream.close();
-  Path indexFile=new Path(outputDir,nodeId + ".index");
-  Path valueFile=new Path(outputDir,nodeId + ".data");
-  FileSystem fs=indexFile.getFileSystem(conf);
-  fs.mkdirs(indexFile.getParent());
-  logger.info("Moving " + taskIndexFileName + " to "+ indexFile+ ".");
+  this.indexFileStream.close();
+  this.valueFileStream.close();
+  Path nodeDir=new Path(this.outputDir,"node-" + this.nodeId);
+  Path indexFile=new Path(nodeDir,this.chunkId + ".index");
+  Path valueFile=new Path(nodeDir,this.chunkId + ".data");
+  FileSystem fs=indexFile.getFileSystem(this.conf);
+  fs.mkdirs(nodeDir);
+  logger.info("Moving " + this.taskIndexFileName + " to "+ indexFile+ ".");
   fs.rename(taskIndexFileName,indexFile);
-  logger.info("Moving " + taskValueFileName + " to "+ valueFile+ ".");
-  fs.rename(taskValueFileName,valueFile);
+  logger.info("Moving " + this.taskValueFileName + " to "+ valueFile+ ".");
+  fs.rename(this.taskValueFileName,valueFile);
 }

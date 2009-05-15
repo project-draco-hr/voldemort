@@ -1,0 +1,11 @@
+{
+  createStoreFiles(dir,ReadOnlyStorageEngine.INDEX_ENTRY_SIZE * 5,4 * 5 * 10,2);
+  ReadOnlyStorageEngine engine=new ReadOnlyStorageEngine("test",dir,2,2,1000);
+  assertVersionsExist(dir,0);
+  File newDir=TestUtils.createTempDir();
+  createStoreFiles(newDir,0,0,2);
+  engine.swapFiles(newDir.getAbsolutePath());
+  assertVersionsExist(dir,0,1);
+  engine.rollback();
+  assertVersionsExist(dir,0);
+}

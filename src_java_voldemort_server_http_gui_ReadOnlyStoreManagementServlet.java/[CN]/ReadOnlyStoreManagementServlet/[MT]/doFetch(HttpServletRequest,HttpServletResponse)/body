@@ -1,20 +1,13 @@
 {
-  String indexUrl=getRequired(req,"index");
-  String dataUrl=getRequired(req,"data");
-  File indexFile;
-  File dataFile;
+  String fetchUrl=getRequired(req,"dir");
+  File fetchDir;
   if (fileFetcher == null) {
-    indexFile=new File(indexUrl);
-    dataFile=new File(dataUrl);
+    fetchDir=new File(fetchUrl);
   }
  else {
-    logger.info("Executing fetch of " + dataUrl);
-    dataFile=fileFetcher.fetchFile(dataUrl);
-    logger.info("Executing fetch of " + indexUrl);
-    indexFile=fileFetcher.fetchFile(indexUrl);
+    logger.info("Executing fetch of " + fetchUrl);
+    fetchDir=fileFetcher.fetch(fetchUrl);
     logger.info("Fetch complete.");
   }
-  resp.getWriter().write(indexFile.getAbsolutePath());
-  resp.getWriter().write("\n");
-  resp.getWriter().write(dataFile.getAbsolutePath());
+  resp.getWriter().write(fetchDir.getAbsolutePath());
 }

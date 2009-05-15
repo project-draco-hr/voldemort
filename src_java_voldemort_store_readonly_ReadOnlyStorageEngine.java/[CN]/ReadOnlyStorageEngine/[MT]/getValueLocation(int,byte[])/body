@@ -1,0 +1,28 @@
+{
+  MappedByteBuffer index=fileSet.checkoutIndexFile(chunk);
+  int indexFileSize=fileSet.getIndexFileSize(chunk);
+  try {
+    byte[] keyBuffer=new byte[KEY_HASH_SIZE];
+    int low=0;
+    int high=indexFileSize / INDEX_ENTRY_SIZE - 1;
+    while (low <= high) {
+      int mid=(low + high) / 2;
+      byte[] foundKey=readKey(index,mid * INDEX_ENTRY_SIZE,keyBuffer);
+      int cmp=ByteUtils.compare(foundKey,keyMd5);
+      if (cmp == 0) {
+        index.position(mid * INDEX_ENTRY_SIZE + KEY_HASH_SIZE);
+        return index.getInt();
+      }
+ else       if (cmp > 0) {
+        high=mid - 1;
+      }
+ else       if (cmp < 0) {
+        low=mid + 1;
+      }
+    }
+    return -1;
+  }
+  finally {
+    fileSet.checkinIndexFile(index,chunk);
+  }
+}

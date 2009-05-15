@@ -1,5 +1,5 @@
 {
-  if (args.length != 4)   Utils.croak("USAGE: cluster.xml store_name mgmtpath file_path");
+  if (args.length != 4)   Utils.croak("USAGE: cluster.xml store_name mgmtpath store_file_path");
   String clusterXml=args[0];
   String storeName=args[1];
   String mgmtPath=args[2];
@@ -13,8 +13,8 @@
   manager.getParams().setMaxConnectionsPerHost(HostConfiguration.ANY_HOST_CONFIGURATION,numConnections);
   HttpClient client=new HttpClient(manager);
   client.getParams().setParameter("http.socket.timeout",3 * 60 * 60* 1000);
-  StoreSwapper swapper=new StoreSwapper(cluster,executor,client,mgmtPath,filePath);
-  swapper.swapStoreData(storeName);
+  StoreSwapper swapper=new StoreSwapper(cluster,executor,client,mgmtPath);
+  swapper.swapStoreData(storeName,filePath);
   logger.info("Swap succeeded on all nodes.");
   executor.shutdownNow();
   executor.awaitTermination(1,TimeUnit.SECONDS);

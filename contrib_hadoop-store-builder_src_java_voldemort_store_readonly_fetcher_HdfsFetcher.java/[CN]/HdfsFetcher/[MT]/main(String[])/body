@@ -5,9 +5,9 @@
   Path p=new Path(url);
   FileStatus status=p.getFileSystem(new Configuration()).getFileStatus(p);
   long size=status.getLen();
-  HdfsFetcher fetcher=new HdfsFetcher(maxBytesPerSec);
+  HdfsFetcher fetcher=new HdfsFetcher(maxBytesPerSec,null);
   long start=System.currentTimeMillis();
-  fetcher.fetchFile(url);
+  File location=fetcher.fetch(url);
   double rate=size * Time.MS_PER_SECOND / (double)(System.currentTimeMillis() - start);
-  System.out.println("Fetch completed: " + rate + " bytes/sec.");
+  System.out.println("Fetch to " + location + " completed: "+ rate+ " bytes/sec.");
 }

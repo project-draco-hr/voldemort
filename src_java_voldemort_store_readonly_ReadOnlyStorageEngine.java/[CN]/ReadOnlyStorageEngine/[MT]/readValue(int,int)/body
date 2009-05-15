@@ -1,0 +1,13 @@
+{
+  MappedByteBuffer data=fileSet.checkoutDataFile(chunk);
+  try {
+    data.position(valueLocation);
+    int size=data.getInt();
+    byte[] value=new byte[size];
+    data.get(value);
+    return value;
+  }
+  finally {
+    fileSet.checkinDataFile(data,chunk);
+  }
+}

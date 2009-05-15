@@ -3,12 +3,14 @@
   while (values.hasNext()) {
     BytesWritable writable=values.next();
     byte[] valueBytes=writable.get();
-    if (nodeId == -1)     nodeId=ByteUtils.readInt(valueBytes,0);
+    if (this.nodeId == -1)     this.nodeId=ByteUtils.readInt(valueBytes,0);
+    if (this.chunkId == -1)     this.chunkId=ReadOnlyUtils.chunk(keyBytes,this.numChunks);
     byte[] value=ByteUtils.copy(valueBytes,4,writable.getSize());
-    indexFileStream.write(keyBytes);
-    indexFileStream.writeLong(position);
-    valueFileStream.writeInt(value.length);
-    valueFileStream.write(value);
-    position+=4 + value.length;
+    this.indexFileStream.write(keyBytes);
+    this.indexFileStream.writeInt(this.position);
+    this.valueFileStream.writeInt(value.length);
+    this.valueFileStream.write(value);
+    this.position+=4 + value.length;
+    if (this.position < 0)     throw new VoldemortException("Chunk overflow exception: chunk " + chunkId + " has exceeded "+ Integer.MAX_VALUE+ " bytes.");
   }
 }

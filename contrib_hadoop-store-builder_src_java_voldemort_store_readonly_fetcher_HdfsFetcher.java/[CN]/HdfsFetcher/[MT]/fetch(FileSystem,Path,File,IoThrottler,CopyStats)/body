@@ -1,0 +1,16 @@
+{
+  if (fs.isFile(source)) {
+    copyFile(fs,source,dest,throttler,stats);
+  }
+ else {
+    dest.mkdirs();
+    FileStatus[] statuses=fs.listStatus(source);
+    if (statuses != null) {
+      for (      FileStatus status : statuses) {
+        if (!status.getPath().getName().startsWith(".")) {
+          fetch(fs,status.getPath(),new File(dest,status.getPath().getName()),throttler,stats);
+        }
+      }
+    }
+  }
+}

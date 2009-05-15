@@ -1,0 +1,10 @@
+{
+  try {
+    MappedByteBuffer map=mmaps.poll(bufferWaitTimeoutMs,TimeUnit.MILLISECONDS);
+    if (map == null)     throw new VoldemortException("Timeout after waiting for " + bufferWaitTimeoutMs + " ms to acquire file descriptor");
+ else     return map;
+  }
+ catch (  InterruptedException e) {
+    throw new PersistenceFailureException("Interrupted while waiting for file descriptor.",e);
+  }
+}

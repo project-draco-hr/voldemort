@@ -1,0 +1,8 @@
+{
+  if (isOpen)   throw new VoldemortException("Can't move backup files while store is open.");
+  for (int i=numBackups - 1; i >= 0; i--) {
+    File from=new File(storeDir,"version-" + Integer.toString(i));
+    File to=new File(storeDir,"version-" + Integer.toString(i + 1));
+    if (from.exists())     Utils.move(from,to);
+  }
+}

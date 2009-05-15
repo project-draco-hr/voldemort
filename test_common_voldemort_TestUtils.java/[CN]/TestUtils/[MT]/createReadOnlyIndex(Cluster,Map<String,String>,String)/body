@@ -7,10 +7,10 @@
   BufferedReader reader=new BufferedReader(new FileReader(dataFile));
   JsonReader jsonReader=new JsonReader(reader);
   SerializerDefinition serDef=new SerializerDefinition("json","'string'");
-  StoreDefinition storeDef=new StoreDefinition("test",RandomAccessFileStorageConfiguration.TYPE_NAME,serDef,serDef,RoutingTier.CLIENT,1,1,1,1,1,1);
+  StoreDefinition storeDef=new StoreDefinition("test",ReadOnlyStorageConfiguration.TYPE_NAME,serDef,serDef,RoutingTier.CLIENT,1,1,1,1,1,1);
   RoutingStrategy router=new ConsistentRoutingStrategy(cluster.getNodes(),1);
   File dataDir=new File(baseDir + File.separatorChar + "read-only-temp-index-"+ new Integer((int)(Math.random() * 1000)));
-  JsonStoreBuilder storeBuilder=new JsonStoreBuilder(jsonReader,cluster,storeDef,router,dataDir,100,1);
+  JsonStoreBuilder storeBuilder=new JsonStoreBuilder(jsonReader,cluster,storeDef,router,dataDir,100,1,2);
   storeBuilder.build();
   return dataDir.getAbsolutePath();
 }

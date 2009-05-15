@@ -1,0 +1,12 @@
+{
+  Path path=new Path(fileUrl);
+  Configuration config=new Configuration();
+  config.setInt("io.file.buffer.size",64 * 1024);
+  FileSystem fs=path.getFileSystem(config);
+  IoThrottler throttler=null;
+  if (maxBytesPerSecond != null)   throttler=new IoThrottler(maxBytesPerSecond);
+  CopyStats stats=new CopyStats();
+  File destination=new File(this.tempDir,path.getName());
+  fetch(fs,path,destination,throttler,stats);
+  return destination;
+}
