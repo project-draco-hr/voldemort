@@ -1,6 +1,5 @@
 {
   int nodeId=ByteUtils.readInt(value.get(),0);
-  int chunkId=ReadOnlyUtils.chunk(key.get(),numChunks);
-  System.out.println("nodeId = " + nodeId + ", chunkId = "+ chunkId+ ", partition = "+ (chunkId * numChunks + nodeId) % numReduceTasks + ", numReduceTasks = " + numReduceTasks);
-  return (chunkId * numChunks + nodeId) % numReduceTasks;
+  int chunkId=ReadOnlyUtils.chunk(key.get(),getNumChunks());
+  return (nodeId * getNumChunks() + chunkId % numReduceTasks);
 }

@@ -21,10 +21,12 @@
   try {
     FileSystem fs=tempDir.getFileSystem(conf);
     fs.delete(tempDir,true);
-    FileStatus status=fs.getFileStatus(inputPath);
-    int numChunks=Math.max((int)status.getLen() / chunkSizeBytes,1);
+    long size=sizeOfPath(fs,inputPath);
+    int numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfNodes() / chunkSizeBytes),1);
+    logger.info("Data size = " + size + ", replication factor = "+ storeDef.getReplicationFactor()+ ", numNodes = "+ cluster.getNumberOfNodes()+ ", chunk size = "+ chunkSizeBytes+ ",  num.chunks = "+ numChunks);
     conf.setInt("num.chunks",numChunks);
     conf.setNumReduceTasks(cluster.getNumberOfNodes() * numChunks);
+    logger.info("Building store...");
     JobClient.runJob(conf);
   }
  catch (  IOException e) {
