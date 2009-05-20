@@ -14,8 +14,10 @@
   HttpClient client=new HttpClient(manager);
   client.getParams().setParameter("http.socket.timeout",3 * 60 * 60* 1000);
   StoreSwapper swapper=new StoreSwapper(cluster,executor,client,mgmtPath);
+  long start=System.currentTimeMillis();
   swapper.swapStoreData(storeName,filePath);
-  logger.info("Swap succeeded on all nodes.");
+  long end=System.currentTimeMillis();
+  logger.info("Swap succeeded on all nodes in " + ((end - start) / Time.MS_PER_SECOND) + " seconds.");
   executor.shutdownNow();
   executor.awaitTermination(1,TimeUnit.SECONDS);
   System.exit(0);

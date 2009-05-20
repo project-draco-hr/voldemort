@@ -1,3 +1,4 @@
 {
-  this(props.getBytes("fetcher.max.bytes.per.sec"),new File(props.getString("hdfs.fetcher.tmp.dir",null)));
+  this(props.containsKey("fetcher.max.bytes.per.sec") ? props.getBytes("fetcher.max.bytes.per.sec") : null,new File(props.getString("hdfs.fetcher.tmp.dir",DEFAULT_TEMP_DIR)));
+  logger.info("Created hdfs fetcher with temp dir = " + tempDir.getAbsolutePath() + " and throttle rate "+ maxBytesPerSecond);
 }
