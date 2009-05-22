@@ -1,0 +1,21 @@
+{
+  SocketChannel socketChannel=(SocketChannel)selectionKey.channel();
+  try {
+    DataInputStream inputStream=new DataInputStream(new BufferedInputStream(new ChannelBackedInputStream(socketChannel),BUFFER_SIZE));
+    DataOutputStream outputStream=new DataOutputStream(new BufferedOutputStream(new ChannelBackedOutputStream(socketChannel),64000));
+    requestHandler.handleRequest(inputStream,outputStream);
+    outputStream.flush();
+  }
+ catch (  EOFException e) {
+    close();
+  }
+catch (  Exception e) {
+    if (logger.isEnabledFor(Level.ERROR))     logger.error(e.getMessage(),e);
+  }
+ finally {
+    if (selectionKey.isValid()) {
+      selectionKey.interestOps(selectionKey.interestOps() | SelectionKey.OP_READ);
+      selectionKey.selector().wakeup();
+    }
+  }
+}

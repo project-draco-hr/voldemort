@@ -1,0 +1,17 @@
+{
+  SocketChannel socketChannel=(SocketChannel)selectionKey.channel();
+  if (logger.isInfoEnabled())   logger.info("Closing remote connection from " + socketChannel.socket().getPort());
+  try {
+    socketChannel.socket().close();
+  }
+ catch (  IOException ex) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(ex,ex);
+  }
+  try {
+    socketChannel.close();
+  }
+ catch (  IOException ex) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(ex,ex);
+  }
+  selectionKey.cancel();
+}

@@ -1,0 +1,8 @@
+{
+  SocketChannel socketChannel=(SocketChannel)selectionKey.channel();
+  if (socketChannel == null) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn("Claimed read readiness but nothing to select");
+    return;
+  }
+  threadPool.execute(new AsyncRequestHandler(selectionKey,requestHandler));
+}

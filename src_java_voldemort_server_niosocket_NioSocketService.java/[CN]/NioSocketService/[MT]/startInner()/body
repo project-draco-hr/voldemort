@@ -1,0 +1,16 @@
+{
+  try {
+    selector=Selector.open();
+    InetSocketAddress address=new InetSocketAddress(port);
+    serverSocketChannel=ServerSocketChannel.open();
+    serverSocketChannel.socket().bind(address);
+    serverSocketChannel.socket().setReceiveBufferSize(socketBufferSize);
+    serverSocketChannel.configureBlocking(false);
+    serverSocketChannel.register(selector,SelectionKey.OP_ACCEPT);
+    selectorManagerThread=new Thread(new SelectorManager(selector,threadPool,requestHandler,socketBufferSize));
+    selectorManagerThread.start();
+  }
+ catch (  Exception e) {
+    if (logger.isEnabledFor(Level.ERROR))     logger.error(e.getMessage(),e);
+  }
+}

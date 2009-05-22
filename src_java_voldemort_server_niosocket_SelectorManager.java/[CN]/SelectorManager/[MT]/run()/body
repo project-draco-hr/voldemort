@@ -1,0 +1,40 @@
+{
+  try {
+    while (true) {
+      if (Thread.currentThread().isInterrupted()) {
+        if (logger.isInfoEnabled())         logger.info("Interrupted");
+        break;
+      }
+      try {
+        int selected=selector.select();
+        if (selected > 0) {
+          Iterator<SelectionKey> i=selector.selectedKeys().iterator();
+          while (i.hasNext()) {
+            SelectionKey selectionKey=i.next();
+            try {
+              if (selectionKey.isAcceptable()) {
+                accept(selectionKey);
+              }
+ else               if (selectionKey.isReadable()) {
+                read(selectionKey);
+              }
+            }
+ catch (            Exception e) {
+              if (logger.isEnabledFor(Level.ERROR))               logger.error(e.getMessage(),e);
+            }
+            i.remove();
+          }
+        }
+      }
+ catch (      Throwable t) {
+        if (logger.isEnabledFor(Level.ERROR))         logger.error(t.getMessage(),t);
+      }
+    }
+  }
+ catch (  Throwable t) {
+    if (logger.isEnabledFor(Level.ERROR))     logger.error(t.getMessage(),t);
+  }
+ finally {
+    if (logger.isInfoEnabled())     logger.info("Complete");
+  }
+}

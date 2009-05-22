@@ -1,0 +1,15 @@
+{
+  super(ServiceType.SOCKET);
+  this.requestHandler=requestHandler;
+  this.port=port;
+  this.socketBufferSize=socketBufferSize;
+  RejectedExecutionHandler rejectedExecutionHandler=new RejectedExecutionHandler(){
+    public void rejectedExecution(    Runnable r,    ThreadPoolExecutor executor){
+      AsyncRequestHandler asyncRequestHandler=(AsyncRequestHandler)r;
+      if (logger.isEnabledFor(Level.ERROR))       logger.error("Too many requests, " + executor.getActiveCount() + " of "+ executor.getLargestPoolSize()+ " threads in use, denying connection from "+ asyncRequestHandler.getPort());
+    }
+  }
+;
+  ThreadFactory threadFactory=new DaemonThreadFactory("voldemort-niosocket-server");
+  this.threadPool=new ThreadPoolExecutor(coreConnections,maxConnections,0,TimeUnit.MILLISECONDS,new SynchronousQueue<Runnable>(),threadFactory,rejectedExecutionHandler);
+}
