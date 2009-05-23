@@ -11,6 +11,6 @@
     this.storeRepository.addNodeStore(node.getId(),store);
     nodeStores.put(node.getId(),store);
   }
-  RoutedStore routedStore=new RoutedStore(def.getName(),nodeStores,new ConsistentRoutingStrategy(cluster.getNodes(),def.getReplicationFactor()),def.getPreferredReads(),def.getRequiredReads(),def.getPreferredWrites(),def.getRequiredWrites(),true,this.clientThreadPool,voldemortConfig.getRoutingTimeoutMs(),voldemortConfig.getClientNodeBannageMs(),SystemTime.INSTANCE);
+  RoutedStore routedStore=new RoutedStore(def.getName(),nodeStores,cluster,def,true,this.clientThreadPool,voldemortConfig.getRoutingTimeoutMs(),voldemortConfig.getClientNodeBannageMs(),SystemTime.INSTANCE);
   this.storeRepository.addRoutedStore(routedStore);
 }

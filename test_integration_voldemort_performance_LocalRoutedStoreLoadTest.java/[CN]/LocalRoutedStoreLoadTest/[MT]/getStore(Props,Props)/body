@@ -1,11 +1,10 @@
 {
   Cluster cluster=new ClusterMapper().readCluster(new FileReader(propsA.getString("metadata.directory") + File.separator + "/cluster.xml"));
-  RoutingStrategy routingStrategy=new ConsistentRoutingStrategy(cluster.getNodes(),1);
   Map<Integer,Store<ByteArray,byte[]>> clientMapping=Maps.newHashMap();
   StorageConfiguration conf=new BdbStorageConfiguration(new VoldemortConfig(propsA));
   for (  Node node : cluster.getNodes())   clientMapping.put(node.getId(),conf.getStore("test" + node.getId()));
   InconsistencyResolver<Versioned<String>> resolver=new VectorClockInconsistencyResolver<String>();
-  Store<ByteArray,byte[]> store=new RoutedStore("test",clientMapping,routingStrategy,1,1,10,true,10000L);
+  Store<ByteArray,byte[]> store=new RoutedStore("test",clientMapping,cluster,ServerTestUtils.getStoreDef("test",1,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY),10,true,10000L);
   Store<String,String> serializingStore=new SerializingStore<String,String>(store,new StringSerializer(),new StringSerializer());
   Store<String,String> resolvingStore=new InconsistencyResolvingStore<String,String>(serializingStore,resolver);
   StoreClientFactory factory=new StaticStoreClientFactory(resolvingStore);

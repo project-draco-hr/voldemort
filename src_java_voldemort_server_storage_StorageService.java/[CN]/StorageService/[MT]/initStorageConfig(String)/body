@@ -1,7 +1,7 @@
 {
   try {
-    Class<?> configClass=Utils.loadClass(configClassName);
-    StorageConfiguration configuration=(StorageConfiguration)Utils.callConstructor(configClass,new Class<?>[]{VoldemortConfig.class},new Object[]{voldemortConfig});
+    Class<?> configClass=ReflectUtils.loadClass(configClassName);
+    StorageConfiguration configuration=(StorageConfiguration)ReflectUtils.callConstructor(configClass,new Class<?>[]{VoldemortConfig.class},new Object[]{voldemortConfig});
     logger.info("Initializing " + configuration.getType() + " storage engine.");
     storageConfigs.put(configuration.getType(),configuration);
   }

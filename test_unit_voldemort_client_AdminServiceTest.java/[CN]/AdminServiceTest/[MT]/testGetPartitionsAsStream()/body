@@ -1,0 +1,27 @@
+{
+  Store<ByteArray,byte[]> store=server.getStoreRepository().getStorageEngine(storeName);
+  assertNotSame("Store '" + storeName + "' should not be null",null,store);
+  for (int i=100; i <= 1000; i++) {
+    ByteArray key=new ByteArray(ByteUtils.getBytes("" + i,"UTF-8"));
+    byte[] value=ByteUtils.getBytes("value-" + i,"UTF-8");
+    store.put(key,new Versioned<byte[]>(value));
+  }
+  AdminClient client=new AdminClient(server.getIdentityNode(),server.getVoldemortMetadata(),new SocketPool(100,100,2000,1000,10000));
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=client.fetchPartitionKeyValues(0,storeName,Arrays.asList(new Integer[]{0}));
+  StoreDefinition storeDef=server.getVoldemortMetadata().getStoreDef(storeName);
+  assertNotSame("StoreDefinition for 'users' should not be nul ",null,storeDef);
+  RoutingStrategy routingStrategy=new RoutingStrategyFactory(server.getVoldemortMetadata().getCurrentCluster()).getRoutingStrategy(storeDef);
+  while (entryIterator.hasNext()) {
+    Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
+    checkEntriesForPartitions(entry.getFirst().get(),new int[]{0},routingStrategy);
+  }
+  entryIterator=client.fetchPartitionKeyValues(0,storeName,Arrays.asList(new Integer[]{0,1}));
+  Set<Integer> partitionSet2=new HashSet<Integer>();
+  while (entryIterator.hasNext()) {
+    Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
+    checkEntriesForPartitions(entry.getFirst().get(),new int[]{0,1},routingStrategy);
+    partitionSet2.add(routingStrategy.getPartitionList(entry.getFirst().get()).get(0));
+  }
+  assertEquals("GetPartitionsAsStream should return 2 partitions",2,partitionSet2.size());
+  assertEquals("GetPartitionsAsStream should return {0,1} partitions",true,partitionSet2.contains(new Integer(0)) && partitionSet2.contains(new Integer(1)));
+}

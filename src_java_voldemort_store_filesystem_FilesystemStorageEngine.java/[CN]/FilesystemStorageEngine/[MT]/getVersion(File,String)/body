@@ -1,0 +1,17 @@
+{
+  try {
+    int index=file.getName().lastIndexOf('-');
+    if (index <= 0) {
+      if (file.getName().equals(key)) {
+        return new VectorClock();
+      }
+    }
+ else     if (file.getName().endsWith(".version")) {
+      return new VectorClock(Hex.decodeHex(file.getName().replace(".version","").substring(index + 1).toCharArray()));
+    }
+  }
+ catch (  DecoderException e) {
+    throw new VoldemortException(e);
+  }
+  return null;
+}

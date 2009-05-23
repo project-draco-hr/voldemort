@@ -1,0 +1,22 @@
+{
+  List<StoreDefinition> storesList=new ArrayList<StoreDefinition>(server.getVoldemortMetadata().getStoreDefs().values());
+  assertNotSame("StoreDefinition for 'users' should not be nul ",null,server.getVoldemortMetadata().getStoreDef("users"));
+  int id=-1;
+  for (  StoreDefinition def : storesList) {
+    if (def.getName().equals("users")) {
+      id=storesList.indexOf(def);
+    }
+  }
+  if (id != -1) {
+    storesList.remove(id);
+  }
+  AdminClient client=new AdminClient(server.getIdentityNode(),server.getVoldemortMetadata(),new SocketPool(100,100,2000,1000,10000));
+  client.updateStoresMetadata(server.getIdentityNode().getId(),storesList);
+  boolean foundUserStore=false;
+  for (  StoreDefinition def : server.getVoldemortMetadata().getStoreDefs().values()) {
+    if (def.getName().equals("users")) {
+      foundUserStore=true;
+    }
+  }
+  assertEquals("Store users should no longer be available",false,foundUserStore);
+}

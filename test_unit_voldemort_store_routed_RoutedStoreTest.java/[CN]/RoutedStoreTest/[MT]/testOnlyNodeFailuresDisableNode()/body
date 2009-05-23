@@ -1,9 +1,7 @@
 {
-  RoutingStrategy strategy;
   Cluster cluster;
   cluster=getNineNodeCluster();
-  strategy=new RouteToAllStrategy(cluster.getNodes());
-  Store<ByteArray,byte[]> s1=getStore(cluster,1,9,9,9,0,strategy,new VoldemortException());
+  Store<ByteArray,byte[]> s1=getStore(cluster,1,9,9,9,0,RoutingStrategyType.TO_ALL_STRATEGY,new VoldemortException());
   try {
     s1.put(aKey,new Versioned<byte[]>(aValue));
     fail("Failure is expected");
@@ -12,8 +10,7 @@
   }
   assertOperationalNodes(cluster,9);
   cluster=getNineNodeCluster();
-  strategy=new RouteToAllStrategy(cluster.getNodes());
-  Store<ByteArray,byte[]> s2=getStore(cluster,1,9,9,9,0,strategy,new UnreachableStoreException("no go"));
+  Store<ByteArray,byte[]> s2=getStore(cluster,1,9,9,9,0,RoutingStrategyType.TO_ALL_STRATEGY,new UnreachableStoreException("no go"));
   try {
     s2.put(aKey,new Versioned<byte[]>(aValue));
     fail("Failure is expected");
@@ -22,8 +19,7 @@
   }
   assertOperationalNodes(cluster,0);
   cluster=getNineNodeCluster();
-  strategy=new RouteToAllStrategy(cluster.getNodes());
-  s1=getStore(cluster,1,9,9,9,0,strategy,new VoldemortException());
+  s1=getStore(cluster,1,9,9,9,0,RoutingStrategyType.TO_ALL_STRATEGY,new VoldemortException());
   try {
     s1.get(aKey);
     fail("Failure is expected");
@@ -32,8 +28,7 @@
   }
   assertOperationalNodes(cluster,9);
   cluster=getNineNodeCluster();
-  strategy=new RouteToAllStrategy(cluster.getNodes());
-  s2=getStore(cluster,1,9,9,9,0,strategy,new UnreachableStoreException("no go"));
+  s2=getStore(cluster,1,9,9,9,0,RoutingStrategyType.TO_ALL_STRATEGY,new UnreachableStoreException("no go"));
   try {
     s2.get(aKey);
     fail("Failure is expected");
@@ -42,8 +37,7 @@
   }
   assertOperationalNodes(cluster,0);
   cluster=getNineNodeCluster();
-  strategy=new RouteToAllStrategy(cluster.getNodes());
-  s1=getStore(cluster,1,9,9,9,0,strategy,new VoldemortException());
+  s1=getStore(cluster,1,9,9,9,0,RoutingStrategyType.TO_ALL_STRATEGY,new VoldemortException());
   try {
     s1.delete(aKey,new VectorClock());
     fail("Failure is expected");
@@ -52,8 +46,7 @@
   }
   assertOperationalNodes(cluster,9);
   cluster=getNineNodeCluster();
-  strategy=new RouteToAllStrategy(cluster.getNodes());
-  s2=getStore(cluster,1,9,9,9,0,strategy,new UnreachableStoreException("no go"));
+  s2=getStore(cluster,1,9,9,9,0,RoutingStrategyType.TO_ALL_STRATEGY,new UnreachableStoreException("no go"));
   try {
     s2.delete(aKey,new VectorClock());
     fail("Failure is expected");

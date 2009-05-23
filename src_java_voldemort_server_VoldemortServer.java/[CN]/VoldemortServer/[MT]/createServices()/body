@@ -1,11 +1,12 @@
 {
+  RequestHandlerFactory requestHandlerFactory=new RequestHandlerFactory(this.storeRepository,this.metadata,voldemortConfig);
   List<VoldemortService> services=new ArrayList<VoldemortService>();
   SchedulerService scheduler=new SchedulerService(voldemortConfig.getSchedulerThreads(),SystemTime.INSTANCE);
+  services.add(new StorageService(storeRepository,metadata,scheduler,voldemortConfig));
   services.add(scheduler);
-  services.add(new StorageService(storeRepository,metadataStore,scheduler,voldemortConfig));
   if (voldemortConfig.isHttpServerEnabled())   services.add(new HttpService(this,storeRepository,RequestFormatType.VOLDEMORT,voldemortConfig.getMaxThreads(),identityNode.getHttpPort()));
-  RequestHandler requestHandler=new RequestHandlerFactory(this.storeRepository).getRequestHandler(voldemortConfig.getRequestFormatType());
-  if (voldemortConfig.isSocketServerEnabled())   services.add(new SocketService(requestHandler,identityNode.getSocketPort(),voldemortConfig.getCoreThreads(),voldemortConfig.getMaxThreads(),voldemortConfig.getSocketBufferSize()));
-  if (voldemortConfig.isJmxEnabled())   services.add(new JmxService(this,this.metadataStore.getCluster(),storeRepository,services));
+  if (voldemortConfig.isSocketServerEnabled())   services.add(new SocketService(requestHandlerFactory.getRequestHandler(voldemortConfig.getRequestFormatType()),identityNode.getSocketPort(),voldemortConfig.getCoreThreads(),voldemortConfig.getMaxThreads(),voldemortConfig.getSocketBufferSize(),"client-request-service"));
+  if (voldemortConfig.isAdminServerEnabled())   services.add(new SocketService(requestHandlerFactory.getRequestHandler(RequestFormatType.ADMIN_HANDLER),identityNode.getAdminPort(),voldemortConfig.getAdminCoreThreads(),voldemortConfig.getAdminMaxThreads(),voldemortConfig.getAdminSocketBufferSize(),"admin-service"));
+  if (voldemortConfig.isJmxEnabled())   services.add(new JmxService(this,this.metadata.getCurrentCluster(),storeRepository,services));
   return ImmutableList.copyOf(services);
 }

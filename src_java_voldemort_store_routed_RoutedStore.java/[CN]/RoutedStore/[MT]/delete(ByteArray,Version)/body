@@ -2,7 +2,7 @@
   StoreUtils.assertValidKey(key);
   final List<Node> nodes=availableNodes(routingStrategy.routeRequest(key.get()));
   final int numNodes=nodes.size();
-  if (numNodes < this.requiredWrites)   throw new InsufficientOperationalNodesException("Only " + numNodes + " nodes in preference list, but "+ this.requiredWrites+ " writes required.");
+  if (numNodes < this.storeDef.getRequiredWrites())   throw new InsufficientOperationalNodesException("Only " + numNodes + " nodes in preference list, but "+ this.storeDef.getRequiredWrites()+ " writes required.");
   final AtomicInteger successes=new AtomicInteger(0);
   final AtomicBoolean deletedSomething=new AtomicBoolean(false);
   final List<Exception> failures=Collections.synchronizedList(new LinkedList<Exception>());
@@ -31,8 +31,8 @@ catch (        Exception e) {
     }
 );
   }
-  int attempts=Math.min(preferredWrites,numNodes);
-  if (this.preferredWrites <= 0) {
+  int attempts=Math.min(storeDef.getPreferredWrites(),numNodes);
+  if (this.storeDef.getPreferredWrites() <= 0) {
     return true;
   }
  else {
@@ -47,6 +47,6 @@ catch (        Exception e) {
       }
     }
   }
-  if (successes.get() < requiredWrites)   throw new InsufficientOperationalNodesException(this.requiredWrites + " deletes required, but " + successes.get()+ " succeeded.",failures);
+  if (successes.get() < storeDef.getRequiredWrites())   throw new InsufficientOperationalNodesException(this.storeDef.getRequiredWrites() + " deletes required, but " + successes.get()+ " succeeded.",failures);
  else   return deletedSomething.get();
 }
