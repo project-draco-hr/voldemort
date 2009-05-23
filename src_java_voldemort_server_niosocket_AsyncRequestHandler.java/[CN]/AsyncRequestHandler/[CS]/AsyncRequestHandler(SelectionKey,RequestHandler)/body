@@ -1,5 +1,7 @@
 {
   this.selectionKey=selectionKey;
   this.requestHandler=requestHandler;
-  selectionKey.interestOps(selectionKey.interestOps() & ~SelectionKey.OP_READ);
+  SocketChannel socketChannel=(SocketChannel)selectionKey.channel();
+  inputStream=new DataInputStream(new BufferedInputStream(new ChannelBackedInputStream(socketChannel),BUFFER_SIZE));
+  outputStream=new DataOutputStream(new BufferedOutputStream(new ChannelBackedOutputStream(socketChannel),BUFFER_SIZE));
 }
