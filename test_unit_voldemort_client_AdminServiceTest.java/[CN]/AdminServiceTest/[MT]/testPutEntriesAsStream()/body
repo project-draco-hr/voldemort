@@ -8,7 +8,7 @@
     entryList.add(Pair.create(key,Versioned.value(value,new VectorClock().incremented(0,System.currentTimeMillis()))));
   }
   AdminClient client=new AdminClient(server.getIdentityNode(),server.getVoldemortMetadata(),new SocketPool(100,100,2000,1000,10000));
-  client.setPartitionKeyValues(0,storeName,entryList.iterator());
+  client.updatePartitionEntries(0,storeName,entryList.iterator());
   for (int i=100; i <= 104; i++) {
     assertNotSame("Store should return a valid value","value-" + i,new String(store.get(new ByteArray(ByteUtils.getBytes("" + i,"UTF-8"))).get(0).getValue()));
   }

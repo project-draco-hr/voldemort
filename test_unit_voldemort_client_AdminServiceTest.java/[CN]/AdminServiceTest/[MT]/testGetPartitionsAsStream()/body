@@ -7,7 +7,7 @@
     store.put(key,new Versioned<byte[]>(value));
   }
   AdminClient client=new AdminClient(server.getIdentityNode(),server.getVoldemortMetadata(),new SocketPool(100,100,2000,1000,10000));
-  Iterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=client.fetchPartitionKeyValues(0,storeName,Arrays.asList(new Integer[]{0}));
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=client.fetchPartitionEntries(0,storeName,Arrays.asList(new Integer[]{0}));
   StoreDefinition storeDef=server.getVoldemortMetadata().getStoreDef(storeName);
   assertNotSame("StoreDefinition for 'users' should not be nul ",null,storeDef);
   RoutingStrategy routingStrategy=new RoutingStrategyFactory(server.getVoldemortMetadata().getCurrentCluster()).getRoutingStrategy(storeDef);
@@ -15,7 +15,7 @@
     Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
     checkEntriesForPartitions(entry.getFirst().get(),new int[]{0},routingStrategy);
   }
-  entryIterator=client.fetchPartitionKeyValues(0,storeName,Arrays.asList(new Integer[]{0,1}));
+  entryIterator=client.fetchPartitionEntries(0,storeName,Arrays.asList(new Integer[]{0,1}));
   Set<Integer> partitionSet2=new HashSet<Integer>();
   while (entryIterator.hasNext()) {
     Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
