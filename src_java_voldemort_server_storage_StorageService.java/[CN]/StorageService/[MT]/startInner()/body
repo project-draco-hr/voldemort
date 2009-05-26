@@ -1,4 +1,6 @@
 {
+  MetadataStore metadataStore=MetadataStore.readFromDirectory(new File(voldemortConfig.getMetadataDirectory()));
+  registerEngine(metadataStore);
   for (  String configClassName : voldemortConfig.getStorageConfigurations())   initStorageConfig(configClassName);
   if (voldemortConfig.isSlopEnabled()) {
     StorageEngine<ByteArray,byte[]> slopEngine=getStorageEngine("slop",voldemortConfig.getSlopStoreType());
