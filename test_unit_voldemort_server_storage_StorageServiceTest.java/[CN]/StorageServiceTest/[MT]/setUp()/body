@@ -1,10 +1,15 @@
 {
   VoldemortConfig config=new VoldemortConfig(0,"/tmp");
+  new File("/tmp/config").mkdir();
+  TestUtils.createTempDir(new File("/tmp/config"));
   config.setBdbCacheSize(100000);
   this.scheduler=new SchedulerService(1,new MockTime());
   this.cluster=ServerTestUtils.getLocalCluster(1);
   this.storeDefs=ServerTestUtils.getStoreDefs(2);
   this.storeRepository=new StoreRepository();
+  MetadataStore mdStore=MetadataStore.readFromDirectory(new File(config.getMetadataDirectory()));
+  mdStore.put(new ByteArray(MetadataStore.CLUSTER_KEY.getBytes()),new Versioned<byte[]>(cluster.toString().getBytes()));
+  mdStore.put(new ByteArray(MetadataStore.STORES_KEY.getBytes()),new Versioned<byte[]>(storeDefs.toString().getBytes()));
   storage=new StorageService(storeRepository,new VoldemortMetadata(cluster,storeDefs,0),scheduler,config);
   storage.start();
 }
