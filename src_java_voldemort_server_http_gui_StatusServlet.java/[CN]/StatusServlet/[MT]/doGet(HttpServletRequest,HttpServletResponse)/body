@@ -1,0 +1,37 @@
+{
+  String format=request.getParameter("format");
+  if ("json".equals(format)) {
+    StringBuilder sb=new StringBuilder("{\n");
+    sb.append("  \"requestURI\": \"");
+    sb.append(request.getRequestURI());
+    sb.append("\",");
+    sb.append("\n  \"servertime\": \"");
+    sb.append(new Date());
+    sb.append("\",");
+    sb.append("\n  \"server\": \"");
+    sb.append(myMachine);
+    sb.append("\",");
+    sb.append("\n  \"storestats\": {");
+    for (    Store<ByteArray,byte[]> store : server.getStoreRepository().getAllLocalStores()) {
+      sb.append("\n    \"");
+      sb.append(store.getName());
+      sb.append("\" : {} \n");
+    }
+    sb.append("  }\n");
+    sb.append("}\n");
+    try {
+      OutputStreamWriter writer=new OutputStreamWriter(response.getOutputStream());
+      writer.write(sb.toString());
+      writer.flush();
+    }
+ catch (    Exception e) {
+      throw new VoldemortException(e);
+    }
+    return;
+  }
+  Map<String,Object> params=Maps.newHashMap();
+  params.put("status",socketService.getStatusManager());
+  params.put("counters",Tracked.values());
+  params.put("stores",server.getStoreRepository().getAllLocalStores());
+  velocityEngine.render("status.vm",params,response.getOutputStream());
+}
