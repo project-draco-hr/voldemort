@@ -1,0 +1,32 @@
+{
+  String relPath=className;
+  relPath=relPath.replace('.','/');
+  relPath+=".class";
+  java.net.URL classUrl=loader.getResource(relPath);
+  String codePath;
+  if (classUrl != null) {
+    boolean inJar=classUrl.getProtocol().equals("jar");
+    codePath=classUrl.toString();
+    if (codePath.startsWith("jar:")) {
+      codePath=codePath.substring("jar:".length());
+    }
+    if (codePath.startsWith("file:")) {
+      codePath=codePath.substring("file:".length());
+    }
+    if (inJar) {
+      int bang=codePath.lastIndexOf('!');
+      codePath=codePath.substring(0,bang);
+    }
+ else {
+      int pos=codePath.lastIndexOf(relPath);
+      if (pos == -1) {
+        throw new IllegalArgumentException("invalid codePath: className=" + className + " codePath="+ codePath);
+      }
+      codePath=codePath.substring(0,pos);
+    }
+  }
+ else {
+    codePath=null;
+  }
+  return codePath;
+}

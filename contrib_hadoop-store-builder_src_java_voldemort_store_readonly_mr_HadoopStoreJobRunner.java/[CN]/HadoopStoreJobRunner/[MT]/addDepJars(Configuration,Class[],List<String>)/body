@@ -1,0 +1,22 @@
+{
+  FileSystem localFs=FileSystem.getLocal(conf);
+  Set<String> depJars=new HashSet<String>();
+  for (  Class dep : deps) {
+    String tmp=findInClasspath(dep.getCanonicalName());
+    if (tmp != null) {
+      Path path=new Path(tmp);
+      depJars.add(path.makeQualified(localFs).toString());
+    }
+  }
+  for (  String additional : additionalJars) {
+    Path path=new Path(additional);
+    depJars.add(path.makeQualified(localFs).toString());
+  }
+  String[] tmpjars=conf.get("tmpjars","").split(",");
+  for (  String tmpjar : tmpjars) {
+    if (!StringUtils.isEmpty(tmpjar)) {
+      depJars.add(tmpjar.trim());
+    }
+  }
+  conf.set("tmpjars",StringUtils.join(depJars.iterator(),','));
+}
