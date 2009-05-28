@@ -1,7 +1,7 @@
 {
-  VoldemortConfig config=new VoldemortConfig(0,"/tmp");
-  new File("/tmp/config").mkdir();
-  TestUtils.createTempDir(new File("/tmp/config"));
+  File temp=TestUtils.createTempDir();
+  VoldemortConfig config=new VoldemortConfig(0,temp.getAbsolutePath());
+  new File(config.getMetadataDirectory()).mkdir();
   config.setBdbCacheSize(100000);
   this.scheduler=new SchedulerService(1,new MockTime());
   this.cluster=ServerTestUtils.getLocalCluster(1);
