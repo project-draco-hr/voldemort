@@ -11,7 +11,7 @@
   }
   cluster.getNodes().iterator().next().getStatus().setUnavailable();
   Map<ByteArray,List<Versioned<byte[]>>> all=store.getAll(expectedValues.keySet());
-  assertEquals(all.size(),expectedValues.size());
+  assertEquals(expectedValues.size(),all.size());
   for (  Map.Entry<ByteArray,List<Versioned<byte[]>>> mapEntry : all.entrySet()) {
     byte[] value=expectedValues.get(mapEntry.getKey());
     assertEquals(new ByteArray(value),new ByteArray(mapEntry.getValue().get(0).getValue()));
