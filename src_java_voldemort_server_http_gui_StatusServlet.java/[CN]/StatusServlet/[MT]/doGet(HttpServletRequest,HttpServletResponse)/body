@@ -1,6 +1,6 @@
 {
+  String storeName=request.getParameter("store");
   if ("reset".equals(request.getParameter("action"))) {
-    String storeName=request.getParameter("store");
     if (storeName != null) {
       Store<ByteArray,byte[]> store=server.getStoreRepository().getLocalStore(storeName);
       if (store != null && store instanceof StatTrackingStore<?,?>) {
@@ -13,9 +13,30 @@
     outputJSON(response);
     return;
   }
-  Map<String,Object> params=Maps.newHashMap();
-  params.put("status",socketService.getStatusManager());
-  params.put("counters",Tracked.values());
-  params.put("stores",server.getStoreRepository().getAllLocalStores());
-  velocityEngine.render("status.vm",params,response.getOutputStream());
+ else {
+    response.setContentType("text/html");
+    long refreshTime=600;
+    String refresh=request.getParameter("refresh");
+    if (refresh != null) {
+      try {
+        refreshTime=Integer.parseInt(refresh);
+      }
+ catch (      NumberFormatException e) {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+      }
+    }
+    List<Store<ByteArray,byte[]>> stores=null;
+    if (storeName == null) {
+      stores=server.getStoreRepository().getAllLocalStores();
+    }
+ else {
+      stores=Collections.singletonList(server.getStoreRepository().getLocalStore(storeName));
+    }
+    Map<String,Object> params=Maps.newHashMap();
+    params.put("status",socketService.getStatusManager());
+    params.put("counters",Tracked.values());
+    params.put("stores",stores);
+    params.put("refresh",refreshTime);
+    velocityEngine.render("status.vm",params,response.getOutputStream());
+  }
 }

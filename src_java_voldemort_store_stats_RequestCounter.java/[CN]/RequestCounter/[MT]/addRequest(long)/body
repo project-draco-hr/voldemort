@@ -1,16 +1,11 @@
 {
   for (int i=0; i < 3; i++) {
-    Pair oldv=values.get();
+    Accumulator oldv=getValidAccumulator();
     long startTimeMS=oldv.startTimeMS;
     long count=oldv.count + 1;
     long totalTimeNS=oldv.totalTimeNS + timeNS;
-    long now=System.currentTimeMillis();
-    if (now - startTimeMS > durationMS) {
-      startTimeMS=now;
-      count=1;
-      totalTimeNS=timeNS;
-    }
-    if (values.compareAndSet(oldv,new Pair(startTimeMS,count,totalTimeNS))) {
+    long total=oldv.total + 1;
+    if (values.compareAndSet(oldv,new Accumulator(startTimeMS,count,totalTimeNS,total))) {
       return;
     }
   }
