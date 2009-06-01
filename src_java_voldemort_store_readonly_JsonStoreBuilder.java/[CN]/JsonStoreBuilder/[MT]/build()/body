@@ -11,8 +11,8 @@
       File indexFile=new File(nodeDir,chunk + ".index");
       File dataFile=new File(nodeDir,chunk + ".data");
       positions[nodeId][chunk]=0;
-      indexes[nodeId][chunk]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(indexFile),1000000));
-      datas[nodeId][chunk]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dataFile),1000000));
+      indexes[nodeId][chunk]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(indexFile),ioBufferSize));
+      datas[nodeId][chunk]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dataFile),ioBufferSize));
     }
   }
   SerializerFactory factory=new DefaultSerializerFactory();
@@ -20,7 +20,7 @@
   Serializer valueSerializer=factory.getSerializer(storeDefinition.getValueSerializer());
   logger.info("Reading items...");
   int count=0;
-  ExternalSorter<KeyValuePair> sorter=new ExternalSorter<KeyValuePair>(new KeyValuePairSerializer(),new KeyMd5Comparator(),internalSortSize,numThreads);
+  ExternalSorter<KeyValuePair> sorter=new ExternalSorter<KeyValuePair>(new KeyValuePairSerializer(),new KeyMd5Comparator(),internalSortSize,tempDir.getAbsolutePath(),numThreads,ioBufferSize);
   JsonObjectIterator iter=new JsonObjectIterator(reader,keySerializer,valueSerializer);
   for (  KeyValuePair pair : sorter.sorted(iter)) {
     List<Node> nodes=this.routingStrategy.routeRequest(pair.getKey());
