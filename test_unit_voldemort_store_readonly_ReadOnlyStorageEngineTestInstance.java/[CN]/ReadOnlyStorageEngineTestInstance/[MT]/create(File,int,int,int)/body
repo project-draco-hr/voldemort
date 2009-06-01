@@ -10,7 +10,7 @@
   StoreDefinition storeDef=new StoreDefinition("test",ReadOnlyStorageConfiguration.TYPE_NAME,serDef,serDef,RoutingTier.CLIENT,RoutingStrategyType.CONSISTENT_STRATEGY,repFactor,1,1,1,1,1);
   RoutingStrategy router=new RoutingStrategyFactory(cluster).getRoutingStrategy(storeDef);
   File outputDir=TestUtils.createTempDir(baseDir);
-  JsonStoreBuilder storeBuilder=new JsonStoreBuilder(reader,cluster,storeDef,router,outputDir,testSize / 5,1,2);
+  JsonStoreBuilder storeBuilder=new JsonStoreBuilder(reader,cluster,storeDef,router,outputDir,null,testSize / 5,1,2,10000);
   storeBuilder.build();
   File nodeDir=TestUtils.createTempDir(baseDir);
   @SuppressWarnings("unchecked") Serializer<String> serializer=(Serializer<String>)new DefaultSerializerFactory().getSerializer(serDef);
