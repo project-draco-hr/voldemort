@@ -1,0 +1,32 @@
+{
+  logger.info("Node(" + stealerNodeID + ") Starting Steal Process");
+  Node stealerNode=currentCluster.getNodeById(stealerNodeID);
+  if (stealerNode != null) {
+    try {
+      adminClient.changeServerState(stealerNodeID,ServerState.REBALANCING_STEALER_STATE);
+      adminClient.updateClusterMetadata(stealerNodeID,currentCluster,MetadataStore.ROLLBACK_CLUSTER_KEY);
+      adminClient.updateClusterMetadata(stealerNodeID,targetCluster,MetadataStore.CLUSTER_KEY);
+      for (      Node donorNode : currentCluster.getNodes()) {
+        if (donorNode.getId() != stealerNode.getId()) {
+          List<Integer> stealList=getExtraPartitionList(donorNode.getPartitionIds(),targetCluster.getNodeById(donorNode.getId()).getPartitionIds());
+          if (stealList.size() > 0) {
+            logger.info("stealing partitions from " + donorNode.getId());
+            adminClient.changeServerState(donorNode.getId(),ServerState.REBALANCING_DONOR_STATE);
+            adminClient.updateClusterMetadata(donorNode.getId(),targetCluster,MetadataStore.CLUSTER_KEY);
+            adminClient.fetchAndUpdateStreams(donorNode.getId(),stealerNodeID,storeName,stealList);
+            adminClient.changeServerState(donorNode.getId(),ServerState.NORMAL_STATE);
+          }
+        }
+      }
+      adminClient.changeServerState(stealerNodeID,ServerState.NORMAL_STATE);
+    }
+ catch (    Exception e) {
+      for (      Node node : currentCluster.getNodes()) {
+        adminClient.changeServerState(node.getId(),ServerState.NORMAL_STATE);
+        adminClient.updateClusterMetadata(node.getId(),currentCluster,MetadataStore.CLUSTER_KEY);
+      }
+      throw new VoldemortException("Steal Partitions for " + stealerNodeID + " failed",e);
+    }
+  }
+  logger.info("Node(" + stealerNodeID + ") Steal process completed");
+}

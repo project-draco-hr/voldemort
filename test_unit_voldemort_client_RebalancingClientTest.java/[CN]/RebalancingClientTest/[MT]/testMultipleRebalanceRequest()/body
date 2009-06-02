@@ -1,0 +1,30 @@
+{
+  final Map<ByteArray,byte[]> keyValMap=populateTestKeys(10000,storeName);
+  Node node0=server0.getVoldemortMetadata().getCurrentCluster().getNodeById(0);
+  Node node1=server0.getVoldemortMetadata().getCurrentCluster().getNodeById(1);
+  final Cluster targetCluster1=new Cluster("rebalancing-client-test-steal",Arrays.asList(new Node[]{new Node(node0.getId(),node0.getHost(),node0.getHttpPort(),node0.getSocketPort(),node0.getAdminPort(),Arrays.asList(0,1,2)),new Node(node1.getId(),node1.getHost(),node1.getHttpPort(),node1.getSocketPort(),node1.getAdminPort(),Arrays.asList(3))}));
+  final Cluster targetCluster2=new Cluster("rebalancing-client-test-donate",Arrays.asList(new Node[]{new Node(node0.getId(),node0.getHost(),node0.getHttpPort(),node0.getSocketPort(),node0.getAdminPort(),Arrays.asList(0)),new Node(node1.getId(),node1.getHost(),node1.getHttpPort(),node1.getSocketPort(),node1.getAdminPort(),Arrays.asList(1,2,3))}));
+  ExecutorService executor=Executors.newFixedThreadPool(2);
+  executor.execute(new Runnable(){
+    public void run(){
+      rebalanceClient.stealPartitions(0,storeName,server0.getVoldemortMetadata().getCurrentCluster(),targetCluster1);
+    }
+  }
+);
+  executor.execute(new Runnable(){
+    public void run(){
+      try {
+        rebalanceClient.stealPartitions(0,storeName,server0.getVoldemortMetadata().getCurrentCluster(),targetCluster2);
+        fail("Should not be able to start multiple rebalancing on one node.");
+      }
+ catch (      VoldemortException e) {
+      }
+    }
+  }
+);
+  executor.awaitTermination(60,TimeUnit.SECONDS);
+  checkAllKeysArePresent(server0,Arrays.asList(0,1,2),keyValMap);
+  checkAllKeysArePresent(server1,Arrays.asList(3),keyValMap);
+  checkNoKeyReturns(server0,Arrays.asList(3),keyValMap);
+  checkNoKeyReturns(server1,Arrays.asList(0,1,2),keyValMap);
+}

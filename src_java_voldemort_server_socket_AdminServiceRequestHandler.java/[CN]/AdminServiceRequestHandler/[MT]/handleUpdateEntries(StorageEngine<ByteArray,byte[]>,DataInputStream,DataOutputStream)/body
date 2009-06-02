@@ -11,12 +11,15 @@
       VectorClock clock=new VectorClock(value);
       Versioned<byte[]> versionedValue=new Versioned<byte[]>(ByteUtils.copy(value,clock.sizeInBytes(),value.length),clock);
       engine.put(new ByteArray(key),versionedValue);
+      outputStream.writeShort(0);
+      outputStream.flush();
       if (throttler != null) {
-        throttler.maybeThrottle(key.length + clock.sizeInBytes() + value.length);
+        throttler.maybeThrottle(key.length + clock.sizeInBytes() + value.length+ 1);
       }
       keySize=inputStream.readInt();
     }
     outputStream.writeShort(0);
+    outputStream.flush();
   }
  catch (  VoldemortException e) {
     writeException(outputStream,e);
