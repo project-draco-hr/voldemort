@@ -2,7 +2,7 @@
   for (int i=100; i <= 1000; i++) {
     ByteArray key=new ByteArray(ByteUtils.getBytes("" + i,"UTF-8"));
     byte[] value=ByteUtils.getBytes("value-" + i,"UTF-8");
-    Store<ByteArray,byte[]> store=server1.getStoreRepository().getLocalStore(storeName);
+    Store<ByteArray,byte[]> store=server1.getStoreRepository().getStorageEngine(storeName);
     store.put(key,Versioned.value(value,new VectorClock().incremented(0,System.currentTimeMillis())));
     try {
       store.put(key,store.get(key).get(0));
@@ -14,7 +14,7 @@
   VoldemortMetadata metadata=server0.getVoldemortMetadata();
   metadata.setDonorNode(1);
   metadata.setCurrentPartitionStealList(Arrays.asList(new Integer[]{2,3}));
-  RedirectingStore rebalancingStore=new RedirectingStore(0,server0.getStoreRepository().getLocalStore(storeName),metadata,new SocketPool(100,100,2000,1000,10000));
+  RedirectingStore rebalancingStore=new RedirectingStore(0,server0.getStoreRepository().getStorageEngine(storeName),metadata,new SocketPool(100,100,2000,1000,10000));
   metadata.setServerState(VoldemortMetadata.ServerState.REBALANCING_STEALER_STATE);
   for (int i=100; i <= 1000; i++) {
     ByteArray key=new ByteArray(ByteUtils.getBytes("" + i,"UTF-8"));
