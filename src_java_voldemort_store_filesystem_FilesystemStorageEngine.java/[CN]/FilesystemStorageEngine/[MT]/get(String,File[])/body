@@ -4,7 +4,9 @@
     for (    File file : files) {
       if (file.getName().startsWith(key)) {
         VectorClock clock=getVersion(file,key);
-        found.add(new Versioned<String>(FileUtils.readFileToString(file,"UTF-8"),clock));
+        if (null != clock) {
+          found.add(new Versioned<String>(FileUtils.readFileToString(file,"UTF-8"),clock));
+        }
       }
     }
     return found;
