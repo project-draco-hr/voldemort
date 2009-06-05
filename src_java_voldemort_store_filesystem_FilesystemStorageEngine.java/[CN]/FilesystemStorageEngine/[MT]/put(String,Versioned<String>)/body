@@ -5,9 +5,11 @@
   for (  File file : files) {
     if (file.getName().startsWith(key)) {
       VectorClock clock=getVersion(file,key);
-      if (clock.compare(value.getVersion()) == Occured.AFTER)       throw new ObsoleteVersionException("A successor version to this exists.");
- else       if (clock.compare(value.getVersion()) == Occured.BEFORE) {
-        deleteList.add(file.getAbsolutePath());
+      if (null != clock) {
+        if (clock.compare(value.getVersion()) == Occured.AFTER)         throw new ObsoleteVersionException("A successor version to this exists.");
+ else         if (clock.compare(value.getVersion()) == Occured.BEFORE) {
+          deleteList.add(file.getAbsolutePath());
+        }
       }
     }
   }
