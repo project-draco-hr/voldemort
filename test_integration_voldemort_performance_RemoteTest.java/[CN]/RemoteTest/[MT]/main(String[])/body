@@ -7,6 +7,7 @@
   parser.accepts("start-key-index","starting point when using int keys. Default = 0").withRequiredArg().ofType(Integer.class);
   parser.accepts("value-size","size in bytes for random value.  Default = 1024").withRequiredArg().ofType(Integer.class);
   parser.accepts("iterations","number of times to repeat the test  Default = 1").withRequiredArg().ofType(Integer.class);
+  parser.accepts("threads","max number concurrent worker threads  Default = " + MAX_WORKERS).withRequiredArg().ofType(Integer.class);
   OptionSet options=parser.parse(args);
   List<String> nonOptions=options.nonOptionArguments();
   if (nonOptions.size() != 3) {
@@ -20,6 +21,7 @@
   Integer startNum=CmdUtils.valueOf(options,"start-key-index",0);
   Integer valueSize=CmdUtils.valueOf(options,"value-size",1024);
   Integer numIterations=CmdUtils.valueOf(options,"iterations",1);
+  Integer numThreads=CmdUtils.valueOf(options,"threads",MAX_WORKERS);
   if (options.has("request-file")) {
     keys=loadKeys((String)options.valueOf("request-file"));
   }
@@ -39,11 +41,12 @@
   System.out.println("value size : " + valueSize);
   System.out.println("start index : " + startNum);
   System.out.println("iterations : " + numIterations);
+  System.out.println("threads : " + numThreads);
   System.out.println("Bootstraping cluster data.");
-  StoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setMaxThreads(20).setMaxConnectionsPerNode(MAX_WORKERS).setBootstrapUrls(url));
+  StoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setMaxThreads(20).setMaxConnectionsPerNode(numThreads).setBootstrapUrls(url));
   final StoreClient<String,String> store=factory.getStoreClient(storeName);
   final String value=new String(TestUtils.randomBytes(valueSize));
-  ExecutorService service=Executors.newFixedThreadPool(MAX_WORKERS);
+  ExecutorService service=Executors.newFixedThreadPool(numThreads);
   for (int loopCount=0; loopCount < numIterations; loopCount++) {
     System.out.println("======================= iteration = " + loopCount + " ======================================");
     if (ops.contains("d")) {
