@@ -6,7 +6,7 @@
   final List<NodeValue<ByteArray,byte[]>> nodeValues=Collections.synchronizedList(new ArrayList<NodeValue<ByteArray,byte[]>>());
   final AtomicInteger successes=new AtomicInteger();
   final List<Exception> failures=Collections.synchronizedList(new LinkedList<Exception>());
-  int attempts=Math.min(this.preferredReads,nodes.size());
+  int attempts=Math.min(this.storeDef.getPreferredReads(),nodes.size());
   final CountDownLatch latch=new CountDownLatch(attempts);
   int nodeIndex=0;
   for (; nodeIndex < attempts; nodeIndex++) {
@@ -44,7 +44,7 @@ catch (        Exception e) {
  catch (  InterruptedException e) {
     throw new InsufficientOperationalNodesException("Get operation interrupted!",e);
   }
-  while (successes.get() < this.preferredReads && nodeIndex < nodes.size()) {
+  while (successes.get() < this.storeDef.getPreferredReads() && nodeIndex < nodes.size()) {
     Node node=nodes.get(nodeIndex);
     try {
       List<Versioned<byte[]>> fetched=innerStores.get(node.getId()).get(key);
@@ -67,6 +67,6 @@ catch (    Exception e) {
   }
   if (logger.isTraceEnabled())   logger.trace("GET retrieved the following node values: " + formatNodeValues(nodeValues));
   if (repairReads && retrieved.size() > 1)   repairReads(nodeValues);
-  if (successes.get() >= this.requiredReads)   return retrieved;
- else   throw new InsufficientOperationalNodesException(this.requiredReads + " reads required, but " + successes.get()+ " succeeded.",failures);
+  if (successes.get() >= this.storeDef.getRequiredReads())   return retrieved;
+ else   throw new InsufficientOperationalNodesException(this.storeDef.getRequiredReads() + " reads required, but " + successes.get()+ " succeeded.",failures);
 }

@@ -4,16 +4,15 @@
   Map<Node,List<ByteArray>> nodeToKeysMap=Maps.newHashMap();
   Map<ByteArray,List<Node>> keyToExtraNodesMap=Maps.newHashMap();
   for (  ByteArray key : keys) {
-    List<Node> nodesForKey=routingStrategy.routeRequest(key.get());
-    checkRequiredReads(nodesForKey);
+    List<Node> availableNodes=availableNodes(routingStrategy.routeRequest(key.get()));
+    checkRequiredReads(availableNodes);
+    int preferredReads=storeDef.getPreferredReads();
     List<Node> preferredNodes=Lists.newArrayListWithCapacity(preferredReads);
-    List<Node> extraNodes=Lists.newArrayListWithCapacity(nodesForKey.size() - preferredReads);
-    for (int i=0; i < preferredReads && i < nodesForKey.size(); i++) {
-      Node node=nodesForKey.get(i);
-      if (isAvailable(node))       preferredNodes.add(node);
+    List<Node> extraNodes=Lists.newArrayListWithCapacity(availableNodes.size() - preferredReads);
+    for (    Node node : availableNodes) {
+      if (preferredNodes.size() < preferredReads)       preferredNodes.add(node);
  else       extraNodes.add(node);
     }
-    while (preferredNodes.size() < preferredReads && !extraNodes.isEmpty())     preferredNodes.add(extraNodes.remove(0));
     for (    Node node : preferredNodes) {
       List<ByteArray> nodeKeys=nodeToKeysMap.get(node);
       if (nodeKeys == null) {
@@ -25,7 +24,7 @@
     if (!extraNodes.isEmpty()) {
       List<Node> nodes=keyToExtraNodesMap.get(key);
       if (nodes == null)       keyToExtraNodesMap.put(key,extraNodes);
-      nodes.addAll(extraNodes);
+ else       nodes.addAll(extraNodes);
     }
   }
   List<Callable<GetAllResult>> callables=Lists.newArrayList();
@@ -56,10 +55,10 @@
         failures.add(getResult.exception);
         continue;
       }
-      for (      ByteArray key : keys) {
+      for (      ByteArray key : getResult.callable.nodeKeys) {
         List<Versioned<byte[]>> retrieved=getResult.retrieved.get(key);
         MutableInt successCount=keyToSuccessCount.get(key);
-        successCount.setValue(successCount.intValue() + 1);
+        successCount.increment();
         if (retrieved != null) {
           List<Versioned<byte[]>> existing=result.get(key);
           if (existing == null)           result.put(key,Lists.newArrayList(retrieved));
@@ -79,23 +78,26 @@ catch (    ExecutionException e) {
   for (  ByteArray key : keys) {
     MutableInt successCountWrapper=keyToSuccessCount.get(key);
     int successCount=successCountWrapper.intValue();
-    if (successCount < preferredReads) {
-      for (      Node node : keyToExtraNodesMap.get(key)) {
-        try {
-          List<Versioned<byte[]>> values=innerStores.get(node.getId()).get(key);
-          List<Versioned<byte[]>> versioneds=result.get(key);
-          if (versioneds == null)           result.put(key,Lists.newArrayList(values));
- else           versioneds.addAll(values);
-          node.getStatus().setAvailable();
-          if (++successCount >= preferredReads)           break;
-        }
- catch (        UnreachableStoreException e) {
-          failures.add(e);
-          markUnavailable(node,e);
-        }
-catch (        Exception e) {
-          logger.warn("Error in GET_ALL on node " + node.getId() + "("+ node.getHost()+ ")",e);
-          failures.add(e);
+    if (successCount < storeDef.getPreferredReads()) {
+      List<Node> extraNodes=keyToExtraNodesMap.get(key);
+      if (extraNodes != null) {
+        for (        Node node : extraNodes) {
+          try {
+            List<Versioned<byte[]>> values=innerStores.get(node.getId()).get(key);
+            List<Versioned<byte[]>> versioneds=result.get(key);
+            if (versioneds == null)             result.put(key,Lists.newArrayList(values));
+ else             versioneds.addAll(values);
+            node.getStatus().setAvailable();
+            if (++successCount >= storeDef.getPreferredReads())             break;
+          }
+ catch (          UnreachableStoreException e) {
+            failures.add(e);
+            markUnavailable(node,e);
+          }
+catch (          Exception e) {
+            logger.warn("Error in GET_ALL on node " + node.getId() + "("+ node.getHost()+ ")",e);
+            failures.add(e);
+          }
         }
       }
     }
@@ -106,7 +108,7 @@ catch (        Exception e) {
   }
   for (  Map.Entry<ByteArray,MutableInt> mapEntry : keyToSuccessCount.entrySet()) {
     int successCount=mapEntry.getValue().intValue();
-    if (successCount < requiredReads)     throw new InsufficientOperationalNodesException(this.requiredReads + " reads required, but " + successCount+ " succeeded.",failures);
+    if (successCount < storeDef.getRequiredReads())     throw new InsufficientOperationalNodesException(this.storeDef.getRequiredReads() + " reads required, but " + successCount+ " succeeded.",failures);
   }
   return result;
 }

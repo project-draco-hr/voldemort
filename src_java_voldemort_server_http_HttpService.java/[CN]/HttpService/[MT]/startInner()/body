@@ -3,7 +3,7 @@
     Connector connector=new SelectChannelConnector();
     connector.setLowResourceMaxIdleTime(3000);
     connector.setPort(this.port);
-    BoundedThreadPool threadPool=new BoundedThreadPool();
+    QueuedThreadPool threadPool=new QueuedThreadPool();
     threadPool.setName("VoldemortHttp");
     threadPool.setMaxThreads(this.numberOfThreads);
     Server httpServer=new Server();
@@ -17,6 +17,7 @@
     context.addServlet(new ServletHolder(new AdminServlet(server,velocityEngine)),"/admin");
     context.addServlet(new ServletHolder(new StoreServlet(requestHandler)),"/stores");
     context.addServlet(new ServletHolder(new ReadOnlyStoreManagementServlet(server,velocityEngine)),"/read-only/mgmt");
+    context.addServlet(new ServletHolder(new StatusServlet(server,velocityEngine)),"/server-status");
     this.context=context;
     this.httpServer=httpServer;
     this.httpServer.start();

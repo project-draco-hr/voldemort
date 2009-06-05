@@ -1,0 +1,11 @@
+{
+  super(ServiceType.VOLDEMORT);
+  this.voldemortConfig=config;
+  this.identityNode=cluster.getNodeById(voldemortConfig.getNodeId());
+  this.storeRepository=new StoreRepository();
+  MetadataStore metadataStore=MetadataStore.readFromDirectory(new File(this.voldemortConfig.getMetadataDirectory()));
+  metadataStore.put(new ByteArray(ByteUtils.getBytes(MetadataStore.CLUSTER_KEY,"UTF-8")),new Versioned<byte[]>(ByteUtils.getBytes(new ClusterMapper().writeCluster(cluster),"UTF-8"),new VectorClock()));
+  this.metadata=new VoldemortMetadata(this.voldemortConfig.getMetadataDirectory(),this.voldemortConfig.getNodeId());
+  metadata.setCurrentCluster(cluster);
+  this.services=createServices();
+}

@@ -1,0 +1,44 @@
+{
+  Store<ByteArray,byte[]> store=server.getStoreRepository().getStorageEngine(storeName);
+  assertNotSame("Store '" + storeName + "' should not be null",null,store);
+  for (int i=100; i <= 1000; i++) {
+    ByteArray key=new ByteArray(ByteUtils.getBytes("" + i,"UTF-8"));
+    assertEquals("Store should return empty result List for all before inserting",0,store.get(key).size());
+  }
+  for (int i=100; i <= 1000; i++) {
+    ByteArray key=new ByteArray(ByteUtils.getBytes("" + i,"UTF-8"));
+    byte[] value=ByteUtils.getBytes("value-" + i,"UTF-8");
+    store.put(key,new Versioned<byte[]>(value,new VectorClock().incremented(0,System.currentTimeMillis())));
+  }
+  VoldemortConfig config2=ServerTestUtils.createServerConfig(1,TestUtils.createTempDir().getAbsolutePath(),null,storesXmlfile);
+  VoldemortServer server2=new VoldemortServer(config2,cluster);
+  server2.start();
+  for (int i=100; i <= 1000; i++) {
+    ByteArray key=new ByteArray(ByteUtils.getBytes("" + i,"UTF-8"));
+    assertEquals("Server2 should return empty result List for all",0,server2.getStoreRepository().getStorageEngine(storeName).get(key).size());
+  }
+  AdminClient client=new AdminClient(server2.getIdentityNode(),server2.getVoldemortMetadata(),new SocketPool(100,100,2000,1000,10000));
+  List<Integer> stealList=new ArrayList<Integer>();
+  stealList.add(0);
+  stealList.add(1);
+  client.fetchAndUpdateStreams(0,1,storeName,stealList);
+  Store<ByteArray,byte[]> store2=server2.getStoreRepository().getStorageEngine(storeName);
+  assertNotSame("Store '" + storeName + "' should not be null",null,store2);
+  StoreDefinition storeDef=server.getVoldemortMetadata().getStoreDef(storeName);
+  assertNotSame("StoreDefinition for 'users' should not be nul ",null,storeDef);
+  RoutingStrategy routingStrategy=new RoutingStrategyFactory(server.getVoldemortMetadata().getCurrentCluster()).getRoutingStrategy(storeDef);
+  int checked=0;
+  int matched=0;
+  for (int i=100; i <= 1000; i++) {
+    ByteArray key=new ByteArray(ByteUtils.getBytes("" + i,"UTF-8"));
+    byte[] value=ByteUtils.getBytes("value-" + i,"UTF-8");
+    if (routingStrategy.getPartitionList(key.get()).get(0) == 0 || routingStrategy.getPartitionList(key.get()).get(0) == 1) {
+      checked++;
+      if (store2.get(key).size() > 0 && new String(value).equals(new String(store2.get(key).get(0).getValue()))) {
+        matched++;
+      }
+    }
+  }
+  server2.stop();
+  assertEquals("All Values should have matched",checked,matched);
+}

@@ -1,0 +1,8 @@
+{
+  if (isOpen)   throw new VoldemortException("Can't move backup files while store is open.");
+  File source=new File(storeDir,"version-" + Integer.toString(beginShift));
+  if (!source.exists())   return;
+  File dest=new File(storeDir,"version-" + Integer.toString(beginShift + 1));
+  if (dest.exists())   shiftBackupsRight(beginShift + 1);
+  source.renameTo(dest);
+}

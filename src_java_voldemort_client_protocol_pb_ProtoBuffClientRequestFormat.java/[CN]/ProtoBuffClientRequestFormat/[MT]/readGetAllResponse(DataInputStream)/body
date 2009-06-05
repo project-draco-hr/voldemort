@@ -1,5 +1,5 @@
 {
-  VProto.GetAllResponse response=VProto.GetAllResponse.parseFrom(input);
+  VProto.GetAllResponse response=VProto.GetAllResponse.parseFrom(ProtoUtils.readWithSize(input));
   if (response.hasError())   throwException(response.getError());
   Map<ByteArray,List<Versioned<byte[]>>> vals=new HashMap<ByteArray,List<Versioned<byte[]>>>(response.getValuesCount());
   for (  VProto.KeyedVersions versions : response.getValuesList())   vals.put(ProtoUtils.decodeBytes(versions.getKey()),ProtoUtils.decodeVersions(versions.getVersionsList()));

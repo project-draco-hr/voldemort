@@ -1,10 +1,10 @@
 {
-  logger.info("Rolling back store '" + getName() + ".");
+  logger.info("Rolling back store '" + getName() + "' to version 1.");
   fileModificationLock.writeLock().lock();
   try {
     if (isOpen)     close();
     File backup=new File(storeDir,"version-1");
-    if (!backup.exists())     throw new VoldemortException("Backup 1 does not exists, nothing to roll back to.");
+    if (!backup.exists())     throw new VoldemortException("Version 1 does not exists, nothing to roll back to.");
     shiftBackupsLeft();
     open();
   }

@@ -1,5 +1,7 @@
 {
   logger.info("Swapping files for store '" + getName() + "' from "+ newStoreDirectory);
+  File newDataDir=new File(newStoreDirectory);
+  if (!newDataDir.exists())   throw new VoldemortException("File " + newDataDir.getAbsolutePath() + " does not exist.");
   logger.info("Acquiring write lock on '" + getName() + "':");
   fileModificationLock.writeLock().lock();
   boolean success=false;
@@ -7,8 +9,8 @@
     close();
     logger.info("Renaming data and index files for '" + getName() + "':");
     shiftBackupsRight();
-    logger.info("Setting primary files for store '" + getName() + "' to "+ newStoreDirectory+ " respectively.");
-    success=new File(newStoreDirectory).renameTo(new File(storeDir,"version-0"));
+    logger.info("Setting primary files for store '" + getName() + "' to "+ newStoreDirectory);
+    success=newDataDir.renameTo(new File(storeDir,"version-0"));
     if (success) {
       try {
         open();
@@ -21,14 +23,17 @@
   }
   finally {
     try {
-      if (!success) {
-        rollback();
-        open();
-      }
+      if (!success)       rollback();
     }
   finally {
       fileModificationLock.writeLock().unlock();
       logger.info("Swap operation completed on '" + getName() + "', releasing lock.");
     }
+  }
+  File extraBackup=new File(storeDir,"version-" + (numBackups + 1));
+  if (extraBackup.exists()) {
+    logger.info("Deleting oldest backup file " + extraBackup);
+    Utils.rm(extraBackup);
+    logger.info("Delete completed successfully.");
   }
 }

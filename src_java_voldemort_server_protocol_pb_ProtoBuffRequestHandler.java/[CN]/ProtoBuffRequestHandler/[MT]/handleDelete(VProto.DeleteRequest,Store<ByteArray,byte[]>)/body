@@ -1,0 +1,12 @@
+{
+  VProto.DeleteResponse.Builder response=VProto.DeleteResponse.newBuilder();
+  try {
+    boolean success=store.delete(ProtoUtils.decodeBytes(request.getKey()),ProtoUtils.decodeClock(request.getVersion()));
+    response.setSuccess(success);
+  }
+ catch (  VoldemortException e) {
+    response.setSuccess(false);
+    response.setError(ProtoUtils.encodeError(getErrorMapper(),e));
+  }
+  return response.build();
+}

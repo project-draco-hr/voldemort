@@ -4,6 +4,8 @@ case VOLDEMORT:
     return new VoldemortNativeRequestHandler(new ErrorCodeMapper(),repository);
 case PROTOCOL_BUFFERS:
   return new ProtoBuffRequestHandler(new ErrorCodeMapper(),repository);
+case ADMIN_HANDLER:
+return new AdminServiceRequestHandler(new ErrorCodeMapper(),repository,metadata,voldemortConfig.getMetadataDirectory(),voldemortConfig.getStreamMaxReadBytesPerSec(),voldemortConfig.getStreamMaxWriteBytesPerSec());
 default :
 throw new VoldemortException("Unknown wire format " + type);
 }
