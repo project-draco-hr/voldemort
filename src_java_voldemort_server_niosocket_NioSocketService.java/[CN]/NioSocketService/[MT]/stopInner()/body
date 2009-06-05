@@ -1,32 +1,13 @@
 {
   try {
-    threadPool.shutdownNow();
-    boolean terminated=threadPool.awaitTermination(15,TimeUnit.SECONDS);
+    selectorManagerThreadPool.shutdownNow();
+    boolean terminated=selectorManagerThreadPool.awaitTermination(15,TimeUnit.SECONDS);
     if (!terminated) {
-      if (logger.isEnabledFor(Level.WARN))       logger.warn("Thread pool terminated abnormally");
+      if (logger.isEnabledFor(Level.WARN))       logger.warn("Selector manager thread pool terminated abnormally");
     }
-  }
- catch (  Exception e) {
-    if (logger.isEnabledFor(Level.WARN))     logger.warn("Thread pool terminated abnormally",e);
-  }
-  try {
-    selectorManagerThread.interrupt();
-    selectorManagerThread.join(15 * 1000);
-    if (selectorManagerThread.isAlive()) {
-      if (logger.isEnabledFor(Level.WARN))       logger.warn("Selector manager thread not terminated");
-    }
-  }
- catch (  Exception e) {
-    if (logger.isEnabledFor(Level.WARN))     logger.warn("Selector manager thread error",e);
-  }
-  try {
-    selector.close();
   }
  catch (  Exception e) {
     if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
-  }
- finally {
-    selector=null;
   }
   try {
     serverSocketChannel.socket().close();
@@ -39,8 +20,5 @@
   }
  catch (  Exception e) {
     if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
-  }
- finally {
-    serverSocketChannel=null;
   }
 }

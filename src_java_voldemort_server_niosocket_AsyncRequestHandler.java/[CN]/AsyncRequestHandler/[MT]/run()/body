@@ -1,14 +1,14 @@
 {
+  SelectionKey selectionKey=socketChannel.keyFor(selector);
   try {
     requestHandler.handleRequest(inputStream,outputStream);
     outputStream.flush();
-    enableReadInterest();
   }
  catch (  ClosedByInterruptException e) {
-    close();
+    close(selectionKey);
   }
 catch (  EOFException e) {
-    close();
+    close(selectionKey);
   }
 catch (  Exception e) {
     if (logger.isEnabledFor(Level.ERROR))     logger.error(e.getMessage(),e);
