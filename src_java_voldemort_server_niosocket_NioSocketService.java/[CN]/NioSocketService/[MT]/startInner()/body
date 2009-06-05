@@ -8,17 +8,8 @@
     serverSocketChannel.socket().bind(endpoint);
     serverSocketChannel.socket().setReceiveBufferSize(socketBufferSize);
     serverSocketChannel.socket().setReuseAddress(true);
-    if (logger.isInfoEnabled())     logger.info("Server now listening for connections on " + endpoint);
-    AtomicInteger counter=new AtomicInteger();
-    while (!Thread.currentThread().isInterrupted()) {
-      SocketChannel socketChannel=serverSocketChannel.accept();
-      if (socketChannel == null) {
-        if (logger.isEnabledFor(Level.WARN))         logger.warn("Claimed accept but nothing to select");
-        continue;
-      }
-      SelectorManager selectorManager=selectorManagers[counter.getAndIncrement() % selectorManagers.length];
-      selectorManager.accept(socketChannel);
-    }
+    acceptorThread=new Thread(new Acceptor(endpoint));
+    acceptorThread.start();
   }
  catch (  Exception e) {
     if (logger.isEnabledFor(Level.ERROR))     logger.error(e.getMessage(),e);
