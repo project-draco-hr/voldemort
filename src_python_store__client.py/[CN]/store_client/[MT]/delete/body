@@ -1,0 +1,12 @@
+def delete(self, key, version):
+    'Execute a delete request.'
+    req = self._create_request()
+    req.type = protocol.DELETE
+    delete_req = protocol.DeleteRequest()
+    delete_req.key = key
+    delete_req.version = version
+    delete.delete = delete_req
+    self._send_req(req.SerializeToString())
+    resp_str = self._receive_resp()
+    resp = protocol.DeleteResponse.ParseFromString(resp_str)
+    self._check_error(resp)

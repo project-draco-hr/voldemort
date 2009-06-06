@@ -1,0 +1,14 @@
+def put(self, key, value, version):
+    'Execute put request.'
+    req = self._create_request()
+    req.type = protocol.PUT
+    put_req = protocol.PutRequest()
+    put_req.key = key
+    put_req.versioned = versioned
+    req.put = put_req
+    self._send_req(req.SerializeToString())
+    resp_str = self._receive_resp()
+    resp = protocol.PutResponse.ParseFromString(resp_str)
+    self._check_error(resp)
+    self._inc_version__(versioned)
+    return versioned.version

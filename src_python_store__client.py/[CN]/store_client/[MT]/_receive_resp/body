@@ -1,0 +1,6 @@
+def _receive_resp(self):
+    'Read a size-delimited value'
+    assert self.open, 'Store has been closed.'
+    size = struct.unpack('>i', self.connection.recv(4))
+    print 'response size', size[0]
+    return self.connection.recv(size[0])
