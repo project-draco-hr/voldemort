@@ -1,0 +1,25 @@
+{
+  int count=0;
+  if ((count=socketChannel.read(inputBuffer)) == -1)   throw new EOFException();
+  if (count == 0) {
+    if (logger.isDebugEnabled())     logger.debug("Read of zero bytes for " + socketChannel.socket().getRemoteSocketAddress());
+    return;
+  }
+  final int position=inputBuffer.position();
+  inputBuffer.flip();
+  boolean isCompleteRequest=requestHandler.isCompleteRequest(inputBuffer);
+  if (isCompleteRequest) {
+    inputBuffer.rewind();
+    if (logger.isDebugEnabled())     logger.debug("Starting execution for " + socketChannel.socket().getRemoteSocketAddress());
+    requestHandler.handleRequest(inputStream,outputStream);
+    if (logger.isDebugEnabled())     logger.debug("Finished execution for " + socketChannel.socket().getRemoteSocketAddress());
+    inputBuffer.clear();
+    outputBuffer.flip();
+    selectionKey.interestOps(SelectionKey.OP_WRITE);
+  }
+ else {
+    inputBuffer.position(position);
+    inputBuffer.limit(inputBuffer.capacity());
+    if (!inputBuffer.hasRemaining())     inputBuffer=expand(inputBuffer,inputBuffer.capacity() * 2);
+  }
+}
