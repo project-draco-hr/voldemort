@@ -1,0 +1,14 @@
+@staticmethod
+def parse_cluster(xml):
+    'Parse the cluster.xml file and return a dictionary of the nodes in the cluster indexed by node id '
+    doc = minidom.parseString(xml)
+    nodes = {}
+    for curr in doc.getElementsByTagName('server'):
+        id = int(child_text(curr, 'id'))
+        host = child_text(curr, 'host')
+        http_port = int(child_text(curr, 'http-port'))
+        socket_port = int(child_text(curr, 'socket-port'))
+        partition_str = child_text(curr, 'partitions')
+        partitions = [int(p) for p in re.split('[\\s,]+', partition_str)]
+        nodes[id] = node(id=id, host=host, socket_port=socket_port, http_port=http_port, partitions=partitions)
+    return nodes

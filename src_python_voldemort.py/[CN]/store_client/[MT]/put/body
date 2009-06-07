@@ -1,0 +1,20 @@
+def put(self, key, value, version=None):
+    'Execute a put request using the given key and value. If no version is specified a get(key) request\n\t\t   will be done to get the current version. The updated version is returned.'
+    assert self.open, 'Store has been closed.'
+    self._maybe_reconnect()
+    if (version == None):
+        version = self._version_of(key)
+    req = protocol.VoldemortRequest()
+    req.should_route = True
+    req.store = self.store_name
+    req.type = protocol.PUT
+    req.put.key = key
+    req.put.versioned.value = value
+    req.put.versioned.version.MergeFrom(version)
+    self._send_request(self.connection, req.SerializeToString())
+    resp_str = self._receive_response(self.connection)
+    resp = protocol.PutResponse()
+    resp.ParseFromString(resp_str)
+    self._check_error(resp)
+    self._increment(version)
+    return version

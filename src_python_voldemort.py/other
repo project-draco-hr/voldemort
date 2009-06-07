@@ -1,0 +1,26 @@
+import socket
+import struct
+import time
+import sys
+import re
+import random
+import logging
+import voldemort_client_pb2 as protocol
+from xml.dom import minidom
+from datetime import datetime
+if (__name__ == '__main__'):
+    s = store_client('test', [('localhost', 6666)])
+    print 'put("hello3", "world") = ', s.put('hello3', 'world')
+    print 
+    print 'get("hello3") =', s.get('hello3')
+    print 
+    print 'delete("hello3") =', s.delete('hello3')
+    s.put('a1', '1')
+    s.put('a2', '2')
+    s.put('a3', '3')
+    print 'get_all(a1, a2, a3)', s.get_all(['a1', 'a2', 'a3'])
+    start = time.time()
+    requests = 100
+    for i in xrange(requests):
+        s.get('hello3')
+    print (requests / (time.time() - start)), 'requests per second'
