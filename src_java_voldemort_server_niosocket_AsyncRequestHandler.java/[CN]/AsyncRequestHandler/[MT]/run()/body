@@ -1,13 +1,32 @@
 {
   SelectionKey selectionKey=socketChannel.keyFor(selector);
   try {
-    requestHandler.handleRequest(inputStream,outputStream);
-    outputStream.flush();
+    if (selectionKey.isReadable()) {
+      if (socketChannel.read(inputStream.getBuffer()) == -1)       throw new EOFException();
+      if (requestHandler.isCompleteRequest(inputStream.getBuffer().array())) {
+        inputStream.getBuffer().flip();
+        requestHandler.handleRequest(new DataInputStream(inputStream),new DataOutputStream(outputStream));
+        inputStream.getBuffer().clear();
+        outputStream.getBuffer().flip();
+        selectionKey.interestOps(SelectionKey.OP_WRITE);
+      }
+    }
+ else     if (selectionKey.isWritable()) {
+      socketChannel.write(outputStream.getBuffer());
+      if (!outputStream.getBuffer().hasRemaining()) {
+        outputStream.getBuffer().clear();
+        selectionKey.interestOps(SelectionKey.OP_READ);
+      }
+    }
+ else     if (!selectionKey.isValid()) {
+      if (logger.isEnabledFor(Level.WARN))       logger.warn("Selection key not valid");
+      close(selectionKey);
+    }
+ else {
+      if (logger.isEnabledFor(Level.WARN))       logger.warn("Unknown state, not readable, writable, or valid...");
+    }
   }
- catch (  ClosedByInterruptException e) {
-    close(selectionKey);
-  }
-catch (  EOFException e) {
+ catch (  EOFException e) {
     close(selectionKey);
   }
 catch (  Exception e) {

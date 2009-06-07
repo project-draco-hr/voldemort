@@ -1,0 +1,47 @@
+{
+  final ByteBuffer buffer=ByteBuffer.wrap(bytes);
+  DataInputStream inputStream=new DataInputStream(new InputStream(){
+    @Override public synchronized int read() throws IOException {
+      if (!buffer.hasRemaining())       return -1;
+      return buffer.get();
+    }
+    @Override public synchronized int read(    byte[] bytes,    int off,    int len) throws IOException {
+      len=Math.min(len,buffer.remaining());
+      buffer.get(bytes,off,len);
+      return len;
+    }
+  }
+);
+  try {
+    byte opCode=buffer.get();
+    inputStream.readUTF();
+    buffer.get();
+switch (opCode) {
+case VoldemortOpCode.GET_OP_CODE:
+      readKey(inputStream);
+    break;
+case VoldemortOpCode.GET_ALL_OP_CODE:
+  int numKeys=inputStream.readInt();
+for (int i=0; i < numKeys; i++) readKey(inputStream);
+break;
+case VoldemortOpCode.PUT_OP_CODE:
+readKey(inputStream);
+int dataSize=inputStream.readInt();
+buffer.position(buffer.position() + dataSize);
+break;
+case VoldemortOpCode.DELETE_OP_CODE:
+readKey(inputStream);
+int versionSize=inputStream.readShort();
+buffer.position(buffer.position() + versionSize);
+break;
+default :
+}
+return !buffer.hasRemaining();
+}
+ catch (BufferUnderflowException e) {
+return false;
+}
+catch (IOException e) {
+return false;
+}
+}

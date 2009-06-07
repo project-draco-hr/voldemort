@@ -2,7 +2,7 @@
   this.selector=selector;
   this.socketChannel=socketChannel;
   this.requestHandler=requestHandler;
-  inputStream=new DataInputStream(new BufferedInputStream(new ChannelBackedInputStream(socketChannel),BUFFER_SIZE));
-  outputStream=new DataOutputStream(new BufferedOutputStream(new ChannelBackedOutputStream(socketChannel),BUFFER_SIZE));
+  inputStream=new ByteBufferBackedInputStream(ByteBuffer.allocateDirect(BUFFER_SIZE));
+  outputStream=new ByteBufferBackedOutputStream(ByteBuffer.allocateDirect(BUFFER_SIZE));
   if (logger.isInfoEnabled())   logger.info("Accepting remote connection from " + socketChannel.socket().getRemoteSocketAddress());
 }
