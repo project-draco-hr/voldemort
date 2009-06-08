@@ -1,7 +1,11 @@
 {
+  ByteBuffer outputBuffer=outputStream.getBuffer();
   socketChannel.write(outputBuffer);
   if (!outputBuffer.hasRemaining()) {
-    outputBuffer.clear();
+    if (outputBuffer.capacity() >= resizeThreshold) {
+      outputBuffer=ByteBuffer.allocateDirect(socketBufferSize);
+      outputStream.setBuffer(outputBuffer);
+    }
     selectionKey.interestOps(SelectionKey.OP_READ);
   }
 }
