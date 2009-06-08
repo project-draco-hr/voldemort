@@ -1,8 +1,9 @@
 def _reconnect(self):
     num_nodes = len(self.nodes)
     attempts = 0
+    new_node_id = self.node_id
     while (attempts < num_nodes):
-        new_node_id = (self.node_id + (1 % num_nodes))
+        new_node_id = ((new_node_id + 1) % num_nodes)
         new_node = self.nodes[new_node_id]
         connection = None
         try:
@@ -12,8 +13,8 @@ def _reconnect(self):
             logging.debug('Connection succeeded')
             self.request_count = 0
             return (new_node_id, connection)
-        except socket.error as exp:
+        except socket.error as (err_num, message):
             self._close_socket(connection)
-            logging.warn(((('Error connecting to node ' + str(new_node_id)) + ': ') + str(exp)))
+            logging.warn(((('Error connecting to node ' + str(new_node_id)) + ': ') + message))
             attempts += 1
     raise VoldemortException('Connections to all nodes failed.')
