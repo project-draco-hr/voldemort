@@ -47,6 +47,9 @@
   final StoreClient<String,String> store=factory.getStoreClient(storeName);
   final String value=new String(TestUtils.randomBytes(valueSize));
   ExecutorService service=Executors.newFixedThreadPool(numThreads);
+  String key=new KeyProvider(startNum,keys).next();
+  store.put(key,new Versioned<String>(value));
+  store.delete(key);
   for (int loopCount=0; loopCount < numIterations; loopCount++) {
     System.out.println("======================= iteration = " + loopCount + " ======================================");
     if (ops.contains("d")) {
@@ -111,7 +114,10 @@
         service.execute(new Runnable(){
           public void run(){
             try {
-              store.get(keyProvider2.next());
+              Versioned<String> v=store.get(keyProvider2.next());
+              if (!v.getValue().equals(value)) {
+                throw new Exception("value returned isn't same as set value");
+              }
             }
  catch (            Exception e) {
               e.printStackTrace();
