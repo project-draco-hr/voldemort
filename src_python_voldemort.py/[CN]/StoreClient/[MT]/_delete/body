@@ -1,0 +1,13 @@
+def _delete(self, key, version):
+    req = protocol.VoldemortRequest()
+    req.should_route = True
+    req.store = self.store_name
+    req.type = protocol.DELETE
+    req.delete.key = key
+    req.delete.version.MergeFrom(version)
+    self._send_request(self.connection, req.SerializeToString())
+    resp_str = self._receive_response(self.connection)
+    resp = protocol.DeleteResponse()
+    resp.ParseFromString(resp_str)
+    self._check_error(resp)
+    return resp.success
