@@ -15,7 +15,10 @@
       if (logger.isEnabledFor(Level.WARN))       logger.warn("Unknown state, not readable, writable, or valid...");
     }
   }
- catch (  CancelledKeyException e) {
+ catch (  ClosedByInterruptException e) {
+    close(selectionKey);
+  }
+catch (  CancelledKeyException e) {
     close(selectionKey);
   }
 catch (  EOFException e) {

@@ -2,15 +2,14 @@
   ByteBuffer outputBuffer=outputStream.getBuffer();
   int count=socketChannel.write(outputBuffer);
   if (logger.isTraceEnabled())   logger.trace("Wrote " + count + "bytes, remaining: "+ outputBuffer.remaining()+ " for "+ socketChannel.socket().getRemoteSocketAddress());
-  if (outputBuffer.hasRemaining()) {
-    selectionKey.interestOps(SelectionKey.OP_WRITE);
-  }
- else {
+  if (!outputBuffer.hasRemaining()) {
     if (outputBuffer.capacity() >= resizeThreshold) {
       outputBuffer=ByteBuffer.allocateDirect(socketBufferSize);
       outputStream.setBuffer(outputBuffer);
     }
-    outputBuffer.clear();
+ else {
+      outputBuffer.clear();
+    }
     selectionKey.interestOps(SelectionKey.OP_READ);
   }
 }
