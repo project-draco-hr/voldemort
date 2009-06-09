@@ -2,7 +2,7 @@
   int count=0;
   ByteBuffer inputBuffer=inputStream.getBuffer();
   if ((count=socketChannel.read(inputBuffer)) == -1)   throw new EOFException();
-  System.out.println("Read " + count + ", input buffer: "+ inputBuffer.position());
+  if (logger.isTraceEnabled())   logger.trace("Read " + count + "bytes, total: "+ inputBuffer.position()+ " for "+ socketChannel.socket().getRemoteSocketAddress());
   if (count == 0) {
     if (logger.isDebugEnabled())     logger.debug("Read of zero bytes for " + socketChannel.socket().getRemoteSocketAddress());
     return;

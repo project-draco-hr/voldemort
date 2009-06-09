@@ -1,7 +1,7 @@
 {
   ByteBuffer outputBuffer=outputStream.getBuffer();
   int count=socketChannel.write(outputBuffer);
-  System.out.println("wrote " + count + ", position: "+ outputBuffer.position()+ ", remaining: "+ outputBuffer.remaining());
+  if (logger.isTraceEnabled())   logger.trace("Wrote " + count + "bytes, remaining: "+ outputBuffer.remaining()+ " for "+ socketChannel.socket().getRemoteSocketAddress());
   if (outputBuffer.hasRemaining()) {
     selectionKey.interestOps(SelectionKey.OP_WRITE);
   }
