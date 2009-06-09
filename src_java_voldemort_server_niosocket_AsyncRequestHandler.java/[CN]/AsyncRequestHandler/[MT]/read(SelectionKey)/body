@@ -8,8 +8,7 @@
   }
   final int position=inputBuffer.position();
   inputBuffer.flip();
-  boolean isCompleteRequest=requestHandler.isCompleteRequest(inputBuffer);
-  if (isCompleteRequest) {
+  if (requestHandler.isCompleteRequest(inputBuffer)) {
     inputBuffer.rewind();
     if (logger.isDebugEnabled())     logger.debug("Starting execution for " + socketChannel.socket().getRemoteSocketAddress());
     requestHandler.handleRequest(new DataInputStream(inputStream),new DataOutputStream(outputStream));
