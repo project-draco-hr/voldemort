@@ -1,47 +1,56 @@
 {
-  Class<? extends AbstractHadoopStoreBuilderMapper<?,?>> mapperClass=null;
-  Class<? extends InputFormat<?,?>> inputFormatClass=null;
-  Cluster cluster=null;
+  OptionParser parser=configureParser();
+  OptionSet options=parser.parse(args);
+  if (options.has("help")) {
+    printUsage(parser,null);
+    System.exit(0);
+  }
+  Set<String> missing=CmdUtils.missing(options,"input","output","mapper","cluster","storedefinitions","storename","chunksize");
+  if (missing.size() > 0) {
+    System.err.println("Missing required arguments: " + Join.join(", ",missing) + "\n");
+    printUsage(parser,null);
+    System.exit(1);
+  }
+  File clusterFile=new File((String)options.valueOf("cluster"));
+  Cluster cluster=new ClusterMapper().readCluster(new BufferedReader(new FileReader(clusterFile)));
+  File storeDefFile=new File((String)options.valueOf("storedefinitions"));
+  String storeName=(String)options.valueOf("storename");
+  List<StoreDefinition> stores;
+  stores=new StoreDefinitionsMapper().readStoreList(new BufferedReader(new FileReader(storeDefFile)));
   StoreDefinition storeDef=null;
-  int replicationFactor=0;
-  long chunkSizeBytes=-1;
-  Path inputPath=null;
-  Path outputDir=null;
-  Path tempDir=null;
-  CommandLine cmdLine=parser.parse(args);
+  for (  StoreDefinition def : stores) {
+    if (def.getName().equals(storeName))     storeDef=def;
+  }
+  int replicationFactor=Integer.parseInt(CmdUtils.valueOf(options,"replication","2"));
+  long chunkSizeBytes=Long.parseLong((String)options.valueOf("chunksize"));
+  Path inputPath=new Path((String)options.valueOf("input"));
+  Path tempDir=new Path((String)options.valueOf("tmpdir"));
+  Path outputDir=new Path((String)options.valueOf("output"));
   List<String> addJars=new ArrayList<String>();
-  if (cmdLine != null) {
-    inputPath=new Path((String)cmdLine.getValue("-input"));
-    outputDir=new Path((String)cmdLine.getValue("-output"));
-    tempDir=new Path((String)cmdLine.getValue("-tmpdir"));
-    File clusterFile=new File((String)cmdLine.getValue("-cluster"));
-    cluster=new ClusterMapper().readCluster(new BufferedReader(new FileReader(clusterFile)));
-    File storeDefFile=new File((String)cmdLine.getValue("-storedefinitions"));
-    String storeName=(String)cmdLine.getValue("-storename");
-    List<StoreDefinition> stores;
-    stores=new StoreDefinitionsMapper().readStoreList(new BufferedReader(new FileReader(storeDefFile)));
-    for (    StoreDefinition def : stores) {
-      if (def.getName().equals(storeName))       storeDef=def;
-    }
-    chunkSizeBytes=Long.parseLong((String)cmdLine.getValue("-chunksize"));
-    replicationFactor=Integer.parseInt((String)cmdLine.getValue("-replication"));
-    ClassLoader cl=Thread.currentThread().getContextClassLoader();
-    if (cmdLine.hasOption("-jar")) {
-      String jar=(String)cmdLine.getValue("-jar");
-      URL[] urls=new URL[1];
-      urls[0]=new File(jar).toURI().toURL();
-      cl=new URLClassLoader(urls);
-      addJars.add(jar);
-    }
-    mapperClass=(Class<? extends AbstractHadoopStoreBuilderMapper<?,?>>)ReflectUtils.loadClass((String)cmdLine.getValue("-mapper"),cl);
-    if (cmdLine.hasOption("-inputformat") && !((String)cmdLine.getValue("-inputformat")).equals("TextInputFormat")) {
-      inputFormatClass=(Class<? extends InputFormat<?,?>>)ReflectUtils.loadClass((String)cmdLine.getValue("-inputformat"),cl);
-    }
- else {
-      inputFormatClass=TextInputFormat.class;
+  ClassLoader cl=Thread.currentThread().getContextClassLoader();
+  if (options.has("jar")) {
+    String jar=(String)options.valueOf("jar");
+    URL[] urls=new URL[1];
+    urls[0]=new File(jar).toURI().toURL();
+    cl=new URLClassLoader(urls);
+    addJars.add(jar);
+  }
+  Class<? extends AbstractHadoopStoreBuilderMapper<?,?>> mapperClass=(Class<? extends AbstractHadoopStoreBuilderMapper<?,?>>)ReflectUtils.loadClass((String)options.valueOf("mapper"),cl);
+  Class<? extends InputFormat<?,?>> inputFormatClass=TextInputFormat.class;
+  if (options.has("inputformat")) {
+    String inputFormatClassName=(String)options.valueOf("inputformat");
+    if (!inputFormatClassName.equalsIgnoreCase("TextInputFormat")) {
+      inputFormatClass=(Class<? extends InputFormat<?,?>>)ReflectUtils.loadClass(inputFormatClassName,cl);
     }
   }
+  if (inputFormatClass == null) {
+    inputFormatClass=TextInputFormat.class;
+  }
   Configuration conf=getConf();
+  if (options.has("force-overwrite")) {
+    FileSystem fs=outputDir.getFileSystem(conf);
+    fs.delete(outputDir,true);
+  }
   Class[] deps=new Class[]{ImmutableCollection.class,JDOMException.class,VoldemortConfig.class,HadoopStoreJobRunner.class,mapperClass};
   addDepJars(conf,deps,addJars);
   HadoopStoreBuilder builder=new HadoopStoreBuilder(conf,mapperClass,inputFormatClass,cluster,storeDef,replicationFactor,chunkSizeBytes,tempDir,outputDir,inputPath);
