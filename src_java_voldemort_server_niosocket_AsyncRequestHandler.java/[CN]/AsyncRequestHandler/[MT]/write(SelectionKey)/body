@@ -1,11 +1,16 @@
 {
   ByteBuffer outputBuffer=outputStream.getBuffer();
-  socketChannel.write(outputBuffer);
-  if (!outputBuffer.hasRemaining()) {
+  int count=socketChannel.write(outputBuffer);
+  System.out.println("wrote " + count + ", position: "+ outputBuffer.position()+ ", remaining: "+ outputBuffer.remaining());
+  if (outputBuffer.hasRemaining()) {
+    selectionKey.interestOps(SelectionKey.OP_WRITE);
+  }
+ else {
     if (outputBuffer.capacity() >= resizeThreshold) {
       outputBuffer=ByteBuffer.allocateDirect(socketBufferSize);
       outputStream.setBuffer(outputBuffer);
     }
+    outputBuffer.clear();
     selectionKey.interestOps(SelectionKey.OP_READ);
   }
 }
