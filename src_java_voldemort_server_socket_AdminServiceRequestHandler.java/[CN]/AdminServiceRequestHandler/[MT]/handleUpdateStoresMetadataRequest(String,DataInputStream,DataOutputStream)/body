@@ -7,7 +7,7 @@
   updatedVersion.incrementVersion(metadata.getIdentityNode().getId(),System.currentTimeMillis());
   try {
     String storesString=inputStream.readUTF();
-    List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new StringReader(new String(storesString)));
+    List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new StringReader(storesString));
     metadataStore.put(new ByteArray(ByteUtils.getBytes(MetadataStore.STORES_KEY,"UTF-8")),new Versioned<byte[]>(ByteUtils.getBytes(new StoreDefinitionsMapper().writeStoreList(storeDefs),"UTF-8"),updatedVersion));
     metadata.setStoreDefs(storeDefs);
     metadata.setStoreDefMap(storeDefs);
