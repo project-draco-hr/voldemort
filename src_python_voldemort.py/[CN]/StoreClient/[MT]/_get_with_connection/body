@@ -1,0 +1,13 @@
+def _get_with_connection(self, connection, store_name, key, should_route):
+    'Execute get request to the given store. Returns a (value, version) pair.'
+    req = protocol.VoldemortRequest()
+    req.should_route = should_route
+    req.store = store_name
+    req.type = protocol.GET
+    req.get.key = key
+    self._send_request(connection, req.SerializeToString())
+    resp_str = self._receive_response(connection)
+    resp = protocol.GetResponse()
+    resp.ParseFromString(resp_str)
+    self._check_error(resp)
+    return self._extract_versions(resp.versioned)

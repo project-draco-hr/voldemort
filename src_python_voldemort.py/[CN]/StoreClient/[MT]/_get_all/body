@@ -1,0 +1,16 @@
+def _get_all(self, keys):
+    req = protocol.VoldemortRequest()
+    req.should_route = True
+    req.store = self.store_name
+    req.type = protocol.GET_ALL
+    for key in keys:
+        req.getAll.keys.append(key)
+    self._send_request(self.connection, req.SerializeToString())
+    resp_str = self._receive_response(self.connection)
+    resp = protocol.GetAllResponse()
+    resp.ParseFromString(resp_str)
+    self._check_error(resp)
+    values = {}
+    for key_val in resp.values:
+        values[key_val.key] = self._extract_versions(key_val.versions)
+    return values

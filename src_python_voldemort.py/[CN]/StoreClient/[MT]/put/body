@@ -1,0 +1,5 @@
+def put(self, key, value, version=None):
+    'Execute a put request using the given key and value. If no version is specified a get(key) request\n\t\t   will be done to get the current version. The updated version is returned.'
+    if (not version):
+        version = self._fetch_version(key)
+    return self._execute_request(self._put, [key, value, version])
