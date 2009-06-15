@@ -1,18 +1,14 @@
 {
-  FileChannel data=fileSet.checkoutDataFile(chunk);
+  FileChannel dataFile=fileSet.getDataFile(chunk);
   try {
     ByteBuffer sizeBuffer=ByteBuffer.allocate(4);
-    data.read(sizeBuffer,valueLocation);
-    sizeBuffer.position(0);
-    int size=sizeBuffer.getInt();
+    dataFile.read(sizeBuffer,valueLocation);
+    int size=sizeBuffer.getInt(0);
     ByteBuffer valueBuffer=ByteBuffer.allocate(size);
-    data.read(valueBuffer,valueLocation + 4);
+    dataFile.read(valueBuffer,valueLocation + 4);
     return valueBuffer.array();
   }
  catch (  IOException e) {
     throw new VoldemortException(e);
-  }
- finally {
-    fileSet.checkinDataFile(data,chunk);
   }
 }

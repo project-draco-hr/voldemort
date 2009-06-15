@@ -6,7 +6,7 @@
   this.indexFileSizes=new ArrayList<Integer>();
   this.dataFileSizes=new ArrayList<Integer>();
   this.indexFiles=new ArrayList<BlockingQueue<MappedByteBuffer>>();
-  this.dataFiles=new ArrayList<BlockingQueue<FileChannel>>();
+  this.dataFiles=new ArrayList<FileChannel>();
   if (baseDir.list() != null && baseDir.list().length == 0) {
     try {
       new File(baseDir,"0.index").createNewFile();
@@ -28,14 +28,10 @@
     validateFileSizes(indexLength,dataLength);
     indexFileSizes.add((int)indexLength);
     dataFileSizes.add((int)dataLength);
+    dataFiles.add(openChannel(data));
     BlockingQueue<MappedByteBuffer> indexFds=new ArrayBlockingQueue<MappedByteBuffer>(numBuffersPerChunk);
-    BlockingQueue<FileChannel> dataFds=new ArrayBlockingQueue<FileChannel>(numBuffersPerChunk);
-    for (int i=0; i < numBuffersPerChunk; i++) {
-      indexFds.add(mapFile(index));
-      dataFds.add(openChannel(data));
-    }
+    for (int i=0; i < numBuffersPerChunk; i++)     indexFds.add(mapFile(index));
     indexFiles.add(indexFds);
-    dataFiles.add(dataFds);
     chunkId++;
   }
   if (chunkId == 0)   throw new VoldemortException("No data chunks found in directory " + baseDir.toString());
