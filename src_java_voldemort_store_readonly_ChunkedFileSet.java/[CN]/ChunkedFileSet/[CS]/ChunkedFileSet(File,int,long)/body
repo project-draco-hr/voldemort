@@ -6,11 +6,12 @@
   this.indexFileSizes=new ArrayList<Integer>();
   this.dataFileSizes=new ArrayList<Integer>();
   this.indexFiles=new ArrayList<BlockingQueue<MappedByteBuffer>>();
-  this.dataFiles=new ArrayList<BlockingQueue<MappedByteBuffer>>();
+  this.dataFiles=new ArrayList<BlockingQueue<FileChannel>>();
   if (baseDir.list() != null && baseDir.list().length == 0) {
     try {
       new File(baseDir,"0.index").createNewFile();
       new File(baseDir,"0.data").createNewFile();
+      logger.info("No index or data files found, creating empty files 0.index and 0.data.");
     }
  catch (    IOException e) {
       throw new VoldemortException("Error creating empty read-only files.",e);
@@ -28,10 +29,10 @@
     indexFileSizes.add((int)indexLength);
     dataFileSizes.add((int)dataLength);
     BlockingQueue<MappedByteBuffer> indexFds=new ArrayBlockingQueue<MappedByteBuffer>(numBuffersPerChunk);
-    BlockingQueue<MappedByteBuffer> dataFds=new ArrayBlockingQueue<MappedByteBuffer>(numBuffersPerChunk);
+    BlockingQueue<FileChannel> dataFds=new ArrayBlockingQueue<FileChannel>(numBuffersPerChunk);
     for (int i=0; i < numBuffersPerChunk; i++) {
       indexFds.add(mapFile(index));
-      dataFds.add(mapFile(data));
+      dataFds.add(openChannel(data));
     }
     indexFiles.add(indexFds);
     dataFiles.add(dataFds);
