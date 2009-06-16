@@ -1,22 +1,38 @@
 {
-  System.out.println("WRITE TEST");
-  PerformanceTest writeTest=new PerformanceTest(){
-    @Override public void doOperation(    int index) throws Exception {
-      upsert(Integer.toString(index),Integer.toString(index));
+  if (doWrites) {
+    deleteAll();
+    System.out.println("WRITE TEST");
+    PerformanceTest writeTest=new PerformanceTest(){
+      @Override public void doOperation(      int index) throws Exception {
+        upsert(Integer.toString(index),Integer.toString(index));
+      }
     }
-  }
 ;
-  writeTest.run(numRequests,numThreads);
-  writeTest.printStats();
-  System.out.println();
-  System.out.println("READ TEST");
-  PerformanceTest readTest=new PerformanceTest(){
-    @Override public void doOperation(    int index) throws Exception {
-      select(Integer.toString(index));
+    writeTest.run(numRequests,numThreads);
+    writeTest.printStats();
+    System.out.println();
+  }
+  if (doReads) {
+    System.out.println("READ TEST");
+    PerformanceTest readTest;
+    if (this.requestFile == null) {
+      readTest=new PerformanceTest(){
+        @Override public void doOperation(        int index) throws Exception {
+          select(Integer.toString(index));
+        }
+      }
+;
     }
-  }
+ else {
+      final BufferedReader reader=new BufferedReader(new FileReader(requestFile),1024 * 1024);
+      readTest=new PerformanceTest(){
+        @Override public void doOperation(        int index) throws Exception {
+          select(reader.readLine().trim());
+        }
+      }
 ;
-  readTest.run(numRequests,numThreads);
-  readTest.printStats();
-  deleteAll();
+    }
+    readTest.run(numRequests,numThreads);
+    readTest.printStats();
+  }
 }

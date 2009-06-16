@@ -1,10 +1,45 @@
 {
-  if (args.length != 5)   croak("Invalid number of command line arguments: expected 5 but got " + args.length + ".");
-  String jdbcUrl=args[0];
-  String user=args[1];
-  String password=args[2];
-  int numRequests=Integer.parseInt(args[3]);
-  int numThreads=Integer.parseInt(args[4]);
-  MysqlBench bench=new MysqlBench(numThreads,numRequests,jdbcUrl,user,password);
+  OptionParser parser=new OptionParser();
+  parser.accepts("help","print usage information");
+  parser.acceptsAll(asList("r","reads"),"Enable reads.");
+  parser.acceptsAll(asList("w","writes"),"Enable writes.");
+  parser.acceptsAll(asList("d","deletes"),"Enable deletes.");
+  parser.accepts("table","Table name").withRequiredArg();
+  parser.accepts("db","Database name").withRequiredArg();
+  parser.acceptsAll(asList("u","user"),"DB username.").withRequiredArg();
+  parser.acceptsAll(asList("P","password"),"DB password").withRequiredArg();
+  parser.acceptsAll(asList("p","port"),"DB port").withRequiredArg();
+  parser.acceptsAll(asList("h","host"),"DB host").withRequiredArg();
+  parser.accepts("requests").withRequiredArg().ofType(Integer.class);
+  parser.accepts("request-file").withRequiredArg();
+  parser.accepts("threads").withRequiredArg().ofType(Integer.class);
+  OptionSet options=parser.parse(args);
+  if (options.has("help")) {
+    parser.printHelpOn(System.out);
+    System.exit(0);
+  }
+  Set<String> missing=CmdUtils.missing(options,"table","requests","db");
+  if (missing.size() > 0)   Utils.croak("Missing required arguments: " + Join.join(", ",missing));
+  String host=CmdUtils.valueOf(options,"host","localhost");
+  String table=(String)options.valueOf("table");
+  int port=CmdUtils.valueOf(options,"port",3306);
+  String database=(String)options.valueOf("db");
+  String jdbcUrl="jdbc:mysql://" + host + ":"+ port+ "/"+ database;
+  String user=CmdUtils.valueOf(options,"user","root");
+  String password=CmdUtils.valueOf(options,"password","");
+  String requestFile=(String)options.valueOf("request-file");
+  int numRequests=(Integer)options.valueOf("requests");
+  int numThreads=CmdUtils.valueOf(options,"threads",10);
+  boolean doReads=false;
+  boolean doWrites=false;
+  if (options.has("reads") || options.has("writes")) {
+    doReads=options.has("reads");
+    doWrites=options.has("writes");
+  }
+ else {
+    doReads=true;
+    doWrites=true;
+  }
+  MysqlBench bench=new MysqlBench(table,numThreads,numRequests,jdbcUrl,user,password,requestFile,doReads,doWrites);
   bench.benchmark();
 }

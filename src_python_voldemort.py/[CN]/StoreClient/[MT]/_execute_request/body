@@ -1,0 +1,13 @@
+def _execute_request(self, fun, args):
+    assert self.open, 'Store has been closed.'
+    self._maybe_reconnect()
+    failures = 0
+    num_nodes = len(self.nodes)
+    while (failures < num_nodes):
+        try:
+            return apply(fun, args)
+        except socket.error as (err_num, message):
+            logging.warn(((((('Error while performing ' + fun.__name__) + ' on node ') + str(self.node_id)) + ': ') + message))
+            self._reconnect()
+            failures += 1
+    raise VoldemortException((('All nodes are down, ' + fun.__name__) + ' failed.'))

@@ -4,12 +4,16 @@
   String storeName=request.getStore();
   Store<ByteArray,byte[]> store=getStore(storeName,shouldRoute);
   Message response;
+  if (store == null) {
+    response=unknownStore(storeName,request.getType());
+  }
+ else {
 switch (request.getType()) {
 case GET:
-    response=handleGet(request.getGet(),store);
-  break;
+      response=handleGet(request.getGet(),store);
+    break;
 case GET_ALL:
-response=handleGetAll(request.getGetAll(),store);
+  response=handleGetAll(request.getGetAll(),store);
 break;
 case PUT:
 response=handlePut(request.getPut(),store);
@@ -19,6 +23,7 @@ response=handleDelete(request.getDelete(),store);
 break;
 default :
 throw new VoldemortException("Unknown operation " + request.getType());
+}
 }
 ProtoUtils.writeWithSize(outputStream,response);
 }

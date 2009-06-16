@@ -2,7 +2,13 @@
   for (int chunk=0; chunk < this.numChunks; chunk++) {
     for (int i=0; i < this.numBuffersPerChunk; i++) {
       checkoutIndexFile(chunk);
-      checkoutDataFile(chunk);
+      FileChannel channel=getDataFile(chunk);
+      try {
+        channel.close();
+      }
+ catch (      IOException e) {
+        logger.error("Error while closing file.",e);
+      }
     }
   }
 }

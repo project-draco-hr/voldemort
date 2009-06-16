@@ -1,0 +1,8 @@
+def _extract_text(elm):
+    if (elm.nodeType == minidom.Node.TEXT_NODE):
+        return elm.data
+    elif (elm.nodeType == minidom.Node.ELEMENT_NODE):
+        text = ''
+        for child in elm.childNodes:
+            text += _extract_text(child)
+        return text
