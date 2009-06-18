@@ -1,18 +1,16 @@
 {
 synchronized (lock) {
-    if (stores.containsKey(storeName)) {
-      return stores.get(storeName);
+    BdbStorageEngine store=stores.get(storeName);
+    if (store != null)     return stores.get(storeName);
+    try {
+      Environment environment=getEnvironment(storeName);
+      Database db=environment.openDatabase(null,storeName,databaseConfig);
+      BdbStorageEngine engine=new BdbStorageEngine(storeName,environment,db);
+      stores.put(storeName,engine);
+      return engine;
     }
- else {
-      try {
-        Database db=environment.openDatabase(null,storeName,databaseConfig);
-        BdbStorageEngine engine=new BdbStorageEngine(storeName,environment,db);
-        stores.put(storeName,engine);
-        return engine;
-      }
- catch (      DatabaseException d) {
-        throw new StorageInitializationException(d);
-      }
+ catch (    DatabaseException d) {
+      throw new StorageInitializationException(d);
     }
   }
 }
