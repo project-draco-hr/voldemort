@@ -10,7 +10,8 @@
     logger.info("Renaming data and index files for '" + getName() + "':");
     shiftBackupsRight();
     logger.info("Setting primary files for store '" + getName() + "' to "+ newStoreDirectory);
-    success=newDataDir.renameTo(new File(storeDir,"version-0"));
+    File destDir=new File(storeDir,"version-0");
+    success=newDataDir.renameTo(destDir);
     if (success) {
       try {
         open();
@@ -20,6 +21,9 @@
         success=false;
       }
     }
+ else {
+      logger.error("Renaming " + newDataDir.getAbsolutePath() + " to "+ destDir.getAbsolutePath()+ " failed!");
+    }
   }
   finally {
     try {
@@ -27,7 +31,8 @@
     }
   finally {
       fileModificationLock.writeLock().unlock();
-      logger.info("Swap operation completed on '" + getName() + "', releasing lock.");
+      if (success)       logger.info("Swap operation completed successfully on store " + getName() + ", releasing lock.");
+ else       logger.error("Swap operation failed.");
     }
   }
   File extraBackup=new File(storeDir,"version-" + (numBackups + 1));
