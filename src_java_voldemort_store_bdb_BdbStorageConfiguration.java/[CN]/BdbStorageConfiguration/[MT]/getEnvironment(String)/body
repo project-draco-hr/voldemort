@@ -1,0 +1,21 @@
+{
+  if (useOneEnvPerStore) {
+    File bdbDir=new File(bdbMasterDir,storeName);
+    if (!bdbDir.exists()) {
+      logger.info("Creating BDB data directory '" + bdbDir.getAbsolutePath() + "' for store'"+ storeName+ "'.");
+      bdbDir.mkdirs();
+    }
+    Environment environment=new Environment(bdbDir,environmentConfig);
+    environments.add(environment);
+    return environment;
+  }
+  if (!environments.isEmpty())   return environments.get(0);
+  File bdbDir=new File(bdbMasterDir);
+  if (!bdbDir.exists()) {
+    logger.info("Creating BDB data directory '" + bdbDir.getAbsolutePath() + "'.");
+    bdbDir.mkdirs();
+  }
+  Environment environment=new Environment(bdbDir,environmentConfig);
+  environments.add(environment);
+  return environment;
+}

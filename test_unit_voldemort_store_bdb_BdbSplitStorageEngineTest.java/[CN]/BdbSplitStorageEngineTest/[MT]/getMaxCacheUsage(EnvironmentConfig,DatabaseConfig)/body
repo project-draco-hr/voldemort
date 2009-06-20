@@ -1,0 +1,31 @@
+{
+  File dirA=new File(bdbMasterDir + "/" + "storeA");
+  if (!dirA.exists()) {
+    dirA.mkdirs();
+  }
+  Environment environmentA=new Environment(dirA,environmentConfig);
+  Database databaseA=environmentA.openDatabase(null,"storeA",databaseConfig);
+  BdbStorageEngine storeA=new BdbStorageEngine("storeA",environmentA,databaseA);
+  File dirB=new File(bdbMasterDir + "/" + "storeB");
+  if (!dirB.exists()) {
+    dirB.mkdirs();
+  }
+  Environment environmentB=new Environment(dirB,environmentConfig);
+  Database databaseB=environmentB.openDatabase(null,"storeB",databaseConfig);
+  BdbStorageEngine storeB=new BdbStorageEngine("storeB",environmentB,databaseB);
+  long maxCacheUsage=0;
+  for (int i=0; i <= 4; i++) {
+    byte[] value=new byte[(int)(CACHE_SIZE / 4)];
+    storeA.put(TestUtils.toByteArray(i + "A"),new Versioned<byte[]>(value));
+    storeA.get(TestUtils.toByteArray(i + "A"));
+    storeB.put(TestUtils.toByteArray(i + "B"),new Versioned<byte[]>(value));
+    storeB.get(TestUtils.toByteArray(i + "B"));
+    EnvironmentStats statsA=environmentA.getStats(new StatsConfig());
+    EnvironmentStats statsB=environmentB.getStats(new StatsConfig());
+    long totalCacheSize=statsA.getCacheTotalBytes() + statsB.getCacheTotalBytes();
+    System.out.println("A.size:" + statsA.getCacheTotalBytes() + " B.size:"+ statsB.getCacheTotalBytes()+ " total:"+ totalCacheSize+ " max:"+ maxCacheUsage+ " cacheMax:"+ environmentA.getConfig().getCacheSize());
+    System.out.println("Shared.A:" + statsA.getSharedCacheTotalBytes() + " nSharedEnv:"+ statsA.getNSharedCacheEnvironments());
+    maxCacheUsage=Math.max(maxCacheUsage,totalCacheSize);
+  }
+  return maxCacheUsage;
+}
