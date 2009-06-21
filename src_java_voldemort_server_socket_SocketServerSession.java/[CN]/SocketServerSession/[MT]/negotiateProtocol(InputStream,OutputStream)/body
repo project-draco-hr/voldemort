@@ -1,0 +1,18 @@
+{
+  input.mark(3);
+  byte[] protoBytes=new byte[3];
+  ByteUtils.read(input,protoBytes);
+  RequestFormatType requestFormat;
+  try {
+    String proto=ByteUtils.getString(protoBytes,"UTF-8");
+    requestFormat=RequestFormatType.fromCode(proto);
+    output.write(ByteUtils.getBytes("ok","UTF-8"));
+    output.flush();
+  }
+ catch (  IllegalArgumentException e) {
+    requestFormat=RequestFormatType.VOLDEMORT_V0;
+    input.reset();
+    logger.info("No protocol proposal given, assuming " + RequestFormatType.VOLDEMORT_V0.getDisplayName());
+  }
+  return requestFormat;
+}

@@ -6,7 +6,7 @@
     byte[] value=ByteUtils.getBytes("value-" + i,"UTF-8");
     store.put(key,new Versioned<byte[]>(value));
   }
-  AdminClient client=new AdminClient(server.getIdentityNode(),server.getVoldemortMetadata(),new SocketPool(100,100,2000,1000,10000));
+  AdminClient client=getAdminClient();
   Iterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=client.fetchPartitionEntries(0,storeName,Arrays.asList(new Integer[]{0}));
   StoreDefinition storeDef=server.getVoldemortMetadata().getStoreDef(storeName);
   assertNotSame("StoreDefinition for 'users' should not be nul ",null,storeDef);

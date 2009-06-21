@@ -7,5 +7,7 @@
   socket.setSoTimeout(soTimeoutMs);
   socket.connect(new InetSocketAddress(dest.getHost(),dest.getPort()));
   recordSocketCreation(dest,socket);
-  return new SocketAndStreams(socket);
+  SocketAndStreams sands=new SocketAndStreams(socket,dest.getRequestFormatType());
+  negotiateProtocol(sands,dest.getRequestFormatType());
+  return sands;
 }

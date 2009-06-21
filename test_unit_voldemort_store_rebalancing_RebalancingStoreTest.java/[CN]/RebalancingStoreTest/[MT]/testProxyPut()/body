@@ -14,7 +14,7 @@
   VoldemortMetadata metadata=server0.getVoldemortMetadata();
   metadata.setDonorNode(server0.getVoldemortMetadata().getCurrentCluster().getNodeById(1));
   metadata.setCurrentPartitionStealList(Arrays.asList(new Integer[]{2,3}));
-  RebalancingStore rebalancingStore=new RebalancingStore(0,server0.getStoreRepository().getLocalStore(storeName),metadata,new SocketPool(100,100,2000,1000,10000));
+  RebalancingStore rebalancingStore=getRebalancingStore(metadata);
   metadata.setServerState(VoldemortMetadata.ServerState.REBALANCING_STEALER_STATE);
   for (int i=100; i <= 1000; i++) {
     ByteArray key=new ByteArray(ByteUtils.getBytes("" + i,"UTF-8"));
