@@ -2,10 +2,10 @@ def _bootstrap_metadata(self, bootstrap_urls):
     random.shuffle(bootstrap_urls)
     for (host, port) in bootstrap_urls:
         logging.debug(((('Attempting to bootstrap metadata from ' + host) + ':') + str(port)))
+        connection = None
         try:
             try:
-                connection = socket.socket()
-                connection.connect((host, port))
+                connection = self._make_connection(host, port)
                 cluster_xmls = self._get_with_connection(connection, 'metadata', 'cluster.xml', should_route=False)
                 if (len(cluster_xmls) != 1):
                     raise VoldemortException(('Expected exactly one version of the metadata but found ' + str(cluster_xmls)))
