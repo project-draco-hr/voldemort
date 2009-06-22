@@ -1,21 +1,24 @@
 {
-  if (useOneEnvPerStore) {
-    File bdbDir=new File(bdbMasterDir,storeName);
-    if (!bdbDir.exists()) {
-      logger.info("Creating BDB data directory '" + bdbDir.getAbsolutePath() + "' for store'"+ storeName+ "'.");
-      bdbDir.mkdirs();
+synchronized (lock) {
+    if (useOneEnvPerStore) {
+      if (environments.containsKey(storeName))       return environments.get(storeName);
+      File bdbDir=new File(bdbMasterDir,storeName);
+      createBdbDirIfNecessary(bdbDir);
+      Environment environment=new Environment(bdbDir,environmentConfig);
+      logger.info("Creating environment for " + storeName + ": ");
+      logEnvironmentConfig(environment.getConfig());
+      environments.put(storeName,environment);
+      return environment;
     }
-    Environment environment=new Environment(bdbDir,environmentConfig);
-    environments.add(environment);
-    return environment;
+ else {
+      if (!environments.isEmpty())       return environments.get(SHARED_ENV_KEY);
+      File bdbDir=new File(bdbMasterDir);
+      createBdbDirIfNecessary(bdbDir);
+      Environment environment=new Environment(bdbDir,environmentConfig);
+      logger.info("Creating shared BDB environment: ");
+      logEnvironmentConfig(environment.getConfig());
+      environments.put(SHARED_ENV_KEY,environment);
+      return environment;
+    }
   }
-  if (!environments.isEmpty())   return environments.get(0);
-  File bdbDir=new File(bdbMasterDir);
-  if (!bdbDir.exists()) {
-    logger.info("Creating BDB data directory '" + bdbDir.getAbsolutePath() + "'.");
-    bdbDir.mkdirs();
-  }
-  Environment environment=new Environment(bdbDir,environmentConfig);
-  environments.add(environment);
-  return environment;
 }

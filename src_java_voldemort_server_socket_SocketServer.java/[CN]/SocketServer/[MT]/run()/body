@@ -1,5 +1,5 @@
 {
-  logger.info("Starting voldemort socket server(" + serverName + ") on port "+ port+ " using request handler "+ requestHandler.getClass());
+  logger.info("Starting voldemort socket server on port " + port);
   try {
     serverSocket=new ServerSocket();
     serverSocket.bind(new InetSocketAddress(port));
@@ -8,7 +8,8 @@
     while (!isInterrupted() && !serverSocket.isClosed()) {
       final Socket socket=serverSocket.accept();
       configureSocket(socket);
-      this.threadPool.execute(new SocketServerSession(socket,requestHandler));
+      long sessionId=this.sessionIdSequence.getAndIncrement();
+      this.threadPool.execute(new SocketServerSession(activeSessions,socket,handlerFactory,sessionId));
     }
   }
  catch (  BindException e) {

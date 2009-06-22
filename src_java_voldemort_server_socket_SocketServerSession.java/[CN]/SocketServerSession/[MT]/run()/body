@@ -1,25 +1,30 @@
 {
   try {
-    SocketServer.logger.info("Client " + socket.getRemoteSocketAddress() + " connected.");
+    activeSessions.put(sessionId,this);
     DataInputStream inputStream=new DataInputStream(new BufferedInputStream(socket.getInputStream(),64000));
     DataOutputStream outputStream=new DataOutputStream(new BufferedOutputStream(socket.getOutputStream(),64000));
-    while (!isInterrupted()) {
-      requestHandler.handleRequest(inputStream,outputStream);
+    RequestFormatType protocol=negotiateProtocol(inputStream,outputStream);
+    RequestHandler handler=handlerFactory.getRequestHandler(protocol);
+    logger.info("Client " + socket.getRemoteSocketAddress() + " connected successfully with protocol "+ protocol.getCode());
+    while (!isInterrupted() && !socket.isClosed() && !isClosed) {
+      handler.handleRequest(inputStream,outputStream);
       outputStream.flush();
     }
+    if (isInterrupted())     logger.info(Thread.currentThread().getName() + " has been interrupted, closing session.");
   }
  catch (  EOFException e) {
-    SocketServer.logger.info("Client " + socket.getRemoteSocketAddress() + " disconnected.");
+    logger.info("Client " + socket.getRemoteSocketAddress() + " disconnected.");
   }
 catch (  IOException e) {
-    SocketServer.logger.error(e);
+    if (!isClosed)     logger.error(e);
   }
  finally {
     try {
-      socket.close();
+      if (!socket.isClosed())       socket.close();
     }
  catch (    Exception e) {
-      SocketServer.logger.error("Error while closing socket",e);
+      logger.error("Error while closing socket",e);
     }
+    this.activeSessions.remove(sessionId);
   }
 }

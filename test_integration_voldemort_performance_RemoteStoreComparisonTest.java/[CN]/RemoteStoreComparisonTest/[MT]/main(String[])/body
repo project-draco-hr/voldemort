@@ -36,9 +36,9 @@
   StoreRepository repository=new StoreRepository();
   repository.addLocalStore(new InMemoryStorageEngine<ByteArray,byte[]>(storeName));
   SocketPool socketPool=new SocketPool(10,10,1000,1000,32 * 1024);
-  final SocketStore socketStore=new SocketStore(storeName,"localhost",6666,socketPool,RequestFormatType.VOLDEMORT,false);
+  final SocketStore socketStore=new SocketStore(storeName,new SocketDestination("localhost",6666,RequestFormatType.VOLDEMORT_V1),socketPool,false);
   RequestHandlerFactory factory=new RequestHandlerFactory(repository,null,null);
-  SocketServer socketServer=new SocketServer("Socket-Server",6666,50,50,1000,factory.getRequestHandler(RequestFormatType.VOLDEMORT));
+  SocketServer socketServer=new SocketServer(6666,50,50,1000,factory);
   socketServer.start();
   socketServer.awaitStartupCompletion();
   PerformanceTest socketWriteTest=new PerformanceTest(){
@@ -75,7 +75,7 @@
   socketPool.close();
   socketServer.shutdown();
   repository.addLocalStore(new InMemoryStorageEngine<ByteArray,byte[]>(storeName));
-  HttpService httpService=new HttpService(null,repository,RequestFormatType.VOLDEMORT,numThreads,8080);
+  HttpService httpService=new HttpService(null,repository,RequestFormatType.VOLDEMORT_V0,numThreads,8080);
   httpService.start();
   HttpClient httpClient=new HttpClient(new MultiThreadedHttpConnectionManager());
   HttpClientParams clientParams=httpClient.getParams();
@@ -90,7 +90,7 @@
   managerParams.setMaxTotalConnections(numThreads);
   managerParams.setStaleCheckingEnabled(false);
   managerParams.setMaxConnectionsPerHost(httpClient.getHostConfiguration(),numThreads);
-  final HttpStore httpStore=new HttpStore("test","localhost",8080,httpClient,new RequestFormatFactory().getRequestFormat(RequestFormatType.VOLDEMORT),false);
+  final HttpStore httpStore=new HttpStore("test","localhost",8080,httpClient,new RequestFormatFactory().getRequestFormat(RequestFormatType.VOLDEMORT_V0),false);
   Thread.sleep(400);
   PerformanceTest httpWriteTest=new PerformanceTest(){
     @Override public void doOperation(    int i){

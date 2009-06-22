@@ -4,6 +4,7 @@
     StorageConfiguration configuration=(StorageConfiguration)ReflectUtils.callConstructor(configClass,new Class<?>[]{VoldemortConfig.class},new Object[]{voldemortConfig});
     logger.info("Initializing " + configuration.getType() + " storage engine.");
     storageConfigs.put(configuration.getType(),configuration);
+    if (voldemortConfig.isJmxEnabled())     JmxUtils.registerMbean(configuration.getType() + "StorageConfiguration",configuration);
   }
  catch (  IllegalStateException e) {
     logger.error("Error loading storage configuration '" + configClassName + "'.",e);
