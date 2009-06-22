@@ -8,7 +8,8 @@
     while (!isInterrupted() && !serverSocket.isClosed()) {
       final Socket socket=serverSocket.accept();
       configureSocket(socket);
-      this.threadPool.execute(new SocketServerSession(socket,handlerFactory));
+      long sessionId=this.sessionIdSequence.getAndIncrement();
+      this.threadPool.execute(new SocketServerSession(activeSessions,socket,handlerFactory,sessionId));
     }
   }
  catch (  BindException e) {
