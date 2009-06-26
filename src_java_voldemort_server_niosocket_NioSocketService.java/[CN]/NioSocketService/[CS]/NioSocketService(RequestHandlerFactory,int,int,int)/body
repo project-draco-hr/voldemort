@@ -1,0 +1,15 @@
+{
+  super(ServiceType.SOCKET);
+  this.requestHandlerFactory=requestHandlerFactory;
+  this.port=port;
+  this.socketBufferSize=socketBufferSize;
+  try {
+    this.serverSocketChannel=ServerSocketChannel.open();
+  }
+ catch (  IOException e) {
+    throw new VoldemortException(e);
+  }
+  this.selectorManagers=new SelectorManager[selectors];
+  this.selectorManagerThreadPool=Executors.newFixedThreadPool(selectorManagers.length,new DaemonThreadFactory("voldemort-niosocket-server"));
+  this.statusManager=new StatusManager((ThreadPoolExecutor)this.selectorManagerThreadPool);
+}

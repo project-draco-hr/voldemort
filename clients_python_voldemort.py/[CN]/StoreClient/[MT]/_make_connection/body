@@ -1,0 +1,12 @@
+def _make_connection(self, host, port):
+    protocol = 'pb0'
+    logging.debug(((('Attempting to connect to ' + host) + ':') + str(port)))
+    connection = socket.socket()
+    connection.connect((host, port))
+    logging.debug('Connection succeeded, negotiating protocol')
+    connection.send(protocol)
+    resp = connection.recv(2)
+    if (resp != 'ok'):
+        raise VoldemortException(('Server does not understand the protocol ' + protocol))
+    logging.debug('Protocol negotiation suceeded')
+    return connection

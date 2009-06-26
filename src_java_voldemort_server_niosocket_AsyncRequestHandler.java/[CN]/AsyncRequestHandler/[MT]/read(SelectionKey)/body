@@ -9,13 +9,18 @@
   }
   final int position=inputBuffer.position();
   inputBuffer.flip();
-  if (requestHandler.isCompleteRequest(inputBuffer)) {
+  if (requestHandler == null) {
+    if (!initRequestHandler(selectionKey)) {
+      return;
+    }
+  }
+  if (requestHandler != null && requestHandler.isCompleteRequest(inputBuffer)) {
     inputBuffer.rewind();
     if (logger.isDebugEnabled())     logger.debug("Starting execution for " + socketChannel.socket().getRemoteSocketAddress());
     requestHandler.handleRequest(new DataInputStream(inputStream),new DataOutputStream(outputStream));
     if (logger.isDebugEnabled())     logger.debug("Finished execution for " + socketChannel.socket().getRemoteSocketAddress());
     if (inputBuffer.capacity() >= resizeThreshold) {
-      inputBuffer=ByteBuffer.allocateDirect(socketBufferSize);
+      inputBuffer=ByteBuffer.allocate(socketBufferSize);
       inputStream.setBuffer(inputBuffer);
     }
  else {

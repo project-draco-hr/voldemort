@@ -10,7 +10,7 @@
         if (socketChannel.socket().getReceiveBufferSize() != this.socketBufferSize)         if (logger.isDebugEnabled())         logger.debug("Requested socket receive buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getReceiveBufferSize()+ " bytes.");
         if (socketChannel.socket().getSendBufferSize() != this.socketBufferSize)         if (logger.isDebugEnabled())         logger.debug("Requested socket send buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getSendBufferSize()+ " bytes.");
         socketChannel.configureBlocking(false);
-        AsyncRequestHandler attachment=new AsyncRequestHandler(selector,socketChannel,requestHandler,socketBufferSize);
+        AsyncRequestHandler attachment=new AsyncRequestHandler(selector,socketChannel,requestHandlerFactory,socketBufferSize);
         socketChannel.register(selector,SelectionKey.OP_READ,attachment);
       }
  catch (      Exception e) {

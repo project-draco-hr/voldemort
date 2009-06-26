@@ -5,6 +5,6 @@
   byte[] value="test-value-1".getBytes();
   store.put(key,new Versioned<byte[]>(value));
   assertEquals("Direct Get should succeed",new String(value),new String(store.get(key).get(0).getValue()));
-  AdminClient client=new AdminClient(server.getIdentityNode(),server.getVoldemortMetadata(),new SocketPool(100,100,2000,1000,10000));
+  AdminClient client=getAdminClient();
   assertEquals("ForcedGet should match put value",new String(value),new String(client.redirectGet(server.getIdentityNode().getId(),"users",key).get(0).getValue()));
 }

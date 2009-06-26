@@ -1,8 +1,8 @@
 {
   this.port=ServerTestUtils.findFreePort();
   this.pool=new SocketPool(maxConnectionsPerNode,maxTotalConnections,1000,1000,32 * 1024);
-  this.dest1=new SocketDestination("localhost",port);
-  VoldemortNativeRequestHandler requestHandler=new VoldemortNativeRequestHandler(new ErrorCodeMapper(),new StoreRepository());
-  this.socketService=ServerTestUtils.getSocketService(requestHandler,port,maxTotalConnections,maxTotalConnections + 3,10000);
+  this.dest1=new SocketDestination("localhost",port,RequestFormatType.VOLDEMORT_V1);
+  RequestHandlerFactory handlerFactory=new RequestHandlerFactory(new StoreRepository(),null,ServerTestUtils.getVoldemortConfig());
+  this.socketService=ServerTestUtils.getSocketService(handlerFactory,port,maxTotalConnections,maxTotalConnections + 3,10000);
   this.socketService.start();
 }

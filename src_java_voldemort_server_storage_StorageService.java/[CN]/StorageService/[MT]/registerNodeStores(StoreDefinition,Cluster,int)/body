@@ -6,7 +6,7 @@
       store=this.storeRepository.getLocalStore(def.getName());
     }
  else {
-      store=new SocketStore(def.getName(),node.getHost(),node.getSocketPort(),socketPool,voldemortConfig.getRequestFormatType(),false);
+      store=new SocketStore(def.getName(),new SocketDestination(node.getHost(),node.getSocketPort(),voldemortConfig.getRequestFormatType()),socketPool,false);
     }
     this.storeRepository.addNodeStore(node.getId(),store);
     nodeStores.put(node.getId(),store);
