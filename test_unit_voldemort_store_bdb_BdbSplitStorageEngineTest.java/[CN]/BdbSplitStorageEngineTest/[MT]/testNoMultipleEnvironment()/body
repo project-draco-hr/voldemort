@@ -1,0 +1,23 @@
+{
+  Props props=new Props();
+  props.put("node.id",1);
+  props.put("voldemort.home","test/common/voldemort/config");
+  VoldemortConfig voldemortConfig=new VoldemortConfig(props);
+  voldemortConfig.setBdbCacheSize(1 * 1024 * 1024);
+  voldemortConfig.setBdbDataDirectory(bdbMasterDir.toURI().getPath());
+  voldemortConfig.setBdbOneEnvPerStore(false);
+  bdbStorage=new BdbStorageConfiguration(voldemortConfig);
+  BdbStorageEngine storeA=(BdbStorageEngine)bdbStorage.getStore("storeA");
+  BdbStorageEngine storeB=(BdbStorageEngine)bdbStorage.getStore("storeB");
+  storeA.put(TestUtils.toByteArray("testKey1"),new Versioned<byte[]>("value".getBytes()));
+  storeA.put(TestUtils.toByteArray("testKey2"),new Versioned<byte[]>("value".getBytes()));
+  storeA.put(TestUtils.toByteArray("testKey3"),new Versioned<byte[]>("value".getBytes()));
+  storeB.put(TestUtils.toByteArray("testKey1"),new Versioned<byte[]>("value".getBytes()));
+  storeB.put(TestUtils.toByteArray("testKey2"),new Versioned<byte[]>("value".getBytes()));
+  storeB.put(TestUtils.toByteArray("testKey3"),new Versioned<byte[]>("value".getBytes()));
+  storeA.close();
+  storeB.close();
+  assertEquals("common BDB file should exists.",true,(bdbMasterDir.exists()));
+  assertNotSame("StoreA BDB file should not exists.",true,(new File(bdbMasterDir + "/" + "storeA").exists()));
+  assertNotSame("StoreB BDB file should not exists.",true,(new File(bdbMasterDir + "/" + "storeB").exists()));
+}

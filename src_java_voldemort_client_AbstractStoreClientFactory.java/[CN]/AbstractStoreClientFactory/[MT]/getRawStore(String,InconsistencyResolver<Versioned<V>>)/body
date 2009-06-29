@@ -8,7 +8,7 @@
   if (storeDef == null)   throw new BootstrapFailureException("Unknown store '" + storeName + "'.");
   Map<Integer,Store<ByteArray,byte[]>> clientMapping=Maps.newHashMap();
   for (  Node node : cluster.getNodes()) {
-    Store<ByteArray,byte[]> store=getStore(storeDef.getName(),node.getHost(),getPort(node),RequestFormatType.VOLDEMORT);
+    Store<ByteArray,byte[]> store=getStore(storeDef.getName(),node.getHost(),getPort(node),this.requestFormatType);
     store=new LoggingStore(store);
     clientMapping.put(node.getId(),store);
   }

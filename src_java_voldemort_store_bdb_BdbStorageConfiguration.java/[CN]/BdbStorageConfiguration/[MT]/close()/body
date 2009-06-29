@@ -1,8 +1,10 @@
 {
 synchronized (lock) {
     try {
-      this.environment.sync();
-      this.environment.close();
+      for (      Environment environment : environments.values()) {
+        environment.sync();
+        environment.close();
+      }
     }
  catch (    DatabaseException e) {
       throw new VoldemortException(e);

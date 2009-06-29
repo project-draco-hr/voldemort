@@ -1,36 +1,28 @@
 {
-  try {
-    environmentConfig=new EnvironmentConfig();
-    environmentConfig.setTransactional(true);
-    environmentConfig.setCacheSize(config.getBdbCacheSize());
-    if (config.isBdbWriteTransactionsEnabled() && config.isBdbFlushTransactionsEnabled()) {
-      environmentConfig.setTxnNoSync(false);
-      environmentConfig.setTxnWriteNoSync(false);
-    }
- else     if (config.isBdbWriteTransactionsEnabled() && !config.isBdbFlushTransactionsEnabled()) {
-      environmentConfig.setTxnNoSync(false);
-      environmentConfig.setTxnWriteNoSync(true);
-    }
+  environmentConfig=new EnvironmentConfig();
+  environmentConfig.setTransactional(true);
+  environmentConfig.setCacheSize(config.getBdbCacheSize());
+  if (config.isBdbWriteTransactionsEnabled() && config.isBdbFlushTransactionsEnabled()) {
+    environmentConfig.setTxnNoSync(false);
+    environmentConfig.setTxnWriteNoSync(false);
+  }
+ else   if (config.isBdbWriteTransactionsEnabled() && !config.isBdbFlushTransactionsEnabled()) {
+    environmentConfig.setTxnNoSync(false);
+    environmentConfig.setTxnWriteNoSync(true);
+  }
  else {
-      environmentConfig.setTxnNoSync(true);
-    }
-    environmentConfig.setAllowCreate(true);
-    environmentConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX,Long.toString(config.getBdbMaxLogFileSize()));
-    environmentConfig.setConfigParam(EnvironmentConfig.CHECKPOINTER_BYTES_INTERVAL,Long.toString(config.getBdbCheckpointBytes()));
-    environmentConfig.setConfigParam(EnvironmentConfig.CHECKPOINTER_WAKEUP_INTERVAL,Long.toString(config.getBdbCheckpointMs() * Time.US_PER_MS));
-    databaseConfig=new DatabaseConfig();
-    databaseConfig.setAllowCreate(true);
-    databaseConfig.setSortedDuplicates(config.isBdbSortedDuplicatesEnabled());
-    databaseConfig.setNodeMaxEntries(config.getBdbBtreeFanout());
-    databaseConfig.setTransactional(true);
-    File bdbDir=new File(config.getBdbDataDirectory());
-    if (!bdbDir.exists()) {
-      logger.info("Creating BDB data directory '" + bdbDir.getAbsolutePath() + "'.");
-      bdbDir.mkdirs();
-    }
-    environment=new Environment(bdbDir,environmentConfig);
+    environmentConfig.setTxnNoSync(true);
   }
- catch (  DatabaseException e) {
-    throw new StorageInitializationException(e);
-  }
+  environmentConfig.setAllowCreate(true);
+  environmentConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX,Long.toString(config.getBdbMaxLogFileSize()));
+  environmentConfig.setConfigParam(EnvironmentConfig.CHECKPOINTER_BYTES_INTERVAL,Long.toString(config.getBdbCheckpointBytes()));
+  environmentConfig.setConfigParam(EnvironmentConfig.CHECKPOINTER_WAKEUP_INTERVAL,Long.toString(config.getBdbCheckpointMs() * Time.US_PER_MS));
+  databaseConfig=new DatabaseConfig();
+  databaseConfig.setAllowCreate(true);
+  databaseConfig.setSortedDuplicates(config.isBdbSortedDuplicatesEnabled());
+  databaseConfig.setNodeMaxEntries(config.getBdbBtreeFanout());
+  databaseConfig.setTransactional(true);
+  bdbMasterDir=config.getBdbDataDirectory();
+  useOneEnvPerStore=config.isBdbOneEnvPerStore();
+  if (useOneEnvPerStore)   environmentConfig.setSharedCache(true);
 }

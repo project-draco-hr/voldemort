@@ -1,13 +1,14 @@
 {
-  MappedByteBuffer data=fileSet.checkoutDataFile(chunk);
+  FileChannel dataFile=fileSet.getDataFile(chunk);
   try {
-    data.position(valueLocation);
-    int size=data.getInt();
-    byte[] value=new byte[size];
-    data.get(value);
-    return value;
+    ByteBuffer sizeBuffer=ByteBuffer.allocate(4);
+    dataFile.read(sizeBuffer,valueLocation);
+    int size=sizeBuffer.getInt(0);
+    ByteBuffer valueBuffer=ByteBuffer.allocate(size);
+    dataFile.read(valueBuffer,valueLocation + 4);
+    return valueBuffer.array();
   }
-  finally {
-    fileSet.checkinDataFile(data,chunk);
+ catch (  IOException e) {
+    throw new VoldemortException(e);
   }
 }

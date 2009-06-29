@@ -18,7 +18,11 @@
   conf.set("final.output.dir",outputDir.toString());
   FileOutputFormat.setOutputPath(conf,tempDir);
   try {
-    FileSystem fs=tempDir.getFileSystem(conf);
+    FileSystem fs=outputDir.getFileSystem(conf);
+    if (fs.exists(outputDir)) {
+      throw new IOException("Final output directory already exists.");
+    }
+    fs=tempDir.getFileSystem(conf);
     fs.delete(tempDir,true);
     long size=sizeOfPath(fs,inputPath);
     int numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfNodes() / chunkSizeBytes),1);

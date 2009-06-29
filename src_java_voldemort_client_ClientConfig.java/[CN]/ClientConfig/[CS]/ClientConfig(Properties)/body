@@ -1,0 +1,21 @@
+{
+  Props props=new Props(properties);
+  if (props.containsKey(MAX_CONNECTIONS_PER_NODE_PROPERTY))   this.setMaxConnectionsPerNode(props.getInt(MAX_CONNECTIONS_PER_NODE_PROPERTY));
+  if (props.containsKey(MAX_TOTAL_CONNECTIONS_PROPERTY))   this.setMaxTotalConnections(props.getInt(MAX_TOTAL_CONNECTIONS_PROPERTY));
+  if (props.containsKey(MAX_THREADS_PROPERTY))   this.setMaxThreads(props.getInt(MAX_THREADS_PROPERTY));
+  if (props.containsKey(MAX_QUEUED_REQUESTS_PROPERTY))   this.setMaxQueuedRequests(props.getInt(MAX_QUEUED_REQUESTS_PROPERTY));
+  if (props.containsKey(THREAD_IDLE_MS_PROPERTY))   this.setThreadIdleTime(props.getLong(THREAD_IDLE_MS_PROPERTY),TimeUnit.MILLISECONDS);
+  if (props.containsKey(CONNECTION_TIMEOUT_MS_PROPERTY))   this.setConnectionTimeout(props.getInt(CONNECTION_TIMEOUT_MS_PROPERTY),TimeUnit.MILLISECONDS);
+  if (props.containsKey(SOCKET_TIMEOUT_MS_PROPERTY))   this.setSocketTimeout(props.getInt(SOCKET_TIMEOUT_MS_PROPERTY),TimeUnit.MILLISECONDS);
+  if (props.containsKey(ROUTING_TIMEOUT_MS_PROPERTY))   this.setRoutingTimeout(props.getInt(ROUTING_TIMEOUT_MS_PROPERTY),TimeUnit.MILLISECONDS);
+  if (props.containsKey(NODE_BANNAGE_MS_PROPERTY))   this.setNodeBannagePeriod(props.getInt(NODE_BANNAGE_MS_PROPERTY),TimeUnit.MILLISECONDS);
+  if (props.containsKey(SOCKET_BUFFER_SIZE_PROPERTY))   this.setSocketBufferSize(props.getInt(SOCKET_BUFFER_SIZE_PROPERTY));
+  if (props.containsKey(SERIALIZER_FACTORY_CLASS_PROPERTY)) {
+    Class<?> factoryClass=ReflectUtils.loadClass(props.getString(SERIALIZER_FACTORY_CLASS_PROPERTY));
+    SerializerFactory factory=(SerializerFactory)ReflectUtils.callConstructor(factoryClass,new Object[]{});
+    this.setSerializerFactory(factory);
+  }
+  if (props.containsKey(BOOTSTRAP_URLS_PROPERTY))   this.setBootstrapUrls(props.getList(BOOTSTRAP_URLS_PROPERTY));
+  if (props.containsKey(REQUEST_FORMAT_PROPERTY))   this.setRequestFormatType(RequestFormatType.fromCode(props.getString(REQUEST_FORMAT_PROPERTY)));
+  if (props.containsKey(ENABLE_JMX_PROPERTY))   this.setEnableJmx(props.getBoolean(ENABLE_JMX_PROPERTY));
+}

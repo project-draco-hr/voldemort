@@ -6,11 +6,12 @@
   this.indexFileSizes=new ArrayList<Integer>();
   this.dataFileSizes=new ArrayList<Integer>();
   this.indexFiles=new ArrayList<BlockingQueue<MappedByteBuffer>>();
-  this.dataFiles=new ArrayList<BlockingQueue<MappedByteBuffer>>();
+  this.dataFiles=new ArrayList<FileChannel>();
   if (baseDir.list() != null && baseDir.list().length == 0) {
     try {
       new File(baseDir,"0.index").createNewFile();
       new File(baseDir,"0.data").createNewFile();
+      logger.info("No index or data files found, creating empty files 0.index and 0.data.");
     }
  catch (    IOException e) {
       throw new VoldemortException("Error creating empty read-only files.",e);
@@ -27,14 +28,10 @@
     validateFileSizes(indexLength,dataLength);
     indexFileSizes.add((int)indexLength);
     dataFileSizes.add((int)dataLength);
+    dataFiles.add(openChannel(data));
     BlockingQueue<MappedByteBuffer> indexFds=new ArrayBlockingQueue<MappedByteBuffer>(numBuffersPerChunk);
-    BlockingQueue<MappedByteBuffer> dataFds=new ArrayBlockingQueue<MappedByteBuffer>(numBuffersPerChunk);
-    for (int i=0; i < numBuffersPerChunk; i++) {
-      indexFds.add(mapFile(index));
-      dataFds.add(mapFile(data));
-    }
+    for (int i=0; i < numBuffersPerChunk; i++)     indexFds.add(mapFile(index));
     indexFiles.add(indexFds);
-    dataFiles.add(dataFds);
     chunkId++;
   }
   if (chunkId == 0)   throw new VoldemortException("No data chunks found in directory " + baseDir.toString());

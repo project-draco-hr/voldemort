@@ -1,0 +1,15 @@
+{
+  VProto.Error error=VProto.Error.newBuilder().setErrorCode(getErrorMapper().getCode(VoldemortException.class)).setErrorMessage("Unknown store '" + storeName + "'.").build();
+switch (type) {
+case GET:
+    return VProto.GetResponse.newBuilder().setError(error).build();
+case GET_ALL:
+  return VProto.GetAllResponse.newBuilder().setError(error).build();
+case PUT:
+return VProto.PutResponse.newBuilder().setError(error).build();
+case DELETE:
+return VProto.DeleteResponse.newBuilder().setError(error).setSuccess(false).build();
+default :
+throw new VoldemortException("Unknown operation " + type);
+}
+}

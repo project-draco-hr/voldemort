@@ -6,11 +6,12 @@
       store=this.storeRepository.getLocalStore(def.getName());
     }
  else {
-      store=new SocketStore(def.getName(),node.getHost(),node.getSocketPort(),socketPool,RequestFormatType.VOLDEMORT,false);
+      store=new SocketStore(def.getName(),new SocketDestination(node.getHost(),node.getSocketPort(),voldemortConfig.getRequestFormatType()),socketPool,false);
     }
     this.storeRepository.addNodeStore(node.getId(),store);
     nodeStores.put(node.getId(),store);
   }
-  RoutedStore routedStore=new RoutedStore(def.getName(),nodeStores,cluster,def,true,this.clientThreadPool,voldemortConfig.getRoutingTimeoutMs(),voldemortConfig.getClientNodeBannageMs(),SystemTime.INSTANCE);
+  Store<ByteArray,byte[]> routedStore=new RoutedStore(def.getName(),nodeStores,cluster,def,true,this.clientThreadPool,voldemortConfig.getRoutingTimeoutMs(),voldemortConfig.getClientNodeBannageMs(),SystemTime.INSTANCE);
+  routedStore=new InconsistencyResolvingStore<ByteArray,byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
   this.storeRepository.addRoutedStore(routedStore);
 }

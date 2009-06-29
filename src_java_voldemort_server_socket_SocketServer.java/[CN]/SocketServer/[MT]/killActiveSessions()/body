@@ -1,0 +1,12 @@
+{
+  logger.info("Killing all active sessions.");
+  for (  Map.Entry<Long,SocketServerSession> entry : activeSessions.entrySet()) {
+    try {
+      logger.debug("Closing session " + entry.getKey());
+      entry.getValue().close();
+    }
+ catch (    IOException e) {
+      logger.warn("Error while closing session socket: ",e);
+    }
+  }
+}

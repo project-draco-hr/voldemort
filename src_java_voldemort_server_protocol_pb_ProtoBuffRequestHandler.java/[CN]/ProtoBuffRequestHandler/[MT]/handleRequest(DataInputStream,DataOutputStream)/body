@@ -1,20 +1,29 @@
 {
-  VProto.VoldemortRequest request=VProto.VoldemortRequest.parseFrom(inputStream);
+  VProto.VoldemortRequest request=VProto.VoldemortRequest.parseFrom(ProtoUtils.readWithSize(inputStream));
   boolean shouldRoute=request.getShouldRoute();
   String storeName=request.getStore();
   Store<ByteArray,byte[]> store=getStore(storeName,shouldRoute);
+  Message response;
+  if (store == null) {
+    response=unknownStore(storeName,request.getType());
+  }
+ else {
 switch (request.getType()) {
 case GET:
-    handleGet(request.getGet(),store,outputStream);
-  break;
+      response=handleGet(request.getGet(),store);
+    break;
 case GET_ALL:
-handleGetAll(request.getGetAll(),store,outputStream);
+  response=handleGetAll(request.getGetAll(),store);
 break;
 case PUT:
-handlePut(request.getPut(),store,outputStream);
+response=handlePut(request.getPut(),store);
 break;
 case DELETE:
-handleDelete(request.getDelete(),store,outputStream);
+response=handleDelete(request.getDelete(),store);
 break;
+default :
+throw new VoldemortException("Unknown operation " + request.getType());
 }
+}
+ProtoUtils.writeWithSize(outputStream,response);
 }
