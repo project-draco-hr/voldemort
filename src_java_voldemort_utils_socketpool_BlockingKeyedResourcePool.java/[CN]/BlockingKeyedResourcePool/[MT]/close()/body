@@ -1,0 +1,11 @@
+{
+  if (isRunningState.compareAndSet(true,false)) {
+    for (    Entry<K,ArrayBlockingQueue<V>> entry : resourceQueueMap.entrySet()) {
+      while (entry.getValue().size() > 0) {
+        cleanDestroyResource(entry.getKey(),entry.getValue().poll());
+      }
+      resourceQueueMap.remove(entry.getKey());
+      resourceSizeMap.remove(entry.getKey());
+    }
+  }
+}
