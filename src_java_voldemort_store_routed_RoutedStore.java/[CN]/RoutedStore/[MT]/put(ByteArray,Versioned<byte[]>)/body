@@ -1,5 +1,5 @@
 {
-  long start=System.currentTimeMillis();
+  long startNs=System.nanoTime();
   StoreUtils.assertValidKey(key);
   final List<Node> nodes=availableNodes(routingStrategy.routeRequest(key.get()));
   final int numNodes=nodes.size();
@@ -63,11 +63,11 @@ catch (        Exception e) {
   int blockCount=Math.min(storeDef.getPreferredWrites() - 1,attempts);
   for (int i=0; i < blockCount; i++) {
     try {
-      long delta=System.currentTimeMillis() - start;
-      long timeout=timeoutMs - delta;
-      boolean acquired=(timeout > 0) ? semaphore.tryAcquire(timeout,TimeUnit.MILLISECONDS) : false;
-      if (!acquired) {
-        logger.warn("Timed out waiting for put to succeed.");
+      long ellapsedNs=System.nanoTime() - startNs;
+      long remainingNs=(timeoutMs * Time.NS_PER_MS) - ellapsedNs;
+      boolean acquiredPermit=semaphore.tryAcquire(Math.max(remainingNs,0),TimeUnit.NANOSECONDS);
+      if (!acquiredPermit) {
+        logger.warn("Timed out waiting for put # " + (i + 1) + " of "+ blockCount+ " to succeed.");
         break;
       }
       if (successes.get() >= this.storeDef.getPreferredWrites())       break;
