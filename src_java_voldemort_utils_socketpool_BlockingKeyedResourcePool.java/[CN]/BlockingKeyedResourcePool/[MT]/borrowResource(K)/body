@@ -8,9 +8,9 @@
     resourceQueueMap.putIfAbsent(key,new ArrayBlockingQueue<V>(config.getDefaultPoolSize(),true));
   }
   V resource=getResource(key,config.getBorrowTimeout(),config.getReturnTimeoutUnit());
-  while (!objectFactory.validateObject(key,resource)) {
+  while (!objectFactory.validate(key,resource)) {
     cleanDestroyResource(key,resource);
     resource=getResource(key,computeNewTimeout(startTime,config.getBorrowTimeout(),config.getBorrowTimeoutUnit()),config.getBorrowTimeoutUnit());
   }
-  return objectFactory.activateObject(key,resource);
+  return objectFactory.activate(key,resource);
 }
