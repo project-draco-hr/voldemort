@@ -1,0 +1,8 @@
+{
+  String compatFileName="/voldemort/serialization/json/compatibility.dat";
+  InputStream s=JsonBackwardsCompatibilityTest.class.getResourceAsStream(compatFileName);
+  assertNotNull("Did not find file " + compatFileName + " on the class path.",s);
+  byte[] bytes=IOUtils.toByteArray(s);
+  Object found=new JsonTypeSerializer(def,true).toObject(bytes);
+  assertEquals(expected,found);
+}
