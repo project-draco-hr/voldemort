@@ -3,14 +3,16 @@
     throw new RuntimeException("IllegalState: Cannot borrow when resource pool is closing down.");
   }
   long startTime=System.currentTimeMillis();
-  if (!resourceQueueMap.containsKey(key)) {
-    resourceSizeMap.putIfAbsent(key,new AtomicInteger(0));
-    resourceQueueMap.putIfAbsent(key,new ArrayBlockingQueue<V>(config.getDefaultPoolSize(),true));
+  Resources<V> resources=resourcesMap.get(key);
+  if (resources == null) {
+    resources=new Resources<V>(config.getDefaultPoolSize());
+    Resources<V> prev=resourcesMap.putIfAbsent(key,resources);
+    if (prev != null)     resources=prev;
   }
-  V resource=getResource(key,config.getBorrowTimeout(),config.getReturnTimeoutUnit());
+  V resource=getResource(key,resources,config.getBorrowTimeout(),config.getReturnTimeoutUnit());
   while (!objectFactory.validate(key,resource)) {
-    cleanDestroyResource(key,resource);
-    resource=getResource(key,computeNewTimeout(startTime,config.getBorrowTimeout(),config.getBorrowTimeoutUnit()),config.getBorrowTimeoutUnit());
+    cleanDestroyResource(key,resources,resource);
+    resource=getResource(key,resources,computeNewTimeout(startTime,config.getBorrowTimeout(),config.getBorrowTimeoutUnit()),config.getBorrowTimeoutUnit());
   }
   return objectFactory.activate(key,resource);
 }
