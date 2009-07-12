@@ -9,10 +9,18 @@
     Resources<V> prev=resourcesMap.putIfAbsent(key,resources);
     if (prev != null)     resources=prev;
   }
-  V resource=getResource(key,resources,config.getBorrowTimeout(),config.getReturnTimeoutUnit());
+  int numTries=0;
+  V resource=getResource(key,resources,config.getBorrowTimeout(),config.getBorrowTimeoutUnit());
   while (!objectFactory.validate(key,resource)) {
+    logger.warn("resource validate() failed for resource:" + resource);
     cleanDestroyResource(key,resources,resource);
-    resource=getResource(key,resources,computeNewTimeout(startTime,config.getBorrowTimeout(),config.getBorrowTimeoutUnit()),config.getBorrowTimeoutUnit());
+    if (++numTries < config.getMaxBorrowTries()) {
+      logger.info("trying getResource()" + numTries + " time for key:"+ key);
+      resource=getResource(key,resources,computeNewTimeout(startTime,config.getBorrowTimeout(),config.getBorrowTimeoutUnit()),config.getBorrowTimeoutUnit());
+    }
+ else {
+      throw new RuntimeException("Failed to get Resource within " + config.getMaxBorrowTries() + " tries..");
+    }
   }
   return objectFactory.activate(key,resource);
 }
