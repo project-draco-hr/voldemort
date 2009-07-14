@@ -1,5 +1,5 @@
 {
-  VProto.VoldemortRequest request=VProto.VoldemortRequest.parseFrom(ProtoUtils.readWithSize(inputStream));
+  VoldemortRequest.Builder request=ProtoUtils.readToBuilder(inputStream,VoldemortRequest.newBuilder());
   boolean shouldRoute=request.getShouldRoute();
   String storeName=request.getStore();
   Store<ByteArray,byte[]> store=getStore(storeName,shouldRoute);
@@ -25,5 +25,5 @@ default :
 throw new VoldemortException("Unknown operation " + request.getType());
 }
 }
-ProtoUtils.writeWithSize(outputStream,response);
+ProtoUtils.writeMessage(outputStream,response);
 }
