@@ -1,0 +1,15 @@
+{
+  Resources<V> resources=resourcesMap.get(key);
+  if (resources != null) {
+    resource=objectFactory.passivate(key,resource);
+    if (isRunningState.get()) {
+      resources.queue.offer(resource,config.getReturnTimeout(),config.getBorrowTimeoutUnit());
+    }
+ else {
+      cleanDestroyResource(key,resources,resource);
+    }
+  }
+ else {
+    throw new InvalidArgumentException("returnResource() called with invalid key:" + key);
+  }
+}

@@ -1,0 +1,18 @@
+{
+  final ResourcePoolConfig config=new ResourcePoolConfig();
+  config.setBorrowTimeout(100);
+  config.setBorrowTimeoutUnit(TimeUnit.MILLISECONDS);
+  config.setDefaultPoolSize(20);
+  PoolableObjectFactory<String,String> factory=PoolableObjectFactoryFactory.getBasicPoolFactory();
+  final AbstractSocketPoolTest<String,String> test=new AbstractSocketPoolTest<String,String>(){
+    @Override protected void doSomethingWithResource(    String key,    String resource) throws Exception {
+      Thread.sleep(200);
+    }
+    @Override protected String getRequestKey() throws Exception {
+      return "test-key";
+    }
+  }
+;
+  TestStats testStats=test.startTest(factory,config,20,200);
+  assertEquals("We should see Zero timeoutRequests",0,testStats.timeoutRequests);
+}
