@@ -3,5 +3,9 @@
     V resource=getResourceOrGrowPool(key,resources);
     if (null != resource)     return resource;
   }
-  return resources.queue.poll(timeout,timeunit);
+  V resource=resources.queue.poll(timeout,timeunit);
+  if (null != resource)   return resource;
+ else {
+    throw new TimeoutException("Timeout while blocked on free resource for key:" + key);
+  }
 }

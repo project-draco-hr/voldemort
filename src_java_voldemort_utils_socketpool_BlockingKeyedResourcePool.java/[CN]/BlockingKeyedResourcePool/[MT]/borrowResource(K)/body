@@ -1,6 +1,6 @@
 {
   if (!isRunningState.get()) {
-    throw new RuntimeException("IllegalState: Cannot borrow when resource pool is closing down.");
+    throw new IllegalStateException("IllegalState: Cannot borrow when resource pool is closing down.");
   }
   long startTime=System.currentTimeMillis();
   Resources<V> resources=resourcesMap.get(key);
@@ -19,7 +19,7 @@
       resource=getResource(key,resources,computeNewTimeout(startTime,config.getBorrowTimeout(),config.getBorrowTimeoutUnit()),config.getBorrowTimeoutUnit());
     }
  else {
-      throw new RuntimeException("Failed to get Resource within " + config.getMaxBorrowTries() + " tries..");
+      throw new TimeoutException("Failed to get Resource within " + config.getMaxBorrowTries() + " tries..");
     }
   }
   return objectFactory.activate(key,resource);
