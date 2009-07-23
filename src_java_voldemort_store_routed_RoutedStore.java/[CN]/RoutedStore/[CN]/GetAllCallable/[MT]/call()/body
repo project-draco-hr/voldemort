@@ -1,6 +1,6 @@
 {
   Map<ByteArray,List<Versioned<byte[]>>> retrieved=Collections.emptyMap();
-  Exception exception=null;
+  Throwable exception=null;
   List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayList();
   try {
     retrieved=innerStores.get(node.getId()).getAll(nodeKeys);
@@ -16,7 +16,8 @@
     exception=e;
     markUnavailable(node,e);
   }
-catch (  Exception e) {
+catch (  Throwable e) {
+    if (e instanceof Error)     throw (Error)e;
     exception=e;
     logger.warn("Error in GET on node " + node.getId() + "("+ node.getHost()+ ")",e);
   }

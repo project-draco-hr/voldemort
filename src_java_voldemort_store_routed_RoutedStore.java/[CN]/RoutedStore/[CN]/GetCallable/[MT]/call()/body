@@ -1,0 +1,23 @@
+{
+  List<Versioned<byte[]>> fetched=Collections.emptyList();
+  List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayList();
+  Throwable exception=null;
+  try {
+    if (logger.isTraceEnabled())     logger.trace("Attempting get operation on node " + node.getId() + " for key '"+ ByteUtils.toHexString(key.get())+ "'.");
+    fetched=innerStores.get(node.getId()).get(key);
+    if (repairReads) {
+      for (      Versioned<byte[]> f : fetched)       nodeValues.add(new NodeValue<ByteArray,byte[]>(node.getId(),key,f));
+    }
+    node.getStatus().setAvailable();
+  }
+ catch (  UnreachableStoreException e) {
+    exception=e;
+    markUnavailable(node,e);
+  }
+catch (  Throwable e) {
+    if (e instanceof Error)     throw (Error)e;
+    logger.warn("Error in GET on node " + node.getId() + "("+ node.getHost()+ ")",e);
+    exception=e;
+  }
+  return new GetResult(fetched,nodeValues,exception);
+}
