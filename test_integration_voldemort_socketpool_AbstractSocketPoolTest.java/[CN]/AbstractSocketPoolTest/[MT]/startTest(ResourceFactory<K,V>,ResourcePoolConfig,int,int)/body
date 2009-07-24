@@ -12,14 +12,14 @@
           V resource=pool.checkout(key);
           resourceInHand.get(key).incrementAndGet();
           System.out.println("Borrowing of " + key + " completed at "+ new Date());
-          assertEquals("resources In Hand(" + resourceInHand.get(key).get() + ") should be less than equal to pool size("+ config.getPoolSize()+ ")",true,resourceInHand.get(key).get() <= config.getPoolSize());
+          assertEquals("resources In Hand(" + resourceInHand.get(key).get() + ") should be less than equal to pool size("+ config.getMaxPoolSize()+ ")",true,resourceInHand.get(key).get() <= config.getMaxPoolSize());
           doSomethingWithResource(key,resource);
           pool.checkin(key,resource);
           resourceInHand.get(key).decrementAndGet();
           System.out.println("return completed" + key + " resource:"+ resource+ " at "+ new Date());
         }
  catch (        TimeoutException e) {
-          assertEquals("resources In Hand(" + resourceInHand.get(key).get() + ") should be same as  pool size("+ config.getPoolSize()+ ")",config.getPoolSize(),resourceInHand.get(key).get());
+          assertEquals("resources In Hand(" + resourceInHand.get(key).get() + ") should be same as  pool size("+ config.getMaxPoolSize()+ ")",config.getMaxPoolSize(),resourceInHand.get(key).get());
           ++testStats.timeoutRequests;
           System.out.println("saw timeout !!");
           return;
