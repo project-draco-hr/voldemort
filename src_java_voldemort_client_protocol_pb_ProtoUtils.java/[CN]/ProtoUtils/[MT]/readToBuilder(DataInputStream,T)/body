@@ -1,5 +1,7 @@
 {
+  int size=input.readInt();
   CodedInputStream codedIn=CodedInputStream.newInstance(input);
-  codedIn.readMessage(builder,ExtensionRegistry.getEmptyRegistry());
+  codedIn.pushLimit(size);
+  builder.mergeFrom(codedIn);
   return builder;
 }
