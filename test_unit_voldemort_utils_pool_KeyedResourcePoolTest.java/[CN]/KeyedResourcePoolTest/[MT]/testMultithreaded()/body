@@ -1,0 +1,39 @@
+{
+  int numThreads=POOL_SIZE * 2;
+  final String[] keys=new String[numThreads * 2];
+  for (int i=0; i < keys.length; i++)   keys[i]=Integer.toString(i);
+  final AtomicInteger totalExecutions=new AtomicInteger(0);
+  final AtomicInteger destroyed=new AtomicInteger(0);
+  final AtomicBoolean isStopped=new AtomicBoolean(false);
+  ExecutorService executor=Executors.newFixedThreadPool(numThreads);
+  for (int i=0; i < numThreads; i++) {
+    executor.execute(new Runnable(){
+      public void run(){
+        while (!isStopped.get()) {
+          int curr=totalExecutions.getAndIncrement();
+          String key=keys[curr % keys.length];
+          try {
+            TestResource r=pool.checkout(key);
+            assertTrue(r.isValid());
+            if (curr % 10021 == 0) {
+              r.invalidate();
+              destroyed.getAndIncrement();
+            }
+            pool.checkin(key,r);
+          }
+ catch (          Exception e) {
+            fail("Unexpected exception: " + e);
+          }
+        }
+      }
+    }
+);
+  }
+  Thread.sleep(1000);
+  isStopped.set(true);
+  Thread.sleep(200);
+  executor.shutdownNow();
+  assertTrue(executor.awaitTermination(100,TimeUnit.MILLISECONDS));
+  pool.close();
+  assertEquals(factory.getCreated(),factory.getDestroyed());
+}

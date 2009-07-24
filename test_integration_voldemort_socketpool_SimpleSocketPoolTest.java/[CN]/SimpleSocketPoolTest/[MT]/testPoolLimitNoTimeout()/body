@@ -1,9 +1,6 @@
 {
-  final ResourcePoolConfig config=new ResourcePoolConfig();
-  config.setBorrowTimeout(1000);
-  config.setBorrowTimeoutUnit(TimeUnit.MILLISECONDS);
-  config.setDefaultPoolSize(20);
-  PoolableObjectFactory<String,String> factory=PoolableObjectFactoryFactory.getBasicPoolFactory();
+  final ResourcePoolConfig config=new ResourcePoolConfig().setTimeout(1000,TimeUnit.MILLISECONDS).setPoolSize(20);
+  ResourceFactory<String,String> factory=ResourcePoolTestUtils.getBasicPoolFactory();
   final AbstractSocketPoolTest<String,String> test=new AbstractSocketPoolTest<String,String>(){
     @Override protected void doSomethingWithResource(    String key,    String resource) throws Exception {
       Thread.sleep(100);

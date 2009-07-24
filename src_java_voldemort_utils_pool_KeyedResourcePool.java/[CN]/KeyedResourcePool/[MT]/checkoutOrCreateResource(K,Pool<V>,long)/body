@@ -1,0 +1,9 @@
+{
+  V resource=pool.nonBlockingGet();
+  if (resource != null)   return resource;
+  resource=attemptCreate(key,pool);
+  if (resource != null)   return resource;
+  resource=pool.blockingGet(timeoutNs);
+  if (resource == null)   throw new TimeoutException("Timed out wait for resource after " + (timeoutNs * Time.NS_PER_MS) + " ms.");
+  return resource;
+}

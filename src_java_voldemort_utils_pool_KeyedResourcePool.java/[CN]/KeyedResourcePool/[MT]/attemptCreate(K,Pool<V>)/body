@@ -1,0 +1,18 @@
+{
+  V resource=null;
+  if (pool.size.get() < this.poolSize) {
+    if (pool.size.incrementAndGet() <= this.poolSize) {
+      try {
+        resource=objectFactory.create(key);
+      }
+ catch (      Exception e) {
+        pool.size.decrementAndGet();
+        throw e;
+      }
+    }
+ else {
+      pool.size.decrementAndGet();
+    }
+  }
+  return resource;
+}
