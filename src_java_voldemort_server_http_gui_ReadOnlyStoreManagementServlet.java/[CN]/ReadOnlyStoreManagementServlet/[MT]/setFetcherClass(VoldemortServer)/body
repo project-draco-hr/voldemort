@@ -1,0 +1,16 @@
+{
+  String className=server.getVoldemortConfig().getAllProps().getString("file.fetcher.class",null);
+  if (className == null) {
+    this.fileFetcher=null;
+  }
+ else {
+    try {
+      logger.info("Loading fetcher " + className);
+      Class<?> cls=Class.forName(className);
+      this.fileFetcher=(FileFetcher)ReflectUtils.callConstructor(cls,new Class<?>[]{Props.class},new Object[]{server.getVoldemortConfig().getAllProps()});
+    }
+ catch (    Exception e) {
+      throw new VoldemortException("Error loading file fetcher class " + className,e);
+    }
+  }
+}
