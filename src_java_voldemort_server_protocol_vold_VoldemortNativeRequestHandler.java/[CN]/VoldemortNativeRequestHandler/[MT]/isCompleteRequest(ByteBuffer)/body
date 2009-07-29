@@ -1,0 +1,32 @@
+{
+  DataInputStream inputStream=new DataInputStream(new ByteBufferBackedInputStream(buffer));
+  try {
+    byte opCode=buffer.get();
+    inputStream.readUTF();
+    if (protocolVersion > 0)     buffer.get();
+switch (opCode) {
+case VoldemortOpCode.GET_OP_CODE:
+      readKey(inputStream);
+    break;
+case VoldemortOpCode.GET_ALL_OP_CODE:
+  int numKeys=inputStream.readInt();
+for (int i=0; i < numKeys; i++) readKey(inputStream);
+break;
+case VoldemortOpCode.PUT_OP_CODE:
+readKey(inputStream);
+int dataSize=inputStream.readInt();
+buffer.position(buffer.position() + dataSize);
+break;
+case VoldemortOpCode.DELETE_OP_CODE:
+readKey(inputStream);
+int versionSize=inputStream.readShort();
+buffer.position(buffer.position() + versionSize);
+break;
+default :
+}
+return !buffer.hasRemaining();
+}
+ catch (Throwable t) {
+return false;
+}
+}

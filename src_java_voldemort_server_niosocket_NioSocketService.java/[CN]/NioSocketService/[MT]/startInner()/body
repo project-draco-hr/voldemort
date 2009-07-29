@@ -1,0 +1,18 @@
+{
+  try {
+    for (int i=0; i < selectorManagers.length; i++) {
+      selectorManagers[i]=new SelectorManager(requestHandlerFactory,socketBufferSize);
+      selectorManagerThreadPool.execute(selectorManagers[i]);
+    }
+    InetSocketAddress endpoint=new InetSocketAddress(port);
+    serverSocketChannel.socket().bind(endpoint);
+    serverSocketChannel.socket().setReceiveBufferSize(socketBufferSize);
+    serverSocketChannel.socket().setReuseAddress(true);
+    acceptorThread=new Thread(new Acceptor(endpoint));
+    acceptorThread.start();
+  }
+ catch (  Exception e) {
+    if (logger.isEnabledFor(Level.ERROR))     logger.error(e.getMessage(),e);
+  }
+  enableJmx(this);
+}
