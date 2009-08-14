@@ -1,7 +1,8 @@
 {
   long wait=waitNs.getAndAdd(checkoutTimeNs);
   int count=checkouts.getAndIncrement();
-  if (count % WAIT_MONITORING_INTERVAL == WAIT_MONITORING_INTERVAL - 1) {
+  int interval=this.monitoringInterval.get();
+  if (count % interval == interval - 1) {
     waitNs.set(0);
     checkouts.set(0);
     avgWaitNs.set(wait / count);
