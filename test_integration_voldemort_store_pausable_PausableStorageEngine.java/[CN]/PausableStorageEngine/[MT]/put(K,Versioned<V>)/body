@@ -1,9 +1,4 @@
 {
-  try {
-    lock.readLock().lock();
-    inner.put(key,value);
-  }
-  finally {
-    lock.readLock().unlock();
-  }
+  blockIfNecessary();
+  inner.put(key,value);
 }
