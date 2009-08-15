@@ -5,7 +5,7 @@
   final int numNodes=nodes.size();
   if (numNodes < this.storeDef.getRequiredWrites())   throw new InsufficientOperationalNodesException("Only " + numNodes + " nodes in preference list, but "+ this.storeDef.getRequiredWrites()+ " writes required.");
   final AtomicInteger successes=new AtomicInteger(0);
-  final Map<Integer,Exception> failures=Collections.synchronizedMap(new HashMap<Integer,Exception>(1));
+  final List<Exception> failures=Collections.synchronizedList(new ArrayList<Exception>(1));
   Node master=null;
   int currentNode=0;
   Versioned<byte[]> versionedCopy=null;
@@ -21,13 +21,13 @@
     }
  catch (    UnreachableStoreException e) {
       markUnavailable(current,e);
-      failures.put(current.getId(),e);
+      failures.add(e);
     }
 catch (    ObsoleteVersionException e) {
       throw e;
     }
 catch (    Exception e) {
-      failures.put(currentNode,e);
+      failures.add(e);
     }
   }
   if (successes.get() < 1)   throw new InsufficientOperationalNodesException("No master node succeeded!",failures.size() > 0 ? failures.get(0) : null);
@@ -47,11 +47,11 @@ catch (    Exception e) {
         }
  catch (        UnreachableStoreException e) {
           markUnavailable(node,e);
-          failures.put(node.getId(),e);
+          failures.add(e);
         }
 catch (        Exception e) {
           logger.warn("Error in PUT on node " + node.getId() + "("+ node.getHost()+ ")",e);
-          failures.put(node.getId(),e);
+          failures.add(e);
         }
  finally {
           semaphore.release();
@@ -77,7 +77,7 @@ catch (        Exception e) {
     }
   }
   if (successes.get() < storeDef.getRequiredWrites()) {
-    throw new InsufficientOperationalNodesException(successes.get() + " writes succeeded, but " + this.storeDef.getRequiredWrites()+ " are required.",failures.values());
+    throw new InsufficientOperationalNodesException(successes.get() + " writes succeeded, but " + this.storeDef.getRequiredWrites()+ " are required.",failures);
   }
   VectorClock versionedClock=(VectorClock)versioned.getVersion();
   versionedClock.incrementVersion(master.getId(),time.getMilliseconds());
