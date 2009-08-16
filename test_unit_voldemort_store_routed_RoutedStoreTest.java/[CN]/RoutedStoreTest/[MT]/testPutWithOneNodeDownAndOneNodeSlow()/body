@@ -4,21 +4,8 @@
   Map<Integer,Store<ByteArray,byte[]>> subStores=Maps.newHashMap();
   subStores.put(Iterables.get(cluster.getNodes(),2).getId(),new InMemoryStorageEngine<ByteArray,byte[]>("test"));
   subStores.put(Iterables.get(cluster.getNodes(),0).getId(),new FailingStore<ByteArray,byte[]>("test"));
-  final PausableStorageEngine<ByteArray,byte[]> pausableStore=new PausableStorageEngine<ByteArray,byte[]>(new InMemoryStorageEngine<ByteArray,byte[]>("test"));
-  subStores.put(Iterables.get(cluster.getNodes(),1).getId(),pausableStore);
+  subStores.put(Iterables.get(cluster.getNodes(),1).getId(),new SleepyStore<ByteArray,byte[]>(100,new InMemoryStorageEngine<ByteArray,byte[]>("test")));
   RoutedStore routedStore=new RoutedStore("test",subStores,cluster,storeDef,1,true,1000L);
   Store<ByteArray,byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
-  pausableStore.pause();
-  new Thread(new Runnable(){
-    public void run(){
-      try {
-        Thread.sleep(100);
-      }
- catch (      InterruptedException e) {
-      }
-      pausableStore.unpause();
-    }
-  }
-).start();
   store.put(aKey,new Versioned<byte[]>(aValue));
 }
