@@ -61,23 +61,14 @@ catch (        Exception e) {
 );
   }
   int blockCount=Math.min(storeDef.getPreferredWrites() - 1,attempts);
-  for (int i=0; i < blockCount; i++) {
-    try {
-      long ellapsedNs=System.nanoTime() - startNs;
-      long remainingNs=(timeoutMs * Time.NS_PER_MS) - ellapsedNs;
-      boolean acquiredPermit=semaphore.tryAcquire(Math.max(remainingNs,0),TimeUnit.NANOSECONDS);
-      if (!acquiredPermit) {
-        logger.warn("Timed out waiting for put # " + (i + 1) + " of "+ blockCount+ " to succeed.");
-        break;
-      }
-      if (successes.get() >= this.storeDef.getPreferredWrites())       break;
-    }
- catch (    InterruptedException e) {
-      throw new InsufficientOperationalNodesException("Put operation interrupted",e);
-    }
-  }
+  boolean noTimeout=blockOnPut(startNs,semaphore,0,blockCount,successes,storeDef.getPreferredWrites());
   if (successes.get() < storeDef.getRequiredWrites()) {
-    throw new InsufficientOperationalNodesException(successes.get() + " writes succeeded, but " + this.storeDef.getRequiredWrites()+ " are required.",failures);
+    if (noTimeout) {
+      int startingIndex=blockCount - 1;
+      blockCount=Math.max(storeDef.getPreferredWrites() - 1,attempts);
+      blockOnPut(startNs,semaphore,startingIndex,blockCount,successes,storeDef.getRequiredWrites());
+    }
+    if (successes.get() < storeDef.getRequiredWrites())     throw new InsufficientOperationalNodesException(successes.get() + " writes succeeded, but " + this.storeDef.getRequiredWrites()+ " are required.",failures);
   }
   VectorClock versionedClock=(VectorClock)versioned.getVersion();
   versionedClock.incrementVersion(master.getId(),time.getMilliseconds());
