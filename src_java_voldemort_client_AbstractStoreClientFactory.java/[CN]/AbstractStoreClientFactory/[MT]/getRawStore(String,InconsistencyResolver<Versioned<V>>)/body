@@ -17,6 +17,9 @@
     store=new StatTrackingStore(store);
     registerJmx(JmxUtils.createObjectName(JmxUtils.getPackageName(store.getClass()),store.getName()),store);
   }
+  if (storeDef.getKeySerializer().hasCompression() || storeDef.getValueSerializer().hasCompression()) {
+    store=new CompressingStore(store,getCompressionStrategy(storeDef.getKeySerializer()),getCompressionStrategy(storeDef.getValueSerializer()));
+  }
   Serializer<K> keySerializer=(Serializer<K>)serializerFactory.getSerializer(storeDef.getKeySerializer());
   Serializer<V> valueSerializer=(Serializer<V>)serializerFactory.getSerializer(storeDef.getValueSerializer());
   Store<K,V> serializedStore=new SerializingStore<K,V>(store,keySerializer,valueSerializer);
