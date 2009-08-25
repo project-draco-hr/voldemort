@@ -1,4 +1,7 @@
 {
   logger.info("Unpausing store '" + getName() + "'.");
-  this.lock.writeLock().unlock();
+  paused=false;
+synchronized (condition) {
+    condition.notifyAll();
+  }
 }

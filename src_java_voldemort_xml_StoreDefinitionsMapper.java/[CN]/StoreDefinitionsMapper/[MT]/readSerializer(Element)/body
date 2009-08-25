@@ -21,5 +21,8 @@
     if (previous != null)     throw new MappingException("Duplicate version " + version + " found in schema info.");
   }
   if (!hasVersion && schemaInfosByVersion.size() > 1)   throw new IllegalArgumentException("Specified multiple schemas AND version=none, which is not permitted.");
-  return new SerializerDefinition(name,schemaInfosByVersion,hasVersion);
+  Element compressionElmt=elmt.getChild(STORE_COMPRESSION_ELMT);
+  Compression compression=null;
+  if (compressionElmt != null)   compression=new Compression(compressionElmt.getChildText("type"),compressionElmt.getChildText("options"));
+  return new SerializerDefinition(name,schemaInfosByVersion,hasVersion,compression);
 }

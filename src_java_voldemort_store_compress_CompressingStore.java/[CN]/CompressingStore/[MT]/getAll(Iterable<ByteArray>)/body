@@ -1,0 +1,11 @@
+{
+  StoreUtils.assertValidKeys(keys);
+  Iterable<ByteArray> processedKeys=keys;
+  List<ByteArray> deflatedKeys=Lists.newArrayList();
+  for (  ByteArray key : keys)   deflatedKeys.add(deflateKey(key));
+  processedKeys=deflatedKeys;
+  Map<ByteArray,List<Versioned<byte[]>>> deflatedResult=innerStore.getAll(processedKeys);
+  Map<ByteArray,List<Versioned<byte[]>>> result=Maps.newHashMapWithExpectedSize(deflatedResult.size());
+  for (  Map.Entry<ByteArray,List<Versioned<byte[]>>> mapEntry : deflatedResult.entrySet())   result.put(inflateKey(mapEntry.getKey()),inflateValues(mapEntry.getValue()));
+  return result;
+}

@@ -1,3 +1,51 @@
 {
-  throw new UnsupportedOperationException();
+  DataInputStream inputStream=new DataInputStream(new ByteBufferBackedInputStream(buffer));
+  DataOutputStream outputStream=new DataOutputStream(new ByteArrayOutputStream());
+  try {
+    byte opCode=inputStream.readByte();
+    StorageEngine<ByteArray,byte[]> engine;
+switch (opCode) {
+case VoldemortOpCode.GET_PARTITION_AS_STREAM_OP_CODE:
+      engine=readStorageEngine(inputStream,outputStream);
+    if (engine != null) {
+      int partitionSize=inputStream.readInt();
+      for (int i=0; i < partitionSize; i++)       inputStream.readInt();
+    }
+  break;
+case VoldemortOpCode.PUT_ENTRIES_AS_STREAM_OP_CODE:
+engine=readStorageEngine(inputStream,outputStream);
+if (engine != null) {
+int keySize=inputStream.readInt();
+while (keySize != -1) {
+  buffer.position(buffer.position() + keySize);
+  int valueSize=inputStream.readInt();
+  buffer.position(buffer.position() + valueSize);
+  keySize=inputStream.readInt();
+}
+}
+break;
+case VoldemortOpCode.UPDATE_METADATA_OP_CODE:
+String keyString=inputStream.readUTF();
+if (keyString.equals(MetadataStore.CLUSTER_KEY) || keyString.equals(MetadataStore.ROLLBACK_CLUSTER_KEY)) {
+inputStream.readUTF();
+}
+ else if (keyString.equals(MetadataStore.STORES_KEY)) {
+inputStream.readUTF();
+}
+break;
+case VoldemortOpCode.SERVER_STATE_CHANGE_OP_CODE:
+inputStream.readUTF();
+break;
+case VoldemortOpCode.REDIRECT_GET_OP_CODE:
+engine=readStorageEngine(inputStream,outputStream);
+if (engine != null) readKey(inputStream);
+break;
+default :
+}
+return !buffer.hasRemaining();
+}
+ catch (Exception e) {
+if (logger.isDebugEnabled()) logger.debug("Probable partial read occurred causing exception",e);
+return false;
+}
 }

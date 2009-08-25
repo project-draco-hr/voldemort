@@ -1,0 +1,28 @@
+{
+  assertEquals(0,this.pool.getTotalResourceCount());
+  Exception toThrow=new Exception("An exception!");
+  TestResource checkedOut=this.pool.checkout("a");
+  assertEquals(1,this.pool.getTotalResourceCount());
+  assertEquals(0,this.pool.getCheckedInResourceCount());
+  this.factory.setDestroyException(toThrow);
+  try {
+    this.pool.checkin("a",checkedOut);
+    this.pool.checkout("a");
+    assertTrue(checkedOut.isDestroyed());
+  }
+ catch (  Exception caught) {
+    fail("No exception expected.");
+  }
+  assertEquals(1,this.pool.getTotalResourceCount());
+  assertEquals(0,this.pool.getCheckedInResourceCount());
+  this.factory.setCreateException(toThrow);
+  try {
+    this.pool.checkout("b");
+    fail("Excpected exception!");
+  }
+ catch (  Exception caught) {
+    assertEquals("The exception thrown by the factory should propage to the caller.",toThrow,caught);
+  }
+  assertEquals(1,this.pool.getTotalResourceCount());
+  assertEquals(0,this.pool.getCheckedInResourceCount());
+}

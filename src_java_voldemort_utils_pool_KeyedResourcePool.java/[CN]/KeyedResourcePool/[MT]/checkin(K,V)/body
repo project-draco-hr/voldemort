@@ -1,0 +1,14 @@
+{
+  Pool<V> pool=resourcesMap.get(key);
+  if (pool == null)   throw new IllegalArgumentException("Invalid key '" + key + "': no resource pool exists for that key.");
+  if (isOpen.get()) {
+    boolean success=pool.nonBlockingPut(resource);
+    if (!success) {
+      destroyResource(key,pool,resource);
+      throw new IllegalStateException("Checkin failed is the pool already full?");
+    }
+  }
+ else {
+    destroyResource(key,pool,resource);
+  }
+}
