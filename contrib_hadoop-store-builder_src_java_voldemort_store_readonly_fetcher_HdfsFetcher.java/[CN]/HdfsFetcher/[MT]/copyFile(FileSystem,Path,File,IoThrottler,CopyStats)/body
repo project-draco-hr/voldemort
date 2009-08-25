@@ -5,7 +5,7 @@
   try {
     input=fs.open(source);
     output=new FileOutputStream(dest);
-    byte[] buffer=new byte[BUFFER_SIZE];
+    byte[] buffer=new byte[bufferSize];
     while (true) {
       int read=input.read(buffer);
       if (read < 0)       break;
@@ -13,8 +13,10 @@
       if (throttler != null)       throttler.maybeThrottle(read);
       stats.recordBytes(read);
       if (stats.getBytesSinceLastReport() > REPORTING_INTERVAL_BYTES) {
-        logger.info(stats.getBytesCopied() / (1024 * 1024) + " MB copied");
-        stats.resetBytesSinceLastReport();
+        NumberFormat format=NumberFormat.getNumberInstance();
+        format.setMaximumFractionDigits(2);
+        logger.info(stats.getTotalBytesCopied() / (1024 * 1024) + " MB copied at " + format.format(stats.getBytesPerSecond() / (1024 * 1024)) + " MB/sec");
+        stats.reset();
       }
     }
     logger.info("Completed copy of " + source + " to "+ dest);
