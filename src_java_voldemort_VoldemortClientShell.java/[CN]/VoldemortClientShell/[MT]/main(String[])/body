@@ -10,7 +10,8 @@
  catch (  IOException e) {
     Utils.croak("Failure to open input stream: " + e.getMessage());
   }
-  StoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootstrapUrl));
+  ClientConfig clientConfig=new ClientConfig().setBootstrapUrls(bootstrapUrl);
+  SocketStoreClientFactory factory=new SocketStoreClientFactory(clientConfig);
   DefaultStoreClient<Object,Object> client=null;
   try {
     client=(DefaultStoreClient<Object,Object>)factory.getStoreClient(storeName);
@@ -53,7 +54,7 @@
  else       if (line.startsWith("locate")) {
         JsonReader jsonReader=new JsonReader(new StringReader(line.substring("locate".length())));
         Object key=tightenNumericTypes(jsonReader.read());
-        printNodeList(client.getResponsibleNodes(key));
+        printNodeList(client.getResponsibleNodes(key),factory.getNodeAvailabilityDetector());
       }
  else       if (line.startsWith("help")) {
         System.out.println("Commands:");

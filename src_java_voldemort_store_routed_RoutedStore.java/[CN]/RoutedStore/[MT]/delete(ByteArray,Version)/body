@@ -14,11 +14,11 @@
           boolean deleted=innerStores.get(node.getId()).delete(key,version);
           successes.incrementAndGet();
           deletedSomething.compareAndSet(false,deleted);
-          node.getStatus().setAvailable();
+          nodeAvailabilityDetector.recordSuccess(node);
         }
  catch (        UnreachableStoreException e) {
           failures.add(e);
-          markUnavailable(node,e);
+          nodeAvailabilityDetector.recordException(node,e);
         }
 catch (        Exception e) {
           failures.add(e);

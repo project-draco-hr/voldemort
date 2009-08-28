@@ -3,11 +3,13 @@
   this.serializerFactory=config.getSerializerFactory();
   this.bootstrapUrls=validateUrls(config.getBootstrapUrls());
   this.routingTimeoutMs=config.getRoutingTimeout(TimeUnit.MILLISECONDS);
-  this.nodeBannageMs=config.getNodeBannagePeriod(TimeUnit.MILLISECONDS);
   this.isJmxEnabled=config.isJmxEnabled();
   this.requestFormatType=config.getRequestFormatType();
   if (isJmxEnabled)   this.mbeanServer=ManagementFactory.getPlatformMBeanServer();
  else   this.mbeanServer=null;
   this.jmxId=jmxIdCounter.getAndIncrement();
   registerThreadPoolJmx(threadPool);
+  Class<?> factoryClass=ReflectUtils.loadClass(config.getNodeAvailabilityDetector());
+  nodeAvailabilityDetector=(NodeAvailabilityDetector)ReflectUtils.callConstructor(factoryClass,new Object[]{});
+  nodeAvailabilityDetector.setNodeBannageMs(config.getNodeBannagePeriod(TimeUnit.MILLISECONDS));
 }

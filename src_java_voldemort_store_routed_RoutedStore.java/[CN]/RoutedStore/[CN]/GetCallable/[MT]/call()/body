@@ -8,11 +8,11 @@
     if (repairReads) {
       for (      Versioned<byte[]> f : fetched)       nodeValues.add(new NodeValue<ByteArray,byte[]>(node.getId(),key,f));
     }
-    node.getStatus().setAvailable();
+    nodeAvailabilityDetector.recordSuccess(node);
   }
  catch (  UnreachableStoreException e) {
     exception=e;
-    markUnavailable(node,e);
+    nodeAvailabilityDetector.recordException(node,e);
   }
 catch (  Throwable e) {
     if (e instanceof Error)     throw (Error)e;

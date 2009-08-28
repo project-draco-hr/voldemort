@@ -10,11 +10,11 @@
         for (        Versioned<byte[]> v : entry.getValue())         nodeValues.add(new NodeValue<ByteArray,byte[]>(node.getId(),key,v));
       }
     }
-    node.getStatus().setAvailable();
+    nodeAvailabilityDetector.recordSuccess(node);
   }
  catch (  UnreachableStoreException e) {
     exception=e;
-    markUnavailable(node,e);
+    nodeAvailabilityDetector.recordException(node,e);
   }
 catch (  Throwable e) {
     if (e instanceof Error)     throw (Error)e;

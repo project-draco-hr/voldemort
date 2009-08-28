@@ -52,11 +52,11 @@ catch (    ExecutionException e) {
         for (        Versioned<byte[]> f : fetched)         nodeValues.add(new NodeValue<ByteArray,byte[]>(node.getId(),key,f));
       }
       ++successes;
-      node.getStatus().setAvailable();
+      nodeAvailabilityDetector.recordSuccess(node);
     }
  catch (    UnreachableStoreException e) {
       failures.add(e);
-      markUnavailable(node,e);
+      nodeAvailabilityDetector.recordException(node,e);
     }
 catch (    Exception e) {
       logger.warn("Error in GET on node " + node.getId() + "("+ node.getHost()+ ")",e);
