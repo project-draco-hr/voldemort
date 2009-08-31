@@ -11,9 +11,7 @@
     this.storeRepository.addNodeStore(node.getId(),store);
     nodeStores.put(node.getId(),store);
   }
-  Class<?> factoryClass=ReflectUtils.loadClass(voldemortConfig.getNodeAvailabilityDetector());
-  NodeAvailabilityDetector nodeAvailabilityDetector=(NodeAvailabilityDetector)ReflectUtils.callConstructor(factoryClass,new Object[]{});
-  nodeAvailabilityDetector.setNodeBannageMs(voldemortConfig.getClientNodeBannageMs());
+  NodeAvailabilityDetector nodeAvailabilityDetector=NodeAvailabilityDetectorUtils.create(voldemortConfig);
   Store<ByteArray,byte[]> routedStore=new RoutedStore(def.getName(),nodeStores,cluster,def,true,this.clientThreadPool,voldemortConfig.getRoutingTimeoutMs(),nodeAvailabilityDetector,SystemTime.INSTANCE);
   routedStore=new InconsistencyResolvingStore<ByteArray,byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
   this.storeRepository.addRoutedStore(routedStore);

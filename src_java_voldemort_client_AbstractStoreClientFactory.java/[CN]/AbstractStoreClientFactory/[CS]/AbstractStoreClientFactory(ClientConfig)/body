@@ -9,7 +9,5 @@
  else   this.mbeanServer=null;
   this.jmxId=jmxIdCounter.getAndIncrement();
   registerThreadPoolJmx(threadPool);
-  Class<?> factoryClass=ReflectUtils.loadClass(config.getNodeAvailabilityDetector());
-  nodeAvailabilityDetector=(NodeAvailabilityDetector)ReflectUtils.callConstructor(factoryClass,new Object[]{});
-  nodeAvailabilityDetector.setNodeBannageMs(config.getNodeBannagePeriod(TimeUnit.MILLISECONDS));
+  nodeAvailabilityDetector=NodeAvailabilityDetectorUtils.create(config);
 }
