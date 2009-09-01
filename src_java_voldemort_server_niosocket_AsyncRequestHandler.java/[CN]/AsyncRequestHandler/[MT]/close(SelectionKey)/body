@@ -1,0 +1,22 @@
+{
+  if (logger.isInfoEnabled())   logger.info("Closing remote connection from " + socketChannel.socket().getRemoteSocketAddress());
+  try {
+    socketChannel.socket().close();
+  }
+ catch (  IOException ex) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(ex,ex);
+  }
+  try {
+    socketChannel.close();
+  }
+ catch (  IOException ex) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(ex,ex);
+  }
+  try {
+    selectionKey.attach(null);
+    selectionKey.cancel();
+  }
+ catch (  Exception e) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(e,e);
+  }
+}

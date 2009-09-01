@@ -2,50 +2,48 @@
   StoreUtils.assertValidKey(key);
   final List<Node> nodes=availableNodes(routingStrategy.routeRequest(key.get()));
   checkRequiredReads(nodes);
-  final List<Versioned<byte[]>> retrieved=Collections.synchronizedList(new ArrayList<Versioned<byte[]>>());
-  final List<NodeValue<ByteArray,byte[]>> nodeValues=Collections.synchronizedList(new ArrayList<NodeValue<ByteArray,byte[]>>());
-  final AtomicInteger successes=new AtomicInteger();
-  final List<Exception> failures=Collections.synchronizedList(new LinkedList<Exception>());
+  final List<Versioned<byte[]>> retrieved=Lists.newArrayList();
+  final List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayList();
+  int successes=0;
+  final List<Throwable> failures=Lists.newArrayListWithCapacity(3);
   int attempts=Math.min(this.storeDef.getPreferredReads(),nodes.size());
-  final CountDownLatch latch=new CountDownLatch(attempts);
   int nodeIndex=0;
+  List<Callable<GetResult>> callables=Lists.newArrayListWithCapacity(attempts);
   for (; nodeIndex < attempts; nodeIndex++) {
     final Node node=nodes.get(nodeIndex);
-    this.executor.execute(new Runnable(){
-      public void run(){
-        try {
-          if (logger.isTraceEnabled())           logger.trace("Attempting get operation on node " + node.getId() + " for key '"+ ByteUtils.toHexString(key.get())+ "'.");
-          List<Versioned<byte[]>> fetched=innerStores.get(node.getId()).get(key);
-          retrieved.addAll(fetched);
-          if (repairReads) {
-            for (            Versioned<byte[]> f : fetched)             nodeValues.add(new NodeValue<ByteArray,byte[]>(node.getId(),key,f));
-          }
-          successes.incrementAndGet();
-          node.getStatus().setAvailable();
-        }
- catch (        UnreachableStoreException e) {
-          failures.add(e);
-          markUnavailable(node,e);
-        }
-catch (        Exception e) {
-          logger.warn("Error in GET on node " + node.getId() + "("+ node.getHost()+ ")",e);
-          failures.add(e);
-        }
- finally {
-          latch.countDown();
-        }
-      }
-    }
-);
+    callables.add(new GetCallable(node,key));
   }
+  List<Future<GetResult>> futures;
   try {
-    boolean succeeded=latch.await(timeoutMs,TimeUnit.MILLISECONDS);
-    if (!succeeded)     logger.warn("Get operation timed out after " + timeoutMs + " ms.");
+    futures=executor.invokeAll(callables,timeoutMs,TimeUnit.MILLISECONDS);
   }
  catch (  InterruptedException e) {
     throw new InsufficientOperationalNodesException("Get operation interrupted!",e);
   }
-  while (successes.get() < this.storeDef.getPreferredReads() && nodeIndex < nodes.size()) {
+  for (  Future<GetResult> f : futures) {
+    if (f.isCancelled()) {
+      logger.warn("Get operation timed out after " + timeoutMs + " ms.");
+      continue;
+    }
+    try {
+      GetResult getResult=f.get();
+      if (getResult.exception != null) {
+        failures.add(getResult.exception);
+        continue;
+      }
+      ++successes;
+      nodeValues.addAll(getResult.nodeValues);
+      retrieved.addAll(getResult.retrieved);
+    }
+ catch (    InterruptedException e) {
+      throw new InsufficientOperationalNodesException("Get operation interrupted!",e);
+    }
+catch (    ExecutionException e) {
+      if (e.getCause() instanceof Error)       throw (Error)e.getCause();
+ else       logger.error(e.getMessage(),e);
+    }
+  }
+  while (successes < this.storeDef.getPreferredReads() && nodeIndex < nodes.size()) {
     Node node=nodes.get(nodeIndex);
     try {
       List<Versioned<byte[]>> fetched=innerStores.get(node.getId()).get(key);
@@ -53,7 +51,7 @@ catch (        Exception e) {
       if (repairReads) {
         for (        Versioned<byte[]> f : fetched)         nodeValues.add(new NodeValue<ByteArray,byte[]>(node.getId(),key,f));
       }
-      successes.incrementAndGet();
+      ++successes;
       node.getStatus().setAvailable();
     }
  catch (    UnreachableStoreException e) {
@@ -68,6 +66,6 @@ catch (    Exception e) {
   }
   if (logger.isTraceEnabled())   logger.trace("GET retrieved the following node values: " + formatNodeValues(nodeValues));
   if (repairReads && retrieved.size() > 1)   repairReads(nodeValues);
-  if (successes.get() >= this.storeDef.getRequiredReads())   return retrieved;
- else   throw new InsufficientOperationalNodesException(this.storeDef.getRequiredReads() + " reads required, but " + successes.get()+ " succeeded.",failures);
+  if (successes >= this.storeDef.getRequiredReads())   return retrieved;
+ else   throw new InsufficientOperationalNodesException(this.storeDef.getRequiredReads() + " reads required, but " + successes+ " succeeded.",failures);
 }

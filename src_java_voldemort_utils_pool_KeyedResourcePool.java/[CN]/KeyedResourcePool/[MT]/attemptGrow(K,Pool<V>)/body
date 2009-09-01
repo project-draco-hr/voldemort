@@ -1,0 +1,15 @@
+{
+  if (pool.size.incrementAndGet() <= this.poolMaxSize) {
+    try {
+      V resource=objectFactory.create(key);
+      pool.nonBlockingPut(resource);
+    }
+ catch (    Exception e) {
+      pool.size.decrementAndGet();
+      throw e;
+    }
+  }
+ else {
+    pool.size.decrementAndGet();
+  }
+}

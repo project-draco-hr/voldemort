@@ -1,9 +1,4 @@
 {
-  try {
-    lock.readLock().lock();
-    return inner.get(key);
-  }
-  finally {
-    lock.readLock().unlock();
-  }
+  blockIfNecessary();
+  return inner.get(key);
 }

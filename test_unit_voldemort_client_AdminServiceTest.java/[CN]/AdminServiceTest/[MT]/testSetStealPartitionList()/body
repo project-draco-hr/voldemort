@@ -1,8 +1,0 @@
-{
-  AdminClient client=new AdminClient(server.getIdentityNode(),server.getVoldemortMetadata(),new SocketPool(100,100,2000,1000,10000));
-  client.setStealInfo(server.getIdentityNode().getId(),1,Arrays.asList(5,6,7));
-  assertEquals("donorNodeId should be set",1,server.getVoldemortMetadata().getDonorNode().getId());
-  assertEquals("StealList should be changed on server",Arrays.asList(5,6,7),server.getVoldemortMetadata().getCurrentPartitionStealList());
-  client.setStealInfo(server.getIdentityNode().getId(),1,new ArrayList<Integer>());
-  assertEquals("StealList should be changed on server for empty list",new ArrayList<Integer>(),server.getVoldemortMetadata().getCurrentPartitionStealList());
-}

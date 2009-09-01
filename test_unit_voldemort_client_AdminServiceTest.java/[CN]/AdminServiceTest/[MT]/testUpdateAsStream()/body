@@ -7,7 +7,7 @@
     byte[] value=ByteUtils.getBytes("value-" + i,"UTF-8");
     entryList.add(Pair.create(key,Versioned.value(value,new VectorClock().incremented(0,System.currentTimeMillis()))));
   }
-  AdminClient client=getAdminClient();
+  AdminClientRequestFormat client=getAdminClient();
   client.updatePartitionEntries(0,storeName,entryList.iterator());
   for (int i=100; i <= 104; i++) {
     assertNotSame("Store should return a valid value","value-" + i,new String(store.get(new ByteArray(ByteUtils.getBytes("" + i,"UTF-8"))).get(0).getValue()));

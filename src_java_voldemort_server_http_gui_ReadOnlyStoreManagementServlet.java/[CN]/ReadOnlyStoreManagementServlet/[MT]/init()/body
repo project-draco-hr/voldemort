@@ -1,5 +1,7 @@
 {
   super.init();
-  this.stores=getReadOnlyStores((VoldemortServer)getServletContext().getAttribute(VoldemortServletContextListener.SERVER_CONFIG_KEY));
+  VoldemortServer server=(VoldemortServer)getServletContext().getAttribute(VoldemortServletContextListener.SERVER_CONFIG_KEY);
+  this.stores=getReadOnlyStores(server);
   this.velocityEngine=(VelocityEngine)Utils.notNull(getServletContext().getAttribute(VoldemortServletContextListener.VELOCITY_ENGINE_KEY));
+  setFetcherClass(server);
 }

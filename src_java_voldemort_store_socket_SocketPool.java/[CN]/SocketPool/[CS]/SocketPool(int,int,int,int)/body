@@ -1,0 +1,8 @@
+{
+  ResourcePoolConfig config=new ResourcePoolConfig().setIsFair(true).setMaxPoolSize(maxConnectionsPerNode).setMaxInvalidAttempts(maxConnectionsPerNode).setTimeout(connectionTimeoutMs,TimeUnit.MILLISECONDS);
+  this.socketFactory=new SocketResourceFactory(soTimeoutMs,socketBufferSize);
+  this.pool=new KeyedResourcePool<SocketDestination,SocketAndStreams>(socketFactory,config);
+  this.checkouts=new AtomicInteger(0);
+  this.waitNs=new AtomicLong(0);
+  this.avgWaitNs=new AtomicLong(0);
+}

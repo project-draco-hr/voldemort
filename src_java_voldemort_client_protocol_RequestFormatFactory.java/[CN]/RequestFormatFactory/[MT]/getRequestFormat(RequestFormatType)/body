@@ -1,5 +1,10 @@
 {
-  RequestFormat format=this.typeToInstance.get(type);
-  if (type == null)   throw new VoldemortException("Unknown wire format " + type);
-  return format;
+switch (type) {
+case VOLDEMORT_V1:
+    return new VoldemortNativeClientRequestFormat();
+case PROTOCOL_BUFFERS:
+  return new ProtoBuffClientRequestFormat();
+default :
+throw new IllegalArgumentException("Unknown request format type: " + type);
+}
 }

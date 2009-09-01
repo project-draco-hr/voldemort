@@ -14,13 +14,13 @@
   VoldemortMetadata metadata=server0.getVoldemortMetadata();
   metadata.setDonorNode(1);
   metadata.setCurrentPartitionStealList(Arrays.asList(new Integer[]{2,3}));
-  RebalancingStore rebalancingStore=getRebalancingStore(metadata);
+  RedirectingStore RedirectingStore=getRedirectingStore(metadata);
   metadata.setServerState(VoldemortMetadata.ServerState.REBALANCING_STEALER_STATE);
   for (int i=100; i <= 1000; i++) {
     ByteArray key=new ByteArray(ByteUtils.getBytes("" + i,"UTF-8"));
     if (metadata.getRoutingStrategy(storeName).getPartitionList(key.get()).contains(new Integer(2)) || metadata.getRoutingStrategy(storeName).getPartitionList(key.get()).contains(new Integer(3))) {
       try {
-        rebalancingStore.put(key,rebalancingStore.get(key).get(0));
+        RedirectingStore.put(key,RedirectingStore.get(key).get(0));
         fail("put should throw ObsoleteVersionException before hitting this");
       }
  catch (      ObsoleteVersionException e) {

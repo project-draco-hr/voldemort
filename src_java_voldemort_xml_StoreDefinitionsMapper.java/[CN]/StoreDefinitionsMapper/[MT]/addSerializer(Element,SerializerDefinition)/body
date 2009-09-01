@@ -9,4 +9,18 @@
       parent.addContent(schemaElmt);
     }
   }
+  if (def.hasCompression()) {
+    Compression compression=def.getCompression();
+    Element compressionElmt=new Element(STORE_COMPRESSION_ELMT);
+    Element type=new Element(STORE_COMPRESSION_TYPE_ELMT);
+    type.setText(compression.getType());
+    compressionElmt.addContent(type);
+    String optionsText=compression.getOptions();
+    if (optionsText != null) {
+      Element options=new Element(STORE_COMPRESSION_OPTIONS_ELMT);
+      options.setText(optionsText);
+      compressionElmt.addContent(options);
+    }
+    parent.addContent(compressionElmt);
+  }
 }

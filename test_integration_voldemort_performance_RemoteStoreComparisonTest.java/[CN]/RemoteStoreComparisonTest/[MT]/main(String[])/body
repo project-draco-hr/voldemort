@@ -35,12 +35,11 @@
   String storeName="test";
   StoreRepository repository=new StoreRepository();
   repository.addLocalStore(new InMemoryStorageEngine<ByteArray,byte[]>(storeName));
-  SocketPool socketPool=new SocketPool(10,10,1000,1000,32 * 1024);
+  SocketPool socketPool=new SocketPool(10,1000,1000,32 * 1024);
   final SocketStore socketStore=new SocketStore(storeName,new SocketDestination("localhost",6666,RequestFormatType.VOLDEMORT_V1),socketPool,false);
-  RequestHandlerFactory factory=new RequestHandlerFactory(repository,null,null);
-  SocketServer socketServer=new SocketServer(6666,50,50,1000,factory);
-  socketServer.start();
-  socketServer.awaitStartupCompletion();
+  RequestHandlerFactory factory=new RequestHandlerFactory(repository,null,ServerTestUtils.getVoldemortConfig());
+  AbstractSocketService socketService=ServerTestUtils.getSocketService(factory,6666,50,50,1000);
+  socketService.start();
   PerformanceTest socketWriteTest=new PerformanceTest(){
     @Override public void doOperation(    int i){
       byte[] bytes=String.valueOf(i).getBytes();
@@ -73,7 +72,7 @@
   System.out.println();
   socketStore.close();
   socketPool.close();
-  socketServer.shutdown();
+  socketService.stop();
   repository.addLocalStore(new InMemoryStorageEngine<ByteArray,byte[]>(storeName));
   HttpService httpService=new HttpService(null,repository,RequestFormatType.VOLDEMORT_V0,numThreads,8080);
   httpService.start();

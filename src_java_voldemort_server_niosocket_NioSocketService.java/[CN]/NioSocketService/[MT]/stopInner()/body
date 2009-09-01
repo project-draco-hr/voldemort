@@ -1,0 +1,34 @@
+{
+  try {
+    acceptorThread.interrupt();
+    acceptorThread.join(15000);
+    if (acceptorThread.isAlive()) {
+      if (logger.isEnabledFor(Level.WARN))       logger.warn("Acceptor thread pool did not stop");
+    }
+  }
+ catch (  Exception e) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
+  }
+  try {
+    selectorManagerThreadPool.shutdownNow();
+    boolean terminated=selectorManagerThreadPool.awaitTermination(15,TimeUnit.SECONDS);
+    if (!terminated) {
+      if (logger.isEnabledFor(Level.WARN))       logger.warn("Selector manager thread pool terminated abnormally");
+    }
+  }
+ catch (  Exception e) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
+  }
+  try {
+    serverSocketChannel.socket().close();
+  }
+ catch (  Exception e) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
+  }
+  try {
+    serverSocketChannel.close();
+  }
+ catch (  Exception e) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
+  }
+}

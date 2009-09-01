@@ -1,0 +1,29 @@
+{
+  byte opCode=inputStream.readByte();
+  StorageEngine<ByteArray,byte[]> engine;
+switch (opCode) {
+case VoldemortOpCode.GET_PARTITION_AS_STREAM_OP_CODE:
+    engine=readStorageEngine(inputStream,outputStream);
+  if (engine != null)   handleGetPartitionsAsStream(engine,inputStream,outputStream);
+break;
+case VoldemortOpCode.PUT_ENTRIES_AS_STREAM_OP_CODE:
+engine=readStorageEngine(inputStream,outputStream);
+if (engine != null) handleUpdateEntries(engine,inputStream,outputStream);
+break;
+case VoldemortOpCode.UPDATE_METADATA_OP_CODE:
+String keyString=inputStream.readUTF();
+handleUpdateMetadataRequest(keyString,inputStream,outputStream);
+break;
+case VoldemortOpCode.SERVER_STATE_CHANGE_OP_CODE:
+handleServerStateChangeRequest(inputStream,outputStream);
+break;
+case VoldemortOpCode.REDIRECT_GET_OP_CODE:
+engine=readStorageEngine(inputStream,outputStream);
+byte[] key=readKey(inputStream);
+handleRedirectGetRequest(engine,key,outputStream);
+break;
+default :
+throw new IOException("Unknown op code : " + opCode + " at Node:"+ metadata.getIdentityNode().getId());
+}
+outputStream.flush();
+}

@@ -1,0 +1,40 @@
+{
+  int count=0;
+  ByteBuffer inputBuffer=inputStream.getBuffer();
+  if ((count=socketChannel.read(inputBuffer)) == -1)   throw new EOFException();
+  if (logger.isTraceEnabled())   logger.trace("Read " + count + "bytes, total: "+ inputBuffer.position()+ " for "+ socketChannel.socket().getRemoteSocketAddress());
+  if (count == 0) {
+    if (logger.isDebugEnabled())     logger.debug("Read of zero bytes for " + socketChannel.socket().getRemoteSocketAddress());
+    return;
+  }
+  final int position=inputBuffer.position();
+  inputBuffer.flip();
+  if (requestHandler == null) {
+    if (!initRequestHandler(selectionKey)) {
+      return;
+    }
+  }
+  if (requestHandler != null && requestHandler.isCompleteRequest(inputBuffer)) {
+    inputBuffer.rewind();
+    if (logger.isDebugEnabled())     logger.debug("Starting execution for " + socketChannel.socket().getRemoteSocketAddress());
+    requestHandler.handleRequest(new DataInputStream(inputStream),new DataOutputStream(outputStream));
+    if (logger.isDebugEnabled())     logger.debug("Finished execution for " + socketChannel.socket().getRemoteSocketAddress());
+    if (inputBuffer.capacity() >= resizeThreshold) {
+      inputBuffer=ByteBuffer.allocate(socketBufferSize);
+      inputStream.setBuffer(inputBuffer);
+    }
+ else {
+      inputBuffer.clear();
+    }
+    outputStream.getBuffer().flip();
+    selectionKey.interestOps(SelectionKey.OP_WRITE);
+  }
+ else {
+    inputBuffer.position(position);
+    inputBuffer.limit(inputBuffer.capacity());
+    if (!inputBuffer.hasRemaining()) {
+      inputBuffer=ByteUtils.expand(inputBuffer,inputBuffer.capacity() * 2);
+      inputStream.setBuffer(inputBuffer);
+    }
+  }
+}
