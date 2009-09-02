@@ -1,0 +1,14 @@
+{
+  if (CLUSTER_KEY.equals(key)) {
+    String clusterString=clusterMapper.writeCluster((Cluster)value.getValue());
+    innerStore.put(key,new Versioned<String>(clusterString,value.getVersion()));
+  }
+ else   if (STORES_KEY.equals(key)) {
+    String storesString=storeMapper.writeStoreList((List<StoreDefinition>)value.getValue());
+    innerStore.put(key,new Versioned<String>(storesString,value.getVersion()));
+  }
+ else   if (SERVER_STATE_KEY.equals(key) || REBALANCING_PROXY_DEST.equals(key)) {
+    innerStore.put(key,new Versioned<String>(value.getValue().toString(),value.getVersion()));
+  }
+  throw new VoldemortException("Unsupported key in writeBack:" + key);
+}

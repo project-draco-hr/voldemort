@@ -1,7 +1,9 @@
 {
-  List<StoreDefinition> storeDefs=storeMapper.readStoreList(new StringReader(getSingleValue(get(new ByteArray(ByteUtils.getBytes(STORES_KEY,"UTF-8"))))));
+  List<StoreDefinition> storeDefs=getStores();
   for (  StoreDefinition storeDef : storeDefs) {
-    if (storeName.equals(storeDef.getName()))     return storeDef;
+    if (storeDef.getName().equals(storeName)) {
+      return storeDef;
+    }
   }
   throw new VoldemortException("Store " + storeName + " not found in MetadataStore");
 }

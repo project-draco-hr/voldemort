@@ -1,27 +1,19 @@
 {
-synchronized (this) {
-    String keyStr=ByteUtils.getString(key.get(),"UTF-8");
-    String valueStr=ByteUtils.getString(value.getValue(),"UTF-8");
-    Versioned<String> newVersioned=new Versioned<String>(valueStr,value.getVersion());
-    if (STORES_KEY.equals(keyStr)) {
-      List<Versioned<String>> current=innerStore.get(keyStr);
-      if (current.size() == 0) {
-        innerStore.put(keyStr,newVersioned);
-      }
- else       if (current.size() == 1) {
-        Versioned<String> versioned=current.get(0);
-        if (versioned.getVersion().compare(value.getVersion()) != Occured.BEFORE)         throw new ObsoleteVersionException("Attempt to put out of date store metadata!");
-        innerStore.put(keyStr,newVersioned);
-      }
- else {
-        throw new VoldemortException("Inconsistent metadata: " + current);
-      }
+  String keyStr=ByteUtils.getString(key.get(),"UTF-8");
+  String valueStr=ByteUtils.getString(value.getValue(),"UTF-8");
+  Version version=value.getVersion();
+  if (KNOWN_KEYS.contains(keyStr)) {
+    if (CLUSTER_KEY.equals(keyStr)) {
+      metadataCache.put(keyStr,new Versioned<Object>(clusterMapper.readCluster(new StringReader(valueStr)),version));
     }
- else     if (CLUSTER_KEY.equals(keyStr)) {
-      innerStore.put(keyStr,newVersioned);
+ else     if (STORES_KEY.equals(keyStr)) {
+      metadataCache.put(keyStr,new Versioned<Object>(storeMapper.readStoreList(new StringReader(valueStr)),version));
+    }
+ else     if (SERVER_STATE_KEY.equals(keyStr) || REBALANCING_PROXY_DEST.equals(keyStr)) {
+      metadataCache.put(keyStr,new Versioned<Object>(valueStr,version));
     }
  else {
-      innerStore.put(keyStr,newVersioned);
+      throw new VoldemortException("Unhandled Key:" + keyStr + " for MetadataStore put()");
     }
   }
 }

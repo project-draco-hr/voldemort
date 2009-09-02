@@ -1,5 +1,19 @@
 {
+  String keyString=ByteUtils.getString(key,"UTF-8");
+  String valueString;
+  if (CLUSTER_KEY.equals(keyString)) {
+    valueString=clusterMapper.writeCluster(getCluster());
+  }
+ else   if (STORES_KEY.equals(keyString)) {
+    valueString=storeMapper.writeStoreList(getStores());
+  }
+ else   if (SERVER_STATE_KEY.equals(keyString) || REBALANCING_PROXY_DEST.equals(keyString)) {
+    valueString=metadataCache.get(keyString).getValue().toString();
+  }
+ else {
+    throw new VoldemortException("Unhandled key:" + keyString + " for get() method.");
+  }
   List<Versioned<byte[]>> values=Lists.newArrayList();
-  for (  Versioned<String> versioned : innerStore.get(ByteUtils.getString(key,"UTF-8")))   values.add(new Versioned<byte[]>(ByteUtils.getBytes(versioned.getValue(),"UTF-8"),versioned.getVersion()));
+  values.add(new Versioned<byte[]>(ByteUtils.getBytes(valueString,"UTF-8"),metadataCache.get(keyString).getVersion()));
   return values;
 }

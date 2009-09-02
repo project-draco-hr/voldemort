@@ -1,0 +1,17 @@
+{
+  if (CLUSTER_KEY.equals(key)) {
+    Versioned<String> versionClusterString=getInnerValue(CLUSTER_KEY,true);
+    Cluster cluster=clusterMapper.readCluster(new StringReader(versionClusterString.getValue()));
+    return new Versioned<Object>(cluster,versionClusterString.getVersion());
+  }
+ else   if (STORES_KEY.equals(key)) {
+    Versioned<String> versionStoresString=getInnerValue(STORES_KEY,true);
+    List<StoreDefinition> stores=storeMapper.readStoreList(new StringReader(versionStoresString.getValue()));
+    return new Versioned<Object>(stores,versionStoresString.getVersion());
+  }
+ else   if (SERVER_STATE_KEY.equals(key) || REBALANCING_PROXY_DEST.equals(key)) {
+    Versioned<String> value=getInnerValue(key,false);
+    return new Versioned<Object>(value.getValue(),value.getVersion());
+  }
+  throw new VoldemortException("Unsupported key in readBack:" + key);
+}
