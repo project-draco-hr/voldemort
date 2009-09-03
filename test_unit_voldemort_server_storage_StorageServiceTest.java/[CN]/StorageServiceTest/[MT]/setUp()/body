@@ -10,7 +10,7 @@
   MetadataStore mdStore=MetadataStore.readFromDirectory(new File(config.getMetadataDirectory()));
   mdStore.put(new ByteArray(MetadataStore.CLUSTER_KEY.getBytes()),new Versioned<byte[]>(cluster.toString().getBytes()));
   mdStore.put(new ByteArray(MetadataStore.STORES_KEY.getBytes()),new Versioned<byte[]>(storeDefs.toString().getBytes()));
-  NodeAvailabilityDetector nodeAvailabilityDetector=NodeAvailabilityDetectorUtils.create(new ServerNodeAvailabilityDetectorConfig(config,storeRepository));
+  NodeAvailabilityDetector nodeAvailabilityDetector=NodeAvailabilityDetectorUtils.create(config,storeRepository);
   storage=new StorageService(storeRepository,new VoldemortMetadata(cluster,storeDefs,0),scheduler,config,nodeAvailabilityDetector);
   storage.start();
 }

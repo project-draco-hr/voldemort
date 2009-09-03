@@ -2,7 +2,7 @@
   RequestHandlerFactory requestHandlerFactory=new RequestHandlerFactory(this.storeRepository,this.metadata,voldemortConfig);
   List<VoldemortService> services=new ArrayList<VoldemortService>();
   SchedulerService scheduler=new SchedulerService(voldemortConfig.getSchedulerThreads(),SystemTime.INSTANCE);
-  NodeAvailabilityDetector nodeAvailabilityDetector=NodeAvailabilityDetectorUtils.create(new ServerNodeAvailabilityDetectorConfig(voldemortConfig,storeRepository));
+  NodeAvailabilityDetector nodeAvailabilityDetector=NodeAvailabilityDetectorUtils.create(voldemortConfig,storeRepository);
   services.add(new StorageService(storeRepository,metadata,scheduler,voldemortConfig,nodeAvailabilityDetector));
   services.add(scheduler);
   if (voldemortConfig.isHttpServerEnabled())   services.add(new HttpService(this,storeRepository,RequestFormatType.VOLDEMORT_V1,voldemortConfig.getMaxThreads(),identityNode.getHttpPort()));
