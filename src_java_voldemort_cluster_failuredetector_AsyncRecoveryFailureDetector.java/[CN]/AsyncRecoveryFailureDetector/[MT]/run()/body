@@ -1,7 +1,6 @@
 {
   ByteArray key=new ByteArray((byte)1);
   while (!Thread.currentThread().isInterrupted()) {
-    System.out.println("Sleeping for " + failureDetectorConfig.getNodeBannagePeriod());
     try {
       Thread.sleep(failureDetectorConfig.getNodeBannagePeriod());
     }
@@ -21,7 +20,10 @@ synchronized (unavailableNodes) {
       }
       try {
         store.get(key);
-        recordSuccess(node);
+synchronized (unavailableNodes) {
+          unavailableNodes.remove(node);
+        }
+        setAvailable(node);
         if (logger.isInfoEnabled())         logger.info(node + " now available");
       }
  catch (      UnreachableStoreException e) {
