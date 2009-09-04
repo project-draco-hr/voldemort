@@ -1,5 +1,4 @@
 {
-  this.config=config;
   this.threadPool=new ClientThreadPool(config.getMaxThreads(),config.getThreadIdleTime(TimeUnit.MILLISECONDS),config.getMaxQueuedRequests());
   this.serializerFactory=config.getSerializerFactory();
   this.bootstrapUrls=validateUrls(config.getBootstrapUrls());
@@ -10,5 +9,5 @@
  else   this.mbeanServer=null;
   this.jmxId=jmxIdCounter.getAndIncrement();
   registerThreadPoolJmx(threadPool);
-  failureDetector=initFailureDetector();
+  failureDetector=initFailureDetector(config);
 }
