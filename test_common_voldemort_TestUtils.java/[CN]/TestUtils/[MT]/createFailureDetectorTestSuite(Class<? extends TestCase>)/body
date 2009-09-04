@@ -1,0 +1,20 @@
+{
+  TestSuite testSuite=new TestSuite();
+  List<Class<?>> classes=new ArrayList<Class<?>>();
+  classes.add(BannageTimeFailureDetector.class);
+  classes.add(AsyncRecoveryFailureDetector.class);
+  for (  Class<?> failureDetectorClass : classes) {
+    try {
+      for (      Method method : testCaseClass.getMethods()) {
+        if (!isTestMethod(method))         continue;
+        Test test=TestSuite.createTest(testCaseClass,method.getName());
+        ((FailureDetectorTestCase)test).setFailureDetectorClass((Class<FailureDetector>)failureDetectorClass);
+        testSuite.addTest(test);
+      }
+    }
+ catch (    Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+  return testSuite;
+}

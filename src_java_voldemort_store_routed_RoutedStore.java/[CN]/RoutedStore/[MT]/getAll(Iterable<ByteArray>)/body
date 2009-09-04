@@ -31,7 +31,7 @@
   for (  Map.Entry<Node,List<ByteArray>> entry : nodeToKeysMap.entrySet()) {
     final Node node=entry.getKey();
     final Collection<ByteArray> nodeKeys=entry.getValue();
-    if (nodeAvailabilityDetector.isAvailable(node))     callables.add(new GetAllCallable(node,nodeKeys));
+    if (failureDetector.isAvailable(node))     callables.add(new GetAllCallable(node,nodeKeys));
   }
   List<Throwable> failures=Lists.newArrayList();
   List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayList();
@@ -87,12 +87,12 @@ catch (    ExecutionException e) {
             List<Versioned<byte[]>> versioneds=result.get(key);
             if (versioneds == null)             result.put(key,Lists.newArrayList(values));
  else             versioneds.addAll(values);
-            nodeAvailabilityDetector.recordSuccess(node);
+            failureDetector.recordSuccess(node);
             if (++successCount >= storeDef.getPreferredReads())             break;
           }
  catch (          UnreachableStoreException e) {
             failures.add(e);
-            nodeAvailabilityDetector.recordException(node,e);
+            failureDetector.recordException(node,e);
           }
 catch (          Exception e) {
             logger.warn("Error in GET_ALL on node " + node.getId() + "("+ node.getHost()+ ")",e);

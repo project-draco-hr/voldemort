@@ -9,7 +9,7 @@
     store.put(key,Versioned.value(value));
     expectedValues.put(key,value);
   }
-  nodeAvailabilityDetector.recordException(cluster.getNodes().iterator().next(),null);
+  failureDetector.recordException(cluster.getNodes().iterator().next(),null);
   Map<ByteArray,List<Versioned<byte[]>>> all=store.getAll(expectedValues.keySet());
   assertEquals(expectedValues.size(),all.size());
   for (  Map.Entry<ByteArray,List<Versioned<byte[]>>> mapEntry : all.entrySet()) {
