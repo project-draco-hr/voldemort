@@ -49,7 +49,14 @@ catch (    ExecutionException e) {
       List<Versioned<byte[]>> fetched=innerStores.get(node.getId()).get(key);
       retrieved.addAll(fetched);
       if (repairReads) {
-        for (        Versioned<byte[]> f : fetched)         nodeValues.add(new NodeValue<ByteArray,byte[]>(node.getId(),key,f));
+        if (fetched.size() == 0) {
+          nodeValues.add(nullValue(node,key));
+        }
+ else {
+          for (          Versioned<byte[]> f : fetched) {
+            nodeValues.add(new NodeValue<ByteArray,byte[]>(node.getId(),key,f));
+          }
+        }
       }
       ++successes;
       node.getStatus().setAvailable();
