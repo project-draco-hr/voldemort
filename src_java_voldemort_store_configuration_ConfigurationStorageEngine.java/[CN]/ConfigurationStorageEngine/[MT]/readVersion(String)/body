@@ -1,0 +1,15 @@
+{
+  try {
+    File versionFile=new File(this.versionDirectory,key);
+    if (!versionFile.exists()) {
+      return new VectorClock();
+    }
+ else {
+      String hexCode=FileUtils.readFileToString(versionFile,"UTF-8");
+      return new VectorClock(Hex.decodeHex(hexCode.toCharArray()));
+    }
+  }
+ catch (  Exception e) {
+    throw new VoldemortException("Failed to read Version for Key:" + key,e);
+  }
+}
