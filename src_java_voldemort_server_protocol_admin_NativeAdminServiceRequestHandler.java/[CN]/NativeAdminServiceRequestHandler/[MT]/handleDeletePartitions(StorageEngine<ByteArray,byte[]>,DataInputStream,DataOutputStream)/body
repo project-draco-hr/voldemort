@@ -1,0 +1,29 @@
+{
+  int partitionSize=inputStream.readInt();
+  int[] partitionList=new int[partitionSize];
+  for (int i=0; i < partitionSize; i++) {
+    partitionList[i]=inputStream.readInt();
+  }
+  RoutingStrategy routingStrategy=getMetadataStore().getRoutingStrategy(engine.getName());
+  IoThrottler throttler=new IoThrottler(streamMaxBytesReadPerSec);
+  try {
+    ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=engine.entries();
+    int deleteSuccess=0;
+    while (iterator.hasNext()) {
+      Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
+      if (validPartition(entry.getFirst().get(),partitionList,routingStrategy)) {
+        if (engine.delete(entry.getFirst(),entry.getSecond().getVersion()))         deleteSuccess++;
+        if (throttler != null) {
+          throttler.maybeThrottle(entry.getFirst().get().length + entry.getSecond().getValue().length + ((VectorClock)entry.getSecond().getVersion()).sizeInBytes());
+        }
+      }
+    }
+    iterator.close();
+    outputStream.writeInt(deleteSuccess);
+    outputStream.writeShort(0);
+    outputStream.flush();
+  }
+ catch (  VoldemortException e) {
+    writeException(outputStream,e);
+  }
+}

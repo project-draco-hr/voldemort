@@ -1,22 +1,4 @@
 {
-  Node node=metadata.getCurrentCluster().getNodeById(nodeId);
-  SocketDestination destination=new SocketDestination(node.getHost(),node.getSocketPort(),RequestFormatType.ADMIN);
-  SocketAndStreams sands=pool.checkout(destination);
-  try {
-    DataOutputStream outputStream=sands.getOutputStream();
-    outputStream.writeByte(VoldemortOpCode.UPDATE_METADATA_OP_CODE);
-    outputStream.writeUTF(MetadataStore.STORES_KEY);
-    String storeDefString=new StoreDefinitionsMapper().writeStoreList(storesList);
-    outputStream.writeUTF(storeDefString);
-    outputStream.flush();
-    DataInputStream inputStream=sands.getInputStream();
-    checkException(inputStream);
-  }
- catch (  IOException e) {
-    close(sands.getSocket());
-    throw new VoldemortException(e);
-  }
- finally {
-    pool.checkin(destination,sands);
-  }
+  VectorClock oldClock=(VectorClock)getStoresMetadata(nodeId).getVersion();
+  doUpdateRemoteMetadata(nodeId,new ByteArray(ByteUtils.getBytes(MetadataStore.STORES_KEY,"UTF-8")),new Versioned<byte[]>(ByteUtils.getBytes(storeMapper.writeStoreList(storesList),"UTF-8"),oldClock.incremented(nodeId,1)));
 }

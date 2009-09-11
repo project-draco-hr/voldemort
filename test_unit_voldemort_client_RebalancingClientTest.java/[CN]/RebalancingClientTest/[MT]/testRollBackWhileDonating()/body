@@ -1,12 +1,12 @@
 {
   final Map<ByteArray,byte[]> keyValMap=populateTestKeys(1000,storeName);
-  Node node0=server0.getVoldemortMetadata().getCurrentCluster().getNodeById(0);
-  Node node1=server0.getVoldemortMetadata().getCurrentCluster().getNodeById(1);
+  Node node0=server0.getMetadataStore().getCluster().getNodeById(0);
+  Node node1=server0.getMetadataStore().getCluster().getNodeById(1);
   final Cluster targetCluster=new Cluster("rebalancing-client-test-donate",Arrays.asList(new Node[]{new Node(node0.getId(),node0.getHost(),node0.getHttpPort(),node0.getSocketPort(),Arrays.asList(0)),new Node(node1.getId(),node1.getHost(),node1.getHttpPort(),node1.getSocketPort(),Arrays.asList(1,2,3))}));
   ExecutorService executor=Executors.newFixedThreadPool(2);
   executor.execute(new Runnable(){
     public void run(){
-      rebalanceClient.donatePartitions(0,storeName,server0.getVoldemortMetadata().getCurrentCluster(),targetCluster);
+      rebalanceClient.donatePartitions(0,storeName,server0.getMetadataStore().getCluster(),targetCluster);
     }
   }
 );

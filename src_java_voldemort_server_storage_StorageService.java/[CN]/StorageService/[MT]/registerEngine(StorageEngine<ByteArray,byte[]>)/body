@@ -1,10 +1,10 @@
 {
-  Cluster cluster=this.metadata.getCurrentCluster();
+  Cluster cluster=this.metadata.getCluster();
   storeRepository.addStorageEngine(engine);
   Store<ByteArray,byte[]> store=engine;
   if (voldemortConfig.isVerboseLoggingEnabled())   store=new LoggingStore<ByteArray,byte[]>(store,cluster.getName(),SystemTime.INSTANCE);
-  if (voldemortConfig.isMetadataCheckingEnabled())   store=new InvalidMetadataCheckingStore(metadata.getIdentityNode().getId(),store,metadata);
-  if (voldemortConfig.isRedirectRoutingEnabled())   store=new RedirectingStore(metadata.getIdentityNode().getId(),store,metadata,socketPool);
+  if (voldemortConfig.isMetadataCheckingEnabled())   store=new InvalidMetadataCheckingStore(metadata.getNodeId(),store,metadata);
+  if (voldemortConfig.isRedirectRoutingEnabled())   store=new RedirectingStore(store,metadata,socketPool);
   if (voldemortConfig.isStatTrackingEnabled()) {
     store=new StatTrackingStore<ByteArray,byte[]>(store);
     if (voldemortConfig.isJmxEnabled()) {

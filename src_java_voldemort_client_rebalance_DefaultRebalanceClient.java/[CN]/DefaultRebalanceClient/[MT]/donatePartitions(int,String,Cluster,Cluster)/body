@@ -3,27 +3,26 @@
   Node donorNode=currentCluster.getNodeById(donorNodeId);
   if (donorNode != null) {
     try {
-      adminClient.changeServerState(donorNodeId,ServerState.REBALANCING_DONOR_STATE);
-      adminClient.updateClusterMetadata(donorNodeId,currentCluster,MetadataStore.ROLLBACK_CLUSTER_KEY);
-      adminClient.updateClusterMetadata(donorNodeId,targetCluster,MetadataStore.CLUSTER_KEY);
+      adminClient.updateServerState(donorNodeId,MetadataStore.ServerState.REBALANCING_DONOR_STATE);
+      adminClient.updateClusterMetadata(donorNodeId,targetCluster);
       for (      Node destNode : currentCluster.getNodes()) {
         if (destNode.getId() != donorNode.getId()) {
           List<Integer> donateList=getExtraPartitionList(targetCluster.getNodeById(destNode.getId()).getPartitionIds(),destNode.getPartitionIds());
           if (donateList.size() > 0) {
             logger.info("donating partitions to " + destNode.getId());
-            adminClient.changeServerState(destNode.getId(),ServerState.REBALANCING_STEALER_STATE);
-            adminClient.updateClusterMetadata(destNode.getId(),targetCluster,MetadataStore.CLUSTER_KEY);
+            adminClient.updateServerState(destNode.getId(),MetadataStore.ServerState.REBALANCING_STEALER_STATE);
+            adminClient.updateClusterMetadata(destNode.getId(),targetCluster);
             adminClient.fetchAndUpdateStreams(donorNode.getId(),destNode.getId(),storeName,donateList);
-            adminClient.changeServerState(destNode.getId(),ServerState.NORMAL_STATE);
+            adminClient.updateServerState(destNode.getId(),MetadataStore.ServerState.NORMAL_STATE);
           }
         }
       }
-      adminClient.changeServerState(donorNodeId,ServerState.NORMAL_STATE);
+      adminClient.updateServerState(donorNodeId,MetadataStore.ServerState.NORMAL_STATE);
     }
  catch (    Exception e) {
       for (      Node node : currentCluster.getNodes()) {
-        adminClient.changeServerState(node.getId(),ServerState.NORMAL_STATE);
-        adminClient.updateClusterMetadata(node.getId(),currentCluster,MetadataStore.CLUSTER_KEY);
+        adminClient.updateServerState(node.getId(),MetadataStore.ServerState.NORMAL_STATE);
+        adminClient.updateClusterMetadata(node.getId(),currentCluster);
       }
       throw new VoldemortException("Donate Partitions for " + donorNodeId + " failed",e);
     }

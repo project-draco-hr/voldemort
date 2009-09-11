@@ -1,6 +1,6 @@
 {
-  List<StoreDefinition> storesList=new ArrayList<StoreDefinition>(server.getVoldemortMetadata().getStoreDefs().values());
-  assertNotSame("StoreDefinition for 'users' should not be nul ",null,server.getVoldemortMetadata().getStoreDef("users"));
+  List<StoreDefinition> storesList=new ArrayList<StoreDefinition>(server.getMetadataStore().getStores());
+  assertNotSame("StoreDefinition for 'users' should not be nul ",null,server.getMetadataStore().getStore("users"));
   int id=-1;
   for (  StoreDefinition def : storesList) {
     if (def.getName().equals("users")) {
@@ -10,10 +10,10 @@
   if (id != -1) {
     storesList.remove(id);
   }
-  AdminClientRequestFormat client=getAdminClient();
+  NativeAdminClientRequestFormat client=getAdminClient();
   client.updateStoresMetadata(server.getIdentityNode().getId(),storesList);
   boolean foundUserStore=false;
-  for (  StoreDefinition def : server.getVoldemortMetadata().getStoreDefs().values()) {
+  for (  StoreDefinition def : server.getMetadataStore().getStores()) {
     if (def.getName().equals("users")) {
       foundUserStore=true;
     }

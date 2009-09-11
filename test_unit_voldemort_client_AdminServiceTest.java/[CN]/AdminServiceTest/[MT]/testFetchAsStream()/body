@@ -6,16 +6,16 @@
     byte[] value=ByteUtils.getBytes("value-" + i,"UTF-8");
     store.put(key,new Versioned<byte[]>(value));
   }
-  AdminClientRequestFormat client=getAdminClient();
-  Iterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=client.fetchPartitionEntries(0,storeName,Arrays.asList(new Integer[]{0}));
-  StoreDefinition storeDef=server.getVoldemortMetadata().getStoreDef(storeName);
+  NativeAdminClientRequestFormat client=getAdminClient();
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=client.doFetchPartitionEntries(0,storeName,Arrays.asList(new Integer[]{0}));
+  StoreDefinition storeDef=server.getMetadataStore().getStore(storeName);
   assertNotSame("StoreDefinition for 'users' should not be nul ",null,storeDef);
-  RoutingStrategy routingStrategy=new RoutingStrategyFactory(server.getVoldemortMetadata().getCurrentCluster()).getRoutingStrategy(storeDef);
+  RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,server.getMetadataStore().getCluster());
   while (entryIterator.hasNext()) {
     Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
     checkEntriesForPartitions(entry.getFirst().get(),new int[]{0},routingStrategy);
   }
-  entryIterator=client.fetchPartitionEntries(0,storeName,Arrays.asList(new Integer[]{0,1}));
+  entryIterator=client.doFetchPartitionEntries(0,storeName,Arrays.asList(new Integer[]{0,1}));
   Set<Integer> partitionSet2=new HashSet<Integer>();
   while (entryIterator.hasNext()) {
     Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();

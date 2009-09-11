@@ -1,5 +1,5 @@
 {
-  RoutingStrategy routingStrategy=new ConsistentRoutingStrategy(server.getVoldemortMetadata().getCurrentCluster().getNodes(),1);
+  RoutingStrategy routingStrategy=new ConsistentRoutingStrategy(server.getMetadataStore().getCluster().getNodes(),1);
   SocketStore socketStore=ServerTestUtils.getSocketStore(storeName,server.getIdentityNode().getSocketPort(),RequestFormatType.VOLDEMORT_V1);
   for (  Entry<ByteArray,byte[]> entry : keyValMap.entrySet()) {
     int keyPartition=routingStrategy.getPartitionList(entry.getKey().get()).get(0);

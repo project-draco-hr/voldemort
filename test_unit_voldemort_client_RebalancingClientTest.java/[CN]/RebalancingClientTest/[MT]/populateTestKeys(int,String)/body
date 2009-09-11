@@ -2,7 +2,7 @@
   Map<ByteArray,byte[]> keyValMap=new HashMap<ByteArray,byte[]>();
   Store<ByteArray,byte[]> store0=server0.getStoreRepository().getStorageEngine(storeName);
   Store<ByteArray,byte[]> store1=server1.getStoreRepository().getStorageEngine(storeName);
-  RoutingStrategy routingStrategy=new ConsistentRoutingStrategy(server0.getVoldemortMetadata().getCurrentCluster().getNodes(),1);
+  RoutingStrategy routingStrategy=new ConsistentRoutingStrategy(server0.getMetadataStore().getCluster().getNodes(),1);
   for (int i=0; i <= total_keys; i++) {
     int rand_key=(int)(Math.random() * Integer.MAX_VALUE);
     ByteArray key=new ByteArray(ByteUtils.getBytes("" + rand_key,"UTF-8"));
