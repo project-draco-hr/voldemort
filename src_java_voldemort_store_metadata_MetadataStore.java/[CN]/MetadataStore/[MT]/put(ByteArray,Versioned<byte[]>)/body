@@ -1,19 +1,9 @@
 {
-  String keyStr=ByteUtils.getString(key.get(),"UTF-8");
-  String valueStr=ByteUtils.getString(value.getValue(),"UTF-8");
-  Version version=value.getVersion();
-  if (KNOWN_KEYS.contains(keyStr)) {
-    if (CLUSTER_KEY.equals(keyStr)) {
-      metadataCache.put(keyStr,new Versioned<Object>(clusterMapper.readCluster(new StringReader(valueStr)),version));
-    }
- else     if (STORES_KEY.equals(keyStr)) {
-      metadataCache.put(keyStr,new Versioned<Object>(storeMapper.readStoreList(new StringReader(valueStr)),version));
-    }
- else     if (SERVER_STATE_KEY.equals(keyStr) || REBALANCING_PROXY_DEST.equals(keyStr)) {
-      metadataCache.put(keyStr,new Versioned<Object>(valueStr,version));
-    }
+  String key=ByteUtils.getString(keyBytes.get(),"UTF-8");
+  if (METADATA_KEYS.contains(key)) {
+    metadataCache.put(key,convertBytesToObject(key,value));
+  }
  else {
-      throw new VoldemortException("Unhandled Key:" + keyStr + " for MetadataStore put()");
-    }
+    throw new VoldemortException("Unhandled Key:" + key + " for MetadataStore put()");
   }
 }

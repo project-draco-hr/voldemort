@@ -1,0 +1,29 @@
+{
+  Object valueObject=null;
+  Versioned<String> value=new Versioned<String>(ByteUtils.getString(valueBytes.getValue(),"UTF-8"),valueBytes.getVersion());
+  if (CLUSTER_KEY.equals(key)) {
+    valueObject=clusterMapper.readCluster(new StringReader(value.getValue()));
+  }
+ else   if (STORES_KEY.equals(key)) {
+    valueObject=storeMapper.readStoreList(new StringReader(value.getValue()));
+  }
+ else   if (SERVER_STATE_KEY.equals(key)) {
+    valueObject=ServerState.valueOf(value.getValue());
+  }
+ else   if (REBALANCING_PROXY_DEST.equals(key)) {
+    valueObject=Integer.parseInt(value.getValue());
+  }
+ else   if (REBALANCING_PARTITIONS_LIST.equals(key)) {
+    List<Integer> list=new ArrayList<Integer>();
+    if (value.getValue().trim().length() > 0) {
+      String[] partitions=value.getValue().split(",");
+      if (partitions.length > 0) {
+        for (        String partition : partitions) {
+          list.add(Integer.parseInt(partition));
+        }
+      }
+    }
+    valueObject=list;
+  }
+  return new Versioned<Object>(valueObject,value.getVersion());
+}
