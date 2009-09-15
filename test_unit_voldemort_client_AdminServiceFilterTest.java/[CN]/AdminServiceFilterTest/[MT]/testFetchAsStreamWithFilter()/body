@@ -1,0 +1,20 @@
+{
+  Store<ByteArray,byte[]> store=server.getStoreRepository().getStorageEngine(storeName);
+  assertNotSame("Store '" + storeName + "' should not be null",null,store);
+  VoldemortFilter filter=new VoldemortFilterImpl();
+  int shouldFilterCount=0;
+  for (  Pair<ByteArray,Versioned<byte[]>> pair : createEntries()) {
+    store.put(pair.getFirst(),pair.getSecond());
+    if (!filter.filter(pair.getFirst(),pair.getSecond())) {
+      shouldFilterCount++;
+    }
+  }
+  assertNotSame("should be filtered key count shoud not be 0.",0,shouldFilterCount);
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=getAdminClient().doFetchPartitionEntries(0,storeName,Arrays.asList(new Integer[]{0}),filter);
+  while (entryIterator.hasNext()) {
+    Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
+    if (!filter.filter(entry.getFirst(),entry.getSecond())) {
+      fail();
+    }
+  }
+}

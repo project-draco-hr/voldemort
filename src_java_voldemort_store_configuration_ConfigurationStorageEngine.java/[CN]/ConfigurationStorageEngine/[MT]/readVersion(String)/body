@@ -2,7 +2,9 @@
   try {
     File versionFile=new File(this.versionDirectory,key);
     if (!versionFile.exists()) {
-      return new VectorClock();
+      VectorClock clock=new VectorClock();
+      writeVersion(key,clock);
+      return clock;
     }
  else {
       String hexCode=FileUtils.readFileToString(versionFile,"UTF-8");

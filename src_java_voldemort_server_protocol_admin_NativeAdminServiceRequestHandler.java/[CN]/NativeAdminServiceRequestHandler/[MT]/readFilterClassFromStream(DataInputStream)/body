@@ -1,0 +1,14 @@
+{
+  try {
+    String className=inputStream.readUTF();
+    int size=inputStream.readInt();
+    byte[] classBytes=new byte[size];
+    int read=inputStream.read(classBytes);
+    if (size != read)     throw new VoldemortException("Failed to read classBytes properly expected:" + size + " read:"+ read);
+    Class<?> cl=networkClassLoader.loadClass(className,classBytes,0,classBytes.length);
+    return (VoldemortFilter)cl.newInstance();
+  }
+ catch (  Exception e) {
+    throw new VoldemortException("Failed to read and instantiate Filter class",e);
+  }
+}

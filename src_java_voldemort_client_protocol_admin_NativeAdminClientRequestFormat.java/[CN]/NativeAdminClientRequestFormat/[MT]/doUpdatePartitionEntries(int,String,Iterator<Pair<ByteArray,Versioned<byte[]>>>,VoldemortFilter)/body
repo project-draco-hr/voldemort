@@ -1,0 +1,36 @@
+{
+  Node node=this.getMetadata().getCluster().getNodeById(nodeId);
+  filter=(null == filter) ? new DefaultVoldemortFilter() : filter;
+  SocketDestination destination=new SocketDestination(node.getHost(),node.getSocketPort(),RequestFormatType.ADMIN);
+  SocketAndStreams sands=pool.checkout(destination);
+  DataOutputStream outputStream=sands.getOutputStream();
+  DataInputStream inputStream=sands.getInputStream();
+  try {
+    outputStream.writeByte(VoldemortOpCode.PUT_ENTRIES_AS_STREAM_OP_CODE);
+    outputStream.writeUTF(storeName);
+    outputStream.flush();
+    while (entryIterator.hasNext()) {
+      Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
+      if (filter.filter(entry.getFirst(),entry.getSecond())) {
+        outputStream.writeInt(entry.getFirst().length());
+        outputStream.write(entry.getFirst().get());
+        Versioned<byte[]> value=entry.getSecond();
+        VectorClock clock=(VectorClock)value.getVersion();
+        outputStream.writeInt(value.getValue().length + clock.sizeInBytes());
+        outputStream.write(clock.toBytes());
+        outputStream.write(value.getValue());
+        outputStream.flush();
+        checkException(inputStream);
+      }
+    }
+    outputStream.writeInt(-1);
+    outputStream.flush();
+  }
+ catch (  IOException e) {
+    close(sands.getSocket());
+    throw new VoldemortException(e);
+  }
+ finally {
+    pool.checkin(destination,sands);
+  }
+}

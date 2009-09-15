@@ -4,6 +4,7 @@
   for (int i=0; i < partitionSize; i++) {
     partitionList[i]=inputStream.readInt();
   }
+  VoldemortFilter filter=readFilterClassFromStream(inputStream);
   RoutingStrategy routingStrategy=getMetadataStore().getRoutingStrategy(engine.getName());
   IoThrottler throttler=new IoThrottler(streamMaxBytesReadPerSec);
   try {
@@ -11,8 +12,10 @@
     int deleteSuccess=0;
     while (iterator.hasNext()) {
       Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
-      if (validPartition(entry.getFirst().get(),partitionList,routingStrategy)) {
-        if (engine.delete(entry.getFirst(),entry.getSecond().getVersion()))         deleteSuccess++;
+      if (validPartition(entry.getFirst().get(),partitionList,routingStrategy) && filter.filter(entry.getFirst(),entry.getSecond())) {
+        if (engine.delete(entry.getFirst(),entry.getSecond().getVersion())) {
+          deleteSuccess++;
+        }
         if (throttler != null) {
           throttler.maybeThrottle(entry.getFirst().get().length + entry.getSecond().getValue().length + ((VectorClock)entry.getSecond().getVersion()).sizeInBytes());
         }

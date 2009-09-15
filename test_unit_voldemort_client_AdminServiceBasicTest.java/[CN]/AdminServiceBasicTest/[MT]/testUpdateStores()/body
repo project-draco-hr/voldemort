@@ -1,0 +1,22 @@
+{
+  List<StoreDefinition> storesList=new ArrayList<StoreDefinition>(server.getMetadataStore().getStoreDefList());
+  assertNotSame("StoreDefinition for 'users' should not be nul ",null,server.getMetadataStore().getStoreDef("users"));
+  int id=-1;
+  for (  StoreDefinition def : storesList) {
+    if (def.getName().equals("users")) {
+      id=storesList.indexOf(def);
+    }
+  }
+  if (id != -1) {
+    storesList.remove(id);
+  }
+  NativeAdminClientRequestFormat client=getAdminClient();
+  client.updateStoresMetadata(server.getIdentityNode().getId(),storesList);
+  boolean foundUserStore=false;
+  for (  StoreDefinition def : server.getMetadataStore().getStoreDefList()) {
+    if (def.getName().equals("users")) {
+      foundUserStore=true;
+    }
+  }
+  assertEquals("Store users should no longer be available",false,foundUserStore);
+}

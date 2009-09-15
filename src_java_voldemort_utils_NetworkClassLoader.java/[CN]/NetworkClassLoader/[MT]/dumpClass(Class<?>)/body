@@ -1,7 +1,12 @@
 {
   String filename=cl.getName().replace('.',File.separatorChar) + ".class";
-  InputStream in=this.getResourceAsStream(filename);
-  byte[] classBytes=new byte[in.available()];
-  in.read(classBytes);
-  return classBytes;
+  InputStream in=null;
+  try {
+    in=this.getResourceAsStream(filename);
+    byte[] classBytes=IOUtils.toByteArray(in);
+    return classBytes;
+  }
+  finally {
+    if (null != in)     in.close();
+  }
 }

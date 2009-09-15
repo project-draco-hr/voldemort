@@ -11,6 +11,9 @@
  else       if (value.getVersion().compare(clock) == Occured.BEFORE) {
         throw new ObsoleteVersionException("A successor version to this exists.");
       }
+ else       if (value.getVersion().compare(clock) == Occured.CONCURRENTLY) {
+        throw new ObsoleteVersionException("Concurrent Operation not allowed on Metadata.");
+      }
     }
   }
   VectorClock clock=(VectorClock)value.getVersion();
