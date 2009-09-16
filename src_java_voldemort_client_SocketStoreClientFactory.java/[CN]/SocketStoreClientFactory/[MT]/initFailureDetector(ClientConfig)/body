@@ -1,8 +1,17 @@
 {
+  failureDetectorListener=new FailureDetectorListener(){
+    public void nodeOnline(    Node node){
+    }
+    public void nodeOffline(    Node node){
+      SocketDestination destination=new SocketDestination(node.getHost(),node.getSocketPort(),config.getRequestFormatType());
+      socketPool.close(destination);
+    }
+  }
+;
   return FailureDetectorUtils.create(new ClientFailureDetectorConfig(config){
     @Override protected Store<ByteArray,byte[]> getStoreInternal(    Node node){
       return SocketStoreClientFactory.this.getStore(MetadataStore.METADATA_STORE_NAME,node.getHost(),node.getSocketPort(),config.getRequestFormatType());
     }
   }
-);
+,failureDetectorListener);
 }
