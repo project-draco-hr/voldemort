@@ -1,0 +1,16 @@
+{
+  ByteArray key=TestUtils.toByteArray("key");
+  byte[] value="foo".getBytes();
+  Cluster cluster=VoldemortTestConstants.getThreeNodeCluster();
+  StoreDefinition storeDef=ServerTestUtils.getStoreDef("test",3,3,3,2,2,RoutingStrategyType.CONSISTENT_STRATEGY);
+  Map<Integer,Store<ByteArray,byte[]>> subStores=Maps.newHashMap();
+  for (int a=0; a < 3; a++) {
+    subStores.put(Iterables.get(cluster.getNodes(),a).getId(),new InMemoryStorageEngine<ByteArray,byte[]>("test"));
+  }
+  RoutedStore store=new RoutedStore("test",subStores,cluster,storeDef,1,true,1000L);
+  Iterables.get(cluster.getNodes(),0).getStatus().setUnavailable();
+  store.put(key,new Versioned<byte[]>(value));
+  Iterables.get(cluster.getNodes(),0).getStatus().setAvailable();
+  assertEquals(2,store.get(key).size());
+  assertEquals(3,store.get(key).size());
+}

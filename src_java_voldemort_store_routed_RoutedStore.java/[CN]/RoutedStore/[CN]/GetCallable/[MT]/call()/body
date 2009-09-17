@@ -6,7 +6,14 @@
     if (logger.isTraceEnabled())     logger.trace("Attempting get operation on node " + node.getId() + " for key '"+ ByteUtils.toHexString(key.get())+ "'.");
     fetched=innerStores.get(node.getId()).get(key);
     if (repairReads) {
-      for (      Versioned<byte[]> f : fetched)       nodeValues.add(new NodeValue<ByteArray,byte[]>(node.getId(),key,f));
+      if (fetched.isEmpty()) {
+        nodeValues.add(nullValue(node,key));
+      }
+ else {
+        for (        Versioned<byte[]> f : fetched) {
+          nodeValues.add(new NodeValue<ByteArray,byte[]>(node.getId(),key,f));
+        }
+      }
     }
     node.getStatus().setAvailable();
   }
