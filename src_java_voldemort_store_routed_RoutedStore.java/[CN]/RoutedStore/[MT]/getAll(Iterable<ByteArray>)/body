@@ -84,6 +84,7 @@ catch (    ExecutionException e) {
         for (        Node node : extraNodes) {
           try {
             List<Versioned<byte[]>> values=innerStores.get(node.getId()).get(key);
+            fillRepairReadsValues(nodeValues,key,node,values);
             List<Versioned<byte[]>> versioneds=result.get(key);
             if (versioneds == null)             result.put(key,Lists.newArrayList(values));
  else             versioneds.addAll(values);
@@ -103,9 +104,7 @@ catch (          Exception e) {
     }
     successCountWrapper.setValue(successCount);
   }
-  for (  Map.Entry<ByteArray,List<Versioned<byte[]>>> entry : result.entrySet()) {
-    if (repairReads && entry.getValue().size() > 1)     repairReads(nodeValues);
-  }
+  repairReads(nodeValues);
   for (  Map.Entry<ByteArray,MutableInt> mapEntry : keyToSuccessCount.entrySet()) {
     int successCount=mapEntry.getValue().intValue();
     if (successCount < storeDef.getRequiredReads())     throw new InsufficientOperationalNodesException(this.storeDef.getRequiredReads() + " reads required, but " + successCount+ " succeeded.",failures);

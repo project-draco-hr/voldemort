@@ -48,16 +48,7 @@ catch (    ExecutionException e) {
     try {
       List<Versioned<byte[]>> fetched=innerStores.get(node.getId()).get(key);
       retrieved.addAll(fetched);
-      if (repairReads) {
-        if (fetched.size() == 0) {
-          nodeValues.add(nullValue(node,key));
-        }
- else {
-          for (          Versioned<byte[]> f : fetched) {
-            nodeValues.add(new NodeValue<ByteArray,byte[]>(node.getId(),key,f));
-          }
-        }
-      }
+      fillRepairReadsValues(nodeValues,key,node,fetched);
       ++successes;
       node.getStatus().setAvailable();
     }
@@ -72,7 +63,7 @@ catch (    Exception e) {
     nodeIndex++;
   }
   if (logger.isTraceEnabled())   logger.trace("GET retrieved the following node values: " + formatNodeValues(nodeValues));
-  if (repairReads && nodeValues.size() > 1)   repairReads(nodeValues);
+  repairReads(nodeValues);
   if (successes >= this.storeDef.getRequiredReads())   return retrieved;
  else   throw new InsufficientOperationalNodesException(this.storeDef.getRequiredReads() + " reads required, but " + successes+ " succeeded.",failures);
 }
