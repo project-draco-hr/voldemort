@@ -13,4 +13,10 @@
   Iterables.get(cluster.getNodes(),0).getStatus().setAvailable();
   assertEquals(2,store.get(key).size());
   assertEquals(3,store.get(key).size());
+  ByteArray anotherKey=TestUtils.toByteArray("anotherKey");
+  Iterables.get(cluster.getNodes(),0).getStatus().setUnavailable();
+  store.put(anotherKey,new Versioned<byte[]>(value));
+  Iterables.get(cluster.getNodes(),0).getStatus().setAvailable();
+  assertEquals(2,store.getAll(Arrays.asList(anotherKey)).get(anotherKey).size());
+  assertEquals(3,store.get(anotherKey).size());
 }
