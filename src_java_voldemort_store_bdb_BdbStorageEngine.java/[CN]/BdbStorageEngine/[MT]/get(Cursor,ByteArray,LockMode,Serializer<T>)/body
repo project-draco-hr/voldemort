@@ -1,0 +1,10 @@
+{
+  StoreUtils.assertValidKey(key);
+  DatabaseEntry keyEntry=new DatabaseEntry(key.get());
+  DatabaseEntry valueEntry=new DatabaseEntry();
+  List<T> results=Lists.newArrayList();
+  for (OperationStatus status=cursor.getSearchKey(keyEntry,valueEntry,lockMode); status == OperationStatus.SUCCESS; status=cursor.getNextDup(keyEntry,valueEntry,LockMode.RMW)) {
+    results.add(serializer.toObject(valueEntry.getData()));
+  }
+  return results;
+}
