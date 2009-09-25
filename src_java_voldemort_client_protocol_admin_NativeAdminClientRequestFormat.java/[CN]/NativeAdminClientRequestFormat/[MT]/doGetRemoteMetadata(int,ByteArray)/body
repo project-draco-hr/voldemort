@@ -1,0 +1,29 @@
+{
+  Node node=this.getMetadata().getCluster().getNodeById(remoteNodeId);
+  SocketDestination destination=new SocketDestination(node.getHost(),node.getSocketPort(),RequestFormatType.ADMIN);
+  SocketAndStreams sands=pool.checkout(destination);
+  try {
+    DataOutputStream outputStream=sands.getOutputStream();
+    outputStream.writeByte(VoldemortOpCode.GET_METADATA_OP_CODE);
+    writeBytes(outputStream,key.get());
+    outputStream.flush();
+    DataInputStream inputStream=sands.getInputStream();
+    int size=inputStream.readInt();
+    if (1 == size) {
+      byte[] versionedData=readBytes(inputStream);
+      VectorClock clock=new VectorClock(versionedData);
+      byte[] data=ByteUtils.copy(versionedData,clock.sizeInBytes(),versionedData.length);
+      Versioned<byte[]> versionedValue=new Versioned<byte[]>(data,clock);
+      checkException(inputStream);
+      return versionedValue;
+    }
+    throw new VoldemortException("Failed to read metadata " + ByteUtils.getString(key.get(),"UTF-8") + " from node:"+ remoteNodeId);
+  }
+ catch (  IOException e) {
+    close(sands.getSocket());
+    throw new VoldemortException(e);
+  }
+ finally {
+    pool.checkin(destination,sands);
+  }
+}

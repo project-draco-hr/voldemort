@@ -1,0 +1,10 @@
+{
+  Cluster cluster=server.getMetadataStore().getCluster();
+  ArrayList<Node> nodes=new ArrayList<Node>(cluster.getNodes());
+  nodes.add(new Node(3,"localhost",8883,6668,ImmutableList.of(4,5)));
+  Cluster updatedCluster=new Cluster("new-cluster",nodes);
+  NativeAdminClientRequestFormat client=getAdminClient();
+  client.updateClusterMetadata(server.getIdentityNode().getId(),updatedCluster);
+  assertEquals("Cluster should match",updatedCluster,server.getMetadataStore().getCluster());
+  assertEquals("AdminClient.getMetdata() should match",client.getClusterMetadata(server.getIdentityNode().getId()).getValue(),updatedCluster);
+}

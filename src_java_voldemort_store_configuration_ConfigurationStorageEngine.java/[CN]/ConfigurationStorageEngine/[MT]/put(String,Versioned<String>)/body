@@ -1,0 +1,31 @@
+{
+  StoreUtils.assertValidKey(key);
+  if (null == value.getValue()) {
+    throw new VoldemortException("metadata cannot be null !!");
+  }
+  File[] files=this.directory.listFiles();
+  for (  File file : files) {
+    if (file.getName().equals(key)) {
+      VectorClock clock=readVersion(key);
+      if (value.getVersion().compare(clock) == Occured.AFTER)       updateBackup(key);
+ else       if (value.getVersion().compare(clock) == Occured.BEFORE) {
+        throw new ObsoleteVersionException("A successor version to this exists.");
+      }
+ else       if (value.getVersion().compare(clock) == Occured.CONCURRENTLY) {
+        throw new ObsoleteVersionException("Concurrent Operation not allowed on Metadata.");
+      }
+    }
+  }
+  VectorClock clock=(VectorClock)value.getVersion();
+  File keyFile=new File(this.directory,key);
+  if (!keyFile.exists() || keyFile.delete()) {
+    try {
+      FileUtils.writeStringToFile(keyFile,value.getValue(),"UTF-8");
+      writeVersion(key,clock);
+    }
+ catch (    IOException e) {
+      rollbackFromBackup(key);
+      throw new VoldemortException(e);
+    }
+  }
+}

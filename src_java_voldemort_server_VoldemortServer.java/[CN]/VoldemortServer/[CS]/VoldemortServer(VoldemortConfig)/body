@@ -2,7 +2,7 @@
   super(ServiceType.VOLDEMORT);
   this.voldemortConfig=config;
   this.storeRepository=new StoreRepository();
-  this.metadata=new VoldemortMetadata(this.voldemortConfig.getMetadataDirectory(),voldemortConfig.getNodeId());
-  this.identityNode=metadata.getCurrentCluster().getNodeById(voldemortConfig.getNodeId());
+  this.metadata=MetadataStore.readFromDirectory(new File(this.voldemortConfig.getMetadataDirectory()),voldemortConfig.getNodeId());
+  this.identityNode=metadata.getCluster().getNodeById(voldemortConfig.getNodeId());
   this.services=createServices();
 }

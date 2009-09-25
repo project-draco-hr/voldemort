@@ -1,0 +1,24 @@
+{
+  Node node=this.getMetadata().getCluster().getNodeById(nodeId);
+  final SocketDestination destination=new SocketDestination(node.getHost(),node.getSocketPort(),RequestFormatType.ADMIN);
+  final SocketAndStreams sands=pool.checkout(destination);
+  try {
+    DataOutputStream outputStream=sands.getOutputStream();
+    outputStream.writeByte(VoldemortOpCode.DELETE_PARTITIONS_OP_CODE);
+    outputStream.writeUTF(storeName);
+    outputStream.writeInt(partitionList.size());
+    for (    Integer p : partitionList) {
+      outputStream.writeInt(p.intValue());
+    }
+    writeFilterClassToStream(outputStream,filter);
+    outputStream.flush();
+    final DataInputStream inputStream=sands.getInputStream();
+    int deleteSuccessCount=inputStream.readInt();
+    checkException(inputStream);
+    return deleteSuccessCount;
+  }
+ catch (  IOException e) {
+    close(sands.getSocket());
+    throw new VoldemortException(e);
+  }
+}

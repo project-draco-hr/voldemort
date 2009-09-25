@@ -13,8 +13,18 @@
   testObsoletePutFails("Put of obsolete version succeeded.",store,key,new Versioned<V>(getValue(),getClock(1)));
   assertEquals("Should still only be one version in store.",store.get(key).size(),1);
   assertContains(store.get(key),versioned);
-  store.put(key,new Versioned<V>(getValue(),getClock(1,2)));
-  assertEquals(2,store.get(key).size());
+  if (allowConcurrentOperations()) {
+    store.put(key,new Versioned<V>(getValue(),getClock(1,2)));
+    assertEquals(2,store.get(key).size());
+  }
+ else {
+    try {
+      store.put(key,new Versioned<V>(getValue(),getClock(1,2)));
+      fail();
+    }
+ catch (    ObsoleteVersionException e) {
+    }
+  }
   Versioned<V> newest=new Versioned<V>(getValue(),getClock(1,1,2,2));
   store.put(key,newest);
   assertContains(store.get(key),newest);

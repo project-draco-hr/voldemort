@@ -1,0 +1,15 @@
+{
+  File keyFile=new File(this.directory,key);
+  File versionFile=new File(this.versionDirectory,key);
+  if (keyFile.exists() && versionFile.exists()) {
+    File backupKeyFile=new File(this.backupDirectory,key);
+    File backupVersionFile=new File(this.backupVersionDirectory,key);
+    try {
+      if (backupKeyFile.delete() && backupVersionFile.delete())       return keyFile.renameTo(backupKeyFile) && versionFile.renameTo(backupVersionFile);
+    }
+ catch (    Exception e) {
+      logger.error("Failed to backup with exception ",e);
+    }
+  }
+  return false;
+}

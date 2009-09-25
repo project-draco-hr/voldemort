@@ -1,0 +1,15 @@
+{
+  RoutingStrategy routingStrategy=new ConsistentRoutingStrategy(server.getMetadataStore().getCluster().getNodes(),1);
+  SocketStore socketStore=ServerTestUtils.getSocketStore(storeName,server.getIdentityNode().getSocketPort(),RequestFormatType.VOLDEMORT_V1);
+  for (  Entry<ByteArray,byte[]> entry : keyValMap.entrySet()) {
+    int keyPartition=routingStrategy.getPartitionList(entry.getKey().get()).get(0);
+    if (checkPartitionsList.contains(keyPartition)) {
+      try {
+        socketStore.get(entry.getKey());
+        fail("Key not belonging to this partition should throw InvalidMetadataException:");
+      }
+ catch (      InvalidMetadataException e) {
+      }
+    }
+  }
+}
