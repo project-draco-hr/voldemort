@@ -1,0 +1,15 @@
+{
+  VoldemortAdminRequest.Builder request=ProtoUtils.readToBuilder(inputStream,VoldemortAdminRequest.newBuilder());
+  Message response;
+switch (request.getType()) {
+case GET_METADATA:
+    response=handleGetMetadata(request.getGetMetadata());
+  break;
+case UPDATE_METADATA:
+response=handleUpdateMetadata(request.getUpdateMetadata());
+break;
+default :
+throw new VoldemortException("Unkown operation " + request.getType());
+}
+ProtoUtils.writeMessage(outputStream,response);
+}
