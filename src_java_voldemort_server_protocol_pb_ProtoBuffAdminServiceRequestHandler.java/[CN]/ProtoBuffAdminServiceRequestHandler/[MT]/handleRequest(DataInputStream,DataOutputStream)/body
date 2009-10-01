@@ -8,8 +8,12 @@ case GET_METADATA:
 case UPDATE_METADATA:
 response=handleUpdateMetadata(request.getUpdateMetadata());
 break;
+case DELETE_PARTITION_ENTRIES:
+response=handleDeletePartitionEntries(request.getDeletePartitionEntries());
+break;
 default :
 throw new VoldemortException("Unkown operation " + request.getType());
 }
 ProtoUtils.writeMessage(outputStream,response);
+outputStream.flush();
 }
