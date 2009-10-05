@@ -1,22 +1,2 @@
 {
-  VoldemortAdminRequest.Builder request=ProtoUtils.readToBuilder(inputStream,VoldemortAdminRequest.newBuilder());
-  Message response;
-switch (request.getType()) {
-case GET_METADATA:
-    response=handleGetMetadata(request.getGetMetadata());
-  break;
-case UPDATE_METADATA:
-response=handleUpdateMetadata(request.getUpdateMetadata());
-break;
-case DELETE_PARTITION_ENTRIES:
-response=handleDeletePartitionEntries(request.getDeletePartitionEntries());
-break;
-case REDIRECT_GET:
-response=handleRedirectGet(request.getRedirectGet());
-break;
-default :
-throw new VoldemortException("Unkown operation " + request.getType());
-}
-ProtoUtils.writeMessage(outputStream,response);
-outputStream.flush();
 }
