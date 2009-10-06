@@ -1,0 +1,40 @@
+{
+  try {
+    String storeName=request.getStore();
+    StorageEngine<ByteArray,byte[]> storageEngine=storeRepository.getStorageEngine(storeName);
+    if (storageEngine == null) {
+      throw new VoldemortException("No store named '" + storeName + "'.");
+    }
+    RoutingStrategy routingStrategy=metadataStore.getRoutingStrategy(storageEngine.getName());
+    IoThrottler throttler=new IoThrottler(streamMaxBytesReadPerSec);
+    List<Integer> partitionList=request.getPartitionsList();
+    VoldemortFilter filter;
+    if (request.hasFilter()) {
+      filter=getFilterFromRequest(request.getFilter());
+    }
+ else {
+      filter=new DefaultVoldemortFilter();
+    }
+    ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=storageEngine.entries();
+    Queue<Pair<ByteArray,Versioned<byte[]>>> buffer=new LinkedList<Pair<ByteArray,Versioned<byte[]>>>();
+    while (iterator.hasNext()) {
+      Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
+      if (validPartition(entry.getFirst().get(),partitionList,routingStrategy) && filter.filter(entry.getFirst(),entry.getSecond())) {
+        buffer.add(entry);
+      }
+      if (buffer.size() > streamBufferSize) {
+        int bytesWritten=writeBufferToStream(buffer,outputStream,false);
+        if (throttler != null) {
+          throttler.maybeThrottle(bytesWritten + 1);
+        }
+      }
+    }
+    writeBufferToStream(buffer,outputStream,true);
+  }
+ catch (  VoldemortException e) {
+    VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    response.setContinue(false);
+    writeMessageAndFlush(response.build(),outputStream);
+  }
+}

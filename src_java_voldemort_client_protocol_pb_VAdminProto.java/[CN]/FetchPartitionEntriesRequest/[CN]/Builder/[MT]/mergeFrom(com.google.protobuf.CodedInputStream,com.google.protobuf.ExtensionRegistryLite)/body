@@ -14,19 +14,24 @@ default :
     }
     break;
   }
-case 10:
+case 8:
 {
-  setStore(input.readString());
+  addPartitions(input.readInt32());
   break;
 }
 case 18:
 {
-voldemort.client.protocol.pb.VAdminProto.StartFetchPartitionEntriesRequest.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.StartFetchPartitionEntriesRequest.newBuilder();
-if (hasStart()) {
-  subBuilder.mergeFrom(getStart());
+setStore(input.readString());
+break;
+}
+case 26:
+{
+voldemort.client.protocol.pb.VAdminProto.VoldemortFilter.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.VoldemortFilter.newBuilder();
+if (hasFilter()) {
+subBuilder.mergeFrom(getFilter());
 }
 input.readMessage(subBuilder,extensionRegistry);
-setStart(subBuilder.buildPartial());
+setFilter(subBuilder.buildPartial());
 break;
 }
 }

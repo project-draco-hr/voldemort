@@ -1,0 +1,29 @@
+{
+  VAdminProto.UpdatePartitionEntriesRequest request=originalRequest;
+  try {
+    String storeName=request.getStore();
+    StorageEngine<ByteArray,byte[]> storageEngine=storeRepository.getStorageEngine(storeName);
+    if (storageEngine == null) {
+      throw new VoldemortException("No stored named '" + storeName + "'.");
+    }
+    IoThrottler throttler=new IoThrottler(streamMaxBytesWritesPerSec);
+    do {
+      for (      VAdminProto.PartitionEntry partitionEntry : request.getPartitionEntriesList()) {
+        ByteArray key=ProtoUtils.decodeBytes(partitionEntry.getKey());
+        Versioned<byte[]> value=ProtoUtils.decodeVersioned(partitionEntry.getVersioned());
+        storageEngine.put(key,value);
+        if (throttler != null) {
+          throttler.maybeThrottle(partitionEntry.getSerializedSize() + 1);
+        }
+      }
+      request=ProtoUtils.readToBuilder(inputStream,VAdminProto.UpdatePartitionEntriesRequest.newBuilder()).build();
+    }
+ while (request.getContinue());
+    VAdminProto.UpdateMetadataResponse response=VAdminProto.UpdateMetadataResponse.newBuilder().build();
+    writeMessageAndFlush(response,outputStream);
+  }
+ catch (  VoldemortException e) {
+    VAdminProto.UpdateMetadataResponse response=VAdminProto.UpdateMetadataResponse.newBuilder().setError(ProtoUtils.encodeError(errorCodeMapper,e)).build();
+    writeMessageAndFlush(response,outputStream);
+  }
+}
