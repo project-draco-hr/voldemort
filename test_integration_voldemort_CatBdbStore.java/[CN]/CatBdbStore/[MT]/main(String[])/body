@@ -1,16 +1,20 @@
 {
-  if (args.length != 1)   Utils.croak("USAGE: java " + CatBdbStore.class.getName() + " bdb_dir");
+  if (args.length != 2)   Utils.croak("USAGE: java " + CatBdbStore.class.getName() + " bdb_dir"+ " storeName"+ " server.properties.path");
+  String bdbDir=args[0];
+  String storeName=args[1];
+  String serverProperties=args[2];
+  VoldemortConfig config=new VoldemortConfig(new Props(new File(serverProperties)));
   EnvironmentConfig environmentConfig=new EnvironmentConfig();
   environmentConfig.setTxnNoSync(true);
   environmentConfig.setAllowCreate(true);
-  environmentConfig.setTransactional(true);
-  Environment environment=new Environment(new File(args[0]),environmentConfig);
+  environmentConfig.setTransactional(config.isBdbWriteTransactionsEnabled());
+  Environment environment=new Environment(new File(bdbDir),environmentConfig);
   DatabaseConfig databaseConfig=new DatabaseConfig();
   databaseConfig.setAllowCreate(true);
-  databaseConfig.setTransactional(true);
-  databaseConfig.setSortedDuplicates(false);
-  Database database=environment.openDatabase(null,"test",databaseConfig);
-  StorageEngine<ByteArray,byte[]> store=new BdbStorageEngine("test",environment,database);
+  databaseConfig.setTransactional(config.isBdbWriteTransactionsEnabled());
+  databaseConfig.setSortedDuplicates(config.isBdbSortedDuplicatesEnabled());
+  Database database=environment.openDatabase(null,storeName,databaseConfig);
+  StorageEngine<ByteArray,byte[]> store=new BdbStorageEngine(storeName,environment,database);
   StorageEngine<String,String> stringStore=new SerializingStorageEngine<String,String>(store,new StringSerializer(),new StringSerializer());
   Iterator<Pair<String,Versioned<String>>> iter=stringStore.entries();
   while (iter.hasNext()) {
