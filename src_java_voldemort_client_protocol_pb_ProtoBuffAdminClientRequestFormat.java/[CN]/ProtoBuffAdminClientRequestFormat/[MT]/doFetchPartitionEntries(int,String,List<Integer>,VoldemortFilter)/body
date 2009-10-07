@@ -21,20 +21,20 @@
     throw new VoldemortException(e);
   }
   return new AbstractIterator<Pair<ByteArray,Versioned<byte[]>>>(){
-    private Queue<VAdminProto.PartitionEntry> buffer=new LinkedList<VAdminProto.PartitionEntry>();
+    private Queue<VAdminProto.PartitionEntry> window=new LinkedList<VAdminProto.PartitionEntry>();
     private boolean continueFetching=true;
     @Override public Pair<ByteArray,Versioned<byte[]>> computeNext(){
       if (!continueFetching) {
-        if (!buffer.isEmpty()) {
-          VAdminProto.PartitionEntry partitionEntry=buffer.remove();
+        if (!window.isEmpty()) {
+          VAdminProto.PartitionEntry partitionEntry=window.remove();
           return Pair.create(ProtoUtils.decodeBytes(partitionEntry.getKey()),ProtoUtils.decodeVersioned(partitionEntry.getVersioned()));
         }
         pool.checkin(destination,sands);
         return endOfData();
       }
  else {
-        if (!buffer.isEmpty()) {
-          VAdminProto.PartitionEntry partitionEntry=buffer.remove();
+        if (!window.isEmpty()) {
+          VAdminProto.PartitionEntry partitionEntry=window.remove();
           return Pair.create(ProtoUtils.decodeBytes(partitionEntry.getKey()),ProtoUtils.decodeVersioned(partitionEntry.getVersioned()));
         }
         try {
@@ -49,8 +49,8 @@
             pool.checkin(destination,sands);
             return endOfData();
           }
-          buffer.addAll(partitionEntries);
-          VAdminProto.PartitionEntry partitionEntry=buffer.remove();
+          window.addAll(partitionEntries);
+          VAdminProto.PartitionEntry partitionEntry=window.remove();
           return Pair.create(ProtoUtils.decodeBytes(partitionEntry.getKey()),ProtoUtils.decodeVersioned(partitionEntry.getVersioned()));
         }
  catch (        IOException e) {

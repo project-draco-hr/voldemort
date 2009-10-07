@@ -16,20 +16,20 @@
       filter=new DefaultVoldemortFilter();
     }
     ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=storageEngine.entries();
-    Queue<Pair<ByteArray,Versioned<byte[]>>> buffer=new LinkedList<Pair<ByteArray,Versioned<byte[]>>>();
+    Queue<Pair<ByteArray,Versioned<byte[]>>> window=new LinkedList<Pair<ByteArray,Versioned<byte[]>>>();
     while (iterator.hasNext()) {
       Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
       if (validPartition(entry.getFirst().get(),partitionList,routingStrategy) && filter.filter(entry.getFirst(),entry.getSecond())) {
-        buffer.add(entry);
+        window.add(entry);
       }
-      if (buffer.size() >= streamBufferSize) {
-        int bytesWritten=writeBufferToStream(buffer,outputStream,false);
+      if (window.size() >= windowSize) {
+        int bytesWritten=writeBufferToStream(window,outputStream,iterator.hasNext());
         if (throttler != null) {
           throttler.maybeThrottle(bytesWritten + 1);
         }
       }
     }
-    writeBufferToStream(buffer,outputStream,true);
+    if (!window.isEmpty())     writeBufferToStream(window,outputStream,true);
   }
  catch (  VoldemortException e) {
     VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();

@@ -11,7 +11,7 @@
       Pair<ByteArray,Versioned<byte[]>> pair=entryIterator.next();
       VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(pair.getFirst())).setVersioned(ProtoUtils.encodeVersioned(pair.getSecond())).build();
       buffer.add(partitionEntry);
-      if (buffer.size() >= streamMaxBufferSize) {
+      if (buffer.size() >= windowSize) {
         Message request;
         VAdminProto.UpdatePartitionEntriesRequest updateRequest=VAdminProto.UpdatePartitionEntriesRequest.newBuilder().setStore(storeName).setContinue(true).addAllPartitionEntries(buffer).build();
         if (firstRun) {
