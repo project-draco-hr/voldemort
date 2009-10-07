@@ -5,7 +5,7 @@
     partitionList[i]=inputStream.readInt();
   }
   RoutingStrategy routingStrategy=new RoutingStrategyFactory(metadata.getCurrentCluster()).getRoutingStrategy(metadata.getStoreDef(engine.getName()));
-  IoThrottler throttler=new IoThrottler(streamMaxBytesReadPerSec);
+  EventThrottler throttler=new EventThrottler(streamMaxBytesReadPerSec);
   try {
     ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=engine.entries();
     while (iterator.hasNext()) {
