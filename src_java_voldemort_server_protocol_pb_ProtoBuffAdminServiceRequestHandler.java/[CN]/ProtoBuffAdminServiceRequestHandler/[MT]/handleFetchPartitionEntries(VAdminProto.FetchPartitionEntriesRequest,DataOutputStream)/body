@@ -22,7 +22,7 @@
       if (validPartition(entry.getFirst().get(),partitionList,routingStrategy) && filter.filter(entry.getFirst(),entry.getSecond())) {
         buffer.add(entry);
       }
-      if (buffer.size() > streamBufferSize) {
+      if (buffer.size() >= streamBufferSize) {
         int bytesWritten=writeBufferToStream(buffer,outputStream,false);
         if (throttler != null) {
           throttler.maybeThrottle(bytesWritten + 1);

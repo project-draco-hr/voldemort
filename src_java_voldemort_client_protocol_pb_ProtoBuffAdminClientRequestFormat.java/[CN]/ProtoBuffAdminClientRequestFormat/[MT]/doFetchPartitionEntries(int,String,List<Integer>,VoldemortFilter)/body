@@ -1,3 +1,65 @@
 {
-  return null;
+  Node node=this.getMetadata().getCluster().getNodeById(nodeId);
+  final SocketDestination destination=new SocketDestination(node.getHost(),node.getSocketPort(),RequestFormatType.ADMIN_PROTOCOL_BUFFERS);
+  final SocketAndStreams sands=pool.checkout(destination);
+  DataOutputStream outputStream=sands.getOutputStream();
+  final DataInputStream inputStream=sands.getInputStream();
+  try {
+    VAdminProto.FetchPartitionEntriesRequest.Builder fetchRequest=VAdminProto.FetchPartitionEntriesRequest.newBuilder().addAllPartitions(partitionList).setStore(storeName);
+    if (filter != null) {
+      Class cl=filter.getClass();
+      byte[] classBytes=networkClassLoader.dumpClass(cl);
+      VAdminProto.VoldemortFilter encodedFilter=VAdminProto.VoldemortFilter.newBuilder().setName(cl.getName()).setData(ProtoUtils.encodeBytes(new ByteArray(classBytes))).build();
+      fetchRequest.setFilter(encodedFilter);
+    }
+    VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.FETCH_PARTITION_ENTRIES).setFetchPartitionEntries(fetchRequest).build();
+    ProtoUtils.writeMessage(outputStream,request);
+    outputStream.flush();
+  }
+ catch (  IOException e) {
+    close(sands.getSocket());
+    throw new VoldemortException(e);
+  }
+  return new AbstractIterator<Pair<ByteArray,Versioned<byte[]>>>(){
+    private Queue<VAdminProto.PartitionEntry> buffer=new LinkedList<VAdminProto.PartitionEntry>();
+    private boolean continueFetching=true;
+    @Override public Pair<ByteArray,Versioned<byte[]>> computeNext(){
+      if (!continueFetching) {
+        if (!buffer.isEmpty()) {
+          VAdminProto.PartitionEntry partitionEntry=buffer.remove();
+          return Pair.create(ProtoUtils.decodeBytes(partitionEntry.getKey()),ProtoUtils.decodeVersioned(partitionEntry.getVersioned()));
+        }
+        pool.checkin(destination,sands);
+        return endOfData();
+      }
+ else {
+        if (!buffer.isEmpty()) {
+          VAdminProto.PartitionEntry partitionEntry=buffer.remove();
+          return Pair.create(ProtoUtils.decodeBytes(partitionEntry.getKey()),ProtoUtils.decodeVersioned(partitionEntry.getVersioned()));
+        }
+        try {
+          VAdminProto.FetchPartitionEntriesResponse.Builder response=ProtoUtils.readToBuilder(inputStream,VAdminProto.FetchPartitionEntriesResponse.newBuilder());
+          if (response.hasError()) {
+            pool.checkin(destination,sands);
+            throwException(response.getError());
+          }
+          continueFetching=response.getContinue();
+          List<VAdminProto.PartitionEntry> partitionEntries=response.getPartitionEntriesList();
+          if (partitionEntries.isEmpty()) {
+            pool.checkin(destination,sands);
+            return endOfData();
+          }
+          buffer.addAll(partitionEntries);
+          VAdminProto.PartitionEntry partitionEntry=buffer.remove();
+          return Pair.create(ProtoUtils.decodeBytes(partitionEntry.getKey()),ProtoUtils.decodeVersioned(partitionEntry.getVersioned()));
+        }
+ catch (        IOException e) {
+          close(sands.getSocket());
+          pool.checkin(destination,sands);
+          throw new VoldemortException(e);
+        }
+      }
+    }
+  }
+;
 }

@@ -1,2 +1,52 @@
 {
+  Node node=this.getMetadata().getCluster().getNodeById(nodeId);
+  SocketDestination destination=new SocketDestination(node.getHost(),node.getSocketPort(),RequestFormatType.ADMIN_PROTOCOL_BUFFERS);
+  SocketAndStreams sands=pool.checkout(destination);
+  DataOutputStream outputStream=sands.getOutputStream();
+  DataInputStream inputStream=sands.getInputStream();
+  Queue<VAdminProto.PartitionEntry> buffer=new LinkedList<VAdminProto.PartitionEntry>();
+  boolean firstRun=true;
+  try {
+    while (entryIterator.hasNext()) {
+      Pair<ByteArray,Versioned<byte[]>> pair=entryIterator.next();
+      VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(pair.getFirst())).setVersioned(ProtoUtils.encodeVersioned(pair.getSecond())).build();
+      buffer.add(partitionEntry);
+      if (buffer.size() >= streamMaxBufferSize) {
+        Message request;
+        VAdminProto.UpdatePartitionEntriesRequest updateRequest=VAdminProto.UpdatePartitionEntriesRequest.newBuilder().setStore(storeName).setContinue(true).addAllPartitionEntries(buffer).build();
+        if (firstRun) {
+          request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_PARTITION_ENTRIES).setUpdatePartitionEntries(updateRequest).build();
+          firstRun=false;
+        }
+ else {
+          request=updateRequest;
+        }
+        ProtoUtils.writeMessage(outputStream,request);
+        outputStream.flush();
+        buffer.clear();
+      }
+    }
+    Message request;
+    VAdminProto.UpdatePartitionEntriesRequest.Builder updateRequest=VAdminProto.UpdatePartitionEntriesRequest.newBuilder().setStore(storeName).setContinue(false);
+    if (!buffer.isEmpty())     updateRequest.addAllPartitionEntries(buffer);
+    if (firstRun) {
+      request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_PARTITION_ENTRIES).setUpdatePartitionEntries(updateRequest).build();
+    }
+ else {
+      request=updateRequest.build();
+    }
+    ProtoUtils.writeMessage(outputStream,request);
+    outputStream.flush();
+    VAdminProto.UpdatePartitionEntriesResponse.Builder updateResponse=ProtoUtils.readToBuilder(inputStream,VAdminProto.UpdatePartitionEntriesResponse.newBuilder());
+    if (updateResponse.hasError()) {
+      throwException(updateResponse.getError());
+    }
+  }
+ catch (  IOException e) {
+    close(sands.getSocket());
+    throw new VoldemortException(e);
+  }
+ finally {
+    pool.checkin(destination,sands);
+  }
 }

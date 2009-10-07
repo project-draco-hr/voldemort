@@ -1,5 +1,5 @@
 {
-  VAdminProto.UpdatePartitionEntriesRequest request=originalRequest;
+  VAdminProto.UpdatePartitionEntriesRequest.Builder request=originalRequest.toBuilder();
   try {
     String storeName=request.getStore();
     StorageEngine<ByteArray,byte[]> storageEngine=storeRepository.getStorageEngine(storeName);
@@ -16,14 +16,14 @@
           throttler.maybeThrottle(partitionEntry.getSerializedSize() + 1);
         }
       }
-      request=ProtoUtils.readToBuilder(inputStream,VAdminProto.UpdatePartitionEntriesRequest.newBuilder()).build();
+      if (request.getContinue())       request=ProtoUtils.readToBuilder(inputStream,VAdminProto.UpdatePartitionEntriesRequest.newBuilder());
     }
  while (request.getContinue());
-    VAdminProto.UpdateMetadataResponse response=VAdminProto.UpdateMetadataResponse.newBuilder().build();
+    VAdminProto.UpdatePartitionEntriesResponse response=VAdminProto.UpdatePartitionEntriesResponse.newBuilder().build();
     writeMessageAndFlush(response,outputStream);
   }
  catch (  VoldemortException e) {
-    VAdminProto.UpdateMetadataResponse response=VAdminProto.UpdateMetadataResponse.newBuilder().setError(ProtoUtils.encodeError(errorCodeMapper,e)).build();
+    VAdminProto.UpdatePartitionEntriesResponse response=VAdminProto.UpdatePartitionEntriesResponse.newBuilder().setError(ProtoUtils.encodeError(errorCodeMapper,e)).build();
     writeMessageAndFlush(response,outputStream);
   }
 }
