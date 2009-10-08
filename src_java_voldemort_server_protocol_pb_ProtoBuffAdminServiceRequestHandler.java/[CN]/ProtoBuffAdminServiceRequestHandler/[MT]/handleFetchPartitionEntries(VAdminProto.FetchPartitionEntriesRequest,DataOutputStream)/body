@@ -21,15 +21,15 @@
       Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
       if (validPartition(entry.getFirst().get(),partitionList,routingStrategy) && filter.filter(entry.getFirst(),entry.getSecond())) {
         window.add(entry);
-      }
-      if (window.size() >= windowSize) {
-        int bytesWritten=writeBufferToStream(window,outputStream,iterator.hasNext());
-        if (throttler != null) {
-          throttler.maybeThrottle(bytesWritten + 1);
+        if (window.size() >= windowSize) {
+          writeWindowToStream(window,outputStream,!iterator.hasNext());
+          if (throttler != null) {
+            throttler.maybeThrottle(entry.getFirst().length() + entry.getSecond().getValue().length + 1);
+          }
         }
       }
     }
-    if (!window.isEmpty())     writeBufferToStream(window,outputStream,true);
+    if (!window.isEmpty())     writeWindowToStream(window,outputStream,true);
   }
  catch (  VoldemortException e) {
     VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();

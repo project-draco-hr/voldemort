@@ -1,0 +1,22 @@
+{
+  VAdminProto.UpdatePartitionEntriesRequest.Builder updateRequest=VAdminProto.UpdatePartitionEntriesRequest.newBuilder();
+  while (!window.isEmpty()) {
+    VAdminProto.PartitionEntry.Builder partitionEntry=VAdminProto.PartitionEntry.newBuilder();
+    Pair<ByteArray,Versioned<byte[]>> queuedEntry=window.remove();
+    partitionEntry.setKey(ProtoUtils.encodeBytes(queuedEntry.getFirst()));
+    partitionEntry.setVersioned(ProtoUtils.encodeVersioned(queuedEntry.getSecond()));
+    updateRequest.addPartitionEntries(partitionEntry.build());
+  }
+  updateRequest.setContinue(!lastMessage);
+  updateRequest.setStore(storeName);
+  Message message;
+  if (firstMessage) {
+    VAdminProto.VoldemortAdminRequest.Builder adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_PARTITION_ENTRIES).setUpdatePartitionEntries(updateRequest);
+    message=adminRequest.build();
+  }
+ else {
+    message=updateRequest.build();
+  }
+  ProtoUtils.writeMessage(outputStream,message);
+  outputStream.flush();
+}
