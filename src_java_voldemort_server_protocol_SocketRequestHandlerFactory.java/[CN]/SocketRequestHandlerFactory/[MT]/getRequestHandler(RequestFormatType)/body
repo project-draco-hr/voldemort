@@ -1,0 +1,12 @@
+{
+switch (type) {
+case VOLDEMORT_V0:
+    return new VoldemortNativeRequestHandler(new ErrorCodeMapper(),repository,0);
+case VOLDEMORT_V1:
+  return new VoldemortNativeRequestHandler(new ErrorCodeMapper(),repository,1);
+case PROTOCOL_BUFFERS:
+return new ProtoBuffRequestHandler(new ErrorCodeMapper(),repository);
+default :
+throw new VoldemortException("Unknown wire format " + type);
+}
+}
