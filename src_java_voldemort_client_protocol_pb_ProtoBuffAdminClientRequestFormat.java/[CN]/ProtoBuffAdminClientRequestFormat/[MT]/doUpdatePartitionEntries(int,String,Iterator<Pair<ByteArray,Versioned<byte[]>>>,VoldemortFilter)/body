@@ -1,0 +1,36 @@
+{
+  Node node=this.getMetadata().getCluster().getNodeById(nodeId);
+  SocketDestination destination=new SocketDestination(node.getHost(),node.getSocketPort(),RequestFormatType.ADMIN_PROTOCOL_BUFFERS);
+  SocketAndStreams sands=pool.checkout(destination);
+  DataOutputStream outputStream=sands.getOutputStream();
+  DataInputStream inputStream=sands.getInputStream();
+  boolean firstMessage=true;
+  try {
+    while (entryIterator.hasNext()) {
+      Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
+      VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(entry.getFirst())).setVersioned(ProtoUtils.encodeVersioned(entry.getSecond())).build();
+      VAdminProto.UpdatePartitionEntriesRequest updateRequest=VAdminProto.UpdatePartitionEntriesRequest.newBuilder().setStore(storeName).setPartitionEntry(partitionEntry).build();
+      if (firstMessage) {
+        ProtoUtils.writeMessage(outputStream,VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_PARTITION_ENTRIES).setUpdatePartitionEntries(updateRequest).build());
+        outputStream.flush();
+        firstMessage=false;
+      }
+ else {
+        ProtoUtils.writeMessage(outputStream,updateRequest);
+      }
+    }
+    outputStream.writeInt(-1);
+    outputStream.flush();
+    VAdminProto.UpdatePartitionEntriesResponse.Builder updateResponse=ProtoUtils.readToBuilder(inputStream,VAdminProto.UpdatePartitionEntriesResponse.newBuilder());
+    if (updateResponse.hasError()) {
+      throwException(updateResponse.getError());
+    }
+  }
+ catch (  IOException e) {
+    close(sands.getSocket());
+    throw new VoldemortException(e);
+  }
+ finally {
+    pool.checkin(destination,sands);
+  }
+}

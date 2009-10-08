@@ -1,0 +1,15 @@
+{
+  AdminClientRequestFormat client=getAdminClient();
+  client.updateServerState(server.getIdentityNode().getId(),MetadataStore.ServerState.REBALANCING_STEALER_STATE);
+  MetadataStore.ServerState state=server.getMetadataStore().getServerState();
+  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.ServerState.REBALANCING_STEALER_STATE,state);
+  client.updateServerState(server.getIdentityNode().getId(),MetadataStore.ServerState.NORMAL_STATE);
+  state=server.getMetadataStore().getServerState();
+  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.ServerState.NORMAL_STATE,state);
+  client.updateServerState(server.getIdentityNode().getId(),MetadataStore.ServerState.REBALANCING_DONOR_STATE);
+  state=server.getMetadataStore().getServerState();
+  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.ServerState.REBALANCING_DONOR_STATE,state);
+  client.updateServerState(server.getIdentityNode().getId(),MetadataStore.ServerState.NORMAL_STATE);
+  state=server.getMetadataStore().getServerState();
+  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.ServerState.NORMAL_STATE,state);
+}

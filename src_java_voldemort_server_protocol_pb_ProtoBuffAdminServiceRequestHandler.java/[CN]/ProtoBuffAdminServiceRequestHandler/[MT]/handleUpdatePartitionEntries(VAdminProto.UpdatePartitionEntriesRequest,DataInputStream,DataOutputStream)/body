@@ -1,0 +1,37 @@
+{
+  VAdminProto.UpdatePartitionEntriesRequest request=originalRequest;
+  VAdminProto.UpdatePartitionEntriesResponse.Builder response=VAdminProto.UpdatePartitionEntriesResponse.newBuilder();
+  boolean continueReading=true;
+  try {
+    String storeName=request.getStore();
+    StorageEngine<ByteArray,byte[]> storageEngine=storeRepository.getStorageEngine(storeName);
+    if (storageEngine == null) {
+      throw new VoldemortException("No stored named '" + storeName + "'.");
+    }
+    IoThrottler throttler=new IoThrottler(streamMaxBytesWritesPerSec);
+    while (continueReading) {
+      VAdminProto.PartitionEntry partitionEntry=request.getPartitionEntry();
+      ByteArray key=ProtoUtils.decodeBytes(partitionEntry.getKey());
+      Versioned<byte[]> value=ProtoUtils.decodeVersioned(partitionEntry.getVersioned());
+      storageEngine.put(key,value);
+      if (throttler != null) {
+        throttler.maybeThrottle(entrySize(Pair.create(key,value)));
+      }
+      int size=inputStream.readInt();
+      if (size <= 0)       continueReading=false;
+ else {
+        byte[] input=new byte[size];
+        ByteUtils.read(inputStream,input);
+        VAdminProto.UpdatePartitionEntriesRequest.Builder builder=VAdminProto.UpdatePartitionEntriesRequest.newBuilder();
+        builder.mergeFrom(input);
+        request=builder.build();
+      }
+    }
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+  }
+ finally {
+    ProtoUtils.writeMessage(outputStream,response.build());
+  }
+}
