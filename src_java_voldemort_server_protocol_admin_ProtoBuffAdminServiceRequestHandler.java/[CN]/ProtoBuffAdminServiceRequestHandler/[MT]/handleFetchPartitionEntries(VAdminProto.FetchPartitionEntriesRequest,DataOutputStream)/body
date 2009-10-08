@@ -33,8 +33,7 @@
     ProtoUtils.writeEndOfStream(outputStream);
   }
  catch (  VoldemortException e) {
-    VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
-    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
-    ProtoUtils.writeMessage(outputStream,response.build());
+    VAdminProto.FetchPartitionEntriesResponse response=VAdminProto.FetchPartitionEntriesResponse.newBuilder().setError(ProtoUtils.encodeError(errorCodeMapper,e)).build();
+    ProtoUtils.writeMessage(outputStream,response);
   }
 }
