@@ -18,13 +18,12 @@
     ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=storageEngine.entries();
     while (iterator.hasNext()) {
       Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
-      VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(entry.getFirst())).setVersioned(ProtoUtils.encodeVersioned(entry.getSecond())).build();
       if (validPartition(entry.getFirst().get(),partitionList,routingStrategy) && filter.filter(entry.getFirst(),entry.getSecond())) {
+        VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(entry.getFirst())).setVersioned(ProtoUtils.encodeVersioned(entry.getSecond())).build();
         VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
         response.setPartitionEntry(partitionEntry);
         Message message=response.build();
         ProtoUtils.writeMessage(outputStream,message);
-        if (message.getSerializedSize() <= 0)         System.out.println("size = " + message.getSerializedSize());
         if (throttler != null) {
           throttler.maybeThrottle(entry.getFirst().length() + entry.getSecond().getValue().length + 1);
         }

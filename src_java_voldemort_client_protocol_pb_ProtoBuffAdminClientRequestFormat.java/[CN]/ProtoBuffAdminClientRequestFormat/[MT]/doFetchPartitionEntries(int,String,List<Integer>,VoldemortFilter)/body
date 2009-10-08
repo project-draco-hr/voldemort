@@ -22,23 +22,19 @@
     throw new VoldemortException(e);
   }
   return new AbstractIterator<Pair<ByteArray,Versioned<byte[]>>>(){
-    private int counter=0;
     @Override public Pair<ByteArray,Versioned<byte[]>> computeNext(){
       try {
         int size=inputStream.readInt();
         if (size <= 0) {
-          System.out.println("size = " + size + " reached end at "+ counter);
           pool.checkin(destination,sands);
           return endOfData();
         }
-        counter++;
-        CodedInputStream codedIn=CodedInputStream.newInstance(inputStream);
-        codedIn.pushLimit(size);
+        byte[] input=new byte[size];
+        ByteUtils.read(inputStream,input);
         VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
-        response.mergeFrom(codedIn);
+        response.mergeFrom(input);
         if (response.hasError()) {
           pool.checkin(destination,sands);
-          System.out.println("we have an error");
           throwException(response.getError());
         }
         VAdminProto.PartitionEntry partitionEntry=response.getPartitionEntry();

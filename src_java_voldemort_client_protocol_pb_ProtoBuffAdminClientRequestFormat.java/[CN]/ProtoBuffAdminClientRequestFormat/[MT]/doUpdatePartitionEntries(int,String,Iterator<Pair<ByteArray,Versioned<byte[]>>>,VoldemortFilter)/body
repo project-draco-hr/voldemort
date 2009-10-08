@@ -14,11 +14,13 @@
       if (firstMessage) {
         request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_PARTITION_ENTRIES).setUpdatePartitionEntries(updateRequest).build();
         firstMessage=false;
+        ProtoUtils.writeMessage(outputStream,request);
+        outputStream.flush();
       }
  else {
         request=updateRequest;
+        ProtoUtils.writeMessage(outputStream,request);
       }
-      ProtoUtils.writeMessage(outputStream,request);
     }
     outputStream.writeInt(-1);
     outputStream.flush();

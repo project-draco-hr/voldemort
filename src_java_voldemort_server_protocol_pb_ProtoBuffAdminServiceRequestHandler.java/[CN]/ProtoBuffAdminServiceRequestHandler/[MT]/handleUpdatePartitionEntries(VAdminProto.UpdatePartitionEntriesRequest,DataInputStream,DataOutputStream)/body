@@ -20,10 +20,10 @@
       int size=inputStream.readInt();
       if (size <= 0)       continueReading=false;
  else {
-        CodedInputStream codedInputStream=CodedInputStream.newInstance(inputStream);
-        codedInputStream.pushLimit(size);
+        byte[] input=new byte[size];
+        ByteUtils.read(inputStream,input);
         VAdminProto.UpdatePartitionEntriesRequest.Builder builder=VAdminProto.UpdatePartitionEntriesRequest.newBuilder();
-        builder.mergeFrom(codedInputStream);
+        builder.mergeFrom(input);
         request=builder.build();
       }
     }
