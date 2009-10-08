@@ -18,36 +18,36 @@
   }
  catch (  IOException e) {
     close(sands.getSocket());
+    pool.checkin(destination,sands);
     throw new VoldemortException(e);
   }
   return new AbstractIterator<Pair<ByteArray,Versioned<byte[]>>>(){
-    private boolean continueFetching=true;
+    private int counter=0;
     @Override public Pair<ByteArray,Versioned<byte[]>> computeNext(){
-      if (continueFetching) {
-        try {
-          VAdminProto.FetchPartitionEntriesResponse.Builder response=ProtoUtils.readToBuilder(inputStream,VAdminProto.FetchPartitionEntriesResponse.newBuilder());
-          if (response.hasError()) {
-            pool.checkin(destination,sands);
-            throwException(response.getError());
-          }
-          continueFetching=response.getContinue();
-          List<VAdminProto.PartitionEntry> partitionEntries=response.getPartitionEntriesList();
-          if (partitionEntries.isEmpty()) {
-            pool.checkin(destination,sands);
-            return endOfData();
-          }
-          VAdminProto.PartitionEntry partitionEntry=partitionEntries.iterator().next();
-          return Pair.create(ProtoUtils.decodeBytes(partitionEntry.getKey()),ProtoUtils.decodeVersioned(partitionEntry.getVersioned()));
-        }
- catch (        IOException e) {
-          close(sands.getSocket());
+      try {
+        int size=inputStream.readInt();
+        if (size <= 0) {
+          System.out.println("size = " + size + " reached end at "+ counter);
           pool.checkin(destination,sands);
-          throw new VoldemortException(e);
+          return endOfData();
         }
+        counter++;
+        CodedInputStream codedIn=CodedInputStream.newInstance(inputStream);
+        codedIn.pushLimit(size);
+        VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
+        response.mergeFrom(codedIn);
+        if (response.hasError()) {
+          pool.checkin(destination,sands);
+          System.out.println("we have an error");
+          throwException(response.getError());
+        }
+        VAdminProto.PartitionEntry partitionEntry=response.getPartitionEntry();
+        return Pair.create(ProtoUtils.decodeBytes(partitionEntry.getKey()),ProtoUtils.decodeVersioned(partitionEntry.getVersioned()));
       }
- else {
+ catch (      IOException e) {
+        close(sands.getSocket());
         pool.checkin(destination,sands);
-        return endOfData();
+        throw new VoldemortException(e);
       }
     }
   }

@@ -2,19 +2,19 @@
   final VoldemortAdminRequest.Builder request=ProtoUtils.readToBuilder(inputStream,VoldemortAdminRequest.newBuilder());
 switch (request.getType()) {
 case GET_METADATA:
-    writeMessageAndFlush(handleGetMetadata(request.getGetMetadata()),outputStream);
+    ProtoUtils.writeMessage(outputStream,handleGetMetadata(request.getGetMetadata()));
   break;
 case UPDATE_METADATA:
-writeMessageAndFlush(handleUpdateMetadata(request.getUpdateMetadata()),outputStream);
+ProtoUtils.writeMessage(outputStream,handleUpdateMetadata(request.getUpdateMetadata()));
 break;
 case DELETE_PARTITION_ENTRIES:
-writeMessageAndFlush(handleDeletePartitionEntries(request.getDeletePartitionEntries()),outputStream);
+ProtoUtils.writeMessage(outputStream,handleDeletePartitionEntries(request.getDeletePartitionEntries()));
 break;
 case FETCH_PARTITION_ENTRIES:
 handleFetchPartitionEntries(request.getFetchPartitionEntries(),outputStream);
 break;
 case REDIRECT_GET:
-writeMessageAndFlush(handleRedirectGet(request.getRedirectGet()),outputStream);
+ProtoUtils.writeMessage(outputStream,handleRedirectGet(request.getRedirectGet()));
 break;
 case UPDATE_PARTITION_ENTRIES:
 handleUpdatePartitionEntries(request.getUpdatePartitionEntries(),inputStream,outputStream);

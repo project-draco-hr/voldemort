@@ -8,9 +8,9 @@
   try {
     while (entryIterator.hasNext()) {
       Message request;
-      Pair<ByteArray,Versioned<byte[]>> kvpair=entryIterator.next();
-      VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(kvpair.getFirst())).setVersioned(ProtoUtils.encodeVersioned(kvpair.getSecond())).build();
-      VAdminProto.UpdatePartitionEntriesRequest updateRequest=VAdminProto.UpdatePartitionEntriesRequest.newBuilder().setContinue(entryIterator.hasNext()).setStore(storeName).addAllPartitionEntries(Arrays.asList(partitionEntry)).build();
+      Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
+      VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(entry.getFirst())).setVersioned(ProtoUtils.encodeVersioned(entry.getSecond())).build();
+      VAdminProto.UpdatePartitionEntriesRequest updateRequest=VAdminProto.UpdatePartitionEntriesRequest.newBuilder().setStore(storeName).setPartitionEntry(partitionEntry).build();
       if (firstMessage) {
         request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_PARTITION_ENTRIES).setUpdatePartitionEntries(updateRequest).build();
         firstMessage=false;
@@ -20,6 +20,7 @@
       }
       ProtoUtils.writeMessage(outputStream,request);
     }
+    outputStream.writeInt(-1);
     outputStream.flush();
     VAdminProto.UpdatePartitionEntriesResponse.Builder updateResponse=ProtoUtils.readToBuilder(inputStream,VAdminProto.UpdatePartitionEntriesResponse.newBuilder());
     if (updateResponse.hasError()) {

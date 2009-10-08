@@ -1,7 +1,7 @@
 {
-  VAdminProto.UpdatePartitionEntriesRequest.Builder request=originalRequest.toBuilder();
-  boolean continueFetching=true;
-  boolean firstFetched=true;
+  VAdminProto.UpdatePartitionEntriesRequest request=originalRequest;
+  VAdminProto.UpdatePartitionEntriesResponse.Builder response=VAdminProto.UpdatePartitionEntriesResponse.newBuilder();
+  boolean continueReading=true;
   try {
     String storeName=request.getStore();
     StorageEngine<ByteArray,byte[]> storageEngine=storeRepository.getStorageEngine(storeName);
@@ -9,28 +9,29 @@
       throw new VoldemortException("No stored named '" + storeName + "'.");
     }
     IoThrottler throttler=new IoThrottler(streamMaxBytesWritesPerSec);
-    while (continueFetching) {
-      if (!firstFetched) {
-        request=ProtoUtils.readToBuilder(inputStream,VAdminProto.UpdatePartitionEntriesRequest.newBuilder());
+    while (continueReading) {
+      VAdminProto.PartitionEntry partitionEntry=request.getPartitionEntry();
+      ByteArray key=ProtoUtils.decodeBytes(partitionEntry.getKey());
+      Versioned<byte[]> value=ProtoUtils.decodeVersioned(partitionEntry.getVersioned());
+      storageEngine.put(key,value);
+      if (throttler != null) {
+        throttler.maybeThrottle(partitionEntry.getKey().size() + partitionEntry.getVersioned().getValue().size() + 1);
       }
+      int size=inputStream.readInt();
+      if (size <= 0)       continueReading=false;
  else {
-        firstFetched=false;
+        CodedInputStream codedInputStream=CodedInputStream.newInstance(inputStream);
+        codedInputStream.pushLimit(size);
+        VAdminProto.UpdatePartitionEntriesRequest.Builder builder=VAdminProto.UpdatePartitionEntriesRequest.newBuilder();
+        builder.mergeFrom(codedInputStream);
+        request=builder.build();
       }
-      for (      VAdminProto.PartitionEntry partitionEntry : request.getPartitionEntriesList()) {
-        ByteArray key=ProtoUtils.decodeBytes(partitionEntry.getKey());
-        Versioned<byte[]> value=ProtoUtils.decodeVersioned(partitionEntry.getVersioned());
-        storageEngine.put(key,value);
-        if (throttler != null) {
-          throttler.maybeThrottle(partitionEntry.getKey().size() + partitionEntry.getVersioned().getValue().size() + 1);
-        }
-      }
-      continueFetching=request.getContinue();
     }
-    VAdminProto.UpdatePartitionEntriesResponse response=VAdminProto.UpdatePartitionEntriesResponse.newBuilder().build();
-    writeMessageAndFlush(response,outputStream);
   }
  catch (  VoldemortException e) {
-    VAdminProto.UpdatePartitionEntriesResponse response=VAdminProto.UpdatePartitionEntriesResponse.newBuilder().setError(ProtoUtils.encodeError(errorCodeMapper,e)).build();
-    writeMessageAndFlush(response,outputStream);
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+  }
+ finally {
+    ProtoUtils.writeMessage(outputStream,response.build());
   }
 }

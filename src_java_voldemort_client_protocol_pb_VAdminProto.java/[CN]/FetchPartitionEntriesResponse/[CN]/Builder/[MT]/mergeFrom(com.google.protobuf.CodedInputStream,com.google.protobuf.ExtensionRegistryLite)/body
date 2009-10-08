@@ -17,20 +17,18 @@ default :
 case 10:
 {
   voldemort.client.protocol.pb.VAdminProto.PartitionEntry.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.PartitionEntry.newBuilder();
+  if (hasPartitionEntry()) {
+    subBuilder.mergeFrom(getPartitionEntry());
+  }
   input.readMessage(subBuilder,extensionRegistry);
-  addPartitionEntries(subBuilder.buildPartial());
+  setPartitionEntry(subBuilder.buildPartial());
   break;
 }
-case 16:
-{
-setContinue(input.readBool());
-break;
-}
-case 26:
+case 18:
 {
 voldemort.client.protocol.pb.VProto.Error.Builder subBuilder=voldemort.client.protocol.pb.VProto.Error.newBuilder();
 if (hasError()) {
-subBuilder.mergeFrom(getError());
+  subBuilder.mergeFrom(getError());
 }
 input.readMessage(subBuilder,extensionRegistry);
 setError(subBuilder.buildPartial());

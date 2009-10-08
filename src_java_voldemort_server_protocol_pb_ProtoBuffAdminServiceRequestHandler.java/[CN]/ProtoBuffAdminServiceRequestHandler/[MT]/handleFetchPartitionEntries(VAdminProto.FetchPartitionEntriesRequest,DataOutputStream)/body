@@ -1,6 +1,5 @@
 {
   try {
-    boolean sentAny=false;
     String storeName=request.getStore();
     StorageEngine<ByteArray,byte[]> storageEngine=storeRepository.getStorageEngine(storeName);
     if (storageEngine == null) {
@@ -21,25 +20,22 @@
       Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
       VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(entry.getFirst())).setVersioned(ProtoUtils.encodeVersioned(entry.getSecond())).build();
       if (validPartition(entry.getFirst().get(),partitionList,routingStrategy) && filter.filter(entry.getFirst(),entry.getSecond())) {
-        VAdminProto.FetchPartitionEntriesResponse response=VAdminProto.FetchPartitionEntriesResponse.newBuilder().setContinue(iterator.hasNext()).addAllPartitionEntries(Arrays.asList(partitionEntry)).build();
-        ProtoUtils.writeMessage(outputStream,response);
-        sentAny=true;
+        VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
+        response.setPartitionEntry(partitionEntry);
+        Message message=response.build();
+        ProtoUtils.writeMessage(outputStream,message);
+        if (message.getSerializedSize() <= 0)         System.out.println("size = " + message.getSerializedSize());
         if (throttler != null) {
           throttler.maybeThrottle(entry.getFirst().length() + entry.getSecond().getValue().length + 1);
         }
       }
     }
     iterator.close();
-    if (!sentAny) {
-      VAdminProto.FetchPartitionEntriesResponse response=VAdminProto.FetchPartitionEntriesResponse.newBuilder().setContinue(false).build();
-      ProtoUtils.writeMessage(outputStream,response);
-    }
-    outputStream.flush();
+    outputStream.writeInt(-1);
   }
  catch (  VoldemortException e) {
     VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
-    response.setContinue(false);
-    writeMessageAndFlush(response.build(),outputStream);
+    ProtoUtils.writeMessage(outputStream,response.build());
   }
 }
