@@ -4,28 +4,26 @@
   SocketAndStreams sands=pool.checkout(destination);
   DataOutputStream outputStream=sands.getOutputStream();
   DataInputStream inputStream=sands.getInputStream();
-  Queue<Pair<ByteArray,Versioned<byte[]>>> window=new LinkedList<Pair<ByteArray,Versioned<byte[]>>>();
   boolean firstMessage=true;
   try {
     while (entryIterator.hasNext()) {
-      Pair<ByteArray,Versioned<byte[]>> pair=entryIterator.next();
-      window.add(pair);
-      if (window.size() >= windowSize) {
-        writeWindowToStream(storeName,window,outputStream,firstMessage,!entryIterator.hasNext());
-        if (firstMessage)         firstMessage=false;
-      }
-    }
-    if (!window.isEmpty()) {
-      writeWindowToStream(storeName,window,outputStream,firstMessage,true);
+      Message request;
+      Pair<ByteArray,Versioned<byte[]>> kvpair=entryIterator.next();
+      VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(kvpair.getFirst())).setVersioned(ProtoUtils.encodeVersioned(kvpair.getSecond())).build();
+      VAdminProto.UpdatePartitionEntriesRequest updateRequest=VAdminProto.UpdatePartitionEntriesRequest.newBuilder().setContinue(entryIterator.hasNext()).setStore(storeName).addAllPartitionEntries(Arrays.asList(partitionEntry)).build();
       if (firstMessage) {
+        request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_PARTITION_ENTRIES).setUpdatePartitionEntries(updateRequest).build();
         firstMessage=false;
       }
-    }
-    if (!firstMessage) {
-      VAdminProto.UpdatePartitionEntriesResponse.Builder updateResponse=ProtoUtils.readToBuilder(inputStream,VAdminProto.UpdatePartitionEntriesResponse.newBuilder());
-      if (updateResponse.hasError()) {
-        throwException(updateResponse.getError());
+ else {
+        request=updateRequest;
       }
+      ProtoUtils.writeMessage(outputStream,request);
+    }
+    outputStream.flush();
+    VAdminProto.UpdatePartitionEntriesResponse.Builder updateResponse=ProtoUtils.readToBuilder(inputStream,VAdminProto.UpdatePartitionEntriesResponse.newBuilder());
+    if (updateResponse.hasError()) {
+      throwException(updateResponse.getError());
     }
   }
  catch (  IOException e) {
