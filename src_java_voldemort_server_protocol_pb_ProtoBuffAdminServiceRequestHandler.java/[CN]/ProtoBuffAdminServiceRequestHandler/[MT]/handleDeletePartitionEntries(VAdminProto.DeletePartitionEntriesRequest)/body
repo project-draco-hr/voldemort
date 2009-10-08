@@ -16,7 +16,7 @@
       Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
       if (validPartition(entry.getFirst().get(),partitions,routingStrategy) && filter.filter(entry.getFirst(),entry.getSecond())) {
         if (storageEngine.delete(entry.getFirst(),entry.getSecond().getVersion()))         deleteSuccess++;
-        if (throttler != null)         throttler.maybeThrottle(entry.getFirst().get().length + entry.getSecond().getValue().length + ((VectorClock)entry.getSecond().getVersion()).sizeInBytes());
+        if (throttler != null)         throttler.maybeThrottle(entrySize(entry));
       }
     }
     iterator.close();

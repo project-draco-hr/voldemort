@@ -15,7 +15,7 @@
       Versioned<byte[]> value=ProtoUtils.decodeVersioned(partitionEntry.getVersioned());
       storageEngine.put(key,value);
       if (throttler != null) {
-        throttler.maybeThrottle(partitionEntry.getKey().size() + partitionEntry.getVersioned().getValue().size() + 1);
+        throttler.maybeThrottle(entrySize(Pair.create(key,value)));
       }
       int size=inputStream.readInt();
       if (size <= 0)       continueReading=false;
