@@ -18,6 +18,8 @@
   this.bdbCheckpointMs=props.getLong("bdb.checkpoint.interval.ms",30 * Time.MS_PER_SECOND);
   this.bdbSortedDuplicates=props.getBoolean("bdb.enable.sorted.duplicates",true);
   this.bdbOneEnvPerStore=props.getBoolean("bdb.one.env.per.store",false);
+  setBdbCleanerMinFileUtilization(props.getInt("bdb.cleaner.minFileUtilization",5));
+  setBdbCleanerMinUtilization(props.getInt("bdb.cleaner.minUtilization",50));
   this.readOnlyFileWaitTimeoutMs=props.getLong("readonly.file.wait.timeout.ms",4000L);
   this.readOnlyBackups=props.getInt("readonly.backups",1);
   this.readOnlyFileHandles=props.getInt("readonly.file.handles",5);
@@ -40,7 +42,6 @@
   this.useNioConnector=props.getBoolean("enable.nio.connector",false);
   this.nioConnectorSelectors=props.getInt("nio.connector.selectors",Runtime.getRuntime().availableProcessors());
   this.clientMaxConnectionsPerNode=props.getInt("client.max.connections.per.node",5);
-  this.clientMaxTotalConnections=props.getInt("client.max.total.connections",100);
   this.clientConnectionTimeoutMs=props.getInt("client.connection.timeout.ms",400);
   this.clientRoutingTimeoutMs=props.getInt("client.routing.timeout.ms",5000);
   this.clientNodeBannageMs=props.getInt("client.node.bannage.ms",10000);
@@ -59,6 +60,8 @@
   this.schedulerThreads=props.getInt("scheduler.threads",3);
   this.numCleanupPermits=props.getInt("num.cleanup.permits",1);
   this.storageConfigurations=props.getList("storage.configs",ImmutableList.of(BdbStorageConfiguration.class.getName(),MysqlStorageConfiguration.class.getName(),InMemoryStorageConfiguration.class.getName(),CacheStorageConfiguration.class.getName(),ReadOnlyStorageConfiguration.class.getName()));
+  this.retentionCleanupFirstStartTimeInHour=props.getInt("retention.cleanup.first.start.hour",0);
+  this.retentionCleanupScheduledPeriodInHour=props.getInt("retention.cleanup.period.hours",24);
   this.allProps=props;
   String requestFormatName=props.getString("request.format",RequestFormatType.VOLDEMORT_V1.getCode());
   this.requestFormatType=RequestFormatType.fromCode(requestFormatName);

@@ -17,6 +17,11 @@
   String routingStrategyType=(null != store.getChildText(STORE_ROUTING_STRATEGY)) ? store.getChildText(STORE_ROUTING_STRATEGY) : RoutingStrategyType.CONSISTENT_STRATEGY;
   Element retention=store.getChild(STORE_RETENTION_POLICY_ELMT);
   Integer retentionPolicyDays=null;
-  if (retention != null)   retentionPolicyDays=Integer.parseInt(retention.getText());
-  return new StoreDefinition(name,storeType,keySerializer,valueSerializer,routingTier,routingStrategyType,replicationFactor,preferredReads,requiredReads,preferredWrites,requiredWrites,retentionPolicyDays);
+  Integer retentionThrottleRate=null;
+  if (retention != null) {
+    retentionPolicyDays=Integer.parseInt(retention.getText());
+    Element throttleRate=store.getChild(STORE_RETENTION_SCAN_THROTTLE_RATE_ELMT);
+    if (throttleRate != null)     retentionThrottleRate=Integer.parseInt(throttleRate.getText());
+  }
+  return new StoreDefinition(name,storeType,keySerializer,valueSerializer,routingTier,routingStrategyType,replicationFactor,preferredReads,requiredReads,preferredWrites,requiredWrites,retentionPolicyDays,retentionThrottleRate);
 }
