@@ -1,3 +1,8 @@
 {
-  return new VoldemortMetadata(new Cluster("test-cluster",createNodes(partitionMap)),Arrays.asList(storeDef),0);
+  Store<String,String> innerStore=new InMemoryStorageEngine<String,String>("test-cluster-inner");
+  String clusterxml=new ClusterMapper().writeCluster(new Cluster("test-cluster",createNodes(partitionMap)));
+  innerStore.put(MetadataStore.CLUSTER_KEY,new Versioned<String>(clusterxml));
+  String storeXml=new StoreDefinitionsMapper().writeStore(storeDef);
+  innerStore.put(MetadataStore.STORES_KEY,new Versioned<String>(storeXml));
+  return new MetadataStore(innerStore,0);
 }

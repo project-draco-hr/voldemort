@@ -42,7 +42,7 @@
     }
     if (storeDef == null)     Utils.croak("No store found with name \"" + storeName + "\"");
     if (!outputDir.exists())     Utils.croak("Directory \"" + outputDir.getAbsolutePath() + " does not exist.");
-    RoutingStrategy routingStrategy=new RoutingStrategyFactory(cluster).getRoutingStrategy(storeDef);
+    RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
     new JsonStoreBuilder(reader,cluster,storeDef,routingStrategy,outputDir,tempDir,sortBufferSize,numThreads,numChunks,ioBufferSize).build();
   }
  catch (  FileNotFoundException e) {

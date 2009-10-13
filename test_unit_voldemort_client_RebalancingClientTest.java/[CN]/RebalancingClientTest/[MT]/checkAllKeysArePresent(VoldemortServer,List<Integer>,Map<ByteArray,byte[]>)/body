@@ -1,0 +1,10 @@
+{
+  RoutingStrategy routingStrategy=new ConsistentRoutingStrategy(server.getMetadataStore().getCluster().getNodes(),1);
+  SocketStore socketStore=ServerTestUtils.getSocketStore(storeName,server.getIdentityNode().getSocketPort(),RequestFormatType.VOLDEMORT_V0);
+  for (  Entry<ByteArray,byte[]> entry : keyValMap.entrySet()) {
+    int keyPartition=routingStrategy.getPartitionList(entry.getKey().get()).get(0);
+    if (checkPartitionsList.contains(keyPartition)) {
+      assertEquals("Exactly one pair should be present on server:" + server.getIdentityNode() + " for key in partition:"+ keyPartition,1,socketStore.get(entry.getKey()).size());
+    }
+  }
+}

@@ -2,7 +2,7 @@
   int freePort=ServerTestUtils.findFreePort();
   String clusterXml=VoldemortTestConstants.getOneNodeClusterXml();
   clusterXml=clusterXml.replace("<socket-port>6666</socket-port>","<socket-port>" + freePort + "</socket-port>");
-  AbstractSocketService socketService=ServerTestUtils.getSocketService(clusterXml,VoldemortTestConstants.getCompressedStoreDefinitionsXml(),"test",freePort);
+  AbstractSocketService socketService=ServerTestUtils.getSocketService(useNio,clusterXml,VoldemortTestConstants.getCompressedStoreDefinitionsXml(),"test",freePort);
   socketService.start();
   SocketStoreClientFactory storeClientFactory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls("tcp://localhost:" + freePort));
   StoreClient<String,String> storeClient=storeClientFactory.getStoreClient("test");

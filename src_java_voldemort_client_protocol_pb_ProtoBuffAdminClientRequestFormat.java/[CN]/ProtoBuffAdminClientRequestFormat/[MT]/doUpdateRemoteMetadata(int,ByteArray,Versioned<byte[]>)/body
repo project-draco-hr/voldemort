@@ -1,0 +1,21 @@
+{
+  Node node=this.getMetadata().getCluster().getNodeById(remoteNodeId);
+  SocketDestination destination=new SocketDestination(node.getHost(),node.getAdminPort(),RequestFormatType.ADMIN_PROTOCOL_BUFFERS);
+  SocketAndStreams sands=pool.checkout(destination);
+  try {
+    StoreUtils.assertValidKey(key);
+    DataOutputStream outputStream=sands.getOutputStream();
+    DataInputStream inputStream=sands.getInputStream();
+    ProtoUtils.writeMessage(outputStream,VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_METADATA).setUpdateMetadata(VAdminProto.UpdateMetadataRequest.newBuilder().setKey(ByteString.copyFrom(key.get())).setVersioned(ProtoUtils.encodeVersioned(value))).build());
+    outputStream.flush();
+    VAdminProto.UpdateMetadataResponse.Builder response=ProtoUtils.readToBuilder(inputStream,VAdminProto.UpdateMetadataResponse.newBuilder());
+    if (response.hasError())     throwException(response.getError());
+  }
+ catch (  IOException e) {
+    close(sands.getSocket());
+    throw new VoldemortException(e);
+  }
+ finally {
+    pool.checkin(destination,sands);
+  }
+}

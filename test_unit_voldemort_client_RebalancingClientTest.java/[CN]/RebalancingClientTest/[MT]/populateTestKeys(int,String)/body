@@ -1,0 +1,26 @@
+{
+  Map<ByteArray,byte[]> keyValMap=new HashMap<ByteArray,byte[]>();
+  Store<ByteArray,byte[]> store0=server0.getStoreRepository().getStorageEngine(storeName);
+  Store<ByteArray,byte[]> store1=server1.getStoreRepository().getStorageEngine(storeName);
+  RoutingStrategy routingStrategy=new ConsistentRoutingStrategy(server0.getMetadataStore().getCluster().getNodes(),1);
+  for (int i=0; i <= total_keys; i++) {
+    int rand_key=(int)(Math.random() * Integer.MAX_VALUE);
+    ByteArray key=new ByteArray(ByteUtils.getBytes("" + rand_key,"UTF-8"));
+    byte[] value=ByteUtils.getBytes("value-" + rand_key,"UTF-8");
+    if (!keyValMap.containsKey(key)) {
+      keyValMap.put(key,value);
+      int keyPartition=routingStrategy.getPartitionList(key.get()).get(0);
+switch (keyPartition) {
+case 0:
+case 1:
+        store0.put(new ByteArray(key.get()),new Versioned<byte[]>(value));
+      break;
+case 2:
+case 3:
+    store1.put(new ByteArray(key.get()),new Versioned<byte[]>(value));
+  break;
+}
+}
+}
+return keyValMap;
+}

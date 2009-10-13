@@ -1,7 +1,8 @@
 {
-  if (args.length != 2)   Utils.croak("USAGE: java " + RemoteStoreComparisonTest.class.getName() + " numRequests numThreads");
+  if (args.length != 2)   Utils.croak("USAGE: java " + RemoteStoreComparisonTest.class.getName() + " numRequests numThreads [useNio]");
   int numRequests=Integer.parseInt(args[0]);
   int numThreads=Integer.parseInt(args[1]);
+  boolean useNio=args.length > 2 ? args[2].equals("true") : false;
   final Store<byte[],byte[]> memStore=new InMemoryStorageEngine<byte[],byte[]>("test");
   PerformanceTest memWriteTest=new PerformanceTest(){
     @Override public void doOperation(    int i){
@@ -37,8 +38,8 @@
   repository.addLocalStore(new InMemoryStorageEngine<ByteArray,byte[]>(storeName));
   SocketPool socketPool=new SocketPool(10,1000,1000,32 * 1024);
   final SocketStore socketStore=new SocketStore(storeName,new SocketDestination("localhost",6666,RequestFormatType.VOLDEMORT_V1),socketPool,false);
-  RequestHandlerFactory factory=new RequestHandlerFactory(repository,null,ServerTestUtils.getVoldemortConfig());
-  AbstractSocketService socketService=ServerTestUtils.getSocketService(factory,6666,50,50,1000);
+  RequestHandlerFactory factory=new SocketRequestHandlerFactory(repository);
+  AbstractSocketService socketService=ServerTestUtils.getSocketService(useNio,factory,6666,50,50,1000);
   socketService.start();
   PerformanceTest socketWriteTest=new PerformanceTest(){
     @Override public void doOperation(    int i){

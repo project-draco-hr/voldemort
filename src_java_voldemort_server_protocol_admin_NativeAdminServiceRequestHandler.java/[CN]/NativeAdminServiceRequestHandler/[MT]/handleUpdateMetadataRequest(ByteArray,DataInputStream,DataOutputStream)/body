@@ -1,0 +1,21 @@
+{
+  try {
+    String keyString=ByteUtils.getString(key.get(),"UTF-8");
+    if (MetadataStore.METADATA_KEYS.contains(keyString)) {
+      int valueSize=inputStream.readInt();
+      byte[] value=new byte[valueSize];
+      ByteUtils.read(inputStream,value);
+      VectorClock clock=new VectorClock(value);
+      Versioned<byte[]> versionedValue=new Versioned<byte[]>(ByteUtils.copy(value,clock.sizeInBytes(),value.length),clock);
+      getMetadataStore().put(new ByteArray(ByteUtils.getBytes(keyString,"UTF-8")),versionedValue);
+      outputStream.writeShort(0);
+      outputStream.flush();
+    }
+ else {
+      throw new VoldemortException("Metadata Key passed " + keyString + " is not handled yet ...");
+    }
+  }
+ catch (  VoldemortException e) {
+    writeException(outputStream,e);
+  }
+}

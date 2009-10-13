@@ -1,0 +1,4 @@
+{
+  VectorClock oldClock=(VectorClock)getStoresMetadata(nodeId).getVersion();
+  doUpdateRemoteMetadata(nodeId,new ByteArray(ByteUtils.getBytes(MetadataStore.STORES_KEY,"UTF-8")),new Versioned<byte[]>(ByteUtils.getBytes(storeMapper.writeStoreList(storesList),"UTF-8"),oldClock.incremented(nodeId,1)));
+}

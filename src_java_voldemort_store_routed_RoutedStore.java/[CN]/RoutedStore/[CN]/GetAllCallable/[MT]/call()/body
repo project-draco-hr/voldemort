@@ -5,9 +5,9 @@
   try {
     retrieved=innerStores.get(node.getId()).getAll(nodeKeys);
     if (repairReads) {
-      for (      Map.Entry<ByteArray,List<Versioned<byte[]>>> entry : retrieved.entrySet()) {
-        ByteArray key=entry.getKey();
-        for (        Versioned<byte[]> v : entry.getValue())         nodeValues.add(new NodeValue<ByteArray,byte[]>(node.getId(),key,v));
+      for (      Map.Entry<ByteArray,List<Versioned<byte[]>>> entry : retrieved.entrySet())       fillRepairReadsValues(nodeValues,entry.getKey(),node,entry.getValue());
+      for (      ByteArray nodeKey : nodeKeys) {
+        if (!retrieved.containsKey(nodeKey))         fillRepairReadsValues(nodeValues,nodeKey,node,Collections.<Versioned<byte[]>>emptyList());
       }
     }
     node.getStatus().setAvailable();
