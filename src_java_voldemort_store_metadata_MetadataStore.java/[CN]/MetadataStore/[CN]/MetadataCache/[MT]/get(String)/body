@@ -1,7 +1,10 @@
 {
-  if (!inMemoryHash.containsKey(key) && METADATA_KEYS.contains(key)) {
-    Versioned<byte[]> valueBytes=getInnerValue(key);
-    inMemoryHash.put(key,convertBytesToObject(key,valueBytes));
+  if (METADATA_KEYS.contains(key)) {
+    if (!inMemoryHash.containsKey(key) && !TRANSIENT_KEYS.contains(key)) {
+      Versioned<byte[]> valueBytes=getInnerValue(key);
+      inMemoryHash.put(key,convertBytesToObject(key,valueBytes));
+    }
+    return inMemoryHash.get(key);
   }
-  return inMemoryHash.get(key);
+  throw new VoldemortException("Unsupported key at metadata cache get():" + key);
 }
