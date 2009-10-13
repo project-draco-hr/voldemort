@@ -1,9 +1,11 @@
 {
   if (METADATA_KEYS.contains(key)) {
     inMemoryHash.put(key,value);
-    value=doSpecialPutHandling(key,value);
-    Versioned<byte[]> valueBytes=convertObjectToBytes(key,value);
-    innerStore.put(key,new Versioned<String>(ByteUtils.getString(valueBytes.getValue(),"UTF-8"),valueBytes.getVersion()));
+    if (!TRANSIENT_KEYS.contains(key)) {
+      value=doSpecialPutHandling(key,value);
+      Versioned<byte[]> valueBytes=convertObjectToBytes(key,value);
+      innerStore.put(key,new Versioned<String>(ByteUtils.getString(valueBytes.getValue(),"UTF-8"),valueBytes.getVersion()));
+    }
     return;
   }
   throw new VoldemortException("Unsupported key at metadata cache put():" + key);

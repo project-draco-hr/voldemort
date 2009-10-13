@@ -4,12 +4,10 @@
   if (backupKeyFile.exists() && backupVersionFile.exists()) {
     File keyFile=new File(this.directory,key);
     File versionFile=new File(this.versionDirectory,key);
-    try {
-      if (keyFile.delete() && versionFile.delete())       return backupKeyFile.renameTo(keyFile) && backupVersionFile.renameTo(versionFile);
-    }
- catch (    Exception e) {
-      logger.error("Failed to rollback with exception ",e);
-    }
+    if (keyFile.delete() && versionFile.delete())     return backupKeyFile.renameTo(keyFile) && backupVersionFile.renameTo(versionFile);
   }
-  return false;
+ else {
+    logger.warn("Rollback attempted but no backup File found:" + backupKeyFile);
+  }
+  throw new VoldemortException("Failed to rollBack for key:" + key);
 }

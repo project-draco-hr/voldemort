@@ -24,7 +24,12 @@
       writeVersion(key,clock);
     }
  catch (    IOException e) {
-      rollbackFromBackup(key);
+      try {
+        rollbackFromBackup(key);
+      }
+ catch (      Exception rollbackError) {
+        logger.error("Failed to rollback with exception ",rollbackError);
+      }
       throw new VoldemortException(e);
     }
   }
