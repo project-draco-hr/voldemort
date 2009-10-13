@@ -1,0 +1,11 @@
+{
+  try {
+    initCache(key);
+  }
+ catch (  Exception e) {
+    Versioned<Object> value=new Versioned<Object>(defaultValue);
+    ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(key,"UTF-8"));
+    Versioned<String> valueStr=convertObjectToBytes(key,value);
+    this.put(keyBytes,new Versioned<byte[]>(ByteUtils.getBytes(valueStr.getValue(),"UTF-8")));
+  }
+}
