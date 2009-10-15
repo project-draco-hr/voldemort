@@ -1,0 +1,19 @@
+{
+  if (urls == null || urls.length == 0)   throw new IllegalArgumentException("Must provide at least one bootstrap URL!");
+  URI[] uris=new URI[urls.length];
+  for (int i=0; i < urls.length; i++) {
+    if (urls[i] == null)     throw new IllegalArgumentException("Null URL not allowed for bootstrapping!");
+    URI uri=null;
+    try {
+      uri=new URI(urls[i]);
+    }
+ catch (    URISyntaxException e) {
+      throw new BootstrapFailureException(e);
+    }
+    if (uri.getHost() == null || uri.getHost().length() == 0)     throw new IllegalArgumentException("Illegal scheme in bootstrap URL, must specify a host, URL: " + uri);
+ else     if (uri.getPort() < 0)     throw new IllegalArgumentException("Must specify a port in bootstrap URL, URL: " + uri);
+ else     validateUrl(uri);
+    uris[i]=uri;
+  }
+  return uris;
+}

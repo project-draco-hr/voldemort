@@ -5,6 +5,9 @@ synchronized (lock) {
     try {
       Environment environment=getEnvironment(storeName);
       Database db=environment.openDatabase(null,storeName,databaseConfig);
+      PreloadConfig preloadConfig=new PreloadConfig();
+      preloadConfig.setLoadLNs(true);
+      db.preload(preloadConfig);
       BdbStorageEngine engine=new BdbStorageEngine(storeName,environment,db);
       stores.put(storeName,engine);
       return engine;
