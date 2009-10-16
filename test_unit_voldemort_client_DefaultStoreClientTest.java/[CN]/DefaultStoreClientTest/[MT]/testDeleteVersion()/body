@@ -1,5 +1,5 @@
 {
-  assertFalse("Delete of non-existant key should be false.",client.delete("k"));
+  assertFalse("Delete of non-existant key should be false.",client.delete("k",new VectorClock()));
   client.put("k",new Versioned<String>("v"));
   assertFalse("Delete of a lesser version should be false.",client.delete("k",new VectorClock()));
   assertNotNull("After failed delete, value should still be there.",client.get("k"));

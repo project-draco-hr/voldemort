@@ -12,4 +12,6 @@
  catch (  ObsoleteVersionException e) {
   }
   client.put("k",new Versioned<String>("v2",new VectorClock().incremented(nodeId + 1,time.getMilliseconds())));
+  assertEquals("GET should return the new value set by PUT.","v2",client.getValue("k"));
+  assertEquals("GET should return the new version set by PUT.",expected.incremented(nodeId + 1,time.getMilliseconds()),client.get("k").getVersion());
 }
