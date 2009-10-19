@@ -1,11 +1,9 @@
 {
-  List<Versioned<byte[]>> fetched=Collections.emptyList();
-  List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayList();
+  List<R> fetched=Collections.emptyList();
   Throwable exception=null;
   try {
     if (logger.isTraceEnabled())     logger.trace("Attempting get operation on node " + node.getId() + " for key '"+ ByteUtils.toHexString(key.get())+ "'.");
-    fetched=innerStores.get(node.getId()).get(key);
-    fillRepairReadsValues(nodeValues,key,node,fetched);
+    fetched=fetcher.execute(innerStores.get(node.getId()),key);
     failureDetector.recordSuccess(node);
   }
  catch (  UnreachableStoreException e) {
@@ -17,5 +15,5 @@ catch (  Throwable e) {
     logger.warn("Error in GET on node " + node.getId() + "("+ node.getHost()+ ")",e);
     exception=e;
   }
-  return new GetResult(fetched,nodeValues,exception);
+  return new GetResult<R>(node,key,fetched,exception);
 }

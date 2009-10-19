@@ -1,0 +1,13 @@
+{
+  checkException(stream);
+  int resultSize=stream.readInt();
+  List<Version> results=new ArrayList<Version>(resultSize);
+  for (int i=0; i < resultSize; i++) {
+    int versionSize=stream.readInt();
+    byte[] bytes=new byte[versionSize];
+    ByteUtils.read(stream,bytes);
+    VectorClock clock=new VectorClock(bytes);
+    results.add(clock);
+  }
+  return results;
+}

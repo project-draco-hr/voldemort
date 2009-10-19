@@ -1,0 +1,11 @@
+{
+  VProto.GetVersionResponse.Builder response=VProto.GetVersionResponse.newBuilder();
+  try {
+    List<Version> versions=store.getVersions(ProtoUtils.decodeBytes(request.getKey()));
+    for (    Version version : versions)     response.addVersions(ProtoUtils.encodeClock(version));
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(getErrorMapper(),e));
+  }
+  return response.build();
+}

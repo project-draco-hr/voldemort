@@ -14,7 +14,7 @@
       if (occured == Occured.BEFORE)       throw new ObsoleteVersionException("Key '" + new String(hexCodec.encode(key.get())) + "' "+ value.getVersion().toString()+ " is obsolete,"+ " current version is "+ clock+ ".");
  else       if (occured == Occured.AFTER)       cursor.delete();
     }
-    valueEntry=new DatabaseEntry(serializer.toBytes(value));
+    valueEntry=new DatabaseEntry(versionedSerializer.toBytes(value));
     OperationStatus status=cursor.put(keyEntry,valueEntry);
     if (status != OperationStatus.SUCCESS)     throw new PersistenceFailureException("Put operation failed with status: " + status);
     succeeded=true;

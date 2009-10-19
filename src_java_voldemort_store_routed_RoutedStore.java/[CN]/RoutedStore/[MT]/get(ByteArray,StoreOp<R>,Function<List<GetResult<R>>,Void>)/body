@@ -1,0 +1,69 @@
+{
+  StoreUtils.assertValidKey(key);
+  final List<Node> nodes=availableNodes(routingStrategy.routeRequest(key.get()));
+  checkRequiredReads(nodes);
+  final List<GetResult<R>> retrieved=Lists.newArrayList();
+  int successes=0;
+  final List<Throwable> failures=Lists.newArrayListWithCapacity(3);
+  int attempts=Math.min(this.storeDef.getPreferredReads(),nodes.size());
+  int nodeIndex=0;
+  List<Callable<GetResult<R>>> callables=Lists.newArrayListWithCapacity(attempts);
+  for (; nodeIndex < attempts; nodeIndex++) {
+    final Node node=nodes.get(nodeIndex);
+    callables.add(new GetCallable<R>(node,key,fetcher));
+  }
+  List<Future<GetResult<R>>> futures;
+  try {
+    futures=executor.invokeAll(callables,timeoutMs,TimeUnit.MILLISECONDS);
+  }
+ catch (  InterruptedException e) {
+    throw new InsufficientOperationalNodesException("Get operation interrupted!",e);
+  }
+  for (  Future<GetResult<R>> f : futures) {
+    if (f.isCancelled()) {
+      logger.warn("Get operation timed out after " + timeoutMs + " ms.");
+      continue;
+    }
+    try {
+      GetResult<R> getResult=f.get();
+      if (getResult.exception != null) {
+        failures.add(getResult.exception);
+        continue;
+      }
+      ++successes;
+      retrieved.add(getResult);
+    }
+ catch (    InterruptedException e) {
+      throw new InsufficientOperationalNodesException("Get operation interrupted!",e);
+    }
+catch (    ExecutionException e) {
+      if (e.getCause() instanceof Error)       throw (Error)e.getCause();
+ else       logger.error(e.getMessage(),e);
+    }
+  }
+  while (successes < this.storeDef.getPreferredReads() && nodeIndex < nodes.size()) {
+    Node node=nodes.get(nodeIndex);
+    try {
+      retrieved.add(new GetResult<R>(node,key,fetcher.execute(innerStores.get(node.getId()),key),null));
+      ++successes;
+      failureDetector.recordSuccess(node);
+    }
+ catch (    UnreachableStoreException e) {
+      failures.add(e);
+      failureDetector.recordException(node,e);
+    }
+catch (    Exception e) {
+      logger.warn("Error in GET on node " + node.getId() + "("+ node.getHost()+ ")",e);
+      failures.add(e);
+    }
+    nodeIndex++;
+  }
+  if (logger.isTraceEnabled())   logger.trace("GET retrieved the following node values: " + formatNodeValues(retrieved));
+  if (preReturnProcedure != null)   preReturnProcedure.apply(retrieved);
+  if (successes >= this.storeDef.getRequiredReads()) {
+    List<R> result=Lists.newArrayListWithExpectedSize(retrieved.size());
+    for (    GetResult<R> getResult : retrieved)     result.addAll(getResult.retrieved);
+    return result;
+  }
+ else   throw new InsufficientOperationalNodesException(this.storeDef.getRequiredReads() + " reads required, but " + successes+ " succeeded.",failures);
+}
