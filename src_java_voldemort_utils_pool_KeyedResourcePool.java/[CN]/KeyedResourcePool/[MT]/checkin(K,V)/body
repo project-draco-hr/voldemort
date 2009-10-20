@@ -1,7 +1,7 @@
 {
   Pool<V> pool=resourcesMap.get(key);
   if (pool == null)   throw new IllegalArgumentException("Invalid key '" + key + "': no resource pool exists for that key.");
-  if (isOpen.get()) {
+  if (isOpen.get() && objectFactory.validate(key,resource)) {
     boolean success=pool.nonBlockingPut(resource);
     if (!success) {
       destroyResource(key,pool,resource);
