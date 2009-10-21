@@ -3,7 +3,10 @@
   try {
     super.put(key,value);
   }
- catch (  VoldemortException e) {
+ catch (  ObsoleteVersionException e) {
+    stats.recordTime(Tracked.OBSOLETE,System.nanoTime() - start);
+  }
+catch (  VoldemortException e) {
     stats.recordTime(Tracked.EXCEPTION,System.nanoTime() - start);
     throw e;
   }
