@@ -1,5 +1,5 @@
 {
-  SocketServer server=new SocketServer(6666,50,50,1000,new RequestHandlerFactory(null,null,null));
+  SocketServer server=new SocketServer(7666,50,50,1000,new RequestHandlerFactory(null,null,null));
   server.start();
   final ResourcePoolConfig config=new ResourcePoolConfig().setTimeout(50,TimeUnit.MILLISECONDS).setMaxPoolSize(20);
   ResourceFactory<SocketDestination,SocketAndStreams> factory=ResourcePoolTestUtils.getSocketPoolFactory();
@@ -7,10 +7,10 @@
     @Override protected void doSomethingWithResource(    SocketDestination key,    SocketAndStreams resource) throws Exception {
       Thread.sleep(100);
       int random=(int)(Math.random() * 10);
-      if (random == 7)       resource.getSocket().close();
+      if (random >= 5)       resource.getSocket().close();
     }
     @Override protected SocketDestination getRequestKey() throws Exception {
-      return new SocketDestination("localhost",6666,RequestFormatType.VOLDEMORT_V1);
+      return new SocketDestination("localhost",7666,RequestFormatType.VOLDEMORT_V1);
     }
   }
 ;
