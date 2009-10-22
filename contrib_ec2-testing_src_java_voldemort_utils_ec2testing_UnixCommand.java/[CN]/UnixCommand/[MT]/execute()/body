@@ -1,0 +1,11 @@
+{
+  ProcessBuilder builder=new ProcessBuilder(this.args);
+  Process process=builder.start();
+  Thread stdout=new StreamPrinter(process.getInputStream());
+  Thread stderr=new StreamPrinter(process.getErrorStream());
+  stdout.start();
+  stderr.start();
+  process.waitFor();
+  int exitCode=process.exitValue();
+  if (exitCode > 0)   throw new RuntimeException(exitCode + "");
+}
