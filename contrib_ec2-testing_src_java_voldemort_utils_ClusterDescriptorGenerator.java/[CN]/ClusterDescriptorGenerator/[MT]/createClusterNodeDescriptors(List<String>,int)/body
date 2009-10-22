@@ -1,0 +1,13 @@
+{
+  List<Integer> ids=range(hostNames.size() * partitions);
+  Random random=new Random(5276239082346L);
+  Collections.shuffle(ids,random);
+  List<ClusterNodeDescriptor> list=new ArrayList<ClusterNodeDescriptor>();
+  for (int i=0; i < hostNames.size(); i++) {
+    String hostName=hostNames.get(i);
+    List<Integer> partitionsList=ids.subList(i * partitions,(i + 1) * partitions);
+    Collections.sort(partitionsList);
+    list.add(new ClusterNodeDescriptor(hostName,i,partitionsList));
+  }
+  return list;
+}
