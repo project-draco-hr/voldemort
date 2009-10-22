@@ -1,11 +1,9 @@
 {
-  String accessId=System.getProperty("ec2AccessId");
-  String secretKey=System.getProperty("ec2SecretKey");
-  String ami=System.getProperty("ec2Ami");
-  String keyPairId=System.getProperty("ec2KeyPairId");
-  Ec2Connection ec2=new TypicaEc2Connection(accessId,secretKey);
-  Map<String,String> dnsNames=ec2.createInstances(ami,keyPairId,null,2,360000);
-  ClusterDescriptorGenerator cdg=new ClusterDescriptorGenerator();
-  String clusterXml=cdg.createClusterDescriptor(new ArrayList<String>(dnsNames.values()),3);
-  System.out.println(clusterXml);
+  Map<String,String> dnsNames=new HashMap<String,String>();
+  dnsNames.put("ec2-75-101-191-205.compute-1.amazonaws.com","domU-12-31-39-00-C4-D5.compute-1.internal");
+  generateClusterDescriptor(dnsNames.values());
+  rsync(dnsNames.keySet());
+  startCluster(dnsNames.keySet());
+  Thread.sleep(15000);
+  stopCluster(dnsNames.keySet());
 }

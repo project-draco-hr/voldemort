@@ -1,0 +1,22 @@
+{
+  for (  String hostName : hostNames) {
+    List<String> command=new ArrayList<String>();
+    command.add("rsync");
+    command.add("-vaz");
+    command.add("--delete");
+    command.add("--progress");
+    command.add("--exclude=.git");
+    command.add("-e");
+    command.add("ssh -o StrictHostKeyChecking=no -i " + sshPrivateKey);
+    command.add(sourceDirectory.getAbsolutePath());
+    command.add(hostUserId + "@" + hostName+ ":"+ destinationDirectory);
+    System.out.println(StringUtils.join(command," "));
+    UnixCommand unixCommand=new UnixCommand(command);
+    try {
+      unixCommand.execute();
+    }
+ catch (    Exception e) {
+      throw new VoldemortDeploymentException(e);
+    }
+  }
+}
