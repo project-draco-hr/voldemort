@@ -1,0 +1,18 @@
+{
+  List<String> instanceIds=launch(ami,keypairId,instanceSize,instanceCount);
+  Map<String,String> hostNameMap=new HashMap<String,String>();
+  long startTime=System.currentTimeMillis();
+  while (!instanceIds.isEmpty()) {
+    if (System.currentTimeMillis() > (startTime + timeout))     throw new Error("Rollback creation NYI");
+    try {
+      if (logger.isInfoEnabled())       logger.info("Sleeping for " + POLL_INTERVAL + " seconds...");
+      Thread.sleep(POLL_INTERVAL * 1000);
+    }
+ catch (    InterruptedException e) {
+      break;
+    }
+    waitForInstances(instanceIds,hostNameMap);
+    if (instanceIds.isEmpty())     break;
+  }
+  return hostNameMap;
+}
