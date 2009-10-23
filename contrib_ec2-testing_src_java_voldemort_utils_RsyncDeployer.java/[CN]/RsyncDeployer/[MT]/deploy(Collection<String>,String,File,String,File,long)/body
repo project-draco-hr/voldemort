@@ -1,0 +1,10 @@
+{
+  StringBuilder errors=new StringBuilder();
+  try {
+    run("RsyncDeployer.rsync",hostNames,hostUserId,sshPrivateKey,voldemortRootDirectory,null,sourceDirectory,timeout,errors);
+  }
+ catch (  IOException e) {
+    throw new DeploymentException(e);
+  }
+  if (errors.length() > 0)   throw new DeploymentException(errors.toString());
+}

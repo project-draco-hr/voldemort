@@ -1,0 +1,39 @@
+{
+  ExecutorService threadPool=Executors.newFixedThreadPool(hostNames.size());
+  List<Future<Object>> futures=new ArrayList<Future<Object>>();
+  Properties properties=new Properties();
+  properties.load(getClass().getClassLoader().getResourceAsStream("commands.properties"));
+  final String rawCommand=properties.getProperty(commandId);
+  for (  String hostName : hostNames) {
+    String parameterizedCommand=parameterizeCommand(hostName,hostUserId,sshPrivateKey,voldemortRootDirectory,voldemortHomeDirectory,sourceDirectory,rawCommand);
+    List<String> commandArgs=generateCommandArgs(parameterizedCommand);
+    UnixCommand command=new UnixCommand(hostName,commandArgs);
+    CommandOutputListener commandOutputListener=new LoggingCommandOutputListener();
+    Future<Object> future=threadPool.submit(new ExitCodeCallable(command,commandOutputListener));
+    futures.add(future);
+  }
+  for (  Future<Object> future : futures) {
+    Throwable t=null;
+    try {
+      future.get(timeout,TimeUnit.MILLISECONDS);
+    }
+ catch (    ExecutionException ex) {
+      t=ex.getCause();
+    }
+catch (    Exception e) {
+      t=e;
+    }
+    if (t != null) {
+      if (logger.isWarnEnabled())       logger.warn(t,t);
+      if (errors.length() > 0)       errors.append("; ");
+      errors.append(t.getMessage());
+    }
+  }
+  threadPool.shutdown();
+  try {
+    threadPool.awaitTermination(60,TimeUnit.SECONDS);
+  }
+ catch (  InterruptedException e) {
+    if (logger.isWarnEnabled())     logger.warn(e,e);
+  }
+}
