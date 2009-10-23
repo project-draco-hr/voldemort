@@ -1,7 +1,7 @@
 {
-  String clusterXml=bootstrapMetadata(MetadataStore.CLUSTER_KEY,bootstrapUrls);
+  String clusterXml=bootstrapMetadataWithRetries(MetadataStore.CLUSTER_KEY,bootstrapUrls);
   Cluster cluster=clusterMapper.readCluster(new StringReader(clusterXml));
-  String storesXml=bootstrapMetadata(MetadataStore.STORES_KEY,bootstrapUrls);
+  String storesXml=bootstrapMetadataWithRetries(MetadataStore.STORES_KEY,bootstrapUrls);
   List<StoreDefinition> storeDefs=storeMapper.readStoreList(new StringReader(storesXml));
   StoreDefinition storeDef=null;
   for (  StoreDefinition d : storeDefs)   if (d.getName().equals(storeName))   storeDef=d;
