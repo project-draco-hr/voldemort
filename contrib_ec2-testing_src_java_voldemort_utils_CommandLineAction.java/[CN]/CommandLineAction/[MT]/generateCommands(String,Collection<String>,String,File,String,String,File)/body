@@ -1,0 +1,12 @@
+{
+  Properties properties=new Properties();
+  properties.load(getClass().getClassLoader().getResourceAsStream("commands.properties"));
+  final String rawCommand=properties.getProperty(command);
+  List<UnixCommand> unixCommands=new ArrayList<UnixCommand>();
+  for (  String hostName : hostNames) {
+    String parameterizedCommand=parameterizeCommand(hostName,hostUserId,sshPrivateKey,voldemortRootDirectory,voldemortHomeDirectory,sourceDirectory,rawCommand);
+    UnixCommand unixCommand=generateCommand(parameterizedCommand);
+    unixCommands.add(unixCommand);
+  }
+  return unixCommands;
+}

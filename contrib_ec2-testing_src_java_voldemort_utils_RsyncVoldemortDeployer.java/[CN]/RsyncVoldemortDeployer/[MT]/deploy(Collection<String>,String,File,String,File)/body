@@ -1,0 +1,22 @@
+{
+  try {
+    List<UnixCommand> unixCommands=generateCommands("RsyncVoldemortDeployer.ssh",hostNames,hostUserId,sshPrivateKey,voldemortRootDirectory,null,sourceDirectory);
+    for (    UnixCommand unixCommand : unixCommands)     unixCommand.execute();
+  }
+ catch (  InterruptedException e) {
+    throw new VoldemortDeploymentException(e);
+  }
+catch (  IOException e) {
+    throw new VoldemortDeploymentException(e);
+  }
+  try {
+    List<UnixCommand> unixCommands=generateCommands("RsyncVoldemortDeployer.rsync",hostNames,hostUserId,sshPrivateKey,voldemortRootDirectory,null,sourceDirectory);
+    for (    UnixCommand unixCommand : unixCommands)     unixCommand.execute();
+  }
+ catch (  InterruptedException e) {
+    throw new VoldemortDeploymentException(e);
+  }
+catch (  IOException e) {
+    throw new VoldemortDeploymentException(e);
+  }
+}

@@ -1,0 +1,11 @@
+{
+  Map<String,String> variableMap=new HashMap<String,String>();
+  variableMap.put("hostName",hostName);
+  variableMap.put("hostUserId",hostUserId);
+  if (sshPrivateKey != null)   variableMap.put("sshPrivateKey",sshPrivateKey.getAbsolutePath());
+  variableMap.put("voldemortRootDirectory",voldemortRootDirectory);
+  variableMap.put("voldemortHomeDirectory",voldemortHomeDirectory);
+  if (sourceDirectory != null)   variableMap.put("sourceDirectory",sourceDirectory.getAbsolutePath());
+  for (  Map.Entry<String,String> entry : variableMap.entrySet())   command=StringUtils.replace(command,"${" + entry.getKey() + "}",entry.getValue());
+  return command;
+}
