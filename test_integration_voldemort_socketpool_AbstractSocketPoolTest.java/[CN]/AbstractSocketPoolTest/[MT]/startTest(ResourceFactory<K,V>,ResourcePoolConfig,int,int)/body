@@ -17,8 +17,8 @@
           }
           assertEquals("resources In Hand(" + resourceInHand.get(key).get() + ") should be less than equal to pool size("+ config.getMaxPoolSize()+ ")",true,resourceInHand.get(key).get() <= config.getMaxPoolSize());
           doSomethingWithResource(key,resource);
-          pool.checkin(key,resource);
           resourceInHand.get(key).decrementAndGet();
+          pool.checkin(key,resource);
         }
  catch (        TimeoutException e) {
           ++testStats.timeoutRequests;
