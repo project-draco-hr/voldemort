@@ -3,7 +3,7 @@
   parser.accepts("hostsfile","File containing list of remote host names.").withRequiredArg();
   parser.accepts("hostuserid","Name of user on remote host. Default root").withRequiredArg();
   parser.accepts("sshprivatekey","File containing the private SSH key").withRequiredArg();
-  parser.accepts("voldemortroot","Voldemort's root directory on remote host").withRequiredArg();
+  parser.accepts("voldemortparent","Voldemort's parent directory on remote host").withRequiredArg();
   parser.accepts("sourcedir","The source directory on the local machine").withRequiredArg();
   OptionSet options=parser.parse(args);
   if (!options.has("hostsfile"))   printUsage(System.err,parser);
@@ -23,8 +23,8 @@
   String hostUserId="";
   if (options.has("hostuserid"))   hostUserId=CmdUtils.valueOf(options,"hostuserid","");
  else   hostUserId="root";
-  if (!options.has("voldemortroot"))   printUsage(System.err,parser);
-  String voldemortRootDirectory=CmdUtils.valueOf(options,"voldemortroot","");
+  if (!options.has("voldemortparent"))   printUsage(System.err,parser);
+  String voldemortParentDirectory=CmdUtils.valueOf(options,"voldemortparent","");
   if (!options.has("sourcedir"))   printUsage(System.err,parser);
   String sourceDir=CmdUtils.valueOf(options,"sourcedir","");
   File sourceDirectory=new File(sourceDir);
@@ -44,7 +44,12 @@
   }
  catch (  IOException e) {
   }
-  System.out.println(hostNames);
-  Deployer deployer=new RsyncDeployer();
-  deployer.deploy(hostNames,hostUserId,sshPrivateKey,voldemortRootDirectory,sourceDirectory,600000);
+  CommandLineClusterConfig config=new CommandLineClusterConfig();
+  config.setHostNames(hostNames);
+  config.setHostUserId(hostUserId);
+  config.setSshPrivateKey(sshPrivateKey);
+  config.setVoldemortParentDirectory(voldemortParentDirectory);
+  config.setSourceDirectory(sourceDirectory);
+  ClusterOperation operation=new RsyncDeployer(config);
+  operation.execute();
 }

@@ -1,0 +1,46 @@
+{
+  Properties properties=new Properties();
+  try {
+    properties.load(getClass().getClassLoader().getResourceAsStream("commands.properties"));
+  }
+ catch (  IOException e1) {
+    throw new ClusterOperationException(e1);
+  }
+  final String rawCommand=properties.getProperty(commandId);
+  ExecutorService threadPool=Executors.newFixedThreadPool(commandLineClusterConfig.getHostNames().size());
+  List<Future<Object>> futures=new ArrayList<Future<Object>>();
+  for (  String hostName : commandLineClusterConfig.getHostNames()) {
+    String parameterizedCommand=parameterizeCommand(hostName,rawCommand);
+    List<String> commandArgs=generateCommandArgs(parameterizedCommand);
+    UnixCommand command=new UnixCommand(hostName,commandArgs);
+    CommandOutputListener commandOutputListener=new LoggingCommandOutputListener();
+    Future<Object> future=threadPool.submit(new ExitCodeCallable(command,commandOutputListener));
+    futures.add(future);
+  }
+  StringBuilder errors=new StringBuilder();
+  for (  Future<Object> future : futures) {
+    Throwable t=null;
+    try {
+      future.get();
+    }
+ catch (    ExecutionException ex) {
+      t=ex.getCause();
+    }
+catch (    Exception e) {
+      t=e;
+    }
+    if (t != null) {
+      if (logger.isWarnEnabled())       logger.warn(t,t);
+      if (errors.length() > 0)       errors.append("; ");
+      errors.append(t.getMessage());
+    }
+  }
+  threadPool.shutdown();
+  try {
+    threadPool.awaitTermination(60,TimeUnit.SECONDS);
+  }
+ catch (  InterruptedException e) {
+    if (logger.isWarnEnabled())     logger.warn(e,e);
+  }
+  if (errors.length() > 0)   throw new ClusterOperationException(errors.toString());
+}

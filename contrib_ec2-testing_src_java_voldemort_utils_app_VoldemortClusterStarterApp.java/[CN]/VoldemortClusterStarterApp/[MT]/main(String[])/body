@@ -39,6 +39,12 @@
   }
  catch (  IOException e) {
   }
-  ClusterStarter clusterStarter=new SshClusterStarter();
-  clusterStarter.start(hostNames,hostUserId,sshPrivateKey,voldemortRootDirectory,voldemortHomeDirectory,600000);
+  CommandLineClusterConfig config=new CommandLineClusterConfig();
+  config.setHostNames(hostNames);
+  config.setHostUserId(hostUserId);
+  config.setSshPrivateKey(sshPrivateKey);
+  config.setVoldemortHomeDirectory(voldemortHomeDirectory);
+  config.setVoldemortRootDirectory(voldemortRootDirectory);
+  ClusterOperation operation=new SshClusterStarter(config);
+  operation.execute();
 }
