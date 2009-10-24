@@ -1,5 +1,5 @@
 {
-  final SetMultimap<Integer,Integer> nodePartitions=HashMultimap.create();
+  SetMultimap<Integer,Integer> nodePartitions=HashMultimap.create();
   if (optPartitions != null && optNodes != null) {
     for (    Object node : optNodes) {
       for (      Object partition : optPartitions)       nodePartitions.put((Integer)node,(Integer)partition);
@@ -18,19 +18,5 @@
     }
   }
  else   throw new IllegalStateException();
-  for (  final Integer node : nodePartitions.keySet()) {
-    System.out.println("Testing fetch of node " + node + " partitions "+ nodePartitions.get(node)+ ": \n");
-    measureFunction(new Measurable(){
-      public long apply(){
-        long i=0;
-        Iterator<Pair<ByteArray,Versioned<byte[]>>> result=adminClient.doFetchPartitionEntries(node,storeName,new ArrayList<Integer>(nodePartitions.get(node)),null);
-        while (result.hasNext()) {
-          i++;
-          result.next();
-        }
-        return i;
-      }
-    }
-,1);
-  }
+  return nodePartitions;
 }

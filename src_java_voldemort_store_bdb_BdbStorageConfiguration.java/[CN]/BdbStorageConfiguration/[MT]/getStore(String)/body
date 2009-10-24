@@ -5,10 +5,12 @@ synchronized (lock) {
     try {
       Environment environment=getEnvironment(storeName);
       Database db=environment.openDatabase(null,storeName,databaseConfig);
-      PreloadConfig preloadConfig=new PreloadConfig();
-      preloadConfig.setLoadLNs(true);
-      db.preload(preloadConfig);
-      BdbStorageEngine engine=new BdbStorageEngine(storeName,environment,db);
+      if (voldemortConfig.getBdbCursorPreload()) {
+        PreloadConfig preloadConfig=new PreloadConfig();
+        preloadConfig.setLoadLNs(true);
+        db.preload(preloadConfig);
+      }
+      BdbStorageEngine engine=new BdbStorageEngine(storeName,environment,db,voldemortConfig.getBdbCursorPreload());
       stores.put(storeName,engine);
       return engine;
     }

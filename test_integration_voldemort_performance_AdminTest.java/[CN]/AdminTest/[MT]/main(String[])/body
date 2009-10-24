@@ -14,5 +14,6 @@
   AdminTest adminTest;
   if (options.has("native"))   adminTest=new AdminTest(bootstrapUrl,storeName,true);
  else   adminTest=new AdminTest(bootstrapUrl,storeName);
-  adminTest.testFetch(options.has("n") ? options.valuesOf("n") : null,options.has("p") ? options.valuesOf("p") : null);
+  SetMultimap<Integer,Integer> nodePartitions=adminTest.getNodePartitions(options.has("n") ? options.valuesOf("n") : null,options.has("p") ? options.valuesOf("p") : null);
+  adminTest.testFetch(nodePartitions);
 }
