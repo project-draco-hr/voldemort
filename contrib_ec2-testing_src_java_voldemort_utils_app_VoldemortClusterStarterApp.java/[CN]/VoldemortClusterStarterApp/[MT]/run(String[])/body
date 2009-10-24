@@ -1,0 +1,22 @@
+{
+  parser.accepts("hostnames","File containing host names").withRequiredArg();
+  parser.accepts("sshprivatekey","File containing SSH private key").withRequiredArg();
+  parser.accepts("hostuserid","User ID on remote host").withRequiredArg();
+  parser.accepts("voldemortroot","Voldemort's root directory on remote host").withRequiredArg();
+  parser.accepts("voldemorthome","Voldemort's home directory on remote host").withRequiredArg();
+  OptionSet options=parser.parse(args);
+  File hostNamesFile=getRequiredInputFile(options,"hostnames");
+  File sshPrivateKey=getRequiredInputFile(options,"sshprivatekey");
+  String hostUserId=CmdUtils.valueOf(options,"hostuserid","root");
+  String voldemortHomeDirectory=getRequiredString(options,"voldemorthome");
+  String voldemortRootDirectory=getRequiredString(options,"voldemortroot");
+  List<String> hostNames=getHostNamesFromFile(hostNamesFile,true);
+  CommandLineClusterConfig config=new CommandLineClusterConfig();
+  config.setHostNames(hostNames);
+  config.setHostUserId(hostUserId);
+  config.setSshPrivateKey(sshPrivateKey);
+  config.setVoldemortHomeDirectory(voldemortHomeDirectory);
+  config.setVoldemortRootDirectory(voldemortRootDirectory);
+  ClusterOperation operation=new SshClusterStarter(config);
+  operation.execute();
+}

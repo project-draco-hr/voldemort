@@ -2,7 +2,7 @@
   Map<String,String> dnsNames=new HashMap<String,String>();
   dnsNames.put("ec2-174-129-150-46.compute-1.amazonaws.com","domU-12-31-39-02-21-F7.compute-1.internal");
   dnsNames.put("ec2-67-202-46-76.compute-1.amazonaws.com","domU-12-31-39-02-E4-C8.compute-1.internal");
-  generateClusterDescriptor(dnsNames.values());
+  generateClusterDescriptor(dnsNames.values(),"/home/kirk/voldemortdev/voldemort/config/single_node_cluster/cluster.xml");
   CommandLineClusterConfig config=new CommandLineClusterConfig();
   config.setHostNames(dnsNames.keySet());
   config.setHostUserId("root");
@@ -13,6 +13,7 @@
   config.setSourceDirectory(new File("/home/kirk/voldemortdev/voldemort"));
   new RsyncDeployer(config).execute();
   new SshClusterStarter(config).execute();
+  new SshRemoteTestStarter(config).execute();
   Thread.sleep(15000);
   new SshClusterStopper(config).execute();
 }
