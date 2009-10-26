@@ -1,8 +1,8 @@
 {
   ProcessBuilder builder=new ProcessBuilder(this.args);
   Process process=builder.start();
-  Thread stdoutWatcher=new ProcessOutputWatcher(new BufferedReader(new InputStreamReader(process.getInputStream())),commandOutputListener,CommandOutputListener.OutputType.STDOUT);
-  Thread stderrWatcher=new ProcessOutputWatcher(new BufferedReader(new InputStreamReader(process.getErrorStream())),commandOutputListener,CommandOutputListener.OutputType.STDERR);
+  Thread stdoutWatcher=new ProcessOutputWatcher(new BufferedReader(new InputStreamReader(process.getInputStream())),commandOutputListener);
+  Thread stderrWatcher=new ProcessOutputWatcher(new BufferedReader(new InputStreamReader(process.getErrorStream())),commandOutputListener);
   stdoutWatcher.start();
   stderrWatcher.start();
   process.waitFor();

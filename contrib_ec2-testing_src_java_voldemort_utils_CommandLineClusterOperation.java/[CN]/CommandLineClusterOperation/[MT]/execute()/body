@@ -7,40 +7,47 @@
     throw new ClusterOperationException(e1);
   }
   final String rawCommand=properties.getProperty(commandId);
-  ExecutorService threadPool=Executors.newFixedThreadPool(commandLineClusterConfig.getHostNames().size());
-  List<Future<Object>> futures=new ArrayList<Future<Object>>();
+  final ExecutorService threadPool=Executors.newFixedThreadPool(commandLineClusterConfig.getHostNames().size());
+  final List<Future<T>> futures=new ArrayList<Future<T>>();
   for (  String hostName : commandLineClusterConfig.getHostNames()) {
     String parameterizedCommand=parameterizeCommand(hostName,rawCommand);
     List<String> commandArgs=generateCommandArgs(parameterizedCommand);
     UnixCommand command=new UnixCommand(hostName,commandArgs);
-    CommandOutputListener commandOutputListener=new LoggingCommandOutputListener();
-    Future<Object> future=threadPool.submit(new ExitCodeCallable(command,commandOutputListener));
+    Callable<T> callable=getCallable(command);
+    Future<T> future=threadPool.submit(callable);
     futures.add(future);
   }
-  StringBuilder errors=new StringBuilder();
-  for (  Future<Object> future : futures) {
-    Throwable t=null;
-    try {
-      future.get();
-    }
- catch (    ExecutionException ex) {
-      t=ex.getCause();
-    }
-catch (    Exception e) {
-      t=e;
-    }
-    if (t != null) {
-      if (logger.isWarnEnabled())       logger.warn(t,t);
-      if (errors.length() > 0)       errors.append("; ");
-      errors.append(t.getMessage());
-    }
-  }
-  threadPool.shutdown();
+  List<T> list=new ArrayList<T>();
   try {
-    threadPool.awaitTermination(60,TimeUnit.SECONDS);
+    StringBuilder errors=new StringBuilder();
+    for (    Future<T> future : futures) {
+      Throwable t=null;
+      try {
+        T result=future.get();
+        list.add(result);
+      }
+ catch (      ExecutionException ex) {
+        t=ex.getCause();
+      }
+catch (      Exception e) {
+        t=e;
+      }
+      if (t != null) {
+        if (logger.isWarnEnabled())         logger.warn(t,t);
+        if (errors.length() > 0)         errors.append("; ");
+        errors.append(t.getMessage());
+      }
+    }
+    if (errors.length() > 0)     throw new ClusterOperationException(errors.toString());
   }
- catch (  InterruptedException e) {
-    if (logger.isWarnEnabled())     logger.warn(e,e);
+  finally {
+    threadPool.shutdown();
+    try {
+      threadPool.awaitTermination(60,TimeUnit.SECONDS);
+    }
+ catch (    InterruptedException e) {
+      if (logger.isWarnEnabled())       logger.warn(e,e);
+    }
   }
-  if (errors.length() > 0)   throw new ClusterOperationException(errors.toString());
+  return list;
 }

@@ -1,0 +1,16 @@
+{
+  ClusterGenerator clusterGenerator=new ClusterGenerator();
+  List<ClusterNodeDescriptor> nodes=clusterGenerator.createClusterNodeDescriptors(new ArrayList<String>(dnsNames.values()),3);
+  String clusterXml=clusterGenerator.createClusterDescriptor("test",nodes);
+  FileUtils.writeStringToFile(new File(path),clusterXml);
+  Map<String,Integer> nodeIds=new HashMap<String,Integer>();
+  for (  ClusterNodeDescriptor node : nodes) {
+    String privateDnsName=node.getHostName();
+    for (    Map.Entry<String,String> entry : dnsNames.entrySet()) {
+      if (entry.getValue().equals(privateDnsName)) {
+        nodeIds.put(entry.getKey(),node.getId());
+      }
+    }
+  }
+  return nodeIds;
+}

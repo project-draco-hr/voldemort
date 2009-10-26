@@ -1,0 +1,9 @@
+{
+  if (line.contains("Exception") || line.startsWith("\tat ")) {
+    if (logger.isWarnEnabled())     logger.warn("Probable error from " + hostName + ": "+ line);
+  }
+ else {
+    if (logger.isInfoEnabled())     logger.info("From " + hostName + ": "+ line);
+  }
+  if (delegate != null)   delegate.outputReceived(hostName,line);
+}

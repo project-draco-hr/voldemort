@@ -6,6 +6,10 @@
   variableMap.put("voldemortParentDirectory",commandLineClusterConfig.getVoldemortParentDirectory());
   variableMap.put("voldemortRootDirectory",commandLineClusterConfig.getVoldemortRootDirectory());
   variableMap.put("voldemortHomeDirectory",commandLineClusterConfig.getVoldemortHomeDirectory());
+  String nodeId=commandLineClusterConfig.getNodeIds() != null && commandLineClusterConfig.getNodeIds().get(hostName) != null ? commandLineClusterConfig.getNodeIds().get(hostName).toString() : null;
+  variableMap.put("voldemortNodeId",nodeId);
+  String remoteTestArguments=commandLineClusterConfig.getRemoteTestArguments() != null ? commandLineClusterConfig.getRemoteTestArguments().get(hostName) : null;
+  variableMap.put("remoteTestArguments",remoteTestArguments);
   if (commandLineClusterConfig.getSourceDirectory() != null)   variableMap.put("sourceDirectory",commandLineClusterConfig.getSourceDirectory().getAbsolutePath());
   for (  Map.Entry<String,String> entry : variableMap.entrySet())   command=StringUtils.replace(command,"${" + entry.getKey() + "}",entry.getValue());
   return command;
