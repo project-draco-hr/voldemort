@@ -1,9 +1,11 @@
 {
+  parser.accepts("help","Prints this help");
+  parser.accepts("logging","Options are \"debug\", \"info\", \"warn\" (default), \"error\", or \"off\"").withRequiredArg();
   parser.accepts("hostnames","File containing host names").withRequiredArg();
   parser.accepts("partitions","Number of partitions per cluster node").withRequiredArg().ofType(Integer.class);
   parser.accepts("output","cluster.xml configuration file; defaults to stdout").withRequiredArg();
   parser.accepts("clustername","Cluster name; defaults to mycluster").withRequiredArg();
-  OptionSet options=parser.parse(args);
+  OptionSet options=parse(args);
   File hostNamesFile=getRequiredInputFile(options,"hostnames");
   int partitions=getRequiredInt(options,"partitions");
   File outputFile=getOutputFile(options,"output");

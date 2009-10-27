@@ -1,4 +1,6 @@
 {
+  parser.accepts("help","Prints this help");
+  parser.accepts("logging","Options are \"debug\", \"info\", \"warn\" (default), \"error\", or \"off\"").withRequiredArg();
   parser.accepts("accessid","Access ID").withRequiredArg();
   parser.accepts("secretkey","SecretKey").withRequiredArg();
   parser.accepts("ami","AMI").withRequiredArg();
@@ -7,7 +9,7 @@
   parser.accepts("timeout","Timeout in milliseconds (default = 2 minutes + 30 seconds for each instance)").withRequiredArg().ofType(Integer.class);
   parser.accepts("instancesize","Instance size; options are DEFAULT (default), LARGE, XLARGE, MEDIUM_HCPU, and XLARGE_HCPU").withRequiredArg();
   parser.accepts("output","Output of newly created public and private DNS entries; defaults to stdout").withRequiredArg();
-  OptionSet options=parser.parse(args);
+  OptionSet options=parse(args);
   String accessId=getRequiredString(options,"accessid");
   String secretKey=getRequiredString(options,"secretkey");
   String ami=getRequiredString(options,"ami");
