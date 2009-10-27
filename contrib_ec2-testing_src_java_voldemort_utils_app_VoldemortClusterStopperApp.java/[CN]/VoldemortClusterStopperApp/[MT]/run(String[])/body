@@ -4,21 +4,18 @@
   parser.accepts("hostnames","File containing host names").withRequiredArg();
   parser.accepts("sshprivatekey","File containing SSH private key").withRequiredArg();
   parser.accepts("hostuserid","User ID on remote host").withRequiredArg();
-  parser.accepts("voldemortparent","Voldemort's parent directory on remote host").withRequiredArg();
-  parser.accepts("source","The source directory on the local machine").withRequiredArg();
+  parser.accepts("voldemortroot","Voldemort's root directory on remote host").withRequiredArg();
   OptionSet options=parse(args);
   File hostNamesFile=getRequiredInputFile(options,"hostnames");
   File sshPrivateKey=getRequiredInputFile(options,"sshprivatekey");
   String hostUserId=CmdUtils.valueOf(options,"hostuserid","root");
-  String voldemortParentDirectory=getRequiredString(options,"voldemortparent");
-  File sourceDirectory=getRequiredInputFile(options,"source");
+  String voldemortRootDirectory=getRequiredString(options,"voldemortroot");
   List<String> hostNames=getHostNamesFromFile(hostNamesFile,true);
   CommandLineClusterConfig config=new CommandLineClusterConfig();
   config.setHostNames(hostNames);
   config.setHostUserId(hostUserId);
   config.setSshPrivateKey(sshPrivateKey);
-  config.setVoldemortParentDirectory(voldemortParentDirectory);
-  config.setSourceDirectory(sourceDirectory);
-  ClusterOperation<Object> operation=new RsyncDeployer(config);
+  config.setVoldemortRootDirectory(voldemortRootDirectory);
+  ClusterOperation<Object> operation=new SshClusterStopper(config);
   operation.execute();
 }
