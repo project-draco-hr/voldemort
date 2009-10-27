@@ -17,10 +17,10 @@
   Map<String,String> remoteTestArguments=new HashMap<String,String>();
   final String bootstrapUrl=dnsNames.values().iterator().next();
   int startKeyIndex=0;
-  final int numRequests=10000;
-  final int iterations=10;
+  final int numRequests=100000;
+  final int iterations=25;
   for (  String publicHostName : dnsNames.keySet()) {
-    remoteTestArguments.put(publicHostName,"-wd --start-key-index " + (startKeyIndex * numRequests) + " --iterations "+ iterations+ " tcp://"+ bootstrapUrl+ ":6666 test "+ numRequests);
+    remoteTestArguments.put(publicHostName,"-wd --start-key-index " + (startKeyIndex * numRequests) + " --value-size 100 --iterations "+ iterations+ " tcp://"+ bootstrapUrl+ ":6666 test "+ numRequests);
     startKeyIndex++;
   }
   config.setRemoteTestArguments(remoteTestArguments);
@@ -28,7 +28,6 @@
     new SshClusterStopper(config).execute();
   }
  catch (  Exception e) {
-    e.printStackTrace();
   }
   new RsyncDeployer(config).execute();
   new Thread(new Runnable(){
@@ -44,15 +43,6 @@
 ).start();
   Thread.sleep(5000);
   List<RemoteTestResult> remoteTestResults=new SshRemoteTest(config).execute();
-  double totalResults=0;
-  for (  RemoteTestResult remoteTestResult : remoteTestResults) {
-    double hostResults=0;
-    for (    RemoteTestIteration remoteTestIteration : remoteTestResult.getRemoteTestIterations())     hostResults+=remoteTestIteration.getWrites();
-    double hostAvg=hostResults / remoteTestResult.getRemoteTestIterations().size();
-    System.out.println(remoteTestResult.getHostName() + " for writes: " + hostAvg);
-    totalResults+=hostAvg;
-  }
-  double totalAvg=totalResults / remoteTestResults.size();
-  System.out.println("Total for writes: " + totalAvg);
+  new RemoteTestSummarizer().outputTestResults(remoteTestResults);
   new SshClusterStopper(config).execute();
 }

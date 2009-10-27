@@ -1,0 +1,19 @@
+{
+  parser.accepts("accessid","Access ID").withRequiredArg();
+  parser.accepts("secretkey","SecretKey").withRequiredArg();
+  parser.accepts("hostnames","File containing host names").withRequiredArg();
+  parser.accepts("force","Use option to force deletion of *all* instances");
+  OptionSet options=parser.parse(args);
+  String accessId=getRequiredString(options,"accessid");
+  String secretKey=getRequiredString(options,"secretkey");
+  Ec2Connection ec2Connection=new TypicaEc2Connection(accessId,secretKey);
+  List<String> hostNames=null;
+  File hostNamesFile=getInputFile(options,"hostnames");
+  if (hostNamesFile != null) {
+    hostNames=getHostNamesFromFile(hostNamesFile,true);
+  }
+ else   if (options.has("force")) {
+    hostNames=new ArrayList<String>(ec2Connection.getInstances().keySet());
+  }
+  ec2Connection.deleteInstances(hostNames);
+}
