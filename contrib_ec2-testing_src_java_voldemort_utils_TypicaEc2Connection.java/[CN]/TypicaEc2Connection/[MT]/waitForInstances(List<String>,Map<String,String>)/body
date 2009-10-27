@@ -1,11 +1,11 @@
 {
-  if (logger.isInfoEnabled())   logger.info("Waiting for instances: " + instanceIds);
+  if (logger.isDebugEnabled())   logger.debug("Waiting for instances: " + instanceIds);
   for (  ReservationDescription res : ec2.describeInstances(instanceIds)) {
     if (res.getInstances() != null) {
       for (      Instance instance : res.getInstances()) {
         String state=String.valueOf(instance.getState()).toLowerCase();
         if (state.equals("pending")) {
-          if (logger.isInfoEnabled())           logger.info("Instance " + instance.getInstanceId() + " in pending state");
+          if (logger.isDebugEnabled())           logger.debug("Instance " + instance.getInstanceId() + " in pending state");
           continue;
         }
         if (!state.equals("running")) {

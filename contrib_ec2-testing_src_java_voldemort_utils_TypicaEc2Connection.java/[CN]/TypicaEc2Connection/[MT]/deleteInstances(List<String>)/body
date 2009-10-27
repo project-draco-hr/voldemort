@@ -1,12 +1,12 @@
 {
-  if (logger.isInfoEnabled())   logger.info("Deleting instances for hosts: " + hostNames);
+  if (logger.isDebugEnabled())   logger.debug("Deleting instances for hosts: " + hostNames);
   List<String> instanceIds=new ArrayList<String>();
   for (  ReservationDescription res : ec2.describeInstances(new ArrayList<String>())) {
     if (res.getInstances() != null) {
       for (      Instance instance : res.getInstances()) {
         String state=String.valueOf(instance.getState()).toLowerCase();
         if (state.equals("pending")) {
-          if (logger.isInfoEnabled())           logger.info("Instance " + instance.getInstanceId() + " in pending state");
+          if (logger.isDebugEnabled())           logger.debug("Instance " + instance.getInstanceId() + " in pending state");
           continue;
         }
         if (!state.equals("running")) {
@@ -16,7 +16,7 @@
         String publicDnsName=instance.getDnsName() != null ? instance.getDnsName().trim() : "";
         if (hostNames.contains(publicDnsName)) {
           instanceIds.add(instance.getInstanceId());
-          if (logger.isInfoEnabled())           logger.info("Instance " + instance.getInstanceId() + " running with public DNS "+ instance.getDnsName()+ " to be terminated");
+          if (logger.isInfoEnabled())           logger.info("Instance " + instance.getInstanceId() + " )"+ instance.getDnsName()+ ") to be terminated");
         }
       }
     }

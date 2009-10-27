@@ -1,5 +1,5 @@
 {
-  CommandOutputListener commandOutputListener=new LoggingCommandOutputListener(null);
-  IterationTrackerCommandOutputListener iterationTrackerCommandOutputListener=new IterationTrackerCommandOutputListener(commandOutputListener);
-  return new RemoteTestResultCallable(command,iterationTrackerCommandOutputListener);
+  RemoteTestOutputParser remoteTestOutputParser=new RemoteTestOutputParser(logger);
+  CommandOutputListener commandOutputListener=new LoggingCommandOutputListener(remoteTestOutputParser,logger);
+  return new RemoteTestResultCallable(command,commandOutputListener,remoteTestOutputParser);
 }
