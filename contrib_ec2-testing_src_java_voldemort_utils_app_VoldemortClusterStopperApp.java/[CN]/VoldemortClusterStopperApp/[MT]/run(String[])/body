@@ -7,15 +7,10 @@
   parser.accepts("voldemortroot","Voldemort's root directory on remote host").withRequiredArg();
   OptionSet options=parse(args);
   File hostNamesFile=getRequiredInputFile(options,"hostnames");
+  List<String> hostNames=getHostNamesFromFile(hostNamesFile,true);
   File sshPrivateKey=getRequiredInputFile(options,"sshprivatekey");
   String hostUserId=CmdUtils.valueOf(options,"hostuserid","root");
   String voldemortRootDirectory=getRequiredString(options,"voldemortroot");
-  List<String> hostNames=getHostNamesFromFile(hostNamesFile,true);
-  RemoteOperationConfig config=new RemoteOperationConfig();
-  config.setHostNames(hostNames);
-  config.setHostUserId(hostUserId);
-  config.setSshPrivateKey(sshPrivateKey);
-  config.setVoldemortRootDirectory(voldemortRootDirectory);
-  RemoteOperation<Object> operation=new SshClusterStopper(config);
+  RemoteOperation<Object> operation=new SshClusterStopper(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory);
   operation.execute();
 }

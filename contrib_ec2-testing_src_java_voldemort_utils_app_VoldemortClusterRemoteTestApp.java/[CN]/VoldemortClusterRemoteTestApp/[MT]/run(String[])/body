@@ -15,7 +15,7 @@
   parser.accepts("storename","Value of store name for voldemort-remote-test.sh on remote host, defaults to \"test\"").withRequiredArg();
   parser.accepts("bootstrapurl","Value of bootstrap-url for voldemort-remote-test.sh on remote host").withRequiredArg();
   OptionSet options=parse(args);
-  File hostNamesFile=getRequiredInputFile(options,"hostnames");
+  List<String> hostNames=getHostNamesFromFile(getRequiredInputFile(options,"hostnames"),true);
   File sshPrivateKey=getRequiredInputFile(options,"sshprivatekey");
   String hostUserId=CmdUtils.valueOf(options,"hostuserid","root");
   String voldemortHomeDirectory=getRequiredString(options,"voldemorthome");
@@ -28,19 +28,11 @@
   String operations=getRequiredString(options,"operations");
   String bootstrapUrl=getRequiredString(options,"bootstrapurl");
   String storeName=CmdUtils.valueOf(options,"storename","test");
-  List<String> publicHostNames=getHostNamesFromFile(hostNamesFile,true);
-  RemoteOperationConfig config=new RemoteOperationConfig();
-  config.setHostNames(publicHostNames);
-  config.setHostUserId(hostUserId);
-  config.setSshPrivateKey(sshPrivateKey);
-  config.setVoldemortHomeDirectory(voldemortHomeDirectory);
-  config.setVoldemortRootDirectory(voldemortRootDirectory);
   Map<String,String> remoteTestArguments=new HashMap<String,String>();
-  for (  String publicHostName : publicHostNames) {
+  for (  String publicHostName : hostNames) {
     remoteTestArguments.put(publicHostName,"-" + operations + " --start-key-index "+ (startKeyIndex * numRequests)+ " --value-size "+ valueSize+ " --threads "+ threads+ " --iterations "+ iterations+ " "+ bootstrapUrl+ " "+ storeName+ " "+ numRequests);
     startKeyIndex++;
   }
-  config.setRemoteTestArguments(remoteTestArguments);
-  List<RemoteTestResult> remoteTestResults=new SshRemoteTest(config).execute();
+  List<RemoteTestResult> remoteTestResults=new SshRemoteTest(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,remoteTestArguments).execute();
   new RemoteTestSummarizer().outputTestResults(remoteTestResults);
 }

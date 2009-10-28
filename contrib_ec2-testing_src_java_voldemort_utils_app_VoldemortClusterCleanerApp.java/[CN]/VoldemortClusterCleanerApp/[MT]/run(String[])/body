@@ -11,11 +11,6 @@
   String hostUserId=CmdUtils.valueOf(options,"hostuserid","root");
   String voldemortHomeDirectory=getRequiredString(options,"voldemorthome");
   List<String> hostNames=getHostNamesFromFile(hostNamesFile,true);
-  final RemoteOperationConfig config=new RemoteOperationConfig();
-  config.setHostNames(hostNames);
-  config.setHostUserId(hostUserId);
-  config.setSshPrivateKey(sshPrivateKey);
-  config.setVoldemortHomeDirectory(voldemortHomeDirectory);
-  RemoteOperation<Object> operation=new SshClusterCleaner(config);
+  RemoteOperation<Object> operation=new SshClusterCleaner(hostNames,sshPrivateKey,hostUserId,voldemortHomeDirectory);
   operation.execute();
 }

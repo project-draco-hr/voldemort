@@ -1,0 +1,22 @@
+{
+  if (!file.canRead()) {
+    System.out.println("File " + file.getAbsolutePath() + " cannot be read");
+    System.exit(2);
+  }
+  LineIterator iterator=null;
+  try {
+    iterator=FileUtils.lineIterator(file);
+  }
+ catch (  IOException e) {
+    throw new RuntimeException(e);
+  }
+  Map<String,String> hostNames=new HashMap<String,String>();
+  while (iterator.hasNext()) {
+    String rawLine=iterator.nextLine();
+    String[] hostNameArray=rawLine.split(",");
+    String externalHostName=hostNameArray[0];
+    String internalHostName=hostNameArray.length > 1 ? hostNameArray[1] : externalHostName;
+    hostNames.put(externalHostName,internalHostName);
+  }
+  return hostNames;
+}

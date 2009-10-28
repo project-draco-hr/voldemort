@@ -4,16 +4,14 @@
     createInstances(6);
     dnsNames=getInstances();
   }
-  Map<String,Integer> nodeIds=generateClusterDescriptor(dnsNames,"/home/kirk/voldemortdev/voldemort/config/single_node_cluster/config/cluster.xml");
-  final RemoteOperationConfig config=new RemoteOperationConfig();
-  config.setHostNames(dnsNames.keySet());
-  config.setHostUserId("root");
-  config.setSshPrivateKey(new File("/home/kirk/Dropbox/Configuration/AWS/id_rsa-mustardgrain-keypair"));
-  config.setVoldemortParentDirectory(".");
-  config.setVoldemortRootDirectory("voldemort");
-  config.setVoldemortHomeDirectory("voldemort/config/single_node_cluster");
-  config.setNodeIds(nodeIds);
-  config.setSourceDirectory(new File("/home/kirk/voldemortdev/voldemort"));
+  final Map<String,Integer> nodeIds=generateClusterDescriptor(dnsNames,"/home/kirk/voldemortdev/voldemort/config/single_node_cluster/config/cluster.xml");
+  final Collection<String> hostNames=dnsNames.keySet();
+  final String hostUserId="root";
+  final File sshPrivateKey=new File("/home/kirk/Dropbox/Configuration/AWS/id_rsa-mustardgrain-keypair");
+  final String voldemortParentDirectory=".";
+  final String voldemortRootDirectory="voldemort";
+  final String voldemortHomeDirectory="voldemort/config/single_node_cluster";
+  final File sourceDirectory=new File("/home/kirk/voldemortdev/voldemort");
   Map<String,String> remoteTestArguments=new HashMap<String,String>();
   final String bootstrapUrl=dnsNames.values().iterator().next();
   int startKeyIndex=0;
@@ -23,17 +21,16 @@
     remoteTestArguments.put(publicHostName,"-wd --start-key-index " + (startKeyIndex * numRequests) + " --value-size 100 --iterations "+ iterations+ " tcp://"+ bootstrapUrl+ ":6666 test "+ numRequests);
     startKeyIndex++;
   }
-  config.setRemoteTestArguments(remoteTestArguments);
   try {
-    new SshClusterStopper(config).execute();
+    new SshClusterStopper(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory).execute();
   }
  catch (  Exception e) {
   }
-  new RsyncDeployer(config).execute();
+  new RsyncDeployer(hostNames,sshPrivateKey,sourceDirectory,hostUserId,voldemortParentDirectory).execute();
   new Thread(new Runnable(){
     public void run(){
       try {
-        new SshClusterStarter(config).execute();
+        new SshClusterStarter(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeIds).execute();
       }
  catch (      RemoteOperationException e) {
         e.printStackTrace();
@@ -42,7 +39,7 @@
   }
 ).start();
   Thread.sleep(5000);
-  List<RemoteTestResult> remoteTestResults=new SshRemoteTest(config).execute();
+  List<RemoteTestResult> remoteTestResults=new SshRemoteTest(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,remoteTestArguments).execute();
   new RemoteTestSummarizer().outputTestResults(remoteTestResults);
-  new SshClusterStopper(config).execute();
+  new SshClusterStopper(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory).execute();
 }
