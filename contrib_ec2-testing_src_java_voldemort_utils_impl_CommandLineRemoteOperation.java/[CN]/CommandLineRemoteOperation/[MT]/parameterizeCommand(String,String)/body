@@ -1,0 +1,16 @@
+{
+  Map<String,String> variableMap=new HashMap<String,String>();
+  variableMap.put("hostName",hostName);
+  variableMap.put("hostUserId",remoteOperationConfig.getHostUserId());
+  if (remoteOperationConfig.getSshPrivateKey() != null)   variableMap.put("sshPrivateKey",remoteOperationConfig.getSshPrivateKey().getAbsolutePath());
+  variableMap.put("voldemortParentDirectory",remoteOperationConfig.getVoldemortParentDirectory());
+  variableMap.put("voldemortRootDirectory",remoteOperationConfig.getVoldemortRootDirectory());
+  variableMap.put("voldemortHomeDirectory",remoteOperationConfig.getVoldemortHomeDirectory());
+  String nodeId=remoteOperationConfig.getNodeIds() != null && remoteOperationConfig.getNodeIds().get(hostName) != null ? remoteOperationConfig.getNodeIds().get(hostName).toString() : null;
+  variableMap.put("voldemortNodeId",nodeId);
+  String remoteTestArguments=remoteOperationConfig.getRemoteTestArguments() != null ? remoteOperationConfig.getRemoteTestArguments().get(hostName) : null;
+  variableMap.put("remoteTestArguments",remoteTestArguments);
+  if (remoteOperationConfig.getSourceDirectory() != null)   variableMap.put("sourceDirectory",remoteOperationConfig.getSourceDirectory().getAbsolutePath());
+  for (  Map.Entry<String,String> entry : variableMap.entrySet())   command=StringUtils.replace(command,"${" + entry.getKey() + "}",entry.getValue());
+  return command;
+}

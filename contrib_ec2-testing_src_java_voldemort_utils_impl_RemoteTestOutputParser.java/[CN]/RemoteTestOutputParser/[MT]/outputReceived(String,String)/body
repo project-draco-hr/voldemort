@@ -8,10 +8,11 @@
     }
   }
  else   if (line.startsWith(THROUGHPUT_LINE_TAG)) {
-    RemoteTestIteration remoteTestIteration=remoteTestIterations.get(iterationIndex);
+    Map<Integer,RemoteTestIteration> map=remoteTestResult.getRemoteTestIterations();
+    RemoteTestIteration remoteTestIteration=map.get(iterationIndex);
     if (remoteTestIteration == null) {
       remoteTestIteration=new RemoteTestIteration();
-      remoteTestIterations.put(iterationIndex,remoteTestIteration);
+      map.put(iterationIndex,remoteTestIteration);
     }
     double value=Double.parseDouble(line.substring(THROUGHPUT_LINE_TAG.length(),line.indexOf(" ",THROUGHPUT_LINE_TAG.length())));
     if (line.contains("writes"))     remoteTestIteration.setWrites(value);

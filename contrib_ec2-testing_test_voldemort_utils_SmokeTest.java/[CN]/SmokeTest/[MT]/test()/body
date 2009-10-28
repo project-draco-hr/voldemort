@@ -5,7 +5,7 @@
     dnsNames=getInstances();
   }
   Map<String,Integer> nodeIds=generateClusterDescriptor(dnsNames,"/home/kirk/voldemortdev/voldemort/config/single_node_cluster/config/cluster.xml");
-  final CommandLineClusterConfig config=new CommandLineClusterConfig();
+  final RemoteOperationConfig config=new RemoteOperationConfig();
   config.setHostNames(dnsNames.keySet());
   config.setHostUserId("root");
   config.setSshPrivateKey(new File("/home/kirk/Dropbox/Configuration/AWS/id_rsa-mustardgrain-keypair"));
@@ -35,7 +35,7 @@
       try {
         new SshClusterStarter(config).execute();
       }
- catch (      ClusterOperationException e) {
+ catch (      RemoteOperationException e) {
         e.printStackTrace();
       }
     }

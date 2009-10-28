@@ -13,7 +13,7 @@
   String voldemortHomeDirectory=getRequiredString(options,"voldemorthome");
   String voldemortRootDirectory=getRequiredString(options,"voldemortroot");
   List<String> hostNames=getHostNamesFromFile(hostNamesFile,true);
-  final CommandLineClusterConfig config=new CommandLineClusterConfig();
+  final RemoteOperationConfig config=new RemoteOperationConfig();
   config.setHostNames(hostNames);
   config.setHostUserId(hostUserId);
   config.setSshPrivateKey(sshPrivateKey);
@@ -21,16 +21,16 @@
   config.setVoldemortRootDirectory(voldemortRootDirectory);
   Runtime.getRuntime().addShutdownHook(new Thread(){
     @Override public void run(){
-      ClusterOperation<Object> operation=new SshClusterStopper(config);
+      RemoteOperation<Object> operation=new SshClusterStopper(config);
       try {
         operation.execute();
       }
- catch (      ClusterOperationException e) {
+ catch (      RemoteOperationException e) {
         e.printStackTrace();
       }
     }
   }
 );
-  ClusterOperation<Object> operation=new SshClusterStarter(config);
+  RemoteOperation<Object> operation=new SshClusterStarter(config);
   operation.execute();
 }

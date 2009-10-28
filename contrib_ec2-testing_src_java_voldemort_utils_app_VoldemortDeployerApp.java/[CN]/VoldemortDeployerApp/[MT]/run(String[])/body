@@ -13,12 +13,12 @@
   String voldemortParentDirectory=getRequiredString(options,"voldemortparent");
   File sourceDirectory=getRequiredInputFile(options,"source");
   List<String> hostNames=getHostNamesFromFile(hostNamesFile,true);
-  CommandLineClusterConfig config=new CommandLineClusterConfig();
+  RemoteOperationConfig config=new RemoteOperationConfig();
   config.setHostNames(hostNames);
   config.setHostUserId(hostUserId);
   config.setSshPrivateKey(sshPrivateKey);
   config.setVoldemortParentDirectory(voldemortParentDirectory);
   config.setSourceDirectory(sourceDirectory);
-  ClusterOperation<Object> operation=new RsyncDeployer(config);
+  RemoteOperation<Object> operation=new RsyncDeployer(config);
   operation.execute();
 }
