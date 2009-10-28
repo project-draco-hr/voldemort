@@ -2,16 +2,16 @@
   StringWriter sw=new StringWriter();
   PrintWriter pw=new PrintWriter(sw);
   pw.println("<cluster>");
-  pw.println("    <name>" + clusterName + "</name>");
-  for (  ClusterNodeDescriptor clusterNodeDescriptor : clusterNodeDescriptors) {
-    String partitionsList=StringUtils.join(clusterNodeDescriptor.getPartitions(),", ");
-    pw.println("    <server>");
-    pw.println("        <id>" + clusterNodeDescriptor.getId() + "</id>");
-    pw.println("        <host>" + clusterNodeDescriptor.getHostName() + "</host>");
-    pw.println("        <http-port>8081</http-port>");
-    pw.println("        <socket-port>6666</socket-port>");
-    pw.println("        <partitions>" + partitionsList + "</partitions>");
-    pw.println("    </server>");
+  pw.println("\t<name>" + clusterName + "</name>");
+  for (  ClusterNodeDescriptor cnd : clusterNodeDescriptors) {
+    String partitions=StringUtils.join(cnd.getPartitions(),", ");
+    pw.println("\t<server>");
+    pw.println("\t\t<id>" + cnd.getId() + "</id>");
+    pw.println("\t\t<host>" + cnd.getHostName() + "</host>");
+    pw.println("\t\t<http-port>" + cnd.getHttpPort() + "</http-port>");
+    pw.println("\t\t<socket-port>" + cnd.getSocketPort() + "</socket-port>");
+    pw.println("\t\t<partitions>" + partitions + "</partitions>");
+    pw.println("\t</server>");
   }
   pw.println("</cluster>");
   return sw.toString();
