@@ -15,8 +15,8 @@
  else         if (serverChild.getNodeName().equals("id"))         id=serverChild.getTextContent();
       }
       if (internalHostName != null && id != null) {
-        for (        Map.Entry<String,String> entry : hostNames.entrySet()) {
-          if (entry.getValue().equals(internalHostName))           nodeIds.put(entry.getKey(),Integer.parseInt(id));
+        for (        HostNamePair hostNamePair : hostNamePairs) {
+          if (hostNamePair.getInternalHostName().equals(internalHostName))           nodeIds.put(hostNamePair.getExternalHostName(),Integer.parseInt(id));
         }
       }
  else {
@@ -24,7 +24,7 @@
       }
     }
   }
-  if (nodeIds.size() != hostNames.size()) {
+  if (nodeIds.size() != hostNamePairs.size()) {
     throw new Exception(clusterXmlFile.getAbsolutePath() + " appears to be corrupt; not all of the hosts from " + hostNamesFile.getAbsolutePath()+ " were represented in "+ clusterXmlFile.getAbsolutePath());
   }
   return nodeIds;

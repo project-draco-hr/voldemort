@@ -1,6 +1,16 @@
 {
-  List<String> dummyInstanceIds=new ArrayList<String>();
-  Map<String,String> hostNameMap=new HashMap<String,String>();
-  waitForInstances(dummyInstanceIds,hostNameMap);
-  return hostNameMap;
+  List<HostNamePair> hostNamePairs=new ArrayList<HostNamePair>();
+  for (  ReservationDescription res : ec2.describeInstances(new ArrayList<String>())) {
+    if (res.getInstances() != null) {
+      for (      Instance instance : res.getInstances()) {
+        HostNamePair hostNamePair=getHostNamePair(instance);
+        if (hostNamePair == null) {
+          if (logger.isWarnEnabled())           logger.warn("Instance " + instance.getInstanceId() + " present, but missing external and/or internal host name");
+          continue;
+        }
+        hostNamePairs.add(hostNamePair);
+      }
+    }
+  }
+  return hostNamePairs;
 }

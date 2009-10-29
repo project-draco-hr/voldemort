@@ -9,16 +9,22 @@
   parser.accepts("clusterxml","Voldemort's cluster.xml file on the local file system; used to determine host names").withRequiredArg();
   OptionSet options=parse(args);
   File hostNamesFile=getRequiredInputFile(options,"hostnames");
-  final Map<String,String> hostNames=getHostNamesFromFile(hostNamesFile);
+  List<HostNamePair> hostNamePairs=getHostNamesPairsFromFile(hostNamesFile);
+  final List<String> externalHostNames=new ArrayList<String>();
+  final List<String> internalHostNames=new ArrayList<String>();
+  for (  HostNamePair hostNamePair : hostNamePairs) {
+    externalHostNames.add(hostNamePair.getExternalHostName());
+    internalHostNames.add(hostNamePair.getInternalHostName());
+  }
   final File sshPrivateKey=getRequiredInputFile(options,"sshprivatekey");
   final String hostUserId=CmdUtils.valueOf(options,"hostuserid","root");
   String voldemortHomeDirectory=getRequiredString(options,"voldemorthome");
   final String voldemortRootDirectory=getRequiredString(options,"voldemortroot");
   File clusterXmlFile=getRequiredInputFile(options,"clusterxml");
-  Map<String,Integer> nodeIds=getNodeIds(hostNamesFile,clusterXmlFile,hostNames);
+  Map<String,Integer> nodeIds=getNodeIds(hostNamesFile,clusterXmlFile,hostNamePairs);
   Runtime.getRuntime().addShutdownHook(new Thread(){
     @Override public void run(){
-      RemoteOperation<Object> operation=new SshClusterStopper(hostNames.keySet(),sshPrivateKey,hostUserId,voldemortRootDirectory);
+      RemoteOperation<Object> operation=new SshClusterStopper(externalHostNames,sshPrivateKey,hostUserId,voldemortRootDirectory);
       try {
         operation.execute();
       }
@@ -28,6 +34,6 @@
     }
   }
 );
-  RemoteOperation<Object> operation=new SshClusterStarter(hostNames.keySet(),sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeIds);
+  RemoteOperation<Object> operation=new SshClusterStarter(externalHostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeIds);
   operation.execute();
 }

@@ -9,13 +9,14 @@
   String accessId=getRequiredString(options,"accessid");
   String secretKey=getRequiredString(options,"secretkey");
   Ec2Connection ec2Connection=new TypicaEc2Connection(accessId,secretKey);
-  List<String> hostNames=null;
+  List<String> hostNames=new ArrayList<String>();
   File hostNamesFile=getInputFile(options,"hostnames");
   if (hostNamesFile != null) {
-    hostNames=getHostNamesFromFile(hostNamesFile,true);
+    List<HostNamePair> hostNamePairs=getHostNamesPairsFromFile(hostNamesFile);
+    for (    HostNamePair hostNamePair : hostNamePairs)     hostNames.add(hostNamePair.getExternalHostName());
   }
  else   if (options.has("force")) {
-    hostNames=new ArrayList<String>(ec2Connection.list().keySet());
+    for (    HostNamePair hostNamePair : ec2Connection.list())     hostNames.add(hostNamePair.getExternalHostName());
   }
  else {
     printUsage();

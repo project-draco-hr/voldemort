@@ -10,7 +10,9 @@
   int partitions=getRequiredInt(options,"partitions");
   File output=getRequiredOutputFile(options,"output");
   String clusterName=CmdUtils.valueOf(options,"clustername","mycluster");
-  List<String> privateHostNames=getHostNamesFromFile(hostNamesFile,false);
-  String clusterXml=new ClusterGenerator().createClusterDescriptor(clusterName,privateHostNames,partitions);
+  List<HostNamePair> hostNamePairs=getHostNamesPairsFromFile(hostNamesFile);
+  List<String> hostNames=new ArrayList<String>();
+  for (  HostNamePair hostNamePair : hostNamePairs)   hostNames.add(hostNamePair.getInternalHostName());
+  String clusterXml=new ClusterGenerator().createClusterDescriptor(clusterName,hostNames,partitions);
   FileUtils.writeStringToFile(output,clusterXml);
 }

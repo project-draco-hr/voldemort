@@ -7,7 +7,9 @@
   parser.accepts("voldemortroot","Voldemort's root directory on remote host").withRequiredArg();
   OptionSet options=parse(args);
   File hostNamesFile=getRequiredInputFile(options,"hostnames");
-  List<String> hostNames=getHostNamesFromFile(hostNamesFile,true);
+  List<HostNamePair> hostNamePairs=getHostNamesPairsFromFile(hostNamesFile);
+  List<String> hostNames=new ArrayList<String>();
+  for (  HostNamePair hostNamePair : hostNamePairs)   hostNames.add(hostNamePair.getExternalHostName());
   File sshPrivateKey=getRequiredInputFile(options,"sshprivatekey");
   String hostUserId=CmdUtils.valueOf(options,"hostuserid","root");
   String voldemortRootDirectory=getRequiredString(options,"voldemortroot");

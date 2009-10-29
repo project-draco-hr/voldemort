@@ -12,7 +12,9 @@
   String hostUserId=CmdUtils.valueOf(options,"hostuserid","root");
   String voldemortParentDirectory=getRequiredString(options,"voldemortparent");
   File sourceDirectory=getRequiredInputFile(options,"source");
-  List<String> hostNames=getHostNamesFromFile(hostNamesFile,true);
+  List<HostNamePair> hostNamePairs=getHostNamesPairsFromFile(hostNamesFile);
+  List<String> hostNames=new ArrayList<String>();
+  for (  HostNamePair hostNamePair : hostNamePairs)   hostNames.add(hostNamePair.getExternalHostName());
   RemoteOperation<Object> operation=new RsyncDeployer(hostNames,sshPrivateKey,sourceDirectory,hostUserId,voldemortParentDirectory);
   operation.execute();
 }

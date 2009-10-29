@@ -1,11 +1,13 @@
 {
-  Map<String,String> dnsNames=getInstances();
-  if (dnsNames.size() < 3) {
+  List<HostNamePair> hostNamePairs=getInstances();
+  if (hostNamePairs.size() < 3) {
     createInstances(6);
-    dnsNames=getInstances();
+    hostNamePairs=getInstances();
   }
-  final Map<String,Integer> nodeIds=generateClusterDescriptor(dnsNames,"/home/kirk/voldemortdev/voldemort/config/single_node_cluster/config/cluster.xml");
-  final Collection<String> hostNames=dnsNames.keySet();
+  final Map<String,Integer> nodeIds=generateClusterDescriptor(hostNamePairs,"/home/kirk/voldemortdev/voldemort/config/single_node_cluster/config/cluster.xml");
+  final List<String> hostNames=new ArrayList<String>();
+  String bootstrapHostName=hostNamePairs.get(0).getInternalHostName();
+  for (  HostNamePair hostNamePair : hostNamePairs)   hostNames.add(hostNamePair.getExternalHostName());
   final String hostUserId="root";
   final File sshPrivateKey=new File("/home/kirk/Dropbox/Configuration/AWS/id_rsa-mustardgrain-keypair");
   final String voldemortParentDirectory=".";
@@ -13,12 +15,11 @@
   final String voldemortHomeDirectory="voldemort/config/single_node_cluster";
   final File sourceDirectory=new File("/home/kirk/voldemortdev/voldemort");
   Map<String,String> remoteTestArguments=new HashMap<String,String>();
-  final String bootstrapUrl=dnsNames.values().iterator().next();
   int startKeyIndex=0;
   final int numRequests=100000;
   final int iterations=25;
-  for (  String publicHostName : dnsNames.keySet()) {
-    remoteTestArguments.put(publicHostName,"-wd --start-key-index " + (startKeyIndex * numRequests) + " --value-size 100 --iterations "+ iterations+ " tcp://"+ bootstrapUrl+ ":6666 test "+ numRequests);
+  for (  String publicHostName : hostNames) {
+    remoteTestArguments.put(publicHostName,"-wd --start-key-index " + (startKeyIndex * numRequests) + " --value-size 100 --iterations "+ iterations+ " tcp://"+ bootstrapHostName+ ":6666 test "+ numRequests);
     startKeyIndex++;
   }
   try {
