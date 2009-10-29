@@ -3,16 +3,14 @@
   parser.accepts("logging","Options are \"debug\", \"info\" (default), \"warn\", \"error\", or \"off\"").withRequiredArg();
   parser.accepts("hostnames","File containing host names").withRequiredArg();
   parser.accepts("partitions","Number of partitions per cluster node").withRequiredArg().ofType(Integer.class);
-  parser.accepts("output","Output file for cluster.xml").withRequiredArg();
   parser.accepts("clustername","Cluster name; defaults to mycluster").withRequiredArg();
   OptionSet options=parse(args);
   File hostNamesFile=getRequiredInputFile(options,"hostnames");
   int partitions=getRequiredInt(options,"partitions");
-  File output=getRequiredOutputFile(options,"output");
   String clusterName=CmdUtils.valueOf(options,"clustername","mycluster");
   List<HostNamePair> hostNamePairs=getHostNamesPairsFromFile(hostNamesFile);
   List<String> hostNames=new ArrayList<String>();
   for (  HostNamePair hostNamePair : hostNamePairs)   hostNames.add(hostNamePair.getInternalHostName());
   String clusterXml=new ClusterGenerator().createClusterDescriptor(clusterName,hostNames,partitions);
-  FileUtils.writeStringToFile(output,clusterXml);
+  System.out.print(clusterXml);
 }

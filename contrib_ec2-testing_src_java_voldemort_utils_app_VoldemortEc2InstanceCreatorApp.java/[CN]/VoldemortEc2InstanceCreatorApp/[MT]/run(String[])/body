@@ -21,7 +21,6 @@
  catch (  Exception e) {
     printUsage();
   }
-  File output=getRequiredOutputFile(options,"output");
   Ec2Connection ec2Connection=new TypicaEc2Connection(accessId,secretKey);
   List<HostNamePair> hostNamePairs=ec2Connection.create(ami,keypairId,instanceType,instanceCount);
   StringBuilder s=new StringBuilder();
@@ -31,5 +30,5 @@
     s.append(hostNamePair.getInternalHostName());
     s.append(System.getProperty("line.separator"));
   }
-  FileUtils.writeStringToFile(output,s.toString());
+  System.out.print(s);
 }
