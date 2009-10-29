@@ -12,9 +12,9 @@
     Future<T> future=threadPool.submit(callable);
     futures.add(future);
   }
-  List<T> list=new ArrayList<T>();
   try {
     StringBuilder errors=new StringBuilder();
+    List<T> list=new ArrayList<T>();
     for (    Future<T> future : futures) {
       Throwable t=null;
       try {
@@ -34,6 +34,7 @@ catch (      Exception e) {
       }
     }
     if (errors.length() > 0)     throw new RemoteOperationException(errors.toString());
+    return list;
   }
   finally {
     threadPool.shutdown();
@@ -44,5 +45,4 @@ catch (      Exception e) {
       if (logger.isWarnEnabled())       logger.warn(e,e);
     }
   }
-  return list;
 }
