@@ -2,6 +2,7 @@
   if (logger.isInfoEnabled())   logger.info("Executing remote tests");
   CommandLineParameterizer commandLineParameterizer=new CommandLineParameterizer("SshRemoteTest.ssh");
   Map<String,String> hostNameCommandLineMap=new HashMap<String,String>();
+  int index=0;
   for (  String hostName : hostNames) {
     Map<String,String> parameters=new HashMap<String,String>();
     parameters.put(HOST_NAME_PARAM,hostName);
@@ -9,9 +10,17 @@
     parameters.put(SSH_PRIVATE_KEY_PARAM,sshPrivateKey.getAbsolutePath());
     parameters.put(VOLDEMORT_ROOT_DIRECTORY_PARAM,voldemortRootDirectory);
     parameters.put(VOLDEMORT_HOME_DIRECTORY_PARAM,voldemortHomeDirectory);
-    parameters.put(REMOTE_TEST_ARGUMENTS_PARAM,remoteTestArguments.get(hostName));
-    parameters.put(SLEEP_SECONDS_PARAM,sleepSeconds.get(hostName).toString());
+    parameters.put(RAMP_TIME_PARAM,String.valueOf(index * rampTime));
+    parameters.put(OPERATIONS_PARAM,operations);
+    parameters.put(START_KEY_INDEX_PARAM,String.valueOf(index * numRequests));
+    parameters.put(VALUE_SIZE_PARAM,String.valueOf(valueSize));
+    parameters.put(THREADS_PARAM,String.valueOf(threads));
+    parameters.put(ITERATIONS_PARAM,String.valueOf(iterations));
+    parameters.put(BOOTSTRAP_URL_PARAM,bootstrapUrl);
+    parameters.put(STORE_NAME_PARAM,storeName);
+    parameters.put(NUM_REQUESTS_PARAM,String.valueOf(numRequests));
     hostNameCommandLineMap.put(hostName,commandLineParameterizer.parameterize(parameters));
+    index++;
   }
   return execute(hostNameCommandLineMap);
 }

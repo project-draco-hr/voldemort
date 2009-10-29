@@ -7,7 +7,6 @@
   parser.accepts("keypairid","KeyPairID").withRequiredArg();
   parser.accepts("instances","Number of instances (default 1)").withRequiredArg().ofType(Integer.class);
   parser.accepts("instancetype","Instance type; options are " + Ec2Connection.Ec2InstanceType.DEFAULT + " (default), "+ Ec2Connection.Ec2InstanceType.LARGE+ ", "+ Ec2Connection.Ec2InstanceType.XLARGE+ ", "+ Ec2Connection.Ec2InstanceType.MEDIUM_HCPU+ ", and "+ Ec2Connection.Ec2InstanceType.XLARGE_HCPU).withRequiredArg();
-  parser.accepts("output","Output file for newly created external and internal host name entries").withRequiredArg();
   OptionSet options=parse(args);
   String accessId=getRequiredString(options,"accessid");
   String secretKey=getRequiredString(options,"secretkey");
@@ -24,9 +23,11 @@
   Ec2Connection ec2Connection=new TypicaEc2Connection(accessId,secretKey);
   List<HostNamePair> hostNamePairs=ec2Connection.create(ami,keypairId,instanceType,instanceCount);
   StringBuilder s=new StringBuilder();
+  s.append("# Each line represents an external host name to internal host name mapping.");
+  s.append(System.getProperty("line.separator"));
   for (  HostNamePair hostNamePair : hostNamePairs) {
     s.append(hostNamePair.getExternalHostName());
-    s.append(',');
+    s.append('=');
     s.append(hostNamePair.getInternalHostName());
     s.append(System.getProperty("line.separator"));
   }

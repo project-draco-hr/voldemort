@@ -6,7 +6,6 @@
   parser.accepts("hostuserid","User ID on remote host").withRequiredArg();
   parser.accepts("voldemortroot","Voldemort's root directory on remote host").withRequiredArg();
   parser.accepts("voldemorthome","Voldemort's home directory on remote host").withRequiredArg();
-  parser.accepts("start-key-index","Value of --start-key-index for voldemort-remote-test.sh on remote host").withRequiredArg().ofType(Integer.class);
   parser.accepts("numrequests","Value of numrequests for voldemort-remote-test.sh on remote host").withRequiredArg().ofType(Integer.class);
   parser.accepts("iterations","Value of --iterations for voldemort-remote-test.sh on remote host").withRequiredArg().ofType(Integer.class);
   parser.accepts("value-size","Value of --value-size for voldemort-remote-test.sh on remote host").withRequiredArg().ofType(Integer.class);
@@ -21,27 +20,16 @@
   for (  HostNamePair hostNamePair : hostNamePairs)   hostNames.add(hostNamePair.getExternalHostName());
   File sshPrivateKey=getRequiredInputFile(options,"sshprivatekey");
   String hostUserId=CmdUtils.valueOf(options,"hostuserid","root");
-  String voldemortHomeDirectory=getRequiredString(options,"voldemorthome");
   String voldemortRootDirectory=getRequiredString(options,"voldemortroot");
-  int startKeyIndex=CmdUtils.valueOf(options,"start-key-index",0);
-  int numRequests=getRequiredInt(options,"numrequests");
-  int iterations=CmdUtils.valueOf(options,"iterations",1);
+  String voldemortHomeDirectory=getRequiredString(options,"voldemorthome");
+  int rampTime=CmdUtils.valueOf(options,"ramp",30);
+  String operations=getRequiredString(options,"operations");
   int valueSize=CmdUtils.valueOf(options,"value-size",1024);
   int threads=CmdUtils.valueOf(options,"threads",8);
-  String operations=getRequiredString(options,"operations");
+  int iterations=CmdUtils.valueOf(options,"iterations",1);
   String bootstrapUrl=getRequiredString(options,"bootstrapurl");
   String storeName=CmdUtils.valueOf(options,"storename","test");
-  int ramp=CmdUtils.valueOf(options,"ramp",30);
-  Map<String,String> remoteTestArguments=new HashMap<String,String>();
-  for (  String publicHostName : hostNames) {
-    remoteTestArguments.put(publicHostName,"-" + operations + " --start-key-index "+ (startKeyIndex * numRequests)+ " --value-size "+ valueSize+ " --threads "+ threads+ " --iterations "+ iterations+ " "+ bootstrapUrl+ " "+ storeName+ " "+ numRequests);
-    startKeyIndex++;
-  }
-  Map<String,Integer> sleepSeconds=new HashMap<String,Integer>();
-  for (int i=0; i < hostNames.size(); i++) {
-    String publicHostName=hostNames.get(i);
-    sleepSeconds.put(publicHostName,ramp * i);
-  }
-  List<RemoteTestResult> remoteTestResults=new SshRemoteTest(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,remoteTestArguments,sleepSeconds).execute();
+  long numRequests=getRequiredInt(options,"numrequests");
+  List<RemoteTestResult> remoteTestResults=new SshRemoteTest(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,rampTime,operations,valueSize,threads,iterations,bootstrapUrl,storeName,numRequests).execute();
   outputTestResults(remoteTestResults);
 }

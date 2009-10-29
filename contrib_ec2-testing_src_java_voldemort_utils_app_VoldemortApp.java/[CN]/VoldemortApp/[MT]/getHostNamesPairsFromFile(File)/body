@@ -3,19 +3,24 @@
     System.out.println("File " + file.getAbsolutePath() + " cannot be read");
     System.exit(2);
   }
-  LineIterator iterator=null;
+  Properties properties=new Properties();
+  InputStream is=null;
   try {
-    iterator=FileUtils.lineIterator(file);
+    is=new FileInputStream(file);
+    properties.load(is);
   }
  catch (  IOException e) {
     throw new RuntimeException(e);
   }
+ finally {
+    IOUtils.closeQuietly(is);
+  }
   List<HostNamePair> hostNamePairs=new ArrayList<HostNamePair>();
-  while (iterator.hasNext()) {
-    String rawLine=iterator.nextLine();
-    String[] hostNameArray=rawLine.split(",");
-    String externalHostName=hostNameArray[0];
-    String internalHostName=hostNameArray.length > 1 ? hostNameArray[1] : externalHostName;
+  for (  Map.Entry<Object,Object> entry : properties.entrySet()) {
+    String key=entry.getKey() != null ? entry.getKey().toString() : null;
+    String value=entry.getValue() != null ? entry.getValue().toString() : null;
+    String externalHostName=key;
+    String internalHostName=value != null ? value : key;
     hostNamePairs.add(new HostNamePair(externalHostName,internalHostName));
   }
   return hostNamePairs;
