@@ -1,5 +1,7 @@
 {
-  if (logger.isInfoEnabled())   logger.info("Rsync-ing " + sourceDirectory.getAbsolutePath() + " to "+ voldemortParentDirectory);
+  if (logger.isInfoEnabled())   logger.info("Rsync-ing " + sourceDirectory.getAbsolutePath() + " to "+ voldemortParentDirectory+ " on remote hosts: "+ hostNames);
+  if (!sourceDirectory.exists())   throw new RemoteOperationException(sourceDirectory.getAbsolutePath() + " does not exist");
+  if (!sourceDirectory.isDirectory())   throw new RemoteOperationException("Directory " + sourceDirectory.getAbsolutePath() + " is not a directory");
   CommandLineParameterizer commandLineParameterizer=new CommandLineParameterizer("RsyncDeployer.rsync");
   Map<String,String> hostNameCommandLineMap=new HashMap<String,String>();
   for (  String hostName : hostNames) {
@@ -11,5 +13,7 @@
     parameters.put(SOURCE_DIRECTORY_PARAM,sourceDirectory.getAbsolutePath());
     hostNameCommandLineMap.put(hostName,commandLineParameterizer.parameterize(parameters));
   }
-  return execute(hostNameCommandLineMap);
+  List<Object> ret=execute(hostNameCommandLineMap);
+  if (logger.isInfoEnabled())   logger.info("Rsync-ing complete");
+  return ret;
 }
