@@ -3,6 +3,7 @@
   final ConcurrentHashMap<K,AtomicInteger> resourceInHand=new ConcurrentHashMap<K,AtomicInteger>();
   ExecutorService executor=Executors.newFixedThreadPool(nThreads);
   final TestStats testStats=new TestStats();
+  final AtomicBoolean passed=new AtomicBoolean(true);
   for (int i=0; i < nRequests; i++) {
     final K key=getRequestKey();
     resourceInHand.putIfAbsent(key,new AtomicInteger(0));
@@ -11,17 +12,16 @@
         try {
           V resource=pool.checkout(key);
           resourceInHand.get(key).incrementAndGet();
-          System.out.println("Borrowing of " + key + " completed at "+ new Date());
+          if (resourceInHand.get(key).get() > config.getMaxPoolSize()) {
+            passed.set(false);
+          }
           assertEquals("resources In Hand(" + resourceInHand.get(key).get() + ") should be less than equal to pool size("+ config.getMaxPoolSize()+ ")",true,resourceInHand.get(key).get() <= config.getMaxPoolSize());
           doSomethingWithResource(key,resource);
-          pool.checkin(key,resource);
           resourceInHand.get(key).decrementAndGet();
-          System.out.println("return completed" + key + " resource:"+ resource+ " at "+ new Date());
+          pool.checkin(key,resource);
         }
  catch (        TimeoutException e) {
-          assertEquals("resources In Hand(" + resourceInHand.get(key).get() + ") should be same as  pool size("+ config.getMaxPoolSize()+ ")",config.getMaxPoolSize(),resourceInHand.get(key).get());
           ++testStats.timeoutRequests;
-          System.out.println("saw timeout !!");
           return;
         }
 catch (        Exception e) {
@@ -33,5 +33,8 @@ catch (        Exception e) {
   }
   executor.shutdown();
   executor.awaitTermination(5 * 60,TimeUnit.SECONDS);
+  if (!passed.get()) {
+    fail();
+  }
   return testStats;
 }

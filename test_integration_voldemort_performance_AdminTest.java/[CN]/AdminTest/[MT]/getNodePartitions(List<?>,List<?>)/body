@@ -1,0 +1,22 @@
+{
+  SetMultimap<Integer,Integer> nodePartitions=HashMultimap.create();
+  if (optPartitions != null && optNodes != null) {
+    for (    Object node : optNodes) {
+      for (      Object partition : optPartitions)       nodePartitions.put((Integer)node,(Integer)partition);
+    }
+  }
+ else   if (optPartitions != null) {
+    for (    Object partition : optPartitions) {
+      for (      Integer node : getNodes((Integer)partition)) {
+        nodePartitions.put(node,(Integer)partition);
+      }
+    }
+  }
+ else   if (optNodes != null) {
+    for (    Object node : optNodes) {
+      nodePartitions.putAll((Integer)node,getPartitions((Integer)node));
+    }
+  }
+ else   throw new IllegalStateException();
+  return nodePartitions;
+}
