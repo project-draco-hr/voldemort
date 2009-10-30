@@ -6,6 +6,7 @@
   try {
     int attempts=0;
     for (; attempts < this.maxCreateAttempts; attempts++) {
+      resource=null;
       checkNotClosed();
       long timeRemainingNs=this.timeoutNs - (System.nanoTime() - startNs);
       if (timeRemainingNs < 0)       throw new TimeoutException("Could not acquire resource in " + (this.timeoutNs / Time.NS_PER_MS) + " ms.");
