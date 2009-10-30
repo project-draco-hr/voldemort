@@ -1,10 +1,7 @@
 {
-  VectorClock clock=null;
+  VectorClock vectorClock=getVectorClock(bytes);
   int size=1;
-  if (bytes[0] >= 0) {
-    clock=new VectorClock(bytes);
-    size=clock.sizeInBytes();
-  }
+  if (vectorClock != null)   size=vectorClock.sizeInBytes();
   T t=innerSerializer.toObject(ByteUtils.copy(bytes,size,bytes.length));
-  return new Versioned<T>(t,clock);
+  return new Versioned<T>(t,vectorClock);
 }

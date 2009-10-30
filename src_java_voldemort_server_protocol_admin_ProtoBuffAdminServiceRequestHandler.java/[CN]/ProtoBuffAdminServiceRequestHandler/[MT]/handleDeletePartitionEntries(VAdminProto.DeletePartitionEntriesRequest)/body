@@ -9,7 +9,7 @@
     }
     RoutingStrategy routingStrategy=metadataStore.getRoutingStrategy(storageEngine.getName());
     VoldemortFilter filter=request.hasFilter() ? getFilterFromRequest(request.getFilter()) : new DefaultVoldemortFilter();
-    IoThrottler throttler=new IoThrottler(streamMaxBytesReadPerSec);
+    EventThrottler throttler=new EventThrottler(streamMaxBytesReadPerSec);
     ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=storageEngine.entries();
     int deleteSuccess=0;
     while (iterator.hasNext()) {

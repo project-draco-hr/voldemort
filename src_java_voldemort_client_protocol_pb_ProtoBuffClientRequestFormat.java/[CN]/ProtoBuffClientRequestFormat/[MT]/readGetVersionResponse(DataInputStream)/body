@@ -1,0 +1,7 @@
+{
+  GetVersionResponse.Builder response=ProtoUtils.readToBuilder(stream,GetVersionResponse.newBuilder());
+  if (response.hasError())   throwException(response.getError());
+  List<Version> versions=Lists.newArrayListWithCapacity(response.getVersionsCount());
+  for (  VProto.VectorClock version : response.getVersionsList())   versions.add(ProtoUtils.decodeClock(version));
+  return versions;
+}
