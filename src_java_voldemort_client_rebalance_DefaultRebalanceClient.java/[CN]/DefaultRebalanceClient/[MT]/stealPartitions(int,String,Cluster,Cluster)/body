@@ -3,25 +3,25 @@
   Node stealerNode=currentCluster.getNodeById(stealerNodeID);
   if (stealerNode != null) {
     try {
-      adminClient.updateServerState(stealerNodeID,MetadataStore.ServerState.REBALANCING_STEALER_STATE);
+      adminClient.updateServerState(stealerNodeID,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
       adminClient.updateClusterMetadata(stealerNodeID,targetCluster);
       for (      Node donorNode : currentCluster.getNodes()) {
         if (donorNode.getId() != stealerNode.getId()) {
           List<Integer> stealList=getExtraPartitionList(donorNode.getPartitionIds(),targetCluster.getNodeById(donorNode.getId()).getPartitionIds());
           if (stealList.size() > 0) {
             logger.info("stealing partitions from " + donorNode.getId());
-            adminClient.updateServerState(donorNode.getId(),MetadataStore.ServerState.REBALANCING_DONOR_STATE);
+            adminClient.updateServerState(donorNode.getId(),MetadataStore.VoldemortState.REBALANCING_SLAVE_SERVER);
             adminClient.updateClusterMetadata(donorNode.getId(),targetCluster);
             adminClient.fetchAndUpdateStreams(donorNode.getId(),stealerNodeID,storeName,stealList,null);
-            adminClient.updateServerState(donorNode.getId(),MetadataStore.ServerState.NORMAL_STATE);
+            adminClient.updateServerState(donorNode.getId(),MetadataStore.VoldemortState.NORMAL_SERVER);
           }
         }
       }
-      adminClient.updateServerState(stealerNodeID,MetadataStore.ServerState.NORMAL_STATE);
+      adminClient.updateServerState(stealerNodeID,MetadataStore.VoldemortState.NORMAL_SERVER);
     }
  catch (    Exception e) {
       for (      Node node : currentCluster.getNodes()) {
-        adminClient.updateServerState(node.getId(),MetadataStore.ServerState.NORMAL_STATE);
+        adminClient.updateServerState(node.getId(),MetadataStore.VoldemortState.NORMAL_SERVER);
         adminClient.updateClusterMetadata(node.getId(),currentCluster);
       }
       throw new VoldemortException("Steal Partitions for " + stealerNodeID + " failed",e);

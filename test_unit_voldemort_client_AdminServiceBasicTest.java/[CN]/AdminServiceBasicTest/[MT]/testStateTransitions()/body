@@ -1,15 +1,15 @@
 {
   NativeAdminClientRequestFormat client=getAdminClient();
-  client.updateServerState(server.getIdentityNode().getId(),MetadataStore.ServerState.REBALANCING_STEALER_STATE);
-  MetadataStore.ServerState state=server.getMetadataStore().getServerState();
-  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.ServerState.REBALANCING_STEALER_STATE,state);
-  client.updateServerState(server.getIdentityNode().getId(),MetadataStore.ServerState.NORMAL_STATE);
+  client.updateServerState(server.getIdentityNode().getId(),MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
+  MetadataStore.VoldemortState state=server.getMetadataStore().getServerState();
+  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER,state);
+  client.updateServerState(server.getIdentityNode().getId(),MetadataStore.VoldemortState.NORMAL_SERVER);
   state=server.getMetadataStore().getServerState();
-  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.ServerState.NORMAL_STATE,state);
-  client.updateServerState(server.getIdentityNode().getId(),MetadataStore.ServerState.REBALANCING_DONOR_STATE);
+  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.VoldemortState.NORMAL_SERVER,state);
+  client.updateServerState(server.getIdentityNode().getId(),MetadataStore.VoldemortState.REBALANCING_SLAVE_SERVER);
   state=server.getMetadataStore().getServerState();
-  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.ServerState.REBALANCING_DONOR_STATE,state);
-  client.updateServerState(server.getIdentityNode().getId(),MetadataStore.ServerState.NORMAL_STATE);
+  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.VoldemortState.REBALANCING_SLAVE_SERVER,state);
+  client.updateServerState(server.getIdentityNode().getId(),MetadataStore.VoldemortState.NORMAL_SERVER);
   state=server.getMetadataStore().getServerState();
-  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.ServerState.NORMAL_STATE,state);
+  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.VoldemortState.NORMAL_SERVER,state);
 }

@@ -3,8 +3,12 @@
   initCache(CLUSTER_KEY);
   initCache(STORES_KEY);
   initCache(NODE_ID_KEY,nodeId);
-  initCache(SERVER_STATE_KEY,ServerState.NORMAL_STATE.toString());
-  initCache(REBALANCING_PROXY_DEST_KEY,new Integer(-1));
+  initCache(REBALANCING_SLAVES_LIST_KEY,new Integer(-1));
   initCache(REBALANCING_PARTITIONS_LIST_KEY,new ArrayList<Integer>(0));
   initCache(ROUTING_STRATEGY_KEY,updateRoutingStrategies());
+  initCache(SERVER_STATE_KEY,VoldemortState.NORMAL_SERVER.toString());
+  if (getServerState().equals(VoldemortState.REBALANCING_SLAVE_SERVER)) {
+    VectorClock clock=(VectorClock)metadataCache.get(SERVER_STATE_KEY).getVersion();
+    this.put(SERVER_STATE_KEY,new Versioned<String>(VoldemortState.NORMAL_SERVER.toString(),clock.incremented(this.getNodeId(),1)));
+  }
 }

@@ -3,25 +3,25 @@
   Node donorNode=currentCluster.getNodeById(donorNodeId);
   if (donorNode != null) {
     try {
-      adminClient.updateServerState(donorNodeId,MetadataStore.ServerState.REBALANCING_DONOR_STATE);
+      adminClient.updateServerState(donorNodeId,MetadataStore.VoldemortState.REBALANCING_SLAVE_SERVER);
       adminClient.updateClusterMetadata(donorNodeId,targetCluster);
       for (      Node destNode : currentCluster.getNodes()) {
         if (destNode.getId() != donorNode.getId()) {
           List<Integer> donateList=getExtraPartitionList(targetCluster.getNodeById(destNode.getId()).getPartitionIds(),destNode.getPartitionIds());
           if (donateList.size() > 0) {
             logger.info("donating partitions to " + destNode.getId());
-            adminClient.updateServerState(destNode.getId(),MetadataStore.ServerState.REBALANCING_STEALER_STATE);
+            adminClient.updateServerState(destNode.getId(),MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
             adminClient.updateClusterMetadata(destNode.getId(),targetCluster);
             adminClient.fetchAndUpdateStreams(donorNode.getId(),destNode.getId(),storeName,donateList,null);
-            adminClient.updateServerState(destNode.getId(),MetadataStore.ServerState.NORMAL_STATE);
+            adminClient.updateServerState(destNode.getId(),MetadataStore.VoldemortState.NORMAL_SERVER);
           }
         }
       }
-      adminClient.updateServerState(donorNodeId,MetadataStore.ServerState.NORMAL_STATE);
+      adminClient.updateServerState(donorNodeId,MetadataStore.VoldemortState.NORMAL_SERVER);
     }
  catch (    Exception e) {
       for (      Node node : currentCluster.getNodes()) {
-        adminClient.updateServerState(node.getId(),MetadataStore.ServerState.NORMAL_STATE);
+        adminClient.updateServerState(node.getId(),MetadataStore.VoldemortState.NORMAL_SERVER);
         adminClient.updateClusterMetadata(node.getId(),currentCluster);
       }
       throw new VoldemortException("Donate Partitions for " + donorNodeId + " failed",e);

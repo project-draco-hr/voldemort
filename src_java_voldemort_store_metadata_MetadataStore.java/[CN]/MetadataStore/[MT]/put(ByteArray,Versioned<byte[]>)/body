@@ -1,18 +1,5 @@
 {
-  try {
-    String key=ByteUtils.getString(keyBytes.get(),"UTF-8");
-    Versioned<String> value=new Versioned<String>(ByteUtils.getString(valueBytes.getValue(),"UTF-8"),valueBytes.getVersion());
-    if (METADATA_KEYS.contains(key)) {
-      metadataCache.put(key,convertBytesToObject(key,value));
-      if (PERSISTENT_KEYS.contains(key)) {
-        innerStore.put(key,value);
-      }
-    }
- else {
-      throw new VoldemortException("Unhandled Key:" + key + " for MetadataStore put()");
-    }
-  }
- catch (  Exception e) {
-    throw new VoldemortException("Failed to put() for key:" + ByteUtils.getString(keyBytes.get(),"UTF-8"),e);
-  }
+  String key=ByteUtils.getString(keyBytes.get(),"UTF-8");
+  Versioned<String> value=new Versioned<String>(ByteUtils.getString(valueBytes.getValue(),"UTF-8"),valueBytes.getVersion());
+  this.put(key,value);
 }
