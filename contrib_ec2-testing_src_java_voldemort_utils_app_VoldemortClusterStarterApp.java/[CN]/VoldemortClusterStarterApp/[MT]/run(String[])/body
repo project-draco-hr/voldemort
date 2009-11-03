@@ -24,7 +24,7 @@
   Map<String,Integer> nodeIds=getNodeIds(hostNamesFile,clusterXmlFile,hostNamePairs);
   Runtime.getRuntime().addShutdownHook(new Thread(){
     @Override public void run(){
-      RemoteOperation<Object> operation=new SshClusterStopper(externalHostNames,sshPrivateKey,hostUserId,voldemortRootDirectory);
+      RemoteOperation operation=new SshClusterStopper(externalHostNames,sshPrivateKey,hostUserId,voldemortRootDirectory);
       try {
         operation.execute();
       }
@@ -34,6 +34,6 @@
     }
   }
 );
-  RemoteOperation<Object> operation=new SshClusterStarter(externalHostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeIds);
+  RemoteOperation operation=new SshClusterStarter(externalHostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeIds);
   operation.execute();
 }

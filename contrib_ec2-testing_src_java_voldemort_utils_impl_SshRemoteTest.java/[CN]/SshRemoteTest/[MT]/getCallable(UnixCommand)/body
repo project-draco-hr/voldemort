@@ -1,6 +1,9 @@
 {
-  RemoteTestResult remoteTestResult=new RemoteTestResult(command.getHostName());
-  RemoteTestOutputParser remoteTestOutputParser=new RemoteTestOutputParser(logger,remoteTestResult);
-  CommandOutputListener commandOutputListener=new LoggingCommandOutputListener(remoteTestOutputParser,logger,true);
-  return new RemoteTestResultCallable(command,commandOutputListener,remoteTestResult);
+  CommandOutputListener commandOutputListener=new CommandOutputListener(){
+    public void outputReceived(    String hostName,    String line){
+      System.out.println(hostName + ": " + line);
+    }
+  }
+;
+  return new ExitCodeCallable(command,commandOutputListener);
 }

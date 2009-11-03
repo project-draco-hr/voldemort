@@ -8,21 +8,10 @@
     parameters.put(HOST_NAME_PARAM,hostName);
     parameters.put(HOST_USER_ID_PARAM,hostUserId);
     parameters.put(SSH_PRIVATE_KEY_PARAM,sshPrivateKey.getAbsolutePath());
-    parameters.put(VOLDEMORT_ROOT_DIRECTORY_PARAM,voldemortRootDirectory);
-    parameters.put(VOLDEMORT_HOME_DIRECTORY_PARAM,voldemortHomeDirectory);
-    parameters.put(RAMP_TIME_PARAM,String.valueOf(index * rampTime));
-    parameters.put(OPERATIONS_PARAM,operations);
-    parameters.put(START_KEY_INDEX_PARAM,String.valueOf(index * numRequests));
-    parameters.put(VALUE_SIZE_PARAM,String.valueOf(valueSize));
-    parameters.put(THREADS_PARAM,String.valueOf(threads));
-    parameters.put(ITERATIONS_PARAM,String.valueOf(iterations));
-    parameters.put(BOOTSTRAP_URL_PARAM,bootstrapUrl);
-    parameters.put(STORE_NAME_PARAM,storeName);
-    parameters.put(NUM_REQUESTS_PARAM,String.valueOf(numRequests));
+    parameters.put(TEST_COMMAND_PARAM,commands.get(hostName));
     hostNameCommandLineMap.put(hostName,commandLineParameterizer.parameterize(parameters));
     index++;
   }
-  List<RemoteTestResult> ret=execute(hostNameCommandLineMap);
+  execute(hostNameCommandLineMap);
   if (logger.isInfoEnabled())   logger.info("Execution of remote tests complete");
-  return ret;
 }
