@@ -10,7 +10,6 @@
           List<Integer> stealList=getExtraPartitionList(donorNode.getPartitionIds(),targetCluster.getNodeById(donorNode.getId()).getPartitionIds());
           if (stealList.size() > 0) {
             logger.info("stealing partitions from " + donorNode.getId());
-            adminClient.updateServerState(donorNode.getId(),MetadataStore.VoldemortState.REBALANCING_SLAVE_SERVER);
             adminClient.updateClusterMetadata(donorNode.getId(),targetCluster);
             adminClient.fetchAndUpdateStreams(donorNode.getId(),stealerNodeID,storeName,stealList,null);
             adminClient.updateServerState(donorNode.getId(),MetadataStore.VoldemortState.NORMAL_SERVER);
