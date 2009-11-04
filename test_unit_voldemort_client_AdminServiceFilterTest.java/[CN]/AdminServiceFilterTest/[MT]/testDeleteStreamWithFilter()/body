@@ -6,7 +6,7 @@
   for (  Pair<ByteArray,Versioned<byte[]>> pair : entrySet) {
     store.put(pair.getFirst(),pair.getSecond());
   }
-  getAdminClient().doDeletePartitionEntries(0,storeName,Arrays.asList(new Integer[]{0,1,2,3}),filter);
+  getAdminClient().deletePartitionEntries(0,storeName,Arrays.asList(new Integer[]{0,1,2,3}),filter);
   for (  Pair<ByteArray,Versioned<byte[]>> entry : entrySet) {
     if (filter.filter(entry.getFirst(),entry.getSecond())) {
       assertEquals("All entries should be deleted except the filtered ones.",0,store.get(entry.getFirst()).size());

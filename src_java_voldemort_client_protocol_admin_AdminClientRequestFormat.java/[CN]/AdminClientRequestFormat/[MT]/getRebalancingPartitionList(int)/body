@@ -1,6 +1,6 @@
 {
-  Versioned<byte[]> value=doGetRemoteMetadata(rebalancingNodeId,new ByteArray(ByteUtils.getBytes(MetadataStore.REBALANCING_PARTITIONS_LIST_KEY,"UTF-8")));
-  String[] partitionList=ByteUtils.getString(value.getValue(),"UTF-8").split(",");
+  Versioned<String> value=getRemoteMetadata(rebalancingNodeId,MetadataStore.REBALANCING_PARTITIONS_LIST_KEY);
+  String[] partitionList=value.getValue().split(",");
   List<Integer> list=new ArrayList<Integer>();
   for (int i=0; i < partitionList.length; i++) {
     list.add(Integer.parseInt(partitionList[i]));

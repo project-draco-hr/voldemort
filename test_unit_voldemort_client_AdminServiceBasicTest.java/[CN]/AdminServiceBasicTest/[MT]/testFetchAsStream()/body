@@ -4,13 +4,13 @@
   for (  Pair<ByteArray,Versioned<byte[]>> entry : createEntries()) {
     store.put(entry.getFirst(),entry.getSecond());
   }
-  Iterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=getAdminClient().doFetchPartitionEntries(0,storeName,Arrays.asList(new Integer[]{0}),null);
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=getAdminClient().fetchPartitionEntries(0,storeName,Arrays.asList(new Integer[]{0}),null);
   RoutingStrategy routingStrategy=server.getMetadataStore().getRoutingStrategy(storeName);
   while (entryIterator.hasNext()) {
     Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
     checkEntriesForPartitions(entry.getFirst().get(),new int[]{0},routingStrategy);
   }
-  entryIterator=getAdminClient().doFetchPartitionEntries(0,storeName,Arrays.asList(new Integer[]{0,1}),null);
+  entryIterator=getAdminClient().fetchPartitionEntries(0,storeName,Arrays.asList(new Integer[]{0,1}),null);
   Set<Integer> partitionSet2=new HashSet<Integer>();
   while (entryIterator.hasNext()) {
     Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();

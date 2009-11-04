@@ -1,5 +1,5 @@
 {
-  Versioned<byte[]> value=doGetRemoteMetadata(nodeId,new ByteArray(ByteUtils.getBytes(MetadataStore.CLUSTER_KEY,"UTF-8")));
-  Cluster cluster=clusterMapper.readCluster(new StringReader(ByteUtils.getString(value.getValue(),"UTF-8")));
+  Versioned<String> value=getRemoteMetadata(nodeId,MetadataStore.CLUSTER_KEY);
+  Cluster cluster=clusterMapper.readCluster(new StringReader(value.getValue()));
   return new Versioned<Cluster>(cluster,value.getVersion());
 }

@@ -5,7 +5,7 @@
   for (  Pair<ByteArray,Versioned<byte[]>> entry : entrySet) {
     store.put(entry.getFirst(),entry.getSecond());
   }
-  getAdminClient().doDeletePartitionEntries(0,storeName,Arrays.asList(0,2),null);
+  getAdminClient().deletePartitionEntries(0,storeName,Arrays.asList(0,2),null);
   RoutingStrategy routingStrategy=server.getMetadataStore().getRoutingStrategy(storeName);
   for (  Pair<ByteArray,Versioned<byte[]>> entry : entrySet) {
     if (routingStrategy.getPartitionList(entry.getFirst().get()).contains(0) || routingStrategy.getPartitionList(entry.getFirst().get()).contains(2)) {

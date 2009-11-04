@@ -1,4 +1,4 @@
 {
   VectorClock oldClock=(VectorClock)getClusterMetadata(nodeId).getVersion();
-  doUpdateRemoteMetadata(nodeId,new ByteArray(ByteUtils.getBytes(MetadataStore.CLUSTER_KEY,"UTF-8")),new Versioned<byte[]>(ByteUtils.getBytes(clusterMapper.writeCluster(cluster),"UTF-8"),oldClock.incremented(nodeId,1)));
+  updateRemoteMetadata(nodeId,MetadataStore.CLUSTER_KEY,new Versioned<String>(clusterMapper.writeCluster(cluster),oldClock.incremented(nodeId,1)));
 }
