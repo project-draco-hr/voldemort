@@ -20,7 +20,7 @@
       VAdminProto.PartitionEntry partitionEntry=request.getPartitionEntry();
       ByteArray key=ProtoUtils.decodeBytes(partitionEntry.getKey());
       Versioned<byte[]> value=ProtoUtils.decodeVersioned(partitionEntry.getVersioned());
-      if (filter.filter(key,value)) {
+      if (filter.accept(key,value)) {
         storageEngine.put(key,value);
         if (throttler != null) {
           throttler.maybeThrottle(entrySize(Pair.create(key,value)));

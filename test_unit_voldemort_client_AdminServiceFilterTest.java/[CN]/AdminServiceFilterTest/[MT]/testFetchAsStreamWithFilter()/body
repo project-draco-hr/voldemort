@@ -5,7 +5,7 @@
   int shouldFilterCount=0;
   for (  Pair<ByteArray,Versioned<byte[]>> pair : createEntries()) {
     store.put(pair.getFirst(),pair.getSecond());
-    if (!filter.filter(pair.getFirst(),pair.getSecond())) {
+    if (!filter.accept(pair.getFirst(),pair.getSecond())) {
       shouldFilterCount++;
     }
   }
@@ -13,7 +13,7 @@
   Iterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=getAdminClient().fetchPartitionEntries(0,storeName,Arrays.asList(new Integer[]{0}),filter);
   while (entryIterator.hasNext()) {
     Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
-    if (!filter.filter(entry.getFirst(),entry.getSecond())) {
+    if (!filter.accept(entry.getFirst(),entry.getSecond())) {
       fail();
     }
   }

@@ -18,7 +18,7 @@
     ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=storageEngine.entries();
     while (iterator.hasNext()) {
       Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
-      if (validPartition(entry.getFirst().get(),partitionList,routingStrategy) && filter.filter(entry.getFirst(),entry.getSecond())) {
+      if (validPartition(entry.getFirst().get(),partitionList,routingStrategy) && filter.accept(entry.getFirst(),entry.getSecond())) {
         VAdminProto.FetchPartitionKeysResponse response=VAdminProto.FetchPartitionKeysResponse.newBuilder().setKey(ProtoUtils.encodeBytes(entry.getFirst())).build();
         ProtoUtils.writeMessage(outputStream,response);
         if (throttler != null) {
