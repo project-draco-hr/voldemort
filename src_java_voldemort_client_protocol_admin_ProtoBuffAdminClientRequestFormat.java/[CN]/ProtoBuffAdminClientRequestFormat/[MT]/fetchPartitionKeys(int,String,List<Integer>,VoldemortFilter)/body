@@ -5,13 +5,7 @@
   DataOutputStream outputStream=sands.getOutputStream();
   final DataInputStream inputStream=sands.getInputStream();
   try {
-    VAdminProto.FetchPartitionEntriesRequest.Builder fetchRequest=VAdminProto.FetchPartitionEntriesRequest.newBuilder().addAllPartitions(partitionList).setStore(storeName);
-    if (filter != null) {
-      fetchRequest.setFilter(encodeFilter(filter));
-    }
-    VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setFetchPartitionEntries(fetchRequest).setType(VAdminProto.AdminRequestType.FETCH_PARTITION_ENTRIES).build();
-    ProtoUtils.writeMessage(outputStream,request);
-    outputStream.flush();
+    initiateFetchRequest(outputStream,storeName,partitionList,filter,false);
   }
  catch (  IOException e) {
     close(sands.getSocket());
@@ -26,10 +20,7 @@
           pool.checkin(destination,sands);
           return endOfData();
         }
-        byte[] input=new byte[size];
-        ByteUtils.read(inputStream,input);
-        VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
-        response.mergeFrom(input);
+        VAdminProto.FetchPartitionEntriesResponse response=responseFromStream(inputStream,size);
         if (response.hasError()) {
           pool.checkin(destination,sands);
           throwException(response.getError());
