@@ -6,13 +6,13 @@
  else   if (STORES_KEY.equals(key)) {
     valueObject=storeMapper.readStoreList(new StringReader(value.getValue()));
   }
- else   if (SERVER_STATE_KEY.equals(key)) {
+ else   if (SERVER_STATE_KEY.equals(key) || CLUSTER_STATE_KEY.equals(key)) {
     valueObject=VoldemortState.valueOf(value.getValue());
   }
  else   if (NODE_ID_KEY.equals(key)) {
     valueObject=Integer.parseInt(value.getValue());
   }
- else   if (REBALANCING_SLAVES_LIST_KEY.equals(key)) {
+ else   if (REBALANCING_SLAVES_LIST_KEY.equals(key) || REBALANCING_PARTITIONS_LIST_KEY.equals(key)) {
     List<Integer> list=new ArrayList<Integer>();
     if (value.getValue().trim().length() > 0) {
       String[] partitions=value.getValue().split(",");
@@ -23,6 +23,9 @@
       }
     }
     valueObject=list;
+  }
+ else {
+    throw new VoldemortException("Unhandled key:'" + key + "' for String to Object serialization.");
   }
   return new Versioned<Object>(valueObject,value.getVersion());
 }
