@@ -5,11 +5,11 @@
   DataOutputStream outputStream=sands.getOutputStream();
   final DataInputStream inputStream=sands.getInputStream();
   try {
-    VAdminProto.FetchPartitionKeysRequest.Builder fetchRequest=VAdminProto.FetchPartitionKeysRequest.newBuilder().addAllPartitions(partitionList).setStore(storeName);
+    VAdminProto.FetchPartitionEntriesRequest.Builder fetchRequest=VAdminProto.FetchPartitionEntriesRequest.newBuilder().addAllPartitions(partitionList).setStore(storeName);
     if (filter != null) {
       fetchRequest.setFilter(encodeFilter(filter));
     }
-    VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setFetchPartitionKeys(fetchRequest).setType(VAdminProto.AdminRequestType.FETCH_KEYS).build();
+    VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setFetchPartitionEntries(fetchRequest).setType(VAdminProto.AdminRequestType.FETCH_PARTITION_ENTRIES).build();
     ProtoUtils.writeMessage(outputStream,request);
     outputStream.flush();
   }
@@ -28,7 +28,7 @@
         }
         byte[] input=new byte[size];
         ByteUtils.read(inputStream,input);
-        VAdminProto.FetchPartitionKeysResponse.Builder response=VAdminProto.FetchPartitionKeysResponse.newBuilder();
+        VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
         response.mergeFrom(input);
         if (response.hasError()) {
           pool.checkin(destination,sands);

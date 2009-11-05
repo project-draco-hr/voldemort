@@ -8,6 +8,7 @@
     RoutingStrategy routingStrategy=metadataStore.getRoutingStrategy(storageEngine.getName());
     EventThrottler throttler=new EventThrottler(streamMaxBytesReadPerSec);
     List<Integer> partitionList=request.getPartitionsList();
+    boolean fetchValues=request.hasFetchValues() && request.getFetchValues();
     VoldemortFilter filter;
     if (request.hasFilter()) {
       filter=getFilterFromRequest(request.getFilter());
@@ -19,9 +20,14 @@
     while (iterator.hasNext()) {
       Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
       if (validPartition(entry.getFirst().get(),partitionList,routingStrategy) && filter.filter(entry.getFirst(),entry.getSecond())) {
-        VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(entry.getFirst())).setVersioned(ProtoUtils.encodeVersioned(entry.getSecond())).build();
         VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
-        response.setPartitionEntry(partitionEntry);
+        if (fetchValues) {
+          VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(entry.getFirst())).setVersioned(ProtoUtils.encodeVersioned(entry.getSecond())).build();
+          response.setPartitionEntry(partitionEntry);
+        }
+ else {
+          response.setKey(ProtoUtils.encodeBytes(entry.getFirst()));
+        }
         Message message=response.build();
         ProtoUtils.writeMessage(outputStream,message);
         if (throttler != null) {
