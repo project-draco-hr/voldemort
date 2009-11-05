@@ -1,0 +1,17 @@
+{
+  parser.accepts("help","Prints this help");
+  parser.accepts("logging","Options are \"debug\", \"info\" (default), \"warn\", \"error\", or \"off\"").withRequiredArg();
+  parser.accepts("hostnames","File containing host names").withRequiredArg();
+  parser.accepts("sshprivatekey","File containing SSH private key").withRequiredArg();
+  parser.accepts("hostuserid","User ID on remote host").withRequiredArg();
+  parser.accepts("commands","File containing per-host commands").withRequiredArg();
+  OptionSet options=parse(args);
+  List<HostNamePair> hostNamePairs=getHostNamesPairsFromFile(getRequiredInputFile(options,"hostnames"));
+  List<String> hostNames=new ArrayList<String>();
+  for (  HostNamePair hostNamePair : hostNamePairs)   hostNames.add(hostNamePair.getExternalHostName());
+  File sshPrivateKey=getRequiredInputFile(options,"sshprivatekey");
+  String hostUserId=CmdUtils.valueOf(options,"hostuserid","root");
+  Map<String,String> commands=getRequiredPropertiesFile(getRequiredInputFile(options,"commands"));
+  RemoteOperation operation=new SshRemoteTest(hostNames,sshPrivateKey,hostUserId,commands);
+  operation.execute();
+}
