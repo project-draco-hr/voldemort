@@ -4,17 +4,8 @@
   boolean continueReading=true;
   try {
     String storeName=request.getStore();
-    StorageEngine<ByteArray,byte[]> storageEngine=storeRepository.getStorageEngine(storeName);
-    VoldemortFilter filter;
-    if (request.hasFilter()) {
-      filter=getFilterFromRequest(request.getFilter());
-    }
- else {
-      filter=new DefaultVoldemortFilter();
-    }
-    if (storageEngine == null) {
-      throw new VoldemortException("No stored named '" + storeName + "'.");
-    }
+    StorageEngine<ByteArray,byte[]> storageEngine=getStorageEngine(storeName);
+    VoldemortFilter filter=(request.hasFilter()) ? getFilterFromRequest(request.getFilter()) : new DefaultVoldemortFilter();
     EventThrottler throttler=new EventThrottler(streamMaxBytesWritesPerSec);
     while (continueReading) {
       VAdminProto.PartitionEntry partitionEntry=request.getPartitionEntry();

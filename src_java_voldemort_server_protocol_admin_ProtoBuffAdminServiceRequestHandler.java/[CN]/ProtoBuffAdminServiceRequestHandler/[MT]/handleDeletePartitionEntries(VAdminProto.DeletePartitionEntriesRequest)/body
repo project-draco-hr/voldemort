@@ -3,12 +3,9 @@
   try {
     String storeName=request.getStore();
     List<Integer> partitions=request.getPartitionsList();
-    StorageEngine<ByteArray,byte[]> storageEngine=storeRepository.getStorageEngine(storeName);
-    if (storageEngine == null) {
-      throw new VoldemortException("No store named '" + storeName + "'.");
-    }
+    StorageEngine<ByteArray,byte[]> storageEngine=getStorageEngine(storeName);
+    VoldemortFilter filter=(request.hasFilter()) ? getFilterFromRequest(request.getFilter()) : new DefaultVoldemortFilter();
     RoutingStrategy routingStrategy=metadataStore.getRoutingStrategy(storageEngine.getName());
-    VoldemortFilter filter=request.hasFilter() ? getFilterFromRequest(request.getFilter()) : new DefaultVoldemortFilter();
     EventThrottler throttler=new EventThrottler(streamMaxBytesReadPerSec);
     ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=storageEngine.entries();
     int deleteSuccess=0;
