@@ -1,2 +1,16 @@
 {
+  VAdminProto.InitiateFetchAndUpdateRequest.Builder initiateFetchAndUpdateRequest=VAdminProto.InitiateFetchAndUpdateRequest.newBuilder().setNodeId(donorNodeId).addAllPartitions(stealList).setStore(storeName);
+  try {
+    if (filter != null) {
+      initiateFetchAndUpdateRequest.setFilter(encodeFilter(filter));
+    }
+  }
+ catch (  IOException e) {
+    throw new VoldemortException(e);
+  }
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setInitiateFetchAndUpdate(initiateFetchAndUpdateRequest).setType(VAdminProto.AdminRequestType.INITIATE_FETCH_AND_UPDATE).build();
+  VAdminProto.InitiateFetchAndUpdateResponse.Builder response=sendAndReceive(stealerNodeId,adminRequest,VAdminProto.InitiateFetchAndUpdateResponse.newBuilder());
+  if (response.hasError()) {
+    throwException(response.getError());
+  }
 }

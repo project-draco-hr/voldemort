@@ -16,6 +16,9 @@ break;
 case UPDATE_PARTITION_ENTRIES:
 handleUpdatePartitionEntries(request.getUpdatePartitionEntries(),inputStream,outputStream);
 break;
+case INITIATE_FETCH_AND_UPDATE:
+ProtoUtils.writeMessage(outputStream,handleFetchAndUpdate(request.getInitiateFetchAndUpdate()));
+break;
 default :
 throw new VoldemortException("Unkown operation " + request.getType());
 }
