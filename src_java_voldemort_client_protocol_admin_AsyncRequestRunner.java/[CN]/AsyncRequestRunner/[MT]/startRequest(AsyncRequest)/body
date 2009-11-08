@@ -1,0 +1,8 @@
+{
+  if (requests.containsKey(request.getId())) {
+    throw new VoldemortException("Request " + request.getId() + " already submitted to the system");
+  }
+  requests.put(request.getId(),request);
+  executor.submit(request);
+  logger.debug("Handling async request " + request.getId());
+}

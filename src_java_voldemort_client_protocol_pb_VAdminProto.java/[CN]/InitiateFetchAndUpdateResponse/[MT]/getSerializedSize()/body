@@ -2,13 +2,8 @@
   int size=memoizedSerializedSize;
   if (size != -1)   return size;
   size=0;
-{
-    int dataSize=0;
-    for (    int element : getCompletedPartitionsList()) {
-      dataSize+=com.google.protobuf.CodedOutputStream.computeInt32SizeNoTag(element);
-    }
-    size+=dataSize;
-    size+=1 * getCompletedPartitionsList().size();
+  if (hasRequestId()) {
+    size+=com.google.protobuf.CodedOutputStream.computeStringSize(1,getRequestId());
   }
   if (hasError()) {
     size+=com.google.protobuf.CodedOutputStream.computeMessageSize(2,getError());

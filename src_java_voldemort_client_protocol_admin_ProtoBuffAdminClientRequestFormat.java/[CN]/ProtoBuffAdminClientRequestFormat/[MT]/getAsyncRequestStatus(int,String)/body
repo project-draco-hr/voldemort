@@ -1,0 +1,7 @@
+{
+  VAdminProto.AsyncStatusRequest asyncRequest=VAdminProto.AsyncStatusRequest.newBuilder().setRequestId(requestId).build();
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.ASYNC_STATUS).setAsyncStatus(asyncRequest).build();
+  VAdminProto.AsyncStatusResponse.Builder response=sendAndReceive(nodeId,adminRequest,VAdminProto.AsyncStatusResponse.newBuilder());
+  if (response.hasError())   throwException(response.getError());
+  return new Pair<String,Boolean>(response.getStatus(),response.getIsComplete());
+}
