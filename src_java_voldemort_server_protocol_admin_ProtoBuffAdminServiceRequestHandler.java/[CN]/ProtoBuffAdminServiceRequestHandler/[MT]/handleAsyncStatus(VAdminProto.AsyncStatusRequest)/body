@@ -1,0 +1,14 @@
+{
+  VAdminProto.AsyncStatusResponse.Builder response=VAdminProto.AsyncStatusResponse.newBuilder();
+  try {
+    String requestId=request.getRequestId();
+    String requestStatus=asyncRunner.getRequestStatus(requestId);
+    boolean requestComplete=asyncRunner.isComplete(requestId);
+    response.setIsComplete(requestComplete);
+    response.setStatus(requestStatus);
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+  }
+  return response.build();
+}
