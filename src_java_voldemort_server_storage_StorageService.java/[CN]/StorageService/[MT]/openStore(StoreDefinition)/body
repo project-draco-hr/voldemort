@@ -2,6 +2,6 @@
   logger.info("Opening store '" + storeDef.getName() + "' ("+ storeDef.getType()+ ").");
   StorageEngine<ByteArray,byte[]> engine=getStorageEngine(storeDef.getName(),storeDef.getType());
   registerEngine(engine);
-  if (voldemortConfig.isServerRoutingEnabled())   registerNodeStores(storeDef,metadata.getCluster(),voldemortConfig.getNodeId());
+  if (voldemortConfig.isServerRoutingEnabled() || voldemortConfig.isRedirectRoutingEnabled())   registerNodeStores(storeDef,metadata.getCluster(),voldemortConfig.getNodeId());
   if (storeDef.hasRetentionPeriod())   scheduleCleanupJob(storeDef,engine);
 }

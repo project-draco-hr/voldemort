@@ -1,23 +1,12 @@
 {
-  for (int i=100; i <= 1000; i++) {
-    ByteArray key=new ByteArray(ByteUtils.getBytes("" + i,"UTF-8"));
-    byte[] value=ByteUtils.getBytes("value-" + i,"UTF-8");
-    Store<ByteArray,byte[]> store=server1.getStoreRepository().getStorageEngine(storeName);
-    store.put(key,Versioned.value(value,new VectorClock().incremented(0,System.currentTimeMillis())));
+  HashMap<ByteArray,byte[]> entryMap=ServerTestUtils.createRandomKeyValuePairs(TEST_VALUES_SIZE);
+  Store<ByteArray,byte[]> store=server1.getStoreRepository().getStorageEngine(testStoreName);
+  for (  Entry<ByteArray,byte[]> entry : entryMap.entrySet()) {
+    store.put(entry.getKey(),Versioned.value(entry.getValue(),new VectorClock().incremented(0,System.currentTimeMillis())));
   }
-  MetadataStore metadata=server0.getMetadataStore();
-  RedirectingStore RedirectingStore=getRedirectingStore(metadata);
-  for (int i=100; i <= 1000; i++) {
-    ByteArray key=new ByteArray(ByteUtils.getBytes("" + i,"UTF-8"));
-    if (metadata.getRoutingStrategy(storeName).getPartitionList(key.get()).contains(new Integer(2)) || metadata.getRoutingStrategy(storeName).getPartitionList(key.get()).contains(new Integer(3))) {
-      assertEquals("proxyGet should return emptys list",0,RedirectingStore.get(key).size());
-    }
-  }
-  adminClient.updateRemoteServerState(0,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
-  for (int i=100; i <= 1000; i++) {
-    ByteArray key=new ByteArray(ByteUtils.getBytes("" + i,"UTF-8"));
-    if (metadata.getRoutingStrategy(storeName).getPartitionList(key.get()).contains(new Integer(2)) || metadata.getRoutingStrategy(storeName).getPartitionList(key.get()).contains(new Integer(3))) {
-      assertEquals("proxyGet should return actual value","value-" + i,new String(RedirectingStore.get(key).get(0).getValue()));
-    }
-  }
+  checkGetEntries(entryMap,server0,testStoreName,Arrays.asList(0,1),Arrays.asList(-1));
+  server0.getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
+  server0.getMetadataStore().put(MetadataStore.REBALANCING_SLAVE_NODE_ID,new Integer(1));
+  server0.getMetadataStore().put(MetadataStore.REBALANCING_PARTITIONS_LIST_KEY,Arrays.asList(1));
+  checkGetEntries(entryMap,server0,testStoreName,Arrays.asList(0),Arrays.asList(1));
 }
