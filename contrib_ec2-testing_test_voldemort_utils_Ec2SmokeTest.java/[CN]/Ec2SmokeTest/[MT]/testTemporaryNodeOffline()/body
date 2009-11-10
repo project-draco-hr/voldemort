@@ -1,0 +1,11 @@
+{
+  try {
+    startClusterAsync(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeIds);
+    String offlineHostName=hostNames.get(0);
+    stopClusterNode(offlineHostName,sshPrivateKey,hostUserId,voldemortRootDirectory);
+    startClusterNode(offlineHostName,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeIds.get(hostNames.get(0)));
+  }
+  finally {
+    stopCluster(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory);
+  }
+}
