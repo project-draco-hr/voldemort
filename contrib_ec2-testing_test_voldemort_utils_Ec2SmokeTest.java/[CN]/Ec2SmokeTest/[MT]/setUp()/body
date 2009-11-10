@@ -1,26 +1,3 @@
 {
-  accessId=getSystemProperty("ec2AccessId");
-  secretKey=getSystemProperty("ec2SecretKey");
-  ami=getSystemProperty("ec2Ami");
-  keyPairId=getSystemProperty("ec2KeyPairId");
-  sshPrivateKeyPath=getSystemProperty("ec2SshPrivateKeyPath");
-  hostUserId="root";
-  sshPrivateKey=sshPrivateKeyPath != null ? new File(sshPrivateKeyPath) : null;
-  voldemortRootDirectory="voldemort";
-  voldemortHomeDirectory="voldemort/config/single_node_cluster";
-  sourceDirectory=new File(getSystemProperty("user.dir"));
-  parentDirectory=".";
-  clusterXmlFile=new File(getSystemProperty("user.dir"),"config/single_node_cluster/config/cluster.xml");
-  hostNamePairs=listInstances(accessId,secretKey);
-  int existing=hostNamePairs.size();
-  int max=6;
-  int min=3;
-  if (existing < min) {
-    createInstances(accessId,secretKey,ami,keyPairId,max - existing);
-    hostNamePairs=listInstances(accessId,secretKey);
-  }
-  hostNames=toHostNames(hostNamePairs);
-  nodeIds=generateClusterDescriptor(hostNamePairs,"test",clusterXmlFile);
   stopClusterQuiet(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory);
-  deploy(hostNames,sshPrivateKey,hostUserId,sourceDirectory,parentDirectory);
 }
