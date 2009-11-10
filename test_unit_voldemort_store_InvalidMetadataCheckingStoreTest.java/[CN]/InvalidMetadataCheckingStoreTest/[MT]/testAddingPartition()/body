@@ -1,11 +1,14 @@
 {
-  MetadataStore metadata=TestUtils.createMetadata(new int[][]{{0,1,2,3},{4,5,6,7},{8,9,10,11}},storeDef);
-  MetadataStore updatedMetadata=TestUtils.createMetadata(new int[][]{{0,1,2,3,11},{4,5,6,7},{8,9,10}},storeDef);
-  InvalidMetadataCheckingStore store=new InvalidMetadataCheckingStore(0,new DoNothingStore<ByteArray,byte[]>(storeDef.getName()),updatedMetadata);
+  StoreDefinition storeDef=ServerTestUtils.getStoreDefs(1).get(0);
+  Cluster cluster=ServerTestUtils.getLocalCluster(3,new int[][]{{0,1,2,3},{4,5,6,7},{8,9,10}});
+  MetadataStore metadata=ServerTestUtils.createMetadataStore(cluster,Arrays.asList(storeDef));
+  InvalidMetadataCheckingStore store=new InvalidMetadataCheckingStore(0,new DoNothingStore<ByteArray,byte[]>(storeDef.getName()),metadata);
   try {
-    doOperations(0,store,metadata);
+    Cluster updatedCluster=ServerTestUtils.getLocalCluster(3,new int[][]{{0,1,2,3,4,5,10},{6,7},{8,9}});
+    MetadataStore updatedMetadata=ServerTestUtils.createMetadataStore(updatedCluster,Arrays.asList(storeDef));
+    doOperations(0,store,updatedMetadata,storeDef);
+    fail("Should see InvalidMetadataExceptions");
   }
  catch (  InvalidMetadataException e) {
-    throw new RuntimeException("Should not see any InvalidMetaDataException",e);
   }
 }

@@ -1,7 +1,4 @@
 {
   super.setUp();
-  innerStore=new InMemoryStorageEngine<String,String>("inner-store");
-  innerStore.put(MetadataStore.CLUSTER_KEY,new Versioned<String>(new ClusterMapper().writeCluster(ServerTestUtils.getLocalCluster(1))));
-  innerStore.put(MetadataStore.STORES_KEY,new Versioned<String>(new StoreDefinitionsMapper().writeStoreList(ServerTestUtils.getStoreDefs(1))));
-  metadataStore=new MetadataStore(innerStore,0);
+  metadataStore=ServerTestUtils.createMetadataStore(ServerTestUtils.getLocalCluster(1),ServerTestUtils.getStoreDefs(1));
 }
