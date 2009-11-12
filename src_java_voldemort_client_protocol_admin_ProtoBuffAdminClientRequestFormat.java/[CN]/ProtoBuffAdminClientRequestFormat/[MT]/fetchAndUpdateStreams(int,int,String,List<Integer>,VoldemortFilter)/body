@@ -17,8 +17,8 @@
   long maxDelay=1000 * 60;
   int requestId=response.getRequestId();
   while (true) {
-    Pair<String,Boolean> status=getAsyncRequestStatus(stealerNodeId,requestId);
-    if (status.getSecond())     break;
+    AsyncOperationStatus status=getAsyncRequestStatus(stealerNodeId,requestId);
+    if (status.isComplete())     break;
     if (delay < maxDelay)     delay*=2;
     try {
       Thread.sleep(delay);
