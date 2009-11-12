@@ -1,0 +1,15 @@
+{
+  this.cursor=cursor;
+  isOpen=true;
+  DatabaseEntry keyEntry=new DatabaseEntry();
+  DatabaseEntry valueEntry=new DatabaseEntry();
+  valueEntry.setPartial(true);
+  try {
+    cursor.getFirst(keyEntry,valueEntry,LockMode.READ_UNCOMMITTED);
+  }
+ catch (  DatabaseException e) {
+    logger.error(e);
+    throw new PersistenceFailureException(e);
+  }
+  current=keyEntry.getData();
+}
