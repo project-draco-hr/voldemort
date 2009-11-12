@@ -13,18 +13,5 @@
   if (response.hasError()) {
     throwException(response.getError());
   }
-  long delay=250;
-  long maxDelay=1000 * 60;
-  int requestId=response.getRequestId();
-  while (true) {
-    AsyncOperationStatus status=getAsyncRequestStatus(stealerNodeId,requestId);
-    if (status.isComplete())     break;
-    if (delay < maxDelay)     delay*=2;
-    try {
-      Thread.sleep(delay);
-    }
- catch (    InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
-  }
+  return response.getRequestId();
 }
