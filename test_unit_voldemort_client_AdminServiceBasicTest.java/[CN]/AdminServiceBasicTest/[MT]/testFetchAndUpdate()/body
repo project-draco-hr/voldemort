@@ -11,7 +11,7 @@
   for (  Pair<ByteArray,Versioned<byte[]>> entry : entrySet) {
     assertEquals("Server2 should return empty result List for all",0,server2.getStoreRepository().getStorageEngine(storeName).get(entry.getFirst()).size());
   }
-  AdminClient client=ServerTestUtils.getAdminClient(server2.getIdentityNode(),server2.getMetadataStore());
+  AdminClient client=getAdminClient();
   client.fetchAndUpdateStreams(0,1,storeName,Arrays.asList(0,1),null);
   Store<ByteArray,byte[]> store2=server2.getStoreRepository().getStorageEngine(storeName);
   assertNotSame("Store '" + storeName + "' should not be null",null,store2);

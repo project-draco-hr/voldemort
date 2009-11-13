@@ -1,9 +1,0 @@
-{
-  String clusterXml=bootstrapMetadata(MetadataStore.CLUSTER_KEY,bootstrapUris);
-  String storesXml=bootstrapMetadata(MetadataStore.STORES_KEY,bootstrapUris);
-  StorageEngine<String,String> backingStore=new InMemoryStorageEngine<String,String>("metadata");
-  backingStore.put(MetadataStore.CLUSTER_KEY,new Versioned<String>(clusterXml));
-  backingStore.put(MetadataStore.STORES_KEY,new Versioned<String>(storesXml));
-  MetadataStore metadata=new MetadataStore(backingStore,0);
-  return new ProtoBuffAdminClientRequestFormat(metadata,socketPool);
-}
