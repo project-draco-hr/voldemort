@@ -9,22 +9,9 @@
     throw new VoldemortException(e);
   }
   VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setInitiateFetchAndUpdate(initiateFetchAndUpdateRequest).setType(VAdminProto.AdminRequestType.INITIATE_FETCH_AND_UPDATE).build();
-  VAdminProto.InitiateFetchAndUpdateResponse.Builder response=sendAndReceive(stealerNodeId,adminRequest,VAdminProto.InitiateFetchAndUpdateResponse.newBuilder());
+  VAdminProto.AsyncOperationStatusResponse.Builder response=sendAndReceive(stealerNodeId,adminRequest,VAdminProto.AsyncOperationStatusResponse.newBuilder());
   if (response.hasError()) {
     throwException(response.getError());
   }
-  long delay=250;
-  long maxDelay=1000 * 60;
-  String requestId=response.getRequestId();
-  while (true) {
-    Pair<String,Boolean> status=getAsyncRequestStatus(stealerNodeId,requestId);
-    if (status.getSecond())     break;
-    if (delay < maxDelay)     delay*=2;
-    try {
-      Thread.sleep(delay);
-    }
- catch (    InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
-  }
+  return response.getRequestId();
 }

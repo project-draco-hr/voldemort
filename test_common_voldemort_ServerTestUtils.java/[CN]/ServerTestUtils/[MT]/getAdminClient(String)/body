@@ -1,3 +1,8 @@
 {
-  return new ProtoBuffAdminClientRequestFormat(bootstrapURL,new SocketPool(2,10000,100000,32 * 1024));
+  ClientConfig config=new ClientConfig();
+  config.setMaxConnectionsPerNode(2);
+  config.setConnectionTimeout(10000,TimeUnit.MILLISECONDS);
+  config.setSocketTimeout(10000,TimeUnit.MILLISECONDS);
+  config.setSocketBufferSize(32 * 1024);
+  return new ProtoBuffAdminClientRequestFormat(bootstrapURL,config);
 }

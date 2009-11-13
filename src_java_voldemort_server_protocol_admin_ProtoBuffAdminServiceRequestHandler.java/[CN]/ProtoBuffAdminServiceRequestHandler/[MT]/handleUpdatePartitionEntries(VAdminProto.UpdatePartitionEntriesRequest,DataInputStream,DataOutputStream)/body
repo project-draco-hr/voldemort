@@ -6,7 +6,7 @@
     String storeName=request.getStore();
     StorageEngine<ByteArray,byte[]> storageEngine=getStorageEngine(storeName);
     VoldemortFilter filter=(request.hasFilter()) ? getFilterFromRequest(request.getFilter()) : new DefaultVoldemortFilter();
-    EventThrottler throttler=new EventThrottler(streamMaxBytesWritesPerSec);
+    EventThrottler throttler=new EventThrottler(voldemortConfig.getStreamMaxWriteBytesPerSec());
     while (continueReading) {
       VAdminProto.PartitionEntry partitionEntry=request.getPartitionEntry();
       ByteArray key=ProtoUtils.decodeBytes(partitionEntry.getKey());

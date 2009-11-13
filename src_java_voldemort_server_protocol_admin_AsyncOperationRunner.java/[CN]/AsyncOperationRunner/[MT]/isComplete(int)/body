@@ -1,0 +1,11 @@
+{
+  if (!requests.containsKey(requestId)) {
+    throw new VoldemortException("No request with id " + requestId + " found");
+  }
+  if (requests.get(requestId).getStatus().isComplete()) {
+    logger.debug("Request complete " + requestId);
+    requests.remove(requestId);
+    return true;
+  }
+  return false;
+}

@@ -6,7 +6,7 @@
     StorageEngine<ByteArray,byte[]> storageEngine=getStorageEngine(storeName);
     VoldemortFilter filter=(request.hasFilter()) ? getFilterFromRequest(request.getFilter()) : new DefaultVoldemortFilter();
     RoutingStrategy routingStrategy=metadataStore.getRoutingStrategy(storageEngine.getName());
-    EventThrottler throttler=new EventThrottler(streamMaxBytesReadPerSec);
+    EventThrottler throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
     ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=storageEngine.entries();
     int deleteSuccess=0;
     while (iterator.hasNext()) {
