@@ -1,0 +1,20 @@
+{
+  boolean success=false;
+  int retries=10;
+  Store store=null;
+  while (retries-- > 0) {
+    store=ServerTestUtils.getSocketStore(MetadataStore.METADATA_STORE_NAME,node.getSocketPort());
+    try {
+      store.get(new ByteArray(MetadataStore.CLUSTER_KEY.getBytes()));
+      success=true;
+    }
+ catch (    UnreachableStoreException e) {
+      store.close();
+      store=null;
+      System.out.println("UnreachableSocketStore sleeping will try again " + retries + " times.");
+      sleep(1000);
+    }
+  }
+  store.close();
+  if (!success)   throw new RuntimeException("Failed to connect with server:" + node);
+}
