@@ -1,36 +1,27 @@
 {
-  Store<ByteArray,byte[]> store=server.getStoreRepository().getStorageEngine(storeName);
-  assertNotSame("Store '" + storeName + "' should not be null",null,store);
-  Set<Pair<ByteArray,Versioned<byte[]>>> entrySet=createEntries();
-  for (  Pair<ByteArray,Versioned<byte[]>> entry : entrySet) {
-    store.put(entry.getFirst(),entry.getSecond());
+  HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(TEST_STREAM_KEYS_SIZE);
+  List<Integer> fetchAndUpdatePartitionsList=Arrays.asList(0,2);
+  int fetchPartitionKeyCount=0;
+  Store<ByteArray,byte[]> store=getStore(0,storeName);
+  for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
+    store.put(entry.getKey(),new Versioned<byte[]>(entry.getValue()));
+    if (isKeyPartition(entry.getKey(),0,storeName,fetchAndUpdatePartitionsList)) {
+      fetchPartitionKeyCount++;
+    }
   }
-  VoldemortConfig config2=ServerTestUtils.createServerConfig(1,TestUtils.createTempDir().getAbsolutePath(),null,storesXmlfile);
-  VoldemortServer server2=new VoldemortServer(config2,cluster);
-  server2.start();
-  for (  Pair<ByteArray,Versioned<byte[]>> entry : entrySet) {
-    assertEquals("Server2 should return empty result List for all",0,server2.getStoreRepository().getStorageEngine(storeName).get(entry.getFirst()).size());
-  }
+  store=getStore(1,storeName);
+  for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet())   assertEquals("server1 should be empty at start.",0,store.get(entry.getKey()).size());
   AdminClient client=getAdminClient();
   int id=client.fetchAndUpdateStreams(0,1,storeName,Arrays.asList(0,1),null);
   client.waitForCompletion(1,id,5,TimeUnit.SECONDS);
-  Store<ByteArray,byte[]> store2=server2.getStoreRepository().getStorageEngine(storeName);
-  assertNotSame("Store '" + storeName + "' should not be null",null,store2);
-  StoreDefinition storeDef=server.getMetadataStore().getStoreDef(storeName);
-  assertNotSame("StoreDefinition for 'users' should not be null",null,storeDef);
-  RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,server.getMetadataStore().getCluster());
-  int checked=0;
-  int matched=0;
-  for (int i=100; i <= 1000; i++) {
-    ByteArray key=new ByteArray(ByteUtils.getBytes("" + i,"UTF-8"));
-    byte[] value=ByteUtils.getBytes("value-" + i,"UTF-8");
-    if (routingStrategy.getPartitionList(key.get()).get(0) == 0 || routingStrategy.getPartitionList(key.get()).get(0) == 1) {
-      checked++;
-      if (store2.get(key).size() > 0 && new String(value).equals(new String(store2.get(key).get(0).getValue()))) {
-        matched++;
-      }
+  int count=0;
+  store=getStore(1,storeName);
+  for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
+    if (isKeyPartition(entry.getKey(),0,storeName,fetchAndUpdatePartitionsList)) {
+      assertEquals("server1 store should contain fetchAndupdated partitions.",1,store.get(entry.getKey()).size());
+      assertEquals("entry value should match",new String(entry.getValue()),new String(store.get(entry.getKey()).get(0).getValue()));
+      count++;
     }
   }
-  server2.stop();
-  assertEquals("All Values should have matched",checked,matched);
+  assertEquals("All keys for asked partitions should be received",fetchPartitionKeyCount,count);
 }

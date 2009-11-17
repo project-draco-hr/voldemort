@@ -1,25 +1,21 @@
 {
-  Store<ByteArray,byte[]> store=server.getStoreRepository().getStorageEngine(storeName);
-  Set<Pair<ByteArray,Versioned<byte[]>>> entrySet=createEntries();
-  RoutingStrategy routingStrategy=server.getMetadataStore().getRoutingStrategy(storeName);
-  Map<String,String> expected=new HashMap<String,String>();
-  for (  Pair<ByteArray,Versioned<byte[]>> entry : entrySet) {
-    store.put(entry.getFirst(),entry.getSecond());
-    if (routingStrategy.getPartitionList(entry.getFirst().get()).contains(0) || routingStrategy.getPartitionList(entry.getFirst().get()).contains(1)) {
-      expected.put(new String(entry.getFirst().get()),new String(entry.getSecond().getValue()));
+  HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(TEST_STREAM_KEYS_SIZE);
+  List<Integer> fetchPartitionsList=Arrays.asList(0,2);
+  int fetchPartitionKeyCount=0;
+  Store<ByteArray,byte[]> store=getStore(0,storeName);
+  for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
+    store.put(entry.getKey(),new Versioned<byte[]>(entry.getValue()));
+    if (isKeyPartition(entry.getKey(),0,storeName,fetchPartitionsList)) {
+      fetchPartitionKeyCount++;
     }
   }
-  int checked=0;
-  int matched=0;
-  AdminClient client=getAdminClient();
-  Iterator<Pair<ByteArray,Versioned<byte[]>>> fetchIt=client.fetchPartitionEntries(server.getIdentityNode().getId(),storeName,Arrays.asList(0,1),null);
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> fetchIt=getAdminClient().fetchPartitionEntries(0,storeName,fetchPartitionsList,null);
+  int count=0;
   while (fetchIt.hasNext()) {
-    Pair<ByteArray,Versioned<byte[]>> fetchedKv=fetchIt.next();
-    checked++;
-    String fetchedKey=new String(fetchedKv.getFirst().get());
-    String fetchedValue=new String(fetchedKv.getSecond().getValue());
-    if (expected.get(fetchedKey).equals(fetchedValue))     matched++;
+    Pair<ByteArray,Versioned<byte[]>> entry=fetchIt.next();
+    assertEquals("Fetched entries should belong to asked partitions",true,isKeyPartition(entry.getFirst(),0,storeName,fetchPartitionsList));
+    assertEquals("entry value should match",new String(entry.getSecond().getValue()),new String(entrySet.get(entry.getFirst())));
+    count++;
   }
-  assertEquals(expected.size(),checked);
-  assertEquals("All values should have matched",checked,matched);
+  assertEquals("All entries for asked partitions should be received",fetchPartitionKeyCount,count);
 }

@@ -1,24 +1,19 @@
 {
-  Store<ByteArray,byte[]> store=server.getStoreRepository().getStorageEngine(storeName);
-  Set<Pair<ByteArray,Versioned<byte[]>>> entrySet=createEntries();
-  RoutingStrategy routingStrategy=server.getMetadataStore().getRoutingStrategy(storeName);
-  Set<String> expected=new HashSet<String>();
-  for (  Pair<ByteArray,Versioned<byte[]>> entry : entrySet) {
-    store.put(entry.getFirst(),entry.getSecond());
-    if (routingStrategy.getPartitionList(entry.getFirst().get()).contains(0) || routingStrategy.getPartitionList(entry.getFirst().get()).contains(1)) {
-      expected.add(new String(entry.getFirst().get()));
+  HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(TEST_STREAM_KEYS_SIZE);
+  List<Integer> fetchPartitionsList=Arrays.asList(0,2);
+  int fetchPartitionKeyCount=0;
+  Store<ByteArray,byte[]> store=getStore(0,storeName);
+  for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
+    store.put(entry.getKey(),new Versioned<byte[]>(entry.getValue()));
+    if (isKeyPartition(entry.getKey(),0,storeName,fetchPartitionsList)) {
+      fetchPartitionKeyCount++;
     }
   }
-  int checked=0;
-  int matched=0;
-  AdminClient client=getAdminClient();
-  Iterator<ByteArray> fetchIt=client.fetchPartitionKeys(server.getIdentityNode().getId(),storeName,Arrays.asList(0,1),null);
+  Iterator<ByteArray> fetchIt=getAdminClient().fetchPartitionKeys(0,storeName,fetchPartitionsList,null);
+  int count=0;
   while (fetchIt.hasNext()) {
-    ByteArray fetchedKey=fetchIt.next();
-    checked++;
-    String fetchedKeyStr=new String(fetchedKey.get());
-    if (expected.contains(fetchedKeyStr))     matched++;
+    assertEquals("Fetched key should belong to asked partitions",true,isKeyPartition(fetchIt.next(),0,storeName,fetchPartitionsList));
+    count++;
   }
-  assertEquals(expected.size(),checked);
-  assertEquals("All values should have matched",checked,matched);
+  assertEquals("All keys for asked partitions should be received",fetchPartitionKeyCount,count);
 }

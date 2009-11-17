@@ -1,0 +1,9 @@
+{
+  RoutingStrategy routing=getVoldemortServer(nodeId).getMetadataStore().getRoutingStrategy(storeName);
+  for (  int partition : routing.getPartitionList(key.get())) {
+    if (deletePartitionsList.contains(partition)) {
+      return true;
+    }
+  }
+  return false;
+}
