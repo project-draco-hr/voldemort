@@ -1,8 +1,10 @@
 {
   this.cursor=cursor;
   isOpen=true;
+  this.noValues=noValues;
   DatabaseEntry keyEntry=new DatabaseEntry();
   DatabaseEntry valueEntry=new DatabaseEntry();
+  if (noValues)   valueEntry.setPartial(true);
   try {
     cursor.getFirst(keyEntry,valueEntry,LockMode.READ_UNCOMMITTED);
   }
@@ -10,5 +12,5 @@
     logger.error(e);
     throw new PersistenceFailureException(e);
   }
-  current=getPair(keyEntry,valueEntry);
+  if (keyEntry.getData() != null)   current=get(keyEntry,valueEntry);
 }

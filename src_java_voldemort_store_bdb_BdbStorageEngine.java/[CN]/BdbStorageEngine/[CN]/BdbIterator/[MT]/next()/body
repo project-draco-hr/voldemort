@@ -2,16 +2,16 @@
   if (!isOpen)   throw new PersistenceFailureException("Call to next() on a closed iterator.");
   DatabaseEntry keyEntry=new DatabaseEntry();
   DatabaseEntry valueEntry=new DatabaseEntry();
-  valueEntry.setPartial(true);
+  if (noValues)   valueEntry.setPartial(true);
   try {
-    cursor.getNextNoDup(keyEntry,valueEntry,LockMode.READ_UNCOMMITTED);
+    moveCursor(keyEntry,valueEntry);
   }
  catch (  DatabaseException e) {
     logger.error(e);
     throw new PersistenceFailureException(e);
   }
-  byte[] previous=current;
+  T previous=current;
   if (keyEntry.getData() == null)   current=null;
- else   current=keyEntry.getData();
-  return new ByteArray(previous);
+ else   current=get(keyEntry,valueEntry);
+  return previous;
 }
