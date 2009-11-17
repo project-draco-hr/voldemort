@@ -1,15 +1,15 @@
 {
   HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(TEST_STREAM_KEYS_SIZE);
-  Store<ByteArray,byte[]> store=getStore(0,storeName);
+  Store<ByteArray,byte[]> store=getStore(0,testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
     store.put(entry.getKey(),new Versioned<byte[]>(entry.getValue()));
   }
   List<Integer> deletePartitionsList=Arrays.asList(0,2);
-  getAdminClient().deletePartitions(0,storeName,deletePartitionsList,null);
-  RoutingStrategy routingStrategy=getVoldemortServer(0).getMetadataStore().getRoutingStrategy(storeName);
-  store=getStore(0,storeName);
+  getAdminClient().deletePartitions(0,testStoreName,deletePartitionsList,null);
+  RoutingStrategy routingStrategy=getVoldemortServer(0).getMetadataStore().getRoutingStrategy(testStoreName);
+  store=getStore(0,testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
-    if (isKeyPartition(entry.getKey(),0,storeName,deletePartitionsList)) {
+    if (isKeyPartition(entry.getKey(),0,testStoreName,deletePartitionsList)) {
       assertEquals("deleted partitions should be missing.",0,store.get(entry.getKey()).size());
     }
   }
