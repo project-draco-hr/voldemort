@@ -1,5 +1,9 @@
 {
-  final VoldemortAdminRequest.Builder request=ProtoUtils.readToBuilder(inputStream,VoldemortAdminRequest.newBuilder());
+  VoldemortAdminRequest.Builder request=VoldemortAdminRequest.newBuilder();
+  int size=inputStream.readInt();
+  byte[] input=new byte[size];
+  ByteUtils.read(inputStream,input);
+  request.mergeFrom(input);
 switch (request.getType()) {
 case GET_METADATA:
     ProtoUtils.writeMessage(outputStream,handleGetMetadata(request.getGetMetadata()));
