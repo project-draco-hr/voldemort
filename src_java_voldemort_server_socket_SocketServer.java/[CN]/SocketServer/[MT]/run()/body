@@ -4,7 +4,7 @@
     serverSocket=new ServerSocket();
     serverSocket.bind(new InetSocketAddress(port));
     serverSocket.setReceiveBufferSize(this.socketBufferSize);
-    isStarted.countDown();
+    startedStatusQueue.put(SUCCESS);
     while (!isInterrupted() && !serverSocket.isClosed()) {
       final Socket socket=serverSocket.accept();
       configureSocket(socket);
@@ -14,13 +14,19 @@
   }
  catch (  BindException e) {
     logger.error("Could not bind to port " + port + ".");
+    startedStatusQueue.offer(e);
     throw new VoldemortException(e);
   }
 catch (  SocketException e) {
+    startedStatusQueue.offer(e);
     if (!isInterrupted())     logger.error("Error in server: ",e);
   }
 catch (  IOException e) {
+    startedStatusQueue.offer(e);
     throw new VoldemortException(e);
+  }
+catch (  Throwable t) {
+    startedStatusQueue.offer(t);
   }
  finally {
     if (serverSocket != null) {

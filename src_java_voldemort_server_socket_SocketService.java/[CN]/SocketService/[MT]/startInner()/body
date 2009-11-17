@@ -1,5 +1,6 @@
 {
   this.server.start();
-  this.server.awaitStartupCompletion();
+  Throwable startupException=this.server.awaitStartupCompletion();
+  if (startupException != null)   throw new VoldemortException(startupException);
   enableJmx(server);
 }

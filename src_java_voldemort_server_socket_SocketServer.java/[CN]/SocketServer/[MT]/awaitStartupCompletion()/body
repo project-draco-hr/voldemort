@@ -1,7 +1,10 @@
 {
   try {
-    isStarted.await();
+    Object obj=startedStatusQueue.take();
+    if (obj instanceof Throwable)     return (Throwable)obj;
+ else     return null;
   }
  catch (  InterruptedException e) {
+    return e;
   }
 }
