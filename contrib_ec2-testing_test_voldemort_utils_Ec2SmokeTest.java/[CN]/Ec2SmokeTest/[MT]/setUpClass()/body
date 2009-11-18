@@ -14,7 +14,7 @@
   clusterXmlFile=new File(properties.getProperty("ec2ClusterXmlFile"));
   int ec2InstanceCount=Integer.parseInt(properties.getProperty("ec2InstanceCount"));
   hostNamePairs=createInstances(accessId,secretKey,ami,keyPairId,ec2InstanceCount);
-  hostNames=toHostNames(hostNamePairs,properties.getProperty("ec2UseExternalHostNames","true").equals("true"));
+  hostNames=toHostNames(hostNamePairs);
   nodeIds=generateClusterDescriptor(hostNamePairs,"test",clusterXmlFile);
   if (logger.isInfoEnabled())   logger.info("Sleeping for 30 seconds to give EC2 instances some time to complete startup");
   Thread.sleep(30000);
