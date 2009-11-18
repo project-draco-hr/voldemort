@@ -14,6 +14,6 @@
   clusterXmlFile=new File(properties.getProperty("ec2ClusterXmlFile"));
   int ec2InstanceCount=Integer.parseInt(properties.getProperty("ec2InstanceCount"));
   hostNamePairs=createInstances(accessId,secretKey,ami,keyPairId,ec2InstanceCount);
-  hostNames=toHostNames(hostNamePairs);
+  hostNames=toHostNames(hostNamePairs,properties.getProperty("ec2UseExternalHostNames","true").equals("true"));
   nodeIds=generateClusterDescriptor(hostNamePairs,"test",clusterXmlFile);
 }
