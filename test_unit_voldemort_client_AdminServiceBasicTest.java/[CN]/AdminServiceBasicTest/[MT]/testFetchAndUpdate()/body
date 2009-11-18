@@ -13,7 +13,7 @@
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet())   assertEquals("server1 should be empty at start.",0,store.get(entry.getKey()).size());
   AdminClient client=getAdminClient();
   int id=client.fetchAndUpdateStreams(0,1,testStoreName,fetchAndUpdatePartitionsList,null);
-  client.waitForCompletion(1,id,5,TimeUnit.SECONDS);
+  client.waitForCompletion(1,id,60,TimeUnit.SECONDS);
   int count=0;
   store=getStore(1,testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {

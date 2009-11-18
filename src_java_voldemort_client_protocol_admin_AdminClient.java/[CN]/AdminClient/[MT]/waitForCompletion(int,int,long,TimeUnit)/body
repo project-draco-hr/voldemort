@@ -4,7 +4,7 @@
   long waitUntil=System.currentTimeMillis() + timeUnit.toMillis(maxWait);
   while (System.currentTimeMillis() < waitUntil) {
     AsyncOperationStatus status=getAsyncRequestStatus(nodeId,requestId);
-    if (status.isComplete())     return true;
+    if (status.isComplete())     return;
     if (delay < maxDelay)     delay<<=2;
     try {
       Thread.sleep(delay);
@@ -13,5 +13,5 @@
       Thread.currentThread().interrupt();
     }
   }
-  return false;
+  throw new VoldemortException("Failed to finish task requestId:" + requestId + " in maxWait"+ maxWait+ " "+ timeUnit.toString());
 }
