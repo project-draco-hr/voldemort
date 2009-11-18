@@ -1,0 +1,16 @@
+{
+  String propertiesFileName=System.getProperty("ec2PropertiesFile");
+  String[] requireds={"ec2AccessId","ec2SecretKey","ec2Ami","ec2KeyPairId","ec2HostUserId","ec2VoldemortRootDirectory","ec2VoldemortHomeDirectory","ec2SourceDirectory","ec2ParentDirectory","ec2ClusterXmlFile","ec2InstanceCount"};
+  if (propertiesFileName == null)   throw new Exception("ec2PropertiesFile system property must be defined that " + "provides the path to file containing the following " + "required Ec2SmokeTest properties: "+ StringUtils.join(requireds,", "));
+  Properties properties=new Properties();
+  Reader r=null;
+  try {
+    r=new FileReader(propertiesFileName);
+    properties.load(r);
+  }
+  finally {
+    IOUtils.closeQuietly(r);
+  }
+  for (  String required : requireds)   if (!properties.containsKey(required))   throw new Exception("Required properties for Ec2SmokeTest: " + StringUtils.join(requireds,", ") + "; missing "+ required);
+  return properties;
+}
