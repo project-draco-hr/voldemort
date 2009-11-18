@@ -13,12 +13,8 @@
   parentDirectory=properties.getProperty("ec2ParentDirectory");
   clusterXmlFile=new File(properties.getProperty("ec2ClusterXmlFile"));
   int ec2InstanceCount=Integer.parseInt(properties.getProperty("ec2InstanceCount"));
+  createInstances(accessId,secretKey,ami,keyPairId,ec2InstanceCount);
   hostNamePairs=listInstances(accessId,secretKey);
-  if (hostNamePairs.isEmpty()) {
-    createInstances(accessId,secretKey,ami,keyPairId,ec2InstanceCount);
-    hostNamePairs=listInstances(accessId,secretKey);
-    shouldTerminate=true;
-  }
   hostNames=toHostNames(hostNamePairs);
   nodeIds=generateClusterDescriptor(hostNamePairs,"test",clusterXmlFile);
 }
