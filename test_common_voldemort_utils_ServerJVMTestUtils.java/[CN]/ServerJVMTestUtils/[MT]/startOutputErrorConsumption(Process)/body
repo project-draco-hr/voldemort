@@ -1,0 +1,35 @@
+{
+  final InputStream io=new BufferedInputStream(process.getInputStream());
+  new Thread(new Runnable(){
+    public void run(){
+      while (true) {
+        try {
+          process.exitValue();
+          try {
+            io.close();
+          }
+ catch (          IOException e) {
+            e.printStackTrace();
+          }
+          return;
+        }
+ catch (        IllegalThreadStateException e) {
+          StringBuffer buffer=new StringBuffer();
+          try {
+            int c;
+            while ((c=io.read()) != -1) {
+              buffer.append((char)c);
+            }
+          }
+ catch (          Exception e1) {
+            return;
+          }
+ finally {
+            System.out.println(buffer.toString());
+          }
+        }
+      }
+    }
+  }
+).start();
+}

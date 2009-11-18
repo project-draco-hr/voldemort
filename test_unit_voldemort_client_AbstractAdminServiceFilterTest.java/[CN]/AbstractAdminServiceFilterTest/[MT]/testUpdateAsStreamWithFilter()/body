@@ -1,0 +1,16 @@
+{
+  VoldemortFilter filter=new VoldemortFilterImpl();
+  Set<Pair<ByteArray,Versioned<byte[]>>> entrySet=createEntries();
+  getAdminClient().updateEntries(0,testStoreName,entrySet.iterator(),filter);
+  Store<ByteArray,byte[]> store=getStore(0,testStoreName);
+  assertNotSame("Store '" + testStoreName + "' should not be null",null,store);
+  for (  Pair<ByteArray,Versioned<byte[]>> entry : entrySet) {
+    if (filter.accept(entry.getFirst(),entry.getSecond())) {
+      assertEquals("Store should have this key/value pair",1,store.get(entry.getFirst()).size());
+      assertEquals("Store should have this key/value pair",entry.getSecond(),store.get(entry.getFirst()).get(0));
+    }
+ else {
+      assertEquals("Store should Not have this key/value pair",0,store.get(entry.getFirst()).size());
+    }
+  }
+}

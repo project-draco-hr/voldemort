@@ -1,0 +1,33 @@
+{
+  parser.accepts("help","Prints this help");
+  parser.accepts("logging","Options are \"debug\", \"info\" (default), \"warn\", \"error\", or \"off\"").withRequiredArg();
+  parser.accepts("accessid","Access ID").withRequiredArg();
+  parser.accepts("secretkey","SecretKey").withRequiredArg();
+  parser.accepts("ami","AMI").withRequiredArg();
+  parser.accepts("keypairid","KeyPairID").withRequiredArg();
+  parser.accepts("instances","Number of instances (default 1)").withRequiredArg().ofType(Integer.class);
+  parser.accepts("instancetype","Instance type; options are " + Ec2Connection.Ec2InstanceType.DEFAULT + " (default), "+ Ec2Connection.Ec2InstanceType.LARGE+ ", "+ Ec2Connection.Ec2InstanceType.XLARGE+ ", "+ Ec2Connection.Ec2InstanceType.MEDIUM_HCPU+ ", and "+ Ec2Connection.Ec2InstanceType.XLARGE_HCPU).withRequiredArg();
+  OptionSet options=parse(args);
+  String accessId=getRequiredString(options,"accessid");
+  String secretKey=getRequiredString(options,"secretkey");
+  String ami=getRequiredString(options,"ami");
+  String keypairId=getRequiredString(options,"keypairid");
+  int instanceCount=CmdUtils.valueOf(options,"instances",1);
+  Ec2Connection.Ec2InstanceType instanceType=null;
+  try {
+    instanceType=Ec2Connection.Ec2InstanceType.valueOf(CmdUtils.valueOf(options,"instancetype","DEFAULT"));
+  }
+ catch (  Exception e) {
+    printUsage();
+  }
+  Ec2Connection ec2Connection=new TypicaEc2Connection(accessId,secretKey);
+  List<HostNamePair> hostNamePairs=ec2Connection.create(ami,keypairId,instanceType,instanceCount);
+  StringBuilder s=new StringBuilder();
+  for (  HostNamePair hostNamePair : hostNamePairs) {
+    s.append(hostNamePair.getExternalHostName());
+    s.append('=');
+    s.append(hostNamePair.getInternalHostName());
+    s.append(System.getProperty("line.separator"));
+  }
+  System.out.print(s);
+}

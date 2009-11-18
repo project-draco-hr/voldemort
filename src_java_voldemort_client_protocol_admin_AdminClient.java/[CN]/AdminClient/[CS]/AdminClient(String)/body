@@ -1,0 +1,7 @@
+{
+  ClientConfig config=new ClientConfig().setBootstrapUrls(bootstrapUrl);
+  SocketStoreClientFactory factory=new SocketStoreClientFactory(config);
+  String clusterXml=factory.bootstrapMetadataWithRetries(MetadataStore.CLUSTER_KEY,factory.validateUrls(config.getBootstrapUrls()));
+  setCluster(clusterMapper.readCluster(new StringReader(clusterXml)));
+  factory.close();
+}

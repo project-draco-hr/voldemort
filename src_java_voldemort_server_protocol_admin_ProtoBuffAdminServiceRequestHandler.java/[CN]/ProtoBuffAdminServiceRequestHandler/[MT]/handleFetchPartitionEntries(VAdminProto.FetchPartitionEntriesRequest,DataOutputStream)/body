@@ -1,0 +1,37 @@
+{
+  try {
+    String storeName=request.getStore();
+    StorageEngine<ByteArray,byte[]> storageEngine=getStorageEngine(storeName);
+    RoutingStrategy routingStrategy=metadataStore.getRoutingStrategy(storageEngine.getName());
+    EventThrottler throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
+    List<Integer> partitionList=request.getPartitionsList();
+    VoldemortFilter filter=(request.hasFilter()) ? getFilterFromRequest(request.getFilter()) : new DefaultVoldemortFilter();
+    boolean fetchValues=request.hasFetchValues() && request.getFetchValues();
+    ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=storageEngine.entries();
+    while (iterator.hasNext()) {
+      Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
+      if (validPartition(entry.getFirst().get(),partitionList,routingStrategy) && filter.accept(entry.getFirst(),entry.getSecond())) {
+        VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
+        if (fetchValues) {
+          VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(entry.getFirst())).setVersioned(ProtoUtils.encodeVersioned(entry.getSecond())).build();
+          response.setPartitionEntry(partitionEntry);
+        }
+ else {
+          response.setKey(ProtoUtils.encodeBytes(entry.getFirst()));
+        }
+        Message message=response.build();
+        ProtoUtils.writeMessage(outputStream,message);
+        if (throttler != null) {
+          throttler.maybeThrottle(entrySize(entry));
+        }
+      }
+    }
+    iterator.close();
+    ProtoUtils.writeEndOfStream(outputStream);
+  }
+ catch (  VoldemortException e) {
+    VAdminProto.FetchPartitionEntriesResponse response=VAdminProto.FetchPartitionEntriesResponse.newBuilder().setError(ProtoUtils.encodeError(errorCodeMapper,e)).build();
+    ProtoUtils.writeMessage(outputStream,response);
+    logger.error("handleFetchPartitionEntries failed for request(" + request.toString() + ")",e);
+  }
+}

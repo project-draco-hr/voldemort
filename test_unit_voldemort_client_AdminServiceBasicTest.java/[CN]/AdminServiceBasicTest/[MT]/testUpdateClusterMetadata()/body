@@ -1,0 +1,7 @@
+{
+  Cluster updatedCluster=ServerTestUtils.getLocalCluster(4);
+  AdminClient client=getAdminClient();
+  client.updateRemoteCluster(0,updatedCluster);
+  assertEquals("Cluster should match",updatedCluster,getVoldemortServer(0).getMetadataStore().getCluster());
+  assertEquals("AdminClient.getMetdata() should match",client.getRemoteCluster(getVoldemortServer(0).getIdentityNode().getId()).getValue(),updatedCluster);
+}

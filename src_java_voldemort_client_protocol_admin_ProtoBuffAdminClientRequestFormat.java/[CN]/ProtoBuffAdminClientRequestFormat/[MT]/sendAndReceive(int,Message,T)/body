@@ -1,0 +1,19 @@
+{
+  Node node=this.getCluster().getNodeById(nodeId);
+  SocketDestination destination=new SocketDestination(node.getHost(),node.getAdminPort(),RequestFormatType.ADMIN_PROTOCOL_BUFFERS);
+  SocketAndStreams sands=pool.checkout(destination);
+  try {
+    DataOutputStream outputStream=sands.getOutputStream();
+    DataInputStream inputStream=sands.getInputStream();
+    ProtoUtils.writeMessage(outputStream,message);
+    outputStream.flush();
+    return ProtoUtils.readToBuilder(inputStream,builder);
+  }
+ catch (  IOException e) {
+    close(sands.getSocket());
+    throw new VoldemortException(e);
+  }
+ finally {
+    pool.checkin(destination,sands);
+  }
+}

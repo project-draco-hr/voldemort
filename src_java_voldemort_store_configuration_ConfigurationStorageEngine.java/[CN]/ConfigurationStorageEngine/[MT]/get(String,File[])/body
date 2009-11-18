@@ -1,0 +1,17 @@
+{
+  try {
+    List<Versioned<String>> found=new ArrayList<Versioned<String>>();
+    for (    File file : files) {
+      if (file.getName().equals(key)) {
+        VectorClock clock=readVersion(key);
+        if (null != clock) {
+          found.add(new Versioned<String>(FileUtils.readFileToString(file,"UTF-8"),clock));
+        }
+      }
+    }
+    return found;
+  }
+ catch (  IOException e) {
+    throw new VoldemortException(e);
+  }
+}
