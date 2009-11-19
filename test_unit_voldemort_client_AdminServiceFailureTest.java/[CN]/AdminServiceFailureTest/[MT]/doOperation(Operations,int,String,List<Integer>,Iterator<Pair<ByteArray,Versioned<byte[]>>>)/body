@@ -1,0 +1,20 @@
+{
+switch (e) {
+case DELETE_PARTITIONS:
+    putAlltoStore(nodeId,storeName);
+  getAdminClient().deletePartitions(nodeId,storeName,partitionList,null);
+break;
+case FETCH_ENTRIES:
+putAlltoStore(nodeId,storeName);
+getAdminClient().fetchPartitionEntries(nodeId,storeName,partitionList,null);
+case FETCH_KEYS:
+putAlltoStore(nodeId,storeName);
+getAdminClient().fetchPartitionKeys(nodeId,storeName,partitionList,null);
+case UPDATE_ENTRIES:
+getAdminClient().updateEntries(nodeId,storeName,entryIterator,null);
+break;
+default :
+throw new RuntimeException("Unknown operation");
+}
+return null;
+}

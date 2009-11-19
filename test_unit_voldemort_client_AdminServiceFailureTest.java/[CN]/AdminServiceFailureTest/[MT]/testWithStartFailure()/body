@@ -1,10 +1,6 @@
 {
-  for (  Entry<ByteArray,byte[]> entry : ServerTestUtils.createRandomKeyValuePairs(TEST_KEYS).entrySet()) {
-    getStore(testStoreName).put(entry.getKey(),new Versioned<byte[]>(entry.getValue()));
-  }
   server.stop();
   try {
-    Iterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=getAdminClient().fetchPartitionEntries(0,testStoreName,Arrays.asList(new Integer[]{0}),null);
     fail();
   }
  catch (  UnreachableStoreException e) {
