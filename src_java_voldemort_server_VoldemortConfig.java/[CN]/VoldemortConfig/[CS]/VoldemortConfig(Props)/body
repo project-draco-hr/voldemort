@@ -20,10 +20,12 @@
   this.bdbOneEnvPerStore=props.getBoolean("bdb.one.env.per.store",false);
   setBdbCleanerMinFileUtilization(props.getInt("bdb.cleaner.minFileUtilization",5));
   setBdbCleanerMinUtilization(props.getInt("bdb.cleaner.minUtilization",50));
-  this.readOnlyFileWaitTimeoutMs=props.getLong("readonly.file.wait.timeout.ms",4000L);
   this.readOnlyBackups=props.getInt("readonly.backups",1);
-  this.readOnlyFileHandles=props.getInt("readonly.file.handles",5);
   this.readOnlyStorageDir=props.getString("readonly.data.directory",this.dataDirectory + File.separator + "read-only");
+  this.fsStorageDirs=props.getList("fs.storage.dirs",Collections.singletonList(this.dataDirectory + File.separator + "fs"));
+  this.fsStorageDirDepth=props.getInt("fs.storage.dir.depth",2);
+  this.fsStorageDirFanOut=props.getInt("fs.storage.dir.fan.out",1000);
+  this.fsStorageNumLockStripes=props.getInt("fs.storage.lock.stripes",200);
   this.slopStoreType=props.getString("slop.store.engine",BdbStorageConfiguration.TYPE_NAME);
   this.mysqlUsername=props.getString("mysql.user","root");
   this.mysqlPassword=props.getString("mysql.password","");

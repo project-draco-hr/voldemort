@@ -5,8 +5,14 @@
   FileSystem fs=path.getFileSystem(config);
   EventThrottler throttler=null;
   if (maxBytesPerSecond != null)   throttler=new EventThrottler(maxBytesPerSecond);
-  CopyStats stats=new CopyStats();
-  File destination=new File(this.tempDir,path.getName());
-  fetch(fs,path,destination,throttler,stats);
-  return destination;
+  CopyStats stats=new CopyStats(fileUrl);
+  ObjectName jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
+  try {
+    File destination=new File(this.tempDir,path.getName());
+    fetch(fs,path,destination,throttler,stats);
+    return destination;
+  }
+  finally {
+    JmxUtils.unregisterMbean(jmxName);
+  }
 }
