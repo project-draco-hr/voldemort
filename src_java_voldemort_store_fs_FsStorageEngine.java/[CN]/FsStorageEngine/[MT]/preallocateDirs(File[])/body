@@ -1,0 +1,15 @@
+{
+  for (  File baseDir : baseDirs) {
+    File precreateDone=new File(baseDir,".precreate-done");
+    if (!precreateDone.exists()) {
+      logger.info("Creating sub-directories for " + baseDir + "...");
+      preallocateDirs(baseDir,this.dirDepth);
+      try {
+        precreateDone.createNewFile();
+      }
+ catch (      IOException e) {
+        logger.error("Error creating marker file for precreation.",e);
+      }
+    }
+  }
+}

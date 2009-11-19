@@ -1,0 +1,45 @@
+{
+  int size=4 + 4 + key.length();
+  for (  Versioned<byte[]> versioned : values) {
+    VectorClock clock=(VectorClock)versioned.getVersion();
+    size+=4 + clock.sizeInBytes() + versioned.getValue().length;
+  }
+  byte[] bytes=new byte[size];
+  int offset=4;
+  ByteUtils.writeInt(bytes,key.length(),offset);
+  offset+=4;
+  System.arraycopy(key.get(),0,bytes,offset,key.length());
+  offset+=key.length();
+  for (  Versioned<byte[]> versioned : values) {
+    VectorClock clock=(VectorClock)versioned.getVersion();
+    byte[] clockBytes=clock.toBytes();
+    System.arraycopy(clockBytes,0,bytes,offset,clockBytes.length);
+    offset+=clockBytes.length;
+    ByteUtils.writeInt(bytes,versioned.getValue().length,offset);
+    offset+=4;
+    System.arraycopy(versioned.getValue(),0,bytes,offset,versioned.getValue().length);
+    offset+=versioned.getValue().length;
+  }
+  CRC32 crc=new CRC32();
+  crc.update(bytes,4,bytes.length - 4);
+  ByteUtils.writeInt(bytes,(int)(crc.getValue() & 0xffffffffL),0);
+  FileOutputStream output;
+  try {
+    output=new FileOutputStream(outputFile);
+  }
+ catch (  FileNotFoundException e) {
+    outputFile.getParentFile().mkdirs();
+    output=new FileOutputStream(outputFile);
+  }
+  try {
+    output.write(bytes);
+  }
+  finally {
+    try {
+      output.close();
+    }
+ catch (    IOException e) {
+      logger.error("Error closing file in write.",e);
+    }
+  }
+}

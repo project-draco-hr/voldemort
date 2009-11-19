@@ -1,0 +1,20 @@
+{
+synchronized (TextFileStorageEngine.this) {
+    while (true) {
+      if (!hasNext())       throw new NoSuchElementException("No more elements in iterator!");
+      try {
+        String name=files[index].getName();
+        int split=name.lastIndexOf('-');
+        String key=split < 0 ? name : name.substring(0,split);
+        VectorClock clock=getVersion(files[index],key);
+        if (null != clock) {
+          String value=FileUtils.readFileToString(files[index]);
+          this.index++;
+          return Pair.create(key,new Versioned<String>(value,clock));
+        }
+      }
+ catch (      IOException e) {
+      }
+    }
+  }
+}

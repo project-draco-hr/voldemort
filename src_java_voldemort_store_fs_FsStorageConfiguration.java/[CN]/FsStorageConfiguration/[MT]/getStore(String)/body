@@ -1,0 +1,10 @@
+{
+  List<File> storeDirs=new ArrayList<File>();
+  for (  File baseDir : baseDirs) {
+    File storeDir=new File(baseDir,name);
+    storeDir.mkdirs();
+    if (!storeDir.exists())     throw new IllegalStateException("Failed to create subdirectory for store '" + name + "' in "+ storeDir.getAbsolutePath());
+    storeDirs.add(storeDir);
+  }
+  return new FsStorageEngine(name,storeDirs,config.getFsStorageDirDepth(),config.getFsStorageDirFanOut(),config.getFsStorageNumLockStripes());
+}

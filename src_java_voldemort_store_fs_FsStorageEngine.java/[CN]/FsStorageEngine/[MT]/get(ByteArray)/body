@@ -1,0 +1,15 @@
+{
+  StoreUtils.assertValidKey(key);
+  FsKeyPath path=makePath(key);
+synchronized (lockFor(path)) {
+    try {
+      FsKeyAndValues kv=FsKeyAndValues.read(new File(path.getPath()));
+      if (kv == null)       return Collections.emptyList();
+ else       return kv.getValues();
+    }
+ catch (    IOException e) {
+      logger.error("Filesystem error in get.",e);
+      throw new PersistenceFailureException("Filesystem error while reading values.",e);
+    }
+  }
+}

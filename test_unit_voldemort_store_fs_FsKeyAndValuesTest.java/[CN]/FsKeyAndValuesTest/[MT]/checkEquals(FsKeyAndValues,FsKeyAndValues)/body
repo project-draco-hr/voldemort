@@ -1,0 +1,13 @@
+{
+  if (k1 == k2)   return;
+  assertNotNull(k1);
+  assertNotNull(k2);
+  assertEquals("Keys should be equal",k1.getKey(),k2.getKey());
+  assertEquals("Should have the same number of values.",k1.getValues().size(),k2.getValues().size());
+  for (int i=0; i < k1.getValues().size(); i++) {
+    Versioned<byte[]> v1=k1.getValues().get(i);
+    Versioned<byte[]> v2=k2.getValues().get(i);
+    assertTrue("Values should be equal.",ByteUtils.compare(v1.getValue(),v2.getValue()) == 0);
+    assertEquals("Versions should be equal.",v1.getVersion(),v2.getVersion());
+  }
+}
