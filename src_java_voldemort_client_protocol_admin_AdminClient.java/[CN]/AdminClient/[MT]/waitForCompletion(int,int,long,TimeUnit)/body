@@ -1,11 +1,10 @@
 {
-  long delay=250;
-  long maxDelay=1000 * 60;
+  long delay=INITIAL_DELAY;
   long waitUntil=System.currentTimeMillis() + timeUnit.toMillis(maxWait);
   while (System.currentTimeMillis() < waitUntil) {
     AsyncOperationStatus status=getAsyncRequestStatus(nodeId,requestId);
     if (status.isComplete())     return;
-    if (delay < maxDelay)     delay<<=2;
+    if (delay < MAX_DELAY)     delay<<=2;
     try {
       Thread.sleep(delay);
     }
@@ -13,5 +12,5 @@
       Thread.currentThread().interrupt();
     }
   }
-  throw new VoldemortException("Task requestId:" + requestId + " failed to complete in "+ maxWait+ " "+ timeUnit.toString());
+  throw new VoldemortException("Failed to finish task requestId:" + requestId + " in maxWait"+ maxWait+ " "+ timeUnit.toString());
 }

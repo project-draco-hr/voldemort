@@ -3,11 +3,12 @@
   if (null == value.getValue()) {
     throw new VoldemortException("metadata cannot be null !!");
   }
-  File[] files=this.directory.listFiles();
+  File[] files=getDirectory(key).listFiles();
   for (  File file : files) {
     if (file.getName().equals(key)) {
       VectorClock clock=readVersion(key);
-      if (value.getVersion().compare(clock) == Occured.AFTER)       updateBackup(key);
+      if (value.getVersion().compare(clock) == Occured.AFTER) {
+      }
  else       if (value.getVersion().compare(clock) == Occured.BEFORE) {
         throw new ObsoleteVersionException("A successor version to this exists.");
       }
@@ -16,20 +17,14 @@
       }
     }
   }
-  VectorClock clock=(VectorClock)value.getVersion();
-  File keyFile=new File(this.directory,key);
+  File keyFile=new File(getDirectory(key),key);
+  VectorClock newClock=(VectorClock)value.getVersion();
   if (!keyFile.exists() || keyFile.delete()) {
     try {
       FileUtils.writeStringToFile(keyFile,value.getValue(),"UTF-8");
-      writeVersion(key,clock);
+      writeVersion(key,newClock);
     }
  catch (    IOException e) {
-      try {
-        rollbackFromBackup(key);
-      }
- catch (      Exception rollbackError) {
-        logger.error("Failed to rollback with exception ",rollbackError);
-      }
       throw new VoldemortException(e);
     }
   }
