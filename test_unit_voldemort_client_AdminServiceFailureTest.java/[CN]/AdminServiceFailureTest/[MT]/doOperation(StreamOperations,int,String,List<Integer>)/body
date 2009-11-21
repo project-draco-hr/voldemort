@@ -1,16 +1,16 @@
 {
 switch (e) {
 case DELETE_PARTITIONS:
-    putAlltoStore(nodeId,storeName);
+    putAlltoStore();
   getAdminClient().deletePartitions(nodeId,storeName,partitionList,null);
 return;
 case FETCH_ENTRIES:
-putAlltoStore(nodeId,storeName);
-getAdminClient().fetchPartitionEntries(nodeId,storeName,partitionList,null);
+putAlltoStore();
+consumeIterator(getAdminClient().fetchPartitionEntries(nodeId,storeName,partitionList,null));
 return;
 case FETCH_KEYS:
-putAlltoStore(nodeId,storeName);
-getAdminClient().fetchPartitionKeys(nodeId,storeName,partitionList,null);
+putAlltoStore();
+consumeIterator(getAdminClient().fetchPartitionKeys(nodeId,storeName,partitionList,null));
 return;
 case UPDATE_ENTRIES:
 getAdminClient().updateEntries(nodeId,storeName,getRandomlyFailingIterator(ServerTestUtils.createRandomKeyValuePairs(TEST_KEYS)),null);
