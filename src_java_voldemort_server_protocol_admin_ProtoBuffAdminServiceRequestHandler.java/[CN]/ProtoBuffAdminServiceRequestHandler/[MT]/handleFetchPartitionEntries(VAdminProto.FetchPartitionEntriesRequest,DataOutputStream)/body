@@ -1,4 +1,5 @@
 {
+  ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=null;
   try {
     String storeName=request.getStore();
     StorageEngine<ByteArray,byte[]> storageEngine=getStorageEngine(storeName);
@@ -7,7 +8,7 @@
     List<Integer> partitionList=request.getPartitionsList();
     VoldemortFilter filter=(request.hasFilter()) ? getFilterFromRequest(request.getFilter()) : new DefaultVoldemortFilter();
     boolean fetchValues=request.hasFetchValues() && request.getFetchValues();
-    ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=storageEngine.entries();
+    iterator=storageEngine.entries();
     while (iterator.hasNext()) {
       Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
       if (validPartition(entry.getFirst().get(),partitionList,routingStrategy) && filter.accept(entry.getFirst(),entry.getSecond())) {
@@ -26,12 +27,14 @@
         }
       }
     }
-    iterator.close();
     ProtoUtils.writeEndOfStream(outputStream);
   }
  catch (  VoldemortException e) {
     VAdminProto.FetchPartitionEntriesResponse response=VAdminProto.FetchPartitionEntriesResponse.newBuilder().setError(ProtoUtils.encodeError(errorCodeMapper,e)).build();
     ProtoUtils.writeMessage(outputStream,response);
     logger.error("handleFetchPartitionEntries failed for request(" + request.toString() + ")",e);
+  }
+ finally {
+    if (null != iterator)     iterator.close();
   }
 }
