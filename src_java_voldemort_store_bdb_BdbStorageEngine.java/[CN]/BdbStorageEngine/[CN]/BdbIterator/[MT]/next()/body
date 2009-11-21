@@ -1,0 +1,17 @@
+{
+  if (!isOpen)   throw new PersistenceFailureException("Call to next() on a closed iterator.");
+  DatabaseEntry keyEntry=new DatabaseEntry();
+  DatabaseEntry valueEntry=new DatabaseEntry();
+  if (noValues)   valueEntry.setPartial(true);
+  try {
+    moveCursor(keyEntry,valueEntry);
+  }
+ catch (  DatabaseException e) {
+    logger.error(e);
+    throw new PersistenceFailureException(e);
+  }
+  T previous=current;
+  if (keyEntry.getData() == null)   current=null;
+ else   current=get(keyEntry,valueEntry);
+  return previous;
+}
