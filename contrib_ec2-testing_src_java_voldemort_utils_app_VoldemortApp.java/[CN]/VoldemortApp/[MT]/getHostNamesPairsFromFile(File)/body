@@ -1,0 +1,10 @@
+{
+  Map<String,String> properties=getRequiredPropertiesFile(file);
+  List<HostNamePair> hostNamePairs=new ArrayList<HostNamePair>();
+  for (  Map.Entry<String,String> entry : properties.entrySet()) {
+    String externalHostName=entry.getKey();
+    String internalHostName=entry.getValue() != null ? entry.getValue() : externalHostName;
+    hostNamePairs.add(new HostNamePair(externalHostName,internalHostName));
+  }
+  return hostNamePairs;
+}

@@ -1,0 +1,20 @@
+{
+  final HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(TEST_STREAM_KEYS_SIZE);
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> iterator=new AbstractIterator<Pair<ByteArray,Versioned<byte[]>>>(){
+    final Iterator<Entry<ByteArray,byte[]>> entrySetItr=entrySet.entrySet().iterator();
+    @Override protected Pair<ByteArray,Versioned<byte[]>> computeNext(){
+      while (entrySetItr.hasNext()) {
+        Entry<ByteArray,byte[]> entry=entrySetItr.next();
+        return new Pair<ByteArray,Versioned<byte[]>>(entry.getKey(),new Versioned<byte[]>(entry.getValue()));
+      }
+      return endOfData();
+    }
+  }
+;
+  getAdminClient().updateEntries(0,testStoreName,iterator,null);
+  Store<ByteArray,byte[]> store=getStore(0,testStoreName);
+  for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
+    assertNotSame("entry should be present at store",0,store.get(entry.getKey()).size());
+    assertEquals("entry value should match",new String(entry.getValue()),new String(store.get(entry.getKey()).get(0).getValue()));
+  }
+}

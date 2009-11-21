@@ -11,10 +11,14 @@
   config.setMysqlDatabaseName("voldemort");
   config.setMysqlUsername("voldemort");
   config.setMysqlPassword("voldemort");
+  config.setStreamMaxReadBytesPerSec(10 * 1000);
+  config.setStreamMaxWriteBytesPerSec(10 * 1000);
   File tempDir=new File(config.getMetadataDirectory());
   tempDir.mkdirs();
+  tempDir.deleteOnExit();
   File tempDir2=new File(config.getDataDirectory());
   tempDir2.mkdirs();
+  tempDir2.deleteOnExit();
   if (null != clusterFile)   FileUtils.copyFile(new File(clusterFile),new File(tempDir.getAbsolutePath() + File.separatorChar + "cluster.xml"));
   if (null != storeFile)   FileUtils.copyFile(new File(storeFile),new File(tempDir.getAbsolutePath() + File.separatorChar + "stores.xml"));
   return config;

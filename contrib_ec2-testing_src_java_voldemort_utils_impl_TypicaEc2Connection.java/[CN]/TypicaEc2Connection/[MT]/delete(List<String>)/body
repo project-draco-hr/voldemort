@@ -1,0 +1,47 @@
+{
+  if (logger.isDebugEnabled())   logger.debug("Deleting instances for hosts: " + hostNames);
+  List<String> instanceIds=new ArrayList<String>();
+  for (  ReservationDescription res : ec2.describeInstances(Collections.<String>emptyList())) {
+    if (res.getInstances() != null) {
+      for (      Instance instance : res.getInstances()) {
+        String state=String.valueOf(instance.getState()).toLowerCase();
+        if (state.equals("shutting-down")) {
+          if (logger.isDebugEnabled())           logger.debug("Instance " + instance.getInstanceId() + " already shutting down");
+          continue;
+        }
+ else         if (state.equals("terminated")) {
+          if (logger.isDebugEnabled())           logger.debug("Instance " + instance.getInstanceId() + " already terminated");
+          continue;
+        }
+        String externalHostName=instance.getDnsName() != null ? instance.getDnsName().trim() : "";
+        if (hostNames.contains(externalHostName)) {
+          instanceIds.add(instance.getInstanceId());
+          if (logger.isInfoEnabled())           logger.info("Instance " + instance.getInstanceId() + " ("+ externalHostName+ ") to be terminated");
+        }
+      }
+    }
+  }
+  if (instanceIds.isEmpty())   return;
+  ec2.terminateInstances(instanceIds);
+  while (!instanceIds.isEmpty()) {
+    try {
+      if (logger.isDebugEnabled())       logger.debug("Sleeping for " + POLL_INTERVAL + " seconds...");
+      Thread.sleep(POLL_INTERVAL * 1000);
+    }
+ catch (    InterruptedException e) {
+      break;
+    }
+    for (    ReservationDescription res : ec2.describeInstances(instanceIds)) {
+      if (res.getInstances() != null) {
+        for (        Instance instance : res.getInstances()) {
+          String state=String.valueOf(instance.getState()).toLowerCase();
+          if (!state.equals("terminated")) {
+            if (logger.isDebugEnabled())             logger.debug("Instance " + instance.getInstanceId() + " in state: "+ state);
+            continue;
+          }
+          instanceIds.remove(instance.getInstanceId());
+        }
+      }
+    }
+  }
+}

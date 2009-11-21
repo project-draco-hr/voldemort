@@ -1,0 +1,6 @@
+{
+  VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.GET_METADATA).setGetMetadata(VAdminProto.GetMetadataRequest.newBuilder().setKey(ByteString.copyFrom(key.get()))).build();
+  VAdminProto.GetMetadataResponse.Builder response=sendAndReceive(remoteNodeId,request,VAdminProto.GetMetadataResponse.newBuilder());
+  if (response.hasError())   throwException(response.getError());
+  return ProtoUtils.decodeVersioned(response.getVersion());
+}

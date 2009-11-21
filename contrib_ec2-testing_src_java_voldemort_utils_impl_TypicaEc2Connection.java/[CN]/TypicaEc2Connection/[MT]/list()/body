@@ -1,0 +1,16 @@
+{
+  List<HostNamePair> hostNamePairs=new ArrayList<HostNamePair>();
+  for (  ReservationDescription res : ec2.describeInstances(Collections.<String>emptyList())) {
+    if (res.getInstances() != null) {
+      for (      Instance instance : res.getInstances()) {
+        HostNamePair hostNamePair=getHostNamePair(instance);
+        if (hostNamePair == null) {
+          if (logger.isWarnEnabled())           logger.warn("Instance " + instance.getInstanceId() + " present, but missing external and/or internal host name");
+          continue;
+        }
+        hostNamePairs.add(hostNamePair);
+      }
+    }
+  }
+  return hostNamePairs;
+}

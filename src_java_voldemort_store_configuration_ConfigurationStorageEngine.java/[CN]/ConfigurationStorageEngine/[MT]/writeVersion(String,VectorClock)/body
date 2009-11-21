@@ -1,0 +1,12 @@
+{
+  try {
+    File versionFile=new File(this.versionDirectory,key);
+    if (!versionFile.exists() || versionFile.delete()) {
+      String hexCode=new String(Hex.encodeHex(version.toBytes()));
+      FileUtils.writeStringToFile(versionFile,hexCode,"UTF-8");
+    }
+  }
+ catch (  Exception e) {
+    throw new VoldemortException("Failed to write Version for Key:" + key,e);
+  }
+}

@@ -38,7 +38,7 @@
   repository.addLocalStore(new InMemoryStorageEngine<ByteArray,byte[]>(storeName));
   SocketPool socketPool=new SocketPool(10,1000,1000,32 * 1024);
   final SocketStore socketStore=new SocketStore(storeName,new SocketDestination("localhost",6666,RequestFormatType.VOLDEMORT_V1),socketPool,false);
-  RequestHandlerFactory factory=new RequestHandlerFactory(repository,null,ServerTestUtils.getVoldemortConfig());
+  RequestHandlerFactory factory=ServerTestUtils.getSocketRequestHandlerFactory(repository);
   AbstractSocketService socketService=ServerTestUtils.getSocketService(useNio,factory,6666,50,50,1000);
   socketService.start();
   PerformanceTest socketWriteTest=new PerformanceTest(){

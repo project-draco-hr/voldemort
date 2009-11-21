@@ -1,3 +1,17 @@
 {
-  return get(key.get());
+  try {
+    String key=ByteUtils.getString(keyBytes.get(),"UTF-8");
+    if (METADATA_KEYS.contains(key)) {
+      List<Versioned<byte[]>> values=Lists.newArrayList();
+      Versioned<String> value=convertObjectToString(key,metadataCache.get(key));
+      values.add(new Versioned<byte[]>(ByteUtils.getBytes(value.getValue(),"UTF-8"),value.getVersion()));
+      return values;
+    }
+ else {
+      throw new VoldemortException("Unhandled Key:" + key + " for MetadataStore get()");
+    }
+  }
+ catch (  Exception e) {
+    throw new VoldemortException("Failed to get() for key:" + ByteUtils.getString(keyBytes.get(),"UTF-8"),e);
+  }
 }
