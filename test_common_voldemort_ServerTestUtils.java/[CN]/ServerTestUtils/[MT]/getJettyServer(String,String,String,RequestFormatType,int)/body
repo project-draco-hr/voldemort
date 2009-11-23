@@ -3,7 +3,7 @@
   Server server=new Server(port);
   server.setSendServerVersion(false);
   Context context=new Context(server,"/",Context.NO_SESSIONS);
-  RequestHandler handler=new RequestHandlerFactory(repository,null,getVoldemortConfig()).getRequestHandler(requestFormat);
+  RequestHandler handler=getSocketRequestHandlerFactory(clusterXml,storesXml,repository).getRequestHandler(requestFormat);
   context.addServlet(new ServletHolder(new StoreServlet(handler)),"/stores");
   server.start();
   return context;

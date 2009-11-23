@@ -1,0 +1,18 @@
+{
+  Store<String,String> store=getStore();
+  String keyName="testkey.xml";
+  store.put(keyName,new Versioned<String>("testValue"));
+  assertEquals("Only one file of name key should be present.",1,store.get(keyName).size());
+  new File(tempDir,keyName + "#").createNewFile();
+  new File(tempDir,"#" + keyName + "#").createNewFile();
+  new File(tempDir,keyName + "~").createNewFile();
+  new File(tempDir,"." + keyName + "~").createNewFile();
+  assertEquals("Only one file of name key should be present.",1,store.get(keyName).size());
+  VectorClock clock=(VectorClock)store.get(keyName).get(0).getVersion();
+  store.put(keyName,new Versioned<String>("testValue1",clock.incremented(0,1)));
+  assertEquals("Only one file of name key should be present.",1,store.get(keyName).size());
+  assertEquals("Value should match.","testValue1",store.get(keyName).get(0).getValue());
+  Map<String,List<Versioned<String>>> map=store.getAll(Arrays.asList(keyName));
+  assertEquals("Only one file of name key should be present.",1,map.get(keyName).size());
+  assertEquals("Value should match.","testValue1",map.get(keyName).get(0).getValue());
+}

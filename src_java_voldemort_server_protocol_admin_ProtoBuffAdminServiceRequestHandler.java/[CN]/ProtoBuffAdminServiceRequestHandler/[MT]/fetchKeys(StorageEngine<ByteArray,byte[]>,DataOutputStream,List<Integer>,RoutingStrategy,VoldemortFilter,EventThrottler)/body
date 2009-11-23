@@ -1,0 +1,21 @@
+{
+  ClosableIterator<ByteArray> iterator=null;
+  try {
+    iterator=storageEngine.keys();
+    while (iterator.hasNext()) {
+      ByteArray key=iterator.next();
+      if (validPartition(key.get(),partitionList,routingStrategy) && filter.accept(key,null)) {
+        VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
+        response.setKey(ProtoUtils.encodeBytes(key));
+        Message message=response.build();
+        ProtoUtils.writeMessage(outputStream,message);
+        if (throttler != null) {
+          throttler.maybeThrottle(key.length());
+        }
+      }
+    }
+  }
+  finally {
+    if (null != iterator)     iterator.close();
+  }
+}

@@ -18,8 +18,9 @@
   this.bdbCheckpointMs=props.getLong("bdb.checkpoint.interval.ms",30 * Time.MS_PER_SECOND);
   this.bdbSortedDuplicates=props.getBoolean("bdb.enable.sorted.duplicates",true);
   this.bdbOneEnvPerStore=props.getBoolean("bdb.one.env.per.store",false);
-  setBdbCleanerMinFileUtilization(props.getInt("bdb.cleaner.minFileUtilization",5));
-  setBdbCleanerMinUtilization(props.getInt("bdb.cleaner.minUtilization",50));
+  this.bdbCleanerMinFileUtilization=props.getInt("bdb.cleaner.min.file.utilization",5);
+  this.bdbCleanerMinUtilization=props.getInt("bdb.cleaner.minUtilization",50);
+  this.bdbCursorPreload=props.getBoolean("bdb.cursor.preload",false);
   this.readOnlyFileWaitTimeoutMs=props.getLong("readonly.file.wait.timeout.ms",4000L);
   this.readOnlyBackups=props.getInt("readonly.backups",1);
   this.readOnlyFileHandles=props.getInt("readonly.file.handles",5);
@@ -32,9 +33,11 @@
   this.mysqlDatabaseName=props.getString("mysql.database","voldemort");
   this.maxThreads=props.getInt("max.threads",100);
   this.coreThreads=props.getInt("core.threads",Math.max(1,maxThreads / 2));
-  this.adminMaxThreads=props.getInt("admin.max.threads",100);
+  this.adminMaxThreads=props.getInt("admin.max.threads",10);
   this.adminCoreThreads=props.getInt("admin.core.threads",Math.max(1,adminMaxThreads / 2));
   this.adminStreamBufferSize=(int)props.getBytes("admin.streams.buffer.size",10 * 1000 * 1000);
+  this.adminConnectionTimeout=props.getInt("admin.client.socket.timeout.ms",5 * 60 * 1000);
+  this.adminSocketTimeout=props.getInt("admin.client.socket.timeout.ms",10000);
   this.streamMaxReadBytesPerSec=props.getInt("stream.read.byte.per.sec",1 * 1000 * 1000);
   this.streamMaxWriteBytesPerSec=props.getInt("stream.write.byte.per.sec",1 * 1000 * 1000);
   this.socketTimeoutMs=props.getInt("socket.timeout.ms",4000);
@@ -56,6 +59,8 @@
   this.enableVerboseLogging=props.getBoolean("enable.verbose.logging",true);
   this.enableStatTracking=props.getBoolean("enable.stat.tracking",true);
   this.enableServerRouting=props.getBoolean("enable.server.routing",true);
+  this.enableMetadataChecking=props.getBoolean("enable.metadata.checking",true);
+  this.enableRedirectRouting=props.getBoolean("enable.redirect.routing",true);
   this.pusherPollMs=props.getInt("pusher.poll.ms",2 * 60 * 1000);
   this.schedulerThreads=props.getInt("scheduler.threads",3);
   this.numCleanupPermits=props.getInt("num.cleanup.permits",1);

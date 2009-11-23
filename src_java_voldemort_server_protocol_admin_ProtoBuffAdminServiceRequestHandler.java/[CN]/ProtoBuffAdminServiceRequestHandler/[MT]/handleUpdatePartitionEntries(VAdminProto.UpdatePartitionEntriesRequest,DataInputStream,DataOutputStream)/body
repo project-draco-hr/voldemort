@@ -1,0 +1,38 @@
+{
+  VAdminProto.UpdatePartitionEntriesRequest request=originalRequest;
+  VAdminProto.UpdatePartitionEntriesResponse.Builder response=VAdminProto.UpdatePartitionEntriesResponse.newBuilder();
+  boolean continueReading=true;
+  try {
+    String storeName=request.getStore();
+    StorageEngine<ByteArray,byte[]> storageEngine=getStorageEngine(storeName);
+    VoldemortFilter filter=(request.hasFilter()) ? getFilterFromRequest(request.getFilter()) : new DefaultVoldemortFilter();
+    EventThrottler throttler=new EventThrottler(voldemortConfig.getStreamMaxWriteBytesPerSec());
+    while (continueReading) {
+      VAdminProto.PartitionEntry partitionEntry=request.getPartitionEntry();
+      ByteArray key=ProtoUtils.decodeBytes(partitionEntry.getKey());
+      Versioned<byte[]> value=ProtoUtils.decodeVersioned(partitionEntry.getVersioned());
+      if (filter.accept(key,value)) {
+        storageEngine.put(key,value);
+        if (throttler != null) {
+          throttler.maybeThrottle(entrySize(Pair.create(key,value)));
+        }
+      }
+      int size=inputStream.readInt();
+      if (size == -1)       continueReading=false;
+ else {
+        byte[] input=new byte[size];
+        ByteUtils.read(inputStream,input);
+        VAdminProto.UpdatePartitionEntriesRequest.Builder builder=VAdminProto.UpdatePartitionEntriesRequest.newBuilder();
+        builder.mergeFrom(input);
+        request=builder.build();
+      }
+    }
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleUpdatePartitionEntries failed for request(" + request.toString() + ")",e);
+  }
+ finally {
+    ProtoUtils.writeMessage(outputStream,response.build());
+  }
+}

@@ -1,6 +1,6 @@
 {
   List<VoldemortException> exceptions=new ArrayList<VoldemortException>();
-  logger.info("Stopping services:");
+  logger.info("Stopping services:" + getIdentityNode().getId());
   for (  VoldemortService service : Utils.reversed(services)) {
     try {
       service.stop();
@@ -10,6 +10,6 @@
       logger.error(e);
     }
   }
-  logger.info("All services stopped.");
+  logger.info("All services stopped for Node:" + getIdentityNode().getId());
   if (exceptions.size() > 0)   throw exceptions.get(0);
 }

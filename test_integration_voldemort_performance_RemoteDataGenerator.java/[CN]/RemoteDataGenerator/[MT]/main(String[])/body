@@ -1,0 +1,20 @@
+{
+  OptionParser parser=new OptionParser();
+  parser.accepts("k","key size").withRequiredArg().ofType(Integer.class);
+  parser.accepts("v","value size").withRequiredArg().ofType(Integer.class);
+  parser.accepts("p","prefix").withRequiredArg();
+  OptionSet options=parser.parse(args);
+  List<String> nonOptions=options.nonOptionArguments();
+  if (nonOptions.size() != 3) {
+    printUsage(System.err,parser);
+  }
+  String url=nonOptions.get(0);
+  String storeName=nonOptions.get(1);
+  int requests=Integer.parseInt(nonOptions.get(2));
+  int keySize=CmdUtils.valueOf(options,"k",128);
+  int valueSize=CmdUtils.valueOf(options,"v",256);
+  int workers=CmdUtils.valueOf(options,"threads",MAX_WORKERS);
+  String postfix=(String)(options.has("p") ? options.valueOf("p") : null);
+  RemoteDataGenerator rdg=new RemoteDataGenerator(url,storeName,workers);
+  rdg.generateData(requests,keySize,valueSize,postfix);
+}

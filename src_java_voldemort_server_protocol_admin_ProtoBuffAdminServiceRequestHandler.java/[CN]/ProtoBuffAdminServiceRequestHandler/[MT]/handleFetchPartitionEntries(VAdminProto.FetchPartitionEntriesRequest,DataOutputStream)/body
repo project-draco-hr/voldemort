@@ -1,0 +1,19 @@
+{
+  try {
+    String storeName=request.getStore();
+    StorageEngine<ByteArray,byte[]> storageEngine=getStorageEngine(storeName);
+    RoutingStrategy routingStrategy=metadataStore.getRoutingStrategy(storageEngine.getName());
+    EventThrottler throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
+    List<Integer> partitionList=request.getPartitionsList();
+    VoldemortFilter filter=(request.hasFilter()) ? getFilterFromRequest(request.getFilter()) : new DefaultVoldemortFilter();
+    boolean fetchValues=request.hasFetchValues() && request.getFetchValues();
+    if (fetchValues)     fetchEntries(storageEngine,outputStream,partitionList,routingStrategy,filter,throttler);
+ else     fetchKeys(storageEngine,outputStream,partitionList,routingStrategy,filter,throttler);
+    ProtoUtils.writeEndOfStream(outputStream);
+  }
+ catch (  VoldemortException e) {
+    VAdminProto.FetchPartitionEntriesResponse response=VAdminProto.FetchPartitionEntriesResponse.newBuilder().setError(ProtoUtils.encodeError(errorCodeMapper,e)).build();
+    ProtoUtils.writeMessage(outputStream,response);
+    logger.error("handleFetchPartitionEntries failed for request(" + request.toString() + ")",e);
+  }
+}

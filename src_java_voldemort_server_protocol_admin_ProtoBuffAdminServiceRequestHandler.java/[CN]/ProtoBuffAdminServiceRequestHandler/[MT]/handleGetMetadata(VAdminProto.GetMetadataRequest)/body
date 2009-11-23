@@ -1,0 +1,23 @@
+{
+  VAdminProto.GetMetadataResponse.Builder response=VAdminProto.GetMetadataResponse.newBuilder();
+  try {
+    ByteArray key=ProtoUtils.decodeBytes(request.getKey());
+    String keyString=ByteUtils.getString(key.get(),"UTF-8");
+    if (MetadataStore.METADATA_KEYS.contains(keyString)) {
+      List<Versioned<byte[]>> versionedList=metadataStore.get(key);
+      int size=(versionedList.size() > 0) ? 1 : 0;
+      if (size > 0) {
+        Versioned<byte[]> versioned=versionedList.get(0);
+        response.setVersion(ProtoUtils.encodeVersioned(versioned));
+      }
+    }
+ else {
+      throw new VoldemortException("Metadata Key passed " + keyString + " is not handled yet ...");
+    }
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleGetMetadata failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}
