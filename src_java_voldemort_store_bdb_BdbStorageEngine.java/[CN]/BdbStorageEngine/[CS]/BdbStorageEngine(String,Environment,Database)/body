@@ -1,16 +1,3 @@
 {
-  this.name=Utils.notNull(name);
-  this.bdbDatabase=Utils.notNull(database);
-  this.environment=Utils.notNull(environment);
-  this.versionedSerializer=new VersionedSerializer<byte[]>(new IdentitySerializer());
-  this.versionSerializer=new Serializer<Version>(){
-    public byte[] toBytes(    Version object){
-      return ((VectorClock)object).toBytes();
-    }
-    public Version toObject(    byte[] bytes){
-      return versionedSerializer.getVersion(bytes);
-    }
-  }
-;
-  this.isOpen=new AtomicBoolean(true);
+  this(name,environment,database,false);
 }

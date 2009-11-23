@@ -4,4 +4,9 @@
   this.httpPort=httpPort;
   this.socketPort=socketPort;
   this.partitions=ImmutableList.copyOf(partitions);
+  if (adminPort == -1) {
+    adminPort=socketPort + 1;
+    logger.warn("admin-port not defined for node:" + id + " using default value:"+ adminPort+ " as (socket_port + 1):");
+  }
+  this.adminPort=adminPort;
 }

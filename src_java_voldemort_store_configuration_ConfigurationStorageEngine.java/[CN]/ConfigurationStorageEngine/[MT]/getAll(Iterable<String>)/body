@@ -1,0 +1,9 @@
+{
+  StoreUtils.assertValidKeys(keys);
+  Map<String,List<Versioned<String>>> result=StoreUtils.newEmptyHashMap(keys);
+  for (  String key : keys) {
+    List<Versioned<String>> values=get(key,getDirectory(key).listFiles());
+    if (!values.isEmpty())     result.put(key,values);
+  }
+  return result;
+}

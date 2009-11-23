@@ -1,0 +1,15 @@
+{
+  AdminClient client=getAdminClient();
+  client.updateRemoteServerState(getVoldemortServer(0).getIdentityNode().getId(),MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
+  MetadataStore.VoldemortState state=getVoldemortServer(0).getMetadataStore().getServerState();
+  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER,state);
+  client.updateRemoteServerState(getVoldemortServer(0).getIdentityNode().getId(),MetadataStore.VoldemortState.NORMAL_SERVER);
+  state=getVoldemortServer(0).getMetadataStore().getServerState();
+  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.VoldemortState.NORMAL_SERVER,state);
+  client.updateRemoteServerState(getVoldemortServer(0).getIdentityNode().getId(),MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
+  state=getVoldemortServer(0).getMetadataStore().getServerState();
+  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER,state);
+  client.updateRemoteServerState(getVoldemortServer(0).getIdentityNode().getId(),MetadataStore.VoldemortState.NORMAL_SERVER);
+  state=getVoldemortServer(0).getMetadataStore().getServerState();
+  assertEquals("State should be changed correctly to rebalancing state",MetadataStore.VoldemortState.NORMAL_SERVER,state);
+}

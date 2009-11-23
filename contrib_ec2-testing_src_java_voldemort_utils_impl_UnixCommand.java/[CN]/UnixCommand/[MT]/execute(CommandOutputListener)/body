@@ -1,0 +1,10 @@
+{
+  ProcessBuilder builder=new ProcessBuilder(this.args);
+  Process process=builder.start();
+  Thread stdoutWatcher=new ProcessOutputWatcher(new BufferedReader(new InputStreamReader(process.getInputStream())),commandOutputListener);
+  Thread stderrWatcher=new ProcessOutputWatcher(new BufferedReader(new InputStreamReader(process.getErrorStream())),commandOutputListener);
+  stdoutWatcher.start();
+  stderrWatcher.start();
+  process.waitFor();
+  return process.exitValue();
+}

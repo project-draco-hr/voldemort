@@ -1,6 +1,7 @@
 {
   try {
-    isStarted.await();
+    Object obj=startedStatusQueue.take();
+    if (obj instanceof Throwable)     throw new VoldemortException((Throwable)obj);
   }
  catch (  InterruptedException e) {
   }

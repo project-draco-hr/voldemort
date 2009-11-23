@@ -1,0 +1,21 @@
+{
+  int nTries=0;
+  while (nTries++ < this.maxBootstrapRetries) {
+    try {
+      return bootstrapMetadata(key,urls);
+    }
+ catch (    BootstrapFailureException e) {
+      if (nTries < this.maxBootstrapRetries) {
+        int backOffTime=5 * nTries;
+        logger.warn("Failed to bootstrap will try again after " + backOffTime + "s.");
+        try {
+          Thread.sleep(backOffTime * 1000);
+        }
+ catch (        InterruptedException e1) {
+          throw new RuntimeException(e1);
+        }
+      }
+    }
+  }
+  throw new BootstrapFailureException("No available boostrap servers found!");
+}

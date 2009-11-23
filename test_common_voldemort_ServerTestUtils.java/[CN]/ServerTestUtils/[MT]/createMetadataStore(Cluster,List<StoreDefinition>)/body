@@ -1,0 +1,6 @@
+{
+  Store<String,String> innerStore=new InMemoryStorageEngine<String,String>("inner-store");
+  innerStore.put(MetadataStore.CLUSTER_KEY,new Versioned<String>(new ClusterMapper().writeCluster(cluster)));
+  innerStore.put(MetadataStore.STORES_KEY,new Versioned<String>(new StoreDefinitionsMapper().writeStoreList(storeDefs)));
+  return new MetadataStore(innerStore,0);
+}

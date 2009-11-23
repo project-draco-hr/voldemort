@@ -1,0 +1,8 @@
+{
+  if (this.operations.containsKey(requestId)) {
+    throw new VoldemortException("Request " + requestId + " already submitted to the system");
+  }
+  this.operations.put(requestId,operation);
+  executor.submit(operation);
+  logger.debug("Handling async operation " + requestId);
+}
