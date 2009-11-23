@@ -1,5 +1,6 @@
 {
   VAdminProto.DeletePartitionEntriesResponse.Builder response=VAdminProto.DeletePartitionEntriesResponse.newBuilder();
+  ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=null;
   try {
     String storeName=request.getStore();
     List<Integer> partitions=request.getPartitionsList();
@@ -7,7 +8,7 @@
     VoldemortFilter filter=(request.hasFilter()) ? getFilterFromRequest(request.getFilter()) : new DefaultVoldemortFilter();
     RoutingStrategy routingStrategy=metadataStore.getRoutingStrategy(storageEngine.getName());
     EventThrottler throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
-    ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=storageEngine.entries();
+    iterator=storageEngine.entries();
     int deleteSuccess=0;
     while (iterator.hasNext()) {
       Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
@@ -16,12 +17,14 @@
         if (throttler != null)         throttler.maybeThrottle(entrySize(entry));
       }
     }
-    iterator.close();
     response.setCount(deleteSuccess);
   }
  catch (  VoldemortException e) {
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
     logger.error("handleDeletePartitionEntries failed for request(" + request.toString() + ")",e);
+  }
+ finally {
+    if (null != iterator)     iterator.close();
   }
   return response.build();
 }

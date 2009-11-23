@@ -1,14 +1,9 @@
 {
-  try {
-    if (METADATA_KEYS.contains(key)) {
-      metadataCache.put(key,value);
-      innerStore.put(key,convertObjectToString(key,value));
-    }
- else {
-      throw new VoldemortException("Unhandled Key:" + key + " for MetadataStore put()");
-    }
+  if (METADATA_KEYS.contains(key)) {
+    putInner(key,convertObjectToString(key,value));
+    metadataCache.put(key,value);
   }
- catch (  Exception e) {
-    throw new VoldemortException("Failed to put() key:" + key + " with value:"+ value,e);
+ else {
+    throw new VoldemortException("Unhandled Key:" + key + " for MetadataStore put()");
   }
 }
