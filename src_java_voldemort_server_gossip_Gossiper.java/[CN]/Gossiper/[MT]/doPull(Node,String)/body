@@ -1,0 +1,24 @@
+{
+  Versioned<String> remoteVersioned=adminClient.getRemoteMetadata(node.getId(),key);
+  List<Versioned<byte[]>> versionedList=metadataStore.get(new ByteArray(ByteUtils.getBytes(key,"UTF-8")));
+  Versioned<byte[]> localVersioned=versionedList.get(0);
+  Version localVersion=localVersioned.getVersion();
+  Version remoteVersion=remoteVersioned.getVersion();
+switch (localVersion.compare(remoteVersion)) {
+case BEFORE:
+{
+      metadataStore.put(key,remoteVersioned);
+      logger.info("My " + key + " occured BEFORE the key from "+ node+ ". Accepted theirs.");
+      break;
+    }
+case AFTER:
+{
+    break;
+  }
+case CONCURRENTLY:
+{
+  logger.error("My " + key + " occured CONCURRENTLY. My value: "+ localVersioned+ "; Their value "+ remoteVersioned);
+  break;
+}
+}
+}
