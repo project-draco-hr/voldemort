@@ -5,8 +5,8 @@
     store.put(entry.getKey(),Versioned.value(entry.getValue(),new VectorClock().incremented(0,System.currentTimeMillis())));
   }
   checkGetEntries(entryMap,server0,testStoreName,Arrays.asList(0,1),Arrays.asList(-1));
-  server0.getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
-  server0.getMetadataStore().put(MetadataStore.REBALANCING_SLAVE_NODE_ID,new Integer(1));
-  server0.getMetadataStore().put(MetadataStore.REBALANCING_PARTITIONS_LIST_KEY,Arrays.asList(1));
+  incrementVersionAndPut(server0.getMetadataStore(),MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
+  incrementVersionAndPut(server0.getMetadataStore(),MetadataStore.REBALANCING_SLAVE_NODE_ID,new Integer(1));
+  incrementVersionAndPut(server0.getMetadataStore(),MetadataStore.REBALANCING_PARTITIONS_LIST_KEY,Arrays.asList(1));
   checkGetEntries(entryMap,server0,testStoreName,Arrays.asList(0),Arrays.asList(1));
 }
