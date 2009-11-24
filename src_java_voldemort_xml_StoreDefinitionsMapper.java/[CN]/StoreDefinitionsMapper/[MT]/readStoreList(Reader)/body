@@ -8,6 +8,7 @@
     if (!root.getName().equals(STORES_ELMT))     throw new MappingException("Invalid root element: " + doc.getRootElement().getName());
     List<StoreDefinition> stores=new ArrayList<StoreDefinition>();
     for (    Object store : root.getChildren(STORE_ELMT))     stores.add(readStore((Element)store));
+    for (    Object view : root.getChildren(VIEW_ELMT))     stores.add(readView((Element)view,stores));
     return stores;
   }
  catch (  JDOMException e) {

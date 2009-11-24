@@ -1,0 +1,9 @@
+{
+  StoreDefinition def=StoreUtils.getStoreDef(storeDefs,name);
+  String targetName=def.getViewTargetStoreName();
+  StoreDefinition targetDef=StoreUtils.getStoreDef(storeDefs,targetName);
+  StorageEngine<ByteArray,byte[]> target=storeRepo.getStorageEngine(targetName);
+  if (target == null)   throw new VoldemortException("View \"" + name + "\" has a target store \""+ targetName+ "\" which does not exist.");
+  SerializerFactory factory=new DefaultSerializerFactory();
+  return new ViewStorageEngine(name,target,factory.getSerializer(def.getKeySerializer()),factory.getSerializer(def.getValueSerializer()),factory.getSerializer(targetDef.getKeySerializer()),factory.getSerializer(targetDef.getValueSerializer()),def.getKeyTransformation(),def.getValueTransformation());
+}
