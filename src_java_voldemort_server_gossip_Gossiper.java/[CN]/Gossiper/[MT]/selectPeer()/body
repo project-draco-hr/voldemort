@@ -1,5 +1,10 @@
 {
   Cluster cluster=metadataStore.getCluster();
   int nodes=cluster.getNumberOfNodes();
-  return cluster.getNodeById(random.nextInt(nodes));
+  Node node;
+  do {
+    node=cluster.getNodeById(random.nextInt(nodes));
+  }
+ while (node.getId() == metadataStore.getNodeId());
+  return node;
 }

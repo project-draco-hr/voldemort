@@ -1,7 +1,13 @@
 {
   while (running.get()) {
+    try {
+      Thread.sleep(gossipInterval);
+    }
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
     Node node=selectPeer();
-    logger.info("Starting gossip with " + node);
+    logger.info(metadataStore.getNodeId() + " starting gossip with " + node);
     for (    String key : MetadataStore.GOSSIP_KEYS) {
       try {
         doPull(node,key);
@@ -9,12 +15,6 @@
  catch (      VoldemortException e) {
         logger.error(e);
       }
-    }
-    try {
-      Thread.sleep(gossipInterval);
-    }
- catch (    InterruptedException e) {
-      Thread.currentThread().interrupt();
     }
   }
 }
