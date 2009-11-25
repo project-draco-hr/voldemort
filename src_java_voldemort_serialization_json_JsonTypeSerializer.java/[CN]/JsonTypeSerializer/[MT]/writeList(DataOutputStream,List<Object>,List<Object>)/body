@@ -2,13 +2,10 @@
   if (type.size() != 1)   throw new SerializationException("Invalid type: expected single value type in list: " + type);
   Object entryType=type.get(0);
   if (objects == null) {
-    output.writeShort(-1);
-  }
- else   if (objects.size() < Short.MAX_VALUE) {
-    output.writeShort(objects.size());
-    for (    Object o : objects)     write(output,o,entryType);
+    writeLength(output,-1);
   }
  else {
-    throw new SerializationException("List has length " + objects.size() + " which is too large to serialize.");
+    writeLength(output,objects.size());
+    for (    Object o : objects)     write(output,o,entryType);
   }
 }

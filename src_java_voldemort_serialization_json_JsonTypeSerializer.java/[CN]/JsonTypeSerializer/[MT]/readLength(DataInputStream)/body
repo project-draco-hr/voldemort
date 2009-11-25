@@ -1,0 +1,15 @@
+{
+  short size=stream.readShort();
+  if (size == -1) {
+    return -1;
+  }
+ else   if (size < -1) {
+    int fixedSize=size & 0;
+    fixedSize<<=16;
+    fixedSize+=stream.readShort();
+    return fixedSize;
+  }
+ else {
+    return size;
+  }
+}
