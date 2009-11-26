@@ -20,6 +20,7 @@
     SocketRequestHandlerFactory adminRequestHandlerFactory=new SocketRequestHandlerFactory(this.storeRepository,this.metadata,this.voldemortConfig,this.asyncRunner);
     services.add(new SocketService(adminRequestHandlerFactory,identityNode.getAdminPort(),voldemortConfig.getAdminCoreThreads(),voldemortConfig.getAdminMaxThreads(),voldemortConfig.getAdminSocketBufferSize(),"admin-server",voldemortConfig.isJmxEnabled()));
   }
+  if (voldemortConfig.isGossipEnabled())   services.add(new GossipService(this.metadata,voldemortConfig));
   if (voldemortConfig.isJmxEnabled())   services.add(new JmxService(this,this.metadata.getCluster(),storeRepository,services));
   return ImmutableList.copyOf(services);
 }
