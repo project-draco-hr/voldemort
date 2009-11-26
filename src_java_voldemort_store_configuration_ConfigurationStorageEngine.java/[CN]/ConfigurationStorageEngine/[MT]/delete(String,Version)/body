@@ -1,3 +1,14 @@
 {
-  throw new VoldemortException("Attempt to delete metadata for key:" + key);
+  StoreUtils.assertValidKey(key);
+  for (  File file : getDirectory(key).listFiles()) {
+    if (file.getName().equals(key)) {
+      try {
+        return file.delete() && new File(getVersionDirectory(),file.getName()).delete();
+      }
+ catch (      Exception e) {
+        logger.error("Error while attempt to delete key:" + key,e);
+      }
+    }
+  }
+  return false;
 }
