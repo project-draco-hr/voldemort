@@ -1,12 +1,9 @@
 {
   incrementVersionAndPut(metadataStore,MetadataStore.CLUSTER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_CLUSTER);
   incrementVersionAndPut(metadataStore,MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
-  incrementVersionAndPut(metadataStore,MetadataStore.REBALANCING_PARTITIONS_LIST_KEY,Arrays.asList(1,2,3,4));
   assertEquals("Values should match.",metadataStore.getClusterState(),VoldemortState.REBALANCING_CLUSTER);
   assertEquals("Values should match.",metadataStore.getServerState(),VoldemortState.REBALANCING_MASTER_SERVER);
-  assertEquals("Values should match.",metadataStore.getRebalancingPartitionList(),Arrays.asList(1,2,3,4));
   metadataStore.cleanAllRebalancingState();
   assertEquals("Values should match.",metadataStore.getClusterState(),VoldemortState.NORMAL_CLUSTER);
   assertEquals("Values should match.",metadataStore.getServerState(),VoldemortState.NORMAL_SERVER);
-  assertEquals("Values should match.",metadataStore.getRebalancingPartitionList(),new ArrayList<Integer>(0));
 }

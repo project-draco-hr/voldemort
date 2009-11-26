@@ -1,0 +1,15 @@
+{
+  try {
+    String[] tokens=line.split(DELIMITER);
+    this.donorId=Integer.parseInt(tokens[0].trim());
+    this.partitionList=new ArrayList<Integer>();
+    String listString=tokens[1].replace("[","").replace("]","");
+    for (    String pString : listString.split(",")) {
+      if (pString.trim().length() > 0)       partitionList.add(Integer.parseInt(pString.trim()));
+    }
+    this.attempt=Integer.parseInt(tokens[2].trim());
+  }
+ catch (  Exception e) {
+    throw new VoldemortException("Cannot create RebalanceStealInfo from String:'" + line + "'");
+  }
+}

@@ -1,0 +1,8 @@
+{
+  adminClient.setCluster(currentCluster);
+  if (!RebalanceUtils.getClusterRebalancingToken()) {
+    throw new VoldemortException("Failed to get Cluster permission to rebalance sleep and retry ...");
+  }
+  Map<Integer,Map<Integer,List<Integer>>> stealPartitionsMap=RebalanceUtils.getStealPartitionsMap(currentCluster,targetCluster);
+  logger.info(RebalanceUtils.getStealPartitionsMapAsString(stealPartitionsMap));
+}

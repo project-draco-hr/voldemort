@@ -9,7 +9,6 @@
     server0.getStoreRepository().getLocalStore(testStoreName).delete(entry.getKey(),new VectorClock().incremented(0,System.currentTimeMillis()));
   }
   incrementVersionAndPut(server0.getMetadataStore(),MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
-  incrementVersionAndPut(server0.getMetadataStore(),MetadataStore.REBALANCING_SLAVE_NODE_ID,new Integer(1));
-  incrementVersionAndPut(server0.getMetadataStore(),MetadataStore.REBALANCING_PARTITIONS_LIST_KEY,Arrays.asList(1));
+  incrementVersionAndPut(server0.getMetadataStore(),MetadataStore.REBALANCING_STEAL_INFO,new RebalanceStealInfo(1,Arrays.asList(1),0));
   checkPutEntries(entryMap,server0,testStoreName,Arrays.asList(0),Arrays.asList(1));
 }
