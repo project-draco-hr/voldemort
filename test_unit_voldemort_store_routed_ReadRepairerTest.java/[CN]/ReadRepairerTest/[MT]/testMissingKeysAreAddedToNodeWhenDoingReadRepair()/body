@@ -7,19 +7,18 @@
   for (int a=0; a < 3; a++) {
     subStores.put(Iterables.get(cluster.getNodes(),a).getId(),new InMemoryStorageEngine<ByteArray,byte[]>("test"));
   }
-  FailureDetectorConfig config=new BasicFailureDetectorConfig(failureDetectorClass.getName(),1000,subStores,time);
-  failureDetector=FailureDetectorUtils.create(config);
+  failureDetector=createFailureDetector(failureDetectorClass,subStores,time);
   RoutedStore store=new RoutedStore("test",subStores,cluster,storeDef,1,true,1000L,failureDetector);
-  failureDetector.recordException(Iterables.get(cluster.getNodes(),0),null);
+  recordException(failureDetector,Iterables.get(cluster.getNodes(),0));
   store.put(key,new Versioned<byte[]>(value));
-  failureDetector.recordSuccess(Iterables.get(cluster.getNodes(),0));
+  recordSuccess(failureDetector,Iterables.get(cluster.getNodes(),0));
   time.sleep(2000);
   assertEquals(2,store.get(key).size());
   assertEquals(3,store.get(key).size());
   ByteArray anotherKey=TestUtils.toByteArray("anotherKey");
-  failureDetector.recordException(Iterables.get(cluster.getNodes(),0),null);
+  recordException(failureDetector,Iterables.get(cluster.getNodes(),0));
   store.put(anotherKey,new Versioned<byte[]>(value));
-  failureDetector.recordSuccess(Iterables.get(cluster.getNodes(),0));
+  recordSuccess(failureDetector,Iterables.get(cluster.getNodes(),0));
   assertEquals(2,store.getAll(Arrays.asList(anotherKey)).get(anotherKey).size());
   assertEquals(3,store.get(anotherKey).size());
 }

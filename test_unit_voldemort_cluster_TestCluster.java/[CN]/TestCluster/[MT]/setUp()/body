@@ -2,9 +2,9 @@
   this.nodes=ImmutableList.of(new Node(1,"test1",1,1,1,ImmutableList.of(1,2,3)),new Node(2,"test1",2,2,2,ImmutableList.of(3,5,6)),new Node(3,"test1",3,3,3,ImmutableList.of(7,8,9)),new Node(4,"test1",4,4,4,ImmutableList.of(10,11,12)));
   this.cluster=new Cluster(clusterName,nodes);
   this.time=SystemTime.INSTANCE;
-  Map<Integer,Store<ByteArray,byte[]>> stores=new HashMap<Integer,Store<ByteArray,byte[]>>();
+  Map<Integer,Store<ByteArray,byte[]>> subStores=new HashMap<Integer,Store<ByteArray,byte[]>>();
   for (  Node node : nodes) {
-    stores.put(node.getId(),new Store<ByteArray,byte[]>(){
+    subStores.put(node.getId(),new Store<ByteArray,byte[]>(){
       public void close() throws VoldemortException {
       }
       public boolean delete(      ByteArray key,      Version version) throws VoldemortException {
@@ -30,6 +30,5 @@
     }
 );
   }
-  FailureDetectorConfig config=new BasicFailureDetectorConfig(failureDetectorClass.getName(),BANNAGE_TIME,stores,time);
-  failureDetector=FailureDetectorUtils.create(config);
+  failureDetector=createFailureDetector(failureDetectorClass,subStores,time);
 }

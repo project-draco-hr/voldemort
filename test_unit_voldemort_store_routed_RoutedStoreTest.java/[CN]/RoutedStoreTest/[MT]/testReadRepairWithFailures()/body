@@ -1,16 +1,16 @@
 {
   cluster=getNineNodeCluster();
   RoutedStore routedStore=getStore(cluster,cluster.getNumberOfNodes() - 1,cluster.getNumberOfNodes() - 1,1,0);
-  failureDetector.recordException(Iterables.get(cluster.getNodes(),1),null);
+  recordException(failureDetector,Iterables.get(cluster.getNodes(),1));
   Store<ByteArray,byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
   store.put(aKey,new Versioned<byte[]>(aValue));
   byte[] anotherValue="john".getBytes();
-  failureDetector.recordException(Iterables.getLast(cluster.getNodes()),null);
-  failureDetector.recordSuccess(Iterables.get(cluster.getNodes(),1));
+  recordException(failureDetector,Iterables.getLast(cluster.getNodes()));
+  recordSuccess(failureDetector,Iterables.get(cluster.getNodes(),1));
   VectorClock clock=getClock(1);
   store.put(aKey,new Versioned<byte[]>(anotherValue,clock));
-  failureDetector.recordException(Iterables.get(cluster.getNodes(),1),null);
-  failureDetector.recordSuccess(Iterables.getLast(cluster.getNodes()));
+  recordException(failureDetector,Iterables.get(cluster.getNodes(),1));
+  recordSuccess(failureDetector,Iterables.getLast(cluster.getNodes()));
   List<Versioned<byte[]>> versioneds=store.get(aKey);
   assertEquals(1,versioneds.size());
   assertEquals(new ByteArray(anotherValue),new ByteArray(versioneds.get(0).getValue()));
