@@ -1,0 +1,14 @@
+{
+  VAdminProto.AsyncOperationStatusResponse.Builder response=VAdminProto.AsyncOperationStatusResponse.newBuilder();
+  try {
+    RebalanceStealInfo rebalanceStealInfo=new RebalanceStealInfo(request.getDonorId(),request.getPartitionsList(),request.getAttempt());
+    RebalanceClient rebalanceClient=new RebalanceClient(metadataStore.getCluster(),new RebalanceClientConfig());
+    int requestId=rebalanceClient.rebalancePartitionAtNode(metadataStore,rebalanceStealInfo);
+    response.setRequestId(requestId).setDescription(rebalanceStealInfo.toString()).setStatus("started").setComplete(false);
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleRebalanceNode failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}
