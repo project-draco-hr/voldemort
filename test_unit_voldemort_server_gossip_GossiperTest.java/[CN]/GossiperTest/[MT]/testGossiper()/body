@@ -39,6 +39,7 @@
     executorService.submit(gossiper);
     gossipers.add(gossiper);
   }
+  int serversSeen=0;
   try {
     Thread.sleep(1000);
     for (    VoldemortServer server : servers) {
@@ -46,6 +47,7 @@
       int nodeId=server.getMetadataStore().getNodeId();
       assertEquals("server " + nodeId + " has heard "+ " the gossip about number of nodes",clusterAtServer.getNumberOfNodes(),newCluster.getNumberOfNodes());
       assertEquals("server " + nodeId + " has heard "+ " the gossip about partitions",clusterAtServer.getNodeById(nodeId).getPartitionIds(),newCluster.getNodeById(nodeId).getPartitionIds());
+      serversSeen++;
     }
   }
  catch (  InterruptedException e) {
@@ -54,4 +56,5 @@
  finally {
     for (    Gossiper gossiper : gossipers)     gossiper.stop();
   }
+  assertEquals("saw all servers",serversSeen,servers.size());
 }
