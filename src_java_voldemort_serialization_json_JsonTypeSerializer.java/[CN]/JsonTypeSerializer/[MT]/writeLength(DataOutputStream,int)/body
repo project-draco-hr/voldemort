@@ -1,4 +1,11 @@
 {
-  if (size < Short.MAX_VALUE)   stream.writeShort(size);
- else   if (size > MAX_SEQ_LENGTH)   stream.writeInt(size);
+  if (size < Short.MAX_VALUE) {
+    stream.writeShort(size);
+  }
+ else   if (size < MAX_SEQ_LENGTH) {
+    stream.writeInt(size | 0xC0000000);
+  }
+ else {
+    throw new SerializationException("Invalid length: maximum is " + MAX_SEQ_LENGTH);
+  }
 }
