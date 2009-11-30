@@ -1,0 +1,31 @@
+{
+  Map<String,Integer> nodeIds=new HashMap<String,Integer>();
+  DocumentBuilder documentBuilder=DocumentBuilderFactory.newInstance().newDocumentBuilder();
+  Document document=documentBuilder.parse(clusterXmlFile);
+  NodeList documentChildren=document.getChildNodes().item(0).getChildNodes();
+  for (int i=0; i < documentChildren.getLength(); i++) {
+    Node documentChild=documentChildren.item(i);
+    if (documentChild.getNodeName().equals("server")) {
+      NodeList serverChildren=documentChild.getChildNodes();
+      String internalHostName=null;
+      String id=null;
+      for (int j=0; j < serverChildren.getLength(); j++) {
+        Node serverChild=serverChildren.item(j);
+        if (serverChild.getNodeName().equals("host"))         internalHostName=serverChild.getTextContent();
+ else         if (serverChild.getNodeName().equals("id"))         id=serverChild.getTextContent();
+      }
+      if (internalHostName != null && id != null) {
+        for (        HostNamePair hostNamePair : hostNamePairs) {
+          if (hostNamePair.getInternalHostName().equals(internalHostName))           nodeIds.put(hostNamePair.getExternalHostName(),Integer.parseInt(id));
+        }
+      }
+ else {
+        throw new Exception(clusterXmlFile.getAbsolutePath() + " appears to be corrupt; could not determine the <host> and/or <id> values for the <server> node");
+      }
+    }
+  }
+  if (nodeIds.size() != hostNamePairs.size()) {
+    throw new Exception(clusterXmlFile.getAbsolutePath() + " appears to be corrupt; not all of the hosts from " + hostNamesFile.getAbsolutePath()+ " were represented in "+ clusterXmlFile.getAbsolutePath());
+  }
+  return nodeIds;
+}

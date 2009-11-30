@@ -1,14 +1,13 @@
 {
-  MetadataStore metadataStore=MetadataStore.readFromDirectory(new File(voldemortConfig.getMetadataDirectory()));
-  registerEngine(metadataStore);
+  registerEngine(metadata);
   for (  String configClassName : voldemortConfig.getStorageConfigurations())   initStorageConfig(configClassName);
-  storageConfigs.put(ViewStorageConfiguration.TYPE,new ViewStorageConfiguration(voldemortConfig,new ArrayList<StoreDefinition>(metadata.getStoreDefs().values()),storeRepository));
+  storageConfigs.put(ViewStorageConfiguration.TYPE,new ViewStorageConfiguration(voldemortConfig,metadata.getStoreDefList(),storeRepository));
   if (voldemortConfig.isSlopEnabled()) {
     StorageEngine<ByteArray,byte[]> slopEngine=getStorageEngine("slop",voldemortConfig.getSlopStoreType());
     registerEngine(slopEngine);
     storeRepository.setSlopStore(SerializingStorageEngine.wrap(slopEngine,new ByteArraySerializer(),new SlopSerializer()));
   }
-  List<StoreDefinition> storeDefs=new ArrayList<StoreDefinition>(this.metadata.getStoreDefs().values());
+  List<StoreDefinition> storeDefs=new ArrayList<StoreDefinition>(this.metadata.getStoreDefList());
   logger.info("Initializing stores:");
   for (  StoreDefinition def : storeDefs)   if (!def.isView())   openStore(def);
   for (  StoreDefinition def : storeDefs)   if (def.isView())   openStore(def);
