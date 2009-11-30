@@ -2,5 +2,6 @@
   this.storageDir=new File(config.getReadOnlyDataStorageDirectory());
   this.numBackups=config.getReadOnlyBackups();
   this.registeredBeans=Collections.synchronizedSet(new HashSet<ObjectName>());
+  this.searcher=(SearchStrategy)ReflectUtils.callConstructor(ReflectUtils.loadClass(config.getReadOnlySearchStrategy().trim()));
   this.nodeId=config.getNodeId();
 }

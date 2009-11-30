@@ -20,7 +20,7 @@
   versionDir.mkdirs();
   assertTrue("Rename failed.",new File(outputDir,"node-0").renameTo(versionDir));
   @SuppressWarnings("unchecked") Serializer<Object> serializer=(Serializer<Object>)new DefaultSerializerFactory().getSerializer(serDef);
-  Store<Object,Object> store=SerializingStore.wrap(new ReadOnlyStorageEngine(storeName,storeDir,1),serializer,serializer);
+  Store<Object,Object> store=SerializingStore.wrap(new ReadOnlyStorageEngine(storeName,new BinarySearchStrategy(),storeDir,1),serializer,serializer);
   for (  Map.Entry<String,String> entry : values.entrySet()) {
     List<Versioned<Object>> found=store.get(entry.getKey());
     assertEquals("Incorrect number of results",1,found.size());
