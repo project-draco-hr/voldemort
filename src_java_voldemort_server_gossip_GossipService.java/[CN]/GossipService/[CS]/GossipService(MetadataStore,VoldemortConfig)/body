@@ -1,7 +1,0 @@
-{
-  super(ServiceType.GOSSIP);
-  executor=Executors.newSingleThreadExecutor();
-  ClientConfig clientConfig=new ClientConfig().setMaxConnectionsPerNode(3).setMaxThreads(3).setConnectionTimeout(voldemortConfig.getAdminConnectionTimeout(),TimeUnit.MILLISECONDS).setSocketTimeout(voldemortConfig.getSocketTimeoutMs(),TimeUnit.MILLISECONDS).setSocketBufferSize(voldemortConfig.getAdminSocketBufferSize());
-  AdminClient adminClient=new ProtoBuffAdminClientRequestFormat(metadataStore.getCluster(),clientConfig);
-  gossiper=new Gossiper(metadataStore,adminClient,voldemortConfig.getGossipInterval());
-}
