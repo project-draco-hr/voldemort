@@ -6,11 +6,12 @@
     ports[portIdx++]=node.getSocketPort();
     ports[portIdx++]=node.getAdminPort();
   }
-  ports[portIdx++]=ServerTestUtils.findFreePort();
-  ports[portIdx++]=ServerTestUtils.findFreePort();
-  ports[portIdx]=ServerTestUtils.findFreePort();
-  Cluster newCluster=ServerTestUtils.getLocalCluster(cluster.getNumberOfNodes() + 1,ports,new int[][]{{0,1,2},{3,4,5},{6,7}});
-  VoldemortServer newServer=ServerTestUtils.startVoldemortServer(ServerTestUtils.createServerConfig(2,TestUtils.createTempDir().getAbsolutePath(),null,storesXmlfile),newCluster);
+  int[] freeports=ServerTestUtils.findFreePorts(3);
+  ports[portIdx++]=freeports[0];
+  ports[portIdx++]=freeports[1];
+  ports[portIdx]=freeports[2];
+  Cluster newCluster=ServerTestUtils.getLocalCluster(cluster.getNumberOfNodes() + 1,ports,new int[][]{{0,1,2},{3,4,5},{6,7,8},{9,10,11}});
+  VoldemortServer newServer=ServerTestUtils.startVoldemortServer(ServerTestUtils.createServerConfig(3,TestUtils.createTempDir().getAbsolutePath(),null,storesXmlfile),newCluster);
   servers.add(newServer);
   try {
     Thread.sleep(500);
@@ -19,12 +20,12 @@
     Thread.currentThread().interrupt();
   }
   AdminClient localAdminClient=getAdminClient(newCluster,newServer.getVoldemortConfig());
-  Versioned<String> versionedClusterXML=localAdminClient.getRemoteMetadata(2,MetadataStore.CLUSTER_KEY);
+  Versioned<String> versionedClusterXML=localAdminClient.getRemoteMetadata(3,MetadataStore.CLUSTER_KEY);
   Version version=versionedClusterXML.getVersion();
-  ((VectorClock)version).incrementVersion(2,((VectorClock)version).getTimestamp() + 1);
+  ((VectorClock)version).incrementVersion(3,((VectorClock)version).getTimestamp() + 1);
   ((VectorClock)version).incrementVersion(0,((VectorClock)version).getTimestamp() + 1);
   localAdminClient.updateRemoteMetadata(0,MetadataStore.CLUSTER_KEY,versionedClusterXML);
-  localAdminClient.updateRemoteMetadata(2,MetadataStore.CLUSTER_KEY,versionedClusterXML);
+  localAdminClient.updateRemoteMetadata(3,MetadataStore.CLUSTER_KEY,versionedClusterXML);
   try {
     Thread.sleep(500);
   }
