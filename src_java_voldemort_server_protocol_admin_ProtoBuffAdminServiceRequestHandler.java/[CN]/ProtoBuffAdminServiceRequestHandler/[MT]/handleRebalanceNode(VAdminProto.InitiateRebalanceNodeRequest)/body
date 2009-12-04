@@ -2,7 +2,7 @@
   VAdminProto.AsyncOperationStatusResponse.Builder response=VAdminProto.AsyncOperationStatusResponse.newBuilder();
   RebalanceClient rebalanceClient=new RebalanceClient(metadataStore.getCluster(),new RebalanceClientConfig());
   try {
-    RebalanceStealInfo rebalanceStealInfo=new RebalanceStealInfo(request.getDonorId(),request.getPartitionsList(),request.getAttempt());
+    RebalanceStealInfo rebalanceStealInfo=new RebalanceStealInfo(request.getStore(),request.getDonorId(),request.getPartitionsList(),request.getAttempt());
     int requestId=rebalanceClient.rebalancePartitionAtNode(metadataStore,rebalanceStealInfo,asyncRunner);
     response.setRequestId(requestId).setDescription(rebalanceStealInfo.toString()).setStatus("started").setComplete(false);
   }
