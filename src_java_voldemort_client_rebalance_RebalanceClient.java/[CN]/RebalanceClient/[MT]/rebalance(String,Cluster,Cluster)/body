@@ -34,15 +34,24 @@
         }
       }
       private boolean rebalanceCommit(      Map<Integer,List<RebalanceStealInfo>> stealPartitionsMap,      int stealerNodeId,      RebalanceStealInfo rebalanceStealInfo){
-        try {
-          adminClient.setCluster(RebalanceUtils.updateAndPropagateCluster(adminClient,getStealerNode(currentCluster,targetCluster,stealerNodeId),rebalanceStealInfo));
-          return true;
+synchronized (stealPartitionsMap) {
+          VectorClock clock=(VectorClock)adminClient.getRemoteCluster(rebalanceStealInfo.getDonorId()).getVersion();
+          Cluster oldCluster=adminClient.getCluster();
+          try {
+            Cluster newCluster=RebalanceUtils.createUpdatedCluster(oldCluster,getStealerNode(currentCluster,targetCluster,stealerNodeId),currentCluster.getNodeById(rebalanceStealInfo.getDonorId()),rebalanceStealInfo.getPartitionList());
+            clock.incrementVersion(stealerNodeId,System.currentTimeMillis());
+            RebalanceUtils.propagateCluster(adminClient,newCluster,clock,Arrays.asList(stealerNodeId,rebalanceStealInfo.getDonorId()));
+            adminClient.setCluster(newCluster);
+            return true;
+          }
+ catch (          Exception e) {
+            logger.warn("Failed to commit rebalance on node:" + stealerNodeId,e);
+            RebalanceUtils.revertStealPartitionsMap(stealPartitionsMap,stealerNodeId,rebalanceStealInfo);
+            clock.incrementVersion(stealerNodeId,System.currentTimeMillis());
+            RebalanceUtils.propagateCluster(adminClient,oldCluster,clock,new ArrayList<Integer>());
+          }
+          return false;
         }
- catch (        Exception e) {
-          logger.warn("Failed to commit rebalance on node:" + stealerNodeId,e);
-          RebalanceUtils.revertStealPartitionsMap(stealPartitionsMap,stealerNodeId,rebalanceStealInfo);
-        }
-        return false;
       }
       private Node getStealerNode(      Cluster currentCluster,      Cluster targetCluster,      int stealerNodeId){
         if (RebalanceUtils.containsNode(currentCluster,stealerNodeId))         return currentCluster.getNodeById(stealerNodeId);
