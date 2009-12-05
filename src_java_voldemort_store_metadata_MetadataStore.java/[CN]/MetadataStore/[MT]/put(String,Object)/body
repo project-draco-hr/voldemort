@@ -1,0 +1,9 @@
+{
+  if (METADATA_KEYS.contains(key)) {
+    VectorClock version=(VectorClock)get(key).get(0).getVersion();
+    put(key,new Versioned<Object>(value,version.incremented(getNodeId(),System.currentTimeMillis())));
+  }
+ else {
+    throw new VoldemortException("Unhandled Key:" + key + " for MetadataStore put()");
+  }
+}
