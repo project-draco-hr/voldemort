@@ -8,6 +8,7 @@ synchronized (metadataStore) {
         setRebalancingState(metadataStore,stealInfo);
       }
       fetchAndUpdateAsyncId=startAsyncPartitionFetch(metadataStore,stealInfo);
+      getAdminClient().waitForCompletion(metadataStore.getNodeId(),fetchAndUpdateAsyncId,24 * 60 * 60,TimeUnit.SECONDS);
       metadataStore.cleanAllRebalancingState();
     }
     @Override @JmxGetter(name="asyncTaskStatus") public AsyncOperationStatus getStatus(){

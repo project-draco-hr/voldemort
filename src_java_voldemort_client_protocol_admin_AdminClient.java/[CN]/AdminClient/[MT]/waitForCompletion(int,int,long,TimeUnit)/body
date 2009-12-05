@@ -4,6 +4,7 @@
   while (System.currentTimeMillis() < waitUntil) {
     AsyncOperationStatus status=getAsyncRequestStatus(nodeId,requestId);
     if (status.isComplete())     return;
+    if (status.hasException())     throw new VoldemortException(status.getException());
     if (delay < MAX_DELAY)     delay<<=2;
     try {
       Thread.sleep(delay);

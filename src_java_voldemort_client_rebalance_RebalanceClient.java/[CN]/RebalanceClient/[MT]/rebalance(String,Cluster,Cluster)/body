@@ -48,7 +48,19 @@
       private void attemptOneRebalanceTransfer(      int stealerNodeId,      RebalanceStealInfo stealInfo){
         while (stealInfo.getAttempt() < config.getMaxRebalancingAttempt()) {
           try {
-            getAdminClient().rebalanceNode(stealerNodeId,stealInfo);
+            stealInfo.setAttempt(stealInfo.getAttempt() + 1);
+            int rebalanceAsyncId=getAdminClient().rebalanceNode(stealerNodeId,stealInfo);
+            AsyncOperationStatus status=getAdminClient().getAsyncRequestStatus(stealerNodeId,rebalanceAsyncId);
+            while (!status.isComplete()) {
+              logger.info("Rebalance transfer " + stealerNodeId + " status:"+ status.getStatus());
+              try {
+                Thread.sleep(60 * 1000);
+              }
+ catch (              InterruptedException e) {
+                Thread.currentThread().interrupt();
+              }
+              status=getAdminClient().getAsyncRequestStatus(stealerNodeId,rebalanceAsyncId);
+            }
             return;
           }
  catch (          Exception e) {
