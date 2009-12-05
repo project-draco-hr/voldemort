@@ -1,5 +1,6 @@
 {
   this.failureDetectorConfig=failureDetectorConfig;
-  nodeStatusMap=new HashMap<Node,NodeStatus>();
+  nodeStatusMap=new ConcurrentHashMap<Node,NodeStatus>();
+  for (  Node node : failureDetectorConfig.getNodes())   nodeStatusMap.put(node,new NodeStatus());
   listeners=Collections.synchronizedSet(new HashSet<FailureDetectorListener>());
 }

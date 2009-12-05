@@ -1,10 +1,5 @@
 {
-synchronized (nodeStatusMap) {
-    NodeStatus nodeStatus=nodeStatusMap.get(node);
-    if (nodeStatus == null) {
-      nodeStatus=new NodeStatus();
-      nodeStatusMap.put(node,nodeStatus);
-    }
-    return nodeStatus;
-  }
+  NodeStatus nodeStatus=nodeStatusMap.get(node);
+  if (nodeStatus == null)   throw new IllegalArgumentException(node.getId() + " is not a valid node for this cluster");
+  return nodeStatus;
 }

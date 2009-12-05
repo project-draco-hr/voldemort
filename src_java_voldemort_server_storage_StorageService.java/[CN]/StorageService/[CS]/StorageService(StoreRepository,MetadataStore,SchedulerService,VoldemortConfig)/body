@@ -8,6 +8,6 @@
   this.storageConfigs=new ConcurrentHashMap<String,StorageConfiguration>();
   this.clientThreadPool=new ClientThreadPool(config.getClientMaxThreads(),config.getClientThreadIdleMs(),config.getClientMaxQueuedRequests());
   this.socketPool=new SocketPool(config.getClientMaxConnectionsPerNode(),config.getClientConnectionTimeoutMs(),config.getSocketTimeoutMs(),config.getSocketBufferSize());
-  FailureDetectorConfig failureDetectorConfig=new ServerFailureDetectorConfig(voldemortConfig,storeRepository);
+  FailureDetectorConfig failureDetectorConfig=new ServerFailureDetectorConfig(voldemortConfig,storeRepository,metadata.getCluster().getNodes());
   failureDetector=FailureDetectorUtils.create(failureDetectorConfig);
 }

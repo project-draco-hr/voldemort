@@ -1,6 +1,9 @@
 {
-  while (!isAvailable(node)) {
-    if (logger.isInfoEnabled())     logger.info("Sleeping for 1 second to check " + node);
-    failureDetectorConfig.getTime().sleep(1000);
+  NodeStatus nodeStatus=getNodeStatus(node);
+synchronized (nodeStatus) {
+    while (!isAvailable(nodeStatus)) {
+      if (logger.isInfoEnabled())       logger.info("Waiting for node " + node);
+      nodeStatus.wait();
+    }
   }
 }
