@@ -1,0 +1,15 @@
+{
+  for (  Node node : currentCluster.getNodes()) {
+    try {
+      adminClient.updateRemoteCluster(node.getId(),currentCluster,clock);
+    }
+ catch (    VoldemortException e) {
+      if (requiredNodeIds.contains(node.getId())) {
+        throw new VoldemortException("Failed to copy new cluster.xml(" + currentCluster + ") on required node:"+ node,e);
+      }
+ else {
+        logger.warn("Failed to copy new cluster.xml(" + currentCluster + ") on non-required node:"+ node,e);
+      }
+    }
+  }
+}

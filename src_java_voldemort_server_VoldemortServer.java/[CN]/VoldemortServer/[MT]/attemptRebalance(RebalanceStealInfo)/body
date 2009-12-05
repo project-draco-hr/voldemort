@@ -1,10 +1,10 @@
 {
   stealInfo.setAttempt(stealInfo.getAttempt() + 1);
   logger.info("Restarting rebalance from node:" + stealInfo.getDonorId() + " for partitionList:"+ stealInfo.getPartitionList()+ " as "+ stealInfo.getAttempt()+ " attempt.");
-  RebalanceClient rebalanceClient=new RebalanceClient(metadata.getCluster(),new RebalanceClientConfig());
+  AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadata.getCluster());
   try {
-    int asyncTaskId=RebalanceUtils.rebalanceLocalNode(metadata,stealInfo,asyncRunner,rebalanceClient.getAdminClient());
-    rebalanceClient.getAdminClient().waitForCompletion(getIdentityNode().getId(),asyncTaskId,voldemortConfig.getRebalancingTimeout(),TimeUnit.SECONDS);
+    int asyncTaskId=RebalanceUtils.rebalanceLocalNode(metadata,stealInfo,asyncRunner,adminClient);
+    adminClient.waitForCompletion(getIdentityNode().getId(),asyncTaskId,voldemortConfig.getRebalancingTimeout(),TimeUnit.SECONDS);
     return true;
   }
  catch (  Exception e) {
@@ -12,6 +12,6 @@
     return false;
   }
  finally {
-    rebalanceClient.stop();
+    adminClient.stop();
   }
 }

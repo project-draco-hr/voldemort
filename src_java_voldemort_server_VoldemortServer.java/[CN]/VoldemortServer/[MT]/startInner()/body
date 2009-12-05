@@ -7,12 +7,11 @@
   if (!metadata.getServerState().equals(VoldemortState.NORMAL_SERVER)) {
     logger.warn("Server started in " + metadata.getServerState() + " state.");
     RebalanceStealInfo stealInfo=metadata.getRebalancingStealInfo();
-    boolean success=false;
-    while (!success && stealInfo.getAttempt() < voldemortConfig.getMaxRebalancingAttempt()) {
-      success=attemptRebalance(stealInfo);
+    if (stealInfo.getAttempt() < voldemortConfig.getMaxRebalancingAttempt()) {
+      attemptRebalance(stealInfo);
     }
-    if (!success) {
-      logger.info("Force starting into NORMAL mode !!");
+ else {
+      logger.warn("Rebalancing failed multiple times, Force starting into NORMAL mode !!");
     }
     metadata.cleanAllRebalancingState();
   }

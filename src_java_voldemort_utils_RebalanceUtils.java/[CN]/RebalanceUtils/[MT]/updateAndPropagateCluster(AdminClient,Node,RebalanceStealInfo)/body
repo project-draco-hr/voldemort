@@ -8,8 +8,9 @@ synchronized (adminClient) {
     stealerPartitionList.removeAll(rebalanceNodeInfo.getPartitionList());
     Node donorNode=updateNode(adminClient.getCluster().getNodeById(rebalanceNodeInfo.getDonorId()),donorPartitionList);
     currentCluster=updateCluster(currentCluster,Arrays.asList(stealerNode,donorNode));
-    VectorClock clock=(VectorClock)adminClient.getRemoteCluster(stealerNode.getId()).getVersion();
-    propagateCluster(adminClient,currentCluster,clock.incremented(stealerNode.getId(),System.currentTimeMillis()));
+    VectorClock clock=(VectorClock)adminClient.getRemoteCluster(donorNode.getId()).getVersion();
+    clock=clock.incremented(stealerNode.getId(),System.currentTimeMillis());
+    propagateCluster(adminClient,currentCluster,clock,Arrays.asList(stealerNode.getId(),donorNode.getId()));
     return currentCluster;
   }
 }
