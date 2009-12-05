@@ -2,7 +2,7 @@
   for (  URI url : urls) {
     try {
       Store<ByteArray,byte[]> remoteStore=getStore(MetadataStore.METADATA_STORE_NAME,url.getHost(),url.getPort(),this.requestFormatType);
-      Store<String,String> store=new SerializingStore<String,String>(remoteStore,new StringSerializer("UTF-8"),new StringSerializer("UTF-8"));
+      Store<String,String> store=SerializingStore.wrap(remoteStore,new StringSerializer("UTF-8"),new StringSerializer("UTF-8"));
       List<Versioned<String>> found=store.get(key);
       if (found.size() == 1)       return found.get(0).getValue();
     }

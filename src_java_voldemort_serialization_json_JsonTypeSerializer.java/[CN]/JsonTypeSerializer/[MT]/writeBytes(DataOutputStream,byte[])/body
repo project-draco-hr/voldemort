@@ -1,12 +1,9 @@
 {
   if (b == null) {
-    output.writeShort(-1);
-  }
- else   if (b.length < Short.MAX_VALUE) {
-    output.writeShort(b.length);
-    output.write(b);
+    writeLength(output,-1);
   }
  else {
-    throw new SerializationException("Array has length " + b.length + " which is too large to serialize.");
+    writeLength(output,b.length);
+    output.write(b);
   }
 }

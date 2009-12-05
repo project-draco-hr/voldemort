@@ -11,7 +11,7 @@
     for (OperationStatus status=cursor.getSearchKey(keyEntry,valueEntry,LockMode.RMW); status == OperationStatus.SUCCESS; status=cursor.getNextDup(keyEntry,valueEntry,LockMode.RMW)) {
       VectorClock clock=new VectorClock(valueEntry.getData());
       Occured occured=value.getVersion().compare(clock);
-      if (occured == Occured.BEFORE)       throw new ObsoleteVersionException("Key '" + new String(hexCodec.encode(key.get())) + "' "+ value.getVersion().toString()+ " is obsolete,"+ " current version is "+ clock+ ".");
+      if (occured == Occured.BEFORE)       throw new ObsoleteVersionException("Key " + new String(hexCodec.encode(key.get())) + " "+ value.getVersion().toString()+ " is obsolete, it is no greater than the current version of "+ clock+ ".");
  else       if (occured == Occured.AFTER)       cursor.delete();
     }
     valueEntry=new DatabaseEntry(versionedSerializer.toBytes(value));
