@@ -1,9 +1,9 @@
 {
   VAdminProto.AsyncOperationStatusResponse.Builder response=VAdminProto.AsyncOperationStatusResponse.newBuilder();
-  RebalanceClient rebalanceClient=new RebalanceClient(metadataStore.getCluster(),new RebalanceClientConfig());
+  AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster());
   try {
     RebalanceStealInfo rebalanceStealInfo=new RebalanceStealInfo(request.getStore(),request.getDonorId(),request.getPartitionsList(),request.getAttempt());
-    int requestId=rebalanceClient.rebalancePartitionAtNode(metadataStore,rebalanceStealInfo,asyncRunner);
+    int requestId=RebalanceUtils.rebalanceLocalNode(metadataStore,rebalanceStealInfo,asyncRunner,adminClient);
     response.setRequestId(requestId).setDescription(rebalanceStealInfo.toString()).setStatus("started").setComplete(false);
   }
  catch (  VoldemortException e) {
@@ -11,7 +11,7 @@
     logger.error("handleRebalanceNode failed for request(" + request.toString() + ")",e);
   }
  finally {
-    rebalanceClient.stop();
+    adminClient.stop();
   }
   return response.build();
 }

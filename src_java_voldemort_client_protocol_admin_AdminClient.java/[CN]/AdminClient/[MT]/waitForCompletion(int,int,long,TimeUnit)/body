@@ -5,6 +5,7 @@
     AsyncOperationStatus status=getAsyncRequestStatus(nodeId,requestId);
     if (status.isComplete())     return;
     if (status.hasException())     throw new VoldemortException(status.getException());
+    logger.info("Waiting for AsyncTask " + requestId + " description("+ status.getDescription()+ ") to finish currentStatus:"+ status.getStatus());
     if (delay < MAX_DELAY)     delay<<=2;
     try {
       Thread.sleep(delay);
