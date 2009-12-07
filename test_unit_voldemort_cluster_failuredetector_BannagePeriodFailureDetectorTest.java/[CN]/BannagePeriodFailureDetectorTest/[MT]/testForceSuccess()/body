@@ -1,0 +1,11 @@
+{
+  Node node=Iterables.get(cluster.getNodes(),8);
+  recordException(failureDetector,node);
+  assertEquals(8,failureDetector.getAvailableNodeCount());
+  assertEquals(9,failureDetector.getNodeCount());
+  assertEquals(false,failureDetector.isAvailable(node));
+  recordSuccess(failureDetector,node,false);
+  assertEquals(9,failureDetector.getAvailableNodeCount());
+  assertEquals(9,failureDetector.getNodeCount());
+  assertEquals(true,failureDetector.isAvailable(node));
+}
