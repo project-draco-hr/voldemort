@@ -1,8 +1,10 @@
 {
-  return FailureDetectorUtils.create(new ClientFailureDetectorConfig(config,nodes){
+  ClientStoreResolver storeResolver=new ClientStoreResolver(){
     @Override protected Store<ByteArray,byte[]> getStoreInternal(    Node node){
       return HttpStoreClientFactory.this.getStore(MetadataStore.METADATA_STORE_NAME,node.getHost(),node.getHttpPort(),config.getRequestFormatType());
     }
   }
-);
+;
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setImplementationClassName(config.getFailureDetector()).setJmxEnabled(config.isJmxEnabled()).setNodeBannagePeriod(config.getNodeBannagePeriod(TimeUnit.MILLISECONDS)).setNodes(nodes).setStoreResolver(storeResolver);
+  return FailureDetectorUtils.create(failureDetectorConfig);
 }

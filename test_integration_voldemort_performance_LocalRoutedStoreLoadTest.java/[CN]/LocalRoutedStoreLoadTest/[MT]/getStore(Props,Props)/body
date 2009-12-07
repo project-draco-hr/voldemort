@@ -5,8 +5,8 @@
   StorageConfiguration conf=new BdbStorageConfiguration(voldemortConfig);
   for (  Node node : cluster.getNodes())   clientMapping.put(node.getId(),conf.getStore("test" + node.getId()));
   InconsistencyResolver<Versioned<String>> resolver=new VectorClockInconsistencyResolver<String>();
-  FailureDetectorConfig config=new BasicFailureDetectorConfig(voldemortConfig.getFailureDetector(),voldemortConfig.getClientNodeBannageMs(),cluster.getNodes(),clientMapping,false);
-  FailureDetector failureDetector=FailureDetectorUtils.create(config);
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setImplementationClassName(voldemortConfig.getFailureDetector()).setNodeBannagePeriod(voldemortConfig.getClientNodeBannageMs()).setNodes(cluster.getNodes()).setStoreResolver(new BasicStoreResolver(clientMapping));
+  FailureDetector failureDetector=FailureDetectorUtils.create(failureDetectorConfig);
   Store<ByteArray,byte[]> store=new RoutedStore("test",clientMapping,cluster,ServerTestUtils.getStoreDef("test",1,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY),10,true,10000L,failureDetector);
   Store<String,String> serializingStore=new SerializingStore<String,String>(store,new StringSerializer(),new StringSerializer());
   Store<String,String> resolvingStore=new InconsistencyResolvingStore<String,String>(serializingStore,resolver);
