@@ -1,15 +1,21 @@
 {
+  if (hasCurrentStore()) {
+    output.writeString(1,getCurrentStore());
+  }
+  if (hasStealerId()) {
+    output.writeInt32(2,getStealerId());
+  }
   if (hasDonorId()) {
-    output.writeInt32(1,getDonorId());
+    output.writeInt32(3,getDonorId());
   }
   for (  int element : getPartitionsList()) {
-    output.writeInt32(2,element);
+    output.writeInt32(4,element);
   }
   if (hasAttempt()) {
-    output.writeInt32(3,getAttempt());
+    output.writeInt32(5,getAttempt());
   }
-  if (hasStore()) {
-    output.writeString(4,getStore());
+  for (  java.lang.String element : getUnbalancedStoreList()) {
+    output.writeString(6,element);
   }
   getUnknownFields().writeTo(output);
 }

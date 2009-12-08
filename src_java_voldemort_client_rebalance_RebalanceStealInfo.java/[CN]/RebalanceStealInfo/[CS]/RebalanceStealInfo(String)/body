@@ -1,16 +1,9 @@
 {
-  try {
-    String[] tokens=line.split(DELIMITER);
-    this.storeName=tokens[0];
-    this.donorId=Integer.parseInt(tokens[1].trim());
-    this.partitionList=new ArrayList<Integer>();
-    String listString=tokens[2].replace("[","").replace("]","");
-    for (    String pString : listString.split(",")) {
-      if (pString.trim().length() > 0)       partitionList.add(Integer.parseInt(pString.trim()));
-    }
-    this.attempt=Integer.parseInt(tokens[3].trim());
-  }
- catch (  Exception e) {
-    throw new VoldemortException("Cannot create RebalanceStealInfo from String:'" + line + "'",e);
-  }
+  JsonReader reader=new JsonReader(new StringReader(line));
+  Map<String,Object> map=(Map<String,Object>)reader.read();
+  this.stealerId=(Integer)map.get("stealerId");
+  this.donorId=(Integer)map.get("donorId");
+  this.partitionList=(List<Integer>)map.get("partitionList");
+  this.attempt=(Integer)map.get("attempt");
+  this.unbalancedStoreList=(List<String>)map.get("unbalancedStoreList");
 }

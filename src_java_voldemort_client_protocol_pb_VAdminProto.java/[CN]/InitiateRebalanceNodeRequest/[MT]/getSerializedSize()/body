@@ -2,8 +2,14 @@
   int size=memoizedSerializedSize;
   if (size != -1)   return size;
   size=0;
+  if (hasCurrentStore()) {
+    size+=com.google.protobuf.CodedOutputStream.computeStringSize(1,getCurrentStore());
+  }
+  if (hasStealerId()) {
+    size+=com.google.protobuf.CodedOutputStream.computeInt32Size(2,getStealerId());
+  }
   if (hasDonorId()) {
-    size+=com.google.protobuf.CodedOutputStream.computeInt32Size(1,getDonorId());
+    size+=com.google.protobuf.CodedOutputStream.computeInt32Size(3,getDonorId());
   }
 {
     int dataSize=0;
@@ -14,10 +20,15 @@
     size+=1 * getPartitionsList().size();
   }
   if (hasAttempt()) {
-    size+=com.google.protobuf.CodedOutputStream.computeInt32Size(3,getAttempt());
+    size+=com.google.protobuf.CodedOutputStream.computeInt32Size(5,getAttempt());
   }
-  if (hasStore()) {
-    size+=com.google.protobuf.CodedOutputStream.computeStringSize(4,getStore());
+{
+    int dataSize=0;
+    for (    java.lang.String element : getUnbalancedStoreList()) {
+      dataSize+=com.google.protobuf.CodedOutputStream.computeStringSizeNoTag(element);
+    }
+    size+=dataSize;
+    size+=1 * getUnbalancedStoreList().size();
   }
   size+=getUnknownFields().getSerializedSize();
   memoizedSerializedSize=size;
