@@ -1,3 +1,4 @@
 {
-  return createFailureDetector(BannagePeriodFailureDetector.class,cluster.getNodes(),time,BANNAGE_MILLIS);
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setImplementationClassName(BannagePeriodFailureDetector.class.getName()).setNodeBannagePeriod(BANNAGE_MILLIS).setNodes(cluster.getNodes()).setStoreResolver(createMutableStoreResolver(cluster.getNodes())).setTime(time);
+  return create(failureDetectorConfig);
 }

@@ -1,0 +1,29 @@
+{
+  long currTime=getConfig().getTime().getMilliseconds();
+  if (currTime >= startMillis + getConfig().getThresholdInterval()) {
+    startMillis=currTime;
+    success=successDelta;
+    total=totalDelta;
+    isAvailable=true;
+  }
+ else {
+    success+=successDelta;
+    total+=totalDelta;
+  }
+  lastChecked=currTime;
+  if (total >= getConfig().getThresholdCountMinimum()) {
+    long newThreshold=total >= getConfig().getThresholdCountMinimum() ? (success * 100) / total : 100;
+    boolean newAvailable=newThreshold >= getConfig().getThreshold();
+    if (newAvailable && !isAvailable) {
+      if (logger.isInfoEnabled())       logger.info("Threshold for node " + node.getId() + " at "+ node.getHost()+ " now "+ newThreshold+ "%; marking as available");
+      notifyAvailable(node);
+    }
+ else     if (!newAvailable && isAvailable) {
+      if (logger.isEnabledFor(Level.WARN))       logger.warn("Threshold for node " + node.getId() + " at "+ node.getHost()+ " now "+ newThreshold+ "%; marking as unavailable",e);
+      if (logger.isDebugEnabled())       logger.debug(e);
+      notifyUnavailable(node);
+    }
+    isAvailable=newAvailable;
+  }
+  return isAvailable;
+}

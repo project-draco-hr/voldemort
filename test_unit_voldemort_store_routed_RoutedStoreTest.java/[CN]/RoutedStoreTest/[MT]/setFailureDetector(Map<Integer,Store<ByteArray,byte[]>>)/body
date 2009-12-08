@@ -1,4 +1,5 @@
 {
   if (failureDetector != null)   failureDetector.destroy();
-  failureDetector=createFailureDetector(failureDetectorClass,cluster.getNodes(),subStores,SystemTime.INSTANCE,1000);
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setImplementationClassName(failureDetectorClass.getName()).setNodeBannagePeriod(1000).setNodes(cluster.getNodes()).setStoreResolver(createMutableStoreResolver(subStores));
+  failureDetector=create(failureDetectorConfig);
 }
