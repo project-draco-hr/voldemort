@@ -1,7 +1,7 @@
 {
-  Set<Node> unavailableNodesCopy=new HashSet<Node>();
-synchronized (unavailableNodes) {
-    unavailableNodesCopy.addAll(unavailableNodes);
+  Set<Node> unavailableNodesCopy=null;
+synchronized (this) {
+    unavailableNodesCopy=new HashSet<Node>(unavailableNodes);
   }
   ByteArray key=new ByteArray((byte)1);
   for (  Node node : unavailableNodesCopy) {
@@ -17,7 +17,6 @@ synchronized (unavailableNodes) {
         unavailableNodes.remove(node);
       }
       setAvailable(node);
-      if (logger.isInfoEnabled())       logger.info(node + " now available");
     }
  catch (    UnreachableStoreException e) {
       if (logger.isEnabledFor(Level.WARN))       logger.warn(node + " still unavailable");

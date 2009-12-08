@@ -1,10 +1,11 @@
 {
+  long asyncScanInterval=getConfig().getAsyncScanInterval();
   while (!Thread.currentThread().isInterrupted() && isRunning) {
     try {
       if (logger.isInfoEnabled()) {
-        logger.info("Sleeping for " + getConfig().getNodeBannagePeriod() + " ms before checking node availability");
+        logger.info("Sleeping for " + asyncScanInterval + " ms before checking node availability");
       }
-      getConfig().getTime().sleep(getConfig().getNodeBannagePeriod());
+      getConfig().getTime().sleep(asyncScanInterval);
     }
  catch (    InterruptedException e) {
       break;

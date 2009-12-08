@@ -1,0 +1,31 @@
+{
+  if (e != null) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(e,e);
+  }
+  NodeData nd=getNodeData(node);
+  nd.lastChecked=getConfig().getTime().getMilliseconds();
+  if (nd.lastChecked >= nd.startMillis + getConfig().getThresholdInterval()) {
+    nd.startMillis=nd.lastChecked;
+    nd.success=successDelta;
+    nd.total=totalDelta;
+    nd.isAvailable=true;
+  }
+ else {
+    nd.success+=successDelta;
+    nd.total+=totalDelta;
+  }
+  if (nd.total >= getConfig().getThresholdCountMinimum()) {
+    long threshold=nd.total >= getConfig().getThresholdCountMinimum() ? (nd.success * 100) / nd.total : 100;
+    boolean isAvailable=threshold >= getConfig().getThreshold();
+    if (isAvailable && !nd.isAvailable) {
+      if (logger.isInfoEnabled())       logger.info("Threshold for node " + node.getId() + " at "+ node.getHost()+ " now "+ threshold+ "%; marking as available");
+      notifyAvailable(node);
+    }
+ else     if (!isAvailable && nd.isAvailable) {
+      if (logger.isEnabledFor(Level.WARN))       logger.warn("Threshold for node " + node.getId() + " at "+ node.getHost()+ " now "+ threshold+ "%; marking as unavailable");
+      notifyUnavailable(node);
+    }
+    nd.isAvailable=isAvailable;
+  }
+  return nd.isAvailable;
+}

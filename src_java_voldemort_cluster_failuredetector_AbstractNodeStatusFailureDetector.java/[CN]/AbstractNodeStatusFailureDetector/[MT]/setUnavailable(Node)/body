@@ -1,4 +1,6 @@
 {
-  getNodeStatus(node).setUnavailable();
-  notifyUnavailable(node);
+  NodeStatus nodeStatus=getNodeStatus(node);
+  boolean previouslyAvailable=!nodeStatus.isUnavailable(failureDetectorConfig.getNodeBannagePeriod());
+  nodeStatus.setUnavailable();
+  if (previouslyAvailable)   notifyUnavailable(node);
 }
