@@ -1,6 +1,8 @@
 {
   NodeStatus nodeStatus=getNodeStatus(node);
-  boolean previouslyAvailable=nodeStatus.isAvailable();
-  nodeStatus.setAvailable();
-  if (!previouslyAvailable)   notifyAvailable(node);
+synchronized (nodeStatus) {
+    boolean previouslyAvailable=nodeStatus.isAvailable();
+    nodeStatus.setAvailable();
+    if (!previouslyAvailable)     notifyAvailable(node);
+  }
 }

@@ -1,0 +1,16 @@
+{
+  FailureDetectorConfig failureDetectorConfig=failureDetector.getConfig();
+  try {
+    for (    long[] milliPairs : milliPairGroups) {
+      updateNodeStoreAvailability(failureDetectorConfig,node,false);
+      failureDetectorConfig.getTime().sleep(milliPairs[0]);
+      updateNodeStoreAvailability(failureDetectorConfig,node,true);
+      failureDetectorConfig.getTime().sleep(milliPairs[1]);
+    }
+    failureDetector.waitForAvailability(node);
+    countDownLatch.countDown();
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+}

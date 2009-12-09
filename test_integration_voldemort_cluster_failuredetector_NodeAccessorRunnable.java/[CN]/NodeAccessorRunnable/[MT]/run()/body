@@ -1,0 +1,22 @@
+{
+  FailureDetectorConfig failureDetectorConfig=failureDetector.getConfig();
+  try {
+    while (countDownLatch.getCount() > 0) {
+      if (failureDetector.isAvailable(node)) {
+        if (failureDetectorConfig.getStoreResolver().getStore(node) != null) {
+          failureDetector.recordSuccess(node);
+          if (successCounter != null)           successCounter.incrementAndGet();
+        }
+ else {
+          failureDetectorConfig.getTime().sleep(failureDelay);
+          failureDetector.recordException(node,exception);
+          if (failureCounter != null)           failureCounter.incrementAndGet();
+        }
+      }
+      failureDetectorConfig.getTime().sleep(pollInterval);
+    }
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+}

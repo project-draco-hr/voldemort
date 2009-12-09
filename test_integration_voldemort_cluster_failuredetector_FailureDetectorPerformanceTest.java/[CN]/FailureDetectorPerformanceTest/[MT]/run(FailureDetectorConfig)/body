@@ -1,8 +1,12 @@
 {
+  failureDetectorConfig.setTime(new MockTime(0));
+  failureDetectorConfig.setTime(SystemTime.INSTANCE);
   Time time=failureDetectorConfig.getTime();
-  PerformanceTestFailureDetectorListener listener=new PerformanceTestFailureDetectorListener(time);
-  FailureDetector failureDetector=create(failureDetectorConfig,listener);
-  test(failureDetector,listener,time);
-  failureDetector.destroy();
-  return listener.getDelta();
+  FailureDetector failureDetector=create(failureDetectorConfig);
+  try {
+    return test(failureDetector,time);
+  }
+  finally {
+    failureDetector.destroy();
+  }
 }

@@ -1,8 +1,5 @@
 {
   ((MutableStoreResolver)failureDetector.getConfig().getStoreResolver()).setReturnNullStore(node,false);
   failureDetector.recordSuccess(node);
-  if (shouldWait) {
-    Time time=failureDetector.getConfig().getTime();
-    while (!failureDetector.isAvailable(node))     time.sleep(50);
-  }
+  if (shouldWait)   failureDetector.waitForAvailability(node);
 }

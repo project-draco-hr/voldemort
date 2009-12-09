@@ -1,5 +1,9 @@
 {
   if (logger.isInfoEnabled())   logger.info(node + " now available");
+  Object nodeLock=getNodeLock(node);
+synchronized (nodeLock) {
+    nodeLock.notifyAll();
+  }
   Set<FailureDetectorListener> listenersCopy=new HashSet<FailureDetectorListener>(listeners);
   for (  FailureDetectorListener fdl : listenersCopy) {
     try {

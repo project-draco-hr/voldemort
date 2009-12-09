@@ -1,6 +1,8 @@
 {
   NodeStatus nodeStatus=getNodeStatus(node);
-  boolean isAvailable=!nodeStatus.isUnavailable(failureDetectorConfig.getNodeBannagePeriod());
-  if (isAvailable && !nodeStatus.isAvailable())   notifyAvailable(node);
-  return isAvailable;
+synchronized (nodeStatus) {
+    boolean isAvailable=!nodeStatus.isUnavailable(failureDetectorConfig.getNodeBannagePeriod());
+    if (isAvailable && !nodeStatus.isAvailable())     setAvailable(node);
+    return isAvailable;
+  }
 }
