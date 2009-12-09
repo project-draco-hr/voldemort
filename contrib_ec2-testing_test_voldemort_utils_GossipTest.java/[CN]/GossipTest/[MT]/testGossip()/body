@@ -1,26 +1,2 @@
 {
-  deploy(hostNames,sshPrivateKey,hostUserId,sourceDirectory,parentDirectory);
-  List<HostNamePair> newInstance=createInstances(accessId,secretKey,ami,keyPairId,1);
-  List<String> newHostname=toHostNames(newInstance);
-  deploy(newHostname,sshPrivateKey,hostUserId,sourceDirectory,parentDirectory);
-  ClusterGenerator clusterGenerator=new ClusterGenerator();
-  final List<String> allHostnames=new LinkedList<String>(hostNames);
-  allHostnames.addAll(newHostname);
-  List<ClusterNodeDescriptor> nodes=clusterGenerator.createClusterNodeDescriptors(allHostnames,allHostnames.size());
-  String newClusterXml=clusterGenerator.createClusterDescriptor("test",nodes);
-  AdminClient newAdminClient=getAdminClient(newHostname.get(0));
-  newAdminClient.getRemoteMetadata(allHostnames.size(),MetadataStore.CLUSTER_KEY);
-  try {
-    assertWithBackoff(5000,new Attempt(){
-      public void checkCondition(){
-        for (        String hostname : allHostnames) {
-          AdminClient adminClient=getAdminClient(hostname);
-        }
-      }
-    }
-);
-  }
-  finally {
-    stopCluster(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory);
-  }
 }
