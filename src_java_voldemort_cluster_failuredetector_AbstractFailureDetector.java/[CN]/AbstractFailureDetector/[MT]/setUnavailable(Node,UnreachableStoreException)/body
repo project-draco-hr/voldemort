@@ -4,8 +4,8 @@
   }
   NodeStatus nodeStatus=getNodeStatus(node);
 synchronized (nodeStatus) {
-    boolean previouslyAvailable=!nodeStatus.isUnavailable(failureDetectorConfig.getNodeBannagePeriod());
-    nodeStatus.setUnavailable();
+    boolean previouslyAvailable=nodeStatus.isAvailable();
+    nodeStatus.setAvailable(false);
     if (previouslyAvailable)     notifyUnavailable(node);
   }
 }

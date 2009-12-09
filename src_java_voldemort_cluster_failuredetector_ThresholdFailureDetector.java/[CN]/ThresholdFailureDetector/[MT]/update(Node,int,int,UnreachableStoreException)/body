@@ -1,31 +1,31 @@
 {
-  ThresholdNodeStatus nodeStatus=(ThresholdNodeStatus)getNodeStatus(node);
+  NodeStatus nodeStatus=getNodeStatus(node);
   boolean needsNotifyAvailable=false;
   boolean needsNotifyUnavailable=false;
   long threshold=0;
   boolean isAvailable=false;
 synchronized (nodeStatus) {
     nodeStatus.setLastChecked(getConfig().getTime().getMilliseconds());
-    if (nodeStatus.lastChecked >= nodeStatus.startMillis + getConfig().getThresholdInterval()) {
-      needsNotifyAvailable=!nodeStatus.isAvailable;
-      nodeStatus.isAvailable=true;
-      nodeStatus.startMillis=nodeStatus.lastChecked;
-      nodeStatus.success=successDelta;
-      nodeStatus.total=totalDelta;
+    if (nodeStatus.getLastChecked() >= nodeStatus.getStartMillis() + getConfig().getThresholdInterval()) {
+      needsNotifyAvailable=!nodeStatus.isAvailable();
+      nodeStatus.setAvailable(true);
+      nodeStatus.setStartMillis(nodeStatus.getLastChecked());
+      nodeStatus.setSuccess(successDelta);
+      nodeStatus.setTotal(totalDelta);
     }
  else {
-      nodeStatus.success+=successDelta;
-      nodeStatus.total+=totalDelta;
+      nodeStatus.incrementSuccess(successDelta);
+      nodeStatus.incrementTotal(totalDelta);
     }
     int thresholdCountMinimum=getConfig().getThresholdCountMinimum();
-    if (nodeStatus.total >= thresholdCountMinimum) {
-      threshold=nodeStatus.total >= thresholdCountMinimum ? (nodeStatus.success * 100) / nodeStatus.total : 100;
-      boolean previouslyAvailable=nodeStatus.isAvailable;
-      nodeStatus.isAvailable=threshold >= getConfig().getThreshold();
-      if (nodeStatus.isAvailable && !previouslyAvailable)       needsNotifyAvailable=true;
- else       if (!nodeStatus.isAvailable && previouslyAvailable)       needsNotifyUnavailable=true;
+    if (nodeStatus.getTotal() >= thresholdCountMinimum) {
+      threshold=nodeStatus.getTotal() >= thresholdCountMinimum ? (nodeStatus.getSuccess() * 100) / nodeStatus.getTotal() : 100;
+      boolean previouslyAvailable=nodeStatus.isAvailable();
+      nodeStatus.setAvailable(threshold >= getConfig().getThreshold());
+      if (nodeStatus.isAvailable() && !previouslyAvailable)       needsNotifyAvailable=true;
+ else       if (!nodeStatus.isAvailable() && previouslyAvailable)       needsNotifyUnavailable=true;
     }
-    isAvailable=nodeStatus.isAvailable;
+    isAvailable=nodeStatus.isAvailable();
   }
   if (needsNotifyAvailable) {
     if (logger.isInfoEnabled())     logger.info("Threshold for node " + node.getId() + " at "+ node.getHost()+ " now "+ threshold+ "%; marking as available");
