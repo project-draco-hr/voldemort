@@ -1,8 +1,8 @@
 {
   Cluster cluster=getNineNodeCluster();
-  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setNodes(cluster.getNodes()).setStoreResolver(createMutableStoreResolver(cluster.getNodes())).setAsyncScanInterval(5000).setNodeBannagePeriod(5000);
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setNodes(cluster.getNodes()).setStoreResolver(createMutableStoreResolver(cluster.getNodes())).setAsyncScanInterval(1000).setNodeBannagePeriod(1000).setThresholdInterval(1000);
   Class<?>[] classes=new Class[]{AsyncRecoveryFailureDetector.class,BannagePeriodFailureDetector.class,ThresholdFailureDetector.class};
-  long[][] milliPairGroups=new long[][]{{66,71},{11,981},{45,734},{33,309},{19,511},{4,445},{5,645},{964,1220},{143,346},{55,260}};
+  long[][] milliPairGroups=new long[][]{{66,710},{11,981},{45,734},{33,309},{19,511},{4,445},{5,645},{964,1220},{143,346},{55,260}};
   System.out.println("FailureDetector Type, Milliseconds, Outages, Successes, Failures");
   for (  Class<?> implClass : classes) {
     failureDetectorConfig.setImplementationClassName(implClass.getName());
