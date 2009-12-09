@@ -1,8 +1,7 @@
 {
-  FailureDetectorConfig failureDetectorConfig=failureDetector.getConfig();
   Node node=Iterables.get(failureDetectorConfig.getNodes(),0);
   CountDownLatch countDownLatch=new CountDownLatch(1);
-  Listener listener=new Listener(time);
+  Listener listener=new Listener(failureDetectorConfig.getTime());
   failureDetector.addFailureDetectorListener(listener);
   Thread nodeAvailabilityThread=new Thread(new XXX(failureDetector,node,countDownLatch));
   Thread nodeAccessorThread=new Thread(new NodeAccessorRunnable(failureDetector,node,countDownLatch,null,null,null,10,10));

@@ -1,9 +1,4 @@
 {
-  Cluster cluster=getNineNodeCluster();
-  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setNodes(cluster.getNodes()).setStoreResolver(createMutableStoreResolver(cluster.getNodes())).setAsyncScanInterval(5000).setNodeBannagePeriod(5000);
-  Class<?>[] classes=new Class[]{AsyncRecoveryFailureDetector.class,BannagePeriodFailureDetector.class,ThresholdFailureDetector.class};
-  for (  Class<?> implClass : classes) {
-    failureDetectorConfig.setImplementationClassName(implClass.getName());
-    System.out.println(new TimedUnavailabilityTest(2522).run(failureDetectorConfig));
-  }
+  FailureDetectorPerformanceTest test=new TimedUnavailabilityTest(args,2522);
+  test.test();
 }
