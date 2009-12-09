@@ -1,0 +1,11 @@
+{
+  Queue<Pair<Integer,List<RebalanceStealInfo>>> rebalanceTaskQueue=new ConcurrentLinkedQueue<Pair<Integer,List<RebalanceStealInfo>>>();
+  if (currentCluster.getNumberOfPartitions() != targetCluster.getNumberOfPartitions())   throw new VoldemortException("Total number of partitions should not change !!");
+  for (  Node node : targetCluster.getNodes()) {
+    List<RebalanceStealInfo> rebalanceNodeList=getRebalanceNodeTask(currentCluster,targetCluster,storeList,node.getId());
+    if (rebalanceNodeList.size() > 0) {
+      rebalanceTaskQueue.offer(new Pair<Integer,List<RebalanceStealInfo>>(node.getId(),rebalanceNodeList));
+    }
+  }
+  return rebalanceTaskQueue;
+}

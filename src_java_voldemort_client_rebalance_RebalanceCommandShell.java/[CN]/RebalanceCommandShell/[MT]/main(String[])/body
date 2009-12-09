@@ -1,0 +1,11 @@
+{
+  if (args.length < 4 || args.length > 5)   Utils.croak("USAGE: java RebalanceCommandShell currentCluster.xml targetCluster.xml stores.xml maxParallelRebalancing");
+  Cluster currentCluster=clusterMapper.readCluster(new File(args[0]));
+  Cluster targetCluster=clusterMapper.readCluster(new File(args[1]));
+  List<StoreDefinition> storesList=storesMapper.readStoreList(new File(args[2]));
+  int maxParallellRebalancing=Integer.parseInt(args[3]);
+  rebalanceClient=new RebalanceClient(currentCluster,maxParallellRebalancing,new AdminClientConfig());
+  List<String> storeNames=new ArrayList<String>(storesList.size());
+  for (  StoreDefinition storeDef : storesList)   storeNames.add(storeDef.getName());
+  rebalanceClient.rebalance(currentCluster,targetCluster,storeNames);
+}

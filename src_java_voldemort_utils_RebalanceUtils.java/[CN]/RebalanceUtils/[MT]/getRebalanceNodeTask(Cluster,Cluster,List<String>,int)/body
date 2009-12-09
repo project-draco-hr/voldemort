@@ -1,0 +1,22 @@
+{
+  Map<Integer,List<Integer>> stealPartitionsMap=new HashMap<Integer,List<Integer>>();
+  Map<Integer,Integer> currentPartitionsToNodeMap=getCurrentPartitionMapping(currentCluster);
+  List<Integer> targetList=targetCluster.getNodeById(stealNodeId).getPartitionIds();
+  List<Integer> currentList;
+  if (containsNode(currentCluster,stealNodeId))   currentList=currentCluster.getNodeById(stealNodeId).getPartitionIds();
+ else   currentList=new ArrayList<Integer>();
+  for (  int p : targetList) {
+    if (!currentList.contains(p)) {
+      int currentMasterNode=currentPartitionsToNodeMap.get(p);
+      if (!stealPartitionsMap.containsKey(currentMasterNode)) {
+        stealPartitionsMap.put(currentMasterNode,new ArrayList<Integer>());
+      }
+      stealPartitionsMap.get(currentMasterNode).add(p);
+    }
+  }
+  List<RebalanceStealInfo> stealInfoList=new ArrayList<RebalanceStealInfo>();
+  for (  Entry<Integer,List<Integer>> stealEntry : stealPartitionsMap.entrySet()) {
+    stealInfoList.add(new RebalanceStealInfo(stealNodeId,stealEntry.getKey(),stealEntry.getValue(),storeList,0));
+  }
+  return stealInfoList;
+}

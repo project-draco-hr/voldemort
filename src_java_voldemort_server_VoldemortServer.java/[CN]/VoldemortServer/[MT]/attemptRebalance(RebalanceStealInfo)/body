@@ -1,17 +1,22 @@
 {
+  logger.info("Restarting rebalance for rebalanceSubTask:" + stealInfo);
+  Rebalancer rebalancer=new Rebalancer();
   stealInfo.setAttempt(stealInfo.getAttempt() + 1);
-  logger.info("Restarting rebalance from node:" + stealInfo.getDonorId() + " for partitionList:"+ stealInfo.getPartitionList()+ " as "+ stealInfo.getAttempt()+ " attempt.");
+  List<String> unbalanceStoreList=ImmutableList.copyOf(stealInfo.getUnbalancedStoreList());
   AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadata.getCluster());
   try {
-    int asyncTaskId=RebalanceUtils.rebalanceLocalNode(metadata,stealInfo,asyncRunner,adminClient);
-    adminClient.waitForCompletion(getIdentityNode().getId(),asyncTaskId,voldemortConfig.getRebalancingTimeout(),TimeUnit.SECONDS);
-    return true;
+    for (    String storeName : unbalanceStoreList) {
+      try {
+        int rebalanceAsyncId=rebalancer.rebalanceLocalNode(metadata,voldemortConfig,storeName,stealInfo,asyncRunner);
+        adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,24 * 60 * 60,TimeUnit.SECONDS);
+        stealInfo.getUnbalancedStoreList().remove(storeName);
+      }
+ catch (      Exception e) {
+        logger.warn("rebalanceSubTask:" + stealInfo + " failed for store:"+ storeName,e);
+      }
+    }
   }
- catch (  Exception e) {
-    logger.error("Failed to rebalance from node:" + stealInfo.getDonorId() + " for partitionList:"+ stealInfo.getPartitionList()+ " in "+ stealInfo.getAttempt()+ " attempts.",e);
-    return false;
-  }
- finally {
+  finally {
     adminClient.stop();
   }
 }
