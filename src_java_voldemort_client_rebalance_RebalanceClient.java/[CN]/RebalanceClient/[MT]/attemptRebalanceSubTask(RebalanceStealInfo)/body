@@ -1,0 +1,16 @@
+{
+  boolean success=true;
+  List<String> rebalanceStoreList=ImmutableList.copyOf(rebalanceSubTask.getUnbalancedStoreList());
+  for (  String storeName : rebalanceStoreList) {
+    try {
+      int rebalanceAsyncId=adminClient.rebalanceNode(storeName,rebalanceSubTask);
+      adminClient.waitForCompletion(rebalanceSubTask.getStealerId(),rebalanceAsyncId,24 * 60 * 60,TimeUnit.SECONDS);
+      rebalanceSubTask.getUnbalancedStoreList().remove(storeName);
+    }
+ catch (    Exception e) {
+      logger.warn("rebalanceSubTask:" + rebalanceSubTask + " failed for store:"+ storeName,e);
+      success=false;
+    }
+  }
+  if (!success)   throw new VoldemortException("rebalanceSubTask:" + rebalanceSubTask + " failed incomplete.");
+}

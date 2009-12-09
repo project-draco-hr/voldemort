@@ -1,0 +1,9 @@
+{
+  VectorClock clock1=(VectorClock)adminClient.getRemoteCluster(stealerId).getVersion();
+  VectorClock clock2=(VectorClock)adminClient.getRemoteCluster(donorId).getVersion();
+  Occured occured=clock1.compare(clock2);
+  if (occured.equals(Occured.AFTER))   return clock1;
+ else   if (occured.equals(Occured.BEFORE))   return clock2;
+ else   if (occured.equals(Occured.CONCURRENTLY))   throw new VoldemortException("Concurrent cluster vector clock for stealerNode:" + stealerId + "("+ clock1+ ") donorNode:"+ donorId+ "( "+ clock2+ " )");
+ else   throw new VoldemortException("Invalid state clock1:" + clock1 + " clock2:"+ clock2+ " Occured:"+ occured);
+}

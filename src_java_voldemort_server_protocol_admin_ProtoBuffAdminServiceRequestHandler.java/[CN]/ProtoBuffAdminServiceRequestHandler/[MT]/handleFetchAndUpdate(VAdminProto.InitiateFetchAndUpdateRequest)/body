@@ -16,7 +16,12 @@
           EventThrottler throttler=new EventThrottler(voldemortConfig.getStreamMaxWriteBytesPerSec());
           for (long i=0; entriesIterator.hasNext(); i++) {
             Pair<ByteArray,Versioned<byte[]>> entry=entriesIterator.next();
-            storageEngine.put(entry.getFirst(),entry.getSecond());
+            try {
+              storageEngine.put(entry.getFirst(),entry.getSecond());
+            }
+ catch (            ObsoleteVersionException e) {
+              logger.warn("FetchAndUpdate threw ObsoleteVersionException .. Ignoring.");
+            }
             throttler.maybeThrottle(entrySize(entry));
             if ((i % 1000) == 0) {
               updateStatus(i + " entries processed");

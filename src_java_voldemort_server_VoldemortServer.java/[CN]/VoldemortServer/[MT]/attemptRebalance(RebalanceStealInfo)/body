@@ -1,17 +1,22 @@
 {
   logger.info("Restarting rebalance for rebalanceSubTask:" + stealInfo);
-  AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadata.getCluster());
   Rebalancer rebalancer=new Rebalancer();
   stealInfo.setAttempt(stealInfo.getAttempt() + 1);
   List<String> unbalanceStoreList=ImmutableList.copyOf(stealInfo.getUnbalancedStoreList());
-  for (  String storeName : unbalanceStoreList) {
-    try {
-      int rebalanceAsyncId=rebalancer.rebalanceLocalNode(metadata,storeName,stealInfo,asyncRunner,adminClient);
-      adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,24 * 60 * 60,TimeUnit.SECONDS);
-      stealInfo.getUnbalancedStoreList().remove(storeName);
+  AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadata.getCluster());
+  try {
+    for (    String storeName : unbalanceStoreList) {
+      try {
+        int rebalanceAsyncId=rebalancer.rebalanceLocalNode(metadata,voldemortConfig,storeName,stealInfo,asyncRunner);
+        adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,24 * 60 * 60,TimeUnit.SECONDS);
+        stealInfo.getUnbalancedStoreList().remove(storeName);
+      }
+ catch (      Exception e) {
+        logger.warn("rebalanceSubTask:" + stealInfo + " failed for store:"+ storeName,e);
+      }
     }
- catch (    Exception e) {
-      logger.warn("rebalanceSubTask:" + stealInfo + " failed for store:"+ storeName,e);
-    }
+  }
+  finally {
+    adminClient.stop();
   }
 }
