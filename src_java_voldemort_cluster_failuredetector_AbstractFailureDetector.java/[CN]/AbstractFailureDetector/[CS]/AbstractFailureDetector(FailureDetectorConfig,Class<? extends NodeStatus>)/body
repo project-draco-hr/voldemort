@@ -1,0 +1,16 @@
+{
+  this.failureDetectorConfig=failureDetectorConfig;
+  listeners=Collections.synchronizedSet(new HashSet<FailureDetectorListener>());
+  nodeStatusMap=new ConcurrentHashMap<Node,NodeStatus>();
+  for (  Node node : failureDetectorConfig.getNodes()) {
+    NodeStatus nodeStatus=null;
+    try {
+      Constructor<? extends NodeStatus> nodeStatusCtor=nodeStatusClass.getConstructor(Time.class);
+      nodeStatus=nodeStatusCtor.newInstance(failureDetectorConfig.getTime());
+    }
+ catch (    Exception e) {
+      throw new VoldemortException(e);
+    }
+    nodeStatusMap.put(node,nodeStatus);
+  }
+}
