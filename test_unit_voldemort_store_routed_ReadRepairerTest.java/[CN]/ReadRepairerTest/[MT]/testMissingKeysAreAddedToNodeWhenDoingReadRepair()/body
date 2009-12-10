@@ -7,7 +7,7 @@
   for (int a=0; a < 3; a++) {
     subStores.put(Iterables.get(cluster.getNodes(),a).getId(),new InMemoryStorageEngine<ByteArray,byte[]>("test"));
   }
-  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setImplementationClassName(failureDetectorClass.getName()).setNodeBannagePeriod(1000).setNodes(cluster.getNodes()).setStoreResolver(createMutableStoreResolver(subStores)).setTime(time);
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setImplementationClassName(failureDetectorClass.getName()).setBannagePeriod(1000).setNodes(cluster.getNodes()).setStoreResolver(createMutableStoreResolver(subStores)).setTime(time);
   failureDetector=create(failureDetectorConfig);
   RoutedStore store=new RoutedStore("test",subStores,cluster,storeDef,1,true,1000L,failureDetector);
   recordException(failureDetector,Iterables.get(cluster.getNodes(),0));
