@@ -1,0 +1,24 @@
+{
+  Properties properties=getEc2Properties();
+  accessId=properties.getProperty("ec2AccessId");
+  secretKey=properties.getProperty("ec2SecretKey");
+  ami=properties.getProperty("ec2Ami");
+  keyPairId=properties.getProperty("ec2KeyPairId");
+  sshPrivateKeyPath=properties.getProperty("ec2SshPrivateKeyPath");
+  hostUserId=properties.getProperty("ec2HostUserId");
+  sshPrivateKey=sshPrivateKeyPath != null ? new File(sshPrivateKeyPath) : null;
+  voldemortRootDirectory=properties.getProperty("ec2VoldemortRootDirectory");
+  voldemortHomeDirectory=properties.getProperty("ec2VoldemortHomeDirectory");
+  sourceDirectory=new File(properties.getProperty("ec2SourceDirectory"));
+  parentDirectory=properties.getProperty("ec2ParentDirectory");
+  clusterXmlFile=new File(properties.getProperty("ec2ClusterXmlFile"));
+  int ec2InstanceCount=Integer.parseInt(properties.getProperty("ec2InstanceCount"));
+  rampTime=Integer.parseInt(properties.getProperty("ec2RampTime"));
+  iterations=Integer.parseInt(properties.getProperty("ec2Iterations"));
+  numRequests=Integer.parseInt(properties.getProperty("ec2NumRequests"));
+  hostNamePairs=createInstances(accessId,secretKey,ami,keyPairId,ec2InstanceCount);
+  hostNames=toHostNames(hostNamePairs);
+  nodeIds=generateClusterDescriptor(hostNamePairs,"test",clusterXmlFile);
+  if (logger.isInfoEnabled())   logger.info("Sleeping for 30 seconds to give EC2 instances some time to complete startup");
+  Thread.sleep(30000);
+}

@@ -1,6 +1,9 @@
 {
   Element root=new Element(STORES_ELMT);
-  for (  StoreDefinition def : stores)   root.addContent(toElement(def));
+  for (  StoreDefinition def : stores) {
+    if (def.isView())     root.addContent(viewToElement(def));
+ else     root.addContent(storeToElement(def));
+  }
   XMLOutputter serializer=new XMLOutputter(Format.getPrettyFormat());
   return serializer.outputString(root);
 }

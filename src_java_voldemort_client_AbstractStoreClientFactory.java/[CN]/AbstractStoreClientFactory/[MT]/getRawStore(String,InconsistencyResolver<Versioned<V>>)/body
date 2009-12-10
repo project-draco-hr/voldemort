@@ -12,7 +12,8 @@
     store=new LoggingStore(store);
     clientMapping.put(node.getId(),store);
   }
-  Store<ByteArray,byte[]> store=new RoutedStore(storeName,clientMapping,cluster,storeDef,true,threadPool,routingTimeoutMs,failureDetector,SystemTime.INSTANCE);
+  boolean repairReads=!storeDef.isView();
+  Store<ByteArray,byte[]> store=new RoutedStore(storeName,clientMapping,cluster,storeDef,repairReads,threadPool,routingTimeoutMs,failureDetector,SystemTime.INSTANCE);
   if (isJmxEnabled) {
     store=new StatTrackingStore(store);
     try {
@@ -27,7 +28,7 @@
   }
   Serializer<K> keySerializer=(Serializer<K>)serializerFactory.getSerializer(storeDef.getKeySerializer());
   Serializer<V> valueSerializer=(Serializer<V>)serializerFactory.getSerializer(storeDef.getValueSerializer());
-  Store<K,V> serializedStore=new SerializingStore<K,V>(store,keySerializer,valueSerializer);
+  Store<K,V> serializedStore=SerializingStore.wrap(store,keySerializer,valueSerializer);
   InconsistencyResolver<Versioned<V>> secondaryResolver=resolver == null ? new TimeBasedInconsistencyResolver() : resolver;
   serializedStore=new InconsistencyResolvingStore<K,V>(serializedStore,new ChainedResolver<Versioned<V>>(new VectorClockInconsistencyResolver(),secondaryResolver));
   return serializedStore;
