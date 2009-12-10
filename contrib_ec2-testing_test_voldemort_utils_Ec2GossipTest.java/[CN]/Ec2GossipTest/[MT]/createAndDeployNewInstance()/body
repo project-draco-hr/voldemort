@@ -1,0 +1,10 @@
+{
+  HostNamePair newInstance=createInstances(accessId,secretKey,ami,keyPairId,1).get(0);
+  hostNamePairs.add(newInstance);
+  hostNames=toHostNames(hostNamePairs);
+  nodeIds=generateClusterDescriptor(hostNamePairs,"test",clusterXmlFile);
+  Thread.sleep(15000);
+  if (logger.isInfoEnabled())   logger.info("Sleep for 15 seconds to give the new EC2 instance some time to startup");
+  deploy(ImmutableList.of(newInstance.getExternalHostName()),sshPrivateKey,hostUserId,sourceDirectory,parentDirectory);
+  return new Pair<HostNamePair,Integer>(newInstance,nodeIds.get(newInstance.getExternalHostName()));
+}

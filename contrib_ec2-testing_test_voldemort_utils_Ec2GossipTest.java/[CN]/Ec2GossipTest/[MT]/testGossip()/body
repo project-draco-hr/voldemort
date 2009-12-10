@@ -1,0 +1,28 @@
+{
+  deploy(hostNames,sshPrivateKey,hostUserId,sourceDirectory,parentDirectory);
+  try {
+    startClusterAsync(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeIds);
+    Pair<HostNamePair,Integer> newInstance=createAndDeployNewInstance();
+    String newHostname=newInstance.getFirst().getExternalHostName();
+    final int nodeId=newInstance.getSecond();
+    startClusterNode(newHostname,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeId);
+    Thread.sleep(5000);
+    if (logger.isInfoEnabled())     logger.info("Sleeping for 5 seconds to start Voldemort on the new node.");
+    AdminClient adminClient=getAdminClient(newHostname);
+    Versioned<String> versioned=adminClient.getRemoteMetadata(nodeId,MetadataStore.CLUSTER_KEY);
+    Integer seedNode=Iterables.find(nodeIds.values(),new Predicate<Integer>(){
+      public boolean apply(      Integer input){
+        return !input.equals(nodeId);
+      }
+    }
+);
+    Version version=versioned.getVersion();
+    ((VectorClock)version).incrementVersion(nodeId,((VectorClock)version).getTimestamp() + 1);
+    ((VectorClock)version).incrementVersion(seedNode,((VectorClock)version).getTimestamp() + 1);
+    adminClient.updateRemoteMetadata(nodeId,MetadataStore.CLUSTER_KEY,versioned);
+    adminClient.updateRemoteMetadata(seedNode,MetadataStore.CLUSTER_KEY,versioned);
+  }
+  finally {
+    stopCluster(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory);
+  }
+}
