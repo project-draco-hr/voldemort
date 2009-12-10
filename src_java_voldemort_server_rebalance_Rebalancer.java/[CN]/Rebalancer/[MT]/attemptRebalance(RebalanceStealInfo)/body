@@ -2,13 +2,21 @@
   stealInfo.setAttempt(stealInfo.getAttempt() + 1);
   List<String> unbalanceStoreList=ImmutableList.copyOf(stealInfo.getUnbalancedStoreList());
   for (  String storeName : unbalanceStoreList) {
+    AdminClient adminClient=RebalanceUtils.createTempAdminClient(config,metadataStore.getCluster());
     try {
       int rebalanceAsyncId=rebalanceLocalNode(storeName,stealInfo);
+      if (-1 == rebalanceAsyncId) {
+        logger.warn("rebalancer is already running, aborting this rebalanceService run() ..");
+        return;
+      }
       adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,24 * 60 * 60,TimeUnit.SECONDS);
       stealInfo.getUnbalancedStoreList().remove(storeName);
     }
  catch (    Exception e) {
       logger.warn("rebalanceSubTask:" + stealInfo + " failed for store:"+ storeName,e);
+    }
+ finally {
+      adminClient.stop();
     }
   }
 }
