@@ -3,12 +3,12 @@
   try {
     startClusterAsync(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeIds);
     Pair<HostNamePair,Integer> newInstance=createAndDeployNewInstance();
-    String newHostname=newInstance.getFirst().getExternalHostName();
+    final String newHostname=newInstance.getFirst().getExternalHostName();
     final int nodeId=newInstance.getSecond();
     startClusterNode(newHostname,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeId);
     Thread.sleep(5000);
     if (logger.isInfoEnabled())     logger.info("Sleeping for 5 seconds to start Voldemort on the new node.");
-    AdminClient adminClient=getAdminClient(newHostname);
+    final AdminClient adminClient=getAdminClient(newHostname);
     Versioned<String> versioned=adminClient.getRemoteMetadata(nodeId,MetadataStore.CLUSTER_KEY);
     Integer seedNode=Iterables.find(nodeIds.values(),new Predicate<Integer>(){
       public boolean apply(      Integer input){
@@ -21,6 +21,26 @@
     ((VectorClock)version).incrementVersion(seedNode,((VectorClock)version).getTimestamp() + 1);
     adminClient.updateRemoteMetadata(nodeId,MetadataStore.CLUSTER_KEY,versioned);
     adminClient.updateRemoteMetadata(seedNode,MetadataStore.CLUSTER_KEY,versioned);
+    assertWithBackoff(500,10000,new Attempt(){
+      public void checkCondition(){
+        int nodesAware=0;
+        for (        int testNodeId : nodeIds.values()) {
+          ClusterMapper clusterMapper=new ClusterMapper();
+          Versioned<String> clusterXml=adminClient.getRemoteMetadata(testNodeId,MetadataStore.CLUSTER_KEY);
+          Cluster cluster=clusterMapper.readCluster(new StringReader(clusterXml.getValue()));
+          boolean foundNode=false;
+          for (          Node node : cluster.getNodes()) {
+            if (node.getHost().equals(newHostname) && node.getId() == nodeId) {
+              foundNode=true;
+              break;
+            }
+          }
+          if (foundNode)           nodesAware++;
+        }
+        assertEquals("All nodes aware of " + nodeId,nodesAware,nodeIds.size());
+      }
+    }
+);
   }
   finally {
     stopCluster(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory);
