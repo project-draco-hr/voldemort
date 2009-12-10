@@ -1,0 +1,14 @@
+{
+  stealInfo.setAttempt(stealInfo.getAttempt() + 1);
+  List<String> unbalanceStoreList=ImmutableList.copyOf(stealInfo.getUnbalancedStoreList());
+  for (  String storeName : unbalanceStoreList) {
+    try {
+      int rebalanceAsyncId=rebalanceLocalNode(storeName,stealInfo);
+      adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,24 * 60 * 60,TimeUnit.SECONDS);
+      stealInfo.getUnbalancedStoreList().remove(storeName);
+    }
+ catch (    Exception e) {
+      logger.warn("rebalanceSubTask:" + stealInfo + " failed for store:"+ storeName,e);
+    }
+  }
+}
