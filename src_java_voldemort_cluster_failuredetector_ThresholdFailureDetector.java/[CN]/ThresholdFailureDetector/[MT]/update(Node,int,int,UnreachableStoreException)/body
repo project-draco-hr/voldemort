@@ -1,9 +1,12 @@
 {
+  final long currentTime=getConfig().getTime().getMilliseconds();
+  final long thresholdInterval=getConfig().getThresholdInterval();
+  final int thresholdCountMinimum=getConfig().getThresholdCountMinimum();
+  final int threshold=getConfig().getThreshold();
   NodeStatus nodeStatus=getNodeStatus(node);
 synchronized (nodeStatus) {
-    nodeStatus.setLastChecked(getConfig().getTime().getMilliseconds());
-    if (nodeStatus.getLastChecked() >= nodeStatus.getStartMillis() + getConfig().getThresholdInterval()) {
-      nodeStatus.setStartMillis(nodeStatus.getLastChecked());
+    if (currentTime >= nodeStatus.getStartMillis() + thresholdInterval) {
+      nodeStatus.setStartMillis(currentTime);
       nodeStatus.setSuccess(successDelta);
       nodeStatus.setTotal(totalDelta);
       setAvailable(node);
@@ -11,10 +14,9 @@ synchronized (nodeStatus) {
  else {
       nodeStatus.incrementSuccess(successDelta);
       nodeStatus.incrementTotal(totalDelta);
-      int thresholdCountMinimum=getConfig().getThresholdCountMinimum();
       if (nodeStatus.getTotal() >= thresholdCountMinimum) {
-        long threshold=(nodeStatus.getSuccess() * 100) / nodeStatus.getTotal();
-        if (threshold >= getConfig().getThreshold())         setAvailable(node);
+        long newThreshold=(nodeStatus.getSuccess() * 100) / nodeStatus.getTotal();
+        if (newThreshold >= threshold)         setAvailable(node);
  else         setUnavailable(node,e);
       }
     }
