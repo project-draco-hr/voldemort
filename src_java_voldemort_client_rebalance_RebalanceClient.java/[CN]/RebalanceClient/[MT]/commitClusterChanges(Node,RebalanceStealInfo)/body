@@ -1,6 +1,6 @@
 {
 synchronized (adminClient) {
-    VectorClock clock=getLatestClusterClock(stealerNode.getId(),rebalanceStealInfo.getDonorId());
+    VectorClock clock=getLatestClusterClock(Arrays.asList(stealerNode.getId(),rebalanceStealInfo.getDonorId()));
     Cluster oldCluster=adminClient.getCluster();
     try {
       Cluster newCluster=RebalanceUtils.createUpdatedCluster(oldCluster,stealerNode,oldCluster.getNodeById(rebalanceStealInfo.getDonorId()),rebalanceStealInfo.getPartitionList());
@@ -9,9 +9,10 @@ synchronized (adminClient) {
       adminClient.setCluster(newCluster);
     }
  catch (    Exception e) {
+      logger.error("Failed to commit rebalance on node:" + stealerNode.getId() + " REVERTING cluster changes ...",e);
       clock.incrementVersion(stealerNode.getId(),System.currentTimeMillis());
       RebalanceUtils.propagateCluster(adminClient,oldCluster,clock,new ArrayList<Integer>());
-      throw new VoldemortException("Failed to commit rebalance on node:" + stealerNode.getId(),e);
+      throw new VoldemortException(e);
     }
   }
 }

@@ -1,13 +1,20 @@
 {
+  logger.debug("rebalancer run() called.");
   if (VoldemortState.REBALANCING_MASTER_SERVER.equals(metadataStore.getServerState()) && acquireRebalancingPermit()) {
+    releaseRebalancingPermit();
     RebalanceStealInfo stealInfo=metadataStore.getRebalancingStealInfo();
-    logger.warn("Rebalance server found incomplete rebalancing attempt restarting " + stealInfo);
-    if (stealInfo.getAttempt() < config.getMaxRebalancingAttempt()) {
-      attemptRebalance(stealInfo);
-    }
+    try {
+      logger.warn("Rebalance server found incomplete rebalancing attempt " + stealInfo + " restarting ...");
+      if (stealInfo.getAttempt() < config.getMaxRebalancingAttempt()) {
+        attemptRebalance(stealInfo);
+      }
  else {
-      logger.warn("Rebalancing for rebalancing task:" + stealInfo + " failed multiple times, Aborting more trials...");
+        logger.warn("Rebalancing for rebalancing task:" + stealInfo + " failed multiple times, Aborting more trials...");
+        metadataStore.cleanAllRebalancingState();
+      }
     }
-    metadataStore.cleanAllRebalancingState();
+ catch (    Exception e) {
+      logger.error("RebalanceService rebalancing attempt " + stealInfo + " failed with exception",e);
+    }
   }
 }

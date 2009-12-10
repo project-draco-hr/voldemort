@@ -15,15 +15,13 @@
             addNodeIfnotPresent(targetCluster,stealerNodeId);
             Node stealerNode=adminClient.getCluster().getNodeById(stealerNodeId);
             List<RebalanceStealInfo> rebalanceSubTaskList=rebalanceTask.getSecond();
-            logger.debug("Starting rebalancing for stealerNode (" + stealerNode + ")");
             while (rebalanceSubTaskList.size() > 0) {
-              logger.debug("rebalanceSubTaskList:" + rebalanceSubTaskList);
               RebalanceStealInfo rebalanceSubTask=rebalanceSubTaskList.remove(0);
+              logger.info("Starting rebalancing for stealerNode:" + stealerNode + " rebalanceInfo:"+ rebalanceSubTask);
               try {
-                logger.debug("Starting RebalanceSubTask attempt (" + rebalanceSubTask + ")");
                 commitClusterChanges(stealerNode,rebalanceSubTask);
                 attemptRebalanceSubTask(rebalanceSubTask);
-                logger.debug("Successfully finished RebalanceSubTask attempt:" + rebalanceSubTask);
+                logger.info("Successfully finished RebalanceSubTask attempt:" + rebalanceSubTask);
               }
  catch (              Exception e) {
                 logger.warn("rebalancing task (" + rebalanceSubTask + ") failed with exception:",e);

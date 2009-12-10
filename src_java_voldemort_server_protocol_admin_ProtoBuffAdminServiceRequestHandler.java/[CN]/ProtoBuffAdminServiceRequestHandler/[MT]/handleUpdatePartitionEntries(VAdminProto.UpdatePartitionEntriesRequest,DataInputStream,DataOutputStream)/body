@@ -12,7 +12,12 @@
       ByteArray key=ProtoUtils.decodeBytes(partitionEntry.getKey());
       Versioned<byte[]> value=ProtoUtils.decodeVersioned(partitionEntry.getVersioned());
       if (filter.accept(key,value)) {
-        storageEngine.put(key,value);
+        try {
+          storageEngine.put(key,value);
+        }
+ catch (        ObsoleteVersionException e) {
+          logger.debug("updateEntries (Streaming put) threw ObsoleteVersionException .. Ignoring.");
+        }
         if (throttler != null) {
           throttler.maybeThrottle(entrySize(Pair.create(key,value)));
         }
