@@ -4,15 +4,4 @@
   for (  VoldemortService service : services)   service.start();
   long end=System.currentTimeMillis();
   logger.info("Startup completed in " + (end - start) + " ms.");
-  if (!metadata.getServerState().equals(VoldemortState.NORMAL_SERVER)) {
-    logger.warn("Server started in " + metadata.getServerState() + " state.");
-    RebalanceStealInfo stealInfo=metadata.getRebalancingStealInfo();
-    if (stealInfo.getAttempt() < voldemortConfig.getMaxRebalancingAttempt()) {
-      attemptRebalance(stealInfo);
-    }
- else {
-      logger.warn("Rebalancing for rebalancing task:" + stealInfo + " failed multiple times, Force starting into NORMAL mode !!");
-    }
-    metadata.cleanAllRebalancingState();
-  }
 }
