@@ -2,12 +2,12 @@
   deploy(hostNames,sshPrivateKey,hostUserId,sourceDirectory,parentDirectory);
   try {
     startClusterAsync(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeIds);
-    Pair<HostNamePair,Integer> newInstance=createAndDeployNewInstance();
+    final Pair<HostNamePair,Integer> newInstance=createAndDeployNewInstance();
     final String newHostname=newInstance.getFirst().getExternalHostName();
     final int nodeId=newInstance.getSecond();
     startClusterNode(newHostname,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeId);
-    Thread.sleep(5000);
     if (logger.isInfoEnabled())     logger.info("Sleeping for 5 seconds to start Voldemort on the new node.");
+    Thread.sleep(5000);
     final AdminClient adminClient=getAdminClient(newHostname);
     Versioned<String> versioned=adminClient.getRemoteMetadata(nodeId,MetadataStore.CLUSTER_KEY);
     Integer seedNode=Iterables.find(nodeIds.values(),new Predicate<Integer>(){
@@ -30,7 +30,7 @@
           Cluster cluster=clusterMapper.readCluster(new StringReader(clusterXml.getValue()));
           boolean foundNode=false;
           for (          Node node : cluster.getNodes()) {
-            if (node.getHost().equals(newHostname) && node.getId() == nodeId) {
+            if (node.getHost().equals(newInstance.getFirst().getInternalHostName()) && node.getId() == nodeId) {
               foundNode=true;
               break;
             }
