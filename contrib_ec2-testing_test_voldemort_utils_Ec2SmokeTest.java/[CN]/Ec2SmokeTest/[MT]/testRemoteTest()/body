@@ -1,10 +1,13 @@
 {
-  deploy(hostNames,sshPrivateKey,hostUserId,sourceDirectory,parentDirectory);
-  try {
-    startClusterAsync(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeIds);
-    executeRemoteTest(hostNamePairs,voldemortRootDirectory,sshPrivateKey,hostUserId,rampTime,iterations,numRequests);
+  Map<String,String> commands=new HashMap<String,String>();
+  List<String> hostNames=new ArrayList<String>();
+  String bootstrapHostName=hostNamePairs.get(0).getInternalHostName();
+  int i=0;
+  for (  HostNamePair hostNamePair : hostNamePairs)   hostNames.add(hostNamePair.getExternalHostName());
+  for (  HostNamePair hostNamePair : hostNamePairs) {
+    String command="cd " + ec2SmokeTestConfig.getVoldemortRootDirectory() + " ; sleep "+ (i * ec2SmokeTestConfig.rampTime)+ "; ./bin/voldemort-remote-test.sh -w -d --iterations "+ ec2SmokeTestConfig.iterations+ " --start-key-index "+ (i * ec2SmokeTestConfig.numRequests)+ " tcp://"+ bootstrapHostName+ ":6666 test "+ ec2SmokeTestConfig.numRequests;
+    commands.put(hostNamePair.getExternalHostName(),command);
+    i++;
   }
-  finally {
-    stopCluster(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory);
-  }
+  executeRemoteTest(hostNames,ec2SmokeTestConfig,commands);
 }
