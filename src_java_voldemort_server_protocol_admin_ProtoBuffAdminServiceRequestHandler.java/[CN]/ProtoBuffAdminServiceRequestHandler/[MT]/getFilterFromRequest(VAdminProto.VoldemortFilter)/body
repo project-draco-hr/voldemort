@@ -1,18 +1,18 @@
 {
-  VoldemortFilter filter;
-  if (voldemortConfig.isNetworkClassLoaderEnabled()) {
-    byte[] classBytes=ProtoUtils.decodeBytes(request.getData()).get();
-    String className=request.getName();
-    try {
-      Class<?> cl=networkClassLoader.loadClass(className,classBytes,0,classBytes.length);
+  VoldemortFilter filter=null;
+  byte[] classBytes=ProtoUtils.decodeBytes(request.getData()).get();
+  String className=request.getName();
+  try {
+    if (voldemortConfig.isNetworkClassLoaderEnabled()) {
+      throw new VoldemortException("NetworkLoader is experimental and is disabled for now.");
+    }
+ else {
+      Class<?> cl=Thread.currentThread().getContextClassLoader().loadClass(className);
       filter=(VoldemortFilter)cl.newInstance();
     }
- catch (    Exception e) {
-      throw new VoldemortException("Failed to load and instantiate the filter class",e);
-    }
   }
- else {
-    throw new VoldemortException("NetworkLoader is experimental and disabled by default.");
+ catch (  Exception e) {
+    throw new VoldemortException("Failed to load and instantiate the filter class",e);
   }
   return filter;
 }
