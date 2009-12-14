@@ -1,0 +1,10 @@
+{
+  Store<ByteArray,byte[]> store;
+  if (node.getId() == localNode) {
+    store=this.storeRepository.getLocalStore(storeName);
+  }
+ else {
+    store=new SocketStore(storeName,new SocketDestination(node.getHost(),node.getSocketPort(),voldemortConfig.getRequestFormatType()),socketPool,false);
+  }
+  return store;
+}
