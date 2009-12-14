@@ -37,8 +37,8 @@
   this.adminStreamBufferSize=(int)props.getBytes("admin.streams.buffer.size",10 * 1000 * 1000);
   this.adminConnectionTimeout=props.getInt("admin.client.socket.timeout.ms",5 * 60 * 1000);
   this.adminSocketTimeout=props.getInt("admin.client.socket.timeout.ms",10000);
-  this.streamMaxReadBytesPerSec=props.getInt("stream.read.byte.per.sec",1 * 1000 * 1000);
-  this.streamMaxWriteBytesPerSec=props.getInt("stream.write.byte.per.sec",1 * 1000 * 1000);
+  this.streamMaxReadBytesPerSec=props.getInt("stream.read.byte.per.sec",10 * 1000 * 1000);
+  this.streamMaxWriteBytesPerSec=props.getInt("stream.write.byte.per.sec",10 * 1000 * 1000);
   this.socketTimeoutMs=props.getInt("socket.timeout.ms",4000);
   this.socketBufferSize=(int)props.getBytes("socket.buffer.size",32 * 1024);
   this.useNioConnector=props.getBoolean("enable.nio.connector",false);
@@ -69,5 +69,6 @@
   this.allProps=props;
   String requestFormatName=props.getString("request.format",RequestFormatType.VOLDEMORT_V1.getCode());
   this.requestFormatType=RequestFormatType.fromCode(requestFormatName);
+  this.enableNetworkClassLoader=props.getBoolean("enable.network.classloader",false);
   validateParams();
 }
