@@ -1,0 +1,11 @@
+{
+  for (int attempts=0; attempts < this.maxMetadataRefreshAttempts; attempts++) {
+    try {
+      return super.getAll(keys);
+    }
+ catch (    InvalidMetadataException e) {
+      reinit();
+    }
+  }
+  throw new InvalidMetadataException(this.maxMetadataRefreshAttempts + " metadata refresh attempts failed.");
+}
