@@ -7,8 +7,10 @@
   ReservationDescription reservationDescription=ec2.runInstances(launchConfiguration);
   List<String> instanceIds=new ArrayList<String>();
   for (  ReservationDescription.Instance instance : reservationDescription.getInstances()) {
-    if (logger.isInfoEnabled())     logger.info("Instance " + instance.getInstanceId() + " launched");
-    instanceIds.add(instance.getInstanceId());
+    String instanceId=instance.getInstanceId();
+    if (logger.isInfoEnabled())     logger.info("Instance " + instanceId + " launched");
+    instanceIds.add(instanceId);
+    if (listener != null)     listener.instanceCreated(instanceId);
   }
   List<HostNamePair> hostNamePairs=new ArrayList<HostNamePair>();
   while (!instanceIds.isEmpty()) {
