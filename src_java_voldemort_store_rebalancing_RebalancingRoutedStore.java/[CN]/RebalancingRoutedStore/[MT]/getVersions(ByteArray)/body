@@ -1,0 +1,11 @@
+{
+  for (int attempts=0; attempts < this.maxMetadataRefreshAttempts; attempts++) {
+    try {
+      return super.getVersions(key);
+    }
+ catch (    InvalidMetadataException e) {
+      reinit();
+    }
+  }
+  throw new InvalidMetadataException(this.maxMetadataRefreshAttempts + " metadata refresh attempts failed for server side routing.");
+}

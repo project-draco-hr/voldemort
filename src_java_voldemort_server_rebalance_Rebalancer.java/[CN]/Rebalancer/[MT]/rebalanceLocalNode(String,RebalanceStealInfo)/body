@@ -4,16 +4,17 @@
   asyncRunner.submitOperation(requestId,new AsyncOperation(requestId,stealInfo.toString()){
     private int fetchAndUpdateAsyncId=-1;
     @Override public void operate() throws Exception {
-      AdminClient adminClient=RebalanceUtils.createTempAdminClient(config,metadataStore.getCluster());
+      AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster());
       try {
         logger.info("Rebalancer: rebalance " + stealInfo + " starting.");
+        checkAndCreateRedirectingSocketStore(storeName,stealInfo.getDonorId());
         checkCurrentState(metadataStore,stealInfo);
         setRebalancingState(metadataStore,stealInfo);
         fetchAndUpdateAsyncId=adminClient.fetchAndUpdateStreams(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getPartitionList(),null);
         adminClient.waitForCompletion(metadataStore.getNodeId(),fetchAndUpdateAsyncId,24 * 60 * 60,TimeUnit.SECONDS);
         logger.info("Rebalancer: rebalance " + stealInfo + " completed successfully.");
         metadataStore.cleanAllRebalancingState();
-        if (config.isDeleteAfterRebalancingEnabled()) {
+        if (voldemortConfig.isDeleteAfterRebalancingEnabled()) {
           logger.warn("Deleting data from donorNode after rebalancing !!");
           adminClient.deletePartitions(stealInfo.getDonorId(),storeName,stealInfo.getPartitionList(),null);
           logger.info("Deleted partitions " + stealInfo.getPartitionList() + " from donorNode:"+ stealInfo.getDonorId());
