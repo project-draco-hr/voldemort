@@ -1,12 +1,6 @@
 {
-  deploy(hostNames,sshPrivateKey,hostUserId,sourceDirectory,parentDirectory);
-  try {
-    startClusterAsync(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeIds);
-    String offlineHostName=hostNames.get(0);
-    stopClusterNode(offlineHostName,sshPrivateKey,hostUserId,voldemortRootDirectory);
-    startClusterNode(offlineHostName,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeIds.get(hostNames.get(0)));
-  }
-  finally {
-    stopCluster(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory);
-  }
+  String offlineHostName=hostNames.get(0);
+  Integer nodeId=nodeIds.get(offlineHostName);
+  stopClusterNode(offlineHostName,ec2SmokeTestConfig);
+  startClusterNode(offlineHostName,ec2SmokeTestConfig,nodeId);
 }
