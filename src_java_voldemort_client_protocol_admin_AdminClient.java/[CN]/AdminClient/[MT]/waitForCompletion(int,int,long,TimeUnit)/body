@@ -3,6 +3,7 @@
   long waitUntil=System.currentTimeMillis() + timeUnit.toMillis(maxWait);
   while (System.currentTimeMillis() < waitUntil) {
     AsyncOperationStatus status=getAsyncRequestStatus(nodeId,requestId);
+    logger.debug("Status for async task " + requestId + " at node "+ nodeId+ " is "+ status);
     if (status.isComplete())     return;
     if (delay < MAX_DELAY) {
       delay<<=2;

@@ -7,6 +7,10 @@
   parser.accepts("p","partition id").withRequiredArg().ofType(Integer.class).withValuesSeparatedBy(',');
   OptionSet options=parser.parse(args);
   List<String> nonOptions=options.nonOptionArguments();
+  if (args.length < 2) {
+    System.out.println(usageStr);
+    return;
+  }
   String bootstrapUrl=nonOptions.get(0);
   String storeName=nonOptions.get(1);
   if (!options.has("p") && !options.has("n")) {
