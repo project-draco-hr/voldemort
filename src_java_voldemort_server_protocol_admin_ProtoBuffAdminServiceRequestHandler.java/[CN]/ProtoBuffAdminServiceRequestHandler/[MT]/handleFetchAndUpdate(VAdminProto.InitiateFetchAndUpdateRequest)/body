@@ -11,7 +11,7 @@
         AdminClient adminClient=createTempAdminClient();
         try {
           StorageEngine<ByteArray,byte[]> storageEngine=getStorageEngine(storeName);
-          Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=adminClient.fetchPartitionEntries(nodeId,storeName,partitions,filter);
+          Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=adminClient.fetchEntries(nodeId,storeName,partitions,filter);
           updateStatus("Initated fetchPartitionEntries");
           EventThrottler throttler=new EventThrottler(voldemortConfig.getStreamMaxWriteBytesPerSec());
           for (long i=0; entriesIterator.hasNext(); i++) {
@@ -28,13 +28,13 @@
         }
       }
       private AdminClient createTempAdminClient(){
-        ClientConfig config=new ClientConfig();
+        AdminClientConfig config=new AdminClientConfig();
         config.setMaxConnectionsPerNode(1);
         config.setMaxThreads(1);
         config.setConnectionTimeout(voldemortConfig.getAdminConnectionTimeout(),TimeUnit.MILLISECONDS);
         config.setSocketTimeout(voldemortConfig.getAdminSocketTimeout(),TimeUnit.MILLISECONDS);
         config.setSocketBufferSize(voldemortConfig.getAdminSocketBufferSize());
-        return new ProtoBuffAdminClientRequestFormat(metadataStore.getCluster(),config);
+        return new AdminClient(metadataStore.getCluster(),config);
       }
     }
 );
