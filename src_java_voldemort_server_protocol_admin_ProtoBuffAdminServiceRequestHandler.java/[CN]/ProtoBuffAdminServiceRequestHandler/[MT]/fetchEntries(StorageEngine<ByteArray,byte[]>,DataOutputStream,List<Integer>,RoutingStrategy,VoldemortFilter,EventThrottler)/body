@@ -1,10 +1,14 @@
 {
   ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=null;
   try {
+    int counter=0;
+    int fetched=0;
+    long startTime=System.currentTimeMillis();
     iterator=storageEngine.entries();
     while (iterator.hasNext()) {
       Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
       if (validPartition(entry.getFirst().get(),partitionList,routingStrategy) && filter.accept(entry.getFirst(),entry.getSecond())) {
+        fetched++;
         VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
         VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(entry.getFirst())).setVersioned(ProtoUtils.encodeVersioned(entry.getSecond())).build();
         response.setPartitionEntry(partitionEntry);
@@ -13,6 +17,11 @@
         if (throttler != null) {
           throttler.maybeThrottle(entrySize(entry));
         }
+      }
+      counter++;
+      if (0 == counter % 100000) {
+        long totalTime=(System.currentTimeMillis() - startTime) / 1000;
+        logger.debug("fetchEntries() scanned " + counter + " entries, fetched "+ fetched+ " entries for store:"+ storageEngine.getName()+ " partition:"+ partitionList+ " in "+ totalTime+ " s");
       }
     }
   }

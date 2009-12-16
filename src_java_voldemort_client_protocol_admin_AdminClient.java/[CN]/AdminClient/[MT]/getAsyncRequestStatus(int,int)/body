@@ -1,0 +1,10 @@
+{
+  VAdminProto.AsyncOperationStatusRequest asyncRequest=VAdminProto.AsyncOperationStatusRequest.newBuilder().setRequestId(requestId).build();
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.ASYNC_OPERATION_STATUS).setAsyncOperationStatus(asyncRequest).build();
+  VAdminProto.AsyncOperationStatusResponse.Builder response=sendAndReceive(nodeId,adminRequest,VAdminProto.AsyncOperationStatusResponse.newBuilder());
+  if (response.hasError())   throwException(response.getError());
+  AsyncOperationStatus status=new AsyncOperationStatus(response.getRequestId(),response.getDescription());
+  status.setStatus(response.getStatus());
+  status.setComplete(response.getComplete());
+  return status;
+}

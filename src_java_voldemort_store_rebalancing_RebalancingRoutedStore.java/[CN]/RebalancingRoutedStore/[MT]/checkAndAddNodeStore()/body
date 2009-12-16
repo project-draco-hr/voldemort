@@ -1,0 +1,10 @@
+{
+  for (  Node node : metadata.getCluster().getNodes()) {
+    if (!getInnerStores().containsKey(node.getId())) {
+      if (!storeRepository.hasNodeStore(getName(),node.getId())) {
+        storeRepository.addNodeStore(node.getId(),createNodeStore(node));
+      }
+      getInnerStores().put(node.getId(),storeRepository.getNodeStore(getName(),node.getId()));
+    }
+  }
+}

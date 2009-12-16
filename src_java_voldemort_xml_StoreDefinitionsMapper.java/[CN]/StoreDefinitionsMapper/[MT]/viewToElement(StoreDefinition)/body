@@ -1,0 +1,16 @@
+{
+  Element store=new Element(VIEW_ELMT);
+  store.addContent(new Element(STORE_NAME_ELMT).setText(storeDefinition.getName()));
+  store.addContent(new Element(VIEW_TARGET_ELMT).setText(storeDefinition.getViewTargetStoreName()));
+  if (storeDefinition.getValueTransformation() == null)   throw new MappingException("View " + storeDefinition.getName() + " has no defined transformation class.");
+  store.addContent(new Element(VIEW_TRANS_ELMT).setText(storeDefinition.getValueTransformation().getClass().getName()));
+  store.addContent(new Element(STORE_ROUTING_TIER_ELMT).setText(storeDefinition.getRoutingPolicy().toDisplay()));
+  if (storeDefinition.hasPreferredReads())   store.addContent(new Element(STORE_PREFERRED_READS_ELMT).setText(Integer.toString(storeDefinition.getPreferredReads())));
+  store.addContent(new Element(STORE_REQUIRED_READS_ELMT).setText(Integer.toString(storeDefinition.getRequiredReads())));
+  if (storeDefinition.hasPreferredWrites())   store.addContent(new Element(STORE_PREFERRED_WRITES_ELMT).setText(Integer.toString(storeDefinition.getPreferredWrites())));
+  store.addContent(new Element(STORE_REQUIRED_WRITES_ELMT).setText(Integer.toString(storeDefinition.getRequiredWrites())));
+  Element valueSerializer=new Element(STORE_VALUE_SERIALIZER_ELMT);
+  addSerializer(valueSerializer,storeDefinition.getValueSerializer());
+  store.addContent(valueSerializer);
+  return store;
+}

@@ -43,7 +43,7 @@
   System.out.println("iterations : " + numIterations);
   System.out.println("threads : " + numThreads);
   System.out.println("Bootstraping cluster data.");
-  StoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setMaxThreads(numThreads).setMaxTotalConnections(numThreads).setMaxConnectionsPerNode(numThreads).setBootstrapUrls(url));
+  StoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setMaxThreads(numThreads).setMaxTotalConnections(numThreads).setMaxConnectionsPerNode(numThreads).setBootstrapUrls(url).setConnectionTimeout(60,TimeUnit.SECONDS).setSocketTimeout(60,TimeUnit.SECONDS).setSocketBufferSize(4 * 1024));
   final StoreClient<String,String> store=factory.getStoreClient(storeName);
   final String value=TestUtils.randomLetters(valueSize);
   ExecutorService service=Executors.newFixedThreadPool(numThreads);

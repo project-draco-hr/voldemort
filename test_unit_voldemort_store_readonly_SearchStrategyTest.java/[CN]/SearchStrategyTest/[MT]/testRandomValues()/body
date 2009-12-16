@@ -1,0 +1,20 @@
+{
+  Random rand=new Random(48534543);
+  int size=100;
+  for (int iter=0; iter < 10; iter++) {
+    byte[][] keys=new byte[size][];
+    int[] values=new int[size];
+    for (int i=0; i < size; i++) {
+      byte[] key=new byte[ReadOnlyUtils.KEY_HASH_SIZE];
+      rand.nextBytes(key);
+      values[i]=rand.nextInt(1000000);
+      keys[i]=key;
+    }
+    ByteBuffer index=makeIndex(keys,values);
+    for (int i=0; i < size; i++)     assertKeyFound(index,keys[i],values[i]);
+    for (int i=0; i < 10; i++) {
+      byte[] key=new byte[ReadOnlyUtils.KEY_HASH_SIZE];
+      assertKeysNotFound(index,key);
+    }
+  }
+}

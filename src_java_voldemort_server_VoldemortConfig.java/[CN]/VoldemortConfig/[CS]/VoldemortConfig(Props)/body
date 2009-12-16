@@ -21,9 +21,8 @@
   this.bdbCleanerMinFileUtilization=props.getInt("bdb.cleaner.min.file.utilization",5);
   this.bdbCleanerMinUtilization=props.getInt("bdb.cleaner.minUtilization",50);
   this.bdbCursorPreload=props.getBoolean("bdb.cursor.preload",false);
-  this.readOnlyFileWaitTimeoutMs=props.getLong("readonly.file.wait.timeout.ms",4000L);
   this.readOnlyBackups=props.getInt("readonly.backups",1);
-  this.readOnlyFileHandles=props.getInt("readonly.file.handles",5);
+  this.readOnlySearchStrategy=props.getString("readonly.search.strategy",BinarySearchStrategy.class.getName());
   this.readOnlyStorageDir=props.getString("readonly.data.directory",this.dataDirectory + File.separator + "read-only");
   this.slopStoreType=props.getString("slop.store.engine",BdbStorageConfiguration.TYPE_NAME);
   this.mysqlUsername=props.getString("mysql.user","root");
@@ -76,6 +75,7 @@
   this.maxRebalancingAttempt=props.getInt("max.rebalancing.attempts",3);
   this.rebalancingTimeoutInSeconds=props.getInt("rebalancing.timeout.seconds",60 * 60);
   this.rebalancingServicePeriod=props.getInt("rebalancing.service.period.ms",1000);
+  this.enableDeleteAfterRebalancing=props.getBoolean("enable.rebalancing.delete",false);
   this.enableNetworkClassLoader=props.getBoolean("enable.network.classloader",false);
   validateParams();
 }

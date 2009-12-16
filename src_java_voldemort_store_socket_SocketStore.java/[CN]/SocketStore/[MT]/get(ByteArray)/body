@@ -1,16 +1,3 @@
 {
-  StoreUtils.assertValidKey(key);
-  SocketAndStreams sands=pool.checkout(destination);
-  try {
-    requestFormat.writeGetRequest(sands.getOutputStream(),name,key,reroute);
-    sands.getOutputStream().flush();
-    return requestFormat.readGetResponse(sands.getInputStream());
-  }
- catch (  IOException e) {
-    close(sands.getSocket());
-    throw new UnreachableStoreException("Failure in get on " + destination + ": "+ e.getMessage(),e);
-  }
- finally {
-    pool.checkin(destination,sands);
-  }
+  return get(key,false);
 }
