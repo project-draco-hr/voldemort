@@ -1,0 +1,19 @@
+{
+  if (startAsynchronously) {
+    new Thread(new Runnable(){
+      public void run(){
+        try {
+          new SshClusterStarter(hostNames,remoteTestConfig.getSshPrivateKey(),remoteTestConfig.getHostUserId(),remoteTestConfig.getVoldemortRootDirectory(),remoteTestConfig.getVoldemortHomeDirectory(),nodeIds).execute();
+        }
+ catch (        RemoteOperationException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+).start();
+    Thread.sleep(waitSeconds * 1000);
+  }
+ else {
+    new SshClusterStarter(hostNames,remoteTestConfig.getSshPrivateKey(),remoteTestConfig.getHostUserId(),remoteTestConfig.getVoldemortRootDirectory(),remoteTestConfig.getVoldemortHomeDirectory(),nodeIds).execute();
+  }
+}

@@ -1,0 +1,20 @@
+{
+  ReadOnlyStorageEngineTestInstance testData=ReadOnlyStorageEngineTestInstance.create(strategy,dir,TEST_SIZE,2,2);
+  Set<String> keys=testData.getData().keySet();
+  Set<String> gotten=new HashSet<String>();
+  for (  Map.Entry<Integer,Store<String,String>> entry : testData.getNodeStores().entrySet()) {
+    Set<String> queryKeys=new HashSet<String>();
+    for (    String key : keys)     for (    Node node : testData.routeRequest(key))     if (Integer.valueOf(node.getId()).equals(entry.getKey()))     queryKeys.add(key);
+    Map<String,List<Versioned<String>>> values=entry.getValue().getAll(queryKeys);
+    assertEquals("Returned fewer keys than expected.",queryKeys.size(),values.size());
+    for (    Map.Entry<String,List<Versioned<String>>> returned : values.entrySet()) {
+      assertTrue(queryKeys.contains(returned.getKey()));
+      assertEquals(1,returned.getValue().size());
+      Versioned<String> val=returned.getValue().get(0);
+      assertEquals(testData.getData().get(returned.getKey()),val.getValue());
+      gotten.add(returned.getKey());
+    }
+  }
+  assertEquals(keys,gotten);
+  testData.delete();
+}

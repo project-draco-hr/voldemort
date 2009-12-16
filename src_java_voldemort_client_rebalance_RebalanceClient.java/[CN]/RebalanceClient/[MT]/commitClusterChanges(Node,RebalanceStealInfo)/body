@@ -7,7 +7,7 @@ synchronized (adminClient) {
       Cluster newCluster=RebalanceUtils.createUpdatedCluster(latestCluster,stealerNode,latestCluster.getNodeById(rebalanceStealInfo.getDonorId()),rebalanceStealInfo.getPartitionList());
       latestClock.incrementVersion(stealerNode.getId(),System.currentTimeMillis());
       RebalanceUtils.propagateCluster(adminClient,newCluster,latestClock,Arrays.asList(stealerNode.getId(),rebalanceStealInfo.getDonorId()));
-      adminClient.setCluster(newCluster);
+      adminClient.setAdminClientCluster(newCluster);
     }
  catch (    Exception e) {
       logger.error("Failed to commit rebalance on node:" + stealerNode.getId() + " REVERTING cluster changes ...",e);

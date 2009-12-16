@@ -7,10 +7,10 @@
       AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster());
       try {
         logger.info("Rebalancer: rebalance " + stealInfo + " starting.");
-        checkAndCreateRedirectingSocketStore(storeName,adminClient.getCluster().getNodeById(stealInfo.getDonorId()));
+        checkAndCreateRedirectingSocketStore(storeName,adminClient.getAdminClientCluster().getNodeById(stealInfo.getDonorId()));
         checkCurrentState(metadataStore,stealInfo);
         setRebalancingState(metadataStore,stealInfo);
-        fetchAndUpdateAsyncId=adminClient.fetchAndUpdateStreams(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getPartitionList(),null);
+        fetchAndUpdateAsyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getPartitionList(),null);
         adminClient.waitForCompletion(metadataStore.getNodeId(),fetchAndUpdateAsyncId,24 * 60 * 60,TimeUnit.SECONDS);
         logger.info("Rebalancer: rebalance " + stealInfo + " completed successfully.");
         metadataStore.cleanAllRebalancingState();

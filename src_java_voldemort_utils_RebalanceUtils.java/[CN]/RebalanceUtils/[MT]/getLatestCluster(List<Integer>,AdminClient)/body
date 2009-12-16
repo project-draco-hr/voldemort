@@ -1,8 +1,8 @@
 {
-  Versioned<Cluster> latestCluster=new Versioned<Cluster>(adminClient.getCluster());
+  Versioned<Cluster> latestCluster=new Versioned<Cluster>(adminClient.getAdminClientCluster());
   ArrayList<Versioned<Cluster>> clusterList=new ArrayList<Versioned<Cluster>>();
   clusterList.add(latestCluster);
-  for (  Node node : adminClient.getCluster().getNodes()) {
+  for (  Node node : adminClient.getAdminClientCluster().getNodes()) {
     try {
       Versioned<Cluster> versionedCluster=adminClient.getRemoteCluster(node.getId());
       VectorClock newClock=(VectorClock)versionedCluster.getVersion();
