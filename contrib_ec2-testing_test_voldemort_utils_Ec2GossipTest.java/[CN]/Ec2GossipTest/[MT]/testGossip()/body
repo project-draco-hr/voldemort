@@ -1,11 +1,8 @@
 {
-  deploy(hostNames,sshPrivateKey,hostUserId,sourceDirectory,parentDirectory);
   try {
-    startClusterAsync(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeIds);
     final Pair<HostNamePair,Integer> newInstance=createAndDeployNewInstance();
     final String newHostname=newInstance.getFirst().getExternalHostName();
     final int nodeId=newInstance.getSecond();
-    startClusterNode(newHostname,sshPrivateKey,hostUserId,voldemortRootDirectory,voldemortHomeDirectory,nodeId);
     if (logger.isInfoEnabled())     logger.info("Sleeping for 5 seconds to start Voldemort on the new node.");
     Thread.sleep(5000);
     final AdminClient adminClient=getAdminClient(newHostname);
@@ -43,6 +40,5 @@
 );
   }
   finally {
-    stopCluster(hostNames,sshPrivateKey,hostUserId,voldemortRootDirectory);
   }
 }
