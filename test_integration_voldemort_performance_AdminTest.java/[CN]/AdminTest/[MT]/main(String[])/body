@@ -17,8 +17,7 @@
     printUsage(System.err,parser,"One or more node and/or one or more partition has" + " to be specified");
   }
   AdminTest adminTest;
-  if (options.has("native"))   adminTest=new AdminTest(bootstrapUrl,storeName,true);
- else   adminTest=new AdminTest(bootstrapUrl,storeName);
+  adminTest=new AdminTest(bootstrapUrl,storeName);
   SetMultimap<Integer,Integer> nodePartitions=adminTest.getNodePartitions(options.has("n") ? options.valuesOf("n") : null,options.has("p") ? options.valuesOf("p") : null);
   adminTest.testFetch(nodePartitions);
 }
