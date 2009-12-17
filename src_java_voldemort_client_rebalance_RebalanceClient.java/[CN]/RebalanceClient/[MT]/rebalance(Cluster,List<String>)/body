@@ -6,7 +6,7 @@
   }
   final Queue<Pair<Integer,List<RebalanceStealInfo>>> rebalanceTaskQueue=RebalanceUtils.getRebalanceTaskQueue(currentCluster,targetCluster,storeList);
   logRebalancingPlan(rebalanceTaskQueue);
-  for (int nThreads=0; nThreads < this.maxParallelRebalancing; nThreads++) {
+  for (int nThreads=0; nThreads < this.rebalanceConfig.getMaxParallelRebalancing(); nThreads++) {
     this.executor.execute(new Runnable(){
       public void run(){
         while (!rebalanceTaskQueue.isEmpty()) {
