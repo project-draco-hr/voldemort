@@ -1,0 +1,17 @@
+{
+  Map<Integer,Store<ByteArray,byte[]>> storeMap=new HashMap<Integer,Store<ByteArray,byte[]>>();
+  for (  int nodeId : nodeList) {
+    Node node=cluster.getNodeById(nodeId);
+    storeMap.put(nodeId,ServerTestUtils.getSocketStore(testStoreName,node.getHost(),node.getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS));
+  }
+  RoutingStrategy routing=new ConsistentRoutingStrategy(cluster.getNodes(),1);
+  for (  Entry<ByteArray,byte[]> entry : testEntries.entrySet()) {
+    int masterNode=routing.routeRequest(entry.getKey().get()).get(0).getId();
+    if (nodeList.contains(masterNode)) {
+      storeMap.get(masterNode).put(entry.getKey(),new Versioned(entry.getValue()));
+    }
+  }
+  for (  Store store : storeMap.values()) {
+    store.close();
+  }
+}
