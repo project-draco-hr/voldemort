@@ -1,0 +1,10 @@
+{
+  Queue<Pair<Integer,List<RebalanceStealInfo>>> rebalancePlan=RebalanceUtils.getRebalanceTaskQueue(currentCluster,targetCluster,Arrays.asList(testStoreName));
+  int[][] stealList={{},{2,3}};
+  assertEquals("There should be three node rebalancing",1,rebalancePlan.size());
+  for (  Pair<Integer,List<RebalanceStealInfo>> rebalanceInfo : rebalancePlan) {
+    assertEquals("rebalanceInfo should have exactly one item",1,rebalanceInfo.getSecond().size());
+    RebalanceStealInfo expected=new RebalanceStealInfo(rebalanceInfo.getFirst(),0,listFromArray(stealList[rebalanceInfo.getFirst()]),Arrays.asList(testStoreName),0);
+    assertEquals("rebalanceStealInfo should match",expected.toJsonString(),rebalanceInfo.getSecond().get(0).toJsonString());
+  }
+}

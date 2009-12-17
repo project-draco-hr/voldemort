@@ -10,10 +10,9 @@ synchronized (adminClient) {
       adminClient.setAdminClientCluster(newCluster);
     }
  catch (    Exception e) {
-      logger.error("Failed to commit rebalance on node:" + stealerNode.getId() + " REVERTING cluster changes ...",e);
       latestClock.incrementVersion(stealerNode.getId(),System.currentTimeMillis());
       RebalanceUtils.propagateCluster(adminClient,latestCluster,latestClock,new ArrayList<Integer>());
-      throw new VoldemortException(e);
+      throw e;
     }
   }
 }

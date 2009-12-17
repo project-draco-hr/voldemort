@@ -2,12 +2,14 @@
   List<Integer> stealerPartitionList=new ArrayList<Integer>(stealerNode.getPartitionIds());
   List<Integer> donorPartitionList=new ArrayList<Integer>(donorNode.getPartitionIds());
   for (  int p : partitionList) {
-    donorPartitionList.remove(p);
+    removePartition(donorPartitionList,p);
     if (!stealerPartitionList.contains(p))     stealerPartitionList.add(p);
   }
   Collections.sort(stealerPartitionList);
   Collections.sort(donorPartitionList);
   stealerNode=updateNode(stealerNode,stealerPartitionList);
   donorNode=updateNode(donorNode,donorPartitionList);
-  return updateCluster(cluster,Arrays.asList(stealerNode,donorNode));
+  Cluster updatedCluster=updateCluster(cluster,Arrays.asList(stealerNode,donorNode));
+  logger.debug("currentCluster: " + cluster + " updatedCluster:"+ updatedCluster);
+  return updatedCluster;
 }

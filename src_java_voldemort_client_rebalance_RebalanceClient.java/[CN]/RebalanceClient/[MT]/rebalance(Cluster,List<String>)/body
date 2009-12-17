@@ -1,4 +1,5 @@
 {
+  Cluster currentCluster=RebalanceUtils.getLatestCluster(new ArrayList<Integer>(),adminClient).getValue();
   adminClient.setAdminClientCluster(currentCluster);
   if (!RebalanceUtils.getClusterRebalancingToken()) {
     throw new VoldemortException("Failed to get Cluster permission to rebalance sleep and retry ...");
@@ -9,6 +10,7 @@
     this.executor.execute(new Runnable(){
       public void run(){
         while (!rebalanceTaskQueue.isEmpty()) {
+          logger.debug("rebalanceTaskQueue size:" + rebalanceTaskQueue.size());
           Pair<Integer,List<RebalanceStealInfo>> rebalanceTask=rebalanceTaskQueue.poll();
           if (null != rebalanceTask) {
             int stealerNodeId=rebalanceTask.getFirst();
@@ -30,6 +32,7 @@
             }
           }
         }
+        logger.debug("Thread run() finished:\n");
       }
     }
 );
