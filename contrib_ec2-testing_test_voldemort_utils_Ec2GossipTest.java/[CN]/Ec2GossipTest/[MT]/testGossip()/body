@@ -1,20 +1,32 @@
 {
   try {
-    logger.info("Info");
-    logger.debug("Debug");
     Set<String> oldHostnames=new HashSet<String>(hostNames);
+    Set<Integer> oldNodeIdSet=new HashSet<Integer>(nodeIds.values());
+    Map<String,Integer> oldNodeIdMap=new HashMap<String,Integer>(nodeIds);
+    logger.info("Cluster before expanding: " + nodeIds);
     Pair<List<Integer>,List<String>> pair=expandCluster();
     List<Integer> newNodeIds=pair.getFirst();
     List<String> newHostnames=pair.getSecond();
     assertEquals("correct number of nodes added",newNodeIds.size(),ec2GossipTestConfig.numNewNodes);
-    boolean containsOld=false;
+    boolean containsOldHostnames=false;
     for (    String newHostname : newHostnames) {
       if (oldHostnames.contains(newHostname)) {
-        containsOld=true;
+        containsOldHostnames=true;
         break;
       }
     }
-    assertFalse("none of the new nodes is an old node",containsOld);
+    boolean containsOldNodeIds=false;
+    for (    Integer newNodeId : newNodeIds) {
+      if (oldNodeIdSet.contains(newNodeId)) {
+        containsOldNodeIds=true;
+        break;
+      }
+    }
+    assertFalse("none of the new nodes is an old hostname",containsOldHostnames);
+    assertFalse("none of the new nodes is an old node id",containsOldNodeIds);
+    for (    String oldHostname : oldHostnames) {
+      assertEquals("hostname to nodeId mapping preserved for " + oldHostname,oldNodeIdMap.get(oldHostname),nodeIds.get(oldHostname));
+    }
   }
   finally {
     stopCluster(hostNames,ec2GossipTestConfig);
