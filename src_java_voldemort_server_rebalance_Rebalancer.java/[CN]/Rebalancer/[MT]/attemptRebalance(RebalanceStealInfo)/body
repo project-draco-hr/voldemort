@@ -9,7 +9,7 @@
         logger.warn("rebalancer is already running, aborting this rebalanceService run() ..");
         return;
       }
-      adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,24 * 60 * 60,TimeUnit.SECONDS);
+      adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,voldemortConfig.getAdminSocketTimeout(),TimeUnit.SECONDS);
       stealInfo.getUnbalancedStoreList().remove(storeName);
     }
  catch (    Exception e) {
