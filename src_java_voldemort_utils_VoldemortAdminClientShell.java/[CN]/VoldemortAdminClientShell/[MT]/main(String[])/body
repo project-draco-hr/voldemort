@@ -1,0 +1,31 @@
+{
+  if (args.length < 1 || args.length > 2)   Utils.croak("USAGE: java VoldemortAdminClientShell bootstrap_url [command_file]");
+  String bootstrapUrl=args[0];
+  String commandsFileName="";
+  BufferedReader fileReader=null;
+  BufferedReader inputReader=null;
+  try {
+    if (args.length == 2) {
+      commandsFileName=args[1];
+      fileReader=new BufferedReader(new FileReader(commandsFileName));
+    }
+    inputReader=new BufferedReader(new InputStreamReader(System.in));
+  }
+ catch (  IOException e) {
+    Utils.croak("Failure to open input stream: " + e.getMessage());
+  }
+  AdminClient adminClient=null;
+  try {
+    adminClient=new AdminClient(bootstrapUrl,new AdminClientConfig());
+  }
+ catch (  Exception e) {
+    Utils.croak("Couldn't instantiate admin client: " + e.getMessage());
+  }
+  System.out.println("Created admin client to cluster at " + bootstrapUrl);
+  System.out.print(PROMPT);
+  if (fileReader != null) {
+    processCommands(fileReader,adminClient,true);
+    fileReader.close();
+  }
+  processCommands(inputReader,adminClient,false);
+}

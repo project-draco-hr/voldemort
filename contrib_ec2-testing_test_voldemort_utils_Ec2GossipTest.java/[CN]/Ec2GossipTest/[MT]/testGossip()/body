@@ -1,0 +1,67 @@
+{
+  try {
+    Set<String> oldHostnames=new HashSet<String>(hostNames);
+    Set<Integer> oldNodeIdSet=new HashSet<Integer>(nodeIds.values());
+    Map<String,Integer> oldNodeIdMap=new HashMap<String,Integer>(nodeIds);
+    logger.info("Cluster before expanding: " + nodeIds);
+    Pair<List<Integer>,List<String>> pair=expandCluster();
+    final List<Integer> newNodeIds=pair.getFirst();
+    List<String> newHostnames=pair.getSecond();
+    assertEquals("correct number of nodes added",newNodeIds.size(),ec2GossipTestConfig.numNewNodes);
+    boolean containsOldHostnames=false;
+    for (    String newHostname : newHostnames) {
+      if (oldHostnames.contains(newHostname)) {
+        containsOldHostnames=true;
+        break;
+      }
+    }
+    boolean containsOldNodeIds=false;
+    for (    Integer newNodeId : newNodeIds) {
+      if (oldNodeIdSet.contains(newNodeId)) {
+        containsOldNodeIds=true;
+        break;
+      }
+    }
+    assertFalse("none of the new nodes is an old hostname",containsOldHostnames);
+    assertFalse("none of the new nodes is an old node id",containsOldNodeIds);
+    for (    String oldHostname : oldHostnames) {
+      assertEquals("hostname to nodeId mapping preserved for " + oldHostname,oldNodeIdMap.get(oldHostname),nodeIds.get(oldHostname));
+    }
+    int peerNodeId=Iterables.find(nodeIds.values(),new Predicate<Integer>(){
+      public boolean apply(      Integer input){
+        return !newNodeIds.contains(input);
+      }
+    }
+);
+    for (    String hostname : newHostnames) {
+      int nodeId=nodeIds.get(hostname);
+      AdminClient adminClient=new AdminClient("tcp:// " + hostname + ":6666",new AdminClientConfig());
+      Versioned<String> versioned=adminClient.getRemoteMetadata(nodeId,MetadataStore.CLUSTER_KEY);
+      Version version=versioned.getVersion();
+      VectorClock vectorClock=(VectorClock)version;
+      vectorClock.incrementVersion(nodeId,vectorClock.getTimestamp() + 1);
+      vectorClock.incrementVersion(peerNodeId,vectorClock.getTimestamp() + 1);
+      adminClient.updateRemoteMetadata(nodeId,MetadataStore.CLUSTER_KEY,versioned);
+      adminClient.updateRemoteMetadata(peerNodeId,MetadataStore.CLUSTER_KEY,versioned);
+    }
+    assertWithBackoff(1000,60000,new Attempt(){
+      AdminClient adminClient=new AdminClient("tcp://" + hostNames.get(0) + ":6666",new AdminClientConfig());
+      public void checkCondition(){
+        for (        int testNodeId : nodeIds.values()) {
+          ClusterMapper clusterMapper=new ClusterMapper();
+          Versioned<String> clusterXml=adminClient.getRemoteMetadata(testNodeId,MetadataStore.CLUSTER_KEY);
+          Cluster cluster=clusterMapper.readCluster(new StringReader(clusterXml.getValue()));
+          Set<Integer> allNodeIds=new HashSet<Integer>();
+          for (          Node node : cluster.getNodes()) {
+            allNodeIds.add(node.getId());
+          }
+          assertTrue("all nodes nodes discovered by node id " + testNodeId,allNodeIds.containsAll(nodeIds.values()));
+        }
+      }
+    }
+);
+  }
+  finally {
+    stopCluster(hostNames,ec2GossipTestConfig);
+  }
+}
