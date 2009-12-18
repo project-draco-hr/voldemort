@@ -1,0 +1,19 @@
+{
+  List<HostNamePair> newInstances=createInstances(ec2GossipTestConfig.numNewNodes,ec2GossipTestConfig);
+  List<String> newHostnames=toHostNames(newInstances);
+  if (logger.isInfoEnabled())   logger.info("Sleeping for 15 to let new instances start up");
+  Thread.sleep(15000);
+  hostNamePairs.addAll(newInstances);
+  hostNames=toHostNames(hostNamePairs);
+  nodeIds=generateClusterDescriptor(hostNamePairs,"test",ec2GossipTestConfig);
+  deploy(newHostnames,ec2GossipTestConfig);
+  startClusterAsync(newHostnames,ec2GossipTestConfig,nodeIds);
+  if (logger.isInfoEnabled())   logger.info("Sleeping for 5 seconds to start voldemort on the new nodes");
+  Thread.sleep(5000);
+  return new Pair<List<Integer>,List<String>>(Lists.transform(newHostnames,new Function<String,Integer>(){
+    public Integer apply(    String hostname){
+      return nodeIds.get(hostname);
+    }
+  }
+),newHostnames);
+}

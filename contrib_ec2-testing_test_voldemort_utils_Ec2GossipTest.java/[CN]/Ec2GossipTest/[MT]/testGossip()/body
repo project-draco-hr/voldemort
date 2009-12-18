@@ -1,0 +1,22 @@
+{
+  try {
+    logger.info("Info");
+    logger.debug("Debug");
+    Set<String> oldHostnames=new HashSet<String>(hostNames);
+    Pair<List<Integer>,List<String>> pair=expandCluster();
+    List<Integer> newNodeIds=pair.getFirst();
+    List<String> newHostnames=pair.getSecond();
+    assertEquals("correct number of nodes added",newNodeIds.size(),ec2GossipTestConfig.numNewNodes);
+    boolean containsOld=false;
+    for (    String newHostname : newHostnames) {
+      if (oldHostnames.contains(newHostname)) {
+        containsOld=true;
+        break;
+      }
+    }
+    assertFalse("none of the new nodes is an old node",containsOld);
+  }
+  finally {
+    stopCluster(hostNames,ec2GossipTestConfig);
+  }
+}

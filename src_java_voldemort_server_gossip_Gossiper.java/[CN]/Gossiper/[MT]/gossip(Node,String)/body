@@ -1,21 +1,19 @@
 {
-  logger.info(metadataStore.getNodeId() + " pulling " + key+ " from "+ node);
+  if (logger.isDebugEnabled())   logger.debug(metadataStore.getNodeId() + " pulling " + key+ " from "+ node);
   Versioned<String> remoteVersioned=adminClient.getRemoteMetadata(node.getId(),key);
   Versioned<String> localVersioned=adminClient.getRemoteMetadata(metadataStore.getNodeId(),key);
   Version localVersion=localVersioned.getVersion();
   Version remoteVersion=remoteVersioned.getVersion();
-switch (localVersion.compare(remoteVersion)) {
-case BEFORE:
+switch (remoteVersion.compare(localVersion)) {
+case AFTER:
 {
       VectorClock remoteVectorClock=(VectorClock)remoteVersion;
       VectorClock localVectorClock=(VectorClock)localVersion;
-      if (localVectorClock.getTimestamp() < remoteVectorClock.getTimestamp()) {
-        adminClient.updateRemoteMetadata(metadataStore.getNodeId(),key,remoteVersioned);
-        logger.info("My " + key + " occured BEFORE the key from "+ node+ ". Accepted theirs.");
-      }
+      adminClient.updateRemoteMetadata(metadataStore.getNodeId(),key,remoteVersioned);
+      logger.info("My " + key + " occured BEFORE the key from "+ node+ ". Accepted theirs.");
       break;
     }
-case AFTER:
+case BEFORE:
 {
     break;
   }
