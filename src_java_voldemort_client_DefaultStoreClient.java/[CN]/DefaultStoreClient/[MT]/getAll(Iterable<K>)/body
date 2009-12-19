@@ -1,13 +1,18 @@
 {
   Map<K,List<Versioned<V>>> items=null;
   for (int attempts=0; ; attempts++) {
-    if (attempts >= this.metadataRefreshAttempts)     throw new InvalidMetadataException(this.metadataRefreshAttempts + " metadata refresh attempts failed.");
+    if (attempts >= this.metadataRefreshAttempts)     throw new VoldemortException(this.metadataRefreshAttempts + " metadata refresh attempts failed.");
     try {
       items=store.getAll(keys);
       break;
     }
- catch (    InvalidMetadataException e) {
-      reinit();
+ catch (    InsufficientOperationalNodesException e) {
+      if (RebalanceUtils.containsInvalidMetadataException(e)) {
+        reinit();
+      }
+ else {
+        throw e;
+      }
     }
   }
   Map<K,Versioned<V>> result=Maps.newHashMapWithExpectedSize(items.size());
