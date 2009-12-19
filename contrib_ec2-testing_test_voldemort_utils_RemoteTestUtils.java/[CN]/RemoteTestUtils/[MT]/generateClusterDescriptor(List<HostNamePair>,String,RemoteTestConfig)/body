@@ -1,15 +1,3 @@
 {
-  List<String> hostNames=new ArrayList<String>();
-  for (  HostNamePair hostNamePair : hostNamePairs)   hostNames.add(hostNamePair.getInternalHostName());
-  ClusterGenerator clusterGenerator=new ClusterGenerator();
-  List<ClusterNodeDescriptor> nodes=clusterGenerator.createClusterNodeDescriptors(hostNames,3);
-  String clusterXml=clusterGenerator.createClusterDescriptor(clusterName,nodes);
-  FileUtils.writeStringToFile(remoteTestConfig.getClusterXmlFile(),clusterXml);
-  Map<String,Integer> nodeIds=new HashMap<String,Integer>();
-  for (  ClusterNodeDescriptor node : nodes) {
-    for (    HostNamePair hostNamePair : hostNamePairs) {
-      if (node.getHostName().equals(hostNamePair.getInternalHostName()))       nodeIds.put(hostNamePair.getExternalHostName(),node.getId());
-    }
-  }
-  return nodeIds;
+  return generateClusterDescriptor(hostNamePairs,clusterName,remoteTestConfig,false);
 }
