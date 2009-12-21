@@ -1,4 +1,5 @@
 {
+  int matchedEntries=0;
   RoutingStrategy routing=new ConsistentRoutingStrategy(cluster.getNodes(),1);
   SocketStore store=ServerTestUtils.getSocketStore(testStoreName,node.getHost(),node.getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS);
   for (  Entry<String,String> entry : testEntries.entrySet()) {
@@ -18,8 +19,10 @@
       Versioned<byte[]> value=values.get(0);
       assertEquals("Value version should match",new VectorClock(),value.getVersion());
       assertEquals("Value bytes should match",entry.getValue(),ByteUtils.getString(value.getValue(),"UTF-8"));
+      matchedEntries++;
     }
  else {
     }
   }
+  if (null != availablePartitions && availablePartitions.size() > 0)   assertNotSame("CheckGetEntries should match some entries.",0,matchedEntries);
 }
