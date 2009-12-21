@@ -10,6 +10,31 @@
  catch (    InterruptedException e) {
       break;
     }
-    check();
+    Set<Node> unavailableNodesCopy=null;
+synchronized (this) {
+      unavailableNodesCopy=new HashSet<Node>(unavailableNodes);
+    }
+    ByteArray key=new ByteArray((byte)1);
+    for (    Node node : unavailableNodesCopy) {
+      if (logger.isDebugEnabled())       logger.debug("Checking previously unavailable node " + node);
+      Store<ByteArray,byte[]> store=getConfig().getStoreResolver().getStore(node);
+      if (store == null) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(node + " store is null; cannot determine node availability");
+        continue;
+      }
+      try {
+        store.get(key);
+synchronized (unavailableNodes) {
+          unavailableNodes.remove(node);
+        }
+        nodeRecovered(node);
+      }
+ catch (      UnreachableStoreException e) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(node + " still unavailable",e);
+      }
+catch (      Exception e) {
+        if (logger.isEnabledFor(Level.ERROR))         logger.error(node + " unavailable due to error",e);
+      }
+    }
   }
 }
