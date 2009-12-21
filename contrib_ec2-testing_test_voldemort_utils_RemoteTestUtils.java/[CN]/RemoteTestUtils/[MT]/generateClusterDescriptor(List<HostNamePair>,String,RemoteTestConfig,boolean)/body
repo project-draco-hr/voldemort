@@ -8,10 +8,7 @@
   Map<String,Integer> nodeIds=new HashMap<String,Integer>();
   for (  ClusterNodeDescriptor node : nodes) {
     for (    HostNamePair hostNamePair : hostNamePairs) {
-      if (useExternal) {
-        if (node.getHostName().equals(hostNamePair.getExternalHostName()))         nodeIds.put(hostNamePair.getExternalHostName(),node.getId());
-      }
- else       if (node.getHostName().equals(hostNamePair.getInternalHostName()))       nodeIds.put(hostNamePair.getExternalHostName(),node.getId());
+      if (node.getHostName().equals(useExternal ? hostNamePair.getExternalHostName() : hostNamePair.getInternalHostName()))       nodeIds.put(hostNamePair.getExternalHostName(),node.getId());
     }
   }
   return nodeIds;
