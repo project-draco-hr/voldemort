@@ -3,26 +3,13 @@
   RedirectingStore redirectingStore=getRedirectingStore(server0.getMetadataStore(),storeName);
   for (  Entry<ByteArray,byte[]> entry : entryMap.entrySet()) {
     List<Integer> partitions=routing.getPartitionList(entry.getKey().get());
-    if (unavailablePartitions.containsAll(partitions)) {
-      try {
-        redirectingStore.put(entry.getKey(),Versioned.value(entry.getValue(),new VectorClock().incremented(0,System.currentTimeMillis())));
-      }
- catch (      ObsoleteVersionException e) {
-        fail("should NOT see obsoleteVersionException for unavailablePartitions.");
-      }
-catch (      InvalidMetadataException e) {
-      }
-    }
- else     if (availablePartitions.containsAll(partitions)) {
+    if (availablePartitions.containsAll(partitions)) {
       try {
         redirectingStore.put(entry.getKey(),Versioned.value(entry.getValue(),new VectorClock().incremented(0,System.currentTimeMillis())));
         fail("Should see obsoleteVersionException here.");
       }
  catch (      ObsoleteVersionException e) {
       }
-    }
- else {
-      fail("This case should not come for this test.");
     }
   }
 }

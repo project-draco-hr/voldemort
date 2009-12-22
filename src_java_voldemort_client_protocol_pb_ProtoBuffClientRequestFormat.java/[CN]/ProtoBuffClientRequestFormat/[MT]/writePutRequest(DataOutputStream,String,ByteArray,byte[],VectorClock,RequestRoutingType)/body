@@ -1,5 +1,5 @@
 {
   StoreUtils.assertValidKey(key);
   VProto.PutRequest.Builder req=VProto.PutRequest.newBuilder().setKey(ByteString.copyFrom(key.get())).setVersioned(VProto.Versioned.newBuilder().setValue(ByteString.copyFrom(value)).setVersion(ProtoUtils.encodeClock(version)));
-  ProtoUtils.writeMessage(output,VProto.VoldemortRequest.newBuilder().setType(RequestType.PUT).setStore(storeName).setShouldRoute(routingType.equals(RequestRoutingType.ROUTED)).setIgnoreChecks(routingType.equals(RequestRoutingType.IGNORE_CHECKS)).setPut(req).build());
+  ProtoUtils.writeMessage(output,VProto.VoldemortRequest.newBuilder().setType(RequestType.PUT).setStore(storeName).setShouldRoute(routingType.equals(RequestRoutingType.ROUTED)).setRequestRouteType(routingType.toString()).setPut(req).build());
 }

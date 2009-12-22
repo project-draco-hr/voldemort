@@ -2,19 +2,9 @@
   RoutingStrategy routing=server.getMetadataStore().getRoutingStrategy(store.getName());
   for (  Entry<ByteArray,byte[]> entry : entryMap.entrySet()) {
     List<Integer> partitions=routing.getPartitionList(entry.getKey().get());
-    if (unavailablePartitions.containsAll(partitions)) {
-      try {
-        assertEquals("Keys for partition:" + partitions + " should not be present.",0,store.get(entry.getKey()).size());
-      }
- catch (      InvalidMetadataException e) {
-      }
-    }
- else     if (availablePartitions.containsAll(partitions)) {
+    if (availablePartitions.containsAll(partitions)) {
       assertEquals("Keys for partition:" + partitions + " should be present.",1,store.get(entry.getKey()).size());
       assertEquals("Values should match.",new String(entry.getValue()),new String(store.get(entry.getKey()).get(0).getValue()));
-    }
- else {
-      fail("This case should not come for this test partitions:" + partitions);
     }
   }
 }
