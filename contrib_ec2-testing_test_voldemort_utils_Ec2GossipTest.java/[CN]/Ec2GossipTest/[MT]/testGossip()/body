@@ -40,8 +40,7 @@
       Versioned<String> versioned=adminClient.getRemoteMetadata(nodeId,MetadataStore.CLUSTER_KEY);
       Version version=versioned.getVersion();
       VectorClock vectorClock=(VectorClock)version;
-      vectorClock.incrementVersion(nodeId,vectorClock.getTimestamp() + 1);
-      vectorClock.incrementVersion(peerNodeId,vectorClock.getTimestamp() + 1);
+      for (      int rnId : nodeIds.values())       vectorClock.incrementVersion(rnId,vectorClock.getTimestamp() + 1);
       try {
         adminClient.updateRemoteMetadata(peerNodeId,MetadataStore.CLUSTER_KEY,versioned);
       }
