@@ -2,7 +2,7 @@
   for (  Node node : cluster.getNodes()) {
     Store<ByteArray,byte[]> store;
     if (node.getId() != localNode) {
-      store=createRedirectingSocketStore(def,node);
+      store=new SocketStore(def.getName(),new SocketDestination(node.getHost(),node.getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS),socketPool,RequestRoutingType.IGNORE_CHECKS);
       this.storeRepository.addRedirectingSocketStore(node.getId(),store);
     }
   }

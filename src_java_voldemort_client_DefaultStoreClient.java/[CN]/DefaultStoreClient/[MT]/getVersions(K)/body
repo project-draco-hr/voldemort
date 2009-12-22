@@ -3,9 +3,14 @@
     try {
       return store.getVersions(key);
     }
- catch (    InvalidMetadataException e) {
-      reinit();
+ catch (    InsufficientOperationalNodesException e) {
+      if (RebalanceUtils.containsInvalidMetadataException(e)) {
+        reinit();
+      }
+ else {
+        throw e;
+      }
     }
   }
-  throw new InvalidMetadataException(this.metadataRefreshAttempts + " metadata refresh attempts failed.");
+  throw new VoldemortException(this.metadataRefreshAttempts + " metadata refresh attempts failed.");
 }

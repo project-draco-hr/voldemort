@@ -1,0 +1,14 @@
+{
+  StoreUtils.assertValidKey(key);
+  outputStream.writeByte(VoldemortOpCode.DELETE_OP_CODE);
+  outputStream.writeUTF(storeName);
+  outputStream.writeBoolean(routingType.equals(RequestRoutingType.ROUTED));
+  if (protocolVersion >= 2) {
+    outputStream.writeUTF(routingType.toString());
+  }
+  outputStream.writeInt(key.length());
+  outputStream.write(key.get());
+  VectorClock clock=version;
+  outputStream.writeShort(clock.sizeInBytes());
+  outputStream.write(clock.toBytes());
+}

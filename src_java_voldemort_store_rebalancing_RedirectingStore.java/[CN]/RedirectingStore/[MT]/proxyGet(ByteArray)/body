@@ -2,6 +2,5 @@
   if (!storeRepository.hasRedirectingSocketStore(getName(),metadata.getRebalancingStealInfo().getDonorId())) {
     throw new VoldemortException("RedirectingSocketStore not present in storeRepository for (store,nodeId) pair (" + getName() + ","+ metadata.getRebalancingStealInfo().getDonorId()+ ").");
   }
-  RedirectingSocketStore redirecingSocketStore=(RedirectingSocketStore)storeRepository.getRedirectingSocketStore(getName(),metadata.getRebalancingStealInfo().getDonorId());
-  return redirecingSocketStore.getIgnoreInvalidMetadata(key);
+  return storeRepository.getRedirectingSocketStore(getName(),metadata.getRebalancingStealInfo().getDonorId()).get(key);
 }

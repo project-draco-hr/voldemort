@@ -1,0 +1,12 @@
+{
+  RequestRoutingType routingType=RequestRoutingType.NORMAL;
+  if (protocolVersion > 0) {
+    boolean isRouted=inputStream.readBoolean();
+    routingType=RequestRoutingType.getRequestRoutingType(isRouted,false);
+  }
+ else   if (protocolVersion > 1) {
+    String typeString=inputStream.readUTF();
+    routingType=RequestRoutingType.valueOf(typeString);
+  }
+  return routingType;
+}

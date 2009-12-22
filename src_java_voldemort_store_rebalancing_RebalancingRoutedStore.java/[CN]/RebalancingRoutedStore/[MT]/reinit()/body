@@ -2,7 +2,7 @@
   AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadata.getCluster());
   try {
     Versioned<Cluster> latestCluster=RebalanceUtils.getLatestCluster(new ArrayList<Integer>(),adminClient);
-    metadata.put(MetadataStore.CLUSTER_KEY,latestCluster);
+    metadata.put(MetadataStore.CLUSTER_KEY,latestCluster.getValue());
     checkAndAddNodeStore();
     super.updateRoutingStrategy(metadata.getRoutingStrategy(getName()));
   }

@@ -5,10 +5,17 @@
     storeMap.put(nodeId,ServerTestUtils.getSocketStore(testStoreName,node.getHost(),node.getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS));
   }
   RoutingStrategy routing=new ConsistentRoutingStrategy(cluster.getNodes(),1);
-  for (  Entry<ByteArray,byte[]> entry : testEntries.entrySet()) {
-    int masterNode=routing.routeRequest(entry.getKey().get()).get(0).getId();
+  for (  Entry<String,String> entry : testEntries.entrySet()) {
+    int masterNode=routing.routeRequest(ByteUtils.getBytes(entry.getKey(),"UTF-8")).get(0).getId();
     if (nodeList.contains(masterNode)) {
-      storeMap.get(masterNode).put(entry.getKey(),new Versioned(entry.getValue()));
+      try {
+        ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(entry.getKey(),"UTF-8"));
+        storeMap.get(masterNode).put(keyBytes,new Versioned<byte[]>(ByteUtils.getBytes(entry.getValue(),"UTF-8")));
+      }
+ catch (      ObsoleteVersionException e) {
+        System.out.println("Why are we seeing this at all here ?? ");
+        e.printStackTrace();
+      }
     }
   }
   for (  Store store : storeMap.values()) {
