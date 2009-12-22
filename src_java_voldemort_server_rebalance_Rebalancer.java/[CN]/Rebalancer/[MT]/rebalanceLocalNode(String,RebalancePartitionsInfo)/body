@@ -2,7 +2,7 @@
   if (!acquireRebalancingPermit())   return -1;
   int requestId=asyncRunner.getUniqueRequestId();
   asyncRunner.submitOperation(requestId,new AsyncOperation(requestId,stealInfo.toString()){
-    private int fetchAndUpdateAsyncId=-1;
+    private int migratePartitionsAsyncId=-1;
     @Override public void operate() throws Exception {
       AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster());
       try {
@@ -10,8 +10,8 @@
         checkAndCreateRedirectingSocketStore(storeName,adminClient.getAdminClientCluster().getNodeById(stealInfo.getDonorId()));
         checkCurrentState(metadataStore,stealInfo);
         setRebalancingState(metadataStore,stealInfo);
-        fetchAndUpdateAsyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getPartitionList(),null);
-        adminClient.waitForCompletion(metadataStore.getNodeId(),fetchAndUpdateAsyncId,voldemortConfig.getAdminSocketTimeout(),TimeUnit.SECONDS);
+        migratePartitionsAsyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getPartitionList(),null);
+        adminClient.waitForCompletion(metadataStore.getNodeId(),migratePartitionsAsyncId,voldemortConfig.getAdminSocketTimeout(),TimeUnit.SECONDS);
         logger.info("Rebalancer: rebalance " + stealInfo + " completed successfully.");
         metadataStore.cleanAllRebalancingState();
         if (voldemortConfig.isDeleteAfterRebalancingEnabled()) {
@@ -23,12 +23,12 @@
   finally {
         releaseRebalancingPermit();
         adminClient.stop();
-        fetchAndUpdateAsyncId=-1;
+        migratePartitionsAsyncId=-1;
       }
     }
     @Override @JmxGetter(name="asyncTaskStatus") public AsyncOperationStatus getStatus(){
-      if (-1 != fetchAndUpdateAsyncId)       try {
-        updateStatus(asyncRunner.getStatus(fetchAndUpdateAsyncId));
+      if (-1 != migratePartitionsAsyncId)       try {
+        updateStatus(asyncRunner.getStatus(migratePartitionsAsyncId));
       }
  catch (      Exception e) {
       }

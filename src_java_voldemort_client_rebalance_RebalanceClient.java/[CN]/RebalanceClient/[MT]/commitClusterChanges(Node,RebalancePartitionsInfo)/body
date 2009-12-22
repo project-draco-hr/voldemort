@@ -1,17 +1,17 @@
 {
 synchronized (adminClient) {
     Versioned<Cluster> latestVersionedCluster=RebalanceUtils.getLatestCluster(Arrays.asList(stealerNode.getId(),rebalanceStealInfo.getDonorId()),adminClient);
-    Cluster latestCluster=latestVersionedCluster.getValue();
+    Cluster currentCluster=latestVersionedCluster.getValue();
     VectorClock latestClock=(VectorClock)latestVersionedCluster.getVersion();
     try {
-      Cluster newCluster=RebalanceUtils.createUpdatedCluster(latestCluster,stealerNode,latestCluster.getNodeById(rebalanceStealInfo.getDonorId()),rebalanceStealInfo.getPartitionList());
+      Cluster newCluster=RebalanceUtils.createUpdatedCluster(currentCluster,stealerNode,currentCluster.getNodeById(rebalanceStealInfo.getDonorId()),rebalanceStealInfo.getPartitionList());
       latestClock.incrementVersion(stealerNode.getId(),System.currentTimeMillis());
       RebalanceUtils.propagateCluster(adminClient,newCluster,latestClock,Arrays.asList(stealerNode.getId(),rebalanceStealInfo.getDonorId()));
       adminClient.setAdminClientCluster(newCluster);
     }
  catch (    Exception e) {
       latestClock.incrementVersion(stealerNode.getId(),System.currentTimeMillis());
-      RebalanceUtils.propagateCluster(adminClient,latestCluster,latestClock,new ArrayList<Integer>());
+      RebalanceUtils.propagateCluster(adminClient,currentCluster,latestClock,new ArrayList<Integer>());
       throw e;
     }
   }
