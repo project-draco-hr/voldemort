@@ -1,10 +1,13 @@
 {
-  ClientStoreResolver storeResolver=new ClientStoreResolver(){
+  ClientStoreVerifier<ByteArray,byte[]> storeVerifier=new ClientStoreVerifier<ByteArray,byte[]>(){
+    @Override protected ByteArray getKey(){
+      return new ByteArray(MetadataStore.NODE_ID_KEY.getBytes());
+    }
     @Override protected Store<ByteArray,byte[]> getStoreInternal(    Node node){
       return HttpStoreClientFactory.this.getStore(MetadataStore.METADATA_STORE_NAME,node.getHost(),node.getHttpPort(),config.getRequestFormatType());
     }
   }
 ;
-  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig(config).setNodes(nodes).setStoreResolver(storeResolver);
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig(config).setNodes(nodes).setStoreVerifier(storeVerifier);
   return FailureDetectorUtils.create(failureDetectorConfig);
 }

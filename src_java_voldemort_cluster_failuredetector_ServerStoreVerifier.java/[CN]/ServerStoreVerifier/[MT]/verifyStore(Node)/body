@@ -1,0 +1,11 @@
+{
+synchronized (stores) {
+    Store<ByteArray,byte[]> store=stores.get(node.getId());
+    if (store == null) {
+      if (node.getId() == nodeId)       store=storeRepository.getLocalStore(MetadataStore.METADATA_STORE_NAME);
+ else       store=storeRepository.getNodeStore(MetadataStore.METADATA_STORE_NAME,node.getId());
+      stores.put(node.getId(),store);
+    }
+    store.get(key);
+  }
+}

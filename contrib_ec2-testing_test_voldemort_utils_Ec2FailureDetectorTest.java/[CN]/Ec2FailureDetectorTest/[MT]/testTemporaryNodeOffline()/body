@@ -1,0 +1,19 @@
+{
+  String offlineHostName=hostNames.get(0);
+  Integer nodeId=nodeIds.get(offlineHostName);
+  Node node=new Node(nodeId,offlineHostName,8081,6666,6667,Collections.<Integer>emptyList());
+  StoreClientFactory scf=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls("tcp://" + offlineHostName + ":6666").setFailureDetectorAsyncRecoveryInterval(1000));
+  FailureDetector failureDetector=scf.getFailureDetector();
+  StoreVerifier storeVerifier=failureDetector.getConfig().getStoreVerifier();
+  storeVerifier.verifyStore(node);
+  Store<String,String> store=scf.getRawStore("test",null);
+  test(store);
+  Assert.assertEquals(1,failureDetector.getAvailableNodeCount());
+  stopClusterNode(offlineHostName,ec2RemoteTestConfig);
+  test(store);
+  Assert.assertEquals(0,failureDetector.getAvailableNodeCount());
+  startClusterNode(offlineHostName,ec2RemoteTestConfig,nodeId);
+  failureDetector.waitForAvailability(node);
+  test(store);
+  Assert.assertEquals(1,failureDetector.getAvailableNodeCount());
+}
