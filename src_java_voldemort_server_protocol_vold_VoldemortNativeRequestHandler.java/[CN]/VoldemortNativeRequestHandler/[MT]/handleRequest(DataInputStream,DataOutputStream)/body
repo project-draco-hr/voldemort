@@ -1,23 +1,18 @@
 {
   byte opCode=inputStream.readByte();
   String storeName=inputStream.readUTF();
-  boolean isRouted=false;
-  if (protocolVersion > 0)   isRouted=inputStream.readBoolean();
-  boolean ignoreChecks=(opCode == VoldemortOpCode.GET_IGNORE_INVALID_METADATA_OP_CODE);
-  Store<ByteArray,byte[]> store=getStore(storeName,RequestRoutingType.getRequestRoutingType(isRouted,ignoreChecks));
+  RequestRoutingType routingType=getRoutingType(inputStream);
+  Store<ByteArray,byte[]> store=getStore(storeName,routingType);
   if (store == null) {
     writeException(outputStream,new VoldemortException("No store named '" + storeName + "'."));
   }
  else {
 switch (opCode) {
-case VoldemortOpCode.GET_IGNORE_INVALID_METADATA_OP_CODE:
+case VoldemortOpCode.GET_OP_CODE:
       handleGet(inputStream,outputStream,store);
     break;
-case VoldemortOpCode.GET_OP_CODE:
-  handleGet(inputStream,outputStream,store);
-break;
 case VoldemortOpCode.GET_ALL_OP_CODE:
-handleGetAll(inputStream,outputStream,store);
+  handleGetAll(inputStream,outputStream,store);
 break;
 case VoldemortOpCode.PUT_OP_CODE:
 handlePut(inputStream,outputStream,store);
