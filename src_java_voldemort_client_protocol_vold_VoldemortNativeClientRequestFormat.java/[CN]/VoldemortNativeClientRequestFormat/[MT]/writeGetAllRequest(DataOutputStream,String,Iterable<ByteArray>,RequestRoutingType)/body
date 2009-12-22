@@ -1,0 +1,13 @@
+{
+  StoreUtils.assertValidKeys(keys);
+  output.writeByte(VoldemortOpCode.GET_ALL_OP_CODE);
+  output.writeUTF(storeName);
+  output.writeBoolean(routingType.equals(RequestRoutingType.ROUTED));
+  List<ByteArray> l=new ArrayList<ByteArray>();
+  for (  ByteArray key : keys)   l.add(key);
+  output.writeInt(l.size());
+  for (  ByteArray key : keys) {
+    output.writeInt(key.length());
+    output.write(key.get());
+  }
+}

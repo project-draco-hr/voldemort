@@ -1,0 +1,11 @@
+{
+  StoreUtils.assertValidKey(key);
+  outputStream.writeByte(VoldemortOpCode.PUT_OP_CODE);
+  outputStream.writeUTF(storeName);
+  outputStream.writeBoolean(routingType.equals(RequestRoutingType.ROUTED));
+  outputStream.writeInt(key.length());
+  outputStream.write(key.get());
+  outputStream.writeInt(value.length + version.sizeInBytes());
+  outputStream.write(version.toBytes());
+  outputStream.write(value);
+}

@@ -4,22 +4,22 @@
   if (!RebalanceUtils.getClusterRebalancingToken()) {
     throw new VoldemortException("Failed to get Cluster permission to rebalance sleep and retry ...");
   }
-  final Queue<Pair<Integer,List<RebalanceStealInfo>>> rebalanceTaskQueue=RebalanceUtils.getRebalanceTaskQueue(currentCluster,targetCluster,storeList);
+  final Queue<Pair<Integer,List<RebalancePartitionsInfo>>> rebalanceTaskQueue=RebalanceUtils.getRebalanceTaskQueue(currentCluster,targetCluster,storeList);
   logRebalancingPlan(rebalanceTaskQueue);
   for (int nThreads=0; nThreads < this.rebalanceConfig.getMaxParallelRebalancing(); nThreads++) {
     this.executor.execute(new Runnable(){
       public void run(){
         while (!rebalanceTaskQueue.isEmpty()) {
           logger.debug("rebalanceTaskQueue size:" + rebalanceTaskQueue.size());
-          Pair<Integer,List<RebalanceStealInfo>> rebalanceTask=rebalanceTaskQueue.poll();
+          Pair<Integer,List<RebalancePartitionsInfo>> rebalanceTask=rebalanceTaskQueue.poll();
           if (null != rebalanceTask) {
             int stealerNodeId=rebalanceTask.getFirst();
             addNodeIfnotPresent(targetCluster,stealerNodeId);
             Node stealerNode=adminClient.getAdminClientCluster().getNodeById(stealerNodeId);
-            List<RebalanceStealInfo> rebalanceSubTaskList=rebalanceTask.getSecond();
+            List<RebalancePartitionsInfo> rebalanceSubTaskList=rebalanceTask.getSecond();
             while (rebalanceSubTaskList.size() > 0) {
               int index=(int)Math.random() * rebalanceSubTaskList.size();
-              RebalanceStealInfo rebalanceSubTask=rebalanceSubTaskList.remove(index);
+              RebalancePartitionsInfo rebalanceSubTask=rebalanceSubTaskList.remove(index);
               logger.info("Starting rebalancing for stealerNode:" + stealerNode + " rebalanceInfo:"+ rebalanceSubTask);
               try {
                 commitClusterChanges(stealerNode,rebalanceSubTask);

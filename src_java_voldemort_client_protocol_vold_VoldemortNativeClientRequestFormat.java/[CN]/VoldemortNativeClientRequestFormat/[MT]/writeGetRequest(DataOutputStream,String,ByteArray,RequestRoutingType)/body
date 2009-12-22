@@ -1,0 +1,9 @@
+{
+  StoreUtils.assertValidKey(key);
+  int opCode=routingType.equals(RequestRoutingType.IGNORE_CHECKS) ? VoldemortOpCode.GET_IGNORE_INVALID_METADATA_OP_CODE : VoldemortOpCode.GET_OP_CODE;
+  outputStream.writeByte(opCode);
+  outputStream.writeUTF(storeName);
+  outputStream.writeBoolean(routingType.equals(RequestRoutingType.ROUTED));
+  outputStream.writeInt(key.length());
+  outputStream.write(key.get());
+}

@@ -1,0 +1,6 @@
+{
+  StoreUtils.assertValidKeys(keys);
+  VProto.GetAllRequest.Builder req=VProto.GetAllRequest.newBuilder();
+  for (  ByteArray key : keys)   req.addKeys(ByteString.copyFrom(key.get()));
+  ProtoUtils.writeMessage(output,VProto.VoldemortRequest.newBuilder().setType(RequestType.GET_ALL).setStore(storeName).setShouldRoute(routingType.equals(RequestRoutingType.ROUTED)).setIgnoreChecks(routingType.equals(RequestRoutingType.IGNORE_CHECKS)).setGetAll(req).build());
+}

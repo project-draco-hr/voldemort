@@ -2,7 +2,7 @@
   VAdminProto.AsyncOperationStatusResponse.Builder response=VAdminProto.AsyncOperationStatusResponse.newBuilder();
   try {
     if (!voldemortConfig.isEnableRebalanceService())     throw new VoldemortException("Rebalance service is not enabled for node:" + metadataStore.getNodeId());
-    RebalanceStealInfo rebalanceStealInfo=new RebalanceStealInfo(request.getStealerId(),request.getDonorId(),request.getPartitionsList(),request.getUnbalancedStoreList(),request.getAttempt());
+    RebalancePartitionsInfo rebalanceStealInfo=new RebalancePartitionsInfo(request.getStealerId(),request.getDonorId(),request.getPartitionsList(),request.getUnbalancedStoreList(),request.getAttempt());
     int requestId=rebalancer.rebalanceLocalNode(request.getCurrentStore(),rebalanceStealInfo);
     if (-1 == requestId) {
       throw new VoldemortException("Node:" + metadataStore.getNodeId() + " is already rebalancing cannot start new rebalancing request.");
