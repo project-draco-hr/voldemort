@@ -1,0 +1,23 @@
+{
+synchronized (adminClient) {
+    Cluster currentCluster=adminClient.getAdminClientCluster();
+    Node donorNode=currentCluster.getNodeById(rebalanceStealInfo.getDonorId());
+    Cluster updatedCluster=getClusterWithStealerNode(currentCluster,targetCluster,stealerNodeId);
+    Node stealerNode=updatedCluster.getNodeById(stealerNodeId);
+    adminClient.setAdminClientCluster(updatedCluster);
+    VectorClock latestClock=(VectorClock)RebalanceUtils.getLatestCluster(Arrays.asList(stealerNode.getId(),rebalanceStealInfo.getDonorId()),adminClient).getVersion();
+    updatedCluster=RebalanceUtils.createUpdatedCluster(updatedCluster,stealerNode,donorNode,rebalanceStealInfo.getPartitionList());
+    latestClock.incrementVersion(stealerNode.getId(),System.currentTimeMillis());
+    try {
+      RebalanceUtils.propagateCluster(adminClient,updatedCluster,latestClock,Arrays.asList(stealerNode.getId(),rebalanceStealInfo.getDonorId()));
+      adminClient.setAdminClientCluster(updatedCluster);
+    }
+ catch (    Exception e) {
+      updatedCluster=currentCluster;
+      latestClock.incrementVersion(stealerNode.getId(),System.currentTimeMillis());
+      RebalanceUtils.propagateCluster(adminClient,updatedCluster,latestClock,new ArrayList<Integer>());
+      throw e;
+    }
+    adminClient.setAdminClientCluster(updatedCluster);
+  }
+}

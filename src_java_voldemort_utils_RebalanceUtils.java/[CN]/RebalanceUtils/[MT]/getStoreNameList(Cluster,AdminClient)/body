@@ -1,0 +1,11 @@
+{
+  for (  Node node : cluster.getNodes()) {
+    List<StoreDefinition> storeDefList=adminClient.getRemoteStoreDefList(node.getId()).getValue();
+    List<String> storeNameList=new ArrayList<String>(storeDefList.size());
+    for (    StoreDefinition def : storeDefList) {
+      if (!def.isView())       storeNameList.add(def.getName());
+    }
+    return storeNameList;
+  }
+  throw new VoldemortException("Unable to get StoreDefList from any node for cluster:" + cluster);
+}
