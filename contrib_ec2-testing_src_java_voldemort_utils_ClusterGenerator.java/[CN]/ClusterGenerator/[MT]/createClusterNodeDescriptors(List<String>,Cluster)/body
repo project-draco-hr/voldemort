@@ -1,0 +1,14 @@
+{
+  List<ClusterNodeDescriptor> list=new ArrayList<ClusterNodeDescriptor>();
+  for (int i=0; i < hostNames.size(); i++) {
+    String hostName=hostNames.get(i);
+    List<Integer> partitions=cluster.getNodeById(i).getPartitionIds();
+    Collections.sort(partitions);
+    ClusterNodeDescriptor cnd=new ClusterNodeDescriptor();
+    cnd.setHostName(hostName);
+    cnd.setId(i);
+    cnd.setPartitions(partitions);
+    list.add(cnd);
+  }
+  return list;
+}

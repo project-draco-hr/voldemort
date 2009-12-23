@@ -1,0 +1,14 @@
+{
+  List<HostNamePair> addlInstances=createInstances(toAdd,ec2RebalancingTestConfig);
+  List<String> addlHostNames=toHostNames(addlInstances);
+  if (logger.isInfoEnabled())   logger.info("Sleeping for 15 seconds to let the new instances startup");
+  hostNamePairs.addAll(addlInstances);
+  hostNames=toHostNames(hostNamePairs);
+  nodeIds=generateClusterDescriptor(hostNamePairs,"test",ec2RebalancingTestConfig,true);
+  deploy(addlHostNames,ec2RebalancingTestConfig);
+  startClusterAsync(addlHostNames,ec2RebalancingTestConfig,nodeIds);
+  if (logger.isInfoEnabled())   logger.info("Sleeping for 15 seconds to start voldemort on the new nodes");
+  Thread.sleep(15000);
+  AdminClient adminClient=new AdminClient(getBootstrapUrl(addlHostNames),new AdminClientConfig());
+  return adminClient.getAdminClientCluster();
+}
