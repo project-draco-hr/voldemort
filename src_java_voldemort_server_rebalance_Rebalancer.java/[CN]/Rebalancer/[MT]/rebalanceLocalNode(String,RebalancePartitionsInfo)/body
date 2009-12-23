@@ -1,8 +1,10 @@
 {
-  if (!acquireRebalancingPermit())   return -1;
+  if (!acquireRebalancingPermit()) {
+    RebalancePartitionsInfo info=metadataStore.getRebalancingStealInfo();
+    throw new VoldemortException("Node " + metadataStore.getCluster().getNodeById(info.getStealerId()) + " is already rebalancing from "+ info.getDonorId()+ " rebalanceInfo:"+ info);
+  }
   int requestId=asyncRunner.getUniqueRequestId();
   asyncRunner.submitOperation(requestId,new AsyncOperation(requestId,stealInfo.toString()){
-    private int migratePartitionsAsyncId=-1;
     @Override public void operate() throws Exception {
       AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster());
       try {
