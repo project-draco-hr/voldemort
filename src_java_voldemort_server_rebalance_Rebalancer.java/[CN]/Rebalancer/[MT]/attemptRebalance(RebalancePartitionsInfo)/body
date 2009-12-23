@@ -5,10 +5,6 @@
     AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster());
     try {
       int rebalanceAsyncId=rebalanceLocalNode(storeName,stealInfo);
-      if (-1 == rebalanceAsyncId) {
-        logger.warn("rebalancer is already running, aborting this rebalanceService run() ..");
-        return;
-      }
       adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,voldemortConfig.getAdminSocketTimeout(),TimeUnit.SECONDS);
       stealInfo.getUnbalancedStoreList().remove(storeName);
     }
