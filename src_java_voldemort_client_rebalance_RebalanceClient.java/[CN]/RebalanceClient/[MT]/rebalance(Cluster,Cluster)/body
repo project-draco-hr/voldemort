@@ -1,6 +1,8 @@
 {
-  Cluster currentCluster=RebalanceUtils.getLatestCluster(new ArrayList<Integer>(),adminClient).getValue();
+  logger.info("Current Cluster configuration:" + currentCluster);
+  logger.info("Target Cluster configuration:" + targetCluster);
   adminClient.setAdminClientCluster(currentCluster);
+  List<String> storeList=RebalanceUtils.getStoreNameList(currentCluster,adminClient);
   if (!RebalanceUtils.getClusterRebalancingToken()) {
     throw new VoldemortException("Failed to get Cluster permission to rebalance sleep and retry ...");
   }
@@ -10,19 +12,17 @@
     this.executor.execute(new Runnable(){
       public void run(){
         while (!rebalanceTaskQueue.isEmpty()) {
-          logger.debug("rebalanceTaskQueue size:" + rebalanceTaskQueue.size());
+          logger.info("rebalanceTaskQueue size:" + rebalanceTaskQueue.size());
           Pair<Integer,List<RebalancePartitionsInfo>> rebalanceTask=rebalanceTaskQueue.poll();
           if (null != rebalanceTask) {
             int stealerNodeId=rebalanceTask.getFirst();
-            addNodeIfnotPresent(targetCluster,stealerNodeId);
-            Node stealerNode=adminClient.getAdminClientCluster().getNodeById(stealerNodeId);
             List<RebalancePartitionsInfo> rebalanceSubTaskList=rebalanceTask.getSecond();
             while (rebalanceSubTaskList.size() > 0) {
               int index=(int)Math.random() * rebalanceSubTaskList.size();
               RebalancePartitionsInfo rebalanceSubTask=rebalanceSubTaskList.remove(index);
-              logger.info("Starting rebalancing for stealerNode:" + stealerNode + " rebalanceInfo:"+ rebalanceSubTask);
+              logger.info("Starting rebalancing for stealerNode:" + stealerNodeId + " rebalanceInfo:"+ rebalanceSubTask);
               try {
-                commitClusterChanges(stealerNode,rebalanceSubTask);
+                commitClusterChanges(stealerNodeId,targetCluster,rebalanceSubTask);
                 attemptRebalanceSubTask(rebalanceSubTask);
                 logger.info("Successfully finished RebalanceSubTask attempt:" + rebalanceSubTask);
               }

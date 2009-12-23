@@ -1,5 +1,4 @@
 {
-  boolean success=true;
   List<String> rebalanceStoreList=ImmutableList.copyOf(rebalanceSubTask.getUnbalancedStoreList());
   List<String> unbalancedStoreList=new ArrayList<String>(rebalanceStoreList);
   for (  String storeName : rebalanceStoreList) {
@@ -10,9 +9,7 @@
       rebalanceSubTask.setUnbalancedStoreList(unbalancedStoreList);
     }
  catch (    Exception e) {
-      logger.warn("rebalanceSubTask:" + rebalanceSubTask + " failed for store:"+ storeName,e);
-      success=false;
+      throw new VoldemortException("rebalanceSubTask:" + rebalanceSubTask + " failed for store:"+ storeName,e);
     }
   }
-  if (!success)   throw new VoldemortException("rebalanceSubTask:" + rebalanceSubTask + " failed incomplete.");
 }
