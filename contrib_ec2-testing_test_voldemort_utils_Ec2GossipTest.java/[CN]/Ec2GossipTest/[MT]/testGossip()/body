@@ -33,25 +33,26 @@
       }
     }
 );
-    logger.info("Peer node " + peerNodeId);
+    logger.info("Select a peer node " + peerNodeId);
     for (    String hostname : newHostnames) {
       int nodeId=nodeIds.get(hostname);
       AdminClient adminClient=new AdminClient("tcp://" + hostname + ":6666",new AdminClientConfig());
       Versioned<String> versioned=adminClient.getRemoteMetadata(nodeId,MetadataStore.CLUSTER_KEY);
       Version version=versioned.getVersion();
       VectorClock vectorClock=(VectorClock)version;
-      for (      int rnId : nodeIds.values())       vectorClock.incrementVersion(rnId,vectorClock.getTimestamp() + 1);
+      vectorClock.incrementVersion(nodeId,System.currentTimeMillis());
       try {
         adminClient.updateRemoteMetadata(peerNodeId,MetadataStore.CLUSTER_KEY,versioned);
+        adminClient.updateRemoteMetadata(nodeId,MetadataStore.CLUSTER_KEY,versioned);
       }
  catch (      VoldemortException e) {
         logger.error(e);
       }
     }
     assertWithBackoff(1000,60000,new Attempt(){
-      AdminClient adminClient=new AdminClient("tcp://" + hostNames.get(0) + ":6666",new AdminClientConfig());
-      int count=0;
-      public void checkCondition(){
+      private int count=1;
+      private AdminClient adminClient=new AdminClient("tcp://" + hostNames.get(0) + ":6666",new AdminClientConfig());
+      public void checkCondition() throws Exception, AssertionError {
         logger.info("Attempt " + count++);
         for (        int testNodeId : oldNodeIdSet) {
           logger.info("Testing node " + testNodeId);
@@ -66,7 +67,7 @@
             assertTrue("all nodes nodes discovered by node id " + testNodeId,allNodeIds.containsAll(nodeIds.values()));
           }
  catch (          VoldemortException e) {
-            fail("caught VoldemortException " + e);
+            fail("caught exception " + e);
           }
         }
       }

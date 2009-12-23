@@ -1,5 +1,5 @@
 {
-  if (logger.isDebugEnabled())   logger.debug(metadataStore.getNodeId() + " pulling " + key+ " from "+ node);
+  if (logger.isDebugEnabled())   logger.debug(metadataStore.getNodeId() + " gossiping " + key+ " with "+ node);
   Versioned<String> remoteVersioned=adminClient.getRemoteMetadata(node.getId(),key);
   Versioned<String> localVersioned=adminClient.getRemoteMetadata(metadataStore.getNodeId(),key);
   Version localVersion=localVersioned.getVersion();
@@ -7,8 +7,6 @@
 switch (remoteVersion.compare(localVersion)) {
 case AFTER:
 {
-      VectorClock remoteVectorClock=(VectorClock)remoteVersion;
-      VectorClock localVectorClock=(VectorClock)localVersion;
       adminClient.updateRemoteMetadata(metadataStore.getNodeId(),key,remoteVersioned);
       logger.info("My " + key + " occured BEFORE the key from "+ node+ ". Accepted theirs.");
       break;

@@ -7,13 +7,14 @@
       Thread.currentThread().interrupt();
     }
     Node node=selectPeer();
-    logger.info(metadataStore.getNodeId() + " starting gossip with " + node);
+    adminClient.setAdminClientCluster(metadataStore.getCluster());
+    logger.info(metadataStore.getNodeId() + " starting gossipKey with " + node);
     for (    String key : MetadataStore.GOSSIP_KEYS) {
       try {
-        gossip(node,key);
+        gossipKey(node,key);
       }
  catch (      VoldemortException e) {
-        logger.error(e);
+        logger.error("gossipKey(): " + e);
       }
     }
   }
