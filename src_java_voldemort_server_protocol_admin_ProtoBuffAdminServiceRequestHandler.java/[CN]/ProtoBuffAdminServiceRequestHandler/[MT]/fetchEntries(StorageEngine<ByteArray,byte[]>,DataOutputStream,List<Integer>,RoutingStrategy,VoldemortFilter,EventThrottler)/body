@@ -1,21 +1,25 @@
 {
-  ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=null;
+  ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> valuesIterator=null;
   try {
     int counter=0;
     int fetched=0;
     long startTime=System.currentTimeMillis();
-    iterator=storageEngine.entries();
-    while (iterator.hasNext()) {
-      Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
-      if (validPartition(entry.getFirst().get(),partitionList,routingStrategy) && filter.accept(entry.getFirst(),entry.getSecond())) {
-        fetched++;
-        VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
-        VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(entry.getFirst())).setVersioned(ProtoUtils.encodeVersioned(entry.getSecond())).build();
-        response.setPartitionEntry(partitionEntry);
-        Message message=response.build();
-        ProtoUtils.writeMessage(outputStream,message);
-        if (throttler != null) {
-          throttler.maybeThrottle(entrySize(entry));
+    ClosableIterator<ByteArray> keyIterator=storageEngine.keys();
+    while (keyIterator.hasNext()) {
+      ByteArray key=keyIterator.next();
+      if (validPartition(key.get(),partitionList,routingStrategy)) {
+        for (        Versioned<byte[]> value : storageEngine.get(key)) {
+          if (filter.accept(key,value)) {
+            fetched++;
+            VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
+            VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(key)).setVersioned(ProtoUtils.encodeVersioned(value)).build();
+            response.setPartitionEntry(partitionEntry);
+            Message message=response.build();
+            ProtoUtils.writeMessage(outputStream,message);
+            if (throttler != null) {
+              throttler.maybeThrottle(entrySize(key,value));
+            }
+          }
         }
       }
       counter++;
@@ -26,6 +30,6 @@
     }
   }
   finally {
-    if (null != iterator)     iterator.close();
+    if (null != valuesIterator)     valuesIterator.close();
   }
 }
