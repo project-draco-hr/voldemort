@@ -15,9 +15,9 @@ synchronized (nodeStatus) {
       nodeStatus.incrementSuccess(successDelta);
       nodeStatus.incrementTotal(1);
       if (nodeStatus.getTotal() >= getConfig().getThresholdCountMinimum()) {
-        long newThreshold=(nodeStatus.getSuccess() * 100) / nodeStatus.getTotal();
-        if (logger.isTraceEnabled())         logger.trace(node + " threshold: " + newThreshold);
-        if (newThreshold >= getConfig().getThreshold())         setAvailable(node);
+        long percentage=(nodeStatus.getSuccess() * 100) / nodeStatus.getTotal();
+        if (logger.isTraceEnabled())         logger.trace(node + " percentage: " + percentage+ "%");
+        if (percentage >= getConfig().getThreshold())         setAvailable(node);
  else         setUnavailable(node,e);
       }
     }

@@ -1,9 +1,22 @@
 {
-  if (logger.isTraceEnabled())   logger.trace(node + " set as available");
   NodeStatus nodeStatus=getNodeStatus(node);
+  if (logger.isTraceEnabled())   logger.trace(node + " set as available");
+  boolean previouslyAvailable=false;
 synchronized (nodeStatus) {
-    boolean previouslyAvailable=nodeStatus.isAvailable();
-    nodeStatus.setAvailable(true);
-    if (!previouslyAvailable)     notifyAvailable(node);
+    previouslyAvailable=nodeStatus.setAvailable(true);
+  }
+  if (!previouslyAvailable) {
+    if (logger.isInfoEnabled())     logger.info(node + " now available");
+synchronized (nodeStatus) {
+      nodeStatus.notifyAll();
+    }
+    for (    FailureDetectorListener fdl : listeners.keySet()) {
+      try {
+        fdl.nodeAvailable(node);
+      }
+ catch (      Exception e) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(e,e);
+      }
+    }
   }
 }

@@ -10,31 +10,26 @@
  catch (    InterruptedException e) {
       break;
     }
-    Set<Node> unavailableNodesCopy=null;
-synchronized (this) {
-      unavailableNodesCopy=new HashSet<Node>(unavailableNodes);
-    }
-    for (    Node node : unavailableNodesCopy) {
+    for (    Map.Entry<Node,Integer> entry : unavailableNodes.entrySet()) {
+      Node node=entry.getKey();
       if (logger.isDebugEnabled())       logger.debug("Checking previously unavailable node " + node);
       StoreVerifier storeVerifier=getConfig().getStoreVerifier();
-      if (storeVerifier == null) {
-        if (logger.isEnabledFor(Level.WARN))         logger.warn(node + " store verifier is null; cannot determine node availability");
-        continue;
-      }
       try {
         if (logger.isDebugEnabled())         logger.debug("Verifying previously unavailable node " + node);
         storeVerifier.verifyStore(node);
         if (logger.isDebugEnabled())         logger.debug("Verified previously unavailable node " + node + ", will mark as available...");
-synchronized (unavailableNodes) {
-          unavailableNodes.remove(node);
-        }
+        unavailableNodes.remove(node);
         nodeRecovered(node);
       }
  catch (      UnreachableStoreException e) {
         if (logger.isEnabledFor(Level.WARN))         logger.warn(node + " still unavailable",e);
+        unavailableNodes.put(node,entry.getValue() + 1);
+        setUnavailable(node,e);
       }
 catch (      Exception e) {
         if (logger.isEnabledFor(Level.ERROR))         logger.error(node + " unavailable due to error",e);
+        unavailableNodes.put(node,entry.getValue() + 1);
+        setUnavailable(node,new UnreachableStoreException(e.getMessage()));
       }
     }
   }

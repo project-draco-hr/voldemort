@@ -4,9 +4,19 @@
     if (e != null)     logger.warn(node + " set as unavailable",e);
  else     logger.warn(node + " set as unavailable");
   }
+  boolean previouslyAvailable=false;
 synchronized (nodeStatus) {
-    boolean previouslyAvailable=nodeStatus.isAvailable();
-    nodeStatus.setAvailable(false);
-    if (previouslyAvailable)     notifyUnavailable(node);
+    previouslyAvailable=nodeStatus.setAvailable(false);
+  }
+  if (previouslyAvailable) {
+    if (logger.isInfoEnabled())     logger.info(node + " now unavailable");
+    for (    FailureDetectorListener fdl : listeners.keySet()) {
+      try {
+        fdl.nodeUnavailable(node);
+      }
+ catch (      Exception ex) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(ex,ex);
+      }
+    }
   }
 }
