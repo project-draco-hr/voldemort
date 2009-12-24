@@ -1,0 +1,11 @@
+{
+  assert(newNodes > 0);
+  List<HostNamePair> newInstances=createInstances(newNodes,ec2RebalancingTestConfig);
+  if (logger.isInfoEnabled())   logger.info("Sleeping for 15 seconds to let new instances startup");
+  Thread.sleep(15000);
+  hostNamePairs.addAll(newInstances);
+  hostNames=toHostNames(hostNamePairs);
+  nodeIds=generateClusterDescriptor(hostNamePairs,newCluster,ec2RebalancingTestConfig);
+  logger.info("Expanded the cluster. New layout: " + nodeIds);
+  return updateCluster(newCluster,nodeIds);
+}
