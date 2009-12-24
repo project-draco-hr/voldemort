@@ -1,6 +1,7 @@
 {
   int clusterSize=ec2RebalancingTestConfig.getInstanceCount();
-  partitionMap=getPartitionMap(clusterSize,ec2RebalancingTestConfig.partitionsPerNode);
+  spareNode=ec2RebalancingTestConfig.addNodes == 0;
+  partitionMap=getPartitionMap(clusterSize,ec2RebalancingTestConfig.partitionsPerNode,spareNode);
   if (logger.isInfoEnabled())   logPartitionMap(partitionMap,"Original");
   originalCluster=ServerTestUtils.getLocalCluster(clusterSize,getPorts(clusterSize),partitionMap);
   nodeIds=generateClusterDescriptor(hostNamePairs,originalCluster,ec2RebalancingTestConfig);
