@@ -1,12 +1,11 @@
 {
-  int len=template.length;
-  int carSize=pivot + 1;
-  int cdrSize=template[len - 1].length - carSize;
-  int[][] layout=new int[len + 1][];
-  layout[len - 1]=new int[carSize];
-  layout[len]=new int[cdrSize];
-  System.arraycopy(template,0,layout,0,len - 1);
-  System.arraycopy(template[len - 1],0,layout[len - 1],0,carSize);
-  System.arraycopy(template[len - 1],pivot + 1,layout[len],0,cdrSize);
+  int templateLength=template.length;
+  int vectorTailLength=template[templateLength - 1].length - pivot;
+  int[][] layout=new int[templateLength + 1][];
+  layout[templateLength - 1]=new int[pivot];
+  layout[templateLength]=new int[vectorTailLength];
+  System.arraycopy(template,0,layout,0,templateLength - 1);
+  System.arraycopy(template[templateLength - 1],0,layout[templateLength - 1],0,pivot);
+  System.arraycopy(template[templateLength - 1],pivot,layout[templateLength],0,vectorTailLength);
   return layout;
 }

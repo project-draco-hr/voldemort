@@ -1,6 +1,7 @@
 {
   int clusterSize=ec2RebalancingTestConfig.getInstanceCount();
-  int[][] targetLayout=insertNode(partitionMap,partitionMap[clusterSize - 1].length - 1);
+  int[][] targetLayout=insertNode(partitionMap,partitionMap[clusterSize - 1].length - 2);
+  if (logger.isInfoEnabled())   logPartitionMap(targetLayout,"Target");
   Cluster targetCluster=ServerTestUtils.getLocalCluster(clusterSize + 1,getPorts(clusterSize + 1),targetLayout);
   List<Integer> originalNodes=Lists.transform(Lists.<Node>newLinkedList(originalCluster.getNodes()),new Function<Node,Integer>(){
     public Integer apply(    Node node){
@@ -10,7 +11,7 @@
 );
   targetCluster=expandCluster(targetCluster.getNumberOfNodes() - clusterSize,targetCluster);
   try {
-    RebalanceClient rebalanceClient=new RebalanceClient(getBootstrapUrl(hostNames),new RebalanceClientConfig());
+    RebalanceClient rebalanceClient=new RebalanceClient(getBootstrapUrl(Arrays.asList(originalCluster.getNodeById(0).getHost())),new RebalanceClientConfig());
     populateData(originalCluster,originalNodes);
     rebalanceAndCheck(originalCluster,targetCluster,rebalanceClient,Arrays.asList(clusterSize));
   }
