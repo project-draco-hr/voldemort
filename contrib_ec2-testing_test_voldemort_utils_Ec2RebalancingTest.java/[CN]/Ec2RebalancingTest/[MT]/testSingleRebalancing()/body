@@ -3,12 +3,10 @@
   int[][] targetLayout=insertNode(partitionMap,partitionMap[clusterSize - 1].length - 2);
   if (logger.isInfoEnabled())   logPartitionMap(targetLayout,"Target");
   Cluster targetCluster=ServerTestUtils.getLocalCluster(clusterSize + 1,getPorts(clusterSize + 1),targetLayout);
-  List<Integer> originalNodes=Lists.transform(Lists.<Node>newLinkedList(originalCluster.getNodes()),new Function<Node,Integer>(){
-    public Integer apply(    Node node){
-      return node.getId();
-    }
+  List<Integer> originalNodes=new ArrayList<Integer>();
+  for (  Node node : originalCluster.getNodes()) {
+    originalNodes.add(node.getId());
   }
-);
   targetCluster=expandCluster(targetCluster.getNumberOfNodes() - clusterSize,targetCluster);
   try {
     RebalanceClient rebalanceClient=new RebalanceClient(getBootstrapUrl(Arrays.asList(originalCluster.getNodeById(0).getHost())),new RebalanceClientConfig());
