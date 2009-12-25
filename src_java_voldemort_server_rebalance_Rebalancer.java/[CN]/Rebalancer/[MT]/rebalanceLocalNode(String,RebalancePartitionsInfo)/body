@@ -5,6 +5,9 @@
   }
   int requestId=asyncRunner.getUniqueRequestId();
   asyncRunner.submitOperation(requestId,new AsyncOperation(requestId,stealInfo.toString()){
+    @Override public void stop(){
+      Thread.currentThread().interrupt();
+    }
     @Override public void operate() throws Exception {
       AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster());
       try {

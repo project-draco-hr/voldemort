@@ -1,6 +1,8 @@
 {
   Map<String,AsyncOperation> operations=new AsyncOperationRepository(2);
   AsyncOperation completeLater=new AsyncOperation(0,"test"){
+    @Override public void stop(){
+    }
     @Override public void operate(){
       try {
         Thread.sleep(2000);
@@ -13,11 +15,15 @@
 ;
   ExecutorService executorService=Executors.newFixedThreadPool(5);
   AsyncOperation completeNow=new AsyncOperation(1,"test 2"){
+    @Override public void stop(){
+    }
     @Override public void operate(){
     }
   }
 ;
   AsyncOperation completeSoon=new AsyncOperation(2,"test3"){
+    @Override public void stop(){
+    }
     @Override public void operate(){
       try {
         Thread.sleep(500);
