@@ -1,4 +1,6 @@
 {
+  Thread.sleep(5000);
+  logger.info("Before()");
   int clusterSize=ec2RebalancingTestConfig.getInstanceCount();
   spareNode=ec2RebalancingTestConfig.addNodes == 0;
   partitionMap=getPartitionMap(clusterSize,ec2RebalancingTestConfig.partitionsPerNode,spareNode);
@@ -7,8 +9,8 @@
   nodeIds=generateClusterDescriptor(hostNamePairs,originalCluster,ec2RebalancingTestConfig);
   deploy(hostNames,ec2RebalancingTestConfig);
   startClusterAsync(hostNames,ec2RebalancingTestConfig,nodeIds);
-  testEntries=ServerTestUtils.createRandomKeyValueString(ec2RebalancingTestConfig.numKeys);
-  originalCluster=updateCluster(originalCluster,nodeIds);
   if (logger.isInfoEnabled())   logger.info("Sleeping for 15 seconds to let the Voldemort cluster start");
   Thread.sleep(15000);
+  testEntries=ServerTestUtils.createRandomKeyValueString(ec2RebalancingTestConfig.numKeys);
+  originalCluster=updateCluster(originalCluster,nodeIds);
 }
