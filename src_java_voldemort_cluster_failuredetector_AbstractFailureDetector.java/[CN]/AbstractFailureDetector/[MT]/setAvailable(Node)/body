@@ -1,10 +1,7 @@
 {
   NodeStatus nodeStatus=getNodeStatus(node);
   if (logger.isTraceEnabled())   logger.trace(node + " set as available");
-  boolean previouslyAvailable=false;
-synchronized (nodeStatus) {
-    previouslyAvailable=nodeStatus.setAvailable(true);
-  }
+  boolean previouslyAvailable=setAvailable(nodeStatus,true);
   if (!previouslyAvailable) {
     if (logger.isInfoEnabled())     logger.info(node + " now available");
 synchronized (nodeStatus) {

@@ -2,5 +2,12 @@
   this.failureDetectorConfig=failureDetectorConfig;
   listeners=new ConcurrentHashMap<FailureDetectorListener,Object>();
   nodeStatusMap=new ConcurrentHashMap<Node,NodeStatus>();
-  for (  Node node : failureDetectorConfig.getNodes())   nodeStatusMap.put(node,new NodeStatus(failureDetectorConfig.getTime()));
+  long currTime=failureDetectorConfig.getTime().getMilliseconds();
+  for (  Node node : failureDetectorConfig.getNodes()) {
+    NodeStatus nodeStatus=new NodeStatus();
+    nodeStatus.setLastChecked(currTime);
+    nodeStatus.setStartMillis(currTime);
+    nodeStatus.setAvailable(true);
+    nodeStatusMap.put(node,nodeStatus);
+  }
 }

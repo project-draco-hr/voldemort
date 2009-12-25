@@ -1,4 +1,6 @@
 {
-  getNodeStatus(node);
-  return !unavailableNodes.containsKey(node);
+  NodeStatus nodeStatus=getNodeStatus(node);
+synchronized (nodeStatus) {
+    return nodeStatus.isAvailable();
+  }
 }
