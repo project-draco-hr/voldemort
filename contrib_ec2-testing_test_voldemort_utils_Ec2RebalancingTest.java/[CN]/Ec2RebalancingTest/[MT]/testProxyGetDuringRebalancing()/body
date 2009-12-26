@@ -15,20 +15,18 @@
     final AtomicBoolean rebalancingToken=new AtomicBoolean(false);
     final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
     populateData(originalCluster,originalNodes);
-    final SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(getBootstrapUrl(Arrays.asList(originalCluster.getNodeById(0).getHost()))));
-    final StoreClient<String,String> storeClient=new DefaultStoreClient<String,String>(ec2RebalancingTestConfig.testStoreName,null,factory,3);
+    final SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(getBootstrapUrl(originalCluster,0)));
+    final StoreClient<String,String> storeClient=new DefaultStoreClient<String,String>(ec2RebalancingTestConfig.testStoreName,null,factory,5);
     final boolean[] masterNodeResponded={false,false};
     executorService.execute(new Runnable(){
       public void run(){
         try {
           List<String> keys=new ArrayList<String>(testEntries.keySet());
-          int nRequests=0;
           while (!rebalancingToken.get()) {
             int index=(int)(Math.random() * keys.size());
             try {
-              nRequests++;
               Versioned<String> value=storeClient.get(keys.get(index));
-              assertNotSame("StoreClient get() should not return null.",null,value);
+              assertNotNull("StoreClient get() should not return null.",value);
               assertEquals("Value returned should be good",new Versioned<String>(testEntries.get(keys.get(index))),value);
               int masterNode=storeClient.getResponsibleNodes(keys.get(index)).get(0).getId();
               masterNodeResponded[masterNode]=true;
@@ -53,7 +51,7 @@ catch (            Exception e) {
       public void run(){
         try {
           Thread.sleep(100);
-          RebalanceClient rebalanceClient=new RebalanceClient(getBootstrapUrl(Arrays.asList(originalCluster.getNodeById(0).getHost())),new RebalanceClientConfig());
+          RebalanceClient rebalanceClient=new RebalanceClient(getBootstrapUrl(originalCluster,0),new RebalanceClientConfig());
           rebalanceAndCheck(originalCluster,targetCluster,rebalanceClient,Arrays.asList(1));
           Thread.sleep(60 * 1000);
           rebalancingToken.set(true);
@@ -66,7 +64,7 @@ catch (            Exception e) {
 );
     executorService.shutdown();
     executorService.awaitTermination(300,TimeUnit.SECONDS);
-    assertEquals("Client should see values returned master at both (0,1):(" + masterNodeResponded[0] + ","+ masterNodeResponded[1]+ ")",true,masterNodeResponded[0] && masterNodeResponded[1]);
+    assertTrue("Client should see values returned master at both (0,1):(" + masterNodeResponded[0] + ","+ masterNodeResponded[1]+ ")",masterNodeResponded[0] && masterNodeResponded[1]);
     if (exceptions.size() > 0) {
       for (      Exception e : exceptions) {
         e.printStackTrace();
