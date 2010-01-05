@@ -25,9 +25,9 @@
             int masterNode=storeClient.getResponsibleNodes(keys.get(index)).get(0).getId();
             masterNodeResponded[masterNode]=true;
           }
- catch (          UnreachableStoreException e) {
-          }
-catch (          Exception e) {
+ catch (          Exception e) {
+            System.out.println(e);
+            e.printStackTrace();
             exceptions.add(e);
           }
         }
@@ -45,7 +45,7 @@ catch (          Exception e) {
     public void run(){
       try {
         Thread.sleep(100);
-        RebalanceClient rebalanceClient=new RebalanceClient(getBootstrapUrl(currentCluster,0),new RebalanceClientConfig());
+        RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(currentCluster,0),new RebalanceClientConfig());
         rebalanceAndCheck(updatedCluster,targetCluster,rebalanceClient,Arrays.asList(1));
         Thread.sleep(60 * 1000);
         rebalancingToken.set(true);
