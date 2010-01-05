@@ -6,13 +6,8 @@
       items=store.getAll(keys);
       break;
     }
- catch (    InsufficientOperationalNodesException e) {
-      if (RebalanceUtils.containsInvalidMetadataException(e)) {
-        reinit();
-      }
- else {
-        throw e;
-      }
+ catch (    InvalidMetadataException e) {
+      reinit();
     }
   }
   Map<K,Versioned<V>> result=Maps.newHashMapWithExpectedSize(items.size());

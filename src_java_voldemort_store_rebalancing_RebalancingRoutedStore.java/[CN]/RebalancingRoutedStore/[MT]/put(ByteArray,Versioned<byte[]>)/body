@@ -4,13 +4,8 @@
       super.put(key,versioned);
       return;
     }
- catch (    InsufficientOperationalNodesException e) {
-      if (RebalanceUtils.containsInvalidMetadataException(e)) {
-        reinit();
-      }
- else {
-        throw e;
-      }
+ catch (    InvalidMetadataException e) {
+      reinit();
     }
   }
   throw new VoldemortException(this.maxMetadataRefreshAttempts + " metadata refresh attempts failed for server side routing.");
