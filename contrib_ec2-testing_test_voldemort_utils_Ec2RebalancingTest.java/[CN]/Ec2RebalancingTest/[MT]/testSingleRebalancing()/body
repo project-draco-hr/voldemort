@@ -10,9 +10,9 @@
     if (node.getId() == (clusterSize - 1) && spareNode)     break;
     originalNodes.add(node.getId());
   }
+  targetCluster=expandCluster(targetCluster.getNumberOfNodes() - clusterSize,targetCluster);
+  RebalanceController RebalanceController=new RebalanceController(getBootstrapUrl(originalCluster,0),new RebalanceClientConfig());
   try {
-    targetCluster=expandCluster(targetCluster.getNumberOfNodes() - clusterSize,targetCluster);
-    RebalanceController RebalanceController=new RebalanceController(getBootstrapUrl(originalCluster,0),new RebalanceClientConfig());
     populateData(originalCluster,originalNodes);
     rebalanceAndCheck(originalCluster,targetCluster,RebalanceController,originalNodes);
   }
