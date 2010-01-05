@@ -3,6 +3,12 @@
     RebalancePartitionsInfo info=metadataStore.getRebalancingStealInfo();
     throw new VoldemortException("Node " + metadataStore.getCluster().getNodeById(info.getStealerId()) + " is already rebalancing from "+ info.getDonorId()+ " rebalanceInfo:"+ info);
   }
+  checkCurrentState(metadataStore,stealInfo);
+  Node donorNode=getNodeIfPresent(stealInfo.getDonorId());
+  for (  String storeName : stealInfo.getUnbalancedStoreList()) {
+    createRedirectingSocketStore(storeName,donorNode);
+  }
+  setRebalancingState(metadataStore,stealInfo);
   int requestId=asyncRunner.getUniqueRequestId();
   asyncRunner.submitOperation(requestId,new AsyncOperation(requestId,stealInfo.toString()){
     @Override public void stop(){
@@ -13,7 +19,6 @@
     @Override public void operate() throws Exception {
       AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster());
       try {
-        checkCurrentState(metadataStore,stealInfo);
         logger.info("Rebalancer: rebalance " + stealInfo + " starting.");
         List<String> tempUnbalancedStoreList=new ArrayList<String>(stealInfo.getUnbalancedStoreList());
         for (        String storeName : ImmutableList.copyOf(stealInfo.getUnbalancedStoreList())) {
@@ -41,8 +46,6 @@
       }
     }
     private void rebalanceStore(    String storeName,    AdminClient adminClient,    RebalancePartitionsInfo stealInfo) throws Exception {
-      createRedirectingSocketStore(storeName,adminClient.getAdminClientCluster().getNodeById(stealInfo.getDonorId()));
-      setRebalancingState(metadataStore,stealInfo);
       updateStatus("starting partitions migration for store:" + storeName);
       currentStore=storeName;
       migratePartitionsAsyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getPartitionList(),null);

@@ -28,6 +28,7 @@
                   commitClusterChanges(stealerNodeId,targetCluster,rebalanceSubTask);
                 }
  catch (                Exception e) {
+                  adminClient.stopAsyncRequest(rebalanceSubTask.getStealerId(),rebalanceAsyncId);
                   throw e;
                 }
                 adminClient.waitForCompletion(rebalanceSubTask.getStealerId(),rebalanceAsyncId,rebalanceConfig.getRebalancingClientTimeoutSeconds(),TimeUnit.SECONDS);
