@@ -24,7 +24,7 @@
       failures.add(e);
     }
 catch (    VoldemortApplicationException e) {
-      failures.add(e);
+      throw e;
     }
 catch (    Exception e) {
       failures.add(e);
@@ -49,8 +49,10 @@ catch (    Exception e) {
           markUnavailable(node,e);
           failures.add(e);
         }
+catch (        ObsoleteVersionException e) {
+        }
 catch (        VoldemortApplicationException e) {
-          failures.add(e);
+          throw e;
         }
 catch (        Exception e) {
           logger.warn("Error in PUT on node " + node.getId() + "("+ node.getHost()+ ")",e);
