@@ -4,10 +4,6 @@
     throw new VoldemortException("Node " + metadataStore.getCluster().getNodeById(info.getStealerId()) + " is already rebalancing from "+ info.getDonorId()+ " rebalanceInfo:"+ info);
   }
   checkCurrentState(metadataStore,stealInfo);
-  Node donorNode=getNodeIfPresent(stealInfo.getDonorId());
-  for (  String storeName : stealInfo.getUnbalancedStoreList()) {
-    createRedirectingSocketStore(storeName,donorNode);
-  }
   setRebalancingState(metadataStore,stealInfo);
   int requestId=asyncRunner.getUniqueRequestId();
   asyncRunner.submitOperation(requestId,new AsyncOperation(requestId,stealInfo.toString()){
