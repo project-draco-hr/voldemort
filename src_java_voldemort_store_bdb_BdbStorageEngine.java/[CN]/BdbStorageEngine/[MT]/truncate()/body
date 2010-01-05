@@ -13,12 +13,7 @@
       throw new VoldemortException("Failed to truncate Bdb store " + getName(),e);
     }
  finally {
-      if (succeeded) {
-        attemptCommit(transaction);
-      }
- else {
-        attemptAbort(transaction);
-      }
+      commitOrAbort(succeeded,transaction);
       if (reopenBdbDatabase()) {
         isTruncating.compareAndSet(true,false);
       }
