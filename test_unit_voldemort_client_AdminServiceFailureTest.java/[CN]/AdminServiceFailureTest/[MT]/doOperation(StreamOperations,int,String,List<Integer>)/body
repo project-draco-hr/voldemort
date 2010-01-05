@@ -15,6 +15,10 @@ return;
 case UPDATE_ENTRIES:
 getAdminClient().updateEntries(nodeId,storeName,getRandomlyFailingIterator(ServerTestUtils.createRandomKeyValuePairs(TEST_KEYS)),null);
 return;
+case TRUNCATE_ENTRIES:
+putAlltoStore();
+getAdminClient().truncate(nodeId,storeName);
+return;
 default :
 throw new RuntimeException("Unknown operation");
 }
