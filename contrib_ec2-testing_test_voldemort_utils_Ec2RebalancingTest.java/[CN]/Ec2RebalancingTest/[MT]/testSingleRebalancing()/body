@@ -7,13 +7,14 @@
   Cluster targetCluster=ServerTestUtils.getLocalCluster(targetLayout.length,getPorts(targetLayout.length),targetLayout);
   List<Integer> originalNodes=new ArrayList<Integer>();
   for (  Node node : originalCluster.getNodes()) {
+    if (node.getId() == (clusterSize - 1) && spareNode)     break;
     originalNodes.add(node.getId());
   }
-  targetCluster=expandCluster(targetCluster.getNumberOfNodes() - clusterSize,targetCluster);
   try {
-    RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(Arrays.asList(originalCluster.getNodeById(0).getHost())),new RebalanceClientConfig());
+    targetCluster=expandCluster(targetCluster.getNumberOfNodes() - clusterSize,targetCluster);
+    RebalanceController RebalanceController=new RebalanceController(getBootstrapUrl(originalCluster,0),new RebalanceClientConfig());
     populateData(originalCluster,originalNodes);
-    rebalanceAndCheck(originalCluster,targetCluster,rebalanceClient,spareNode ? Arrays.asList(clusterSize - 1) : originalNodes);
+    rebalanceAndCheck(originalCluster,targetCluster,RebalanceController,originalNodes);
   }
   finally {
     stopCluster(hostNames,ec2RebalancingTestConfig);
