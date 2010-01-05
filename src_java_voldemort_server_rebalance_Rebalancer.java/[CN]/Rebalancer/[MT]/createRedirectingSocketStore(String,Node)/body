@@ -1,3 +1,5 @@
 {
-  return new SocketStore(storeName,new SocketDestination(node.getHost(),node.getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS),socketPool,RequestRoutingType.IGNORE_CHECKS);
+  if (voldemortConfig.isRedirectRoutingEnabled() && !storeRepository.hasRedirectingSocketStore(storeName,donorNode.getId())) {
+    storeRepository.addRedirectingSocketStore(donorNode.getId(),new SocketStore(storeName,new SocketDestination(donorNode.getHost(),donorNode.getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS),socketPool,RequestRoutingType.IGNORE_CHECKS));
+  }
 }

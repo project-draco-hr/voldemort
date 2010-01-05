@@ -1,6 +1,8 @@
 {
-  logger.info("Current Cluster configuration:" + currentCluster);
+  Versioned<Cluster> currentVersionedCluster=RebalanceUtils.getLatestCluster(new ArrayList<Integer>(),adminClient);
+  logger.info("Current Cluster configuration:" + currentVersionedCluster);
   logger.info("Target Cluster configuration:" + targetCluster);
+  Cluster currentCluster=currentVersionedCluster.getValue();
   adminClient.setAdminClientCluster(currentCluster);
   List<String> storeList=RebalanceUtils.getStoreNameList(currentCluster,adminClient);
   if (!RebalanceUtils.getClusterRebalancingToken()) {
@@ -12,11 +14,10 @@
     this.executor.execute(new Runnable(){
       public void run(){
         while (!rebalanceClusterPlan.getRebalancingTaskQueue().isEmpty()) {
-          logger.info("rebalanceTaskQueue size:" + rebalanceClusterPlan.getRebalancingTaskQueue().size());
-          RebalanceNodePlan rebalanceTask=rebalanceClusterPlan.getRebalancingTaskQueue().poll();
-          if (null != rebalanceTask) {
-            int stealerNodeId=rebalanceTask.getStealerNode();
-            List<RebalancePartitionsInfo> rebalanceSubTaskList=rebalanceTask.getRebalanceTaskList();
+          RebalanceNodePlan rebalanceNodePlan=rebalanceClusterPlan.getRebalancingTaskQueue().poll();
+          if (null != rebalanceNodePlan) {
+            int stealerNodeId=rebalanceNodePlan.getStealerNode();
+            List<RebalancePartitionsInfo> rebalanceSubTaskList=rebalanceNodePlan.getRebalanceTaskList();
             while (rebalanceSubTaskList.size() > 0) {
               int index=(int)Math.random() * rebalanceSubTaskList.size();
               RebalancePartitionsInfo rebalanceSubTask=rebalanceSubTaskList.remove(index);
