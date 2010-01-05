@@ -4,13 +4,8 @@
       List<Versioned<V>> items=store.get(key);
       return getItemOrThrow(key,defaultValue,items);
     }
- catch (    InsufficientOperationalNodesException e) {
-      if (RebalanceUtils.containsInvalidMetadataException(e)) {
-        reinit();
-      }
- else {
-        throw e;
-      }
+ catch (    InvalidMetadataException e) {
+      reinit();
     }
   }
   throw new VoldemortException(this.metadataRefreshAttempts + " metadata refresh attempts failed.");
