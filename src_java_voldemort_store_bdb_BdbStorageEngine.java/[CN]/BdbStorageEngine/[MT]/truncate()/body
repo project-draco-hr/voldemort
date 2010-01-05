@@ -1,21 +1,33 @@
 {
-  Transaction transaction=null;
-  boolean succeeded=false;
-  try {
-    transaction=this.environment.beginTransaction(null,null);
-    bdbDatabase.getEnvironment().truncateDatabase(transaction,bdbDatabase.getDatabaseName(),false);
-    succeeded=true;
-  }
- catch (  DatabaseException e) {
-    logger.error(e);
-    throw new PersistenceFailureException(e);
-  }
+  if (isTruncating.compareAndSet(false,true)) {
+    Transaction transaction=null;
+    boolean succeeded=false;
+    try {
+      transaction=this.environment.beginTransaction(null,null);
+      bdbDatabase.close();
+      environment.truncateDatabase(transaction,this.getName(),false);
+      succeeded=true;
+    }
+ catch (    DatabaseException e) {
+      logger.error(e);
+      throw new VoldemortException("Failed to truncate Bdb store " + getName(),e);
+    }
  finally {
-    if (succeeded) {
-      attemptCommit(transaction);
-    }
+      if (succeeded) {
+        attemptCommit(transaction);
+      }
  else {
-      attemptAbort(transaction);
+        attemptAbort(transaction);
+      }
+      if (reopenBdbDatabase()) {
+        isTruncating.compareAndSet(true,false);
+      }
+ else {
+        throw new VoldemortException("Failed to reopen Bdb Database after truncation, All request will fail on store " + getName());
+      }
     }
+  }
+ else {
+    throw new VoldemortException("Store " + getName() + " is already truncating, cannot start another one.");
   }
 }

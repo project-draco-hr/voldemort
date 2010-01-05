@@ -3,7 +3,7 @@
   Map<ByteArray,List<Versioned<byte[]>>> result=StoreUtils.newEmptyHashMap(keys);
   Cursor cursor=null;
   try {
-    cursor=bdbDatabase.openCursor(null,null);
+    cursor=getBdbDatabase().openCursor(null,null);
     for (    ByteArray key : keys) {
       List<Versioned<byte[]>> values=get(cursor,key,LockMode.READ_UNCOMMITTED,versionedSerializer);
       if (!values.isEmpty())       result.put(key,values);
