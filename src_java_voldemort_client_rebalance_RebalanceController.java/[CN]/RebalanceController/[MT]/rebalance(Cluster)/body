@@ -12,6 +12,8 @@
   logger.info(rebalanceClusterPlan);
   currentCluster=getClusterWithNewNodes(currentCluster,targetCluster);
   adminClient.setAdminClientCluster(currentCluster);
+  Node firstNode=currentCluster.getNodes().iterator().next();
+  RebalanceUtils.propagateCluster(adminClient,currentCluster,((VectorClock)currentVersionedCluster.getVersion()).incremented(firstNode.getId(),System.currentTimeMillis()),new ArrayList<Integer>());
   for (int nThreads=0; nThreads < this.rebalanceConfig.getMaxParallelRebalancing(); nThreads++) {
     this.executor.execute(new Runnable(){
       public void run(){
@@ -41,8 +43,14 @@
  catch (              UnreachableStoreException e) {
                 logger.error("StealerNode " + stealerNodeId + " is unreachable, please make sure it is up and running ..",e);
               }
+catch (              VoldemortRebalancingException e) {
+                logger.error(e);
+                for (                Exception cause : e.getCauses()) {
+                  logger.error(cause);
+                }
+              }
 catch (              Exception e) {
-                logger.warn("rebalancing task (" + rebalanceSubTask + ") failed with exception:",e);
+                logger.error("Rebalancing task failed with exception",e);
               }
             }
           }
