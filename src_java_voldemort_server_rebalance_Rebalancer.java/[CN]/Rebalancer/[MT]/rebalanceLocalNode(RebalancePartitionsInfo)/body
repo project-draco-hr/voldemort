@@ -1,7 +1,7 @@
 {
   if (!acquireRebalancingPermit()) {
     RebalancePartitionsInfo info=metadataStore.getRebalancingStealInfo();
-    throw new VoldemortException("Node " + metadataStore.getCluster().getNodeById(info.getStealerId()) + " is already rebalancing from "+ info.getDonorId()+ " rebalanceInfo:"+ info);
+    throw new AlreadyRebalancingException("Node " + metadataStore.getCluster().getNodeById(info.getStealerId()) + " is already rebalancing from "+ info.getDonorId()+ " rebalanceInfo:"+ info);
   }
   checkCurrentState(metadataStore,stealInfo);
   setRebalancingState(metadataStore,stealInfo);

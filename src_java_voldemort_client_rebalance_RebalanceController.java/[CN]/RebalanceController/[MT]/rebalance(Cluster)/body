@@ -25,18 +25,23 @@
               RebalancePartitionsInfo rebalanceSubTask=rebalanceSubTaskList.remove(index);
               logger.info("Starting rebalancing for stealerNode:" + stealerNodeId + " rebalanceInfo:"+ rebalanceSubTask);
               try {
-                int rebalanceAsyncId=adminClient.rebalanceNode(rebalanceSubTask);
+                int rebalanceAsyncId=startNodeRebalancing(rebalanceSubTask);
                 try {
                   commitClusterChanges(adminClient.getAdminClientCluster().getNodeById(stealerNodeId),targetCluster,rebalanceSubTask);
                 }
  catch (                Exception e) {
-                  adminClient.stopAsyncRequest(rebalanceSubTask.getStealerId(),rebalanceAsyncId);
+                  if (-1 != rebalanceAsyncId) {
+                    adminClient.stopAsyncRequest(rebalanceSubTask.getStealerId(),rebalanceAsyncId);
+                  }
                   throw e;
                 }
                 adminClient.waitForCompletion(rebalanceSubTask.getStealerId(),rebalanceAsyncId,rebalanceConfig.getRebalancingClientTimeoutSeconds(),TimeUnit.SECONDS);
                 logger.info("Successfully finished RebalanceSubTask attempt:" + rebalanceSubTask);
               }
- catch (              Exception e) {
+ catch (              UnreachableStoreException e) {
+                logger.error("StealerNode " + stealerNodeId + " is unreachable, please make sure it is up and running ..",e);
+              }
+catch (              Exception e) {
                 logger.warn("rebalancing task (" + rebalanceSubTask + ") failed with exception:",e);
               }
             }
