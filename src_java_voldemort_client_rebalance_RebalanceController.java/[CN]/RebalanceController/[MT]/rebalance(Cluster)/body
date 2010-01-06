@@ -10,6 +10,8 @@
   }
   final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(currentCluster,targetCluster,storeList,rebalanceConfig.isDeleteAfterRebalancingEnabled());
   logger.info(rebalanceClusterPlan);
+  currentCluster=getClusterWithNewNodes(currentCluster,targetCluster);
+  adminClient.setAdminClientCluster(currentCluster);
   for (int nThreads=0; nThreads < this.rebalanceConfig.getMaxParallelRebalancing(); nThreads++) {
     this.executor.execute(new Runnable(){
       public void run(){
@@ -25,7 +27,7 @@
               try {
                 int rebalanceAsyncId=adminClient.rebalanceNode(rebalanceSubTask);
                 try {
-                  commitClusterChanges(stealerNodeId,targetCluster,rebalanceSubTask);
+                  commitClusterChanges(adminClient.getAdminClientCluster().getNodeById(stealerNodeId),targetCluster,rebalanceSubTask);
                 }
  catch (                Exception e) {
                   adminClient.stopAsyncRequest(rebalanceSubTask.getStealerId(),rebalanceAsyncId);
