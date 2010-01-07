@@ -7,14 +7,14 @@
     final AtomicBoolean rebalancingToken=new AtomicBoolean(false);
     final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
     populateData(originalCluster,Arrays.asList(0));
-    final SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setSocketTimeout(60,TimeUnit.SECONDS).setBootstrapUrls(getBootstrapUrl(originalCluster,0)));
-    final StoreClient<String,String> storeClient=new DefaultStoreClient<String,String>(ec2RebalancingTestConfig.testStoreName,null,factory,3);
+    final SocketStoreClientFactory factory=getStoreClientFactory();
+    final StoreClient<String,String> storeClient=getStoreClient(factory);
     final boolean[] masterNodeResponded={false,false};
     executors.execute(new Runnable(){
       public void run(){
         try {
           List<String> keys=new ArrayList<String>(testEntries.keySet());
-          boolean caughtIsONException=false;
+          boolean caughtException=false;
           int nRequests=0;
           while (!rebalancingToken.get()) {
             int index=(int)(Math.random() * keys.size());
@@ -27,10 +27,10 @@
               masterNodeResponded[masterNode]=true;
             }
  catch (            InsufficientOperationalNodesException ison) {
-              if (!caughtIsONException) {
+              if (!caughtException) {
                 ison.printStackTrace();
                 exceptions.add(ison);
-                caughtIsONException=true;
+                caughtException=true;
               }
             }
 catch (            Exception e) {
