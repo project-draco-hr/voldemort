@@ -5,7 +5,8 @@
     this.storeRepository.addNodeStore(node.getId(),store);
     nodeStores.put(node.getId(),store);
   }
-  Store<ByteArray,byte[]> routedStore=new RebalancingRoutedStore(metadata,storeRepository,voldemortConfig,socketPool,def.getName(),nodeStores,def,true,this.clientThreadPool,SystemTime.INSTANCE);
+  Store<ByteArray,byte[]> routedStore=new RoutedStore(def.getName(),nodeStores,metadata.getCluster(),def,true,this.clientThreadPool,voldemortConfig.getRoutingTimeoutMs(),voldemortConfig.getClientNodeBannageMs(),SystemTime.INSTANCE);
+  routedStore=new RebootstrappingStore(metadata,storeRepository,voldemortConfig,socketPool,(RoutedStore)routedStore);
   routedStore=new InconsistencyResolvingStore<ByteArray,byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
   this.storeRepository.addRoutedStore(routedStore);
 }
