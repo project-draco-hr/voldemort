@@ -3,7 +3,14 @@
     List<StoreDefinition> storeDefList=adminClient.getRemoteStoreDefList(node.getId()).getValue();
     List<String> storeNameList=new ArrayList<String>(storeDefList.size());
     for (    StoreDefinition def : storeDefList) {
-      if (!def.isView())       storeNameList.add(def.getName());
+      if (!def.isView() && !rebalancingStoreEngineBlackList.contains(def.getName())) {
+        storeNameList.add(def.getName());
+      }
+      if (rebalancingStoreEngineBlackList.contains(def.getType())) {
+      }
+ else {
+        logger.debug("ignoring store " + def.getName() + " for rebalancing");
+      }
     }
     return storeNameList;
   }
