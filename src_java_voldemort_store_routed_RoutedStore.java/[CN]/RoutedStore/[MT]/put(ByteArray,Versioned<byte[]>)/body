@@ -15,12 +15,12 @@
       versionedCopy=incremented(versioned,current.getId());
       innerStores.get(current.getId()).put(key,versionedCopy);
       successes.getAndIncrement();
-      current.getStatus().setAvailable();
+      failureDetector.recordSuccess(current);
       master=current;
       break;
     }
  catch (    UnreachableStoreException e) {
-      markUnavailable(current,e);
+      failureDetector.recordException(current,e);
       failures.add(e);
     }
 catch (    VoldemortApplicationException e) {
@@ -43,10 +43,10 @@ catch (    Exception e) {
         try {
           innerStores.get(node.getId()).put(key,finalVersionedCopy);
           successes.incrementAndGet();
-          node.getStatus().setAvailable();
+          failureDetector.recordSuccess(node);
         }
  catch (        UnreachableStoreException e) {
-          markUnavailable(node,e);
+          failureDetector.recordException(node,e);
           failures.add(e);
         }
 catch (        ObsoleteVersionException e) {

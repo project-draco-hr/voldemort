@@ -10,11 +10,11 @@
         if (!retrieved.containsKey(nodeKey))         fillRepairReadsValues(nodeValues,nodeKey,node,Collections.<Versioned<byte[]>>emptyList());
       }
     }
-    node.getStatus().setAvailable();
+    failureDetector.recordSuccess(node);
   }
  catch (  UnreachableStoreException e) {
     exception=e;
-    markUnavailable(node,e);
+    failureDetector.recordException(node,e);
   }
 catch (  Throwable e) {
     if (e instanceof Error)     throw (Error)e;

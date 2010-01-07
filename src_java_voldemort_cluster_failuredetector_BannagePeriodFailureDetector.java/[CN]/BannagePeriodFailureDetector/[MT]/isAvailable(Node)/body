@@ -1,0 +1,15 @@
+{
+  long bannagePeriod=failureDetectorConfig.getBannagePeriod();
+  long currentTime=failureDetectorConfig.getTime().getMilliseconds();
+  NodeStatus nodeStatus=getNodeStatus(node);
+synchronized (nodeStatus) {
+    if (nodeStatus.isAvailable())     return true;
+    if (nodeStatus.getLastChecked() + bannagePeriod < currentTime) {
+      setAvailable(node);
+      return true;
+    }
+ else {
+      return false;
+    }
+  }
+}

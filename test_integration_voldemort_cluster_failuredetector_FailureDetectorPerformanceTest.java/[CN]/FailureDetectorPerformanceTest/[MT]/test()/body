@@ -1,0 +1,20 @@
+{
+  System.out.println(getTestHeaders());
+  for (  Class<?> implClass : getClasses()) {
+    failureDetectorConfig.setImplementationClassName(implClass.getName());
+    String result=null;
+    try {
+      FailureDetector failureDetector=FailureDetectorUtils.create(failureDetectorConfig);
+      try {
+        result=test(failureDetector);
+      }
+  finally {
+        failureDetector.destroy();
+      }
+    }
+ catch (    Exception e) {
+      result="ERROR: " + e.getMessage();
+    }
+    System.out.println(result);
+  }
+}

@@ -1,0 +1,13 @@
+{
+  int minimum=failureDetector.getConfig().getThresholdCountMinimum();
+  Node node=Iterables.get(cluster.getNodes(),8);
+  for (int i=0; i < minimum - 1; i++)   recordException(failureDetector,node);
+  assertAvailable(node);
+  recordException(failureDetector,node);
+  assertUnavailable(node);
+  assertJmxEquals("availableNodes","Node0,Node1,Node2,Node3,Node4,Node5,Node6,Node7");
+  assertJmxEquals("unavailableNodes","Node8");
+  assertJmxEquals("availableNodeCount",8);
+  assertJmxEquals("nodeCount",9);
+  recordSuccess(failureDetector,node);
+}

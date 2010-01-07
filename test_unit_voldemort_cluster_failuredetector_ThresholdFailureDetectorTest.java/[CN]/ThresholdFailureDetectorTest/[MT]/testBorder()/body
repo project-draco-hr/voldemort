@@ -1,0 +1,7 @@
+{
+  Node node=Iterables.get(cluster.getNodes(),8);
+  for (int i=0; i < failureDetector.getConfig().getThresholdCountMinimum(); i++)   recordException(failureDetector,node);
+  time.sleep(failureDetector.getConfig().getThresholdInterval() - 1);
+  assertUnavailable(node);
+  recordSuccess(failureDetector,node);
+}

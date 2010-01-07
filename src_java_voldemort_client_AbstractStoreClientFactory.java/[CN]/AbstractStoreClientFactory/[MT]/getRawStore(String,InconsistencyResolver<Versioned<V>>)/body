@@ -13,7 +13,7 @@
     clientMapping.put(node.getId(),store);
   }
   boolean repairReads=!storeDef.isView();
-  Store<ByteArray,byte[]> store=new RoutedStore(storeName,clientMapping,cluster,storeDef,repairReads,threadPool,routingTimeoutMs,nodeBannageMs,SystemTime.INSTANCE);
+  Store<ByteArray,byte[]> store=new RoutedStore(storeName,clientMapping,cluster,storeDef,repairReads,threadPool,routingTimeoutMs,failureDetector,SystemTime.INSTANCE);
   if (isJmxEnabled) {
     store=new StatTrackingStore(store);
     try {

@@ -1,0 +1,16 @@
+{
+  JMXConnectorServer cs=JMXConnectorServerFactory.newJMXConnectorServer(new JMXServiceURL("service:jmx:rmi://"),null,ManagementFactory.getPlatformMBeanServer());
+  cs.start();
+  JMXConnector cc=null;
+  try {
+    cc=JMXConnectorFactory.connect(cs.getAddress());
+    MBeanServerConnection mbsc=cc.getMBeanServerConnection();
+    ObjectName objectName=JmxUtils.createObjectName(JmxUtils.getPackageName(failureDetector.getClass()),failureDetector.getClass().getSimpleName());
+    Object availableNodes=mbsc.getAttribute(objectName,attributeName);
+    assertEquals(attributeValue,availableNodes);
+  }
+  finally {
+    if (cc != null)     cc.close();
+    cs.stop();
+  }
+}
