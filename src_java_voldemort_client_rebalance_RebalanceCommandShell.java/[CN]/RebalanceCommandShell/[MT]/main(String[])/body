@@ -1,10 +1,15 @@
 {
-  if (args.length != 3)   Utils.croak("USAGE: java RebalanceCommandShell bootstrapURL targetCluster.xml maxParallelRebalancing");
+  if (args.length != 4)   printUsage();
   String bootstrapURL=args[0];
   Cluster targetCluster=clusterMapper.readCluster(new File(args[1]));
   int maxParallelRebalancing=Integer.parseInt(args[2]);
+  if (!"true".equals(args[3]) && !"false".equals(args[3])) {
+    printUsage();
+  }
+  boolean deleteAfterRebalancing=Boolean.parseBoolean(args[3]);
   RebalanceClientConfig config=new RebalanceClientConfig();
   config.setMaxParallelRebalancing(maxParallelRebalancing);
+  config.setDeleteAfterRebalancingEnabled(deleteAfterRebalancing);
   rebalanceClient=new RebalanceController(bootstrapURL,config);
   rebalanceClient.rebalance(targetCluster);
   rebalanceClient.stop();
