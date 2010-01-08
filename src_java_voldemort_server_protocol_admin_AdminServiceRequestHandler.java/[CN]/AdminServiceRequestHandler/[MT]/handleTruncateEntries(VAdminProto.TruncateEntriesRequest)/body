@@ -1,0 +1,13 @@
+{
+  VAdminProto.TruncateEntriesResponse.Builder response=VAdminProto.TruncateEntriesResponse.newBuilder();
+  try {
+    String storeName=request.getStore();
+    StorageEngine<ByteArray,byte[]> storageEngine=getStorageEngine(storeName);
+    storageEngine.truncate();
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleTruncateEntries failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

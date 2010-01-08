@@ -49,11 +49,11 @@ catch (    ExecutionException e) {
     try {
       retrieved.add(new GetResult<R>(node,key,fetcher.execute(innerStores.get(node.getId()),key),null));
       ++successes;
-      node.getStatus().setAvailable();
+      failureDetector.recordSuccess(node);
     }
  catch (    UnreachableStoreException e) {
       failures.add(e);
-      markUnavailable(node,e);
+      failureDetector.recordException(node,e);
     }
 catch (    VoldemortApplicationException e) {
       throw e;

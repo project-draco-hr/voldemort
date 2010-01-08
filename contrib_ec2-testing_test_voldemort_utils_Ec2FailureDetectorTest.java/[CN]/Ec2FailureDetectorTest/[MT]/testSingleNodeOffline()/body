@@ -1,0 +1,16 @@
+{
+  String offlineHostName=getRandomHostName();
+  Node offlineNode=getNodeByHostName(offlineHostName,failureDetector);
+  test(store);
+  assertEquals(hostNamePairs.size(),failureDetector.getAvailableNodeCount());
+  assertTrue(failureDetector.isAvailable(offlineNode));
+  stopClusterNode(offlineHostName,ec2FailureDetectorTestConfig);
+  test(store);
+  assertEquals(hostNamePairs.size() - 1,failureDetector.getAvailableNodeCount());
+  assertFalse(failureDetector.isAvailable(offlineNode));
+  startClusterNode(offlineHostName,ec2FailureDetectorTestConfig,offlineNode.getId());
+  failureDetector.waitForAvailability(offlineNode);
+  test(store);
+  assertEquals(hostNamePairs.size(),failureDetector.getAvailableNodeCount());
+  assertTrue(failureDetector.isAvailable(offlineNode));
+}

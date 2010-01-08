@@ -1,0 +1,21 @@
+{
+  Transaction transaction=null;
+  boolean succeeded=false;
+  try {
+    transaction=this.environment.beginTransaction(null,null);
+    bdbDatabase.getEnvironment().truncateDatabase(transaction,bdbDatabase.getDatabaseName(),false);
+    succeeded=true;
+  }
+ catch (  DatabaseException e) {
+    logger.error(e);
+    throw new PersistenceFailureException(e);
+  }
+ finally {
+    if (succeeded) {
+      attemptCommit(transaction);
+    }
+ else {
+      attemptAbort(transaction);
+    }
+  }
+}

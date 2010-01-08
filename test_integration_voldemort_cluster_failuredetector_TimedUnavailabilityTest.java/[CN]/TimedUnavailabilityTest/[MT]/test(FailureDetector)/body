@@ -1,0 +1,15 @@
+{
+  Node node=Iterables.get(failureDetectorConfig.getNodes(),0);
+  CountDownLatch countDownLatch=new CountDownLatch(1);
+  Listener listener=new Listener(failureDetectorConfig.getTime());
+  failureDetector.addFailureDetectorListener(listener);
+  ExecutorService threadPool=Executors.newFixedThreadPool(11);
+  for (int i=0; i < 10; i++)   threadPool.submit(new NodeAccessorRunnable(failureDetector,node,countDownLatch,null,null,null,0,10));
+  threadPool.submit(new TimedUnavailability(failureDetector,node,countDownLatch));
+  threadPool.shutdown();
+  if (!threadPool.awaitTermination(60,TimeUnit.SECONDS)) {
+    System.out.println("Threads appear to be stuck");
+    threadPool.awaitTermination(Long.MAX_VALUE,TimeUnit.SECONDS);
+  }
+  return Class.forName(failureDetectorConfig.getImplementationClassName()).getSimpleName() + ", " + listener.getDelta();
+}

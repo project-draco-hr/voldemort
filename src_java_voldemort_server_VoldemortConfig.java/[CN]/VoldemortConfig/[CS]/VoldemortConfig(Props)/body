@@ -46,7 +46,6 @@
   this.clientMaxConnectionsPerNode=props.getInt("client.max.connections.per.node",5);
   this.clientConnectionTimeoutMs=props.getInt("client.connection.timeout.ms",400);
   this.clientRoutingTimeoutMs=props.getInt("client.routing.timeout.ms",5000);
-  this.clientNodeBannageMs=props.getInt("client.node.bannage.ms",10000);
   this.clientMaxThreads=props.getInt("client.max.threads",100);
   this.clientThreadIdleMs=props.getInt("client.thread.idle.ms",5000);
   this.clientMaxQueuedRequests=props.getInt("client.max.queued.requests",1000);
@@ -75,6 +74,15 @@
   this.maxRebalancingAttempt=props.getInt("max.rebalancing.attempts",Integer.MAX_VALUE);
   this.rebalancingTimeoutInSeconds=props.getInt("rebalancing.timeout.seconds",60 * 60);
   this.rebalancingServicePeriod=props.getInt("rebalancing.service.period.ms",1000);
+  this.failureDetectorImplementation=props.getString("failuredetector.implementation",FailureDetectorConfig.DEFAULT_IMPLEMENTATION_CLASS_NAME);
+  if (props.containsKey("client.node.bannage.ms") && !props.containsKey("failuredetector.bannage.period")) {
+    props.put("failuredetector.bannage.period",props.get("client.node.bannage.ms"));
+  }
+  this.failureDetectorBannagePeriod=props.getLong("failuredetector.bannage.period",FailureDetectorConfig.DEFAULT_BANNAGE_PERIOD);
+  this.failureDetectorThreshold=props.getInt("failuredetector.threshold",FailureDetectorConfig.DEFAULT_THRESHOLD);
+  this.failureDetectorThresholdCountMinimum=props.getInt("failuredetector.threshold.countminimum",FailureDetectorConfig.DEFAULT_THRESHOLD_COUNT_MINIMUM);
+  this.failureDetectorThresholdInterval=props.getLong("failuredetector.threshold.interval",FailureDetectorConfig.DEFAULT_THRESHOLD_INTERVAL);
+  this.failureDetectorAsyncRecoveryInterval=props.getLong("failuredetector.asyncrecovery.interval",FailureDetectorConfig.DEFAULT_ASYNC_RECOVERY_INTERVAL);
   this.enableNetworkClassLoader=props.getBoolean("enable.network.classloader",false);
   validateParams();
 }

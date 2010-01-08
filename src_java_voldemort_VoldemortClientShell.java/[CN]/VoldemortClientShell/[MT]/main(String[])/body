@@ -15,8 +15,8 @@
  catch (  IOException e) {
     Utils.croak("Failure to open input stream: " + e.getMessage());
   }
-  StoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootstrapUrl));
-  client=null;
+  ClientConfig clientConfig=new ClientConfig().setBootstrapUrls(bootstrapUrl);
+  StoreClientFactory factory=new SocketStoreClientFactory(clientConfig);
   try {
     client=(DefaultStoreClient<Object,Object>)factory.getStoreClient(storeName);
   }
@@ -26,8 +26,8 @@
   System.out.println("Established connection to " + storeName + " via "+ bootstrapUrl);
   System.out.print(PROMPT);
   if (fileReader != null) {
-    processCommands(fileReader,true);
+    processCommands(factory,fileReader,true);
     fileReader.close();
   }
-  processCommands(inputReader,false);
+  processCommands(factory,inputReader,false);
 }

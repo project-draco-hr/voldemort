@@ -1,10 +1,11 @@
 {
-  Cluster cluster=VoldemortTestConstants.getTwoNodeCluster();
+  cluster=VoldemortTestConstants.getTwoNodeCluster();
   StoreDefinition storeDef=ServerTestUtils.getStoreDef("test",2,1,1,2,2,RoutingStrategyType.CONSISTENT_STRATEGY);
   Map<Integer,Store<ByteArray,byte[]>> subStores=Maps.newHashMap();
   subStores.put(Iterables.get(cluster.getNodes(),0).getId(),new InMemoryStorageEngine<ByteArray,byte[]>("test"));
   subStores.put(Iterables.get(cluster.getNodes(),1).getId(),new FailingReadsStore<ByteArray,byte[]>("test"));
-  RoutedStore routedStore=new RoutedStore("test",subStores,cluster,storeDef,1,true,1000L);
+  setFailureDetector(subStores);
+  RoutedStore routedStore=new RoutedStore("test",subStores,cluster,storeDef,1,true,1000L,failureDetector);
   Store<ByteArray,byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
   Map<ByteArray,byte[]> expectedValues=Maps.newHashMap();
   for (byte i=1; i < 11; ++i) {
