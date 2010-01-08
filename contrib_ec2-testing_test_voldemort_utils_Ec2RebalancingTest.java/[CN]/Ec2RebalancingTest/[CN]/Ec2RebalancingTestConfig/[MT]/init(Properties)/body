@@ -1,0 +1,13 @@
+{
+  super.init(properties);
+  configDirName=properties.getProperty("ec2ConfigDirName");
+  numKeys=Integer.valueOf(properties.getProperty("rebalancingNumKeys","10000"));
+  partitionsPerNode=Integer.valueOf(properties.getProperty("rebalancingPartitionsPerNode","4"));
+  addNodes=Integer.valueOf(properties.getProperty("rebalancingAddNodes","0"));
+  try {
+    FileUtils.copyFileToDirectory(new File(storeDefFile),new File(configDirName));
+  }
+ catch (  IOException e) {
+    throw new RuntimeException(e);
+  }
+}

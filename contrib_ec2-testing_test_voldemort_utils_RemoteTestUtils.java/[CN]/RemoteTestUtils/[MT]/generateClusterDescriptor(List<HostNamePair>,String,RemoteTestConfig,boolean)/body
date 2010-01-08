@@ -1,0 +1,25 @@
+{
+  List<String> hostNames=Lists.transform(hostNamePairs,useExternal ? new Function<HostNamePair,String>(){
+    public String apply(    HostNamePair hostNamePair){
+      return hostNamePair.getExternalHostName();
+    }
+  }
+ : new Function<HostNamePair,String>(){
+    public String apply(    HostNamePair hostNamePair){
+      return hostNamePair.getInternalHostName();
+    }
+  }
+);
+  ClusterGenerator clusterGenerator=new ClusterGenerator();
+  List<ClusterNodeDescriptor> nodes=clusterGenerator.createClusterNodeDescriptors(hostNames,3);
+  String clusterXml=clusterGenerator.createClusterDescriptor(clusterName,nodes);
+  FileUtils.writeStringToFile(remoteTestConfig.getClusterXmlFile(),clusterXml);
+  Map<String,Integer> nodeIds=new HashMap<String,Integer>();
+  for (  ClusterNodeDescriptor node : nodes) {
+    if (useExternal)     nodeIds.put(node.getHostName(),node.getId());
+ else {
+      for (      HostNamePair hostNamePair : hostNamePairs)       if (node.getHostName().equals(hostNamePair.getInternalHostName()))       nodeIds.put(hostNamePair.getExternalHostName(),node.getId());
+    }
+  }
+  return nodeIds;
+}

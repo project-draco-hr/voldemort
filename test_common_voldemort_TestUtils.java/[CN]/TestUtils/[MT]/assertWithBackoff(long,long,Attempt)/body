@@ -1,0 +1,25 @@
+{
+  long delay=initialDelay;
+  long finishBy=System.currentTimeMillis() + timeout;
+  while (true) {
+    try {
+      attempt.checkCondition();
+      return;
+    }
+ catch (    AssertionError e) {
+      if (System.currentTimeMillis() < finishBy) {
+        try {
+          Thread.sleep(delay);
+          delay<<=1;
+        }
+ catch (        InterruptedException ie) {
+          Thread.currentThread().interrupt();
+          throw ie;
+        }
+      }
+ else {
+        throw e;
+      }
+    }
+  }
+}

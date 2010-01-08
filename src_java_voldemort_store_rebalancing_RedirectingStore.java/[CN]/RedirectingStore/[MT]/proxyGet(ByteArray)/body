@@ -1,6 +1,13 @@
 {
-  if (!storeRepository.hasNodeStore(getName(),metadata.getRebalancingSlaveNodeId())) {
-    throw new VoldemortException("Node Store not present in storeRepository for (store,nodeId) pair (" + getName() + ","+ metadata.getRebalancingSlaveNodeId()+ ").");
+  Node donorNode=metadata.getCluster().getNodeById(metadata.getRebalancingStealInfo().getDonorId());
+  checkNodeAvailable(donorNode);
+  try {
+    List<Versioned<byte[]>> values=getRedirectingSocketStore(getName(),metadata.getRebalancingStealInfo().getDonorId()).get(key);
+    failureDetector.recordSuccess(donorNode);
+    return values;
   }
-  return storeRepository.getNodeStore(getName(),metadata.getRebalancingSlaveNodeId()).get(key);
+ catch (  UnreachableStoreException e) {
+    failureDetector.recordException(donorNode,e);
+    throw new ProxyUnreachableException("Failed to reach proxy node " + donorNode,e);
+  }
 }

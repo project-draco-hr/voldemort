@@ -6,6 +6,6 @@
   int adminPort=(null != server.getChildText(ADMIN_PORT_ELMT)) ? Integer.parseInt(server.getChildText(ADMIN_PORT_ELMT)) : -1;
   String partitionsText=server.getChildText(SERVER_PARTITIONS_ELMT).trim();
   List<Integer> partitions=new ArrayList<Integer>();
-  for (  String aPartition : COMMA_SEP.split(partitionsText))   partitions.add(Integer.parseInt(aPartition.trim()));
+  for (  String aPartition : COMMA_SEP.split(partitionsText))   if (aPartition.trim().length() > 0)   partitions.add(Integer.parseInt(aPartition.trim()));
   return new Node(id,host,httpPort,socketPort,adminPort,partitions);
 }

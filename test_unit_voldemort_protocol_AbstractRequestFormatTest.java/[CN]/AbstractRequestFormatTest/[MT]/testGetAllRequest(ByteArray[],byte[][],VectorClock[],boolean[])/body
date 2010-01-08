@@ -4,7 +4,7 @@
       if (isFound[i])       store.put(keys[i],Versioned.value(values[i],versions[i]));
     }
     ByteArrayOutputStream getAllRequest=new ByteArrayOutputStream();
-    this.clientWireFormat.writeGetAllRequest(new DataOutputStream(getAllRequest),storeName,Arrays.asList(keys),false);
+    this.clientWireFormat.writeGetAllRequest(new DataOutputStream(getAllRequest),storeName,Arrays.asList(keys),RequestRoutingType.NORMAL);
     ByteArrayOutputStream getAllResponse=new ByteArrayOutputStream();
     this.serverWireFormat.handleRequest(inputStream(getAllRequest),new DataOutputStream(getAllResponse));
     Map<ByteArray,List<Versioned<byte[]>>> found=this.clientWireFormat.readGetAllResponse(inputStream(getAllResponse));

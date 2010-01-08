@@ -1,0 +1,16 @@
+{
+  List<ClusterNodeDescriptor> list=new ArrayList<ClusterNodeDescriptor>();
+  for (int i=0; i < hostNames.size(); i++) {
+    Node node=cluster.getNodeById(i);
+    String hostName=hostNames.get(i);
+    List<Integer> partitions=node.getPartitionIds();
+    ClusterNodeDescriptor cnd=new ClusterNodeDescriptor();
+    cnd.setHostName(hostName);
+    cnd.setId(i);
+    cnd.setSocketPort(node.getSocketPort());
+    cnd.setHttpPort(node.getHttpPort());
+    cnd.setPartitions(partitions);
+    list.add(cnd);
+  }
+  return list;
+}

@@ -1,0 +1,15 @@
+{
+  try {
+    JsonReader reader=new JsonReader(new StringReader(line));
+    Map<String,Object> map=(Map<String,Object>)reader.read();
+    this.stealerId=(Integer)map.get("stealerId");
+    this.donorId=(Integer)map.get("donorId");
+    this.partitionList=(List<Integer>)map.get("partitionList");
+    this.attempt=(Integer)map.get("attempt");
+    this.deleteDonorPartitions=(Boolean)map.get("deleteDonorPartitions");
+    this.unbalancedStoreList=(List<String>)map.get("unbalancedStoreList");
+  }
+ catch (  Exception e) {
+    throw new VoldemortException("Failed to create RebalanceStealInfo from String:" + line,e);
+  }
+}

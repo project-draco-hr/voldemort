@@ -1,9 +1,8 @@
 {
-  super(properties);
   Props props=new Props(properties);
-  if (!props.containsKey(ClientConfig.CONNECTION_TIMEOUT_MS_PROPERTY))   this.setConnectionTimeout(60,TimeUnit.SECONDS);
-  if (!props.containsKey(ClientConfig.SOCKET_TIMEOUT_MS_PROPERTY))   this.setSocketTimeout(24 * 60 * 60,TimeUnit.SECONDS);
-  if (!props.containsKey(ClientConfig.SOCKET_BUFFER_SIZE_PROPERTY))   this.setSocketBufferSize(16 * 1024 * 1024);
-  if (!props.containsKey(ClientConfig.MAX_CONNECTIONS_PER_NODE_PROPERTY))   this.setMaxConnectionsPerNode(3);
-  if (!props.containsKey(ClientConfig.MAX_THREADS_PROPERTY))   this.setMaxThreads(8);
+  if (props.containsKey(MAX_CONNECTIONS_PER_NODE_PROPERTY))   this.setMaxConnectionsPerNode(props.getInt(MAX_CONNECTIONS_PER_NODE_PROPERTY));
+  if (props.containsKey(MAX_THREADS_PROPERTY))   this.setMaxThreads(props.getInt(MAX_THREADS_PROPERTY));
+  if (props.containsKey(ADMIN_CONNECTION_TIMEOUT_SEC_PROPERTY))   this.setAdminConnectionTimeoutSec(props.getInt(ADMIN_CONNECTION_TIMEOUT_SEC_PROPERTY));
+  if (props.containsKey(ADMIN_SOCKET_TIMEOUT_SEC_PROPERTY))   this.setAdminSocketTimeoutSec(props.getInt(ADMIN_SOCKET_TIMEOUT_SEC_PROPERTY));
+  if (props.containsKey(ADMIN_SOCKET_BUFFER_SIZE_PROPERTY))   this.setAdminSocketBufferSize(props.getInt(ADMIN_SOCKET_BUFFER_SIZE_PROPERTY));
 }
