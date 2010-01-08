@@ -1,0 +1,6 @@
+{
+  stealInfo.setAttempt(stealInfo.getAttempt() + 1);
+  AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster());
+  int rebalanceAsyncId=rebalanceLocalNode(stealInfo);
+  adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,voldemortConfig.getAdminSocketTimeout(),TimeUnit.SECONDS);
+}

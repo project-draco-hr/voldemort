@@ -1,0 +1,47 @@
+{
+  final int nodeId=request.getNodeId();
+  final List<Integer> partitions=request.getPartitionsList();
+  final VoldemortFilter filter=request.hasFilter() ? getFilterFromRequest(request.getFilter()) : new DefaultVoldemortFilter();
+  final String storeName=request.getStore();
+  int requestId=asyncRunner.getUniqueRequestId();
+  VAdminProto.AsyncOperationStatusResponse.Builder response=VAdminProto.AsyncOperationStatusResponse.newBuilder().setRequestId(requestId).setComplete(false).setDescription("Fetch and update").setStatus("started");
+  try {
+    asyncRunner.submitOperation(requestId,new AsyncOperation(requestId,"Fetch and Update"){
+      private final AtomicBoolean running=new AtomicBoolean(true);
+      @Override public void stop(){
+        running.set(false);
+      }
+      @Override public void operate(){
+        AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster());
+        try {
+          StorageEngine<ByteArray,byte[]> storageEngine=getStorageEngine(storeName);
+          Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=adminClient.fetchEntries(nodeId,storeName,partitions,filter);
+          updateStatus("Initated fetchPartitionEntries");
+          EventThrottler throttler=new EventThrottler(voldemortConfig.getStreamMaxWriteBytesPerSec());
+          for (long i=0; running.get() && entriesIterator.hasNext(); i++) {
+            Pair<ByteArray,Versioned<byte[]>> entry=entriesIterator.next();
+            try {
+              storageEngine.put(entry.getFirst(),entry.getSecond());
+            }
+ catch (            ObsoleteVersionException e) {
+              logger.debug("FetchAndUpdate threw ObsoleteVersionException .. Ignoring.");
+            }
+            throttler.maybeThrottle(entrySize(entry.getFirst(),entry.getSecond()));
+            if ((i % 1000) == 0) {
+              updateStatus(i + " entries processed");
+            }
+          }
+        }
+  finally {
+          adminClient.stop();
+        }
+      }
+    }
+);
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleFetchAndUpdate failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

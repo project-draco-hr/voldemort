@@ -1,0 +1,12 @@
+{
+  for (int attempts=0; attempts < this.maxMetadataRefreshAttempts; attempts++) {
+    try {
+      super.put(key,versioned);
+      return;
+    }
+ catch (    InvalidMetadataException e) {
+      reinit();
+    }
+  }
+  throw new VoldemortException(this.maxMetadataRefreshAttempts + " metadata refresh attempts failed for server side routing.");
+}

@@ -1,5 +1,9 @@
 {
-  ByteArray key=new ByteArray(ByteUtils.getBytes(keyString,"UTF-8"));
-  VectorClock current=(VectorClock)getVersions(key).get(0);
-  put(keyString,new Versioned<Object>(value,current.incremented(getNodeId(),System.currentTimeMillis())));
+  if (METADATA_KEYS.contains(key)) {
+    VectorClock version=(VectorClock)get(key).get(0).getVersion();
+    put(key,new Versioned<Object>(value,version.incremented(getNodeId(),System.currentTimeMillis())));
+  }
+ else {
+    throw new VoldemortException("Unhandled Key:" + key + " for MetadataStore put()");
+  }
 }

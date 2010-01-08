@@ -27,6 +27,9 @@
     try {
       GetResult<R> getResult=f.get();
       if (getResult.exception != null) {
+        if (getResult.exception instanceof VoldemortApplicationException) {
+          throw (VoldemortException)getResult.exception;
+        }
         failures.add(getResult.exception);
         continue;
       }

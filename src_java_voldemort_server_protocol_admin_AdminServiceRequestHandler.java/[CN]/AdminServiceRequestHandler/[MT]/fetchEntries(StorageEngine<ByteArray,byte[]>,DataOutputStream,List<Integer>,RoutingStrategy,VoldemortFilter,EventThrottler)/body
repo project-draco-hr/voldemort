@@ -1,0 +1,35 @@
+{
+  ClosableIterator<ByteArray> keyIterator=null;
+  try {
+    int counter=0;
+    int fetched=0;
+    long startTime=System.currentTimeMillis();
+    keyIterator=storageEngine.keys();
+    while (keyIterator.hasNext()) {
+      ByteArray key=keyIterator.next();
+      if (validPartition(key.get(),partitionList,routingStrategy)) {
+        for (        Versioned<byte[]> value : storageEngine.get(key)) {
+          if (filter.accept(key,value)) {
+            fetched++;
+            VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
+            VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(key)).setVersioned(ProtoUtils.encodeVersioned(value)).build();
+            response.setPartitionEntry(partitionEntry);
+            Message message=response.build();
+            ProtoUtils.writeMessage(outputStream,message);
+            if (throttler != null) {
+              throttler.maybeThrottle(entrySize(key,value));
+            }
+          }
+        }
+      }
+      counter++;
+      if (0 == counter % 100000) {
+        long totalTime=(System.currentTimeMillis() - startTime) / 1000;
+        logger.debug("fetchEntries() scanned " + counter + " entries, fetched "+ fetched+ " entries for store:"+ storageEngine.getName()+ " partition:"+ partitionList+ " in "+ totalTime+ " s");
+      }
+    }
+  }
+  finally {
+    if (null != keyIterator)     keyIterator.close();
+  }
+}
