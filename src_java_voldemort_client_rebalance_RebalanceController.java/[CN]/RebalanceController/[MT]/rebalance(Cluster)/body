@@ -11,8 +11,9 @@
   adminClient.setAdminClientCluster(currentCluster);
   Node firstNode=currentCluster.getNodes().iterator().next();
   RebalanceUtils.propagateCluster(adminClient,currentCluster,((VectorClock)currentVersionedCluster.getVersion()).incremented(firstNode.getId(),System.currentTimeMillis()),new ArrayList<Integer>());
+  ExecutorService executor=createExecutors(rebalanceConfig.getMaxParallelRebalancing());
   for (int nThreads=0; nThreads < this.rebalanceConfig.getMaxParallelRebalancing(); nThreads++) {
-    this.executor.execute(new Runnable(){
+    executor.execute(new Runnable(){
       public void run(){
         while (!rebalanceClusterPlan.getRebalancingTaskQueue().isEmpty()) {
           RebalanceNodePlan rebalanceTask=rebalanceClusterPlan.getRebalancingTaskQueue().poll();
@@ -26,7 +27,7 @@
               try {
                 int rebalanceAsyncId=startNodeRebalancing(rebalanceSubTask);
                 try {
-                  commitClusterChanges(adminClient.getAdminClientCluster().getNodeById(stealerNodeId),targetCluster,rebalanceSubTask);
+                  commitClusterChanges(adminClient.getAdminClientCluster().getNodeById(stealerNodeId),rebalanceSubTask);
                 }
  catch (                Exception e) {
                   if (-1 != rebalanceAsyncId) {
