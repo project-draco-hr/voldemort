@@ -1,0 +1,13 @@
+{
+  List<Node> preferenceList=new ArrayList<Node>(numReplicas);
+  List<Integer> replicationPartitionsList=new ArrayList<Integer>(numReplicas);
+  for (int i=0; i < partitionToNode.length; i++) {
+    if (!preferenceList.contains(partitionToNode[index])) {
+      preferenceList.add(partitionToNode[index]);
+      replicationPartitionsList.add(index);
+    }
+    if (preferenceList.size() >= numReplicas)     return replicationPartitionsList;
+    index=(index + 1) % partitionToNode.length;
+  }
+  return replicationPartitionsList;
+}
