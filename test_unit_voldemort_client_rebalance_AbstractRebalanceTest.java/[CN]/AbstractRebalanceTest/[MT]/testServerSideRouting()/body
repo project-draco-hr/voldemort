@@ -1,13 +1,14 @@
 {
-  final Cluster currentCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{0,1,2,3},{}});
-  final Cluster targetCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{},{0,1,2,3}});
+  Cluster localCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{0,1,2,3},{}});
+  Cluster localTargetCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{},{0,1,2,3}});
   final List<Integer> serverList=Arrays.asList(0,1);
-  final Cluster updatedCluster=startServers(currentCluster,storeDefFile,serverList,null);
+  final Cluster updatedCluster=startServers(localCluster,storeDefFile,serverList,null);
+  final Cluster targetCluster=updateCluster(localTargetCluster);
   ExecutorService executors=Executors.newFixedThreadPool(2);
   final AtomicBoolean rebalancingToken=new AtomicBoolean(false);
   final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
-  populateData(currentCluster,Arrays.asList(0));
-  Node node=currentCluster.getNodeById(0);
+  populateData(updatedCluster,Arrays.asList(0));
+  Node node=updatedCluster.getNodeById(0);
   final Store<ByteArray,byte[]> serverSideRoutingStore=ServerTestUtils.getSocketStore(testStoreName,node.getHost(),node.getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS,true);
   executors.execute(new Runnable(){
     public void run(){
@@ -39,7 +40,7 @@ catch (          Exception e) {
     public void run(){
       try {
         Thread.sleep(500);
-        RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(currentCluster,0),new RebalanceClientConfig());
+        RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCluster,0),new RebalanceClientConfig());
         rebalanceAndCheck(updatedCluster,targetCluster,rebalanceClient,Arrays.asList(1));
         Thread.sleep(500);
         rebalancingToken.set(true);
@@ -51,7 +52,7 @@ catch (          Exception e) {
         try {
           stopServer(serverList);
         }
- catch (        IOException e) {
+ catch (        Exception e) {
           throw new RuntimeException(e);
         }
       }
