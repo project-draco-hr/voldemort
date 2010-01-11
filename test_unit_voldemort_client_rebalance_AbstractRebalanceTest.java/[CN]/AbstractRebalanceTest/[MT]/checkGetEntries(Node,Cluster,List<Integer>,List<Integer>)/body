@@ -1,7 +1,7 @@
 {
   int matchedEntries=0;
   RoutingStrategy routing=new ConsistentRoutingStrategy(cluster.getNodes(),1);
-  SocketStore store=ServerTestUtils.getSocketStore(testStoreName,node.getHost(),node.getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS);
+  SocketStore store=getSocketStore(testStoreName,node.getHost(),node.getSocketPort());
   for (  Entry<String,String> entry : testEntries.entrySet()) {
     ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(entry.getKey(),"UTF-8"));
     List<Integer> partitions=routing.getPartitionList(keyBytes.get());
