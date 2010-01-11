@@ -9,9 +9,9 @@
     Node node=new Node(nodeId,hostName,tmplNode.getHttpPort(),tmplNode.getSocketPort(),tmplNode.getAdminPort(),tmplNode.getPartitionIds());
     nodes.add(node);
     nodeIdsInv.put(nodeId,hostName);
+    activeHostNames.add(hostName);
   }
   Cluster cluster=new Cluster(template.getName(),nodes);
-  activeHostNames.addAll(nodeIds.keySet());
   deploy(activeHostNames,ec2RebalanceTestConfig);
   startClusterAsync(activeHostNames,ec2RebalanceTestConfig,nodeIds);
   logger.info("Sleeping for ten seconds to let Voldemort start.");
