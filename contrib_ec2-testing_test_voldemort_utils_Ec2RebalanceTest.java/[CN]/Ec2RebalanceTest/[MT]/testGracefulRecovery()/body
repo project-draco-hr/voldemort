@@ -14,15 +14,14 @@
   logger.info("waiting ten seconds after shutting down the node");
   Thread.sleep(10000);
   String hostName=currentCluster.getNodeById(1).getHost();
-  startClusterAsync(Arrays.asList(currentCluster.getNodeById(1).getHost()),ec2RebalanceTestConfig,ImmutableMap.<String,Integer>of(hostName,1));
-  Thread.sleep(1000);
-  long start=System.currentTimeMillis();
-  int delay=250;
-  int maxDelay=1000 * 30;
-  int timeout=5 * 1000 * 60;
+  startClusterNode(hostName,ec2RebalanceTestConfig,1);
   adminClient.stop();
   adminClient=new AdminClient(getBootstrapUrl(currentCluster,0),new AdminClientConfig());
   Versioned<MetadataStore.VoldemortState> serverState=adminClient.getRemoteServerState(1);
+  int delay=250;
+  int maxDelay=1000 * 30;
+  int timeout=5 * 1000 * 60;
+  long start=System.currentTimeMillis();
   while (System.currentTimeMillis() < start + timeout && serverState.getValue() != MetadataStore.VoldemortState.NORMAL_SERVER) {
     Thread.sleep(delay);
     if (delay < maxDelay)     delay*=2;
@@ -30,11 +29,15 @@
     logger.info("serverState -> " + serverState.getValue());
   }
   if (serverState.getValue() == MetadataStore.VoldemortState.NORMAL_SERVER) {
-    logger.info("serverState -> NORMAL_SERVER");
     for (    int nodeId : Arrays.asList(1)) {
       List<Integer> availablePartitions=targetCluster.getNodeById(nodeId).getPartitionIds();
       List<Integer> unavailablePartitions=getUnavailablePartitions(targetCluster,availablePartitions);
-      checkGetEntries(currentCluster.getNodeById(nodeId),targetCluster,unavailablePartitions,availablePartitions);
+      try {
+        checkGetEntries(currentCluster.getNodeById(nodeId),targetCluster,unavailablePartitions,availablePartitions);
+      }
+ catch (      InvalidMetadataException e) {
+        logger.warn(e);
+      }
     }
   }
 }
