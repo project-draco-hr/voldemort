@@ -1,10 +1,8 @@
 {
-  List<String> hostNames=Lists.transform(hostNamePairs,new Function<HostNamePair,String>(){
-    public String apply(    HostNamePair hostNamePair){
-      return hostNamePair.getExternalHostName();
-    }
+  List<String> hostNames=new ArrayList<String>();
+  for (  HostNamePair hostNamePair : hostNamePairs) {
+    hostNames.add(hostNamePair.getExternalHostName());
   }
-);
   ClusterGenerator clusterGenerator=new ClusterGenerator();
   List<ClusterNodeDescriptor> nodes=clusterGenerator.createClusterNodeDescriptors(hostNames,cluster);
   String clusterXml=clusterGenerator.createClusterDescriptor(cluster.getName(),nodes);
