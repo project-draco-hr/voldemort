@@ -9,7 +9,7 @@
   RebalancePartitionsInfo rebalancePartitionsInfo=new RebalancePartitionsInfo(1,0,Arrays.asList(2,3),Arrays.asList(testStoreName),false,0);
   int requestId=adminClient.rebalanceNode(rebalancePartitionsInfo);
   logger.info("started rebalanceNode, request id = " + requestId);
-  Thread.sleep(500);
+  Thread.sleep(25);
   stopServer(Arrays.asList(1));
   logger.info("waiting ten seconds after shutting down the node");
   Thread.sleep(10000);
@@ -40,4 +40,5 @@
       }
     }
   }
+ else   fail("Server state never reached NORMAL_SERVER");
 }
