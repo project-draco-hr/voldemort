@@ -15,11 +15,11 @@
       adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),4,2);
       List<Exception> failures=new ArrayList<Exception>();
       try {
-        logger.info("starting rebalancing " + stealInfo);
+        logger.info("starting rebalancing task" + stealInfo);
         List<String> tempUnbalancedStoreList=new ArrayList<String>(stealInfo.getUnbalancedStoreList());
         for (        String storeName : ImmutableList.copyOf(stealInfo.getUnbalancedStoreList())) {
           if (forceStop) {
-            logger.info("Stopping rebalancing Operation cleanly as stop() was called.");
+            logger.info("Force stopping rebalancing operation.");
             metadataStore.cleanAllRebalancingState();
             return;
           }
@@ -39,7 +39,7 @@
           metadataStore.cleanAllRebalancingState();
         }
  else {
-          throw new VoldemortRebalancingException("Rebalancer: Failed to rebalance completely, unbalanced stores:" + stealInfo.getUnbalancedStoreList() + " rebalanceInfo:"+ stealInfo,failures);
+          throw new VoldemortRebalancingException("Failed to rebalance task " + stealInfo,failures);
         }
       }
   finally {
