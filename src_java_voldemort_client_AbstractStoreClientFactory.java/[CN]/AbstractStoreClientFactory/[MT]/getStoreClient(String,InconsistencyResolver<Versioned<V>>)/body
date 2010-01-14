@@ -1,3 +1,5 @@
 {
-  return new DefaultStoreClient<K,V>(storeName,resolver,this,3);
+  DefaultStoreClient<K,V> storeClient=new DefaultStoreClient<K,V>(storeName,resolver,this,3);
+  registerJmx(JmxUtils.createObjectName(JmxUtils.getPackageName(storeClient.getClass()),"store-" + storeName + jmxId),storeClient);
+  return storeClient;
 }
