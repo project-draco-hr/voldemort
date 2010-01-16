@@ -1,0 +1,26 @@
+{
+  this.scheduler.scheduleNow(new Runnable(){
+    public void run(){
+      try {
+        DataSetStats totals=new DataSetStats();
+        List<String> names=new ArrayList<String>();
+        List<DataSetStats> stats=new ArrayList<DataSetStats>();
+        for (        StorageEngine<ByteArray,byte[]> store : storeRepository.getAllStorageEngines()) {
+          if (store instanceof ReadOnlyStorageEngine || store instanceof ViewStorageEngine || store instanceof MetadataStore)           continue;
+          logger.info(store.getClass());
+          logger.info("Calculating stats for '" + store.getName() + "'...");
+          DataSetStats curr=calculateStats(store);
+          names.add(store.getName());
+          stats.add(curr);
+          totals.add(curr);
+        }
+        for (int i=0; i < names.size(); i++)         logger.info("\n\nData statistics for store '" + names.get(i) + "':\n"+ stats.get(i)+ "\n\n");
+        logger.info("Totals: \n " + totals + "\n\n");
+      }
+ catch (      Exception e) {
+        logger.error("Error in thread: ",e);
+      }
+    }
+  }
+);
+}
