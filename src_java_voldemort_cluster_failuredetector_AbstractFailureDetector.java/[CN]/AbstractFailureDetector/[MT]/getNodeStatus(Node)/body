@@ -1,5 +1,8 @@
 {
   NodeStatus nodeStatus=nodeStatusMap.get(node);
-  if (nodeStatus == null)   throw new IllegalArgumentException(node.getId() + " is not a valid node for this cluster");
+  if (nodeStatus == null) {
+    logger.warn("creating new node status for node " + node + " for failure detector.");
+    nodeStatusMap.put(node,createNodeStatus(node,failureDetectorConfig.getTime().getMilliseconds()));
+  }
   return nodeStatus;
 }
