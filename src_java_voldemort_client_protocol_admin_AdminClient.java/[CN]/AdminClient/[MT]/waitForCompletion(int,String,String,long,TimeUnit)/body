@@ -4,7 +4,7 @@
   while (System.currentTimeMillis() < waitUntil) {
     String currentValue=getRemoteMetadata(nodeId,key).getValue();
     if (value.equals(currentValue))     return;
-    logger.debug("WaitForCompletion() waiting for value " + value + " for metadata key "+ key+ " at remote node "+ nodeId+ " currentValue "+ currentValue);
+    logger.debug("waiting for value " + value + " for metadata key "+ key+ " from remote node "+ nodeId+ " currentValue "+ currentValue);
     if (delay < MAX_DELAY)     delay<<=1;
     try {
       Thread.sleep(delay);
@@ -13,5 +13,5 @@
       Thread.currentThread().interrupt();
     }
   }
-  throw new VoldemortException("Failed to get matching value " + value + " for key "+ key+ " at remote node "+ nodeId+ " in maxWait"+ maxWait+ " "+ timeUnit.toString());
+  throw new VoldemortException("Failed to get matching value " + value + " for key "+ key+ " at remote node "+ nodeId+ " in maximum wait"+ maxWait+ " "+ timeUnit.toString()+ " time.");
 }

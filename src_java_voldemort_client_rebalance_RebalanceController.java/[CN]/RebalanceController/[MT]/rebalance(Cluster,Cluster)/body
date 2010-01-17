@@ -22,7 +22,7 @@
             while (rebalanceSubTaskList.size() > 0) {
               int index=(int)Math.random() * rebalanceSubTaskList.size();
               RebalancePartitionsInfo rebalanceSubTask=rebalanceSubTaskList.remove(index);
-              logger.info("Starting rebalancing for stealerNode:" + stealerNodeId + " rebalanceInfo:"+ rebalanceSubTask);
+              logger.info("Starting rebalancing for stealerNode:" + stealerNodeId + " with rebalanceInfo:"+ rebalanceSubTask);
               try {
                 int rebalanceAsyncId=startNodeRebalancing(rebalanceSubTask);
                 try {
@@ -35,10 +35,10 @@
                   throw e;
                 }
                 adminClient.waitForCompletion(rebalanceSubTask.getStealerId(),rebalanceAsyncId,rebalanceConfig.getRebalancingClientTimeoutSeconds(),TimeUnit.SECONDS);
-                logger.info("Successfully finished RebalanceSubTask attempt:" + rebalanceSubTask);
+                logger.info("Successfully finished rebalance attempt:" + rebalanceSubTask);
               }
  catch (              UnreachableStoreException e) {
-                logger.error("StealerNode " + stealerNodeId + " is unreachable, please make sure it is up and running ..",e);
+                logger.error("StealerNode " + stealerNodeId + " is unreachable, please make sure it is up and running.",e);
               }
 catch (              VoldemortRebalancingException e) {
                 logger.error(e);
