@@ -3,6 +3,7 @@
   AsyncOperationRunner asyncOperationRunner=new AsyncOperationRunner(schedulerService,10);
   final AtomicBoolean completedOp0=new AtomicBoolean(false);
   final AtomicBoolean completedOp1=new AtomicBoolean(false);
+  final CountDownLatch latch=new CountDownLatch(1);
   int opId0=asyncOperationRunner.getUniqueRequestId();
   asyncOperationRunner.submitOperation(opId0,new AsyncOperation(opId0,"op0"){
     @Override public void operate() throws Exception {
@@ -17,11 +18,13 @@
   asyncOperationRunner.submitOperation(opId1,new AsyncOperation(opId1,"op1"){
     @Override public void operate() throws Exception {
       completedOp1.set(true);
+      latch.countDown();
     }
     @Override public void stop(){
     }
   }
 );
+  latch.await();
   List<Integer> opList=asyncOperationRunner.getAsyncOperationList(false);
   assertFalse("doesn't list completed operations",opList.contains(1));
   assertTrue("lists a pending operation",opList.contains(0));
