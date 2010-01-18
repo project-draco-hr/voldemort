@@ -1,14 +1,14 @@
 {
   Node node=Iterables.get(cluster.getNodes(),8);
-  failureDetector.recordException(node,new UnreachableStoreException("intentionalerror",new ConnectException("intentionalerror")));
+  failureDetector.recordException(node,0,new UnreachableStoreException("intentionalerror",new ConnectException("intentionalerror")));
   assertEquals(false,failureDetector.isAvailable(node));
   time.sleep(BANNAGE_MILLIS + 1);
   assertTrue(failureDetector.isAvailable(node));
-  failureDetector.recordException(node,new UnreachableStoreException("intentionalerror",new UnknownHostException("intentionalerror")));
+  failureDetector.recordException(node,0,new UnreachableStoreException("intentionalerror",new UnknownHostException("intentionalerror")));
   assertEquals(false,failureDetector.isAvailable(node));
   time.sleep(BANNAGE_MILLIS + 1);
   assertTrue(failureDetector.isAvailable(node));
-  failureDetector.recordException(node,new UnreachableStoreException("intentionalerror",new NoRouteToHostException("intentionalerror")));
+  failureDetector.recordException(node,0,new UnreachableStoreException("intentionalerror",new NoRouteToHostException("intentionalerror")));
   assertEquals(false,failureDetector.isAvailable(node));
   time.sleep(BANNAGE_MILLIS + 1);
   assertTrue(failureDetector.isAvailable(node));
