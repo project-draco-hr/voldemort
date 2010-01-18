@@ -1,0 +1,9 @@
+{
+  Class<?> clazz=ReflectUtils.loadClass(failureDetectorConfig.getImplementationClassName());
+  FailureDetector failureDetector=(FailureDetector)ReflectUtils.callConstructor(clazz,new Class[]{FailureDetectorConfig.class},new Object[]{failureDetectorConfig});
+  if (failureDetectorListeners != null) {
+    for (    FailureDetectorListener failureDetectorListener : failureDetectorListeners)     failureDetector.addFailureDetectorListener(failureDetectorListener);
+  }
+  if (registerMbean)   JmxUtils.registerMbean(failureDetector.getClass().getSimpleName(),failureDetector);
+  return failureDetector;
+}
