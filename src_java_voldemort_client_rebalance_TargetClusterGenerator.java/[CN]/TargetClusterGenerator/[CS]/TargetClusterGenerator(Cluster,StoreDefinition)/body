@@ -1,0 +1,9 @@
+{
+  RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDefinition,cluster);
+  ImmutableMultimap.Builder<Integer,Integer> builder=ImmutableSetMultimap.builder();
+  for (int i=0; i < cluster.getNumberOfPartitions(); i++) {
+    builder.putAll(i,routingStrategy.getReplicatingPartitionList(i));
+  }
+  this.masterToReplicas=builder.build();
+  this.storeDefinition=storeDefinition;
+}

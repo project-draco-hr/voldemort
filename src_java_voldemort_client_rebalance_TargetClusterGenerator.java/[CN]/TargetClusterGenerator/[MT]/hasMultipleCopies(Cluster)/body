@@ -1,0 +1,11 @@
+{
+  for (  Node n : newCluster.getNodes()) {
+    Set<Integer> partitionSet=ImmutableSet.<Integer>builder().addAll(n.getPartitionIds()).build();
+    for (    int partition : partitionSet) {
+      for (      int replica : masterToReplicas.get(partition)) {
+        if (replica != partition && partitionSet.contains(replica))         return true;
+      }
+    }
+  }
+  return false;
+}
