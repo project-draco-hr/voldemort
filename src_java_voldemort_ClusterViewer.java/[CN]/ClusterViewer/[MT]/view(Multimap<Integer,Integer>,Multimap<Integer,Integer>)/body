@@ -1,0 +1,13 @@
+{
+  Multimap<Integer,Integer> invertedPartitionMap=LinkedHashMultimap.create();
+  Multimaps.invertFrom(partitionMap,invertedPartitionMap);
+  System.out.println("====================================");
+  System.out.println("store: " + storeDefinition.getName());
+  System.out.println("====================================");
+  for (  int partitionId : replicaMap.keySet()) {
+    int masterNode=invertedPartitionMap.get(partitionId).iterator().next();
+    System.out.println("partition " + partitionId + " mastered by node "+ masterNode);
+    System.out.println("\t replicas: " + Joiner.on(", ").join(replicaMap.get(partitionId)));
+  }
+  System.out.println();
+}

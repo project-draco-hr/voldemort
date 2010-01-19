@@ -1,0 +1,12 @@
+{
+  Multimap<Integer,Integer> nodePartitions=LinkedHashMultimap.create();
+  Multimap<Integer,Integer> replicas=TreeMultimap.create();
+  for (  Node node : cluster.getNodes()) {
+    List<Integer> partitionIds=node.getPartitionIds();
+    nodePartitions.replaceValues(node.getId(),partitionIds);
+    for (    int partitionId : partitionIds) {
+      if (!replicas.containsKey(partitionId))       replicas.replaceValues(partitionId,routingStrategy.getReplicatingPartitionList(partitionId));
+    }
+  }
+  return new Pair<Multimap<Integer,Integer>,Multimap<Integer,Integer>>(nodePartitions,replicas);
+}
