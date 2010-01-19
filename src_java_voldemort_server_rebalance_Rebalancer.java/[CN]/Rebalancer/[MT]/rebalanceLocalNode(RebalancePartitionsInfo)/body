@@ -35,6 +35,7 @@
           }
 );
         }
+        waitForShutdown();
         if (stealInfo.getUnbalancedStoreList().isEmpty()) {
           logger.info("Rebalancer: rebalance " + stealInfo + " completed successfully.");
           metadataStore.cleanAllRebalancingState();
@@ -47,6 +48,15 @@
         releaseRebalancingPermit();
         adminClient.stop();
         adminClient=null;
+      }
+    }
+    private void waitForShutdown(){
+      try {
+        executors.shutdown();
+        executors.awaitTermination(voldemortConfig.getAdminSocketTimeout(),TimeUnit.SECONDS);
+      }
+ catch (      InterruptedException e) {
+        logger.error("Interrupted while awaiting termination for executors.",e);
       }
     }
     @Override public void stop(){
