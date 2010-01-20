@@ -1,7 +1,7 @@
 {
-  TargetClusterGenerator clusterGenerator=new TargetClusterGenerator(cluster,storeDefinition);
+  RebalanceClusterTool clusterTool=new RebalanceClusterTool(cluster,storeDefinition);
   System.out.println(cluster);
-  Multimap<Integer,Integer> masterToReplicas=clusterGenerator.getMasterToReplicas();
+  Multimap<Integer,Integer> masterToReplicas=clusterTool.getMasterToReplicas();
   System.out.println("\nReplication: ");
   for (  int partition : masterToReplicas.keySet()) {
     Set<Integer> replicas=Sets.union(ImmutableSet.of(partition),ImmutableSet.copyOf(masterToReplicas.get(partition)));
