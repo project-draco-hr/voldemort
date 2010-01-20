@@ -1,0 +1,18 @@
+{
+  DataSetStats stats=new DataSetStats();
+  ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iter=store.entries();
+  try {
+    int count=0;
+    while (iter.hasNext()) {
+      Pair<ByteArray,Versioned<byte[]>> pair=iter.next();
+      VectorClock clock=(VectorClock)pair.getSecond().getVersion();
+      stats.countEntry(pair.getFirst().length(),pair.getSecond().getValue().length + clock.sizeInBytes());
+      if (count % 10000 == 0)       logger.debug("Processing key " + count);
+      count++;
+    }
+  }
+  finally {
+    iter.close();
+  }
+  return stats;
+}
