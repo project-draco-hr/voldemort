@@ -11,6 +11,7 @@
   VectorClock latestClock=(VectorClock)RebalanceUtils.getLatestCluster(new ArrayList<Integer>(),adminClient).getVersion();
   RebalanceUtils.propagateCluster(adminClient,currentCluster,latestClock.incremented(firstNode.getId(),System.currentTimeMillis()),new ArrayList<Integer>());
   ExecutorService executor=createExecutors(rebalanceConfig.getMaxParallelRebalancing());
+  final Random random=new Random();
   for (int nThreads=0; nThreads < this.rebalanceConfig.getMaxParallelRebalancing(); nThreads++) {
     executor.execute(new Runnable(){
       public void run(){
@@ -19,11 +20,10 @@
           if (null != rebalanceTask) {
             int stealerNodeId=rebalanceTask.getStealerNode();
             List<RebalancePartitionsInfo> rebalanceSubTaskList=rebalanceTask.getRebalanceTaskList();
-            Random random=new Random(stealerNodeId);
             while (rebalanceSubTaskList.size() > 0) {
-              int index=(int)random.nextDouble() * rebalanceSubTaskList.size();
+              int index=(int)(random.nextDouble() * rebalanceSubTaskList.size());
               RebalancePartitionsInfo rebalanceSubTask=rebalanceSubTaskList.remove(index);
-              logger.info("Starting rebalancing for stealerNode:" + stealerNodeId + " with rebalanceInfo:"+ rebalanceSubTask);
+              logger.info("Starting rebalancing for stealerNode:" + stealerNodeId + " with rebalanceInfo:"+ rebalanceSubTask+ " index:"+ index);
               try {
                 int rebalanceAsyncId=startNodeRebalancing(rebalanceSubTask);
                 try {

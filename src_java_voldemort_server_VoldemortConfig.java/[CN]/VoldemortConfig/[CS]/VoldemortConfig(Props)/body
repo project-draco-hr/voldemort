@@ -32,7 +32,7 @@
   this.mysqlDatabaseName=props.getString("mysql.database","voldemort");
   this.maxThreads=props.getInt("max.threads",100);
   this.coreThreads=props.getInt("core.threads",Math.max(1,maxThreads / 2));
-  this.adminMaxThreads=props.getInt("admin.max.threads",10);
+  this.adminMaxThreads=props.getInt("admin.max.threads",20);
   this.adminCoreThreads=props.getInt("admin.core.threads",Math.max(1,adminMaxThreads / 2));
   this.adminStreamBufferSize=(int)props.getBytes("admin.streams.buffer.size",10 * 1000 * 1000);
   this.adminConnectionTimeout=props.getInt("admin.client.socket.timeout.sec",60);
@@ -74,8 +74,8 @@
   this.maxRebalancingAttempt=props.getInt("max.rebalancing.attempts",3);
   this.rebalancingTimeoutInSeconds=props.getInt("rebalancing.timeout.seconds",60 * 60);
   this.rebalancingServicePeriod=props.getInt("rebalancing.service.period.ms",1000);
-  this.maxParallelStoresRebalancing=props.getInt("max.parallel.stores.rebalancing",-1);
-  this.failureDetectorImplementation=props.getString("failuredetector.implementation",FailureDetectorConfig.DEFAULT_IMPLEMENTATION_CLASS_NAME);
+  this.maxParallelStoresRebalancing=props.getInt("max.parallel.stores.rebalancing",3);
+  this.failureDetectorImplementation=props.getString("failuredetector.implementation",BannagePeriodFailureDetector.class.getName());
   if (props.containsKey("client.node.bannage.ms") && !props.containsKey("failuredetector.bannage.period")) {
     props.put("failuredetector.bannage.period",props.get("client.node.bannage.ms"));
   }
