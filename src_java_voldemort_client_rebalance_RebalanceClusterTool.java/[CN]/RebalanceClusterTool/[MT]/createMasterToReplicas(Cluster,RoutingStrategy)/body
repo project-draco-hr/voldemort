@@ -1,0 +1,9 @@
+{
+  ListMultimap<Integer,Integer> lmm=ArrayListMultimap.create();
+  for (int i=0; i < cluster.getNumberOfPartitions(); i++) {
+    for (    int replica : routingStrategy.getReplicatingPartitionList(i)) {
+      if (replica != i)       lmm.put(i,replica);
+    }
+  }
+  return lmm;
+}

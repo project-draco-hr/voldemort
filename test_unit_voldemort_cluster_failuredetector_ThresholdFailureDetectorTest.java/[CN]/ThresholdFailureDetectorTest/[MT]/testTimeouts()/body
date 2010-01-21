@@ -1,0 +1,13 @@
+{
+  Node node=Iterables.get(cluster.getNodes(),8);
+  assertTrue(failureDetector.isAvailable(node));
+  failureDetector.recordSuccess(node,0);
+  assertTrue(failureDetector.isAvailable(node));
+  int minimum=failureDetector.getConfig().getThresholdCountMinimum();
+  for (int i=0; i < minimum; i++)   failureDetector.recordSuccess(node,failureDetector.getConfig().getRequestLengthThreshold());
+  assertTrue(failureDetector.isAvailable(node));
+  for (int i=0; i < minimum; i++)   failureDetector.recordSuccess(node,failureDetector.getConfig().getRequestLengthThreshold() + 1);
+  assertEquals(false,failureDetector.isAvailable(node));
+  failureDetector.waitForAvailability(node);
+  assertTrue(failureDetector.isAvailable(node));
+}

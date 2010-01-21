@@ -1,0 +1,9 @@
+{
+  checkArgs(node,requestTime);
+  int successDelta=1;
+  if (requestTime > getConfig().getRequestLengthThreshold()) {
+    if (logger.isTraceEnabled())     logger.trace(node + " recording success, but request time (" + requestTime+ ") exceeded threshold ("+ getConfig().getRequestLengthThreshold()+ ")");
+    successDelta=0;
+  }
+  update(node,successDelta,null);
+}

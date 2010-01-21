@@ -1,0 +1,15 @@
+{
+  Multimap<Node,Integer> copies=LinkedHashMultimap.create();
+  for (  Node n : newCluster.getNodes()) {
+    List<Integer> partitions=n.getPartitionIds();
+    for (    int partition : partitions) {
+      for (      int replica : masterToReplicas.get(partition)) {
+        if (partitions.contains(replica)) {
+          if (!copies.get(n).contains(partition))           copies.put(n,partition);
+          copies.put(n,replica);
+        }
+      }
+    }
+  }
+  return copies;
+}

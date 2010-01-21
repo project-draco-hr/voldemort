@@ -1,14 +1,11 @@
 {
   try {
-    server.registerMBean(mbean,name);
+synchronized (LOCK) {
+      if (server.isRegistered(name))       JmxUtils.unregisterMbean(server,name);
+      server.registerMBean(mbean,name);
+    }
   }
- catch (  InstanceAlreadyExistsException e) {
-    throw new VoldemortException(e);
-  }
-catch (  MBeanRegistrationException e) {
-    throw new VoldemortException(e);
-  }
-catch (  NotCompliantMBeanException e) {
-    throw new VoldemortException(e);
+ catch (  Exception e) {
+    logger.error("Error registering mbean:",e);
   }
 }

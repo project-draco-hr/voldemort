@@ -1,0 +1,21 @@
+{
+  RebalanceClusterTool clusterTool=new RebalanceClusterTool(originalCluster,storeDefinition);
+  Multimap<Node,Integer> multipleCopies=clusterTool.getMultipleCopies(target);
+  if (multipleCopies.size() > 0) {
+    for (    Node n : multipleCopies.keySet()) {
+      System.out.println(n + " has multiple copies of data: " + Joiner.on(", ").join(multipleCopies.get(n)));
+    }
+  }
+ else   System.out.println("No multiple copies found.");
+  System.out.println();
+  Multimap<Integer,Pair<Integer,Integer>> remappedReplicas=clusterTool.getRemappedReplicas(target);
+  if (remappedReplicas.size() > 0) {
+    for (    int partition : remappedReplicas.keySet()) {
+      System.out.println("Mapping for partition " + partition + " has changed: ");
+      for (      Pair<Integer,Integer> pair : remappedReplicas.get(partition)) {
+        System.out.println("\tUsed to have " + partition + " -> "+ pair.getFirst()+ "; now have: "+ partition+ " -> "+ pair.getSecond());
+      }
+    }
+  }
+ else   System.out.println("No replica mappings have changed.");
+}
