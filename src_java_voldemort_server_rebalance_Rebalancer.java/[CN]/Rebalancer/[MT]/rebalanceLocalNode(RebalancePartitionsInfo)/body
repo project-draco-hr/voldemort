@@ -10,7 +10,6 @@
   asyncRunner.submitOperation(requestId,new AsyncOperation(requestId,"Rebalance Operation:" + stealInfo.toString()){
     private List<Integer> rebalanceStatusList=new ArrayList<Integer>();
     AdminClient adminClient=null;
-    volatile boolean forceStop=false;
     final ExecutorService executors=createExecutors(maxParallelStoresRebalancing);
     @Override public void operate() throws Exception {
       adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),maxParallelStoresRebalancing * 4,maxParallelStoresRebalancing * 2);
@@ -68,7 +67,7 @@
       }
       executors.shutdownNow();
     }
-    private void rebalanceStore(    String storeName,    AdminClient adminClient,    RebalancePartitionsInfo stealInfo) throws Exception {
+    @SuppressWarnings("cast") private void rebalanceStore(    String storeName,    AdminClient adminClient,    RebalancePartitionsInfo stealInfo) throws Exception {
       logger.info("starting partitions migration for store:" + storeName);
       int asyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getPartitionList(),null);
       rebalanceStatusList.add(asyncId);

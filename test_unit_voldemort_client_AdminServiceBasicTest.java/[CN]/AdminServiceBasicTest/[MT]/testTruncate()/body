@@ -5,7 +5,6 @@
     store.put(entry.getKey(),new Versioned<byte[]>(entry.getValue()));
   }
   getAdminClient().truncate(0,testStoreName);
-  RoutingStrategy routingStrategy=getVoldemortServer(0).getMetadataStore().getRoutingStrategy(testStoreName);
   store=getStore(0,testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
     assertEquals("Deleted key should be missing.",0,store.get(entry.getKey()).size());
