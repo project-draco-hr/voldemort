@@ -2,8 +2,7 @@
   logger.info("Current Cluster configuration:" + currentCluster);
   logger.info("Target Cluster configuration:" + targetCluster);
   adminClient.setAdminClientCluster(currentCluster);
-  List<String> storeList=RebalanceUtils.getStoreNameList(currentCluster,adminClient);
-  final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(currentCluster,targetCluster,storeList,rebalanceConfig.isDeleteAfterRebalancingEnabled());
+  final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(currentCluster,targetCluster,RebalanceUtils.getStoreNameList(currentCluster,adminClient),rebalanceConfig.isDeleteAfterRebalancingEnabled());
   logger.info(rebalanceClusterPlan);
   currentCluster=getClusterWithNewNodes(currentCluster,targetCluster);
   adminClient.setAdminClientCluster(currentCluster);

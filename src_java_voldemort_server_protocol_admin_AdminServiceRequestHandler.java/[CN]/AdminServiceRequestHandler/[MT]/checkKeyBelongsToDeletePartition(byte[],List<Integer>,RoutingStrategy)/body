@@ -1,12 +1,12 @@
 {
   List<Integer> keyPartitions=routingStrategy.getPartitionList(key);
   List<Integer> ownedPartitions=new ArrayList<Integer>(metadataStore.getCluster().getNodeById(metadataStore.getNodeId()).getPartitionIds());
-  ownedPartitions.removeAll(keyPartitions);
-  for (  int p : partitionList) {
+  ownedPartitions.removeAll(partitionList);
+  for (  int p : keyPartitions) {
     if (ownedPartitions.contains(p)) {
       return false;
     }
-    if (keyPartitions.contains(p)) {
+    if (partitionList.contains(p)) {
       return true;
     }
   }
