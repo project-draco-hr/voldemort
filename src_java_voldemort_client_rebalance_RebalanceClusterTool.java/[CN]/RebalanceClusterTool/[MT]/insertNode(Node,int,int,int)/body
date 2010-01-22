@@ -5,7 +5,7 @@
   Cluster templateCluster=new Cluster(cluster.getName(),nodes);
   Cluster targetCluster=null;
   boolean foundBest=false;
-  for (int i=desiredParitions; i >= minPartitions && !foundBest; i--) {
+  for (int i=desiredPartitions; i >= minPartitions && !foundBest; i--) {
     System.out.println("Trying to move " + i + " partitions to the new node");
     Cluster candidateCluster=createTargetCluster(templateCluster,i,maxRemap,ImmutableSet.<Integer>of(),masterToReplicas.keySet());
     if (candidateCluster.getNodeById(template.getId()).getNumberOfPartitions() > template.getNumberOfPartitions()) {
