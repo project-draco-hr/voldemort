@@ -10,7 +10,6 @@
   asyncRunner.submitOperation(requestId,new AsyncOperation(requestId,"Rebalance Operation:" + stealInfo.toString()){
     private List<Integer> rebalanceStatusList=new ArrayList<Integer>();
     AdminClient adminClient=null;
-    volatile boolean forceStop=false;
     final ExecutorService executors=createExecutors(maxParallelStoresRebalancing);
     @Override public void operate() throws Exception {
       adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),maxParallelStoresRebalancing * 4,maxParallelStoresRebalancing * 2);
@@ -68,17 +67,17 @@
       }
       executors.shutdownNow();
     }
-    private void rebalanceStore(    String storeName,    AdminClient adminClient,    RebalancePartitionsInfo stealInfo) throws Exception {
-      updateStatus("starting partitions migration for store:" + storeName);
+    @SuppressWarnings("cast") private void rebalanceStore(    String storeName,    AdminClient adminClient,    RebalancePartitionsInfo stealInfo) throws Exception {
+      logger.info("starting partitions migration for store:" + storeName);
       int asyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getPartitionList(),null);
       rebalanceStatusList.add(asyncId);
       adminClient.waitForCompletion(metadataStore.getNodeId(),asyncId,voldemortConfig.getAdminSocketTimeout(),TimeUnit.SECONDS);
       rebalanceStatusList.remove((Object)new Integer(asyncId));
-      if (stealInfo.isDeleteDonorPartitions()) {
-        adminClient.deletePartitions(stealInfo.getDonorId(),storeName,stealInfo.getPartitionList(),null);
-        logger.info("Deleted partitions " + stealInfo.getPartitionList() + " from donorNode:"+ stealInfo.getDonorId()+ " for store "+ storeName);
+      if (stealInfo.getDeletePartitionsList().size() > 0) {
+        adminClient.deletePartitions(stealInfo.getDonorId(),storeName,stealInfo.getDeletePartitionsList(),null);
+        logger.debug("Deleted partitions " + stealInfo.getDeletePartitionsList() + " from donorNode:"+ stealInfo.getDonorId()+ " for store "+ storeName);
       }
-      updateStatus("partitions migration for store:" + storeName + " completed.");
+      logger.info("partitions migration for store:" + storeName + " completed.");
     }
   }
 );
