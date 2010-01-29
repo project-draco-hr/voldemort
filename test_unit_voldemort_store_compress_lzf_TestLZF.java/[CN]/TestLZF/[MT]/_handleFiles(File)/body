@@ -1,0 +1,17 @@
+{
+  System.out.println("Testing files from dir '" + dir.getAbsolutePath() + "'...");
+  int count=0;
+  for (  File f : dir.listFiles()) {
+    if (f.isDirectory()) {
+      count+=_handleFiles(f);
+    }
+ else {
+      byte[] data=_readData(f);
+      byte[] enc=LZFEncoder.encode(data);
+      byte[] dec=LZFDecoder.decode(enc);
+      assertArrayEquals("File '" + f.getAbsolutePath() + "'",data,dec);
+      ++count;
+    }
+  }
+  return count;
+}
