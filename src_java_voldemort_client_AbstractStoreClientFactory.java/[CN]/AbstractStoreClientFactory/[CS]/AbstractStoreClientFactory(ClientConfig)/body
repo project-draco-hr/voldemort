@@ -1,14 +1,16 @@
 {
+  this.config=config;
   this.threadPool=new ClientThreadPool(config.getMaxThreads(),config.getThreadIdleTime(TimeUnit.MILLISECONDS),config.getMaxQueuedRequests());
   this.serializerFactory=config.getSerializerFactory();
   this.bootstrapUrls=validateUrls(config.getBootstrapUrls());
   this.routingTimeoutMs=config.getRoutingTimeout(TimeUnit.MILLISECONDS);
-  this.nodeBannageMs=config.getNodeBannagePeriod(TimeUnit.MILLISECONDS);
   this.isJmxEnabled=config.isJmxEnabled();
   this.requestFormatType=config.getRequestFormatType();
-  if (isJmxEnabled)   this.mbeanServer=ManagementFactory.getPlatformMBeanServer();
- else   this.mbeanServer=null;
   this.jmxId=jmxIdCounter.getAndIncrement();
   this.maxBootstrapRetries=config.getMaxBootstrapRetries();
-  registerThreadPoolJmx(threadPool);
+  this.stats=new StoreStats();
+  if (this.isJmxEnabled) {
+    JmxUtils.registerMbean(threadPool,JmxUtils.createObjectName(JmxUtils.getPackageName(threadPool.getClass()),JmxUtils.getClassName(threadPool.getClass()) + jmxId()));
+    JmxUtils.registerMbean(new StoreStatsJmx(stats),JmxUtils.createObjectName("voldemort.store.stats.aggregate","aggregate-perf" + jmxId()));
+  }
 }

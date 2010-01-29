@@ -1,0 +1,13 @@
+{
+  ec2FailureDetectorTestConfig=new Ec2FailureDetectorTestConfig();
+  if (ec2FailureDetectorTestConfig.getInstanceCount() > 0) {
+    hostNamePairs=createInstances(ec2FailureDetectorTestConfig);
+    if (logger.isInfoEnabled())     logger.info("Sleeping for 30 seconds to give EC2 instances some time to complete startup");
+    Thread.sleep(30000);
+  }
+ else {
+    hostNamePairs=Arrays.asList(new HostNamePair("localhost","localhost"));
+  }
+  hostNames=toHostNames(hostNamePairs);
+  nodeIds=generateClusterDescriptor(hostNamePairs,"test",ec2FailureDetectorTestConfig);
+}

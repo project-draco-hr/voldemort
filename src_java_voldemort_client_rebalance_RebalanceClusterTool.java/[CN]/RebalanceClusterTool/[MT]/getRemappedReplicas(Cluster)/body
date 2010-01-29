@@ -1,0 +1,18 @@
+{
+  RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDefinition,newCluster);
+  ListMultimap<Integer,Integer> newMasterToReplicas=createMasterToReplicas(newCluster,routingStrategy);
+  Multimap<Integer,Pair<Integer,Integer>> remappedReplicas=ArrayListMultimap.create();
+  for (  int partition : masterToReplicas.keySet()) {
+    List<Integer> oldReplicas=masterToReplicas.get(partition);
+    List<Integer> newReplicas=newMasterToReplicas.get(partition);
+    if (oldReplicas.size() != newReplicas.size())     throw new IllegalStateException("replica count differs for partition " + partition);
+    for (int i=0; i < oldReplicas.size(); i++) {
+      int oldReplica=oldReplicas.get(i);
+      if (!newReplicas.contains(oldReplica)) {
+        Pair<Integer,Integer> pair=new Pair<Integer,Integer>(oldReplica,newReplicas.get(i));
+        remappedReplicas.put(partition,pair);
+      }
+    }
+  }
+  return remappedReplicas;
+}

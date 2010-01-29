@@ -6,19 +6,10 @@
  else   if (STORES_KEY.equals(key)) {
     valueStr=storeMapper.writeStoreList((List<StoreDefinition>)value.getValue());
   }
- else   if (REBALANCING_SLAVES_LIST_KEY.equals(key) || REBALANCING_PARTITIONS_LIST_KEY.equals(key)) {
-    StringBuilder builder=new StringBuilder();
-    List<Integer> list=(List<Integer>)value.getValue();
-    for (int i=0; i < list.size(); i++) {
-      Integer partition=list.get(i);
-      builder.append(partition);
-      if (i < list.size() - 1) {
-        builder.append(",");
-      }
-    }
-    valueStr=builder.toString();
+ else   if (REBALANCING_STEAL_INFO.equals(key)) {
+    valueStr=((RebalancePartitionsInfo)value.getValue()).toJsonString();
   }
- else   if (SERVER_STATE_KEY.equals(key) || CLUSTER_STATE_KEY.equals(key) || NODE_ID_KEY.equals(key)|| REBALANCING_SLAVE_NODE_ID.equals(key)) {
+ else   if (SERVER_STATE_KEY.equals(key) || CLUSTER_STATE_KEY.equals(key) || NODE_ID_KEY.equals(key)) {
     valueStr=value.getValue().toString();
   }
  else {

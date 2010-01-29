@@ -1,0 +1,14 @@
+{
+  List<StoreDefinition> storeNameList=new ArrayList<StoreDefinition>(storeDefList.size());
+  for (  StoreDefinition def : storeDefList) {
+    if (!def.isView() && !rebalancingStoreEngineBlackList.contains(def.getName())) {
+      storeNameList.add(def);
+    }
+    if (rebalancingStoreEngineBlackList.contains(def.getType())) {
+    }
+ else {
+      logger.debug("ignoring store " + def.getName() + " for rebalancing");
+    }
+  }
+  return storeNameList;
+}

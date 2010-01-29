@@ -1,0 +1,16 @@
+{
+  List<String> list=new ArrayList<String>();
+  long bannagePeriod=failureDetectorConfig.getBannagePeriod();
+  long currentTime=failureDetectorConfig.getTime().getMilliseconds();
+  for (  Node node : getConfig().getNodes()) {
+    if (!isAvailable(node)) {
+      NodeStatus nodeStatus=getNodeStatus(node);
+      long millis=0;
+synchronized (nodeStatus) {
+        millis=(nodeStatus.getLastChecked() + bannagePeriod) - currentTime;
+      }
+      list.add(node.getId() + "=" + millis);
+    }
+  }
+  return StringUtils.join(list,",");
+}

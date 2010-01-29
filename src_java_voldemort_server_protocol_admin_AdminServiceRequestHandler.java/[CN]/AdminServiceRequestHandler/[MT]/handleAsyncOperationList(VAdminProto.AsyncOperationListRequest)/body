@@ -1,0 +1,12 @@
+{
+  VAdminProto.AsyncOperationListResponse.Builder response=VAdminProto.AsyncOperationListResponse.newBuilder();
+  boolean showComplete=request.hasShowComplete() && request.getShowComplete();
+  try {
+    response.addAllRequestIds(asyncRunner.getAsyncOperationList(showComplete));
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleAsyncOperationList failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

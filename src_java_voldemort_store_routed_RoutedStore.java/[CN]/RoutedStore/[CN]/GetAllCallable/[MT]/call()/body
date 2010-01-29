@@ -2,6 +2,7 @@
   Map<ByteArray,List<Versioned<byte[]>>> retrieved=Collections.emptyMap();
   Throwable exception=null;
   List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayList();
+  long start=System.currentTimeMillis();
   try {
     retrieved=innerStores.get(node.getId()).getAll(nodeKeys);
     if (repairReads) {
@@ -10,11 +11,11 @@
         if (!retrieved.containsKey(nodeKey))         fillRepairReadsValues(nodeValues,nodeKey,node,Collections.<Versioned<byte[]>>emptyList());
       }
     }
-    node.getStatus().setAvailable();
+    failureDetector.recordSuccess(node,System.currentTimeMillis() - start);
   }
  catch (  UnreachableStoreException e) {
     exception=e;
-    markUnavailable(node,e);
+    failureDetector.recordException(node,System.currentTimeMillis() - start,e);
   }
 catch (  Throwable e) {
     if (e instanceof Error)     throw (Error)e;

@@ -31,7 +31,7 @@
   for (  Map.Entry<Node,List<ByteArray>> entry : nodeToKeysMap.entrySet()) {
     final Node node=entry.getKey();
     final Collection<ByteArray> nodeKeys=entry.getValue();
-    if (isAvailable(node))     callables.add(new GetAllCallable(node,nodeKeys));
+    if (failureDetector.isAvailable(node))     callables.add(new GetAllCallable(node,nodeKeys));
   }
   List<Throwable> failures=Lists.newArrayList();
   List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayList();
@@ -52,6 +52,9 @@
     try {
       GetAllResult getResult=f.get();
       if (getResult.exception != null) {
+        if (getResult.exception instanceof VoldemortApplicationException) {
+          throw (VoldemortException)getResult.exception;
+        }
         failures.add(getResult.exception);
         continue;
       }
@@ -82,18 +85,22 @@ catch (    ExecutionException e) {
       List<Node> extraNodes=keyToExtraNodesMap.get(key);
       if (extraNodes != null) {
         for (        Node node : extraNodes) {
+          long start=System.currentTimeMillis();
           try {
             List<Versioned<byte[]>> values=innerStores.get(node.getId()).get(key);
             fillRepairReadsValues(nodeValues,key,node,values);
             List<Versioned<byte[]>> versioneds=result.get(key);
             if (versioneds == null)             result.put(key,Lists.newArrayList(values));
  else             versioneds.addAll(values);
-            node.getStatus().setAvailable();
+            failureDetector.recordSuccess(node,System.currentTimeMillis() - start);
             if (++successCount >= storeDef.getPreferredReads())             break;
           }
  catch (          UnreachableStoreException e) {
             failures.add(e);
-            markUnavailable(node,e);
+            failureDetector.recordException(node,System.currentTimeMillis() - start,e);
+          }
+catch (          VoldemortApplicationException e) {
+            throw e;
           }
 catch (          Exception e) {
             logger.warn("Error in GET_ALL on node " + node.getId() + "("+ node.getHost()+ ")",e);

@@ -1,0 +1,31 @@
+{
+  long asyncRecoveryInterval=getConfig().getAsyncRecoveryInterval();
+  while (!Thread.currentThread().isInterrupted() && isRunning) {
+    try {
+      if (logger.isDebugEnabled()) {
+        logger.debug("Sleeping for " + asyncRecoveryInterval + " ms before checking node availability");
+      }
+      getConfig().getTime().sleep(asyncRecoveryInterval);
+    }
+ catch (    InterruptedException e) {
+      break;
+    }
+    for (    Node node : getConfig().getNodes()) {
+      if (isAvailable(node))       continue;
+      if (logger.isDebugEnabled())       logger.debug("Checking previously unavailable node " + node);
+      StoreVerifier storeVerifier=getConfig().getStoreVerifier();
+      try {
+        if (logger.isDebugEnabled())         logger.debug("Verifying previously unavailable node " + node);
+        storeVerifier.verifyStore(node);
+        if (logger.isDebugEnabled())         logger.debug("Verified previously unavailable node " + node + ", will mark as available...");
+        nodeRecovered(node);
+      }
+ catch (      UnreachableStoreException e) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(node + " still unavailable",e);
+      }
+catch (      Exception e) {
+        if (logger.isEnabledFor(Level.ERROR))         logger.error(node + " unavailable due to error",e);
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  while (running.get()) {
+    try {
+      Thread.sleep(gossipInterval);
+    }
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+    Node node=selectPeer();
+    adminClient.setAdminClientCluster(metadataStore.getCluster());
+    if (logger.isDebugEnabled())     logger.debug(metadataStore.getNodeId() + " starting gossip with " + node);
+    for (    String key : MetadataStore.GOSSIP_KEYS) {
+      try {
+        gossipKey(node,key);
+      }
+ catch (      VoldemortException e) {
+        logger.error("gossipKey(): " + e);
+      }
+    }
+  }
+}

@@ -44,6 +44,15 @@
   }
   this.clientThreadPool.shutdownNow();
   logger.info("Closed client threadpool.");
+  if (this.failureDetector != null) {
+    try {
+      this.failureDetector.destroy();
+    }
+ catch (    Exception e) {
+      lastException=e;
+    }
+  }
+  logger.info("Closed failure detector.");
   if (lastException instanceof VoldemortException)   throw (VoldemortException)lastException;
  else   if (lastException != null)   throw new VoldemortException(lastException);
 }

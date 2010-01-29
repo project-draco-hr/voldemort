@@ -2,7 +2,7 @@
   try {
     if (isPresent)     store.put(key,Versioned.value(value,version));
     ByteArrayOutputStream getRequest=new ByteArrayOutputStream();
-    this.clientWireFormat.writeGetRequest(new DataOutputStream(getRequest),storeName,key,false);
+    this.clientWireFormat.writeGetRequest(new DataOutputStream(getRequest),storeName,key,RequestRoutingType.NORMAL);
     ByteArrayOutputStream getResponse=new ByteArrayOutputStream();
     this.serverWireFormat.handleRequest(inputStream(getRequest),new DataOutputStream(getResponse));
     List<Versioned<byte[]>> values=this.clientWireFormat.readGetResponse(inputStream(getResponse));

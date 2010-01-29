@@ -1,0 +1,11 @@
+{
+  SerializerFactory factory=new DefaultSerializerFactory();
+  this.reader=reader;
+  this.digest=ByteUtils.getDigest("MD5");
+  this.keySerializerDefinition=storeDefinition.getKeySerializer();
+  this.valueSerializerDefinition=storeDefinition.getValueSerializer();
+  this.keySerializer=(Serializer<Object>)factory.getSerializer(storeDefinition.getKeySerializer());
+  this.valueSerializer=(Serializer<Object>)factory.getSerializer(storeDefinition.getValueSerializer());
+  this.keyCompressor=new CompressionStrategyFactory().get(keySerializerDefinition.getCompression());
+  this.valueCompressor=new CompressionStrategyFactory().get(valueSerializerDefinition.getCompression());
+}

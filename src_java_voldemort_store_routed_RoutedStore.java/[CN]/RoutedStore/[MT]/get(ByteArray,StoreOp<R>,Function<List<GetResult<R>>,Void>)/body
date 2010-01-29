@@ -27,6 +27,9 @@
     try {
       GetResult<R> getResult=f.get();
       if (getResult.exception != null) {
+        if (getResult.exception instanceof VoldemortApplicationException) {
+          throw (VoldemortException)getResult.exception;
+        }
         failures.add(getResult.exception);
         continue;
       }
@@ -43,14 +46,18 @@ catch (    ExecutionException e) {
   }
   while (successes < this.storeDef.getPreferredReads() && nodeIndex < nodes.size()) {
     Node node=nodes.get(nodeIndex);
+    long start=System.currentTimeMillis();
     try {
       retrieved.add(new GetResult<R>(node,key,fetcher.execute(innerStores.get(node.getId()),key),null));
       ++successes;
-      node.getStatus().setAvailable();
+      failureDetector.recordSuccess(node,System.currentTimeMillis() - start);
     }
  catch (    UnreachableStoreException e) {
       failures.add(e);
-      markUnavailable(node,e);
+      failureDetector.recordException(node,System.currentTimeMillis() - start,e);
+    }
+catch (    VoldemortApplicationException e) {
+      throw e;
     }
 catch (    Exception e) {
       logger.warn("Error in GET on node " + node.getId() + "("+ node.getHost()+ ")",e);

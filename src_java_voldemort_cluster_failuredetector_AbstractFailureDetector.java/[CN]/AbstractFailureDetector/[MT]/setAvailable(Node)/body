@@ -1,0 +1,19 @@
+{
+  NodeStatus nodeStatus=getNodeStatus(node);
+  if (logger.isTraceEnabled())   logger.trace(node + " set as available");
+  boolean previouslyAvailable=setAvailable(nodeStatus,true);
+  if (!previouslyAvailable) {
+    if (logger.isInfoEnabled())     logger.info(node + " now available");
+synchronized (nodeStatus) {
+      nodeStatus.notifyAll();
+    }
+    for (    FailureDetectorListener fdl : listeners.keySet()) {
+      try {
+        fdl.nodeAvailable(node);
+      }
+ catch (      Exception e) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(e,e);
+      }
+    }
+  }
+}

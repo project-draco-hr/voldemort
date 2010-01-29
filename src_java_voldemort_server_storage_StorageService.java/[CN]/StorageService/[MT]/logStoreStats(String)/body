@@ -1,0 +1,13 @@
+{
+  this.scheduler.scheduleNow(new Runnable(){
+    public void run(){
+      StorageEngine<ByteArray,byte[]> store=storeRepository.getStorageEngine(storeName);
+      if (store == null) {
+        logger.error("Invalid store name '" + storeName + "'.");
+        return;
+      }
+      logger.info("Data statistics for store '" + store.getName() + "':\n\n"+ calculateStats(store)+ "\n\n");
+    }
+  }
+);
+}

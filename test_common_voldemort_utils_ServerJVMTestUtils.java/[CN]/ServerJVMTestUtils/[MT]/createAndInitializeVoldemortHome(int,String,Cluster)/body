@@ -1,10 +1,10 @@
 {
-  VoldemortConfig config=ServerTestUtils.createServerConfig(node,TestUtils.createTempDir().getAbsolutePath(),null,storesXmlfile);
+  VoldemortConfig config=ServerTestUtils.createServerConfig(node,TestUtils.createTempDir().getAbsolutePath(),null,storesXmlfile,new Properties());
   File clusterXml=new File(config.getMetadataDirectory() + File.separator + "cluster.xml");
   FileUtils.writeStringToFile(clusterXml,new ClusterMapper().writeCluster(cluster));
   File storesXml=new File(config.getMetadataDirectory() + File.separator + "stores.xml");
   FileUtils.copyFile(new File(storesXmlfile),storesXml);
   File serverProperties=new File(config.getMetadataDirectory() + File.separator + "server.properties");
-  FileUtils.writeLines(serverProperties,Arrays.asList("node.id=" + node,"bdb.cache.size=" + 1024 * 1024,"enable.metadata.checking=" + false));
+  FileUtils.writeLines(serverProperties,Arrays.asList("node.id=" + node,"bdb.cache.size=" + 1024 * 1024,"enable.metadata.checking=" + false,"enable.network.classloader=" + false));
   return config.getVoldemortHome();
 }

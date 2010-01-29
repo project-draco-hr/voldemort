@@ -9,9 +9,10 @@
     totalDelay+=delay;
     stores.put(i,new SleepyStore<ByteArray,byte[]>(delay,new InMemoryStorageEngine<ByteArray,byte[]>("test")));
     List<Integer> partitions=Arrays.asList(i);
-    nodes.add(new Node(i,"none",0,0,partitions));
+    nodes.add(new Node(i,"none",0,0,0,partitions));
   }
-  RoutedStore routedStore=new RoutedStore("test",stores,new Cluster("test",nodes),definition,3,false,timeout);
+  setFailureDetector(stores);
+  RoutedStore routedStore=new RoutedStore("test",stores,new Cluster("test",nodes),definition,3,false,timeout,failureDetector);
   long start=System.currentTimeMillis();
   try {
     routedStore.put(new ByteArray("test".getBytes()),new Versioned<byte[]>(new byte[]{1}));

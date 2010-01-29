@@ -1,0 +1,15 @@
+{
+  RoutingStrategy routing=server.getMetadataStore().getRoutingStrategy(storeName);
+  RedirectingStore redirectingStore=getRedirectingStore(server0.getMetadataStore(),storeName);
+  for (  Entry<ByteArray,byte[]> entry : entryMap.entrySet()) {
+    List<Integer> partitions=routing.getPartitionList(entry.getKey().get());
+    if (availablePartitions.containsAll(partitions)) {
+      try {
+        redirectingStore.put(entry.getKey(),Versioned.value(entry.getValue(),new VectorClock().incremented(0,System.currentTimeMillis())));
+        fail("Should see obsoleteVersionException here.");
+      }
+ catch (      ObsoleteVersionException e) {
+      }
+    }
+  }
+}

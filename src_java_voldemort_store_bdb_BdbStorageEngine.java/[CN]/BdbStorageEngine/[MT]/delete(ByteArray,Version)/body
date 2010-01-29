@@ -7,7 +7,7 @@
     transaction=this.environment.beginTransaction(null,null);
     DatabaseEntry keyEntry=new DatabaseEntry(key.get());
     DatabaseEntry valueEntry=new DatabaseEntry();
-    cursor=bdbDatabase.openCursor(transaction,null);
+    cursor=getBdbDatabase().openCursor(transaction,null);
     OperationStatus status=cursor.getSearchKey(keyEntry,valueEntry,LockMode.READ_UNCOMMITTED);
     while (status == OperationStatus.SUCCESS) {
       if (new VectorClock(valueEntry.getData()).compare(version) == Occured.BEFORE) {

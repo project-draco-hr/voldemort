@@ -1,0 +1,5 @@
+{
+  ByteArray key=new ByteArray(ByteUtils.getBytes(keyString,"UTF-8"));
+  VectorClock current=(VectorClock)metadataStore.getVersions(key).get(0);
+  metadataStore.put(keyString,new Versioned<Object>(value,current.incremented(0,System.currentTimeMillis())));
+}

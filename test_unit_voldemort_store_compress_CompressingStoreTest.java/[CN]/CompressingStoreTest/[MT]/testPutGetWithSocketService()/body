@@ -4,7 +4,8 @@
   clusterXml=clusterXml.replace("<socket-port>6666</socket-port>","<socket-port>" + freePort + "</socket-port>");
   AbstractSocketService socketService=ServerTestUtils.getSocketService(useNio,clusterXml,VoldemortTestConstants.getCompressedStoreDefinitionsXml(),"test",freePort);
   socketService.start();
-  SocketStoreClientFactory storeClientFactory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls("tcp://localhost:" + freePort));
+  Thread.sleep(1000);
+  SocketStoreClientFactory storeClientFactory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls("tcp://localhost:" + freePort).setMaxBootstrapRetries(10));
   StoreClient<String,String> storeClient=storeClientFactory.getStoreClient("test");
   storeClient.put("someKey","someValue");
   assertEquals(storeClient.getValue("someKey"),"someValue");

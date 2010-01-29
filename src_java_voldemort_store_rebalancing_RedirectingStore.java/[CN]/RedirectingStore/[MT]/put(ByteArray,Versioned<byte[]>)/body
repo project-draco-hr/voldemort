@@ -1,6 +1,6 @@
 {
-  if (MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER.equals(metadata.getServerState()) && checkKeyBelongsToStolenPartitions(key)) {
-    proxyPut(key);
+  if (redirectingKey(key)) {
+    proxyGetAndLocalPut(key);
   }
   getInnerStore().put(key,value);
 }

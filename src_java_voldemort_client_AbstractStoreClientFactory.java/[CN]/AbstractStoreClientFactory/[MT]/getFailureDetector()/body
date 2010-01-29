@@ -1,0 +1,8 @@
+{
+  if (failureDetector == null) {
+    String clusterXml=bootstrapMetadataWithRetries(MetadataStore.CLUSTER_KEY,bootstrapUrls);
+    Cluster cluster=clusterMapper.readCluster(new StringReader(clusterXml));
+    failureDetector=initFailureDetector(config,cluster.getNodes());
+  }
+  return failureDetector;
+}

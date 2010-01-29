@@ -1,0 +1,14 @@
+{
+  VAdminProto.AsyncOperationStatusResponse.Builder response=VAdminProto.AsyncOperationStatusResponse.newBuilder();
+  try {
+    if (!voldemortConfig.isEnableRebalanceService())     throw new VoldemortException("Rebalance service is not enabled for node:" + metadataStore.getNodeId());
+    RebalancePartitionsInfo rebalanceStealInfo=new RebalancePartitionsInfo(request.getStealerId(),request.getDonorId(),request.getPartitionsList(),request.getDeletePartitionsList(),request.getUnbalancedStoreList(),request.getAttempt());
+    int requestId=rebalancer.rebalanceLocalNode(rebalanceStealInfo);
+    response.setRequestId(requestId).setDescription(rebalanceStealInfo.toString()).setStatus("started").setComplete(false);
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleRebalanceNode failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

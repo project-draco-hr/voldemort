@@ -1,0 +1,7 @@
+{
+  for (  Node node : cluster.getNodes()) {
+    List<StoreDefinition> storeDefList=adminClient.getRemoteStoreDefList(node.getId()).getValue();
+    return getWritableStores(storeDefList);
+  }
+  throw new VoldemortException("Unable to get StoreDefList from any node for cluster:" + cluster);
+}

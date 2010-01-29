@@ -1,0 +1,27 @@
+{
+  List<Integer> failures=new ArrayList<Integer>();
+  for (  Node node : cluster.getNodes()) {
+    if (!requiredNodeIds.contains(node.getId())) {
+      try {
+        adminClient.updateRemoteCluster(node.getId(),cluster,clock);
+      }
+ catch (      VoldemortException e) {
+        logger.debug("Failed to copy new cluster.xml(" + cluster + ") on non-required node:"+ node,e);
+      }
+    }
+  }
+  for (  int nodeId : requiredNodeIds) {
+    Node node=cluster.getNodeById(nodeId);
+    try {
+      logger.debug("Updating remote node:" + nodeId + " with cluster:"+ cluster);
+      adminClient.updateRemoteCluster(node.getId(),cluster,clock);
+    }
+ catch (    Exception e) {
+      failures.add(node.getId());
+      logger.debug(e);
+    }
+  }
+  if (failures.size() > 0) {
+    throw new VoldemortException("Failed to copy updated cluster.xml:" + cluster + " on required nodes:"+ failures);
+  }
+}

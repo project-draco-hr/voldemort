@@ -1,9 +1,8 @@
 {
   byte opCode=inputStream.readByte();
   String storeName=inputStream.readUTF();
-  boolean isRouted=false;
-  if (protocolVersion > 0)   isRouted=inputStream.readBoolean();
-  Store<ByteArray,byte[]> store=getStore(storeName,isRouted);
+  RequestRoutingType routingType=getRoutingType(inputStream);
+  Store<ByteArray,byte[]> store=getStore(storeName,routingType);
   if (store == null) {
     writeException(outputStream,new VoldemortException("No store named '" + storeName + "'."));
   }

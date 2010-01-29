@@ -1,0 +1,11 @@
+{
+  failureDetector.getConfig().setThreshold(80);
+  failureDetector.getConfig().setThresholdCountMinimum(10);
+  int failureCount=20;
+  Node node=Iterables.get(cluster.getNodes(),8);
+  for (int i=0; i < failureCount; i++)   recordException(failureDetector,node);
+  assertUnavailable(node);
+  recordSuccess(failureDetector,node,0,false);
+  failureDetector.waitForAvailability(node);
+  assertAvailable(node);
+}

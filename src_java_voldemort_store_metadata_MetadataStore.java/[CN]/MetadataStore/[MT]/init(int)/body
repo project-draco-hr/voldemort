@@ -3,9 +3,9 @@
   initCache(CLUSTER_KEY);
   initCache(STORES_KEY);
   initCache(NODE_ID_KEY,nodeId);
-  initCache(REBALANCING_SLAVES_LIST_KEY,new ArrayList<Integer>(0));
-  initCache(REBALANCING_PARTITIONS_LIST_KEY,new ArrayList<Integer>(0));
+  if (getNodeId() != nodeId)   throw new RuntimeException("Attempt to start previous node:" + getNodeId() + " as node:"+ nodeId+ " (Did you copy config directory ? try deleting .temp .version in config dir to force clean) aborting ...");
+  initCache(REBALANCING_STEAL_INFO,new RebalancePartitionsInfo(-1,-1,new ArrayList<Integer>(0),new ArrayList<Integer>(0),Arrays.asList(""),0));
   initCache(SERVER_STATE_KEY,VoldemortState.NORMAL_SERVER.toString());
-  initCache(REBALANCING_SLAVE_NODE_ID,-1);
-  updateRoutingStrategies();
+  initCache(CLUSTER_STATE_KEY,VoldemortState.NORMAL_CLUSTER.toString());
+  updateRoutingStrategies(getCluster(),getStoreDefList());
 }

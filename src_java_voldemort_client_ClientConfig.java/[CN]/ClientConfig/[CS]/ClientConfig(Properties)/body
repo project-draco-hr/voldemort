@@ -8,7 +8,6 @@
   if (props.containsKey(CONNECTION_TIMEOUT_MS_PROPERTY))   this.setConnectionTimeout(props.getInt(CONNECTION_TIMEOUT_MS_PROPERTY),TimeUnit.MILLISECONDS);
   if (props.containsKey(SOCKET_TIMEOUT_MS_PROPERTY))   this.setSocketTimeout(props.getInt(SOCKET_TIMEOUT_MS_PROPERTY),TimeUnit.MILLISECONDS);
   if (props.containsKey(ROUTING_TIMEOUT_MS_PROPERTY))   this.setRoutingTimeout(props.getInt(ROUTING_TIMEOUT_MS_PROPERTY),TimeUnit.MILLISECONDS);
-  if (props.containsKey(NODE_BANNAGE_MS_PROPERTY))   this.setNodeBannagePeriod(props.getInt(NODE_BANNAGE_MS_PROPERTY),TimeUnit.MILLISECONDS);
   if (props.containsKey(SOCKET_BUFFER_SIZE_PROPERTY))   this.setSocketBufferSize(props.getInt(SOCKET_BUFFER_SIZE_PROPERTY));
   if (props.containsKey(SERIALIZER_FACTORY_CLASS_PROPERTY)) {
     Class<?> factoryClass=ReflectUtils.loadClass(props.getString(SERIALIZER_FACTORY_CLASS_PROPERTY));
@@ -18,5 +17,17 @@
   if (props.containsKey(BOOTSTRAP_URLS_PROPERTY))   this.setBootstrapUrls(props.getList(BOOTSTRAP_URLS_PROPERTY));
   if (props.containsKey(REQUEST_FORMAT_PROPERTY))   this.setRequestFormatType(RequestFormatType.fromCode(props.getString(REQUEST_FORMAT_PROPERTY)));
   if (props.containsKey(ENABLE_JMX_PROPERTY))   this.setEnableJmx(props.getBoolean(ENABLE_JMX_PROPERTY));
+  if (props.containsKey(FAILUREDETECTOR_IMPLEMENTATION_PROPERTY))   this.setFailureDetectorImplementation(props.getString(FAILUREDETECTOR_IMPLEMENTATION_PROPERTY));
+  if (props.containsKey(NODE_BANNAGE_MS_PROPERTY) && !props.containsKey(FAILUREDETECTOR_BANNAGE_PERIOD_PROPERTY)) {
+    props.put(FAILUREDETECTOR_BANNAGE_PERIOD_PROPERTY,props.get(NODE_BANNAGE_MS_PROPERTY));
+  }
+  if (props.containsKey(FAILUREDETECTOR_BANNAGE_PERIOD_PROPERTY))   this.setFailureDetectorBannagePeriod(props.getLong(FAILUREDETECTOR_BANNAGE_PERIOD_PROPERTY));
+  if (props.containsKey(FAILUREDETECTOR_THRESHOLD_PROPERTY))   this.setFailureDetectorThreshold(props.getInt(FAILUREDETECTOR_THRESHOLD_PROPERTY));
+  if (props.containsKey(FAILUREDETECTOR_THRESHOLD_COUNTMINIMUM_PROPERTY))   this.setFailureDetectorThresholdCountMinimum(props.getInt(FAILUREDETECTOR_THRESHOLD_COUNTMINIMUM_PROPERTY));
+  if (props.containsKey(FAILUREDETECTOR_THRESHOLD_INTERVAL_PROPERTY))   this.setFailureDetectorThresholdInterval(props.getLong(FAILUREDETECTOR_THRESHOLD_INTERVAL_PROPERTY));
+  if (props.containsKey(FAILUREDETECTOR_ASYNCRECOVERY_INTERVAL_PROPERTY))   this.setFailureDetectorAsyncRecoveryInterval(props.getLong(FAILUREDETECTOR_ASYNCRECOVERY_INTERVAL_PROPERTY));
+  if (props.containsKey(FAILUREDETECTOR_CATASTROPHIC_ERROR_TYPES_PROPERTY))   this.setFailureDetectorCatastrophicErrorTypes(props.getList(FAILUREDETECTOR_CATASTROPHIC_ERROR_TYPES_PROPERTY));
+  if (props.containsKey(FAILUREDETECTOR_REQUEST_LENGTH_THRESHOLD_PROPERTY))   this.setFailureDetectorRequestLengthThreshold(props.getLong(FAILUREDETECTOR_REQUEST_LENGTH_THRESHOLD_PROPERTY));
+ else   this.setFailureDetectorRequestLengthThreshold(getRoutingTimeout(TimeUnit.MILLISECONDS) / 10);
   if (props.containsKey(MAX_BOOTSTRAP_RETRIES))   this.setMaxBootstrapRetries(props.getInt(MAX_BOOTSTRAP_RETRIES));
 }

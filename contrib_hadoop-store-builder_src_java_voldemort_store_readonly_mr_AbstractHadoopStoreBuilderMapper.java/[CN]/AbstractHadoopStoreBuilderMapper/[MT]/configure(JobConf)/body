@@ -1,7 +1,11 @@
 {
   super.configure(conf);
   md5er=ByteUtils.getDigest("md5");
-  keySerializer=(Serializer<Object>)new DefaultSerializerFactory().getSerializer(getStoreDef().getKeySerializer());
-  valueSerializer=(Serializer<Object>)new DefaultSerializerFactory().getSerializer(getStoreDef().getValueSerializer());
+  keySerializerDefinition=getStoreDef().getKeySerializer();
+  valueSerializerDefinition=getStoreDef().getValueSerializer();
+  keySerializer=(Serializer<Object>)new DefaultSerializerFactory().getSerializer(keySerializerDefinition);
+  valueSerializer=(Serializer<Object>)new DefaultSerializerFactory().getSerializer(valueSerializerDefinition);
+  keyCompressor=new CompressionStrategyFactory().get(keySerializerDefinition.getCompression());
+  valueCompressor=new CompressionStrategyFactory().get(valueSerializerDefinition.getCompression());
   routingStrategy=new ConsistentRoutingStrategy(getCluster().getNodes(),getStoreDef().getReplicationFactor());
 }

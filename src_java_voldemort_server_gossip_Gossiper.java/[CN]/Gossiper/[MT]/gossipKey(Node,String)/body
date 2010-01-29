@@ -1,0 +1,24 @@
+{
+  if (logger.isDebugEnabled())   logger.debug(metadataStore.getNodeId() + " gossiping " + key+ " with "+ node);
+  Versioned<String> remoteVersioned=adminClient.getRemoteMetadata(node.getId(),key);
+  Versioned<String> localVersioned=adminClient.getRemoteMetadata(metadataStore.getNodeId(),key);
+  Version localVersion=localVersioned.getVersion();
+  Version remoteVersion=remoteVersioned.getVersion();
+switch (remoteVersion.compare(localVersion)) {
+case AFTER:
+{
+      adminClient.updateRemoteMetadata(metadataStore.getNodeId(),key,remoteVersioned);
+      logger.info("My " + key + " occurred BEFORE the version at "+ node+ ". Accepted theirs.");
+      break;
+    }
+case BEFORE:
+{
+    break;
+  }
+case CONCURRENTLY:
+{
+  logger.error("My " + key + " occurred CONCURRENTLY with "+ node+ ". My value is "+ localVersioned+ ", their value is "+ remoteVersioned);
+  break;
+}
+}
+}

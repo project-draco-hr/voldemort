@@ -1,0 +1,30 @@
+{
+  if (logger.isTraceEnabled()) {
+    if (e != null)     logger.trace(node + " updated, successDelta: " + successDelta,e);
+ else     logger.trace(node + " updated, successDelta: " + successDelta);
+  }
+  final long currentTime=getConfig().getTime().getMilliseconds();
+  String catastrophicError=getCatastrophicError(e);
+  NodeStatus nodeStatus=getNodeStatus(node);
+synchronized (nodeStatus) {
+    if (currentTime >= nodeStatus.getStartMillis() + getConfig().getThresholdInterval()) {
+      nodeStatus.setStartMillis(currentTime);
+      nodeStatus.setSuccess(successDelta);
+      nodeStatus.setTotal(1);
+    }
+ else {
+      nodeStatus.incrementSuccess(successDelta);
+      nodeStatus.incrementTotal(1);
+      if (catastrophicError != null) {
+        if (logger.isTraceEnabled())         logger.trace(node + " experienced catastrophic error: " + catastrophicError);
+        setUnavailable(node,e);
+      }
+ else       if (nodeStatus.getTotal() >= getConfig().getThresholdCountMinimum()) {
+        long percentage=(nodeStatus.getSuccess() * 100) / nodeStatus.getTotal();
+        if (logger.isTraceEnabled())         logger.trace(node + " percentage: " + percentage+ "%");
+        if (percentage >= getConfig().getThreshold())         setAvailable(node);
+ else         setUnavailable(node,e);
+      }
+    }
+  }
+}

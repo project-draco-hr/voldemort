@@ -1,0 +1,22 @@
+{
+  Versioned<Cluster> latestCluster=new Versioned<Cluster>(adminClient.getAdminClientCluster());
+  ArrayList<Versioned<Cluster>> clusterList=new ArrayList<Versioned<Cluster>>();
+  clusterList.add(latestCluster);
+  for (  Node node : adminClient.getAdminClientCluster().getNodes()) {
+    try {
+      Versioned<Cluster> versionedCluster=adminClient.getRemoteCluster(node.getId());
+      VectorClock newClock=(VectorClock)versionedCluster.getVersion();
+      if (null != newClock && !clusterList.contains(newClock)) {
+        checkNotConcurrent(clusterList,newClock);
+        clusterList.add(versionedCluster);
+        Occured occured=newClock.compare(latestCluster.getVersion());
+        if (Occured.AFTER.equals(occured))         latestCluster=versionedCluster;
+      }
+    }
+ catch (    Exception e) {
+      if (null != requiredNodes && requiredNodes.contains(node.getId()))       throw new VoldemortException("Failed to get Cluster version from node:" + node,e);
+ else       logger.info("Failed to get Cluster version from node:" + node,e);
+    }
+  }
+  return latestCluster;
+}

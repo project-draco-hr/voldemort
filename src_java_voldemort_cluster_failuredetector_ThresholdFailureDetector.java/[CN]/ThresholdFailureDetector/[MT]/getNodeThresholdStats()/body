@@ -1,0 +1,14 @@
+{
+  List<String> list=new ArrayList<String>();
+  for (  Node node : getConfig().getNodes()) {
+    NodeStatus nodeStatus=getNodeStatus(node);
+    boolean isAvailabile=false;
+    long percentage=0;
+synchronized (nodeStatus) {
+      isAvailabile=nodeStatus.isAvailable();
+      percentage=nodeStatus.getTotal() > 0 ? (nodeStatus.getSuccess() * 100) / nodeStatus.getTotal() : 0;
+    }
+    list.add(node.getId() + ",status=" + (isAvailabile ? "available" : "unavailable")+ ",percentage="+ percentage+ "%");
+  }
+  return StringUtils.join(list,";");
+}

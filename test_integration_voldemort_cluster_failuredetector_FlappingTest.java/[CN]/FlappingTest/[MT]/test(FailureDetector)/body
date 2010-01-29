@@ -1,0 +1,21 @@
+{
+  final int threads=20;
+  Node node=Iterables.get(failureDetectorConfig.getNodes(),0);
+  CountDownLatch countDownLatch=new CountDownLatch(1);
+  Listener listener=new Listener();
+  failureDetector.addFailureDetectorListener(listener);
+  long start=System.currentTimeMillis();
+  AtomicInteger successCounter=new AtomicInteger();
+  AtomicInteger failureCounter=new AtomicInteger();
+  ExecutorService threadPool=Executors.newFixedThreadPool(threads + 1);
+  for (int i=0; i < threads; i++)   threadPool.submit(new NodeAccessorRunnable(failureDetector,node,countDownLatch,successCounter,failureCounter,null,0,10));
+  threadPool.submit(new NodeAvailability(failureDetector,node,countDownLatch));
+  threadPool.shutdown();
+  if (!threadPool.awaitTermination(60,TimeUnit.SECONDS)) {
+    System.out.println("Threads appear to be stuck");
+    threadPool.awaitTermination(Long.MAX_VALUE,TimeUnit.SECONDS);
+  }
+  long end=System.currentTimeMillis();
+  if (listener.getAvailableCount() != listener.getUnavailableCount())   throw new Exception("Node " + node + " should be back up");
+  return Class.forName(failureDetectorConfig.getImplementationClassName()).getSimpleName() + ", " + (end - start)+ ", "+ listener.getUnavailableCount()+ ", "+ successCounter+ ", "+ failureCounter;
+}
