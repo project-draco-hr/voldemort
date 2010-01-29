@@ -1,0 +1,15 @@
+{
+  ReadOnlyStorageEngineTestInstance testData=ReadOnlyStorageEngineTestInstance.create(strategy,dir,TEST_SIZE,2,2,serDef,lzfSerDef);
+  for (int i=0; i < 3; i++) {
+    for (    Map.Entry<String,String> entry : testData.getData().entrySet()) {
+      for (      Node node : testData.routeRequest(entry.getKey())) {
+        Store<String,String> store=testData.getNodeStores().get(node.getId());
+        List<Versioned<String>> found=store.get(entry.getKey());
+        assertEquals("Lookup failure for '" + entry.getKey() + "' on iteration "+ i+ " for node "+ node.getId()+ ".",1,found.size());
+        Versioned<String> obj=found.get(0);
+        assertEquals(entry.getValue(),obj.getValue());
+      }
+    }
+  }
+  testData.delete();
+}

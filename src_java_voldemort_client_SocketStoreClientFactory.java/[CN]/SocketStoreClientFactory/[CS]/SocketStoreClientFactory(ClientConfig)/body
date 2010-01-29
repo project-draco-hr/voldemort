@@ -3,7 +3,4 @@
   this.routingTier=config.getRoutingTier();
   this.socketPool=new SocketPool(config.getMaxConnectionsPerNode(),config.getConnectionTimeout(TimeUnit.MILLISECONDS),config.getSocketTimeout(TimeUnit.MILLISECONDS),config.getSocketBufferSize());
   if (config.isJmxEnabled())   JmxUtils.registerMbean(socketPool,JmxUtils.createObjectName(SocketPool.class));
-  String clusterXml=bootstrapMetadataWithRetries(MetadataStore.CLUSTER_KEY);
-  Cluster cluster=clusterMapper.readCluster(new StringReader(clusterXml));
-  failureDetector=initFailureDetector(config,cluster.getNodes());
 }

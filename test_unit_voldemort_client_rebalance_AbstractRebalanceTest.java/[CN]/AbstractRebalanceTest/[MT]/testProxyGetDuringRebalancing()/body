@@ -6,8 +6,8 @@
   ExecutorService executors=Executors.newFixedThreadPool(2);
   final AtomicBoolean rebalancingToken=new AtomicBoolean(false);
   final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
-  populateData(currentCluster,Arrays.asList(0));
-  final SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(getBootstrapUrl(currentCluster,0)));
+  populateData(updatedCluster,Arrays.asList(0));
+  final SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(getBootstrapUrl(updatedCluster,0)).setSocketTimeout(120,TimeUnit.SECONDS));
   final StoreClient<String,String> storeClient=new DefaultStoreClient<String,String>(testStoreName,null,factory,3);
   final boolean[] masterNodeResponded={false,false};
   executors.execute(new Runnable(){
@@ -45,8 +45,8 @@
     public void run(){
       try {
         Thread.sleep(500);
-        RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(currentCluster,0),new RebalanceClientConfig());
-        rebalanceAndCheck(updatedCluster,targetCluster,rebalanceClient,Arrays.asList(1));
+        RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCluster,0),new RebalanceClientConfig());
+        rebalanceAndCheck(updatedCluster,updateCluster(targetCluster),rebalanceClient,Arrays.asList(1));
         Thread.sleep(500);
         rebalancingToken.set(true);
       }
@@ -57,7 +57,7 @@
         try {
           stopServer(serverList);
         }
- catch (        IOException e) {
+ catch (        Exception e) {
           throw new RuntimeException(e);
         }
       }
@@ -71,6 +71,6 @@
     for (    Exception e : exceptions) {
       e.printStackTrace();
     }
-    fail("Should not see any exceptions !!");
+    fail("Should not see any exceptions.");
   }
 }

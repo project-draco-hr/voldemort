@@ -3,14 +3,15 @@
   Cluster targetCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{0,1,4,5,6,7,8},{2,3}});
   List<Integer> serverList=Arrays.asList(0,1);
   Cluster updatedCluster=startServers(currentCluster,storeDefFile,serverList,null);
+  targetCluster=updateCluster(targetCluster);
   RebalanceClientConfig rebalanceConfig=new RebalanceClientConfig();
   rebalanceConfig.setDeleteAfterRebalancingEnabled(true);
-  RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(currentCluster,0),rebalanceConfig);
+  RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCluster,0),rebalanceConfig);
   try {
-    populateData(currentCluster,Arrays.asList(0));
+    populateData(updatedCluster,Arrays.asList(0));
     rebalanceAndCheck(updatedCluster,targetCluster,rebalanceClient,Arrays.asList(1));
-    rebalanceClient.getAdminClient().updateRemoteCluster(0,currentCluster,((VectorClock)RebalanceUtils.getLatestCluster(null,rebalanceClient.getAdminClient()).getVersion()).incremented(0,System.currentTimeMillis()));
-    checkGetEntries(currentCluster.getNodeById(0),currentCluster,Arrays.asList(2,3),null);
+    rebalanceClient.getAdminClient().updateRemoteCluster(0,updatedCluster,((VectorClock)RebalanceUtils.getLatestCluster(null,rebalanceClient.getAdminClient()).getVersion()).incremented(0,System.currentTimeMillis()));
+    checkGetEntries(updatedCluster.getNodeById(0),updatedCluster,Arrays.asList(2,3),null);
   }
   finally {
     stopServer(serverList);

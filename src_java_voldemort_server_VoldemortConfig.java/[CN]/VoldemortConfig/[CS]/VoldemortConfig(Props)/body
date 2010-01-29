@@ -32,13 +32,13 @@
   this.mysqlDatabaseName=props.getString("mysql.database","voldemort");
   this.maxThreads=props.getInt("max.threads",100);
   this.coreThreads=props.getInt("core.threads",Math.max(1,maxThreads / 2));
-  this.adminMaxThreads=props.getInt("admin.max.threads",10);
+  this.adminMaxThreads=props.getInt("admin.max.threads",20);
   this.adminCoreThreads=props.getInt("admin.core.threads",Math.max(1,adminMaxThreads / 2));
   this.adminStreamBufferSize=(int)props.getBytes("admin.streams.buffer.size",10 * 1000 * 1000);
-  this.adminConnectionTimeout=props.getInt("admin.client.socket.timeout.sec",60);
+  this.adminConnectionTimeout=props.getInt("admin.client.connection.timeout.sec",60);
   this.adminSocketTimeout=props.getInt("admin.client.socket.timeout.sec",24 * 60 * 60);
-  this.streamMaxReadBytesPerSec=props.getInt("stream.read.byte.per.sec",10 * 1000 * 1000);
-  this.streamMaxWriteBytesPerSec=props.getInt("stream.write.byte.per.sec",10 * 1000 * 1000);
+  this.streamMaxReadBytesPerSec=props.getBytes("stream.read.byte.per.sec",10 * 1000 * 1000);
+  this.streamMaxWriteBytesPerSec=props.getBytes("stream.write.byte.per.sec",10 * 1000 * 1000);
   this.socketTimeoutMs=props.getInt("socket.timeout.ms",4000);
   this.socketBufferSize=(int)props.getBytes("socket.buffer.size",32 * 1024);
   this.useNioConnector=props.getBoolean("enable.nio.connector",false);
@@ -74,7 +74,8 @@
   this.maxRebalancingAttempt=props.getInt("max.rebalancing.attempts",3);
   this.rebalancingTimeoutInSeconds=props.getInt("rebalancing.timeout.seconds",60 * 60);
   this.rebalancingServicePeriod=props.getInt("rebalancing.service.period.ms",1000);
-  this.failureDetectorImplementation=props.getString("failuredetector.implementation",FailureDetectorConfig.DEFAULT_IMPLEMENTATION_CLASS_NAME);
+  this.maxParallelStoresRebalancing=props.getInt("max.parallel.stores.rebalancing",3);
+  this.failureDetectorImplementation=props.getString("failuredetector.implementation",BannagePeriodFailureDetector.class.getName());
   if (props.containsKey("client.node.bannage.ms") && !props.containsKey("failuredetector.bannage.period")) {
     props.put("failuredetector.bannage.period",props.get("client.node.bannage.ms"));
   }
@@ -83,6 +84,8 @@
   this.failureDetectorThresholdCountMinimum=props.getInt("failuredetector.threshold.countminimum",FailureDetectorConfig.DEFAULT_THRESHOLD_COUNT_MINIMUM);
   this.failureDetectorThresholdInterval=props.getLong("failuredetector.threshold.interval",FailureDetectorConfig.DEFAULT_THRESHOLD_INTERVAL);
   this.failureDetectorAsyncRecoveryInterval=props.getLong("failuredetector.asyncrecovery.interval",FailureDetectorConfig.DEFAULT_ASYNC_RECOVERY_INTERVAL);
+  this.failureDetectorCatastrophicErrorTypes=props.getList("failuredetector.catastrophic.error.types",FailureDetectorConfig.DEFAULT_CATASTROPHIC_ERROR_TYPES);
+  this.failureDetectorRequestLengthThreshold=props.getLong("failuredetector.request.length.threshold",clientRoutingTimeoutMs / 10);
   this.enableNetworkClassLoader=props.getBoolean("enable.network.classloader",false);
   validateParams();
 }

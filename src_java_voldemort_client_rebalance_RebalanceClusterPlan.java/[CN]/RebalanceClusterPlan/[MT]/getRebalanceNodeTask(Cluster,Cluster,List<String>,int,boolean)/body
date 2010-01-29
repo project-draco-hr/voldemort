@@ -1,22 +1,22 @@
 {
-  Map<Integer,List<Integer>> stealPartitionsMap=new HashMap<Integer,List<Integer>>();
   Map<Integer,Integer> currentPartitionsToNodeMap=RebalanceUtils.getCurrentPartitionMapping(currentCluster);
-  List<Integer> targetList=targetCluster.getNodeById(stealNodeId).getPartitionIds();
-  List<Integer> currentList;
-  if (RebalanceUtils.containsNode(currentCluster,stealNodeId))   currentList=currentCluster.getNodeById(stealNodeId).getPartitionIds();
- else   currentList=new ArrayList<Integer>();
-  for (  int p : targetList) {
-    if (!currentList.contains(p)) {
-      int currentMasterNode=currentPartitionsToNodeMap.get(p);
-      if (!stealPartitionsMap.containsKey(currentMasterNode)) {
-        stealPartitionsMap.put(currentMasterNode,new ArrayList<Integer>());
-      }
-      stealPartitionsMap.get(currentMasterNode).add(p);
-    }
-  }
+  List<Integer> stealList=getStealList(currentCluster,targetCluster,stealNodeId);
+  Map<Integer,List<Integer>> masterPartitionsMap=getStealMasterPartitions(stealList,currentPartitionsToNodeMap);
+  Map<Integer,List<Integer>> replicationPartitionsMap=getReplicationChanges(currentCluster,targetCluster,stealNodeId,currentPartitionsToNodeMap);
   List<RebalancePartitionsInfo> stealInfoList=new ArrayList<RebalancePartitionsInfo>();
-  for (  Entry<Integer,List<Integer>> stealEntry : stealPartitionsMap.entrySet()) {
-    stealInfoList.add(new RebalancePartitionsInfo(stealNodeId,stealEntry.getKey(),stealEntry.getValue(),storeList,deleteDonorPartition,0));
+  for (  Node donorNode : currentCluster.getNodes()) {
+    Set<Integer> stealPartitions=new HashSet<Integer>();
+    Set<Integer> deletePartitions=new HashSet<Integer>();
+    if (masterPartitionsMap.containsKey(donorNode.getId())) {
+      stealPartitions.addAll(masterPartitionsMap.get(donorNode.getId()));
+      if (deleteDonorPartition)       deletePartitions.addAll(masterPartitionsMap.get(donorNode.getId()));
+    }
+    if (replicationPartitionsMap.containsKey(donorNode.getId())) {
+      stealPartitions.addAll(replicationPartitionsMap.get(donorNode.getId()));
+    }
+    if (stealPartitions.size() > 0) {
+      stealInfoList.add(new RebalancePartitionsInfo(stealNodeId,donorNode.getId(),new ArrayList<Integer>(stealPartitions),new ArrayList<Integer>(deletePartitions),storeList,0));
+    }
   }
   return stealInfoList;
 }

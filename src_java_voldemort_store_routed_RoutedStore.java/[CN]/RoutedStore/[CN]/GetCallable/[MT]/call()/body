@@ -1,14 +1,15 @@
 {
   List<R> fetched=Collections.emptyList();
   Throwable exception=null;
+  long start=System.currentTimeMillis();
   try {
     if (logger.isTraceEnabled())     logger.trace("Attempting get operation on node " + node.getId() + " for key '"+ ByteUtils.toHexString(key.get())+ "'.");
     fetched=fetcher.execute(innerStores.get(node.getId()),key);
-    failureDetector.recordSuccess(node);
+    failureDetector.recordSuccess(node,System.currentTimeMillis() - start);
   }
  catch (  UnreachableStoreException e) {
     exception=e;
-    failureDetector.recordException(node,e);
+    failureDetector.recordException(node,System.currentTimeMillis() - start,e);
   }
 catch (  Throwable e) {
     if (e instanceof Error)     throw (Error)e;
