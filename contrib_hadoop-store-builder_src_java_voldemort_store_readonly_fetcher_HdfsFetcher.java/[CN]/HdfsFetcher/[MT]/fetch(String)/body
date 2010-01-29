@@ -1,7 +1,8 @@
 {
   Path path=new Path(fileUrl);
   Configuration config=new Configuration();
-  config.setInt("io.file.buffer.size",bufferSize);
+  config.setInt("io.socket.receive.buffer",bufferSize);
+  config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
   FileSystem fs=path.getFileSystem(config);
   EventThrottler throttler=null;
   if (maxBytesPerSecond != null)   throttler=new EventThrottler(maxBytesPerSecond);
