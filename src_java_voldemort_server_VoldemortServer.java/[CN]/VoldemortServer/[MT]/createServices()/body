@@ -6,9 +6,9 @@
   services.add(storageService);
   services.add(scheduler);
   services.add(asyncRunner);
-  if (voldemortConfig.isHttpServerEnabled())   services.add(new HttpService(this,storeRepository,RequestFormatType.VOLDEMORT_V1,voldemortConfig.getMaxThreads(),identityNode.getHttpPort()));
+  if (voldemortConfig.isHttpServerEnabled())   services.add(new HttpService(this,storageService,storeRepository,RequestFormatType.VOLDEMORT_V1,voldemortConfig.getMaxThreads(),identityNode.getHttpPort()));
   if (voldemortConfig.isSocketServerEnabled()) {
-    RequestHandlerFactory socketRequestHandlerFactory=new SocketRequestHandlerFactory(this.storeRepository,this.metadata,this.voldemortConfig,this.asyncRunner,null);
+    RequestHandlerFactory socketRequestHandlerFactory=new SocketRequestHandlerFactory(storageService,this.storeRepository,this.metadata,this.voldemortConfig,this.asyncRunner,null);
     if (voldemortConfig.getUseNioConnector()) {
       logger.info("Using NIO Connector.");
       services.add(new NioSocketService(socketRequestHandlerFactory,identityNode.getSocketPort(),voldemortConfig.getSocketBufferSize(),voldemortConfig.getNioConnectorSelectors(),"nio-socket-server",voldemortConfig.isJmxEnabled()));
@@ -25,7 +25,7 @@
       services.add(rebalancerService);
       rebalancer=rebalancerService.getRebalancer();
     }
-    SocketRequestHandlerFactory adminRequestHandlerFactory=new SocketRequestHandlerFactory(this.storeRepository,this.metadata,this.voldemortConfig,this.asyncRunner,rebalancer);
+    SocketRequestHandlerFactory adminRequestHandlerFactory=new SocketRequestHandlerFactory(storageService,this.storeRepository,this.metadata,this.voldemortConfig,this.asyncRunner,rebalancer);
     services.add(new AdminService(adminRequestHandlerFactory,identityNode.getAdminPort(),voldemortConfig.getAdminCoreThreads(),voldemortConfig.getAdminMaxThreads(),voldemortConfig.getAdminSocketBufferSize(),"admin-server",voldemortConfig.isJmxEnabled()));
   }
   if (voldemortConfig.isGossipEnabled()) {
