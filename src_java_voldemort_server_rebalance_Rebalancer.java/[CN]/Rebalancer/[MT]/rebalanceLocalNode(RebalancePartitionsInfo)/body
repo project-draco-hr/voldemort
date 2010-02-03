@@ -67,12 +67,12 @@
       }
       executors.shutdownNow();
     }
-    @SuppressWarnings("cast") private void rebalanceStore(    String storeName,    AdminClient adminClient,    RebalancePartitionsInfo stealInfo) throws Exception {
+    private void rebalanceStore(    String storeName,    AdminClient adminClient,    RebalancePartitionsInfo stealInfo) throws Exception {
       logger.info("starting partitions migration for store:" + storeName);
       int asyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getPartitionList(),null);
       rebalanceStatusList.add(asyncId);
       adminClient.waitForCompletion(metadataStore.getNodeId(),asyncId,voldemortConfig.getAdminSocketTimeout(),TimeUnit.SECONDS);
-      rebalanceStatusList.remove((Object)new Integer(asyncId));
+      rebalanceStatusList.remove((Object)asyncId);
       if (stealInfo.getDeletePartitionsList().size() > 0) {
         adminClient.deletePartitions(stealInfo.getDonorId(),storeName,stealInfo.getDeletePartitionsList(),null);
         logger.debug("Deleted partitions " + stealInfo.getDeletePartitionsList() + " from donorNode:"+ stealInfo.getDonorId()+ " for store "+ storeName);
