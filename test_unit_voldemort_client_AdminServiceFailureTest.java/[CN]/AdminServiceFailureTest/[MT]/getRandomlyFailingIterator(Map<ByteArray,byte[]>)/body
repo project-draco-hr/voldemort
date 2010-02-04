@@ -5,7 +5,7 @@
       if (Math.random() > FAIL_PROBABILITY) {
         throw new VoldemortException("Failing Iterator.");
       }
-      if (innerIterator.hasNext())       return endOfData();
+      if (!innerIterator.hasNext())       return endOfData();
       Entry<ByteArray,byte[]> entry=innerIterator.next();
       return new Pair<ByteArray,Versioned<byte[]>>(entry.getKey(),new Versioned<byte[]>(entry.getValue()));
     }

@@ -13,7 +13,7 @@
   RebalancePartitionsInfo stealInfo=new RebalancePartitionsInfo(1,0,rebalancePartitionList,new ArrayList<Integer>(0),Arrays.asList(testStoreName),0);
   int asyncId=adminClient.rebalanceNode(stealInfo);
   assertNotSame("Got a valid rebalanceAsyncId",-1,asyncId);
-  getAdminClient().waitForCompletion(1,asyncId,60,TimeUnit.SECONDS);
+  getAdminClient().waitForCompletion(1,asyncId,120,TimeUnit.SECONDS);
   store=getStore(1,testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
     if (isKeyPartition(entry.getKey(),1,testStoreName,rebalancePartitionList)) {
