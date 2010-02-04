@@ -1,0 +1,32 @@
+{
+  DataInputStream dataInputStream=new DataInputStream(inputStream);
+  DataOutputStream dataOutputStream=new DataOutputStream(outputStream);
+  int preRequestPosition=inputStream.getBuffer().position();
+  StreamRequestHandlerState state=handleStreamRequestInternal(selectionKey,dataInputStream,dataOutputStream);
+  if (state == StreamRequestHandlerState.READING) {
+    do {
+      lastCompleteStreamPosition=-1;
+      preRequestPosition=inputStream.getBuffer().position();
+      state=handleStreamRequestInternal(selectionKey,dataInputStream,dataOutputStream);
+    }
+ while (state == StreamRequestHandlerState.READING);
+  }
+  if (state == null) {
+    clearInputBuffer();
+    lastCompleteStreamPosition=-1;
+  }
+ else   if (state == StreamRequestHandlerState.INCOMPLETE_READ) {
+    lastCompleteStreamPosition=preRequestPosition;
+    handleIncompleteRequest(-1);
+  }
+ else   if (state == StreamRequestHandlerState.WRITING) {
+    clearInputBuffer();
+    prepForWrite(selectionKey);
+  }
+ else   if (state == StreamRequestHandlerState.COMPLETE) {
+    streamRequestHandler.close(dataOutputStream);
+    streamRequestHandler=null;
+    clearInputBuffer();
+    prepForWrite(selectionKey);
+  }
+}

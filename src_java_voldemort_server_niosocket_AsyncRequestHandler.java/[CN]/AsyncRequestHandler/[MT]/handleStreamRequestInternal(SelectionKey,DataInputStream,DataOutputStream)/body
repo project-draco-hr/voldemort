@@ -1,0 +1,18 @@
+{
+  StreamRequestHandlerState state=null;
+  try {
+    if (logger.isTraceEnabled())     logInputBufferState("Before streaming request handler");
+    state=streamRequestHandler.handleRequest(dataInputStream,dataOutputStream);
+    if (logger.isTraceEnabled())     logInputBufferState("After streaming request handler");
+  }
+ catch (  Exception e) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
+    VoldemortException error=e instanceof VoldemortException ? (VoldemortException)e : new VoldemortException(e);
+    streamRequestHandler.handleError(dataOutputStream,error);
+    streamRequestHandler.close(dataOutputStream);
+    prepForWrite(selectionKey);
+    streamRequestHandler=null;
+    close(selectionKey);
+  }
+  return state;
+}

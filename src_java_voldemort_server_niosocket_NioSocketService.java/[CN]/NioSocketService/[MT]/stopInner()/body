@@ -1,4 +1,5 @@
 {
+  if (logger.isEnabledFor(Level.INFO))   logger.info("NIO socket service shutting down");
   try {
     acceptorThread.interrupt();
     acceptorThread.join(15000);
@@ -10,7 +11,15 @@
     if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
   }
   try {
-    selectorManagerThreadPool.shutdownNow();
+    for (int i=0; i < selectorManagers.length; i++) {
+      try {
+        selectorManagers[i].close();
+      }
+ catch (      Exception e) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(e.getMessage(),e);
+      }
+    }
+    selectorManagerThreadPool.shutdown();
     boolean terminated=selectorManagerThreadPool.awaitTermination(15,TimeUnit.SECONDS);
     if (!terminated) {
       if (logger.isEnabledFor(Level.WARN))       logger.warn("Selector manager thread pool terminated abnormally");

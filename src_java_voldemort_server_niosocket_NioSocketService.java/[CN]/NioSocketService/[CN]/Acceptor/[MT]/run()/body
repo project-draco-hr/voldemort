@@ -1,7 +1,11 @@
 {
-  if (logger.isInfoEnabled())   logger.info("Server now listening for connections on " + endpoint);
+  if (logger.isInfoEnabled())   logger.info("Server now listening for connections");
   AtomicInteger counter=new AtomicInteger();
-  while (!Thread.currentThread().isInterrupted()) {
+  while (true) {
+    if (Thread.currentThread().isInterrupted()) {
+      if (logger.isInfoEnabled())       logger.info("Thread interrupted");
+      break;
+    }
     try {
       SocketChannel socketChannel=serverSocketChannel.accept();
       if (socketChannel == null) {
@@ -12,11 +16,12 @@
       selectorManager.accept(socketChannel);
     }
  catch (    ClosedByInterruptException e) {
-      if (logger.isTraceEnabled())       logger.trace(e.getMessage(),e);
+      if (logger.isTraceEnabled())       logger.trace("Interrupted, closing");
+      break;
     }
 catch (    Exception e) {
       if (logger.isEnabledFor(Level.WARN))       logger.warn(e.getMessage(),e);
     }
   }
-  if (logger.isInfoEnabled())   logger.info("Server has stopped listening for connections on " + endpoint);
+  if (logger.isInfoEnabled())   logger.info("Server has stopped listening for connections");
 }

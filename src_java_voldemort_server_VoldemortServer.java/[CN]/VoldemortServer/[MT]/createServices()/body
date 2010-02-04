@@ -26,7 +26,14 @@
       rebalancer=rebalancerService.getRebalancer();
     }
     SocketRequestHandlerFactory adminRequestHandlerFactory=new SocketRequestHandlerFactory(this.storeRepository,this.metadata,this.voldemortConfig,this.asyncRunner,rebalancer);
-    services.add(new AdminService(adminRequestHandlerFactory,identityNode.getAdminPort(),voldemortConfig.getAdminCoreThreads(),voldemortConfig.getAdminMaxThreads(),voldemortConfig.getAdminSocketBufferSize(),"admin-server",voldemortConfig.isJmxEnabled()));
+    if (voldemortConfig.getUseNioConnector()) {
+      logger.info("Using NIO Connector for Admin Service.");
+      services.add(new NioSocketService(adminRequestHandlerFactory,identityNode.getAdminPort(),voldemortConfig.getAdminSocketBufferSize(),voldemortConfig.getNioConnectorSelectors(),"admin-server",voldemortConfig.isJmxEnabled()));
+    }
+ else {
+      logger.info("Using BIO Connector for Admin Service.");
+      services.add(new SocketService(adminRequestHandlerFactory,identityNode.getAdminPort(),voldemortConfig.getAdminCoreThreads(),voldemortConfig.getAdminMaxThreads(),voldemortConfig.getAdminSocketBufferSize(),"admin-server",voldemortConfig.isJmxEnabled()));
+    }
   }
   if (voldemortConfig.isGossipEnabled()) {
     services.add(new GossipService(this.metadata,scheduler,voldemortConfig));

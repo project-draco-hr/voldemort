@@ -1,40 +1,39 @@
 {
   int count=0;
-  ByteBuffer inputBuffer=inputStream.getBuffer();
-  if ((count=socketChannel.read(inputBuffer)) == -1)   throw new EOFException();
-  if (logger.isTraceEnabled())   logger.trace("Read " + count + "bytes, total: "+ inputBuffer.position()+ " for "+ socketChannel.socket().getRemoteSocketAddress());
-  if (count == 0) {
-    if (logger.isDebugEnabled())     logger.debug("Read of zero bytes for " + socketChannel.socket().getRemoteSocketAddress());
-    return;
-  }
-  final int position=inputBuffer.position();
-  inputBuffer.flip();
+  if ((count=socketChannel.read(inputStream.getBuffer())) == -1)   throw new EOFException("EOF for " + socketChannel.socket().getRemoteSocketAddress());
+  if (logger.isTraceEnabled())   logInputBufferState("Read " + count + " bytes");
+  if (count == 0)   return;
+  final int position=inputStream.getBuffer().position();
+  inputStream.getBuffer().flip();
   if (requestHandler == null) {
     if (!initRequestHandler(selectionKey)) {
       return;
     }
   }
-  if (requestHandler != null && requestHandler.isCompleteRequest(inputBuffer)) {
-    inputBuffer.rewind();
-    if (logger.isDebugEnabled())     logger.debug("Starting execution for " + socketChannel.socket().getRemoteSocketAddress());
-    requestHandler.handleRequest(new DataInputStream(inputStream),new DataOutputStream(outputStream));
-    if (logger.isDebugEnabled())     logger.debug("Finished execution for " + socketChannel.socket().getRemoteSocketAddress());
-    if (inputBuffer.capacity() >= resizeThreshold) {
-      inputBuffer=ByteBuffer.allocate(socketBufferSize);
-      inputStream.setBuffer(inputBuffer);
+  if (streamRequestHandler != null) {
+    if (lastCompleteStreamPosition != -1) {
+      if (logger.isTraceEnabled())       logInputBufferState("Before adjusting for last complete stream position");
+      inputStream.getBuffer().position(lastCompleteStreamPosition);
+      if (logger.isTraceEnabled())       logInputBufferState("After adjusting for last complete stream position");
+    }
+    if (logger.isTraceEnabled())     logInputBufferState("Continuing existing streaming request");
+    handleStreamRequest(selectionKey);
+  }
+ else   if (requestHandler != null && requestHandler.isCompleteRequest(inputStream.getBuffer())) {
+    inputStream.getBuffer().rewind();
+    if (logger.isTraceEnabled())     logger.trace("Starting execution for " + socketChannel.socket().getRemoteSocketAddress());
+    streamRequestHandler=requestHandler.handleRequest(new DataInputStream(inputStream),new DataOutputStream(outputStream));
+    if (streamRequestHandler != null) {
+      if (lastCompleteStreamPosition != -1)       inputStream.getBuffer().position(lastCompleteStreamPosition);
+      handleStreamRequest(selectionKey);
     }
  else {
-      inputBuffer.clear();
+      if (logger.isTraceEnabled())       logger.trace("Finished execution for " + socketChannel.socket().getRemoteSocketAddress());
+      clearInputBuffer();
+      prepForWrite(selectionKey);
     }
-    outputStream.getBuffer().flip();
-    selectionKey.interestOps(SelectionKey.OP_WRITE);
   }
  else {
-    inputBuffer.position(position);
-    inputBuffer.limit(inputBuffer.capacity());
-    if (!inputBuffer.hasRemaining()) {
-      inputBuffer=ByteUtils.expand(inputBuffer,inputBuffer.capacity() * 2);
-      inputStream.setBuffer(inputBuffer);
-    }
+    handleIncompleteRequest(position);
   }
 }

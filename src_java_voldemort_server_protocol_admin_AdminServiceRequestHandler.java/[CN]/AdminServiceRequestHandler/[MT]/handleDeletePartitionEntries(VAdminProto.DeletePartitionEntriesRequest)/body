@@ -4,8 +4,8 @@
   try {
     String storeName=request.getStore();
     List<Integer> partitions=request.getPartitionsList();
-    StorageEngine<ByteArray,byte[]> storageEngine=getStorageEngine(storeName);
-    VoldemortFilter filter=(request.hasFilter()) ? getFilterFromRequest(request.getFilter()) : new DefaultVoldemortFilter();
+    StorageEngine<ByteArray,byte[]> storageEngine=getStorageEngine(storeRepository,storeName);
+    VoldemortFilter filter=(request.hasFilter()) ? getFilterFromRequest(request.getFilter(),voldemortConfig,networkClassLoader) : new DefaultVoldemortFilter();
     RoutingStrategy routingStrategy=metadataStore.getRoutingStrategy(storageEngine.getName());
     EventThrottler throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
     iterator=storageEngine.entries();

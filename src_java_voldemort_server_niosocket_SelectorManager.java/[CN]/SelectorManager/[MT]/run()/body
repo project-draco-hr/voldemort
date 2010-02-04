@@ -1,13 +1,17 @@
 {
   try {
     while (true) {
-      if (Thread.currentThread().isInterrupted()) {
-        if (logger.isDebugEnabled())         logger.debug("Interrupted");
+      if (isClosed) {
+        if (logger.isInfoEnabled())         logger.info("Closed, exiting" + " for " + endpoint);
         break;
       }
       processSockets();
       try {
         int selected=selector.select();
+        if (isClosed) {
+          if (logger.isInfoEnabled())           logger.info("Closed, exiting for " + endpoint);
+          break;
+        }
         if (selected > 0) {
           Iterator<SelectionKey> i=selector.selectedKeys().iterator();
           while (i.hasNext()) {
@@ -20,7 +24,11 @@
           }
         }
       }
- catch (      Throwable t) {
+ catch (      ClosedSelectorException e) {
+        if (logger.isDebugEnabled())         logger.debug("Selector is closed, exiting for " + endpoint);
+        break;
+      }
+catch (      Throwable t) {
         if (logger.isEnabledFor(Level.ERROR))         logger.error(t.getMessage(),t);
       }
     }
@@ -30,7 +38,7 @@
   }
  finally {
     try {
-      selector.close();
+      close();
     }
  catch (    Exception e) {
       if (logger.isEnabledFor(Level.ERROR))       logger.error(e.getMessage(),e);

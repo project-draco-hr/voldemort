@@ -1,3 +1,14 @@
 {
-  throw new VoldemortException("Non-blocking server not supported for AdminServiceRequestHandler");
+  DataInputStream inputStream=new DataInputStream(new ByteBufferBackedInputStream(buffer));
+  try {
+    int dataSize=inputStream.readInt();
+    if (logger.isTraceEnabled())     logger.trace("In isCompleteRequest, dataSize: " + dataSize + ", buffer position: "+ buffer.position());
+    if (dataSize == -1)     return true;
+    buffer.position(buffer.position() + dataSize);
+    return true;
+  }
+ catch (  Exception e) {
+    if (logger.isTraceEnabled())     logger.trace("In isCompleteRequest, probable partial read occurred: " + e);
+    return false;
+  }
 }
