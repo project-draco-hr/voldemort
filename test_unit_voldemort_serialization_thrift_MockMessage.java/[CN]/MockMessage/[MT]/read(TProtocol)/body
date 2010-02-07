@@ -6,88 +6,88 @@
     if (field.type == TType.STOP) {
       break;
     }
-switch (field.id) {
-case 1:
-      if (field.type == TType.STRING) {
-        this.name=iprot.readString();
-        this.__isset.name=true;
-      }
- else {
-        TProtocolUtil.skip(iprot,field.type);
-      }
-    break;
-case 2:
-  if (field.type == TType.MAP) {
-{
-      TMap _map0=iprot.readMapBegin();
-      this.mappings=new HashMap<Long,Map<String,Integer>>(2 * _map0.size);
-      for (int _i1=0; _i1 < _map0.size; ++_i1) {
-        long _key2;
-        Map<String,Integer> _val3;
-        _key2=iprot.readI64();
-{
-          TMap _map4=iprot.readMapBegin();
-          _val3=new HashMap<String,Integer>(2 * _map4.size);
-          for (int _i5=0; _i5 < _map4.size; ++_i5) {
-            String _key6;
-            int _val7;
-            _key6=iprot.readString();
-            _val7=iprot.readI32();
-            _val3.put(_key6,_val7);
-          }
-          iprot.readMapEnd();
-        }
-        this.mappings.put(_key2,_val3);
-      }
-      iprot.readMapEnd();
+    _Fields fieldId=_Fields.findByThriftId(field.id);
+    if (fieldId == null) {
+      TProtocolUtil.skip(iprot,field.type);
     }
-    this.__isset.mappings=true;
-  }
  else {
-    TProtocolUtil.skip(iprot,field.type);
-  }
-break;
-case 3:
+switch (fieldId) {
+case NAME:
+        if (field.type == TType.STRING) {
+          this.name=iprot.readString();
+        }
+ else {
+          TProtocolUtil.skip(iprot,field.type);
+        }
+      break;
+case MAPPINGS:
+    if (field.type == TType.MAP) {
+{
+        TMap _map0=iprot.readMapBegin();
+        this.mappings=new HashMap<Long,Map<String,Integer>>(2 * _map0.size);
+        for (int _i1=0; _i1 < _map0.size; ++_i1) {
+          long _key2;
+          Map<String,Integer> _val3;
+          _key2=iprot.readI64();
+{
+            TMap _map4=iprot.readMapBegin();
+            _val3=new HashMap<String,Integer>(2 * _map4.size);
+            for (int _i5=0; _i5 < _map4.size; ++_i5) {
+              String _key6;
+              int _val7;
+              _key6=iprot.readString();
+              _val7=iprot.readI32();
+              _val3.put(_key6,_val7);
+            }
+            iprot.readMapEnd();
+          }
+          this.mappings.put(_key2,_val3);
+        }
+        iprot.readMapEnd();
+      }
+    }
+ else {
+      TProtocolUtil.skip(iprot,field.type);
+    }
+  break;
+case INT_LIST:
 if (field.type == TType.LIST) {
 {
-  TList _list8=iprot.readListBegin();
-  this.intList=new ArrayList<Short>(_list8.size);
-  for (int _i9=0; _i9 < _list8.size; ++_i9) {
-    short _elem10=0;
-    _elem10=iprot.readI16();
-    this.intList.add(_elem10);
+    TList _list8=iprot.readListBegin();
+    this.intList=new ArrayList<Short>(_list8.size);
+    for (int _i9=0; _i9 < _list8.size; ++_i9) {
+      short _elem10;
+      _elem10=iprot.readI16();
+      this.intList.add(_elem10);
+    }
+    iprot.readListEnd();
   }
-  iprot.readListEnd();
-}
-this.__isset.intList=true;
 }
  else {
-TProtocolUtil.skip(iprot,field.type);
+  TProtocolUtil.skip(iprot,field.type);
 }
 break;
-case 4:
+case STR_SET:
 if (field.type == TType.SET) {
 {
 TSet _set11=iprot.readSetBegin();
 this.strSet=new HashSet<String>(2 * _set11.size);
 for (int _i12=0; _i12 < _set11.size; ++_i12) {
-String _elem13;
-_elem13=iprot.readString();
-this.strSet.add(_elem13);
+  String _elem13;
+  _elem13=iprot.readString();
+  this.strSet.add(_elem13);
 }
 iprot.readSetEnd();
 }
-this.__isset.strSet=true;
 }
  else {
 TProtocolUtil.skip(iprot,field.type);
 }
 break;
-default :
-TProtocolUtil.skip(iprot,field.type);
-break;
 }
 iprot.readFieldEnd();
 }
+}
 iprot.readStructEnd();
+validate();
 }
