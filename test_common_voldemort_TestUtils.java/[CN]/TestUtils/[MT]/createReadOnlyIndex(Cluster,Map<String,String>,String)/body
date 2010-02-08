@@ -9,7 +9,7 @@
   SerializerDefinition serDef=new SerializerDefinition("json","'string'");
   StoreDefinition storeDef=new StoreDefinitionBuilder().setName("test").setType(ReadOnlyStorageConfiguration.TYPE_NAME).setKeySerializer(serDef).setValueSerializer(serDef).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(1).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).build();
   RoutingStrategy router=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
-  File dataDir=new File(baseDir + File.separatorChar + "read-only-temp-index-"+ new Integer((int)(Math.random() * 1000)));
+  File dataDir=new File(baseDir + File.separatorChar + "read-only-temp-index-"+ ((int)(Math.random() * 1000)));
   JsonStoreBuilder storeBuilder=new JsonStoreBuilder(jsonReader,cluster,storeDef,router,dataDir,null,100,1,2,10000);
   storeBuilder.build();
   return dataDir.getAbsolutePath();

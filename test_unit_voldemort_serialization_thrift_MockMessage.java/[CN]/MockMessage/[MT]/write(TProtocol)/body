@@ -1,29 +1,22 @@
 {
-  TStruct struct=new TStruct("MockMessage");
-  oprot.writeStructBegin(struct);
-  TField field=new TField();
+  validate();
+  oprot.writeStructBegin(STRUCT_DESC);
   if (this.name != null) {
-    field.name="name";
-    field.type=TType.STRING;
-    field.id=1;
-    oprot.writeFieldBegin(field);
+    oprot.writeFieldBegin(NAME_FIELD_DESC);
     oprot.writeString(this.name);
     oprot.writeFieldEnd();
   }
   if (this.mappings != null) {
-    field.name="mappings";
-    field.type=TType.MAP;
-    field.id=2;
-    oprot.writeFieldBegin(field);
+    oprot.writeFieldBegin(MAPPINGS_FIELD_DESC);
 {
       oprot.writeMapBegin(new TMap(TType.I64,TType.MAP,this.mappings.size()));
-      for (      long _iter14 : this.mappings.keySet()) {
-        oprot.writeI64(_iter14);
+      for (      Map.Entry<Long,Map<String,Integer>> _iter14 : this.mappings.entrySet()) {
+        oprot.writeI64(_iter14.getKey());
 {
-          oprot.writeMapBegin(new TMap(TType.STRING,TType.I32,this.mappings.get(_iter14).size()));
-          for (          String _iter15 : this.mappings.get(_iter14).keySet()) {
-            oprot.writeString(_iter15);
-            oprot.writeI32(this.mappings.get(_iter14).get(_iter15));
+          oprot.writeMapBegin(new TMap(TType.STRING,TType.I32,_iter14.getValue().size()));
+          for (          Map.Entry<String,Integer> _iter15 : _iter14.getValue().entrySet()) {
+            oprot.writeString(_iter15.getKey());
+            oprot.writeI32(_iter15.getValue());
           }
           oprot.writeMapEnd();
         }
@@ -33,10 +26,7 @@
     oprot.writeFieldEnd();
   }
   if (this.intList != null) {
-    field.name="intList";
-    field.type=TType.LIST;
-    field.id=3;
-    oprot.writeFieldBegin(field);
+    oprot.writeFieldBegin(INT_LIST_FIELD_DESC);
 {
       oprot.writeListBegin(new TList(TType.I16,this.intList.size()));
       for (      short _iter16 : this.intList) {
@@ -47,10 +37,7 @@
     oprot.writeFieldEnd();
   }
   if (this.strSet != null) {
-    field.name="strSet";
-    field.type=TType.SET;
-    field.id=4;
-    oprot.writeFieldBegin(field);
+    oprot.writeFieldBegin(STR_SET_FIELD_DESC);
 {
       oprot.writeSetBegin(new TSet(TType.STRING,this.strSet.size()));
       for (      String _iter17 : this.strSet) {
