@@ -2,7 +2,7 @@
   logger.debug("rebalancer run() called.");
   if (VoldemortState.REBALANCING_MASTER_SERVER.equals(metadataStore.getServerState()) && acquireRebalancingPermit()) {
     releaseRebalancingPermit();
-    RebalancePartitionsInfo stealInfo=metadataStore.getRebalancingStealInfo();
+    RebalancePartitionsInfo stealInfo=metadataStore.getRebalancingStealInfo().get(0);
     try {
       logger.warn("Rebalance server found incomplete rebalancing attempt, restarting rebalancing task " + stealInfo);
       if (stealInfo.getAttempt() < voldemortConfig.getMaxRebalancingAttempt()) {

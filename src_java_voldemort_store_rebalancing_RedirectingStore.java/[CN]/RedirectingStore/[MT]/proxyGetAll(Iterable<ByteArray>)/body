@@ -1,9 +1,9 @@
 {
-  Node donorNode=metadata.getCluster().getNodeById(metadata.getRebalancingStealInfo().getDonorId());
+  Node donorNode=metadata.getCluster().getNodeById(metadata.getRebalancingStealInfo().get(0).getDonorId());
   checkNodeAvailable(donorNode);
   long startNs=System.nanoTime();
   try {
-    Map<ByteArray,List<Versioned<byte[]>>> map=getRedirectingSocketStore(getName(),metadata.getRebalancingStealInfo().getDonorId()).getAll(keys);
+    Map<ByteArray,List<Versioned<byte[]>>> map=getRedirectingSocketStore(getName(),metadata.getRebalancingStealInfo().get(0).getDonorId()).getAll(keys);
     recordSuccess(donorNode,startNs);
     return map;
   }

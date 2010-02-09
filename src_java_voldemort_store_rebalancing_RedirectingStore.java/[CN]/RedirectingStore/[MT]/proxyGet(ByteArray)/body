@@ -1,9 +1,21 @@
 {
-  Node donorNode=metadata.getCluster().getNodeById(metadata.getRebalancingStealInfo().getDonorId());
+  RebalancePartitionsInfo rebalancePartitionsInfo=null;
+  List<Integer> partitionIds=metadata.getRoutingStrategy(getName()).getPartitionList(key.get());
+  for (  int partitionId : partitionIds) {
+    Iterator<RebalancePartitionsInfo> iterator=Iterables.filter(metadata.getRebalancingStealInfo(),new PartitionIdPredicate(partitionId)).iterator();
+    if (iterator.hasNext()) {
+      rebalancePartitionsInfo=iterator.next();
+      break;
+    }
+  }
+  if (rebalancePartitionsInfo == null) {
+    throw new IllegalStateException("No steal operation in progress for key " + key + " partitions("+ Joiner.on(", ").join(partitionIds)+ ")");
+  }
+  Node donorNode=metadata.getCluster().getNodeById(rebalancePartitionsInfo.getDonorId());
   checkNodeAvailable(donorNode);
   long startNs=System.nanoTime();
   try {
-    List<Versioned<byte[]>> values=getRedirectingSocketStore(getName(),metadata.getRebalancingStealInfo().getDonorId()).get(key);
+    List<Versioned<byte[]>> values=getRedirectingSocketStore(getName(),rebalancePartitionsInfo.getDonorId()).get(key);
     recordSuccess(donorNode,startNs);
     return values;
   }

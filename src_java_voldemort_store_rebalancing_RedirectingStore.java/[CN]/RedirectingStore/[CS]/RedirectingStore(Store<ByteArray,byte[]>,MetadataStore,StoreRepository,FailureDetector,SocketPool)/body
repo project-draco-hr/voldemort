@@ -4,4 +4,10 @@
   this.storeRepository=storeRepository;
   this.socketPool=socketPool;
   this.failureDetector=detector;
+  this.unbalancedStorePredicate=new Predicate<RebalancePartitionsInfo>(){
+    public boolean apply(    RebalancePartitionsInfo rebalancePartitionsInfo){
+      return rebalancePartitionsInfo.getUnbalancedStoreList().contains(getName());
+    }
+  }
+;
 }
