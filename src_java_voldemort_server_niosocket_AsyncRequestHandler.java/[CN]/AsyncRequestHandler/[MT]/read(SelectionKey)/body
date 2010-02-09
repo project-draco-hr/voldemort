@@ -11,11 +11,6 @@
     }
   }
   if (streamRequestHandler != null) {
-    if (lastCompleteStreamPosition != -1) {
-      if (logger.isTraceEnabled())       logInputBufferState("Before adjusting for last complete stream position");
-      inputStream.getBuffer().position(lastCompleteStreamPosition);
-      if (logger.isTraceEnabled())       logInputBufferState("After adjusting for last complete stream position");
-    }
     if (logger.isTraceEnabled())     logInputBufferState("Continuing existing streaming request");
     handleStreamRequest(selectionKey);
   }
@@ -24,7 +19,6 @@
     if (logger.isTraceEnabled())     logger.trace("Starting execution for " + socketChannel.socket().getRemoteSocketAddress());
     streamRequestHandler=requestHandler.handleRequest(new DataInputStream(inputStream),new DataOutputStream(outputStream));
     if (streamRequestHandler != null) {
-      if (lastCompleteStreamPosition != -1)       inputStream.getBuffer().position(lastCompleteStreamPosition);
       handleStreamRequest(selectionKey);
     }
  else {

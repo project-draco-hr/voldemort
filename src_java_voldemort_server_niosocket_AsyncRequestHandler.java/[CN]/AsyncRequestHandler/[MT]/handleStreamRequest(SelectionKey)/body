@@ -5,7 +5,6 @@
   StreamRequestHandlerState state=handleStreamRequestInternal(selectionKey,dataInputStream,dataOutputStream);
   if (state == StreamRequestHandlerState.READING) {
     do {
-      lastCompleteStreamPosition=-1;
       preRequestPosition=inputStream.getBuffer().position();
       state=handleStreamRequestInternal(selectionKey,dataInputStream,dataOutputStream);
     }
@@ -13,11 +12,12 @@
   }
   if (state == null) {
     clearInputBuffer();
-    lastCompleteStreamPosition=-1;
   }
  else   if (state == StreamRequestHandlerState.INCOMPLETE_READ) {
-    lastCompleteStreamPosition=preRequestPosition;
-    handleIncompleteRequest(-1);
+    int currentPosition=inputStream.getBuffer().position();
+    inputStream.getBuffer().position(preRequestPosition);
+    inputStream.getBuffer().compact();
+    handleIncompleteRequest(currentPosition - preRequestPosition);
   }
  else   if (state == StreamRequestHandlerState.WRITING) {
     clearInputBuffer();

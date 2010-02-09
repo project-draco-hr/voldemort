@@ -1,11 +1,10 @@
 {
-  ByteBuffer buffer=inputStream.getBuffer();
   if (logger.isTraceEnabled())   logInputBufferState("Incomplete read request detected, before update");
-  if (newPosition != -1)   buffer.position(newPosition);
-  buffer.limit(buffer.capacity());
+  inputStream.getBuffer().position(newPosition);
+  inputStream.getBuffer().limit(inputStream.getBuffer().capacity());
   if (logger.isTraceEnabled())   logInputBufferState("Incomplete read request detected, after update");
-  if (!buffer.hasRemaining()) {
-    inputStream.setBuffer(ByteUtils.expand(buffer,buffer.capacity() * 2));
+  if (!inputStream.getBuffer().hasRemaining()) {
+    inputStream.setBuffer(ByteUtils.expand(inputStream.getBuffer(),inputStream.getBuffer().capacity() * 2));
     if (logger.isTraceEnabled())     logInputBufferState("Expanded input buffer");
   }
 }
