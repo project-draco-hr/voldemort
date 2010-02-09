@@ -1,6 +1,5 @@
 {
-  if (isClosed)   return;
-  isClosed=true;
+  if (!isClosed.compareAndSet(false,true))   return;
   try {
     for (    SelectionKey sk : selector.keys()) {
       try {

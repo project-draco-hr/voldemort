@@ -2,7 +2,7 @@
   try {
     SocketChannel socketChannel=null;
     while ((socketChannel=socketChannelQueue.poll()) != null) {
-      if (isClosed) {
+      if (isClosed.get()) {
         if (logger.isInfoEnabled())         logger.debug("Closed, exiting for " + endpoint);
         break;
       }
@@ -15,7 +15,7 @@
         if (socketChannel.socket().getSendBufferSize() != this.socketBufferSize)         if (logger.isDebugEnabled())         logger.debug("Requested socket send buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getSendBufferSize()+ " bytes.");
         socketChannel.configureBlocking(false);
         AsyncRequestHandler attachment=new AsyncRequestHandler(selector,socketChannel,requestHandlerFactory,socketBufferSize);
-        if (!isClosed)         socketChannel.register(selector,SelectionKey.OP_READ,attachment);
+        if (!isClosed.get())         socketChannel.register(selector,SelectionKey.OP_READ,attachment);
       }
  catch (      ClosedSelectorException e) {
         if (logger.isDebugEnabled())         logger.debug("Selector is closed, exiting");

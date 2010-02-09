@@ -1,14 +1,14 @@
 {
   try {
     while (true) {
-      if (isClosed) {
+      if (isClosed.get()) {
         if (logger.isInfoEnabled())         logger.info("Closed, exiting" + " for " + endpoint);
         break;
       }
       processSockets();
       try {
         int selected=selector.select();
-        if (isClosed) {
+        if (isClosed.get()) {
           if (logger.isInfoEnabled())           logger.info("Closed, exiting for " + endpoint);
           break;
         }
