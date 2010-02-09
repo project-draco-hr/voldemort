@@ -6,7 +6,7 @@
     try {
       Versioned<Cluster> versionedCluster=adminClient.getRemoteCluster(node.getId());
       VectorClock newClock=(VectorClock)versionedCluster.getVersion();
-      if (null != newClock && !clusterList.contains(newClock)) {
+      if (null != newClock && !clusterList.contains(versionedCluster)) {
         checkNotConcurrent(clusterList,newClock);
         clusterList.add(versionedCluster);
         Occured occured=newClock.compare(latestCluster.getVersion());
