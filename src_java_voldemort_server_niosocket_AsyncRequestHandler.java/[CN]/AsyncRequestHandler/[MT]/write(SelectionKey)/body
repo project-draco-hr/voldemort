@@ -1,20 +1,14 @@
 {
-  ByteBuffer outputBuffer=outputStream.getBuffer();
-  if (outputBuffer.hasRemaining()) {
-    int count=socketChannel.write(outputBuffer);
-    if (logger.isTraceEnabled())     logger.trace("Wrote " + count + " bytes, remaining: "+ outputBuffer.remaining()+ " for "+ socketChannel.socket().getRemoteSocketAddress());
+  if (outputStream.getBuffer().hasRemaining()) {
+    int count=socketChannel.write(outputStream.getBuffer());
+    if (logger.isTraceEnabled())     logger.trace("Wrote " + count + " bytes, remaining: "+ outputStream.getBuffer().remaining()+ " for "+ socketChannel.socket().getRemoteSocketAddress());
   }
  else {
     if (logger.isTraceEnabled())     logger.trace("Wrote no bytes for " + socketChannel.socket().getRemoteSocketAddress());
   }
-  if (outputBuffer.hasRemaining())   return;
-  if (outputBuffer.capacity() >= resizeThreshold) {
-    outputBuffer=ByteBuffer.allocate(socketBufferSize);
-    outputStream.setBuffer(outputBuffer);
-  }
- else {
-    outputBuffer.clear();
-  }
+  if (outputStream.getBuffer().hasRemaining())   return;
+  if (outputStream.getBuffer().capacity() >= resizeThreshold)   outputStream.setBuffer(ByteBuffer.allocate(socketBufferSize));
+ else   outputStream.getBuffer().clear();
   if (streamRequestHandler != null && !streamRequestHandler.isStreamingReads()) {
     if (logger.isTraceEnabled())     logger.trace("Request is streaming for " + socketChannel.socket().getRemoteSocketAddress());
     handleStreamRequest(selectionKey);

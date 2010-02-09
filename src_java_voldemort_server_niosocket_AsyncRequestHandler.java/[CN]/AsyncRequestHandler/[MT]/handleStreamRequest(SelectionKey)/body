@@ -11,22 +11,20 @@
  while (state == StreamRequestHandlerState.READING);
   }
   if (state == null) {
-    clearInputBuffer();
+    return;
   }
- else   if (state == StreamRequestHandlerState.INCOMPLETE_READ) {
+  if (state == StreamRequestHandlerState.INCOMPLETE_READ) {
     int currentPosition=inputStream.getBuffer().position();
     inputStream.getBuffer().position(preRequestPosition);
     inputStream.getBuffer().compact();
     handleIncompleteRequest(currentPosition - preRequestPosition);
   }
  else   if (state == StreamRequestHandlerState.WRITING) {
-    clearInputBuffer();
     prepForWrite(selectionKey);
   }
  else   if (state == StreamRequestHandlerState.COMPLETE) {
     streamRequestHandler.close(dataOutputStream);
     streamRequestHandler=null;
-    clearInputBuffer();
     prepForWrite(selectionKey);
   }
 }

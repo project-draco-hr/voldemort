@@ -1,10 +1,11 @@
 {
-  if (logger.isEnabledFor(Level.INFO))   logger.info("NIO socket service shutting down");
+  if (logger.isEnabledFor(Level.INFO))   logger.info("Stopping Voldemort NIO socket server (" + serviceName + ") on port "+ port);
   try {
+    if (logger.isTraceEnabled())     logger.trace("Interrupted acceptor thread, waiting " + SHUTDOWN_TIMEOUT_MS + " ms for termination");
     acceptorThread.interrupt();
-    acceptorThread.join(15000);
+    acceptorThread.join(SHUTDOWN_TIMEOUT_MS);
     if (acceptorThread.isAlive()) {
-      if (logger.isEnabledFor(Level.WARN))       logger.warn("Acceptor thread pool did not stop");
+      if (logger.isEnabledFor(Level.WARN))       logger.warn("Acceptor thread pool did not stop cleanly after " + SHUTDOWN_TIMEOUT_MS + " ms");
     }
   }
  catch (  Exception e) {
@@ -20,9 +21,10 @@
       }
     }
     selectorManagerThreadPool.shutdown();
-    boolean terminated=selectorManagerThreadPool.awaitTermination(15,TimeUnit.SECONDS);
+    if (logger.isTraceEnabled())     logger.trace("Shut down SelectorManager thread pool acceptor, waiting " + SHUTDOWN_TIMEOUT_MS + " ms for termination");
+    boolean terminated=selectorManagerThreadPool.awaitTermination(SHUTDOWN_TIMEOUT_MS,TimeUnit.MILLISECONDS);
     if (!terminated) {
-      if (logger.isEnabledFor(Level.WARN))       logger.warn("Selector manager thread pool terminated abnormally");
+      if (logger.isEnabledFor(Level.WARN))       logger.warn("SelectorManager thread pool did not stop cleanly after " + SHUTDOWN_TIMEOUT_MS + " ms");
     }
   }
  catch (  Exception e) {

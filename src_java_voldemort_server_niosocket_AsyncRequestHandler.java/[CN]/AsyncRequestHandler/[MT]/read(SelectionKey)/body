@@ -1,7 +1,7 @@
 {
   int count=0;
   if ((count=socketChannel.read(inputStream.getBuffer())) == -1)   throw new EOFException("EOF for " + socketChannel.socket().getRemoteSocketAddress());
-  if (logger.isTraceEnabled())   logInputBufferState("Read " + count + " bytes");
+  if (logger.isTraceEnabled())   traceInputBufferState("Read " + count + " bytes");
   if (count == 0)   return;
   final int position=inputStream.getBuffer().position();
   inputStream.getBuffer().flip();
@@ -11,23 +11,20 @@
     }
   }
   if (streamRequestHandler != null) {
-    if (logger.isTraceEnabled())     logInputBufferState("Continuing existing streaming request");
     handleStreamRequest(selectionKey);
+    return;
   }
- else   if (requestHandler != null && requestHandler.isCompleteRequest(inputStream.getBuffer())) {
-    inputStream.getBuffer().rewind();
-    if (logger.isTraceEnabled())     logger.trace("Starting execution for " + socketChannel.socket().getRemoteSocketAddress());
-    streamRequestHandler=requestHandler.handleRequest(new DataInputStream(inputStream),new DataOutputStream(outputStream));
-    if (streamRequestHandler != null) {
-      handleStreamRequest(selectionKey);
-    }
- else {
-      if (logger.isTraceEnabled())       logger.trace("Finished execution for " + socketChannel.socket().getRemoteSocketAddress());
-      clearInputBuffer();
-      prepForWrite(selectionKey);
-    }
-  }
- else {
+  if (!requestHandler.isCompleteRequest(inputStream.getBuffer())) {
     handleIncompleteRequest(position);
+    return;
   }
+  inputStream.getBuffer().rewind();
+  if (logger.isTraceEnabled())   logger.trace("Starting execution for " + socketChannel.socket().getRemoteSocketAddress());
+  streamRequestHandler=requestHandler.handleRequest(new DataInputStream(inputStream),new DataOutputStream(outputStream));
+  if (streamRequestHandler != null) {
+    handleStreamRequest(selectionKey);
+    return;
+  }
+  if (logger.isTraceEnabled())   logger.trace("Finished execution for " + socketChannel.socket().getRemoteSocketAddress());
+  prepForWrite(selectionKey);
 }
