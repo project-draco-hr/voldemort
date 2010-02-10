@@ -1,0 +1,21 @@
+{
+  SeekableByteArrayInput input=new SeekableByteArrayInput(bytes);
+  DataFileReader<Object> reader=null;
+  try {
+    DatumReader<Object> datumReader=new ReflectDatumReader(clazz);
+    reader=new DataFileReader<Object>(input,datumReader);
+    return reader.next(null);
+  }
+ catch (  IOException e) {
+    throw new SerializationException(e);
+  }
+ finally {
+    if (reader != null) {
+      try {
+        reader.close();
+      }
+ catch (      IOException e) {
+      }
+    }
+  }
+}
