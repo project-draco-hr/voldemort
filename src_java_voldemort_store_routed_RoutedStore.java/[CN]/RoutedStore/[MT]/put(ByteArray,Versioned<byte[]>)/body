@@ -11,17 +11,17 @@
   Versioned<byte[]> versionedCopy=null;
   for (; currentNode < numNodes; currentNode++) {
     Node current=nodes.get(currentNode);
-    long start=System.currentTimeMillis();
+    long startNsLocal=System.nanoTime();
     try {
       versionedCopy=incremented(versioned,current.getId());
       innerStores.get(current.getId()).put(key,versionedCopy);
       successes.getAndIncrement();
-      failureDetector.recordSuccess(current,System.currentTimeMillis() - start);
+      recordSuccess(current,startNsLocal);
       master=current;
       break;
     }
  catch (    UnreachableStoreException e) {
-      failureDetector.recordException(current,System.currentTimeMillis() - start,e);
+      recordException(current,startNsLocal,e);
       failures.add(e);
     }
 catch (    VoldemortApplicationException e) {
@@ -41,14 +41,14 @@ catch (    Exception e) {
     final Node node=nodes.get(currentNode);
     this.executor.execute(new Runnable(){
       public void run(){
-        long start=System.currentTimeMillis();
+        long startNsLocal=System.nanoTime();
         try {
           innerStores.get(node.getId()).put(key,finalVersionedCopy);
           successes.incrementAndGet();
-          failureDetector.recordSuccess(node,System.currentTimeMillis() - start);
+          recordSuccess(node,startNsLocal);
         }
  catch (        UnreachableStoreException e) {
-          failureDetector.recordException(node,System.currentTimeMillis() - start,e);
+          recordException(node,startNsLocal,e);
           failures.add(e);
         }
 catch (        ObsoleteVersionException e) {

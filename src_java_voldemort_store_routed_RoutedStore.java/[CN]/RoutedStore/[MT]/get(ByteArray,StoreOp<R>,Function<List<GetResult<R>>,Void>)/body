@@ -46,15 +46,15 @@ catch (    ExecutionException e) {
   }
   while (successes < this.storeDef.getPreferredReads() && nodeIndex < nodes.size()) {
     Node node=nodes.get(nodeIndex);
-    long start=System.currentTimeMillis();
+    long startNs=System.nanoTime();
     try {
       retrieved.add(new GetResult<R>(node,key,fetcher.execute(innerStores.get(node.getId()),key),null));
       ++successes;
-      failureDetector.recordSuccess(node,System.currentTimeMillis() - start);
+      recordSuccess(node,startNs);
     }
  catch (    UnreachableStoreException e) {
       failures.add(e);
-      failureDetector.recordException(node,System.currentTimeMillis() - start,e);
+      recordException(node,startNs,e);
     }
 catch (    VoldemortApplicationException e) {
       throw e;
