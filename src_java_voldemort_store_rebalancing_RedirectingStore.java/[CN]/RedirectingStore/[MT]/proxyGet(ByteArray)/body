@@ -1,14 +1,14 @@
 {
   Node donorNode=metadata.getCluster().getNodeById(metadata.getRebalancingStealInfo().getDonorId());
   checkNodeAvailable(donorNode);
-  long start=System.currentTimeMillis();
+  long startNs=System.nanoTime();
   try {
     List<Versioned<byte[]>> values=getRedirectingSocketStore(getName(),metadata.getRebalancingStealInfo().getDonorId()).get(key);
-    failureDetector.recordSuccess(donorNode,System.currentTimeMillis() - start);
+    recordSuccess(donorNode,startNs);
     return values;
   }
  catch (  UnreachableStoreException e) {
-    failureDetector.recordException(donorNode,System.currentTimeMillis() - start,e);
+    recordException(donorNode,startNs,e);
     throw new ProxyUnreachableException("Failed to reach proxy node " + donorNode,e);
   }
 }

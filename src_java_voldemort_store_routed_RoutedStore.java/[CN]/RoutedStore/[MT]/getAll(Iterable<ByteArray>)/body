@@ -85,19 +85,19 @@ catch (    ExecutionException e) {
       List<Node> extraNodes=keyToExtraNodesMap.get(key);
       if (extraNodes != null) {
         for (        Node node : extraNodes) {
-          long start=System.currentTimeMillis();
+          long startNs=System.nanoTime();
           try {
             List<Versioned<byte[]>> values=innerStores.get(node.getId()).get(key);
             fillRepairReadsValues(nodeValues,key,node,values);
             List<Versioned<byte[]>> versioneds=result.get(key);
             if (versioneds == null)             result.put(key,Lists.newArrayList(values));
  else             versioneds.addAll(values);
-            failureDetector.recordSuccess(node,System.currentTimeMillis() - start);
+            recordSuccess(node,startNs);
             if (++successCount >= storeDef.getPreferredReads())             break;
           }
  catch (          UnreachableStoreException e) {
             failures.add(e);
-            failureDetector.recordException(node,System.currentTimeMillis() - start,e);
+            recordException(node,startNs,e);
           }
 catch (          VoldemortApplicationException e) {
             throw e;

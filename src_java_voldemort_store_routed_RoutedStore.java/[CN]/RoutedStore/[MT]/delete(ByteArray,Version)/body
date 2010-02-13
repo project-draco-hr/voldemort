@@ -10,16 +10,16 @@
   for (  final Node node : nodes) {
     this.executor.execute(new Runnable(){
       public void run(){
-        long start=System.currentTimeMillis();
+        long startNs=System.nanoTime();
         try {
           boolean deleted=innerStores.get(node.getId()).delete(key,version);
           successes.incrementAndGet();
           deletedSomething.compareAndSet(false,deleted);
-          failureDetector.recordSuccess(node,System.currentTimeMillis() - start);
+          recordSuccess(node,startNs);
         }
  catch (        UnreachableStoreException e) {
           failures.add(e);
-          failureDetector.recordException(node,System.currentTimeMillis() - start,e);
+          recordException(node,startNs,e);
         }
 catch (        VoldemortApplicationException e) {
           throw e;
