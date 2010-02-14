@@ -12,9 +12,11 @@
     int deleteSuccess=0;
     while (iterator.hasNext()) {
       Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
-      if (checkKeyBelongsToDeletePartition(entry.getFirst().get(),partitions,routingStrategy) && filter.accept(entry.getFirst(),entry.getSecond())) {
-        if (storageEngine.delete(entry.getFirst(),entry.getSecond().getVersion()))         deleteSuccess++;
-        if (throttler != null)         throttler.maybeThrottle(entrySize(entry.getFirst(),entry.getSecond()));
+      ByteArray key=entry.getFirst();
+      Versioned<byte[]> value=entry.getSecond();
+      throttler.maybeThrottle(key.length() + valueSize(value));
+      if (checkKeyBelongsToDeletePartition(key.get(),partitions,routingStrategy) && filter.accept(key,value)) {
+        if (storageEngine.delete(key,value.getVersion()))         deleteSuccess++;
       }
     }
     response.setCount(deleteSuccess);

@@ -3,6 +3,7 @@
   ByteArray key=keyIterator.next();
   if (validPartition(key.get())) {
     for (    Versioned<byte[]> value : storageEngine.get(key)) {
+      throttler.maybeThrottle(key.length());
       if (filter.accept(key,value)) {
         fetched++;
         VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
@@ -10,7 +11,7 @@
         response.setPartitionEntry(partitionEntry);
         Message message=response.build();
         ProtoUtils.writeMessage(outputStream,message);
-        throttler.maybeThrottle(AdminServiceRequestHandler.entrySize(key,value));
+        throttler.maybeThrottle(AdminServiceRequestHandler.valueSize(value));
       }
     }
   }
