@@ -2,7 +2,7 @@
   Map<ByteArray,List<Versioned<byte[]>>> retrieved=Collections.emptyMap();
   Throwable exception=null;
   List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayList();
-  long start=System.currentTimeMillis();
+  long startNs=System.nanoTime();
   try {
     retrieved=innerStores.get(node.getId()).getAll(nodeKeys);
     if (repairReads) {
@@ -11,11 +11,11 @@
         if (!retrieved.containsKey(nodeKey))         fillRepairReadsValues(nodeValues,nodeKey,node,Collections.<Versioned<byte[]>>emptyList());
       }
     }
-    recordSuccess(node,System.currentTimeMillis() - start);
+    recordSuccess(node,startNs);
   }
  catch (  UnreachableStoreException e) {
     exception=e;
-    recordException(node,System.currentTimeMillis() - start,e);
+    recordException(node,startNs,e);
   }
 catch (  Throwable e) {
     if (e instanceof Error)     throw (Error)e;
