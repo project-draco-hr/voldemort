@@ -4,7 +4,7 @@
   servers.add(ServerTestUtils.startVoldemortServer(ServerTestUtils.createServerConfig(useNio,0,TestUtils.createTempDir().getAbsolutePath(),null,STORES_XML,new Properties()),cluster));
   servers.add(ServerTestUtils.startVoldemortServer(ServerTestUtils.createServerConfig(useNio,1,TestUtils.createTempDir().getAbsolutePath(),null,STORES_XML,new Properties()),cluster));
   Node node=cluster.getNodeById(0);
-  String bootstrapUrl="tcp://" + node.getHost() + ":"+ node.getAdminPort();
+  String bootstrapUrl="tcp://" + node.getHost() + ":"+ node.getSocketPort();
   StoreClientFactory storeClientFactory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootstrapUrl));
   storeClient=storeClientFactory.getStoreClient(STORE_NAME);
 }
