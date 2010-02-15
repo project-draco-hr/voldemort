@@ -1,0 +1,16 @@
+{
+  storeClient.put("Belarus","Minsk");
+  storeClient.put("Russia","Moscow");
+  storeClient.put("Ukraine","Kiev");
+  storeClient.put("Kazakhstan","Almaty");
+  Versioned<String> v1=storeClient.get("Belarus");
+  assertEquals("get/put work as expected","Minsk",v1.getValue());
+  storeClient.put("Kazakhstan","Astana");
+  Versioned<String> v2=storeClient.get("Kazakhstan");
+  assertEquals("clobbering a value works as expected, we have read-your-writes consistency","Astana",v2.getValue());
+  Map<String,Versioned<String>> capitals=storeClient.getAll(Arrays.asList("Russia","Ukraine"));
+  assertEquals("getAll works as expected","Moscow",capitals.get("Russia").getValue());
+  assertEquals("getAll works as expected","Kiev",capitals.get("Ukraine").getValue());
+  storeClient.delete("Ukraine");
+  assertNull("delete works as expected",storeClient.get("Ukraine"));
+}
