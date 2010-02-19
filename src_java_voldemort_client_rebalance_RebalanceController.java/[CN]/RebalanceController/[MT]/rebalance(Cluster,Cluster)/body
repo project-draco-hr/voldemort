@@ -10,7 +10,6 @@
   VectorClock latestClock=(VectorClock)RebalanceUtils.getLatestCluster(new ArrayList<Integer>(),adminClient).getVersion();
   RebalanceUtils.propagateCluster(adminClient,currentCluster,latestClock.incremented(firstNode.getId(),System.currentTimeMillis()),new ArrayList<Integer>());
   ExecutorService executor=createExecutors(rebalanceConfig.getMaxParallelRebalancing());
-  final Random random=new Random();
   for (int nThreads=0; nThreads < this.rebalanceConfig.getMaxParallelRebalancing(); nThreads++) {
     executor.execute(new Runnable(){
       public void run(){
