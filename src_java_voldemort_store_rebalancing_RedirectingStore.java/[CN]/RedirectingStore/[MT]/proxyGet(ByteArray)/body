@@ -2,10 +2,10 @@
   RebalancePartitionsInfo rebalancePartitionsInfo=null;
   List<Integer> partitionIds=metadata.getRoutingStrategy(getName()).getPartitionList(key.get());
   for (  int partitionId : partitionIds) {
-    Iterator<RebalancePartitionsInfo> iterator=Iterables.filter(metadata.getRebalancingStealInfo(),new PartitionIdPredicate(partitionId)).iterator();
-    if (iterator.hasNext()) {
-      rebalancePartitionsInfo=iterator.next();
-      break;
+    for (    RebalancePartitionsInfo candidate : metadata.getRebalancingStealInfo()) {
+      if (candidate.getPartitionList().contains(partitionId)) {
+        rebalancePartitionsInfo=candidate;
+      }
     }
   }
   if (rebalancePartitionsInfo == null) {
