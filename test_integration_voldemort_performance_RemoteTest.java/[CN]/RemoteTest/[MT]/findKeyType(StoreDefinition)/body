@@ -1,0 +1,20 @@
+{
+  SerializerDefinition serializerDefinition=storeDefinition.getKeySerializer();
+  if (serializerDefinition != null) {
+    if ("string".equals(serializerDefinition.getName())) {
+      return String.class;
+    }
+ else     if ("json".equals(serializerDefinition.getName())) {
+      if (serializerDefinition.getCurrentSchemaInfo().contains("int")) {
+        return Integer.class;
+      }
+ else       if (serializerDefinition.getCurrentSchemaInfo().contains("string")) {
+        return String.class;
+      }
+    }
+ else     if ("identity".equals(serializerDefinition.getName())) {
+      return byte[].class;
+    }
+  }
+  throw new Exception("Can't determine key type for key serializer " + storeDefinition.getName());
+}
