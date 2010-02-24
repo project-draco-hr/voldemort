@@ -1,0 +1,51 @@
+{
+  OptionParser parser=new OptionParser();
+  parser.accepts("help","print usage information");
+  parser.accepts("node","[REQUIRED] node id").withRequiredArg().ofType(Integer.class).describedAs("node id");
+  parser.accepts("store-name","[REQUIRED] store name").withRequiredArg().describedAs("store name");
+  parser.accepts("url","[REQUIRED] bootstrap URL").withRequiredArg().describedAs("bootstrap-url");
+  parser.accepts("input","[REQUIRED] input request file").withRequiredArg().describedAs("input-file");
+  parser.accepts("output","[REQUIRED] output file").withRequiredArg().describedAs("output-file");
+  OptionSet options=parser.parse(args);
+  if (options.has("help")) {
+    parser.printHelpOn(System.out);
+    System.exit(0);
+  }
+  Set<String> missing=CmdUtils.missing(options,"node","store-name","url","input","output");
+  if (missing.size() > 0) {
+    System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
+    parser.printHelpOn(System.err);
+    System.exit(1);
+  }
+  int nodeId=(Integer)options.valueOf("node");
+  String storeName=(String)options.valueOf("store-name");
+  String bootstrapURL=(String)options.valueOf("url");
+  String inputFile=(String)options.valueOf("input");
+  String outputFile=(String)options.valueOf("output");
+  AdminClient adminClient=new AdminClient(bootstrapURL,new AdminClientConfig());
+  List<StoreDefinition> storeDefinitionList=adminClient.getRemoteStoreDefList(nodeId).getValue();
+  StoreDefinition storeDefinition=null;
+  for (  StoreDefinition def : storeDefinitionList) {
+    if (storeName.equals(def.getName())) {
+      storeDefinition=def;
+    }
+  }
+  if (storeDefinition == null) {
+    Utils.croak("No store found with name\"" + storeName + "\"");
+  }
+  Cluster cluster=adminClient.getRemoteCluster(nodeId).getValue();
+  Node node=null;
+  try {
+    node=cluster.getNodeById(nodeId);
+  }
+ catch (  VoldemortException e) {
+    Utils.croak("Can't find a node with id " + nodeId);
+  }
+  RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDefinition,cluster);
+  try {
+    new RequestFileFilter(storeDefinition,routingStrategy,inputFile,outputFile,node).filter();
+  }
+ catch (  FileNotFoundException e) {
+    Utils.croak(e.getMessage());
+  }
+}
