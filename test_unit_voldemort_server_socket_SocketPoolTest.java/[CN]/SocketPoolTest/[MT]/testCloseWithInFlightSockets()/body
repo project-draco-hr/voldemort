@@ -1,0 +1,13 @@
+{
+  List<SocketAndStreams> list=new ArrayList<SocketAndStreams>();
+  for (int i=0; i < maxConnectionsPerNode; i++)   list.add(pool.checkout(dest1));
+  assertEquals(list.size(),pool.getNumberSocketsCreated());
+  assertEquals(list.size(),pool.getNumberOfActiveConnections());
+  pool.close(dest1);
+  assertEquals(list.size(),pool.getNumberOfActiveConnections());
+  assertEquals(0,pool.getNumberSocketsDestroyed());
+  for (  SocketAndStreams sas : list)   pool.checkin(dest1,sas);
+  assertEquals(0,pool.getNumberOfActiveConnections());
+  assertEquals(list.size(),pool.getNumberSocketsDestroyed());
+  assertEquals(0,pool.getNumberOfCheckedInConnections());
+}
