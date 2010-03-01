@@ -1,0 +1,19 @@
+{
+  Multimap<Version,NodeValue<ByteArray,byte[]>> multimap=HashMultimap.create();
+  Version version=createVersion(1,6);
+  NodeValue<ByteArray,byte[]> nodeValue=createNodeValue(1,version);
+  multimap.put(version,nodeValue);
+  Version version2=createVersion(1,7);
+  NodeValue<ByteArray,byte[]> nodeValue2=createNodeValue(1,version2);
+  multimap.put(version2,nodeValue2);
+  multimap.removeAll(version2);
+  logger.info(multimap);
+  assertTrue("Multimap#containsKey() works",multimap.containsKey(version));
+  assertTrue("Multimap#containsEntry() works",multimap.containsEntry(version,nodeValue));
+  for (  Version v : multimap.keySet()) {
+    logger.info(v);
+    assertTrue("Multimap#get(v) returns a non-empty iterator",multimap.get(v).iterator().hasNext());
+    NodeValue<ByteArray,byte[]> nv=multimap.get(v).iterator().next();
+    logger.info(nv);
+  }
+}
