@@ -1,0 +1,23 @@
+{
+  ByteArrayOutputStream output=new ByteArrayOutputStream();
+  DataFileWriter<Object> writer=null;
+  try {
+    DatumWriter<Object> datumWriter=new ReflectDatumWriter<Object>(clazz);
+    writer=new DataFileWriter<Object>(datumWriter).create(ReflectData.get().getSchema(clazz),output);
+    writer.append(object);
+    writer.flush();
+    return output.toByteArray();
+  }
+ catch (  IOException e) {
+    throw new SerializationException(e);
+  }
+ finally {
+    if (writer != null) {
+      try {
+        writer.close();
+      }
+ catch (      IOException e) {
+      }
+    }
+  }
+}

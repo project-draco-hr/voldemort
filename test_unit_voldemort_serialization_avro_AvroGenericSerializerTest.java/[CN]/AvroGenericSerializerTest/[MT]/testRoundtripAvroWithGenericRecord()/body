@@ -1,0 +1,8 @@
+{
+  String jsonSchema="{\"name\": \"Compact Disk\", \"type\": \"record\", " + "\"fields\": [" + "{\"name\": \"name\", \"type\": \"string\", \"order\": \"ascending\"}"+ "]}";
+  AvroGenericSerializer serializer=new AvroGenericSerializer(jsonSchema);
+  Record record=new Record(Schema.parse(jsonSchema));
+  record.put("name",new Utf8("Hello"));
+  byte[] bytes=serializer.toBytes(record);
+  assertTrue(serializer.toObject(bytes).equals(record));
+}
