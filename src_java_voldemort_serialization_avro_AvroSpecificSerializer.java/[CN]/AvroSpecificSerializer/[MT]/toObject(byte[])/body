@@ -1,10 +1,10 @@
 {
-  SeekableByteArrayInput input=new SeekableByteArrayInput(bytes);
-  DataFileReader<Object> reader=null;
+  ByteArrayInputStream input=new ByteArrayInputStream(bytes);
+  DataFileStream<Object> reader=null;
   try {
     DatumReader<Object> datumReader=new SpecificDatumReader(clazz);
-    reader=new DataFileReader<Object>(input,datumReader);
-    return reader.next(null);
+    reader=new DataFileStream<Object>(input,datumReader);
+    return reader.next();
   }
  catch (  IOException e) {
     throw new SerializationException(e);
