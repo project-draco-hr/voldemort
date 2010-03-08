@@ -78,6 +78,5 @@ catch (        Exception e) {
     if (successes.get() < storeDef.getRequiredWrites())     throw new InsufficientOperationalNodesException(successes.get() + " writes succeeded, but " + this.storeDef.getRequiredWrites()+ " are required.",failures);
   }
   VectorClock versionedClock=(VectorClock)versioned.getVersion();
-  VectorClock incrementedClock=versionedClock.incremented(master.getId(),time.getMilliseconds());
-  versioned.setVersion(incrementedClock);
+  versionedClock.incrementVersion(master.getId(),time.getMilliseconds());
 }
