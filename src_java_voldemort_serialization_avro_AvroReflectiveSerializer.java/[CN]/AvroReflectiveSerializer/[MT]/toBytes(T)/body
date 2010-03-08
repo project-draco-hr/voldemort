@@ -1,0 +1,16 @@
+{
+  ByteArrayOutputStream output=new ByteArrayOutputStream();
+  DataFileWriter<T> writer=null;
+  try {
+    DatumWriter<T> datumWriter=new ReflectDatumWriter<T>(clazz);
+    writer=new DataFileWriter<T>(datumWriter).create(ReflectData.get().getSchema(clazz),output);
+    writer.append(object);
+  }
+ catch (  IOException e) {
+    throw new SerializationException(e);
+  }
+ finally {
+    AvroUtils.close(writer);
+  }
+  return output.toByteArray();
+}

@@ -20,6 +20,15 @@
  else   if (name.equals(THRIFT_TYPE_NAME)) {
     return new ThriftSerializer<TBase<?>>(serializerDef.getCurrentSchemaInfo());
   }
+ else   if (name.equals(AVRO_GENERIC_TYPE_NAME)) {
+    return new AvroGenericSerializer(serializerDef.getCurrentSchemaInfo());
+  }
+ else   if (name.equals(AVRO_SPECIFIC_TYPE_NAME)) {
+    return new AvroSpecificSerializer<SpecificRecord>(serializerDef.getCurrentSchemaInfo());
+  }
+ else   if (name.equals(AVRO_REFLECTIVE_TYPE_NAME)) {
+    return new AvroReflectiveSerializer<Object>(serializerDef.getCurrentSchemaInfo());
+  }
  else {
     throw new IllegalArgumentException("No known serializer type: " + serializerDef.getName());
   }

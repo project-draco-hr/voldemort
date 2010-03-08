@@ -1,0 +1,15 @@
+{
+  ByteArrayInputStream input=new ByteArrayInputStream(bytes);
+  DataFileStream<T> reader=null;
+  try {
+    DatumReader<T> datumReader=new SpecificDatumReader<T>(clazz);
+    reader=new DataFileStream<T>(input,datumReader);
+    return reader.next();
+  }
+ catch (  IOException e) {
+    throw new SerializationException(e);
+  }
+ finally {
+    AvroUtils.close(reader);
+  }
+}
