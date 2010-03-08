@@ -176,7 +176,7 @@
               latch.countDown();
               if (j % interval == 0) {
                 printStatistics("reads",numReads.get(),start);
-                printStatistics("nulls",numNulls.get(),start);
+                printNulls(numNulls.get(),start);
               }
             }
           }
@@ -191,7 +191,7 @@
     final AtomicInteger numNulls=new AtomicInteger(0);
     final AtomicInteger numReads=new AtomicInteger(0);
     final AtomicInteger numWrites=new AtomicInteger(0);
-    System.out.println("Beginning read test.");
+    System.out.println("Beginning mixed test.");
     final KeyProvider<?> keyProvider=getKeyProvider(keyType,startNum,keys);
     final CountDownLatch latch=new CountDownLatch(numRequests);
     final long start=System.currentTimeMillis();
@@ -226,7 +226,7 @@
             if (j % interval == 0) {
               printStatistics("reads",numReads.get(),start);
               printStatistics("writes",numWrites.get(),start);
-              printStatistics("nulls",numNulls.get(),start);
+              printNulls(numNulls.get(),start);
               printStatistics("transactions",j,start);
             }
             latch.countDown();
