@@ -4,10 +4,10 @@
     response.setError(ProtoUtils.encodeError(errorCodeMapper,new VoldemortException("Rebalancing in progress")));
     return response.build();
   }
+  try {
+    StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
+    StoreDefinition def=mapper.readStore(new StringReader(request.getStoreDefinition()));
 synchronized (lock) {
-    try {
-      StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
-      StoreDefinition def=mapper.readStore(new StringReader(request.getStoreDefinition()));
       if (!storeRepository.hasLocalStore(def.getName())) {
         storageService.openStore(def);
         List<StoreDefinition> currentStoreDefs;
@@ -26,10 +26,10 @@ synchronized (lock) {
         throw new StoreOperationFailureException(String.format("Store '%s' already exists on this server",def.getName()));
       }
     }
- catch (    VoldemortException e) {
-      response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
-      logger.error("handleAddStore failed for request(" + request.toString() + ")",e);
-    }
-    return response.build();
   }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleAddStore failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
 }
