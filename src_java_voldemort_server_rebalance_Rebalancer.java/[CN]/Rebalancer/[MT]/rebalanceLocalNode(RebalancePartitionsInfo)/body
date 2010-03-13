@@ -6,8 +6,8 @@
   checkCurrentState(metadataStore,stealInfo);
   setRebalancingState(metadataStore,stealInfo);
   final int maxParallelStoresRebalancing=(-1 != voldemortConfig.getMaxParallelStoresRebalancing()) ? voldemortConfig.getMaxParallelStoresRebalancing() : stealInfo.getUnbalancedStoreList().size();
-  int requestId=asyncRunner.getUniqueRequestId();
-  asyncRunner.submitOperation(requestId,new AsyncOperation(requestId,"Rebalance Operation:" + stealInfo.toString()){
+  int requestId=asyncService.getUniqueRequestId();
+  asyncService.submitOperation(requestId,new AsyncOperation(requestId,"Rebalance Operation:" + stealInfo.toString()){
     private List<Integer> rebalanceStatusList=new ArrayList<Integer>();
     AdminClient adminClient=null;
     final ExecutorService executors=createExecutors(maxParallelStoresRebalancing);

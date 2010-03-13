@@ -1,11 +1,11 @@
 {
   SchedulerService schedulerService=new SchedulerService(2,SystemTime.INSTANCE);
-  AsyncOperationRunner asyncOperationRunner=new AsyncOperationRunner(schedulerService,10);
+  AsyncOperationService asyncOperationService=new AsyncOperationService(schedulerService,10);
   final AtomicBoolean completedOp0=new AtomicBoolean(false);
   final AtomicBoolean completedOp1=new AtomicBoolean(false);
   final CountDownLatch latch=new CountDownLatch(1);
-  int opId0=asyncOperationRunner.getUniqueRequestId();
-  asyncOperationRunner.submitOperation(opId0,new AsyncOperation(opId0,"op0"){
+  int opId0=asyncOperationService.getUniqueRequestId();
+  asyncOperationService.submitOperation(opId0,new AsyncOperation(opId0,"op0"){
     @Override public void operate() throws Exception {
       Thread.sleep(1000);
       completedOp0.set(true);
@@ -14,8 +14,8 @@
     }
   }
 );
-  int opId1=asyncOperationRunner.getUniqueRequestId();
-  asyncOperationRunner.submitOperation(opId1,new AsyncOperation(opId1,"op1"){
+  int opId1=asyncOperationService.getUniqueRequestId();
+  asyncOperationService.submitOperation(opId1,new AsyncOperation(opId1,"op1"){
     @Override public void operate() throws Exception {
       completedOp1.set(true);
       latch.countDown();
@@ -25,10 +25,10 @@
   }
 );
   latch.await();
-  List<Integer> opList=asyncOperationRunner.getAsyncOperationList(false);
+  List<Integer> opList=asyncOperationService.getAsyncOperationList(false);
   assertFalse("doesn't list completed operations",opList.contains(1));
   assertTrue("lists a pending operation",opList.contains(0));
-  opList=asyncOperationRunner.getAsyncOperationList(true);
+  opList=asyncOperationService.getAsyncOperationList(true);
   assertTrue("lists all operations",opList.containsAll(Arrays.asList(0,1)));
   Thread.sleep(1000);
   assertTrue("operation 0 finished",completedOp0.get());
