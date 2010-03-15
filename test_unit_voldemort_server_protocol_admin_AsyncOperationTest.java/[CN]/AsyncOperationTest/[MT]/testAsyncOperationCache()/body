@@ -49,19 +49,21 @@
  catch (  InterruptedException e) {
     Thread.currentThread().interrupt();
   }
-  completeSoon=new AsyncOperation(2,"test3"){
-    @Override public void stop(){
-    }
-    @Override public void operate(){
-      try {
-        Thread.sleep(500);
+  for (int i=3; i < 10; i++) {
+    AsyncOperation asyncOperation=new AsyncOperation(i,"test3"){
+      @Override public void stop(){
       }
- catch (      InterruptedException e) {
-        Thread.currentThread().interrupt();
+      @Override public void operate(){
+        try {
+          Thread.sleep(500);
+        }
+ catch (        InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
       }
     }
-  }
 ;
-  operations.put(3,completeSoon);
+    operations.put(i,asyncOperation);
+  }
   assertFalse("Actually does LRU heuristics",operations.containsKey(0));
 }
