@@ -1,11 +1,13 @@
 {
+  Store<ByteArray,byte[]> store=stores.get(node.getId());
+  if (node.getId() == voldemortConfig.getNodeId()) {
+    store=metadataStore;
+  }
+ else {
 synchronized (stores) {
-    Store<ByteArray,byte[]> store=stores.get(node.getId());
-    if (store == null) {
-      if (node.getId() == nodeId)       store=storeRepository.getLocalStore(MetadataStore.METADATA_STORE_NAME);
- else       store=storeRepository.getNodeStore(MetadataStore.METADATA_STORE_NAME,node.getId());
+      store=new SocketStore(MetadataStore.METADATA_STORE_NAME,new SocketDestination(node.getHost(),node.getSocketPort(),voldemortConfig.getRequestFormatType()),socketPool,false);
       stores.put(node.getId(),store);
     }
-    store.get(key);
   }
+  store.get(key);
 }

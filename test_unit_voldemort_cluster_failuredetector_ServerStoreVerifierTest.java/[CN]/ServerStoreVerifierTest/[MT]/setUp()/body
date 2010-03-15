@@ -1,0 +1,9 @@
+{
+  cluster=ServerTestUtils.getLocalCluster(2,new int[][]{{0},{1}});
+  for (int i=0; i < cluster.getNumberOfNodes(); i++) {
+    Properties properties=new Properties();
+    VoldemortConfig config=ServerTestUtils.createServerConfig(useNio,i,TestUtils.createTempDir().getAbsolutePath(),null,storeDefFile,properties);
+    VoldemortServer server=ServerTestUtils.startVoldemortServer(config,cluster);
+    serverMap.put(i,server);
+  }
+}
