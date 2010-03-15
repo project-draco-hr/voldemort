@@ -27,15 +27,15 @@
       if (def.getName().equals(storeName))       storeDef=def;
     }
     if (storeDef == null)     Utils.croak("No store found with name \"" + storeName + "\"");
-    ClusterViewer clusterViewer=new ClusterViewer(cluster,storeDef);
+    VoldemortClusterViewer voldemortClusterViewer=new VoldemortClusterViewer(cluster,storeDef);
     System.out.println("Original cluster: ");
-    clusterViewer.viewMasterToReplica();
+    voldemortClusterViewer.viewMasterToReplica();
     if (options.has("other-cluster")) {
       String otherClusterFile=(String)options.valueOf("other-cluster");
       Cluster otherCluster=new ClusterMapper().readCluster(new BufferedReader(new FileReader(otherClusterFile)));
       System.out.println("New cluster: ");
-      clusterViewer.viewMasterToReplica(otherCluster);
-      clusterViewer.compareToCluster(otherCluster);
+      voldemortClusterViewer.viewMasterToReplica(otherCluster);
+      voldemortClusterViewer.compareToCluster(otherCluster);
     }
   }
  catch (  FileNotFoundException e) {
