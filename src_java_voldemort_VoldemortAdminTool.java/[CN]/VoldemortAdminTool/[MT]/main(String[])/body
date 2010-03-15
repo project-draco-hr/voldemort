@@ -11,7 +11,7 @@
     parser.printHelpOn(System.out);
     System.exit(0);
   }
-  Set<String> missing=CmdUtils.missing(options,"url","store","node");
+  Set<String> missing=CmdUtils.missing(options,"url","node");
   if (missing.size() > 0) {
     System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
     parser.printHelpOn(System.err);
@@ -20,6 +20,7 @@
   String url=(String)options.valueOf("url");
   Integer nodeId=(Integer)options.valueOf("node");
   Integer parallelism=CmdUtils.valueOf(options,"parallelism",5);
+  AdminClient adminClient=new AdminClient(url,new AdminClientConfig());
   String ops="";
   if (options.has("delete-partitions")) {
     ops+="d";
@@ -28,23 +29,14 @@
     ops+="r";
   }
   if (ops.length() < 1) {
-    Utils.croak("At least one of (delete-partitions, restore) must be specified");
+    Utils.croak("At least one of (delete-partitions, restore, add-node) must be specified");
   }
-  AdminClient adminClient=new AdminClient(url,new AdminClientConfig());
   try {
     if (ops.contains("d")) {
       if (options.has("partition-ids")) {
         System.out.println("Starting delete-partitions");
         @SuppressWarnings("unchecked") List<Integer> partitionIdList=(List<Integer>)options.valuesOf("partition-ids");
-        List<StoreDefinition> storeDefinitionList=adminClient.getRemoteStoreDefList(nodeId).getValue();
-        List<String> storeNames=new ArrayList<String>();
-        for (        StoreDefinition storeDefinition : storeDefinitionList) {
-          storeNames.add(storeDefinition.getName());
-        }
-        for (        String storeName : storeNames) {
-          System.out.println("Deleting partitions " + Joiner.on(", ").join(partitionIdList) + " of "+ storeName);
-          adminClient.deletePartitions(nodeId,storeName,partitionIdList,null);
-        }
+        executeDeletePartitions(nodeId,adminClient,partitionIdList);
         System.out.println("Finished delete-partitions");
       }
  else {
