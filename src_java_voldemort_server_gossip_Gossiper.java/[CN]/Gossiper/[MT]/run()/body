@@ -8,13 +8,13 @@
     }
     Node node=selectPeer();
     adminClient.setAdminClientCluster(metadataStore.getCluster());
-    if (logger.isDebugEnabled())     logger.debug(metadataStore.getNodeId() + " starting gossip with " + node);
+    if (logger.isDebugEnabled())     logger.debug("Starting gossip with " + node);
     for (    String key : MetadataStore.GOSSIP_KEYS) {
       try {
         gossipKey(node,key);
       }
  catch (      VoldemortException e) {
-        logger.error("gossipKey(): " + e);
+        logger.warn("Unable to Gossip key " + key + " with "+ node,e);
       }
     }
   }
