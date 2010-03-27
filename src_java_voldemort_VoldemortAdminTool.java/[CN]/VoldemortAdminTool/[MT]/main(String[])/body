@@ -6,6 +6,9 @@
   parser.accepts("delete-partitions","Delete partitions").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("restore","Restore from replication");
   parser.accepts("parallelism","Parallelism").withRequiredArg().describedAs("parallelism").ofType(Integer.class);
+  parser.accepts("fetch-keys","Fetch keys").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
+  parser.accepts("outdir","Output directory").withRequiredArg().describedAs("output-directory").ofType(String.class);
+  parser.accepts("stores","Store names").withRequiredArg().describedAs("store-names").withValuesSeparatedBy(',').ofType(String.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     parser.printHelpOn(System.out);
@@ -25,28 +28,40 @@
   if (options.has("delete-partitions")) {
     ops+="d";
   }
+  if (options.has("fetch-keys")) {
+    ops+="k";
+  }
   if (options.has("restore")) {
     ops+="r";
   }
   if (ops.length() < 1) {
     Utils.croak("At least one of (delete-partitions, restore, add-node) must be specified");
   }
+  List<String> storeNames=null;
+  if (options.has("stores")) {
+    @SuppressWarnings("unchecked") List<String> temp=(List<String>)options.valuesOf("stores");
+    storeNames=temp;
+  }
   try {
     if (ops.contains("d")) {
-      if (options.has("partition-ids")) {
-        System.out.println("Starting delete-partitions");
-        @SuppressWarnings("unchecked") List<Integer> partitionIdList=(List<Integer>)options.valuesOf("partition-ids");
-        executeDeletePartitions(nodeId,adminClient,partitionIdList);
-        System.out.println("Finished delete-partitions");
-      }
- else {
-        System.err.println("Not running delete-partitions: partition-ids must be specified when delete-partitions is invoked");
-      }
+      System.out.println("Starting delete-partitions");
+      @SuppressWarnings("unchecked") List<Integer> partitionIdList=(List<Integer>)options.valuesOf("delete-partitions");
+      executeDeletePartitions(nodeId,adminClient,partitionIdList,storeNames);
+      System.out.println("Finished delete-partitions");
     }
     if (ops.contains("r")) {
       System.out.println("Starting restore");
       adminClient.restoreDataFromReplications(nodeId,parallelism);
       System.err.println("Finished restore");
+    }
+    if (ops.contains("k")) {
+      if (!options.has("outdir")) {
+        Utils.croak("Directory name (outdir) must be specified for fetch-keys");
+      }
+      String outputDir=(String)options.valueOf("outdir");
+      System.out.println("Starting fetch keys");
+      @SuppressWarnings("unchecked") List<Integer> partitionIdList=(List<Integer>)options.valuesOf("fetch-keys");
+      executeFetchKeys(nodeId,adminClient,partitionIdList,outputDir,storeNames);
     }
   }
  catch (  Exception e) {
