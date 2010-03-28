@@ -10,6 +10,15 @@
     }
  while (state == StreamRequestHandlerState.READING);
   }
+ else   if (state == StreamRequestHandlerState.WRITING) {
+    do {
+      state=handleStreamRequestInternal(selectionKey,dataInputStream,dataOutputStream);
+    }
+ while (state == StreamRequestHandlerState.WRITING && !outputStream.wasExpanded());
+    if (state != StreamRequestHandlerState.COMPLETE) {
+      prepForWrite(selectionKey);
+    }
+  }
   if (state == null) {
     return;
   }
@@ -18,9 +27,6 @@
     inputStream.getBuffer().position(preRequestPosition);
     inputStream.getBuffer().compact();
     handleIncompleteRequest(currentPosition - preRequestPosition);
-  }
- else   if (state == StreamRequestHandlerState.WRITING) {
-    prepForWrite(selectionKey);
   }
  else   if (state == StreamRequestHandlerState.COMPLETE) {
     streamRequestHandler.close(dataOutputStream);
