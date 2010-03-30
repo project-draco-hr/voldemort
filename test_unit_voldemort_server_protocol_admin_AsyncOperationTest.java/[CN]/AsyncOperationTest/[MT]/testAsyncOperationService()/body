@@ -1,36 +1,38 @@
 {
   SchedulerService schedulerService=new SchedulerService(2,SystemTime.INSTANCE);
   AsyncOperationService asyncOperationService=new AsyncOperationService(schedulerService,10);
-  final AtomicBoolean completedOp0=new AtomicBoolean(false);
-  final AtomicBoolean completedOp1=new AtomicBoolean(false);
-  final CountDownLatch latch=new CountDownLatch(1);
-  int opId0=asyncOperationService.getUniqueRequestId();
-  asyncOperationService.submitOperation(opId0,new AsyncOperation(opId0,"op0"){
+  final AtomicBoolean op0Complete=new AtomicBoolean(false);
+  final AtomicBoolean op1Complete=new AtomicBoolean(false);
+  final CountDownLatch op0Latch=new CountDownLatch(1);
+  final CountDownLatch op1Latch=new CountDownLatch(1);
+  int op0=asyncOperationService.getUniqueRequestId();
+  asyncOperationService.submitOperation(op0,new AsyncOperation(op0,"op0"){
     @Override public void operate() throws Exception {
-      Thread.sleep(1000);
-      completedOp0.set(true);
+      Thread.sleep(500);
+      op0Latch.countDown();
+      op0Complete.set(true);
     }
     @Override public void stop(){
     }
   }
 );
-  int opId1=asyncOperationService.getUniqueRequestId();
-  asyncOperationService.submitOperation(opId1,new AsyncOperation(opId1,"op1"){
+  int op1=asyncOperationService.getUniqueRequestId();
+  asyncOperationService.submitOperation(op1,new AsyncOperation(op1,"op1"){
     @Override public void operate() throws Exception {
-      completedOp1.set(true);
-      latch.countDown();
+      op1Complete.set(true);
+      op1Latch.countDown();
     }
     @Override public void stop(){
     }
   }
 );
-  latch.await();
+  op1Latch.await();
   List<Integer> opList=asyncOperationService.getAsyncOperationList(false);
   assertFalse("doesn't list completed operations",opList.contains(1));
   assertTrue("lists a pending operation",opList.contains(0));
   opList=asyncOperationService.getAsyncOperationList(true);
   assertTrue("lists all operations",opList.containsAll(Arrays.asList(0,1)));
-  Thread.sleep(1000);
-  assertTrue("operation 0 finished",completedOp0.get());
-  assertTrue("operation 1 finished",completedOp1.get());
+  op0Latch.await();
+  assertTrue("operation 0 finished",op0Complete.get());
+  assertTrue("operation 1 finished",op1Complete.get());
 }
