@@ -16,8 +16,12 @@
   parser.accepts("iterations","number of times to repeat the test  Default = 1").withRequiredArg().ofType(Integer.class);
   parser.accepts("threads","max number concurrent worker threads  Default = " + MAX_WORKERS).withRequiredArg().ofType(Integer.class);
   parser.accepts("percent-cached","percentage of requests to come from previously requested keys; valid values are in range [0..100]; 0 means caching disabled  Default = 0").withRequiredArg().ofType(Integer.class);
+  parser.accepts("help");
   OptionSet options=parser.parse(args);
   List<String> nonOptions=options.nonOptionArguments();
+  if (options.has("help")) {
+    printUsage(System.out,parser);
+  }
   if (nonOptions.size() != 3) {
     printUsage(System.err,parser);
   }
