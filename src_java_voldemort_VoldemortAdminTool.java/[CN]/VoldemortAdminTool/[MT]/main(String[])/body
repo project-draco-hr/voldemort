@@ -8,6 +8,7 @@
   parser.accepts("ascii","Fetch keys as ASCII");
   parser.accepts("parallelism","Parallelism").withRequiredArg().describedAs("parallelism").ofType(Integer.class);
   parser.accepts("fetch-keys","Fetch keys").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
+  parser.accepts("fetch-values","Fetch values").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("outdir","Output directory").withRequiredArg().describedAs("output-directory").ofType(String.class);
   parser.accepts("stores","Store names").withRequiredArg().describedAs("store-names").withValuesSeparatedBy(',').ofType(String.class);
   OptionSet options=parser.parse(args);
@@ -31,6 +32,9 @@
   }
   if (options.has("fetch-keys")) {
     ops+="k";
+  }
+  if (options.has("fetch-values")) {
+    ops+="v";
   }
   if (options.has("restore")) {
     ops+="r";
@@ -64,6 +68,15 @@
       System.out.println("Starting fetch keys");
       @SuppressWarnings("unchecked") List<Integer> partitionIdList=(List<Integer>)options.valuesOf("fetch-keys");
       executeFetchKeys(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
+    }
+    if (ops.contains("v")) {
+      if (!options.has("outdir")) {
+        Utils.croak("Directory name (outdir) must be specified for fetch-values");
+      }
+      String outputDir=(String)options.valueOf("outdir");
+      boolean useAscii=options.has("ascii");
+      @SuppressWarnings("unchecked") List<Integer> partitionIdList=(List<Integer>)options.valuesOf("fetch-values");
+      executeFetchValues(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
     }
   }
  catch (  Exception e) {

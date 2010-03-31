@@ -1,0 +1,26 @@
+{
+  BufferedWriter writer=new BufferedWriter(new FileWriter(outputFile));
+  SerializerFactory serializerFactory=new DefaultSerializerFactory();
+  JsonWriter jsonWriter=new JsonWriter(writer);
+  @SuppressWarnings("unchecked") Serializer<Object> keySerializer=(Serializer<Object>)serializerFactory.getSerializer(storeDefinition.getKeySerializer());
+  @SuppressWarnings("unchecked") Serializer<Object> valueSerializer=(Serializer<Object>)serializerFactory.getSerializer(storeDefinition.getValueSerializer());
+  try {
+    while (iterator.hasNext()) {
+      Pair<ByteArray,Versioned<byte[]>> kvPair=iterator.next();
+      byte[] keyBytes=kvPair.getFirst().get();
+      VectorClock version=(VectorClock)kvPair.getSecond().getVersion();
+      byte[] valueBytes=kvPair.getSecond().getValue();
+      Object keyObject=keySerializer.toObject(keyBytes);
+      Object valueObject=valueSerializer.toObject(valueBytes);
+      jsonWriter.write(keyObject);
+      jsonWriter.write("\t");
+      jsonWriter.write(version);
+      jsonWriter.write("\t");
+      jsonWriter.write(valueObject);
+      jsonWriter.write("\n");
+    }
+  }
+  finally {
+    writer.close();
+  }
+}

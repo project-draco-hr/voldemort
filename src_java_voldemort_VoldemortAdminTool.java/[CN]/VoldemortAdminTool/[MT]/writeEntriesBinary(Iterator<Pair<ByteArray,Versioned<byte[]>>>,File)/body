@@ -1,0 +1,20 @@
+{
+  DataOutputStream dos=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)));
+  try {
+    while (iterator.hasNext()) {
+      Pair<ByteArray,Versioned<byte[]>> kvPair=iterator.next();
+      byte[] keyBytes=kvPair.getFirst().get();
+      byte[] versionBytes=((VectorClock)kvPair.getSecond().getVersion()).toBytes();
+      byte[] valueBytes=kvPair.getSecond().getValue();
+      dos.writeInt(keyBytes.length);
+      dos.write(keyBytes);
+      dos.writeInt(versionBytes.length);
+      dos.write(versionBytes);
+      dos.write(valueBytes.length);
+      dos.write(valueBytes);
+    }
+  }
+  finally {
+    dos.close();
+  }
+}
