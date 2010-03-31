@@ -5,6 +5,7 @@
   parser.accepts("node","[REQUIRED] node id").withRequiredArg().describedAs("node-id").ofType(Integer.class);
   parser.accepts("delete-partitions","Delete partitions").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("restore","Restore from replication");
+  parser.accepts("ascii","Fetch keys as ASCII");
   parser.accepts("parallelism","Parallelism").withRequiredArg().describedAs("parallelism").ofType(Integer.class);
   parser.accepts("fetch-keys","Fetch keys").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("outdir","Output directory").withRequiredArg().describedAs("output-directory").ofType(String.class);
@@ -59,9 +60,10 @@
         Utils.croak("Directory name (outdir) must be specified for fetch-keys");
       }
       String outputDir=(String)options.valueOf("outdir");
+      boolean useAscii=options.has("ascii");
       System.out.println("Starting fetch keys");
       @SuppressWarnings("unchecked") List<Integer> partitionIdList=(List<Integer>)options.valuesOf("fetch-keys");
-      executeFetchKeys(nodeId,adminClient,partitionIdList,outputDir,storeNames);
+      executeFetchKeys(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
     }
   }
  catch (  Exception e) {
