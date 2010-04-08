@@ -8,7 +8,7 @@
   parser.accepts("ascii","Fetch keys as ASCII");
   parser.accepts("parallelism","Parallelism").withRequiredArg().describedAs("parallelism").ofType(Integer.class);
   parser.accepts("fetch-keys","Fetch keys").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
-  parser.accepts("fetch-values","Fetch values").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
+  parser.accepts("fetch-entries","Fetch full entries").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("outdir","Output directory").withRequiredArg().describedAs("output-directory").ofType(String.class);
   parser.accepts("stores","Store names").withRequiredArg().describedAs("store-names").withValuesSeparatedBy(',').ofType(String.class);
   OptionSet options=parser.parse(args);
@@ -33,14 +33,14 @@
   if (options.has("fetch-keys")) {
     ops+="k";
   }
-  if (options.has("fetch-values")) {
+  if (options.has("fetch-entries")) {
     ops+="v";
   }
   if (options.has("restore")) {
     ops+="r";
   }
   if (ops.length() < 1) {
-    Utils.croak("At least one of (delete-partitions, restore, add-node) must be specified");
+    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, fetch-keys) must be specified");
   }
   List<String> storeNames=null;
   if (options.has("stores")) {
@@ -76,7 +76,9 @@
       String outputDir=(String)options.valueOf("outdir");
       boolean useAscii=options.has("ascii");
       @SuppressWarnings("unchecked") List<Integer> partitionIdList=(List<Integer>)options.valuesOf("fetch-values");
-      executeFetchValues(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
+      executeFetchEntries(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
+    }
+    if (ops.contains("u")) {
     }
   }
  catch (  Exception e) {
