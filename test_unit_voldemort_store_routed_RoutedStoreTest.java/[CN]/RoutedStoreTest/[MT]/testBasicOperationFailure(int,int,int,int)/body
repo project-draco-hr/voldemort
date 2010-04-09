@@ -1,21 +1,21 @@
 {
   VectorClock clock=getClock(1);
   Versioned<byte[]> versioned=new Versioned<byte[]>(aValue,clock);
-  RoutedStore routedStore=getStore(cluster,reads,writes,threads,failures,0,RoutingStrategyType.TO_ALL_STRATEGY,new UnreachableStoreException("no go"));
+  RoutableStore routableStore=getStore(cluster,reads,writes,threads,failures,0,RoutingStrategyType.TO_ALL_STRATEGY,new UnreachableStoreException("no go"));
   try {
-    routedStore.put(aKey,versioned);
+    routableStore.put(aKey,versioned);
     fail("Put succeeded with too few operational nodes.");
   }
  catch (  InsufficientOperationalNodesException e) {
   }
   try {
-    routedStore.get(aKey);
+    routableStore.get(aKey);
     fail("Get succeeded with too few operational nodes.");
   }
  catch (  InsufficientOperationalNodesException e) {
   }
   try {
-    routedStore.delete(aKey,versioned.getVersion());
+    routableStore.delete(aKey,versioned.getVersion());
     fail("Get succeeded with too few operational nodes.");
   }
  catch (  InsufficientOperationalNodesException e) {

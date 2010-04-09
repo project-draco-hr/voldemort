@@ -12,10 +12,10 @@
     nodes.add(new Node(i,"none",0,0,0,partitions));
   }
   setFailureDetector(stores);
-  RoutedStore routedStore=new RoutedStore("test",stores,new Cluster("test",nodes),definition,3,false,timeout,failureDetector);
+  RoutableStore routableStore=new NewRoutedStore("test",stores,new Cluster("test",nodes),definition,3,false,timeout,failureDetector);
   long start=System.currentTimeMillis();
   try {
-    routedStore.put(new ByteArray("test".getBytes()),new Versioned<byte[]>(new byte[]{1}));
+    routableStore.put(new ByteArray("test".getBytes()),new Versioned<byte[]>(new byte[]{1}));
     fail("Should have thrown");
   }
  catch (  InsufficientOperationalNodesException e) {

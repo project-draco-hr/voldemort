@@ -1,0 +1,26 @@
+{
+  Map<ByteArray,List<Versioned<byte[]>>> retrieved=Collections.emptyMap();
+  Throwable exception=null;
+  List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayList();
+  long startNs=System.nanoTime();
+  try {
+    retrieved=innerStores.get(node.getId()).getAll(nodeKeys);
+    if (repairReads) {
+      for (      Map.Entry<ByteArray,List<Versioned<byte[]>>> entry : retrieved.entrySet())       fillRepairReadsValues(nodeValues,entry.getKey(),node,entry.getValue());
+      for (      ByteArray nodeKey : nodeKeys) {
+        if (!retrieved.containsKey(nodeKey))         fillRepairReadsValues(nodeValues,nodeKey,node,Collections.<Versioned<byte[]>>emptyList());
+      }
+    }
+    recordSuccess(node,startNs);
+  }
+ catch (  UnreachableStoreException e) {
+    exception=e;
+    recordException(node,startNs,e);
+  }
+catch (  Throwable e) {
+    if (e instanceof Error)     throw (Error)e;
+    exception=e;
+    logger.warn("Error in GET on node " + node.getId() + "("+ node.getHost()+ ")",e);
+  }
+  return new GetAllResult(this,retrieved,nodeValues,exception);
+}

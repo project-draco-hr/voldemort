@@ -1,0 +1,11 @@
+{
+  List<Node> nodes=stateData.getNodes();
+  stateData.setAttempts(nodes.size());
+  if (logger.isTraceEnabled())   logger.trace("Attempting " + stateData.getAttempts() + " "+ stateData.getOperation().getSimpleName()+ " operations in parallel");
+  if (preferred <= 0 && completeEvent != null)   stateMachine.addEvent(completeEvent);
+  for (  Node node : nodes) {
+    stateData.incrementNodeIndex();
+    NonblockingStore store=nonblockingStores.get(node.getId());
+    storeRequest.request(node,store);
+  }
+}

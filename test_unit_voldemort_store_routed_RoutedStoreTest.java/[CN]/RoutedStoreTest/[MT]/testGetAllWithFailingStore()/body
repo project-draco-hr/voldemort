@@ -5,8 +5,8 @@
   subStores.put(Iterables.get(cluster.getNodes(),0).getId(),new InMemoryStorageEngine<ByteArray,byte[]>("test"));
   subStores.put(Iterables.get(cluster.getNodes(),1).getId(),new FailingReadsStore<ByteArray,byte[]>("test"));
   setFailureDetector(subStores);
-  RoutedStore routedStore=new RoutedStore("test",subStores,cluster,storeDef,1,true,1000L,failureDetector);
-  Store<ByteArray,byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
+  RoutableStore routableStore=new NewRoutedStore("test",subStores,cluster,storeDef,1,true,1000L,failureDetector);
+  Store<ByteArray,byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[]>(routableStore,new VectorClockInconsistencyResolver<byte[]>());
   Map<ByteArray,byte[]> expectedValues=Maps.newHashMap();
   for (byte i=1; i < 11; ++i) {
     ByteArray key=new ByteArray(new byte[]{i});

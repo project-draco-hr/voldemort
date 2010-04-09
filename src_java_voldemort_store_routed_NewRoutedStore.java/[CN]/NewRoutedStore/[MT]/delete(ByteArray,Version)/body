@@ -1,0 +1,36 @@
+{
+  ListStateData stateData=new ListStateData(Operation.DELETE);
+  final StateMachine stateMachine=new StateMachine();
+  NonblockingStoreRequest nonblockingDelete=new NonblockingStoreRequest(){
+    public void request(    Node node,    NonblockingStore store){
+      final NonblockingStoreCallback callback=new StateMachineEventNonblockingStoreCallback(stateMachine,node,key);
+      store.submitDeleteRequest(key,version,callback);
+    }
+  }
+;
+  BlockingStoreRequest blockingDelete=new BlockingStoreRequest(){
+    public Object request(    Node node,    Store<ByteArray,byte[]> store){
+      return store.delete(key,version);
+    }
+  }
+;
+  Action configureNodes=createConfigureNodes(stateData,key,false);
+  Action performRequests=createPerformParallelRequests(stateData,false,nonblockingDelete);
+  Action acknowledgeResponse=createAcknowledgeResponse(stateData,false,Event.COMPLETED,Event.INSUFFICIENT_SUCCESSES);
+  Action performSerialRequests=createPerformSerialRequests(stateData,key,false,blockingDelete,Event.COMPLETED,null);
+  Action updateResults=createUpdateResults(stateData);
+  Map<Event,Action> eventActions=new HashMap<Event,Action>();
+  eventActions.put(Event.STARTED,configureNodes);
+  eventActions.put(Event.CONFIGURED,performRequests);
+  eventActions.put(Event.RESPONSE_RECEIVED,acknowledgeResponse);
+  eventActions.put(Event.INSUFFICIENT_SUCCESSES,performSerialRequests);
+  eventActions.put(Event.COMPLETED,updateResults);
+  stateMachine.setEventActions(eventActions);
+  stateMachine.addEvent(Event.STARTED);
+  stateMachine.processEvents(stateData,timeoutMs,TimeUnit.MILLISECONDS);
+  List<Boolean> results=stateData.get();
+  for (  Boolean b : results) {
+    if (b.booleanValue())     return true;
+  }
+  return false;
+}
