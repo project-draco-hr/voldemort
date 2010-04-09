@@ -11,6 +11,7 @@
   parser.accepts("fetch-entries","Fetch full entries").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("outdir","Output directory").withRequiredArg().describedAs("output-directory").ofType(String.class);
   parser.accepts("stores","Store names").withRequiredArg().describedAs("store-names").withValuesSeparatedBy(',').ofType(String.class);
+  parser.accepts("add-stores","Add stores in this stores.xml").withRequiredArg().describedAs("stores.xml").ofType(String.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     parser.printHelpOn(System.out);
@@ -18,9 +19,11 @@
   }
   Set<String> missing=CmdUtils.missing(options,"url","node");
   if (missing.size() > 0) {
-    System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
-    parser.printHelpOn(System.err);
-    System.exit(1);
+    if (!(missing.equals(ImmutableSet.of("node")) && options.has("add-stores"))) {
+      System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
+      parser.printHelpOn(System.err);
+      System.exit(1);
+    }
   }
   String url=(String)options.valueOf("url");
   Integer nodeId=(Integer)options.valueOf("node");
@@ -38,6 +41,9 @@
   }
   if (options.has("restore")) {
     ops+="r";
+  }
+  if (options.has("add-stores")) {
+    ops+="a";
   }
   if (ops.length() < 1) {
     Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, fetch-keys) must be specified");
@@ -78,7 +84,9 @@
       @SuppressWarnings("unchecked") List<Integer> partitionIdList=(List<Integer>)options.valuesOf("fetch-values");
       executeFetchEntries(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
     }
-    if (ops.contains("u")) {
+    if (ops.contains("a")) {
+      String storesXml=(String)options.valueOf("add-stores");
+      executeAddStores(adminClient,storesXml,storeNames);
     }
   }
  catch (  Exception e) {
