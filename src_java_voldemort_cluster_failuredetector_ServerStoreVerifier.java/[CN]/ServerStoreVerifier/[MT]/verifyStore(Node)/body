@@ -7,7 +7,7 @@
 synchronized (stores) {
       store=stores.get(node.getId());
       if (store == null) {
-        store=new SocketStore(MetadataStore.METADATA_STORE_NAME,new SocketDestination(node.getHost(),node.getSocketPort(),voldemortConfig.getRequestFormatType()),socketPool,false);
+        store=storeFactory.create(MetadataStore.METADATA_STORE_NAME,node.getHost(),node.getSocketPort(),voldemortConfig.getRequestFormatType(),RequestRoutingType.NORMAL);
         stores.put(node.getId(),store);
       }
     }

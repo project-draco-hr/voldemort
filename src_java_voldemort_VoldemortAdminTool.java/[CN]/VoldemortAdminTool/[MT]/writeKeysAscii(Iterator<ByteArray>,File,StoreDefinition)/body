@@ -1,22 +1,15 @@
 {
   BufferedWriter writer=new BufferedWriter(new FileWriter(outputFile));
   SerializerFactory serializerFactory=new DefaultSerializerFactory();
-  StringWriter stringWriter=new StringWriter();
-  JsonGenerator generator=new JsonFactory(new ObjectMapper()).createJsonGenerator(stringWriter);
+  JsonWriter jsonWriter=new JsonWriter(writer);
   @SuppressWarnings("unchecked") Serializer<Object> serializer=(Serializer<Object>)serializerFactory.getSerializer(storeDefinition.getKeySerializer());
   try {
     while (keyIterator.hasNext()) {
       byte[] keyBytes=keyIterator.next().get();
       Object keyObject=serializer.toObject(keyBytes);
-      generator.writeObject(keyObject);
-      StringBuffer buf=stringWriter.getBuffer();
-      if (buf.charAt(0) == ' ') {
-        buf.setCharAt(0,'\n');
-      }
-      writer.write(buf.toString());
-      buf.setLength(0);
+      jsonWriter.write(keyObject);
+      writer.write("\n");
     }
-    writer.write('\n');
   }
   finally {
     writer.close();

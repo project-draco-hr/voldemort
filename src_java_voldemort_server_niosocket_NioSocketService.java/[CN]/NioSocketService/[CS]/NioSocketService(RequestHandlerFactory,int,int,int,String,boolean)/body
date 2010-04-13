@@ -9,8 +9,8 @@
     throw new VoldemortException(e);
   }
   this.endpoint=new InetSocketAddress(port);
-  this.selectorManagers=new SelectorManager[selectors];
+  this.selectorManagers=new NioSelectorManager[selectors];
   this.selectorManagerThreadPool=Executors.newFixedThreadPool(selectorManagers.length,new DaemonThreadFactory("voldemort-niosocket-server"));
   this.statusManager=new StatusManager((ThreadPoolExecutor)this.selectorManagerThreadPool);
-  this.acceptorThread=new Thread(new Acceptor());
+  this.acceptorThread=new Thread(new Acceptor(),"NioSocketService.Acceptor");
 }

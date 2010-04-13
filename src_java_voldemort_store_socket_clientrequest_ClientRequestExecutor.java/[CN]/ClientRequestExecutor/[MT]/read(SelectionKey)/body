@@ -1,0 +1,18 @@
+{
+  int count=0;
+  if ((count=socketChannel.read(inputStream.getBuffer())) == -1)   throw new EOFException("EOF for " + socketChannel.socket().getRemoteSocketAddress());
+  if (logger.isTraceEnabled())   traceInputBufferState("Read " + count + " bytes");
+  if (count == 0)   return;
+  final int position=inputStream.getBuffer().position();
+  inputStream.getBuffer().flip();
+  if (!clientRequest.isCompleteResponse(inputStream.getBuffer())) {
+    handleIncompleteRequest(position);
+    return;
+  }
+  inputStream.getBuffer().rewind();
+  if (logger.isTraceEnabled())   logger.trace("Starting read for " + socketChannel.socket().getRemoteSocketAddress());
+  clientRequest.read(new DataInputStream(inputStream));
+  if (logger.isTraceEnabled())   logger.trace("Finished read for " + socketChannel.socket().getRemoteSocketAddress());
+  selectionKey.interestOps(0);
+  clientRequest.completed();
+}

@@ -1,7 +1,8 @@
 {
   super.setUp();
   this.socketPort=ServerTestUtils.findFreePort();
+  socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
   socketService=ServerTestUtils.getSocketService(useNio,VoldemortTestConstants.getOneNodeClusterXml(),VoldemortTestConstants.getSimpleStoreDefinitionsXml(),"test",socketPort);
   socketService.start();
-  socketStore=ServerTestUtils.getSocketStore("test",socketPort,requestFormatType);
+  socketStore=ServerTestUtils.getSocketStore(socketStoreFactory,"test",socketPort,requestFormatType);
 }

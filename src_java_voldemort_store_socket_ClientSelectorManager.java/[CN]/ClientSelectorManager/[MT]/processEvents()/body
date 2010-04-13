@@ -1,0 +1,26 @@
+{
+  try {
+    ClientRequestExecutor clientRequestExecutor=null;
+    while ((clientRequestExecutor=requestQueue.poll()) != null) {
+      if (isClosed.get()) {
+        if (logger.isInfoEnabled())         logger.debug("Closed, exiting");
+        break;
+      }
+      try {
+        SocketChannel socketChannel=clientRequestExecutor.getSocketChannel();
+        SelectionKey selectionKey=socketChannel.keyFor(selector);
+        if (selectionKey == null) {
+          selectionKey=socketChannel.register(selector,SelectionKey.OP_WRITE,clientRequestExecutor);
+          if (logger.isTraceEnabled())           logger.trace("Registering " + socketChannel.socket().getRemoteSocketAddress() + " with selector");
+        }
+        clientRequestExecutor.reset(selector);
+      }
+ catch (      Exception e) {
+        if (logger.isEnabledFor(Level.ERROR))         logger.error(e.getMessage(),e);
+      }
+    }
+  }
+ catch (  Exception e) {
+    if (logger.isEnabledFor(Level.ERROR))     logger.error(e.getMessage(),e);
+  }
+}

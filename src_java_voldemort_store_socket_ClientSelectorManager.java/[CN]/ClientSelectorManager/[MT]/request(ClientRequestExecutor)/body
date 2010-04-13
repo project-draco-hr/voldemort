@@ -1,0 +1,6 @@
+{
+  if (isClosed.get())   throw new IllegalStateException("Cannot accept more requests, selector manager closed");
+  if (logger.isTraceEnabled())   logger.trace("Adding request for " + clientRequestExecutor.getSocketChannel().socket().getRemoteSocketAddress());
+  requestQueue.add(clientRequestExecutor);
+  selector.wakeup();
+}

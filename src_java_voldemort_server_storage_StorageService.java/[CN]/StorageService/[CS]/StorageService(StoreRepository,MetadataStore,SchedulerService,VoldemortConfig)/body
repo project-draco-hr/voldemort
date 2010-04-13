@@ -7,8 +7,8 @@
   this.cleanupPermits=new Semaphore(1);
   this.storageConfigs=new ConcurrentHashMap<String,StorageConfiguration>();
   this.clientThreadPool=new ClientThreadPool(config.getClientMaxThreads(),config.getClientThreadIdleMs(),config.getClientMaxQueuedRequests());
-  this.socketPool=new SocketPool(config.getClientMaxConnectionsPerNode(),config.getClientConnectionTimeoutMs(),config.getSocketTimeoutMs(),config.getSocketBufferSize(),config.getSocketKeepAlive());
-  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig(voldemortConfig).setNodes(metadata.getCluster().getNodes()).setStoreVerifier(new ServerStoreVerifier(socketPool,metadata,config));
+  this.storeFactory=new ClientRequestExecutorPool(config.getClientMaxConnectionsPerNode(),config.getClientConnectionTimeoutMs(),config.getSocketTimeoutMs(),config.getSocketBufferSize(),config.getSocketKeepAlive());
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig(voldemortConfig).setNodes(metadata.getCluster().getNodes()).setStoreVerifier(new ServerStoreVerifier(storeFactory,metadata,config));
   this.failureDetector=create(failureDetectorConfig,config.isJmxEnabled());
   this.storeStats=new StoreStats();
 }
