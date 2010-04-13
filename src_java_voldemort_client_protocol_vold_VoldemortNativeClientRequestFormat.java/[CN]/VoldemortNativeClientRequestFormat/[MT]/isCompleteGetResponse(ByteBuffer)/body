@@ -1,15 +1,3 @@
 {
-  DataInputStream inputStream=new DataInputStream(new ByteBufferBackedInputStream(buffer));
-  try {
-    try {
-      readGetResponse(inputStream);
-    }
- catch (    VoldemortException e) {
-    }
-    return !buffer.hasRemaining();
-  }
- catch (  Exception e) {
-    if (logger.isDebugEnabled())     logger.debug("Probable partial read occurred causing exception",e);
-    return false;
-  }
+  return isCompleteResponse(buffer,VoldemortOpCode.GET_OP_CODE);
 }
