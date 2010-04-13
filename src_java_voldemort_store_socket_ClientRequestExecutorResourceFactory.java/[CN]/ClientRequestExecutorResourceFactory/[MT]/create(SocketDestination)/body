@@ -12,16 +12,7 @@
   }
   int numCreated=created.incrementAndGet();
   logger.debug("Created socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " using protocol "+ dest.getRequestFormatType().getCode());
-  int sendBufferSize=socketChannel.socket().getSendBufferSize();
-  int receiveBufferSize=socketChannel.socket().getReceiveBufferSize();
-  if (receiveBufferSize != this.socketBufferSize)   logger.debug("Requested socket receive buffer size was " + this.socketBufferSize + " bytes but actual size is "+ receiveBufferSize+ " bytes.");
-  if (sendBufferSize != this.socketBufferSize)   logger.debug("Requested socket send buffer size was " + this.socketBufferSize + " bytes but actual size is "+ sendBufferSize+ " bytes.");
-  ClientRequestExecutor clientRequestExecutor=new ClientRequestExecutor(socketChannel,this.socketBufferSize,dest.getRequestFormatType());
-  BlockingClientRequest<String> clientRequest=new BlockingClientRequest<String>(new ProtocolNegotiatorClientRequest(dest.getRequestFormatType()));
-  clientRequestExecutor.setClientRequest(clientRequest);
-  clientRequest.write(new DataOutputStream(clientRequestExecutor.getOutputStream()));
-  selectorManager.request(clientRequestExecutor);
-  clientRequest.await();
-  clientRequest.getResult();
-  return clientRequestExecutor;
+  if (socketChannel.socket().getReceiveBufferSize() != this.socketBufferSize)   logger.debug("Requested socket receive buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getReceiveBufferSize()+ " bytes.");
+  if (socketChannel.socket().getSendBufferSize() != this.socketBufferSize)   logger.debug("Requested socket send buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getSendBufferSize()+ " bytes.");
+  return negotiateProtocol(dest,socketChannel);
 }
