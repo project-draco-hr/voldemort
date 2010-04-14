@@ -10,9 +10,12 @@
   Map<Integer,NonblockingStore> nonblockingStores=Maps.newHashMap();
   for (  Node node : cluster.getNodes()) {
     Store<ByteArray,byte[]> store=getStore(storeDef.getName(),node.getHost(),getPort(node),this.requestFormatType);
+    NonblockingStore nonblockingStore=null;
+    if (store instanceof NonblockingStore)     nonblockingStore=(NonblockingStore)store;
+ else     nonblockingStore=new ThreadPoolBasedNonblockingStoreImpl(threadPool,store);
     store=new LoggingStore(store);
     clientMapping.put(node.getId(),store);
-    nonblockingStores.put(node.getId(),new ThreadPoolBasedNonblockingStoreImpl(threadPool,store));
+    nonblockingStores.put(node.getId(),nonblockingStore);
   }
   boolean repairReads=!storeDef.isView();
   Store<ByteArray,byte[]> store=new NewRoutedStore(storeName,clientMapping,nonblockingStores,cluster,storeDef,repairReads,threadPool,routingTimeoutMs,getFailureDetector());
