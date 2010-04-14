@@ -2,10 +2,9 @@
   AbstractSocketService server=ServerTestUtils.getSocketService(useNio,new SocketRequestHandlerFactory(null,null,null,null,null,null),7666,50,50,1000);
   server.start();
   final ResourcePoolConfig config=new ResourcePoolConfig().setTimeout(50,TimeUnit.MILLISECONDS).setMaxPoolSize(20);
-  ClientSelectorManager selectorManager=new ClientSelectorManager();
-  new Thread(selectorManager,"ClientSelector").start();
+  ClientRequestExecutorPool clientRequestExecutorPool=new ClientRequestExecutorPool(config.getMaxPoolSize(),(int)config.getTimeout(TimeUnit.MILLISECONDS),100,1000);
   try {
-    ResourceFactory<SocketDestination,ClientRequestExecutor> factory=ResourcePoolTestUtils.getClientRequestExecutorFactory(selectorManager);
+    ResourceFactory<SocketDestination,ClientRequestExecutor> factory=clientRequestExecutorPool.getFactory();
     final AbstractSocketPoolTest<SocketDestination,ClientRequestExecutor> test=new AbstractSocketPoolTest<SocketDestination,ClientRequestExecutor>(){
       @Override protected void doSomethingWithResource(      SocketDestination key,      ClientRequestExecutor resource) throws Exception {
         Thread.sleep(100);
@@ -22,6 +21,6 @@
     server.stop();
   }
   finally {
-    selectorManager.close();
+    clientRequestExecutorPool.close();
   }
 }

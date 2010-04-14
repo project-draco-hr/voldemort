@@ -1,10 +1,8 @@
 {
   ClientRequestExecutor clientRequestExecutor=pool.checkout(destination);
   try {
-    BlockingClientRequest<T> blockingClientRequest=new BlockingClientRequest<T>(clientRequest);
-    clientRequestExecutor.setClientRequest(blockingClientRequest);
-    blockingClientRequest.formatRequest(new DataOutputStream(clientRequestExecutor.getOutputStream()));
-    selectorManager.submitRequest(clientRequestExecutor);
+    BlockingClientRequest<T> blockingClientRequest=new BlockingClientRequest<T>(delegate);
+    clientRequestExecutor.addClientRequest(blockingClientRequest);
     blockingClientRequest.await();
     return blockingClientRequest.getResult();
   }

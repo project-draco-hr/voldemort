@@ -1,23 +1,22 @@
 {
-  SelectionKey selectionKey=socketChannel.keyFor(selector);
   try {
+    SelectionKey selectionKey=socketChannel.keyFor(selector);
     if (selectionKey.isReadable())     read(selectionKey);
  else     if (selectionKey.isWritable())     write(selectionKey);
  else     if (!selectionKey.isValid())     throw new IllegalStateException("Selection key not valid for " + socketChannel.socket().getRemoteSocketAddress());
  else     throw new IllegalStateException("Unknown state, not readable, writable, or valid for " + socketChannel.socket().getRemoteSocketAddress());
   }
  catch (  ClosedByInterruptException e) {
-    close(selectionKey);
+    close();
   }
 catch (  CancelledKeyException e) {
-    close(selectionKey);
+    close();
   }
 catch (  EOFException e) {
-    clientRequest.setServerError(e);
-    close(selectionKey);
+    close();
   }
 catch (  Throwable t) {
     if (logger.isEnabledFor(Level.ERROR))     logger.error(t.getMessage(),t);
-    close(selectionKey);
+    close();
   }
 }

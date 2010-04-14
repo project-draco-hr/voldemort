@@ -1,4 +1,26 @@
 {
   SelectionKey selectionKey=socketChannel.keyFor(selector);
-  close(selectionKey);
+  if (logger.isInfoEnabled())   logger.info("Closing remote connection from " + socketChannel.socket().getRemoteSocketAddress());
+  try {
+    socketChannel.socket().close();
+  }
+ catch (  IOException e) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
+  }
+  try {
+    socketChannel.close();
+  }
+ catch (  IOException e) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
+  }
+  if (selectionKey != null) {
+    try {
+      selectionKey.attach(null);
+      selectionKey.cancel();
+    }
+ catch (    Exception e) {
+      if (logger.isEnabledFor(Level.WARN))       logger.warn(e.getMessage(),e);
+    }
+  }
+  clientRequest.complete();
 }

@@ -1,0 +1,25 @@
+{
+  SocketChannel socketChannel=SocketChannel.open();
+  socketChannel.socket().setReceiveBufferSize(this.socketBufferSize);
+  socketChannel.socket().setSendBufferSize(this.socketBufferSize);
+  socketChannel.socket().setTcpNoDelay(true);
+  socketChannel.socket().setSoTimeout(soTimeoutMs);
+  socketChannel.socket().setKeepAlive(this.socketKeepAlive);
+  socketChannel.configureBlocking(false);
+  socketChannel.connect(new InetSocketAddress(dest.getHost(),dest.getPort()));
+  while (!socketChannel.finishConnect()) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn("Still connecting to " + dest);
+  }
+  int numCreated=created.incrementAndGet();
+  logger.debug("Created socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " using protocol "+ dest.getRequestFormatType().getCode());
+  if (socketChannel.socket().getReceiveBufferSize() != this.socketBufferSize)   logger.debug("Requested socket receive buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getReceiveBufferSize()+ " bytes.");
+  if (socketChannel.socket().getSendBufferSize() != this.socketBufferSize)   logger.debug("Requested socket send buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getSendBufferSize()+ " bytes.");
+  ClientRequestExecutor clientRequestExecutor=new ClientRequestExecutor(selector,socketChannel,socketBufferSize);
+  BlockingClientRequest<String> clientRequest=new BlockingClientRequest<String>(new ProtocolNegotiatorClientRequest(dest.getRequestFormatType()));
+  clientRequestExecutor.addClientRequest(clientRequest);
+  registrationQueue.add(clientRequestExecutor);
+  selector.wakeup();
+  clientRequest.await();
+  clientRequest.getResult();
+  return clientRequestExecutor;
+}

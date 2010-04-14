@@ -1,0 +1,10 @@
+{
+  ResourcePoolConfig config=new ResourcePoolConfig().setIsFair(true).setMaxPoolSize(maxConnectionsPerNode).setMaxInvalidAttempts(maxConnectionsPerNode).setTimeout(connectionTimeoutMs,TimeUnit.MILLISECONDS);
+  this.registrationQueue=new ConcurrentLinkedQueue<ClientRequestExecutor>();
+  this.factory=new ClientRequestExecutorFactory(selector,registrationQueue,soTimeoutMs,socketBufferSize,socketKeepAlive);
+  this.pool=new KeyedResourcePool<SocketDestination,ClientRequestExecutor>(factory,config);
+  this.checkouts=new AtomicInteger(0);
+  this.waitNs=new AtomicLong(0);
+  this.avgWaitNs=new AtomicLong(0);
+  new Thread(this,"ClientRequestExecutorPool").start();
+}
