@@ -4,7 +4,7 @@ synchronized (storeRepository) {
       if (!storeRepository.hasRedirectingSocketStore(storeName,donorNodeId)) {
         Node donorNode=getNodeIfPresent(donorNodeId);
         logger.info("Creating redirectingSocketStore for donorNode " + donorNode + " store "+ storeName);
-        storeRepository.addRedirectingSocketStore(donorNode.getId(),new SocketStore(storeName,new SocketDestination(donorNode.getHost(),donorNode.getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS),socketPool,RequestRoutingType.IGNORE_CHECKS));
+        storeRepository.addRedirectingSocketStore(donorNode.getId(),storeFactory.create(storeName,donorNode.getHost(),donorNode.getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS,RequestRoutingType.IGNORE_CHECKS));
       }
     }
   }

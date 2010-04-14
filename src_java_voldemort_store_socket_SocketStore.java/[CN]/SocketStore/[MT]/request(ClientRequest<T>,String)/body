@@ -1,0 +1,21 @@
+{
+  ClientRequestExecutor clientRequestExecutor=pool.checkout(destination);
+  try {
+    BlockingClientRequest<T> blockingClientRequest=new BlockingClientRequest<T>(clientRequest);
+    clientRequestExecutor.setClientRequest(blockingClientRequest);
+    blockingClientRequest.formatRequest(new DataOutputStream(clientRequestExecutor.getOutputStream()));
+    selectorManager.submitRequest(clientRequestExecutor);
+    blockingClientRequest.await();
+    return blockingClientRequest.getResult();
+  }
+ catch (  InterruptedException e) {
+    throw new UnreachableStoreException("Failure in " + operationName + " on "+ destination+ ": "+ e.getMessage(),e);
+  }
+catch (  IOException e) {
+    clientRequestExecutor.close();
+    throw new UnreachableStoreException("Failure in " + operationName + " on "+ destination+ ": "+ e.getMessage(),e);
+  }
+ finally {
+    pool.checkin(destination,clientRequestExecutor);
+  }
+}

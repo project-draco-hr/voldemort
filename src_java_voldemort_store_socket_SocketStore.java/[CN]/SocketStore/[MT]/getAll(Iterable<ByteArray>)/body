@@ -1,16 +1,5 @@
 {
   StoreUtils.assertValidKeys(keys);
-  SocketAndStreams sands=pool.checkout(destination);
-  try {
-    requestFormat.writeGetAllRequest(sands.getOutputStream(),name,keys,requestType);
-    sands.getOutputStream().flush();
-    return requestFormat.readGetAllResponse(sands.getInputStream());
-  }
- catch (  IOException e) {
-    close(sands.getSocket());
-    throw new UnreachableStoreException("Failure in getAll() on " + destination + ": "+ e.getMessage(),e);
-  }
- finally {
-    pool.checkin(destination,sands);
-  }
+  GetAllClientRequest clientRequest=new GetAllClientRequest(storeName,requestFormat,requestRoutingType,keys);
+  return request(clientRequest,"getAll");
 }

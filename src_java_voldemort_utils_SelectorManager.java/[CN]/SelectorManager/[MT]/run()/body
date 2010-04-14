@@ -1,0 +1,47 @@
+{
+  try {
+    while (true) {
+      if (isClosed.get()) {
+        if (logger.isInfoEnabled())         logger.info("Closed, exiting");
+        break;
+      }
+      processEvents();
+      try {
+        int selected=selector.select();
+        if (isClosed.get()) {
+          if (logger.isInfoEnabled())           logger.info("Closed, exiting");
+          break;
+        }
+        if (selected > 0) {
+          Iterator<SelectionKey> i=selector.selectedKeys().iterator();
+          while (i.hasNext()) {
+            SelectionKey selectionKey=i.next();
+            i.remove();
+            if (selectionKey.isReadable() || selectionKey.isWritable()) {
+              Runnable worker=(Runnable)selectionKey.attachment();
+              worker.run();
+            }
+          }
+        }
+      }
+ catch (      ClosedSelectorException e) {
+        if (logger.isDebugEnabled())         logger.debug("Selector is closed, exiting");
+        break;
+      }
+catch (      Throwable t) {
+        if (logger.isEnabledFor(Level.ERROR))         logger.error(t.getMessage(),t);
+      }
+    }
+  }
+ catch (  Throwable t) {
+    if (logger.isEnabledFor(Level.ERROR))     logger.error(t.getMessage(),t);
+  }
+ finally {
+    try {
+      close();
+    }
+ catch (    Exception e) {
+      if (logger.isEnabledFor(Level.ERROR))       logger.error(e.getMessage(),e);
+    }
+  }
+}

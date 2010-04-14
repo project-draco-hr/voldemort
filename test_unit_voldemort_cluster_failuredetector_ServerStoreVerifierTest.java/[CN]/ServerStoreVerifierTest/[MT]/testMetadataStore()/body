@@ -2,7 +2,7 @@
   for (  Node node : cluster.getNodes()) {
     VoldemortServer voldemortServer=serverMap.get(node.getId());
     StorageService ss=(StorageService)voldemortServer.getService(ServiceType.STORAGE);
-    ServerStoreVerifier ssv=new ServerStoreVerifier(ss.getStorageSocketPool(),voldemortServer.getMetadataStore(),voldemortServer.getVoldemortConfig());
+    ServerStoreVerifier ssv=new ServerStoreVerifier(ss.getSocketStoreFactory(),voldemortServer.getMetadataStore(),voldemortServer.getVoldemortConfig());
     for (    Node siblingNodes : cluster.getNodes())     ssv.verifyStore(siblingNodes);
   }
 }

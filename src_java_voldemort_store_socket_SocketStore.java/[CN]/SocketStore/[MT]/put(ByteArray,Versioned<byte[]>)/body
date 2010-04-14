@@ -1,16 +1,5 @@
 {
   StoreUtils.assertValidKey(key);
-  SocketAndStreams sands=pool.checkout(destination);
-  try {
-    requestFormat.writePutRequest(sands.getOutputStream(),name,key,versioned.getValue(),(VectorClock)versioned.getVersion(),requestType);
-    sands.getOutputStream().flush();
-    requestFormat.readPutResponse(sands.getInputStream());
-  }
- catch (  IOException e) {
-    close(sands.getSocket());
-    throw new UnreachableStoreException("Failure in put on " + destination + ": "+ e.getMessage(),e);
-  }
- finally {
-    pool.checkin(destination,sands);
-  }
+  PutClientRequest clientRequest=new PutClientRequest(storeName,requestFormat,requestRoutingType,key,versioned);
+  request(clientRequest,"put");
 }

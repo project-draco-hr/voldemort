@@ -7,13 +7,15 @@
   for (  StoreDefinition d : storeDefs)   if (d.getName().equals(storeName))   storeDef=d;
   if (storeDef == null)   throw new BootstrapFailureException("Unknown store '" + storeName + "'.");
   Map<Integer,Store<ByteArray,byte[]>> clientMapping=Maps.newHashMap();
+  Map<Integer,NonblockingStore> nonblockingStores=Maps.newHashMap();
   for (  Node node : cluster.getNodes()) {
     Store<ByteArray,byte[]> store=getStore(storeDef.getName(),node.getHost(),getPort(node),this.requestFormatType);
     store=new LoggingStore(store);
     clientMapping.put(node.getId(),store);
+    nonblockingStores.put(node.getId(),new ThreadPoolBasedNonblockingStoreImpl(threadPool,store));
   }
   boolean repairReads=!storeDef.isView();
-  Store<ByteArray,byte[]> store=new NewRoutedStore(storeName,clientMapping,cluster,storeDef,repairReads,threadPool,routingTimeoutMs,getFailureDetector(),SystemTime.INSTANCE);
+  Store<ByteArray,byte[]> store=new NewRoutedStore(storeName,clientMapping,nonblockingStores,cluster,storeDef,repairReads,threadPool,routingTimeoutMs,getFailureDetector());
   if (isJmxEnabled) {
     StatTrackingStore statStore=new StatTrackingStore(store,this.stats);
     store=statStore;

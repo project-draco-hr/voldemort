@@ -4,12 +4,17 @@
   Cluster cluster=VoldemortTestConstants.getThreeNodeCluster();
   StoreDefinition storeDef=ServerTestUtils.getStoreDef("test",3,3,3,2,2,RoutingStrategyType.CONSISTENT_STRATEGY);
   Map<Integer,Store<ByteArray,byte[]>> subStores=Maps.newHashMap();
+  Map<Integer,NonblockingStore> nonblockingStores=new HashMap<Integer,NonblockingStore>();
+  ExecutorService threadPool=Executors.newFixedThreadPool(1);
   for (int a=0; a < 3; a++) {
-    subStores.put(Iterables.get(cluster.getNodes(),a).getId(),new InMemoryStorageEngine<ByteArray,byte[]>("test"));
+    int id=Iterables.get(cluster.getNodes(),a).getId();
+    InMemoryStorageEngine<ByteArray,byte[]> subStore=new InMemoryStorageEngine<ByteArray,byte[]>("test");
+    subStores.put(id,subStore);
+    nonblockingStores.put(id,new ThreadPoolBasedNonblockingStoreImpl(threadPool,subStore));
   }
   FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setImplementationClassName(failureDetectorClass.getName()).setBannagePeriod(1000).setNodes(cluster.getNodes()).setStoreVerifier(create(subStores)).setTime(time);
   failureDetector=create(failureDetectorConfig,false);
-  RoutableStore store=new NewRoutedStore("test",subStores,cluster,storeDef,1,true,1000L,failureDetector);
+  RoutableStore store=new NewRoutedStore("test",subStores,nonblockingStores,cluster,storeDef,true,threadPool,1000L,failureDetector);
   recordException(failureDetector,Iterables.get(cluster.getNodes(),0));
   store.put(key,new Versioned<byte[]>(value));
   recordSuccess(failureDetector,Iterables.get(cluster.getNodes(),0));

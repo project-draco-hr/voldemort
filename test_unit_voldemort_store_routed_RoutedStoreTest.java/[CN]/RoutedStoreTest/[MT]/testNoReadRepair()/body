@@ -2,13 +2,17 @@
   cluster=VoldemortTestConstants.getThreeNodeCluster();
   StoreDefinition storeDef=ServerTestUtils.getStoreDef("test",3,2,1,3,2,RoutingStrategyType.CONSISTENT_STRATEGY);
   Map<Integer,Store<ByteArray,byte[]>> subStores=Maps.newHashMap();
+  Map<Integer,NonblockingStore> nonblockingStores=new HashMap<Integer,NonblockingStore>();
+  ExecutorService threadPool=Executors.newFixedThreadPool(1);
   StatTrackingStore<ByteArray,byte[]> statTrackingStore=null;
   for (int i=0; i < 3; ++i) {
+    int id=Iterables.get(cluster.getNodes(),i).getId();
     statTrackingStore=new StatTrackingStore<ByteArray,byte[]>(new InMemoryStorageEngine<ByteArray,byte[]>("test"),null);
-    subStores.put(Iterables.get(cluster.getNodes(),i).getId(),statTrackingStore);
+    subStores.put(id,statTrackingStore);
+    nonblockingStores.put(id,new ThreadPoolBasedNonblockingStoreImpl(threadPool,statTrackingStore));
   }
   setFailureDetector(subStores);
-  RoutableStore routableStore=new NewRoutedStore("test",subStores,cluster,storeDef,1,true,1000L,failureDetector);
+  RoutableStore routableStore=new NewRoutedStore("test",subStores,nonblockingStores,cluster,storeDef,true,threadPool,1000L,failureDetector);
   ByteArray key1=aKey;
   routableStore.put(key1,Versioned.value("value1".getBytes()));
   ByteArray key2=TestUtils.toByteArray("voldemort");

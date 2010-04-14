@@ -1,0 +1,11 @@
+{
+  try {
+    long start=System.nanoTime();
+    ClientRequestExecutor clientRequestExecutor=pool.checkout(destination);
+    updateStats(System.nanoTime() - start);
+    return clientRequestExecutor;
+  }
+ catch (  Exception e) {
+    throw new UnreachableStoreException("Failure while checking out socket for " + destination + ": ",e);
+  }
+}

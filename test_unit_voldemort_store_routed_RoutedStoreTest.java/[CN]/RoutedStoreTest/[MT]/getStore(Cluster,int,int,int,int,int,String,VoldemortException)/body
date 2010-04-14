@@ -1,13 +1,18 @@
 {
   Map<Integer,Store<ByteArray,byte[]>> subStores=Maps.newHashMap();
+  Map<Integer,NonblockingStore> nonblockingStores=new HashMap<Integer,NonblockingStore>();
+  ExecutorService threadPool=Executors.newFixedThreadPool(threads);
   int count=0;
   for (  Node n : cluster.getNodes()) {
     if (count >= cluster.getNumberOfNodes())     throw new IllegalArgumentException(failing + " failing nodes, " + sleepy+ " sleepy nodes, but only "+ cluster.getNumberOfNodes()+ " nodes in the cluster.");
- else     if (count < failing)     subStores.put(n.getId(),new FailingStore<ByteArray,byte[]>("test",e));
- else     if (count < failing + sleepy)     subStores.put(n.getId(),new SleepyStore<ByteArray,byte[]>(Long.MAX_VALUE,new InMemoryStorageEngine<ByteArray,byte[]>("test")));
- else     subStores.put(n.getId(),new InMemoryStorageEngine<ByteArray,byte[]>("test"));
+    Store<ByteArray,byte[]> subStore=null;
+    if (count < failing)     subStore=new FailingStore<ByteArray,byte[]>("test",e);
+ else     if (count < failing + sleepy)     subStore=new SleepyStore<ByteArray,byte[]>(Long.MAX_VALUE,new InMemoryStorageEngine<ByteArray,byte[]>("test"));
+ else     subStore=new InMemoryStorageEngine<ByteArray,byte[]>("test");
+    subStores.put(n.getId(),subStore);
+    nonblockingStores.put(n.getId(),new ThreadPoolBasedNonblockingStoreImpl(threadPool,subStore));
     count+=1;
   }
   setFailureDetector(subStores);
-  return new NewRoutedStore("test",subStores,cluster,ServerTestUtils.getStoreDef("test",reads + writes,reads,reads,writes,writes,strategy),threads,true,1000L,failureDetector);
+  return new NewRoutedStore("test",subStores,nonblockingStores,cluster,ServerTestUtils.getStoreDef("test",reads + writes,reads,reads,writes,writes,strategy),true,threadPool,1000L,failureDetector);
 }

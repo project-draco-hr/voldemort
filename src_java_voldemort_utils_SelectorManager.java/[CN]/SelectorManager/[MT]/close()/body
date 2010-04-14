@@ -1,0 +1,30 @@
+{
+  if (!isClosed.compareAndSet(false,true))   return;
+  try {
+    for (    SelectionKey sk : selector.keys()) {
+      try {
+        if (logger.isTraceEnabled())         logger.trace("Closing SelectionKey's channel");
+        sk.channel().close();
+      }
+ catch (      Exception e) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(e.getMessage(),e);
+      }
+      try {
+        if (logger.isTraceEnabled())         logger.trace("Cancelling SelectionKey");
+        sk.cancel();
+      }
+ catch (      Exception e) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(e.getMessage(),e);
+      }
+    }
+  }
+ catch (  Exception e) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
+  }
+  try {
+    selector.close();
+  }
+ catch (  Exception e) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
+  }
+}

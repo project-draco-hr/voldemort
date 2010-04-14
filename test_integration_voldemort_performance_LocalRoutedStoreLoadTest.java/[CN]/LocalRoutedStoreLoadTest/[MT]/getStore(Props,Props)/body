@@ -1,13 +1,19 @@
 {
   Cluster cluster=new ClusterMapper().readCluster(new FileReader(propsA.getString("metadata.directory") + File.separator + "/cluster.xml"));
   Map<Integer,Store<ByteArray,byte[]>> clientMapping=Maps.newHashMap();
+  Map<Integer,NonblockingStore> nonblockingStores=Maps.newHashMap();
+  ExecutorService threadPool=Executors.newFixedThreadPool(10);
   VoldemortConfig voldemortConfig=new VoldemortConfig(propsA);
   StorageConfiguration conf=new BdbStorageConfiguration(voldemortConfig);
-  for (  Node node : cluster.getNodes())   clientMapping.put(node.getId(),conf.getStore("test" + node.getId()));
+  for (  Node node : cluster.getNodes()) {
+    StorageEngine<ByteArray,byte[]> store=conf.getStore("test" + node.getId());
+    clientMapping.put(node.getId(),store);
+    nonblockingStores.put(node.getId(),new ThreadPoolBasedNonblockingStoreImpl(threadPool,store));
+  }
   InconsistencyResolver<Versioned<String>> resolver=new VectorClockInconsistencyResolver<String>();
   FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig(voldemortConfig).setNodes(cluster.getNodes()).setStoreVerifier(new BasicStoreVerifier<ByteArray,byte[]>(clientMapping,new ByteArray("key".getBytes())));
   FailureDetector failureDetector=create(failureDetectorConfig,false);
-  RoutableStore store=new NewRoutedStore("test",clientMapping,cluster,ServerTestUtils.getStoreDef("test",1,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY),10,true,10000L,failureDetector);
+  RoutableStore store=new NewRoutedStore("test",clientMapping,nonblockingStores,cluster,ServerTestUtils.getStoreDef("test",1,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY),true,threadPool,10000L,failureDetector);
   Store<String,String> serializingStore=SerializingStore.wrap(store,new StringSerializer(),new StringSerializer());
   Store<String,String> resolvingStore=new InconsistencyResolvingStore<String,String>(serializingStore,resolver);
   StoreClientFactory factory=new StaticStoreClientFactory(resolvingStore);

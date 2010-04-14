@@ -1,0 +1,8 @@
+{
+  byte[] responseBytes=new byte[2];
+  inputStream.readFully(responseBytes);
+  String result=ByteUtils.getString(responseBytes,"UTF-8");
+  if (result.equals("ok"))   return result;
+  if (result.equals("no"))   throw new VoldemortException(requestFormatType.getDisplayName() + " is not an acceptable protcol for the server.");
+ else   throw new VoldemortException("Unknown server response: " + result);
+}

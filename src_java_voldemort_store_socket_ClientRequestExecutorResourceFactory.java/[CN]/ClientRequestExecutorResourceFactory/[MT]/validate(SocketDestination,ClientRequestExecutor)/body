@@ -1,0 +1,9 @@
+{
+  if (clientRequestExecutor.getCreateTimestamp() <= dest.getLastClosedTimestamp()) {
+    if (logger.isDebugEnabled())     logger.debug("Socket connection " + clientRequestExecutor + " was created on "+ new Date(clientRequestExecutor.getCreateTimestamp() / Time.NS_PER_MS)+ " before socket pool was closed and re-created (on "+ new Date(dest.getLastClosedTimestamp() / Time.NS_PER_MS)+ ")");
+    return false;
+  }
+  boolean isValid=clientRequestExecutor.isValid();
+  if (!isValid && logger.isDebugEnabled())   logger.debug("Client request executor connection " + clientRequestExecutor + " is no longer valid, closing.");
+  return isValid;
+}

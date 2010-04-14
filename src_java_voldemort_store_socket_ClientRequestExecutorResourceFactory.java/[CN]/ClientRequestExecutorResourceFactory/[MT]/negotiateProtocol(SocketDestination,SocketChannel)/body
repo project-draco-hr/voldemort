@@ -1,0 +1,10 @@
+{
+  ClientRequestExecutor clientRequestExecutor=new ClientRequestExecutor(socketChannel,this.socketBufferSize,dest.getRequestFormatType());
+  BlockingClientRequest<String> clientRequest=new BlockingClientRequest<String>(new ProtocolNegotiatorClientRequest(dest.getRequestFormatType()));
+  clientRequestExecutor.setClientRequest(clientRequest);
+  clientRequest.formatRequest(new DataOutputStream(clientRequestExecutor.getOutputStream()));
+  selectorManager.submitRequest(clientRequestExecutor);
+  clientRequest.await();
+  clientRequest.getResult();
+  return clientRequestExecutor;
+}
