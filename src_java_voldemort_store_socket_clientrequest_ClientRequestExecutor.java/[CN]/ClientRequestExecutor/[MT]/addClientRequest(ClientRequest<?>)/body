@@ -1,11 +1,11 @@
 {
   this.clientRequest=clientRequest;
+  outputStream.getBuffer().clear();
+  boolean wasSuccessful=clientRequest.formatRequest(new DataOutputStream(outputStream));
   if (logger.isTraceEnabled())   traceInputBufferState("About to clear read buffer");
   if (inputStream.getBuffer().capacity() >= resizeThreshold)   inputStream.setBuffer(ByteBuffer.allocate(socketBufferSize));
  else   inputStream.getBuffer().clear();
   if (logger.isTraceEnabled())   traceInputBufferState("Cleared read buffer");
-  outputStream.getBuffer().clear();
-  boolean wasSuccessful=clientRequest.formatRequest(new DataOutputStream(outputStream));
   outputStream.getBuffer().flip();
   if (wasSuccessful) {
     SelectionKey selectionKey=socketChannel.keyFor(selector);
