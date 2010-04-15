@@ -16,10 +16,10 @@
     nonblockingStores.put(i,new ThreadPoolBasedNonblockingStoreImpl(threadPool,store));
   }
   setFailureDetector(stores);
-  RoutableStore routableStore=new NewRoutedStore("test",stores,nonblockingStores,new Cluster("test",nodes),definition,false,threadPool,timeout,failureDetector);
+  RoutedStore routedStore=new RoutedStore("test",stores,nonblockingStores,new Cluster("test",nodes),definition,false,threadPool,timeout,failureDetector);
   long start=System.currentTimeMillis();
   try {
-    routableStore.put(new ByteArray("test".getBytes()),new Versioned<byte[]>(new byte[]{1}));
+    routedStore.put(new ByteArray("test".getBytes()),new Versioned<byte[]>(new byte[]{1}));
     fail("Should have thrown");
   }
  catch (  InsufficientOperationalNodesException e) {

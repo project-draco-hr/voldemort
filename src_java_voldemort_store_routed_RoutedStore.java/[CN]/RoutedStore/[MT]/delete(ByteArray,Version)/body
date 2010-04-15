@@ -1,56 +1,36 @@
 {
-  StoreUtils.assertValidKey(key);
-  final List<Node> nodes=availableNodes(routingStrategy.routeRequest(key.get()));
-  final int numNodes=nodes.size();
-  if (numNodes < this.storeDef.getRequiredWrites())   throw new InsufficientOperationalNodesException("Only " + numNodes + " nodes in preference list, but "+ this.storeDef.getRequiredWrites()+ " writes required.");
-  final AtomicInteger successes=new AtomicInteger(0);
-  final AtomicBoolean deletedSomething=new AtomicBoolean(false);
-  final List<Exception> failures=Collections.synchronizedList(new LinkedList<Exception>());
-  final Semaphore semaphore=new Semaphore(0,false);
-  for (  final Node node : nodes) {
-    this.executor.execute(new Runnable(){
-      public void run(){
-        long startNs=System.nanoTime();
-        try {
-          boolean deleted=innerStores.get(node.getId()).delete(key,version);
-          successes.incrementAndGet();
-          deletedSomething.compareAndSet(false,deleted);
-          recordSuccess(node,startNs);
-        }
- catch (        UnreachableStoreException e) {
-          failures.add(e);
-          recordException(node,startNs,e);
-        }
-catch (        VoldemortApplicationException e) {
-          throw e;
-        }
-catch (        Exception e) {
-          failures.add(e);
-          logger.warn("Error in DELETE on node " + node.getId() + "("+ node.getHost()+ ")",e);
-        }
- finally {
-          semaphore.release();
-        }
-      }
-    }
-);
-  }
-  int attempts=Math.min(storeDef.getPreferredWrites(),numNodes);
-  if (this.storeDef.getPreferredWrites() <= 0) {
-    return true;
-  }
- else {
-    for (int i=0; i < numNodes; i++) {
-      try {
-        boolean acquired=semaphore.tryAcquire(timeoutMs,TimeUnit.MILLISECONDS);
-        if (!acquired)         logger.warn("Delete operation timed out waiting for operation " + i + " to complete after waiting "+ timeoutMs+ " ms.");
-        if (successes.get() >= attempts)         return deletedSomething.get();
-      }
- catch (      InterruptedException e) {
-        throw new InsufficientOperationalNodesException("Delete operation interrupted!",e);
-      }
+  ListStateData stateData=new ListStateData(Operation.DELETE);
+  final StateMachine stateMachine=new StateMachine();
+  NonblockingStoreRequest nonblockingDelete=new NonblockingStoreRequest(){
+    public void request(    Node node,    NonblockingStore store){
+      final NonblockingStoreCallback callback=new StateMachineEventNonblockingStoreCallback(stateMachine,node,key);
+      store.submitDeleteRequest(key,version,callback);
     }
   }
-  if (successes.get() < storeDef.getRequiredWrites())   throw new InsufficientOperationalNodesException(this.storeDef.getRequiredWrites() + " deletes required, but " + successes.get()+ " succeeded.",failures);
- else   return deletedSomething.get();
+;
+  BlockingStoreRequest blockingDelete=new BlockingStoreRequest(){
+    public Object request(    Node node,    Store<ByteArray,byte[]> store){
+      return store.delete(key,version);
+    }
+  }
+;
+  Action configureNodes=createConfigureNodes(stateData,key,false);
+  Action performRequests=createPerformParallelRequests(stateData,false,nonblockingDelete);
+  Action acknowledgeResponse=createAcknowledgeResponse(stateData,false,Event.COMPLETED,Event.INSUFFICIENT_SUCCESSES);
+  Action performSerialRequests=createPerformSerialRequests(stateData,key,false,blockingDelete,Event.COMPLETED,null);
+  Action updateResults=createUpdateResults(stateData);
+  Map<Event,Action> eventActions=new HashMap<Event,Action>();
+  eventActions.put(Event.STARTED,configureNodes);
+  eventActions.put(Event.CONFIGURED,performRequests);
+  eventActions.put(Event.RESPONSE_RECEIVED,acknowledgeResponse);
+  eventActions.put(Event.INSUFFICIENT_SUCCESSES,performSerialRequests);
+  eventActions.put(Event.COMPLETED,updateResults);
+  stateMachine.setEventActions(eventActions);
+  stateMachine.addEvent(Event.STARTED);
+  stateMachine.processEvents(stateData,timeoutMs,TimeUnit.MILLISECONDS);
+  List<Boolean> results=stateData.get();
+  for (  Boolean b : results) {
+    if (b.booleanValue())     return true;
+  }
+  return false;
 }

@@ -12,13 +12,13 @@
     nonblockingStores.put(id,new ThreadPoolBasedNonblockingStoreImpl(threadPool,statTrackingStore));
   }
   setFailureDetector(subStores);
-  RoutableStore routableStore=new NewRoutedStore("test",subStores,nonblockingStores,cluster,storeDef,true,threadPool,1000L,failureDetector);
+  RoutedStore routedStore=new RoutedStore("test",subStores,nonblockingStores,cluster,storeDef,true,threadPool,1000L,failureDetector);
   ByteArray key1=aKey;
-  routableStore.put(key1,Versioned.value("value1".getBytes()));
+  routedStore.put(key1,Versioned.value("value1".getBytes()));
   ByteArray key2=TestUtils.toByteArray("voldemort");
-  routableStore.put(key2,Versioned.value("value2".getBytes()));
+  routedStore.put(key2,Versioned.value("value2".getBytes()));
   long putCount=statTrackingStore.getStats().getCount(Tracked.PUT);
-  routableStore.getAll(Arrays.asList(key1,key2));
+  routedStore.getAll(Arrays.asList(key1,key2));
   Thread.sleep(500);
   assertEquals("put count should remain the same if there are no read repairs",putCount,statTrackingStore.getStats().getCount(Tracked.PUT));
 }

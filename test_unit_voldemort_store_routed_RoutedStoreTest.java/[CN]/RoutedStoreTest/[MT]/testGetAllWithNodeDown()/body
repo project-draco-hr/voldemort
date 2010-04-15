@@ -1,7 +1,7 @@
 {
   cluster=VoldemortTestConstants.getTwoNodeCluster();
-  RoutableStore routableStore=getStore(cluster,1,2,1,0);
-  Store<ByteArray,byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[]>(routableStore,new VectorClockInconsistencyResolver<byte[]>());
+  RoutedStore routedStore=getStore(cluster,1,2,1,0);
+  Store<ByteArray,byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
   Map<ByteArray,byte[]> expectedValues=Maps.newHashMap();
   for (byte i=1; i < 11; ++i) {
     ByteArray key=new ByteArray(new byte[]{i});

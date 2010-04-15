@@ -11,8 +11,8 @@
   nonblockingStores.put(id1,new ThreadPoolBasedNonblockingStoreImpl(threadPool,subStores.get(id1)));
   nonblockingStores.put(id2,new ThreadPoolBasedNonblockingStoreImpl(threadPool,subStores.get(id2)));
   setFailureDetector(subStores);
-  RoutableStore routableStore=new NewRoutedStore("test",subStores,nonblockingStores,cluster,storeDef,true,threadPool,1000L,failureDetector);
-  Store<ByteArray,byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[]>(routableStore,new VectorClockInconsistencyResolver<byte[]>());
+  RoutedStore routedStore=new RoutedStore("test",subStores,nonblockingStores,cluster,storeDef,true,threadPool,1000L,failureDetector);
+  Store<ByteArray,byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
   store.put(aKey,Versioned.value(aValue));
   recordException(failureDetector,cluster.getNodes().iterator().next());
   Map<ByteArray,List<Versioned<byte[]>>> all=store.getAll(Arrays.asList(aKey));

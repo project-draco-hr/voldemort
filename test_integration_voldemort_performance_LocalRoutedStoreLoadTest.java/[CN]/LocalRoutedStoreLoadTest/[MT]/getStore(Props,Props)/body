@@ -13,7 +13,7 @@
   InconsistencyResolver<Versioned<String>> resolver=new VectorClockInconsistencyResolver<String>();
   FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig(voldemortConfig).setNodes(cluster.getNodes()).setStoreVerifier(new BasicStoreVerifier<ByteArray,byte[]>(clientMapping,new ByteArray("key".getBytes())));
   FailureDetector failureDetector=create(failureDetectorConfig,false);
-  RoutableStore store=new NewRoutedStore("test",clientMapping,nonblockingStores,cluster,ServerTestUtils.getStoreDef("test",1,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY),true,threadPool,10000L,failureDetector);
+  RoutedStore store=new RoutedStore("test",clientMapping,nonblockingStores,cluster,ServerTestUtils.getStoreDef("test",1,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY),true,threadPool,10000L,failureDetector);
   Store<String,String> serializingStore=SerializingStore.wrap(store,new StringSerializer(),new StringSerializer());
   Store<String,String> resolvingStore=new InconsistencyResolvingStore<String,String>(serializingStore,resolver);
   StoreClientFactory factory=new StaticStoreClientFactory(resolvingStore);

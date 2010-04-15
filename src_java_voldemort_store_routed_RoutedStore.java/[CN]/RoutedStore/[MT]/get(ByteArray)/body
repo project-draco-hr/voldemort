@@ -1,12 +1,37 @@
 {
-  Function<List<GetResult<Versioned<byte[]>>>,Void> readRepairFunction=new Function<List<GetResult<Versioned<byte[]>>>,Void>(){
-    public Void apply(    List<GetResult<Versioned<byte[]>>> nodeResults){
-      List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayListWithExpectedSize(nodeResults.size());
-      for (      GetResult<Versioned<byte[]>> getResult : nodeResults)       fillRepairReadsValues(nodeValues,getResult.key,getResult.node,getResult.retrieved);
-      repairReads(nodeValues);
-      return null;
+  ListStateData stateData=new ListStateData(Operation.GET);
+  final StateMachine stateMachine=new StateMachine();
+  NonblockingStoreRequest nonblockingStoreRequest=new NonblockingStoreRequest(){
+    public void request(    Node node,    NonblockingStore store){
+      final NonblockingStoreCallback callback=new StateMachineEventNonblockingStoreCallback(stateMachine,node,key);
+      store.submitGetRequest(key,callback);
     }
   }
 ;
-  return get(key,VERSIONED_OP,readRepairFunction);
+  BlockingStoreRequest blockingStoreRequest=new BlockingStoreRequest(){
+    public Object request(    Node node,    Store<ByteArray,byte[]> store){
+      return store.get(key);
+    }
+  }
+;
+  Action configureNodes=createConfigureNodes(stateData,key,true);
+  Action performRequests=createPerformParallelRequests(stateData,true,nonblockingStoreRequest);
+  Action acknowledgeResponse=createAcknowledgeResponse(stateData,true,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,Event.INSUFFICIENT_SUCCESSES);
+  Action performSerialRequests=createPerformSerialRequests(stateData,key,true,blockingStoreRequest,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,null);
+  Action updateResults=createUpdateResults(stateData);
+  Map<Event,Action> eventActions=new HashMap<Event,Action>();
+  eventActions.put(Event.STARTED,configureNodes);
+  eventActions.put(Event.CONFIGURED,performRequests);
+  eventActions.put(Event.RESPONSE_RECEIVED,acknowledgeResponse);
+  if (repairReads) {
+    Action readRepair=createReadRepair(stateData,Event.COMPLETED);
+    eventActions.put(Event.RESPONSES_RECEIVED,readRepair);
+  }
+  eventActions.put(Event.INSUFFICIENT_SUCCESSES,performSerialRequests);
+  eventActions.put(Event.COMPLETED,updateResults);
+  stateMachine.setEventActions(eventActions);
+  stateMachine.addEvent(Event.STARTED);
+  stateMachine.processEvents(stateData,timeoutMs,TimeUnit.MILLISECONDS);
+  List<Versioned<byte[]>> results=stateData.get();
+  return results;
 }
