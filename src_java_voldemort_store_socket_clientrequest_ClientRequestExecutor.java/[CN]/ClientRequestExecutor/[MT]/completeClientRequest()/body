@@ -1,0 +1,9 @@
+{
+  if (clientRequest == null) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn("No client associated with " + socketChannel.socket().getRemoteSocketAddress());
+    return;
+  }
+  clientRequest.complete();
+  clientRequest=null;
+  if (logger.isTraceEnabled())   logger.trace("Marked client associated with " + socketChannel.socket().getRemoteSocketAddress() + " as complete");
+}
