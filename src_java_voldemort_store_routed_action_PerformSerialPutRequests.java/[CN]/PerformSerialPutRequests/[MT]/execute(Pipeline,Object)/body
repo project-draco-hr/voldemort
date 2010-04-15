@@ -1,0 +1,53 @@
+{
+  int currentNode=0;
+  List<Node> nodes=pipelineData.getNodes();
+  if (logger.isDebugEnabled())   logger.debug("Performing serial put requests to determine master");
+  for (; currentNode < nodes.size(); currentNode++) {
+    Node node=nodes.get(currentNode);
+    long startNs=System.nanoTime();
+    try {
+      Versioned<byte[]> versionedCopy=incremented(versioned,node.getId());
+      if (logger.isTraceEnabled())       logger.trace("Attempt # " + (currentNode + 1) + " to perform put (node "+ node.getId()+ ")");
+      stores.get(node.getId()).put(key,versionedCopy);
+      pipelineData.incrementSuccesses();
+      long requestTime=(System.nanoTime() - startNs) / Time.NS_PER_MS;
+      failureDetector.recordSuccess(node,requestTime);
+      if (logger.isTraceEnabled())       logger.trace("Put on node " + node.getId() + " succeeded, using as master");
+      pipelineData.setMaster(node);
+      pipelineData.setVersionedCopy(versionedCopy);
+      break;
+    }
+ catch (    UnreachableStoreException e) {
+      if (logger.isTraceEnabled())       logger.trace("Put on node " + node.getId() + " failed: "+ e);
+      pipelineData.recordFailure(e);
+      long requestTime=(System.nanoTime() - startNs) / Time.NS_PER_MS;
+      failureDetector.recordException(node,requestTime,e);
+    }
+catch (    VoldemortApplicationException e) {
+      throw e;
+    }
+catch (    Exception e) {
+      if (logger.isTraceEnabled())       logger.trace("Put on node " + node.getId() + " failed: "+ e);
+      pipelineData.recordFailure(e);
+    }
+  }
+  if (pipelineData.getSuccesses() < 1) {
+    List<Exception> failures=pipelineData.getFailures();
+    pipelineData.setFatalError(new InsufficientOperationalNodesException("No master node succeeded!",failures.size() > 0 ? failures.get(0) : null));
+    pipeline.addEvent(Event.ERROR);
+    return;
+  }
+  currentNode++;
+  if (currentNode == nodes.size()) {
+    if (pipelineData.getSuccesses() < required) {
+      pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but "+ pipelineData.getSuccesses()+ " succeeded",pipelineData.getFailures()));
+      pipeline.addEvent(Event.ERROR);
+    }
+ else {
+      pipeline.addEvent(completeEvent);
+    }
+  }
+ else {
+    pipeline.addEvent(masterDeterminedEvent);
+  }
+}

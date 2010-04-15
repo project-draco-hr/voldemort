@@ -1,19 +1,19 @@
 {
-  ListStateData stateData=new ListStateData(Operation.PUT);
-  StateMachine stateMachine=new StateMachine();
-  Action configureNodes=createConfigureNodes(stateData,key,false);
-  Action performSerialPutRequests=createPerformSerialPutRequests(stateData,key,versioned,Event.COMPLETED,Event.MASTER_DETERMINED);
-  Action performParallelPutRequests=createPerformParallelPutRequests(stateData,key,Event.NOP);
-  Action acknowledgeResponse=createAcknowledgeResponse(stateData,false,Event.COMPLETED,null);
-  Action incrementClock=createIncrementClock(stateData,versioned);
+  PutPipelineData pipelineData=new PutPipelineData();
+  Pipeline pipeline=new Pipeline(Operation.PUT);
+  Action configureNodes=createConfigureNodes(pipelineData,key,false);
+  Action performSerialPutRequests=createPerformSerialPutRequests(pipelineData,key,versioned,Event.COMPLETED,Event.MASTER_DETERMINED);
+  Action performParallelPutRequests=createPerformParallelPutRequests(pipelineData,key,Event.NOP);
+  Action acknowledgeResponse=createAcknowledgeResponse(pipelineData,false,Event.COMPLETED,null);
+  Action incrementClock=createIncrementClock(pipelineData,versioned);
   Map<Event,Action> eventActions=new HashMap<Event,Action>();
   eventActions.put(Event.STARTED,configureNodes);
   eventActions.put(Event.CONFIGURED,performSerialPutRequests);
   eventActions.put(Event.MASTER_DETERMINED,performParallelPutRequests);
   eventActions.put(Event.RESPONSE_RECEIVED,acknowledgeResponse);
   eventActions.put(Event.COMPLETED,incrementClock);
-  stateMachine.setEventActions(eventActions);
-  stateMachine.addEvent(Event.STARTED);
-  stateMachine.processEvents(stateData,timeoutMs,TimeUnit.MILLISECONDS);
-  stateData.get();
+  pipeline.setEventActions(eventActions);
+  pipeline.addEvent(Event.STARTED);
+  pipeline.processEvents(timeoutMs,TimeUnit.MILLISECONDS);
+  pipelineData.get();
 }

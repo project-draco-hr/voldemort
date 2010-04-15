@@ -1,9 +1,9 @@
 {
-  ListStateData stateData=new ListStateData(Operation.GET);
-  final StateMachine stateMachine=new StateMachine();
+  ListStateData pipelineData=new ListStateData();
+  final Pipeline pipeline=new Pipeline(Operation.GET);
   NonblockingStoreRequest nonblockingStoreRequest=new NonblockingStoreRequest(){
     public void request(    Node node,    NonblockingStore store){
-      final NonblockingStoreCallback callback=new StateMachineEventNonblockingStoreCallback(stateMachine,node,key);
+      final NonblockingStoreCallback callback=new PipelineEventNonblockingStoreCallback(pipeline,node,key);
       store.submitGetRequest(key,callback);
     }
   }
@@ -14,24 +14,24 @@
     }
   }
 ;
-  Action configureNodes=createConfigureNodes(stateData,key,true);
-  Action performRequests=createPerformParallelRequests(stateData,true,nonblockingStoreRequest);
-  Action acknowledgeResponse=createAcknowledgeResponse(stateData,true,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,Event.INSUFFICIENT_SUCCESSES);
-  Action performSerialRequests=createPerformSerialRequests(stateData,key,true,blockingStoreRequest,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,null);
-  Action updateResults=createUpdateResults(stateData);
+  Action configureNodes=createConfigureNodes(pipelineData,key,true);
+  Action performRequests=createPerformParallelRequests(pipelineData,true,nonblockingStoreRequest);
+  Action acknowledgeResponse=createAcknowledgeResponse(pipelineData,true,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,Event.INSUFFICIENT_SUCCESSES);
+  Action performSerialRequests=createPerformSerialRequests(pipelineData,key,true,blockingStoreRequest,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,null);
+  Action updateResults=createUpdateResults(pipelineData);
   Map<Event,Action> eventActions=new HashMap<Event,Action>();
   eventActions.put(Event.STARTED,configureNodes);
   eventActions.put(Event.CONFIGURED,performRequests);
   eventActions.put(Event.RESPONSE_RECEIVED,acknowledgeResponse);
   if (repairReads) {
-    Action readRepair=createReadRepair(stateData,Event.COMPLETED);
+    Action readRepair=createReadRepair(pipelineData,Event.COMPLETED);
     eventActions.put(Event.RESPONSES_RECEIVED,readRepair);
   }
   eventActions.put(Event.INSUFFICIENT_SUCCESSES,performSerialRequests);
   eventActions.put(Event.COMPLETED,updateResults);
-  stateMachine.setEventActions(eventActions);
-  stateMachine.addEvent(Event.STARTED);
-  stateMachine.processEvents(stateData,timeoutMs,TimeUnit.MILLISECONDS);
-  List<Versioned<byte[]>> results=stateData.get();
+  pipeline.setEventActions(eventActions);
+  pipeline.addEvent(Event.STARTED);
+  pipeline.processEvents(timeoutMs,TimeUnit.MILLISECONDS);
+  List<Versioned<byte[]>> results=pipelineData.get();
   return results;
 }

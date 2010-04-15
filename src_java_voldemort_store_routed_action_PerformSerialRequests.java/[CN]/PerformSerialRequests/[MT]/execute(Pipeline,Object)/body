@@ -1,0 +1,41 @@
+{
+  List<Node> nodes=pipelineData.getNodes();
+  while (pipelineData.getSuccesses() < preferred && pipelineData.getNodeIndex() < nodes.size()) {
+    Node node=nodes.get(pipelineData.getNodeIndex());
+    long start=System.nanoTime();
+    try {
+      Store<ByteArray,byte[]> store=stores.get(node.getId());
+      Object result=storeRequest.request(node,store);
+      RequestCompletedCallback rcc=new RequestCompletedCallback(node,key,((System.nanoTime() - start) / Time.NS_PER_MS),result);
+      pipelineData.incrementSuccesses();
+      pipelineData.getInterimResults().add(rcc);
+      failureDetector.recordSuccess(rcc.getNode(),rcc.getRequestTime());
+    }
+ catch (    UnreachableStoreException e) {
+      pipelineData.recordFailure(e);
+      failureDetector.recordException(node,((System.nanoTime() - start) / Time.NS_PER_MS),e);
+    }
+catch (    VoldemortApplicationException e) {
+      pipelineData.setFatalError(e);
+      pipeline.addEvent(Event.ERROR);
+      return;
+    }
+catch (    Exception e) {
+      pipelineData.recordFailure(e);
+      if (logger.isEnabledFor(Level.WARN))       logger.warn("Error in " + pipeline.getOperation() + " on node "+ node.getId()+ "("+ node.getHost()+ ")",e);
+    }
+    pipelineData.incrementNodeIndex();
+  }
+  if (pipelineData.getSuccesses() < required) {
+    if (insufficientSuccessesEvent != null) {
+      pipeline.addEvent(insufficientSuccessesEvent);
+    }
+ else {
+      pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but "+ pipelineData.getSuccesses()+ " succeeded",pipelineData.getFailures()));
+      pipeline.addEvent(Event.ERROR);
+    }
+  }
+ else {
+    pipeline.addEvent(completeEvent);
+  }
+}

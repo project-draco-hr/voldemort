@@ -1,0 +1,13 @@
+{
+  for (  Node node : routingStrategy.routeRequest(key.get())) {
+    if (failureDetector.isAvailable(node))     pipelineData.addNode(node);
+  }
+  if (pipelineData.getNodes().size() < required) {
+    pipelineData.setFatalError(new InsufficientOperationalNodesException("Only " + pipelineData.getNodes().size() + " nodes in preference list, but "+ required+ " required."));
+    pipeline.addEvent(Event.ERROR);
+  }
+ else {
+    if (logger.isDebugEnabled())     logger.debug(pipelineData.getNodes().size() + " nodes in preference list");
+    pipeline.addEvent(completeEvent);
+  }
+}

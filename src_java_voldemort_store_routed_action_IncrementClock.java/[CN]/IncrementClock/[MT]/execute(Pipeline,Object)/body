@@ -1,0 +1,7 @@
+{
+  if (logger.isTraceEnabled())   logger.trace(pipeline.getOperation().getSimpleName() + " versioning data - was: " + versioned.getVersion());
+  VectorClock versionedClock=(VectorClock)versioned.getVersion();
+  versionedClock.incrementVersion(pipelineData.getMaster().getId(),time.getMilliseconds());
+  if (logger.isTraceEnabled())   logger.trace(pipeline.getOperation().getSimpleName() + " versioned data - now: " + versioned.getVersion());
+  pipeline.addEvent(completeEvent);
+}

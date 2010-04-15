@@ -1,0 +1,9 @@
+{
+  List<Object> results=new ArrayList<Object>();
+  for (  RequestCompletedCallback callback : pipelineData.getInterimResults()) {
+    if (callback.getResult() instanceof Collection<?>)     results.addAll((Collection<?>)callback.getResult());
+ else     results.add(callback.getResult());
+  }
+  pipelineData.setResults(results);
+  pipeline.addEvent(completeEvent);
+}
