@@ -1,0 +1,8 @@
+{
+  List<Node> nodes=new ArrayList<Node>();
+  for (  Node node : routingStrategy.routeRequest(key.get())) {
+    if (failureDetector.isAvailable(node))     nodes.add(node);
+  }
+  if (nodes.size() < required)   throw new InsufficientOperationalNodesException("Only " + nodes.size() + " nodes in preference list, but "+ required+ " required.");
+  return nodes;
+}

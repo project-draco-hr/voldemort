@@ -1,34 +1,12 @@
 {
   StoreUtils.assertValidKeys(keys);
+  GetAllPipelineData pipelineData=new GetAllPipelineData();
+  final Pipeline pipeline=new Pipeline(Operation.DELETE);
   Map<ByteArray,List<Versioned<byte[]>>> result=StoreUtils.newEmptyHashMap(keys);
-  Map<Node,List<ByteArray>> nodeToKeysMap=Maps.newHashMap();
-  Map<ByteArray,List<Node>> keyToExtraNodesMap=Maps.newHashMap();
-  for (  ByteArray key : keys) {
-    List<Node> availableNodes=availableNodes(routingStrategy.routeRequest(key.get()));
-    checkRequiredReads(availableNodes);
-    int preferredReads=storeDef.getPreferredReads();
-    List<Node> preferredNodes=Lists.newArrayListWithCapacity(preferredReads);
-    List<Node> extraNodes=Lists.newArrayListWithCapacity(3);
-    for (    Node node : availableNodes) {
-      if (preferredNodes.size() < preferredReads)       preferredNodes.add(node);
- else       extraNodes.add(node);
-    }
-    for (    Node node : preferredNodes) {
-      List<ByteArray> nodeKeys=nodeToKeysMap.get(node);
-      if (nodeKeys == null) {
-        nodeKeys=Lists.newArrayList();
-        nodeToKeysMap.put(node,nodeKeys);
-      }
-      nodeKeys.add(key);
-    }
-    if (!extraNodes.isEmpty()) {
-      List<Node> nodes=keyToExtraNodesMap.get(key);
-      if (nodes == null)       keyToExtraNodesMap.put(key,extraNodes);
- else       nodes.addAll(extraNodes);
-    }
-  }
+  Action configureNodes=createGetAllConfigureNodes(pipelineData,keys);
+  configureNodes.execute(pipeline,null);
   List<Callable<GetAllResult>> callables=Lists.newArrayList();
-  for (  Map.Entry<Node,List<ByteArray>> entry : nodeToKeysMap.entrySet()) {
+  for (  Map.Entry<Node,List<ByteArray>> entry : pipelineData.getNodeToKeysMap().entrySet()) {
     final Node node=entry.getKey();
     final Collection<ByteArray> nodeKeys=entry.getValue();
     if (failureDetector.isAvailable(node))     callables.add(new GetAllCallable(node,nodeKeys));
@@ -82,7 +60,7 @@ catch (    ExecutionException e) {
     MutableInt successCountWrapper=keyToSuccessCount.get(key);
     int successCount=successCountWrapper.intValue();
     if (successCount < storeDef.getPreferredReads()) {
-      List<Node> extraNodes=keyToExtraNodesMap.get(key);
+      List<Node> extraNodes=pipelineData.getKeyToExtraNodesMap().get(key);
       if (extraNodes != null) {
         for (        Node node : extraNodes) {
           long startNs=System.nanoTime();

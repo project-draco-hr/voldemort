@@ -1,0 +1,36 @@
+{
+  Map<Node,List<ByteArray>> nodeToKeysMap=Maps.newHashMap();
+  Map<ByteArray,List<Node>> keyToExtraNodesMap=Maps.newHashMap();
+  for (  ByteArray key : keys) {
+    List<Node> nodes=null;
+    try {
+      nodes=getNodes(key);
+    }
+ catch (    VoldemortException e) {
+      pipelineData.setFatalError(e);
+      pipeline.addEvent(Event.ERROR);
+      return;
+    }
+    List<Node> preferredNodes=Lists.newArrayListWithCapacity(preferred);
+    List<Node> extraNodes=Lists.newArrayListWithCapacity(3);
+    for (    Node node : nodes) {
+      if (preferredNodes.size() < preferred)       preferredNodes.add(node);
+ else       extraNodes.add(node);
+    }
+    for (    Node node : preferredNodes) {
+      List<ByteArray> nodeKeys=nodeToKeysMap.get(node);
+      if (nodeKeys == null) {
+        nodeKeys=Lists.newArrayList();
+        nodeToKeysMap.put(node,nodeKeys);
+      }
+      nodeKeys.add(key);
+    }
+    if (!extraNodes.isEmpty()) {
+      List<Node> list=keyToExtraNodesMap.get(key);
+      if (list == null)       keyToExtraNodesMap.put(key,extraNodes);
+ else       list.addAll(extraNodes);
+    }
+  }
+  pipelineData.setKeyToExtraNodesMap(keyToExtraNodesMap);
+  pipelineData.setNodeToKeysMap(nodeToKeysMap);
+}
