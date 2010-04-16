@@ -9,10 +9,10 @@
     }
   }
 ;
-  Action configureNodes=createConfigureNodes(pipelineData,key,true);
-  Action performRequests=createPerformParallelRequests(pipelineData,true,storeRequest);
-  Action acknowledgeResponse=createAcknowledgeResponse(pipelineData,true,Event.COMPLETED,null);
-  Action updateResults=createUpdateResults(pipelineData);
+  Action configureNodes=new ConfigureNodes(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredReads(),routingStrategy,key);
+  Action performRequests=new PerformParallelRequests(pipelineData,Event.NOP,storeDef.getPreferredReads(),nonblockingStores,storeRequest);
+  Action acknowledgeResponse=new AcknowledgeResponse(pipelineData,Event.COMPLETED,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),null);
+  Action updateResults=new UpdateResults(pipelineData);
   Map<Event,Action> eventActions=new HashMap<Event,Action>();
   eventActions.put(Event.STARTED,configureNodes);
   eventActions.put(Event.CONFIGURED,performRequests);

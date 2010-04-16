@@ -3,7 +3,7 @@
   GetAllPipelineData pipelineData=new GetAllPipelineData();
   final Pipeline pipeline=new Pipeline(Operation.DELETE);
   Map<ByteArray,List<Versioned<byte[]>>> result=StoreUtils.newEmptyHashMap(keys);
-  Action configureNodes=createGetAllConfigureNodes(pipelineData,keys);
+  Action configureNodes=new GetAllConfigureNodes(pipelineData,null,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),routingStrategy,keys);
   configureNodes.execute(pipeline,null);
   List<Callable<GetAllResult>> callables=Lists.newArrayList();
   for (  Map.Entry<Node,List<ByteArray>> entry : pipelineData.getNodeToKeysMap().entrySet()) {

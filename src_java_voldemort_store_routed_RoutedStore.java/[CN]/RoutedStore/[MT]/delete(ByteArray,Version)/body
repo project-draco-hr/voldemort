@@ -15,11 +15,11 @@
     }
   }
 ;
-  Action configureNodes=createConfigureNodes(pipelineData,key,false);
-  Action performRequests=createPerformParallelRequests(pipelineData,false,nonblockingDelete);
-  Action acknowledgeResponse=createAcknowledgeResponse(pipelineData,false,Event.COMPLETED,Event.INSUFFICIENT_SUCCESSES);
-  Action performSerialRequests=createPerformSerialRequests(pipelineData,key,false,blockingDelete,Event.COMPLETED,null);
-  Action updateResults=createUpdateResults(pipelineData);
+  Action configureNodes=new ConfigureNodes(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key);
+  Action performRequests=new PerformParallelRequests(pipelineData,Event.NOP,storeDef.getPreferredWrites(),nonblockingStores,nonblockingDelete);
+  Action acknowledgeResponse=new AcknowledgeResponse(pipelineData,Event.COMPLETED,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),Event.INSUFFICIENT_SUCCESSES);
+  Action performSerialRequests=new PerformSerialRequests(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),blockingDelete,null);
+  Action updateResults=new UpdateResults(pipelineData);
   Map<Event,Action> eventActions=new HashMap<Event,Action>();
   eventActions.put(Event.STARTED,configureNodes);
   eventActions.put(Event.CONFIGURED,performRequests);
