@@ -4,7 +4,7 @@
   final Pipeline pipeline=new Pipeline(Operation.GET_VERSIONS);
   NonblockingStoreRequest storeRequest=new NonblockingStoreRequest(){
     public void request(    Node node,    NonblockingStore store){
-      final NonblockingStoreCallback callback=new PipelineEventNonblockingStoreCallback(pipeline,node,key);
+      NonblockingStoreCallback callback=new BasicResponseCallback<ByteArray>(pipeline,node,key);
       store.submitGetVersionsRequest(key,callback);
     }
   }
@@ -21,6 +21,6 @@
   pipeline.processEvents(timeoutMs,TimeUnit.MILLISECONDS);
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   List<Version> results=new ArrayList<Version>();
-  for (  Response<List<Version>> response : pipelineData.getResponses())   results.addAll(response.getValue());
+  for (  Response<ByteArray,List<Version>> response : pipelineData.getResponses())   results.addAll(response.getValue());
   return results;
 }

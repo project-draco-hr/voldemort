@@ -4,7 +4,7 @@
   final Pipeline pipeline=new Pipeline(Operation.DELETE);
   NonblockingStoreRequest nonblockingDelete=new NonblockingStoreRequest(){
     public void request(    Node node,    NonblockingStore store){
-      final NonblockingStoreCallback callback=new PipelineEventNonblockingStoreCallback(pipeline,node,key);
+      NonblockingStoreCallback callback=new BasicResponseCallback<ByteArray>(pipeline,node,key);
       store.submitDeleteRequest(key,version,callback);
     }
   }
@@ -28,7 +28,7 @@
   pipeline.addEvent(Event.STARTED);
   pipeline.processEvents(timeoutMs,TimeUnit.MILLISECONDS);
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
-  for (  Response<Boolean> response : pipelineData.getResponses()) {
+  for (  Response<ByteArray,Boolean> response : pipelineData.getResponses()) {
     if (response.getValue().booleanValue())     return true;
   }
   return false;

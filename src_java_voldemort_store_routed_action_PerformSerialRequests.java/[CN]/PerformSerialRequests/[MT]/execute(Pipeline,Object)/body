@@ -6,7 +6,7 @@
     try {
       Store<ByteArray,byte[]> store=stores.get(node.getId());
       V result=storeRequest.request(node,store);
-      Response<V> response=new Response<V>(node,key,result,((System.nanoTime() - start) / Time.NS_PER_MS));
+      Response<ByteArray,V> response=new Response<ByteArray,V>(node,key,result,((System.nanoTime() - start) / Time.NS_PER_MS));
       pipelineData.incrementSuccesses();
       pipelineData.getResponses().add(response);
       failureDetector.recordSuccess(response.getNode(),response.getRequestTime());

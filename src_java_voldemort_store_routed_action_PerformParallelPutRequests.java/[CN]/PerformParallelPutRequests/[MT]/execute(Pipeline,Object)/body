@@ -9,7 +9,7 @@
     attempts++;
     Node node=nodes.get(currentNode);
     NonblockingStore store=nonblockingStores.get(node.getId());
-    NonblockingStoreCallback callback=new PipelineEventNonblockingStoreCallback(pipeline,node,key);
+    NonblockingStoreCallback callback=new BasicResponseCallback<ByteArray>(pipeline,node,key);
     if (logger.isTraceEnabled())     logger.trace("Submitting request to put on node " + node.getId());
     store.submitPutRequest(key,versionedCopy,callback);
   }

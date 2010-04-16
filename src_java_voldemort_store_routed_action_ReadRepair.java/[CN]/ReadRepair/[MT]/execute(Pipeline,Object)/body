@@ -1,7 +1,7 @@
 {
   List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayListWithExpectedSize(pipelineData.getResponses().size());
   Map<Integer,Node> nodes=new HashMap<Integer,Node>();
-  for (  Response<List<Versioned<byte[]>>> response : pipelineData.getResponses()) {
+  for (  Response<ByteArray,List<Versioned<byte[]>>> response : pipelineData.getResponses()) {
     List<Versioned<byte[]>> result=response.getValue();
     if (result.size() == 0) {
       nodeValues.add(new NodeValue<ByteArray,byte[]>(response.getNode().getId(),response.getKey(),new Versioned<byte[]>(null)));
@@ -22,7 +22,7 @@
         if (logger.isDebugEnabled())         logger.debug("Doing read repair on node " + v.getNodeId() + " for key '"+ v.getKey()+ "' with version "+ v.getVersion()+ ".");
         Node node=nodes.get(v.getNodeId());
         NonblockingStore store=nonblockingStores.get(node.getId());
-        NonblockingStoreCallback callback=new PipelineEventNonblockingStoreCallback(pipeline,node,v.getKey());
+        NonblockingStoreCallback callback=new BasicResponseCallback<ByteArray>(pipeline,node,v.getKey());
         store.submitPutRequest(v.getKey(),v.getVersioned(),callback);
       }
  catch (      VoldemortApplicationException e) {
