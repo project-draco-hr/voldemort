@@ -1,98 +1,28 @@
 {
   StoreUtils.assertValidKeys(keys);
   GetAllPipelineData pipelineData=new GetAllPipelineData();
-  final Pipeline pipeline=new Pipeline(Operation.DELETE);
-  Map<ByteArray,List<Versioned<byte[]>>> result=StoreUtils.newEmptyHashMap(keys);
-  Action configureNodes=new GetAllConfigureNodes(pipelineData,null,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),routingStrategy,keys);
-  configureNodes.execute(pipeline,null);
-  List<Callable<GetAllResult>> callables=Lists.newArrayList();
-  for (  Map.Entry<Node,List<ByteArray>> entry : pipelineData.getNodeToKeysMap().entrySet()) {
-    final Node node=entry.getKey();
-    final Collection<ByteArray> nodeKeys=entry.getValue();
-    if (failureDetector.isAvailable(node))     callables.add(new GetAllCallable(node,nodeKeys));
+  Pipeline pipeline=new Pipeline(Operation.GET_ALL);
+  Action configureNodes=new GetAllConfigureNodes(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),routingStrategy,keys);
+  Action performParallelRequests=new PerformParallelGetAllRequests(pipelineData,null,storeDef.getPreferredReads(),nonblockingStores);
+  Action acknowledgeResponse=new GetAllAcknowledgeResponse(pipelineData,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,failureDetector);
+  Action performSerialRequests=new PerformSerialGetAllRequests(pipelineData,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,keys,failureDetector,innerStores,storeDef.getPreferredReads(),storeDef.getRequiredReads());
+  Map<Event,Action> eventActions=new HashMap<Event,Action>();
+  eventActions.put(Event.STARTED,configureNodes);
+  eventActions.put(Event.CONFIGURED,performParallelRequests);
+  eventActions.put(Event.RESPONSE_RECEIVED,acknowledgeResponse);
+  if (repairReads) {
+    Action readRepair=null;
+    eventActions.put(Event.RESPONSES_RECEIVED,readRepair);
   }
-  List<Throwable> failures=Lists.newArrayList();
-  List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayList();
-  Map<ByteArray,MutableInt> keyToSuccessCount=Maps.newHashMap();
-  for (  ByteArray key : keys)   keyToSuccessCount.put(key,new MutableInt(0));
-  List<Future<GetAllResult>> futures;
-  try {
-    futures=executor.invokeAll(callables,timeoutMs * 3,TimeUnit.MILLISECONDS);
-  }
- catch (  InterruptedException e) {
-    throw new InsufficientOperationalNodesException("getAll operation interrupted.",e);
-  }
-  for (  Future<GetAllResult> f : futures) {
-    if (f.isCancelled()) {
-      logger.warn("Get operation timed out after " + timeoutMs + " ms.");
-      continue;
-    }
-    try {
-      GetAllResult getResult=f.get();
-      if (getResult.exception != null) {
-        if (getResult.exception instanceof VoldemortApplicationException) {
-          throw (VoldemortException)getResult.exception;
-        }
-        failures.add(getResult.exception);
-        continue;
-      }
-      for (      ByteArray key : getResult.callable.nodeKeys) {
-        List<Versioned<byte[]>> retrieved=getResult.retrieved.get(key);
-        MutableInt successCount=keyToSuccessCount.get(key);
-        successCount.increment();
-        if (retrieved != null) {
-          List<Versioned<byte[]>> existing=result.get(key);
-          if (existing == null)           result.put(key,Lists.newArrayList(retrieved));
- else           existing.addAll(retrieved);
-        }
-      }
-      nodeValues.addAll(getResult.nodeValues);
-    }
- catch (    InterruptedException e) {
-      throw new InsufficientOperationalNodesException("getAll operation interrupted.",e);
-    }
-catch (    ExecutionException e) {
-      if (e.getCause() instanceof Error)       throw (Error)e.getCause();
- else       logger.error(e.getMessage(),e);
-    }
-  }
+  eventActions.put(Event.INSUFFICIENT_SUCCESSES,performSerialRequests);
+  pipeline.setEventActions(eventActions);
+  pipeline.addEvent(Event.STARTED);
+  pipeline.processEvents(timeoutMs,TimeUnit.MILLISECONDS);
+  if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   for (  ByteArray key : keys) {
-    MutableInt successCountWrapper=keyToSuccessCount.get(key);
-    int successCount=successCountWrapper.intValue();
-    if (successCount < storeDef.getPreferredReads()) {
-      List<Node> extraNodes=pipelineData.getKeyToExtraNodesMap().get(key);
-      if (extraNodes != null) {
-        for (        Node node : extraNodes) {
-          long startNs=System.nanoTime();
-          try {
-            List<Versioned<byte[]>> values=innerStores.get(node.getId()).get(key);
-            fillRepairReadsValues(nodeValues,key,node,values);
-            List<Versioned<byte[]>> versioneds=result.get(key);
-            if (versioneds == null)             result.put(key,Lists.newArrayList(values));
- else             versioneds.addAll(values);
-            recordSuccess(node,startNs);
-            if (++successCount >= storeDef.getPreferredReads())             break;
-          }
- catch (          UnreachableStoreException e) {
-            failures.add(e);
-            recordException(node,startNs,e);
-          }
-catch (          VoldemortApplicationException e) {
-            throw e;
-          }
-catch (          Exception e) {
-            logger.warn("Error in GET_ALL on node " + node.getId() + "("+ node.getHost()+ ")",e);
-            failures.add(e);
-          }
-        }
-      }
-    }
-    successCountWrapper.setValue(successCount);
+    MutableInt successCount=pipelineData.getSuccessCount(key);
+    if (successCount.intValue() < storeDef.getRequiredReads())     throw new InsufficientOperationalNodesException(this.storeDef.getRequiredReads() + " reads required, but " + successCount+ " succeeded.",pipelineData.getFailures());
   }
-  repairReads(nodeValues);
-  for (  Map.Entry<ByteArray,MutableInt> mapEntry : keyToSuccessCount.entrySet()) {
-    int successCount=mapEntry.getValue().intValue();
-    if (successCount < storeDef.getRequiredReads())     throw new InsufficientOperationalNodesException(this.storeDef.getRequiredReads() + " reads required, but " + successCount+ " succeeded.",failures);
-  }
-  return result;
+  Map<ByteArray,List<Versioned<byte[]>>> results=new HashMap<ByteArray,List<Versioned<byte[]>>>();
+  return results;
 }

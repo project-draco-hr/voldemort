@@ -1,0 +1,21 @@
+{
+  if (!checkError(pipeline,response)) {
+    pipelineData.incrementSuccesses();
+    pipelineData.getResponses().add(response);
+    failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
+  }
+  if (logger.isDebugEnabled())   logger.debug("Response received, successes: " + pipelineData.getSuccesses() + ", preferred: "+ preferred+ ", required: "+ required);
+  if (pipelineData.getCompleted() == pipelineData.getAttempts() && pipelineData.getSuccesses() < required) {
+    if (insufficientSuccessesEvent != null) {
+      pipeline.addEvent(insufficientSuccessesEvent);
+    }
+ else {
+      pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but "+ pipelineData.getSuccesses()+ " succeeded",pipelineData.getFailures()));
+      pipeline.addEvent(Event.ERROR);
+    }
+  }
+ else   if (pipelineData.getSuccesses() >= preferred && !isComplete) {
+    isComplete=true;
+    pipeline.addEvent(completeEvent);
+  }
+}

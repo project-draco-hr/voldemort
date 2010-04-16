@@ -3,14 +3,14 @@
   PutPipelineData pipelineData=new PutPipelineData();
   Pipeline pipeline=new Pipeline(Operation.PUT);
   Action configureNodes=new ConfigureNodes<Void,PutPipelineData>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key);
-  Action performSerialPutRequests=new PerformSerialPutRequests(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getRequiredWrites(),versioned,time,Event.MASTER_DETERMINED);
-  Action performParallelPutRequests=new PerformParallelPutRequests(pipelineData,Event.NOP,key,nonblockingStores);
+  Action performSerialRequests=new PerformSerialPutRequests(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getRequiredWrites(),versioned,time,Event.MASTER_DETERMINED);
+  Action performParallelRequests=new PerformParallelPutRequests(pipelineData,Event.NOP,key,nonblockingStores);
   Action acknowledgeResponse=new AcknowledgeResponse<Void,PutPipelineData>(pipelineData,Event.RESPONSES_RECEIVED,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),null);
   Action incrementClock=new IncrementClock(pipelineData,Event.COMPLETED,versioned,time);
   Map<Event,Action> eventActions=new HashMap<Event,Action>();
   eventActions.put(Event.STARTED,configureNodes);
-  eventActions.put(Event.CONFIGURED,performSerialPutRequests);
-  eventActions.put(Event.MASTER_DETERMINED,performParallelPutRequests);
+  eventActions.put(Event.CONFIGURED,performSerialRequests);
+  eventActions.put(Event.MASTER_DETERMINED,performParallelRequests);
   eventActions.put(Event.RESPONSE_RECEIVED,acknowledgeResponse);
   eventActions.put(Event.RESPONSES_RECEIVED,incrementClock);
   pipeline.setEventActions(eventActions);
