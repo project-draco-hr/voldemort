@@ -1,15 +1,15 @@
 {
-  List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayListWithExpectedSize(pipelineData.getInterimResults().size());
+  List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayListWithExpectedSize(pipelineData.getResponses().size());
   Map<Integer,Node> nodes=new HashMap<Integer,Node>();
-  for (  RequestCompletedCallback rcc : pipelineData.getInterimResults()) {
-    List<Versioned<byte[]>> result=(List<Versioned<byte[]>>)rcc.getResult();
+  for (  Response<List<Versioned<byte[]>>> response : pipelineData.getResponses()) {
+    List<Versioned<byte[]>> result=response.getValue();
     if (result.size() == 0) {
-      nodeValues.add(new NodeValue<ByteArray,byte[]>(rcc.getNode().getId(),rcc.getKey(),new Versioned<byte[]>(null)));
+      nodeValues.add(new NodeValue<ByteArray,byte[]>(response.getNode().getId(),response.getKey(),new Versioned<byte[]>(null)));
     }
  else {
-      for (      Versioned<byte[]> versioned : result)       nodeValues.add(new NodeValue<ByteArray,byte[]>(rcc.getNode().getId(),rcc.getKey(),versioned));
+      for (      Versioned<byte[]> versioned : result)       nodeValues.add(new NodeValue<ByteArray,byte[]>(response.getNode().getId(),response.getKey(),versioned));
     }
-    nodes.put(rcc.getNode().getId(),rcc.getNode());
+    nodes.put(response.getNode().getId(),response.getNode());
   }
   if (nodeValues.size() > 1 && preferred > 1) {
     final List<NodeValue<ByteArray,byte[]>> toReadRepair=Lists.newArrayList();

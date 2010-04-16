@@ -1,10 +1,10 @@
 {
-  RequestCompletedCallback rcc=(RequestCompletedCallback)eventData;
+  Response<V> response=(Response<V>)eventData;
   pipelineData.incrementCompleted();
-  if (rcc.getResult() instanceof Exception) {
-    Node node=rcc.getNode();
-    Exception e=(Exception)rcc.getResult();
-    long requestTime=rcc.getRequestTime();
+  if (response.getValue() instanceof Exception) {
+    Node node=response.getNode();
+    Exception e=(Exception)response.getValue();
+    long requestTime=response.getRequestTime();
     if (e instanceof UnreachableStoreException) {
       pipelineData.recordFailure(e);
       failureDetector.recordException(node,requestTime,(UnreachableStoreException)e);
@@ -21,8 +21,8 @@
   }
  else {
     pipelineData.incrementSuccesses();
-    pipelineData.getInterimResults().add(rcc);
-    failureDetector.recordSuccess(rcc.getNode(),rcc.getRequestTime());
+    pipelineData.getResponses().add(response);
+    failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
   }
   if (logger.isDebugEnabled())   logger.debug("Response received, successes: " + pipelineData.getSuccesses() + ", attempts: "+ pipelineData.getAttempts()+ ", completed: "+ pipelineData.getCompleted()+ ", preferred: "+ preferred+ ", required: "+ required);
   if (pipelineData.getCompleted() == pipelineData.getAttempts() && pipelineData.getSuccesses() < required) {

@@ -2,19 +2,19 @@
   StoreUtils.assertValidKey(key);
   PutPipelineData pipelineData=new PutPipelineData();
   Pipeline pipeline=new Pipeline(Operation.PUT);
-  Action configureNodes=new ConfigureNodes(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key);
+  Action configureNodes=new ConfigureNodes<Void,PutPipelineData>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key);
   Action performSerialPutRequests=new PerformSerialPutRequests(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getRequiredWrites(),versioned,time,Event.MASTER_DETERMINED);
   Action performParallelPutRequests=new PerformParallelPutRequests(pipelineData,Event.NOP,key,nonblockingStores);
-  Action acknowledgeResponse=new AcknowledgeResponse(pipelineData,Event.COMPLETED,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),null);
-  Action incrementClock=new IncrementClock(pipelineData,Event.STOPPED,versioned,time);
+  Action acknowledgeResponse=new AcknowledgeResponse<Void,PutPipelineData>(pipelineData,Event.RESPONSES_RECEIVED,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),null);
+  Action incrementClock=new IncrementClock(pipelineData,Event.COMPLETED,versioned,time);
   Map<Event,Action> eventActions=new HashMap<Event,Action>();
   eventActions.put(Event.STARTED,configureNodes);
   eventActions.put(Event.CONFIGURED,performSerialPutRequests);
   eventActions.put(Event.MASTER_DETERMINED,performParallelPutRequests);
   eventActions.put(Event.RESPONSE_RECEIVED,acknowledgeResponse);
-  eventActions.put(Event.COMPLETED,incrementClock);
+  eventActions.put(Event.RESPONSES_RECEIVED,incrementClock);
   pipeline.setEventActions(eventActions);
   pipeline.addEvent(Event.STARTED);
   pipeline.processEvents(timeoutMs,TimeUnit.MILLISECONDS);
-  pipelineData.get();
+  if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
 }

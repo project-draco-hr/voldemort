@@ -5,11 +5,11 @@
     long start=System.nanoTime();
     try {
       Store<ByteArray,byte[]> store=stores.get(node.getId());
-      Object result=storeRequest.request(node,store);
-      RequestCompletedCallback rcc=new RequestCompletedCallback(node,key,((System.nanoTime() - start) / Time.NS_PER_MS),result);
+      V result=storeRequest.request(node,store);
+      Response<V> response=new Response<V>(node,key,result,((System.nanoTime() - start) / Time.NS_PER_MS));
       pipelineData.incrementSuccesses();
-      pipelineData.getInterimResults().add(rcc);
-      failureDetector.recordSuccess(rcc.getNode(),rcc.getRequestTime());
+      pipelineData.getResponses().add(response);
+      failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
     }
  catch (    UnreachableStoreException e) {
       pipelineData.recordFailure(e);

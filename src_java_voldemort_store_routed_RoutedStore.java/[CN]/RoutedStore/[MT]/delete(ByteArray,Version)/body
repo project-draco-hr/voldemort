@@ -1,6 +1,6 @@
 {
   StoreUtils.assertValidKey(key);
-  BasicPipelineData pipelineData=new BasicPipelineData();
+  BasicPipelineData<Boolean> pipelineData=new BasicPipelineData<Boolean>();
   final Pipeline pipeline=new Pipeline(Operation.DELETE);
   NonblockingStoreRequest nonblockingDelete=new NonblockingStoreRequest(){
     public void request(    Node node,    NonblockingStore store){
@@ -9,29 +9,27 @@
     }
   }
 ;
-  BlockingStoreRequest blockingDelete=new BlockingStoreRequest(){
-    public Object request(    Node node,    Store<ByteArray,byte[]> store){
+  BlockingStoreRequest<Boolean> blockingDelete=new BlockingStoreRequest<Boolean>(){
+    public Boolean request(    Node node,    Store<ByteArray,byte[]> store){
       return store.delete(key,version);
     }
   }
 ;
-  Action configureNodes=new ConfigureNodes(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key);
-  Action performRequests=new PerformParallelRequests(pipelineData,Event.NOP,storeDef.getPreferredWrites(),nonblockingStores,nonblockingDelete);
-  Action acknowledgeResponse=new AcknowledgeResponse(pipelineData,Event.COMPLETED,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),Event.INSUFFICIENT_SUCCESSES);
-  Action performSerialRequests=new PerformSerialRequests(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),blockingDelete,null);
-  Action updateResults=new UpdateResults(pipelineData);
+  Action configureNodes=new ConfigureNodes<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key);
+  Action performRequests=new PerformParallelRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.NOP,storeDef.getPreferredWrites(),nonblockingStores,nonblockingDelete);
+  Action acknowledgeResponse=new AcknowledgeResponse<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.COMPLETED,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),Event.INSUFFICIENT_SUCCESSES);
+  Action performSerialRequests=new PerformSerialRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),blockingDelete,null);
   Map<Event,Action> eventActions=new HashMap<Event,Action>();
   eventActions.put(Event.STARTED,configureNodes);
   eventActions.put(Event.CONFIGURED,performRequests);
   eventActions.put(Event.RESPONSE_RECEIVED,acknowledgeResponse);
   eventActions.put(Event.INSUFFICIENT_SUCCESSES,performSerialRequests);
-  eventActions.put(Event.COMPLETED,updateResults);
   pipeline.setEventActions(eventActions);
   pipeline.addEvent(Event.STARTED);
   pipeline.processEvents(timeoutMs,TimeUnit.MILLISECONDS);
-  List<Boolean> results=pipelineData.get();
-  for (  Boolean b : results) {
-    if (b.booleanValue())     return true;
+  if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
+  for (  Response<Boolean> response : pipelineData.getResponses()) {
+    if (response.getValue().booleanValue())     return true;
   }
   return false;
 }
