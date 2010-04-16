@@ -11,7 +11,7 @@
   eventActions.put(Event.CONFIGURED,performParallelRequests);
   eventActions.put(Event.RESPONSE_RECEIVED,acknowledgeResponse);
   if (repairReads) {
-    Action readRepair=null;
+    Action readRepair=new GetAllReadRepair(pipelineData,Event.COMPLETED,storeDef.getPreferredReads(),nonblockingStores,readRepairer);
     eventActions.put(Event.RESPONSES_RECEIVED,readRepair);
   }
   eventActions.put(Event.INSUFFICIENT_SUCCESSES,performSerialRequests);
@@ -24,5 +24,10 @@
     if (successCount.intValue() < storeDef.getRequiredReads())     throw new InsufficientOperationalNodesException(this.storeDef.getRequiredReads() + " reads required, but " + successCount+ " succeeded.",pipelineData.getFailures());
   }
   Map<ByteArray,List<Versioned<byte[]>>> results=new HashMap<ByteArray,List<Versioned<byte[]>>>();
+  for (  Response<Iterable<ByteArray>,Map<ByteArray,List<Versioned<byte[]>>>> response : pipelineData.getResponses()) {
+    for (    ByteArray key : response.getKey()) {
+      System.out.println(response.getValue().get(key));
+    }
+  }
   return results;
 }
