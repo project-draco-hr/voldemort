@@ -4,7 +4,7 @@
   Pipeline pipeline=new Pipeline(Operation.GET_ALL);
   Action configureNodes=new GetAllConfigureNodes(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),routingStrategy,keys);
   Action performParallelRequests=new PerformParallelGetAllRequests(pipelineData,null,storeDef.getPreferredReads(),nonblockingStores);
-  Action acknowledgeResponse=new GetAllAcknowledgeResponse(pipelineData,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,failureDetector);
+  Action acknowledgeResponse=new GetAllAcknowledgeResponse(pipelineData,Event.INSUFFICIENT_SUCCESSES,failureDetector);
   Action performSerialRequests=new PerformSerialGetAllRequests(pipelineData,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,keys,failureDetector,innerStores,storeDef.getPreferredReads(),storeDef.getRequiredReads());
   Map<Event,Action> eventActions=new HashMap<Event,Action>();
   eventActions.put(Event.STARTED,configureNodes);
@@ -19,15 +19,5 @@
   pipeline.addEvent(Event.STARTED);
   pipeline.processEvents(timeoutMs,TimeUnit.MILLISECONDS);
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
-  for (  ByteArray key : keys) {
-    MutableInt successCount=pipelineData.getSuccessCount(key);
-    if (successCount.intValue() < storeDef.getRequiredReads())     throw new InsufficientOperationalNodesException(this.storeDef.getRequiredReads() + " reads required, but " + successCount+ " succeeded.",pipelineData.getFailures());
-  }
-  Map<ByteArray,List<Versioned<byte[]>>> results=new HashMap<ByteArray,List<Versioned<byte[]>>>();
-  for (  Response<Iterable<ByteArray>,Map<ByteArray,List<Versioned<byte[]>>>> response : pipelineData.getResponses()) {
-    for (    ByteArray key : response.getKey()) {
-      System.out.println(response.getValue().get(key));
-    }
-  }
-  return results;
+  return pipelineData.getResult();
 }

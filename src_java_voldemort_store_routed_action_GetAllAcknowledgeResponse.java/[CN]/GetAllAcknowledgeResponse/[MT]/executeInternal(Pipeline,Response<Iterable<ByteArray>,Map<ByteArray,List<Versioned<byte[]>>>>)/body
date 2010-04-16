@@ -1,8 +1,16 @@
 {
   if (!checkError(pipeline,response)) {
+    Map<ByteArray,List<Versioned<byte[]>>> responseValue=response.getValue();
     for (    ByteArray key : response.getKey()) {
+      if (logger.isTraceEnabled())       logger.trace("Response received from " + response.getNode().getId() + " for "+ pipeline.getOperation().getSimpleName());
       MutableInt successCount=pipelineData.getSuccessCount(key);
       successCount.increment();
+      List<Versioned<byte[]>> retrieved=responseValue.get(key);
+      if (retrieved != null) {
+        List<Versioned<byte[]>> existing=pipelineData.getResult().get(key);
+        if (existing == null)         pipelineData.getResult().put(key,Lists.newArrayList(retrieved));
+ else         existing.addAll(retrieved);
+      }
     }
     pipelineData.getResponses().add(response);
     failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
