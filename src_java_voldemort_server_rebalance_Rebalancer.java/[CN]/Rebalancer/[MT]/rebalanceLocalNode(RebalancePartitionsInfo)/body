@@ -1,7 +1,10 @@
 {
-  if (!acquireRebalancingPermit()) {
-    RebalancePartitionsInfo info=metadataStore.getRebalancingStealInfo().get(0);
-    throw new AlreadyRebalancingException("Node " + metadataStore.getCluster().getNodeById(info.getStealerId()) + " is already rebalancing from "+ info.getDonorId()+ " rebalanceInfo:"+ info);
+  if (!acquireRebalancingPermit(stealInfo.getDonorId())) {
+    for (    RebalancePartitionsInfo info : metadataStore.getRebalancingStealInfo()) {
+      if (info.getDonorId() == stealInfo.getDonorId()) {
+        throw new AlreadyRebalancingException("Node " + metadataStore.getCluster().getNodeById(info.getStealerId()) + " is already rebalancing from "+ info.getDonorId()+ " rebalanceInfo:"+ info);
+      }
+    }
   }
   checkCurrentState(metadataStore,stealInfo);
   setRebalancingState(metadataStore,stealInfo);
@@ -44,7 +47,7 @@
         }
       }
   finally {
-        releaseRebalancingPermit();
+        releaseRebalancingPermit(stealInfo.getDonorId());
         adminClient.stop();
         adminClient=null;
       }
