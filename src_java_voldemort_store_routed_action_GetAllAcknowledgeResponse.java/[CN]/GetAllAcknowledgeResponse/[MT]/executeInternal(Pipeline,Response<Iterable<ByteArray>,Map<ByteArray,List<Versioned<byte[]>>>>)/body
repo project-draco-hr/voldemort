@@ -1,0 +1,11 @@
+{
+  if (!checkError(pipeline,response)) {
+    for (    ByteArray key : response.getKey()) {
+      MutableInt successCount=pipelineData.getSuccessCount(key);
+      successCount.increment();
+    }
+    pipelineData.getResponses().add(response);
+    failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
+  }
+  if (pipelineData.getCompleted() == pipelineData.getAttempts())   pipeline.addEvent(completeEvent);
+}

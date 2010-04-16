@@ -1,0 +1,19 @@
+{
+  if (!(response.getValue() instanceof Exception))   return false;
+  Node node=response.getNode();
+  Exception e=(Exception)response.getValue();
+  long requestTime=response.getRequestTime();
+  if (e instanceof UnreachableStoreException) {
+    pipelineData.recordFailure(e);
+    failureDetector.recordException(node,requestTime,(UnreachableStoreException)e);
+  }
+ else   if (e instanceof VoldemortApplicationException) {
+    pipelineData.setFatalError((VoldemortApplicationException)e);
+    pipeline.addEvent(Event.ERROR);
+  }
+ else {
+    pipelineData.recordFailure(e);
+    if (logger.isEnabledFor(Level.WARN))     logger.warn("Error in " + pipeline.getOperation() + " on node "+ node.getId()+ "("+ node.getHost()+ ")",e);
+  }
+  return true;
+}

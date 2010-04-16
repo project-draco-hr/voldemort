@@ -1,0 +1,37 @@
+{
+  for (  ByteArray key : keys) {
+    MutableInt successCount=pipelineData.getSuccessCount(key);
+    if (successCount.intValue() >= preferred)     continue;
+    List<Node> extraNodes=pipelineData.getKeyToExtraNodesMap().get(key);
+    if (extraNodes == null)     continue;
+    for (    Node node : extraNodes) {
+      long start=System.nanoTime();
+      try {
+        Store<ByteArray,byte[]> store=stores.get(node.getId());
+        List<Versioned<byte[]>> result=store.get(key);
+        Map<ByteArray,List<Versioned<byte[]>>> map=new HashMap<ByteArray,List<Versioned<byte[]>>>();
+        map.put(key,result);
+        Response<Iterable<ByteArray>,Map<ByteArray,List<Versioned<byte[]>>>> response=new Response<Iterable<ByteArray>,Map<ByteArray,List<Versioned<byte[]>>>>(node,Arrays.asList(key),map,((System.nanoTime() - start) / Time.NS_PER_MS));
+        successCount.increment();
+        pipelineData.getResponses().add(response);
+        failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
+        if (successCount.intValue() >= preferred)         break;
+      }
+ catch (      UnreachableStoreException e) {
+        if (logger.isTraceEnabled())         logger.trace("GetAll on node " + node.getId() + " failed: "+ e);
+        pipelineData.recordFailure(e);
+        long requestTime=(System.nanoTime() - start) / Time.NS_PER_MS;
+        failureDetector.recordException(node,requestTime,e);
+      }
+catch (      VoldemortApplicationException e) {
+        pipelineData.setFatalError(e);
+        pipeline.addEvent(Event.ERROR);
+        return;
+      }
+catch (      Exception e) {
+        if (logger.isTraceEnabled())         logger.trace("GetAll on node " + node.getId() + " failed: "+ e);
+        pipelineData.recordFailure(e);
+      }
+    }
+  }
+}
