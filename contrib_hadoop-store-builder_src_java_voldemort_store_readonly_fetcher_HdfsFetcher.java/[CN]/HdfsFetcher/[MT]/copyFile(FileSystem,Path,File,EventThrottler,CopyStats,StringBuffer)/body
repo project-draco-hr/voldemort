@@ -10,6 +10,7 @@
       int read=input.read(buffer);
       if (read < 0)       break;
       output.write(buffer,0,read);
+      checkSumBuffer.append(new String(buffer,0,read));
       if (throttler != null)       throttler.maybeThrottle(read);
       stats.recordBytes(read);
       if (stats.getBytesSinceLastReport() > REPORTING_INTERVAL_BYTES) {

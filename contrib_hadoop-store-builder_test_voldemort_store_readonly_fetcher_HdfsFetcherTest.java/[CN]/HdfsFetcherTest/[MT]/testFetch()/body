@@ -1,10 +1,28 @@
 {
-  File testFile=File.createTempFile("test",".dat");
+  File testDirectory=TestUtils.createTempDir();
+  if (testDirectory.list().length > 0) {
+    File[] files=testDirectory.listFiles();
+    for (    File file : files) {
+      file.delete();
+    }
+  }
+ else {
+    testDirectory.mkdirs();
+  }
+  File testFile=File.createTempFile("test",".dat",testDirectory);
+  testFile.createNewFile();
   HdfsFetcher fetcher=new HdfsFetcher();
-  File fetchedFile=fetcher.fetch(testFile.getAbsolutePath(),"storeName");
-  InputStream orig=new FileInputStream(testFile);
-  byte[] origBytes=IOUtils.toByteArray(orig);
-  InputStream fetched=new FileInputStream(fetchedFile);
-  byte[] fetchedBytes=IOUtils.toByteArray(fetched);
-  assertTrue("Fetched bytes not equal to original bytes.",0 == ByteUtils.compare(origBytes,fetchedBytes));
+  File fetchedFile=fetcher.fetch(testDirectory.getAbsolutePath(),"storeName");
+  assertNotNull(fetchedFile);
+  File checkSumFile=new File(testDirectory,"checkSum.txt");
+  checkSumFile.createNewFile();
+  fetchedFile=fetcher.fetch(testDirectory.getAbsolutePath(),"storeName");
+  assertNull(fetchedFile);
+  byte[] fileBytes=TestUtils.readBytes(testDirectory.listFiles());
+  checkSumFile=new File(testDirectory,"checkSum.txt");
+  DataOutputStream os=new DataOutputStream(new FileOutputStream(checkSumFile));
+  os.write(ByteUtils.md5(fileBytes));
+  os.close();
+  fetchedFile=fetcher.fetch(testDirectory.getAbsolutePath(),"storeName");
+  assertNotNull(fetchedFile);
 }

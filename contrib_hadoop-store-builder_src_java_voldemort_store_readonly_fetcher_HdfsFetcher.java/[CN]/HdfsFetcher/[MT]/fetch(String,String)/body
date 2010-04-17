@@ -12,8 +12,14 @@
     File storeDir=new File(this.tempDir,storeName);
     storeDir.mkdir();
     File destination=new File(storeDir.getAbsoluteFile(),path.getName());
-    fetch(fs,path,destination,throttler,stats);
-    return destination;
+    boolean result=fetch(fs,path,destination,throttler,stats);
+    if (result) {
+      return destination;
+    }
+ else {
+      logger.error("Check sum failed for " + fileUrl);
+      return null;
+    }
   }
   finally {
     JmxUtils.unregisterMbean(jmxName);
