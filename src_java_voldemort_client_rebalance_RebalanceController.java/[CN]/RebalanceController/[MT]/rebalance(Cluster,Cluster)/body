@@ -16,38 +16,57 @@
         while (!rebalanceClusterPlan.getRebalancingTaskQueue().isEmpty()) {
           RebalanceNodePlan rebalanceTask=rebalanceClusterPlan.getRebalancingTaskQueue().poll();
           if (null != rebalanceTask) {
-            int stealerNodeId=rebalanceTask.getStealerNode();
-            List<RebalancePartitionsInfo> rebalanceSubTaskList=rebalanceTask.getRebalanceTaskList();
-            while (rebalanceSubTaskList.size() > 0) {
-              int index=(int)(random.nextDouble() * rebalanceSubTaskList.size());
-              RebalancePartitionsInfo rebalanceSubTask=rebalanceSubTaskList.remove(index);
-              logger.info("Starting rebalancing for stealerNode:" + stealerNodeId + " with rebalanceInfo:"+ rebalanceSubTask);
-              try {
-                int rebalanceAsyncId=startNodeRebalancing(rebalanceSubTask);
-                try {
-                  commitClusterChanges(adminClient.getAdminClientCluster().getNodeById(stealerNodeId),rebalanceSubTask);
-                }
- catch (                Exception e) {
-                  if (-1 != rebalanceAsyncId) {
-                    adminClient.stopAsyncRequest(rebalanceSubTask.getStealerId(),rebalanceAsyncId);
+            final int stealerNodeId=rebalanceTask.getStealerNode();
+            final SetMultimap<Integer,RebalancePartitionsInfo> rebalanceSubTaskMap=divideRebalanceNodePlan(rebalanceTask);
+            final Set<Integer> parallelDonors=rebalanceSubTaskMap.keySet();
+            final CountDownLatch latch=new CountDownLatch(parallelDonors.size());
+            ExecutorService parallelDonorExecutor=createExecutors(rebalanceConfig.getMaxParallelRebalancing());
+            for (            final int donorNodeId : parallelDonors) {
+              parallelDonorExecutor.execute(new Runnable(){
+                public void run(){
+                  Set<RebalancePartitionsInfo> tasksForDonor=rebalanceSubTaskMap.get(donorNodeId);
+                  for (                  RebalancePartitionsInfo stealInfo : tasksForDonor) {
+                    logger.info("Starting rebalancing for stealerNode: " + stealerNodeId + " with rebalanceInfo: "+ stealInfo);
+                    try {
+                      int rebalanceAsyncId=startNodeRebalancing(stealInfo);
+                      try {
+                        commitClusterChanges(adminClient.getAdminClientCluster().getNodeById(stealerNodeId),stealInfo,Lists.<Integer>newArrayList(parallelDonors));
+                      }
+ catch (                      Exception e) {
+                        if (-1 != rebalanceAsyncId) {
+                          adminClient.stopAsyncRequest(stealInfo.getStealerId(),rebalanceAsyncId);
+                        }
+                        throw e;
+                      }
+                      adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,rebalanceConfig.getRebalancingClientTimeoutSeconds(),TimeUnit.SECONDS);
+                      logger.info("Succesfully finished rebalance attempt: " + stealInfo);
+                    }
+ catch (                    UnreachableStoreException e) {
+                      logger.error("StealerNode " + stealerNodeId + " is unreachable, please make sure it is up and running.",e);
+                    }
+catch (                    VoldemortRebalancingException e) {
+                      logger.error(e);
+                      for (                      Exception cause : e.getCauses()) {
+                        logger.error(cause);
+                      }
+                    }
+catch (                    Exception e) {
+                      logger.error("Rebalancing task failed with exception",e);
+                    }
+ finally {
+                      latch.countDown();
+                    }
                   }
-                  throw e;
-                }
-                adminClient.waitForCompletion(rebalanceSubTask.getStealerId(),rebalanceAsyncId,rebalanceConfig.getRebalancingClientTimeoutSeconds(),TimeUnit.SECONDS);
-                logger.info("Successfully finished rebalance attempt:" + rebalanceSubTask);
-              }
- catch (              UnreachableStoreException e) {
-                logger.error("StealerNode " + stealerNodeId + " is unreachable, please make sure it is up and running.",e);
-              }
-catch (              VoldemortRebalancingException e) {
-                logger.error(e);
-                for (                Exception cause : e.getCauses()) {
-                  logger.error(cause);
                 }
               }
-catch (              Exception e) {
-                logger.error("Rebalancing task failed with exception",e);
-              }
+);
+            }
+            try {
+              latch.await();
+            }
+ catch (            InterruptedException e) {
+              logger.error("Interrupted",e);
+              Thread.currentThread().interrupt();
             }
           }
         }
