@@ -1,6 +1,7 @@
 {
-  StringBuffer checkSumBuffer=new StringBuffer();
-  byte[] buffer=new byte[64 * 1024];
+  MessageDigest checkSumGenerator=MessageDigest.getInstance("md5");
+  int bufferSize=64 * 1024;
+  byte[] buffer=new byte[bufferSize];
   Arrays.sort(files,new Comparator<File>(){
     public int compare(    File fs1,    File fs2){
       if (fs1.isDirectory())       return fs2.isDirectory() ? 0 : -1;
@@ -22,7 +23,10 @@
         while (true) {
           int read=is.read(buffer);
           if (read < 0)           break;
-          checkSumBuffer.append(new String(buffer,0,read));
+ else           if (read < bufferSize) {
+            buffer=ByteUtils.copy(buffer,0,read);
+          }
+          checkSumGenerator.update(buffer);
         }
         is.close();
       }
@@ -31,5 +35,5 @@
       }
     }
   }
-  return checkSumBuffer.toString().getBytes();
+  return checkSumGenerator.digest();
 }
