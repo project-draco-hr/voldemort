@@ -9,7 +9,7 @@
   CopyStats stats=new CopyStats(fileUrl);
   ObjectName jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
   try {
-    File storeDir=new File(this.tempDir,storeName);
+    File storeDir=new File(this.tempDir,storeName + "_" + System.currentTimeMillis());
     storeDir.mkdir();
     File destination=new File(storeDir.getAbsoluteFile(),path.getName());
     boolean result=fetch(fs,path,destination,throttler,stats);
