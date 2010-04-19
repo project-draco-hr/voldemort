@@ -9,10 +9,9 @@
   checkSumFile.createNewFile();
   fetchedFile=fetcher.fetch(testDirectory.getAbsolutePath(),"storeName");
   assertNull(fetchedFile);
-  byte[] fileBytes=TestUtils.readBytes(testDirectory.listFiles());
-  checkSumFile=new File(testDirectory,"checkSum.txt");
+  byte[] checkSumBytes=TestUtils.calculateCheckSum(testDirectory.listFiles());
   DataOutputStream os=new DataOutputStream(new FileOutputStream(checkSumFile));
-  os.write(ByteUtils.md5(fileBytes));
+  os.write(checkSumBytes);
   os.close();
   fetchedFile=fetcher.fetch(testDirectory.getAbsolutePath(),"storeName");
   assertNotNull(fetchedFile);

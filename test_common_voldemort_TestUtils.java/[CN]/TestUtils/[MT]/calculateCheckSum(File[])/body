@@ -1,5 +1,6 @@
 {
   MessageDigest checkSumGenerator=MessageDigest.getInstance("md5");
+  MessageDigest fileCheckSumGenerator=MessageDigest.getInstance("md5");
   int bufferSize=64 * 1024;
   byte[] buffer=new byte[bufferSize];
   Arrays.sort(files,new Comparator<File>(){
@@ -11,7 +12,7 @@
   }
 );
   for (  File file : files) {
-    if (file.isFile() && !file.getName().startsWith(".")) {
+    if (file.isFile() && !file.getName().startsWith(".") && !file.getName().contains("checkSum.txt")) {
       DataInputStream is;
       try {
         is=new DataInputStream(new FileInputStream(file));
@@ -26,13 +27,14 @@
  else           if (read < bufferSize) {
             buffer=ByteUtils.copy(buffer,0,read);
           }
-          checkSumGenerator.update(buffer);
+          fileCheckSumGenerator.update(buffer);
         }
         is.close();
       }
  catch (      IOException e) {
         break;
       }
+      checkSumGenerator.update(fileCheckSumGenerator.digest());
     }
   }
   return checkSumGenerator.digest();

@@ -24,8 +24,8 @@
   in.read(md5);
   in.close();
   checkSumFile.delete();
-  byte[] fileBytes=TestUtils.readBytes(nodeFile.listFiles());
-  assertEquals(0,ByteUtils.compare(ByteUtils.md5(fileBytes),md5));
+  byte[] checkSumBytes=TestUtils.calculateCheckSum(nodeFile.listFiles());
+  assertEquals(0,ByteUtils.compare(checkSumBytes,md5));
   File versionDir=new File(storeDir,"version-0");
   versionDir.mkdirs();
   assertTrue("Rename failed.",nodeFile.renameTo(versionDir));

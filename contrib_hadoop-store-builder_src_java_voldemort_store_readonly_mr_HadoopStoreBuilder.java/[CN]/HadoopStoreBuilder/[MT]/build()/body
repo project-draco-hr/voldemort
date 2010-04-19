@@ -33,33 +33,37 @@
     logger.info("Number of reduces: " + numReduces);
     logger.info("Building store...");
     JobClient.runJob(conf);
-    FileStatus[] nodes=outputFs.listStatus(outputDir);
-    for (    FileStatus node : nodes) {
-      if (node.isDir()) {
-        FileStatus[] storeFiles=outputFs.listStatus(node.getPath());
-        if (storeFiles != null) {
-          Arrays.sort(storeFiles,new IndexFileLastComparator());
-          byte[] buffer=new byte[DEFAULT_BUFFER_SIZE];
-          MessageDigest checkSumGenerator=MessageDigest.getInstance("md5");
-          for (          FileStatus status : storeFiles) {
-            if (!status.getPath().getName().startsWith(".")) {
-              System.out.println("NODE = " + node.getPath() + " - "+ status.getPath());
-              FSDataInputStream input=outputFs.open(status.getPath());
-              while (true) {
-                int read=input.read(buffer);
-                if (read < 0)                 break;
- else                 if (read < DEFAULT_BUFFER_SIZE) {
-                  buffer=ByteUtils.copy(buffer,0,read);
+    if (doCheckSum) {
+      FileStatus[] nodes=outputFs.listStatus(outputDir);
+      for (      FileStatus node : nodes) {
+        if (node.isDir()) {
+          FileStatus[] storeFiles=outputFs.listStatus(node.getPath());
+          if (storeFiles != null) {
+            Arrays.sort(storeFiles,new IndexFileLastComparator());
+            byte[] buffer=new byte[DEFAULT_BUFFER_SIZE];
+            MessageDigest checkSumGenerator=MessageDigest.getInstance("md5");
+            MessageDigest fileCheckSumGenerator=MessageDigest.getInstance("md5");
+            for (            FileStatus status : storeFiles) {
+              if (!status.getPath().getName().startsWith(".")) {
+                System.out.println("NODE3 = " + node.getPath() + " - "+ status.getPath());
+                FSDataInputStream input=outputFs.open(status.getPath());
+                while (true) {
+                  int read=input.read(buffer);
+                  if (read < 0)                   break;
+ else                   if (read < DEFAULT_BUFFER_SIZE) {
+                    buffer=ByteUtils.copy(buffer,0,read);
+                  }
+                  fileCheckSumGenerator.update(buffer);
                 }
-                checkSumGenerator.update(buffer);
+                checkSumGenerator.update(fileCheckSumGenerator.digest());
               }
             }
+            byte[] md5=checkSumGenerator.digest();
+            FSDataOutputStream checkSumStream=outputFs.create(new Path(node.getPath(),"checkSum.txt"));
+            checkSumStream.write(md5);
+            checkSumStream.flush();
+            checkSumStream.close();
           }
-          byte[] md5=checkSumGenerator.digest();
-          FSDataOutputStream checkSumStream=outputFs.create(new Path(node.getPath(),"checkSum.txt"));
-          checkSumStream.write(md5);
-          checkSumStream.flush();
-          checkSumStream.close();
         }
       }
     }
