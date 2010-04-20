@@ -30,7 +30,7 @@
                     try {
                       int rebalanceAsyncId=startNodeRebalancing(stealInfo);
                       try {
-                        commitClusterChanges(adminClient.getAdminClientCluster().getNodeById(stealerNodeId),stealInfo,Lists.<Integer>newArrayList(parallelDonors));
+                        commitClusterChanges(adminClient.getAdminClientCluster().getNodeById(stealerNodeId),stealInfo);
                       }
  catch (                      Exception e) {
                         if (-1 != rebalanceAsyncId) {
@@ -62,7 +62,7 @@ catch (                    Exception e) {
 );
             }
             try {
-              latch.await();
+              latch.await(rebalanceConfig.getRebalancingClientTimeoutSeconds() * parallelDonors.size(),TimeUnit.SECONDS);
             }
  catch (            InterruptedException e) {
               logger.error("Interrupted",e);
