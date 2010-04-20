@@ -33,16 +33,19 @@
     logger.info("Number of reduces: " + numReduces);
     logger.info("Building store...");
     JobClient.runJob(conf);
-    if (doCheckSum) {
+    if (checkSumType != CheckSumType.NONE) {
       FileStatus[] nodes=outputFs.listStatus(outputDir);
+      CheckSum checkSumGenerator=CheckSum.getInstance(this.checkSumType);
+      CheckSum fileCheckSumGenerator=CheckSum.getInstance(this.checkSumType);
+      if (checkSumGenerator == null || fileCheckSumGenerator == null) {
+        throw new VoldemortException("Could not generate checksum digests");
+      }
       for (      FileStatus node : nodes) {
         if (node.isDir()) {
           FileStatus[] storeFiles=outputFs.listStatus(node.getPath());
           if (storeFiles != null) {
             Arrays.sort(storeFiles,new IndexFileLastComparator());
             byte[] buffer=new byte[DEFAULT_BUFFER_SIZE];
-            MessageDigest checkSumGenerator=MessageDigest.getInstance("md5");
-            MessageDigest fileCheckSumGenerator=MessageDigest.getInstance("md5");
             for (            FileStatus status : storeFiles) {
               if (!status.getPath().getName().startsWith(".")) {
                 System.out.println("NODE3 = " + node.getPath() + " - "+ status.getPath());
@@ -55,12 +58,12 @@
                   }
                   fileCheckSumGenerator.update(buffer);
                 }
-                checkSumGenerator.update(fileCheckSumGenerator.digest());
+                checkSumGenerator.update(fileCheckSumGenerator.getCheckSum());
               }
             }
-            byte[] md5=checkSumGenerator.digest();
-            FSDataOutputStream checkSumStream=outputFs.create(new Path(node.getPath(),"checkSum.txt"));
-            checkSumStream.write(md5);
+            byte[] checkSumBytes=checkSumGenerator.getCheckSum();
+            FSDataOutputStream checkSumStream=outputFs.create(new Path(node.getPath(),CheckSum.toString(checkSumType) + "checkSum.txt"));
+            checkSumStream.write(checkSumBytes);
             checkSumStream.flush();
             checkSumStream.close();
           }

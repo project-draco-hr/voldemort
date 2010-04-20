@@ -4,33 +4,32 @@
     FileStatus[] statuses=fs.listStatus(source);
     if (statuses != null) {
       Arrays.sort(statuses,new IndexFileLastComparator());
-      byte[] origMD5=new byte[16];
-      boolean containsCheckSumFile=false;
-      MessageDigest checkSumGenerator=null, fileCheckSumGenerator=null;
-      try {
-        checkSumGenerator=MessageDigest.getInstance("md5");
-        fileCheckSumGenerator=MessageDigest.getInstance("md5");
-      }
- catch (      NoSuchAlgorithmException e) {
-        return false;
-      }
+      byte[] origCheckSum=null;
+      CheckSumType checkSumType=CheckSumType.NONE;
+      CheckSum checkSumGenerator=null;
+      CheckSum fileCheckSumGenerator=null;
       for (      FileStatus status : statuses) {
         if (status.getPath().getName().contains("checkSum.txt")) {
-          containsCheckSumFile=true;
+          checkSumType=CheckSum.fromString(status.getPath().getName());
+          checkSumGenerator=CheckSum.getInstance(checkSumType);
+          fileCheckSumGenerator=CheckSum.getInstance(checkSumType);
           FSDataInputStream input=fs.open(status.getPath());
-          input.read(origMD5);
+          origCheckSum=new byte[CheckSum.checkSumLength(checkSumType)];
+          input.read(origCheckSum);
           input.close();
           continue;
         }
         if (!status.getPath().getName().startsWith(".")) {
           File copyLocation=new File(dest,status.getPath().getName());
           copyFileWithCheckSum(fs,status.getPath(),copyLocation,throttler,stats,fileCheckSumGenerator);
-          checkSumGenerator.update(fileCheckSumGenerator.digest());
+          if (fileCheckSumGenerator != null && checkSumGenerator != null) {
+            checkSumGenerator.update(fileCheckSumGenerator.getCheckSum());
+          }
         }
       }
-      if (containsCheckSumFile) {
-        byte[] newMD5=checkSumGenerator.digest();
-        return (ByteUtils.compare(newMD5,origMD5) == 0);
+      if (checkSumType != CheckSumType.NONE) {
+        byte[] newCheckSum=checkSumGenerator.getCheckSum();
+        return (ByteUtils.compare(newCheckSum,origCheckSum) == 0);
       }
  else {
         return true;
