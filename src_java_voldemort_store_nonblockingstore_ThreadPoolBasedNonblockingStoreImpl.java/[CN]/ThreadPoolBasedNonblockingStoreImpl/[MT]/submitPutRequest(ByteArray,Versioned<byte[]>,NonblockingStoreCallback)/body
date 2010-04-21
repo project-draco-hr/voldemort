@@ -4,10 +4,10 @@
       long start=System.nanoTime();
       try {
         innerStore.put(key,value);
-        callback.requestComplete(null,(System.nanoTime() - start) / Time.NS_PER_MS);
+        if (callback != null)         callback.requestComplete(null,(System.nanoTime() - start) / Time.NS_PER_MS);
       }
  catch (      Exception e) {
-        callback.requestComplete(e,(System.nanoTime() - start) / Time.NS_PER_MS);
+        if (callback != null)         callback.requestComplete(e,(System.nanoTime() - start) / Time.NS_PER_MS);
       }
     }
   }
