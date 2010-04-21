@@ -33,6 +33,9 @@
   pipeline.processEvents(timeoutMs,TimeUnit.MILLISECONDS);
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   List<Versioned<byte[]>> results=new ArrayList<Versioned<byte[]>>();
-  for (  Response<ByteArray,List<Versioned<byte[]>>> response : pipelineData.getResponses())   results.addAll(response.getValue());
+  for (  Response<ByteArray,List<Versioned<byte[]>>> response : pipelineData.getResponses()) {
+    List<Versioned<byte[]>> value=response.getValue();
+    if (value != null)     results.addAll(value);
+  }
   return results;
 }

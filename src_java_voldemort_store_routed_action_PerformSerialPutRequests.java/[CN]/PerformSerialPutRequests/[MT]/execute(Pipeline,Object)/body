@@ -6,7 +6,8 @@
     Node node=nodes.get(currentNode);
     long startNs=System.nanoTime();
     try {
-      Versioned<byte[]> versionedCopy=incremented(versioned,node.getId());
+      VectorClock versionedClock=(VectorClock)versioned.getVersion();
+      Versioned<byte[]> versionedCopy=new Versioned<byte[]>(versioned.getValue(),versionedClock.incremented(node.getId(),time.getMilliseconds()));
       if (logger.isTraceEnabled())       logger.trace("Attempt # " + (currentNode + 1) + " to perform put (node "+ node.getId()+ ")");
       stores.get(node.getId()).put(key,versionedCopy);
       pipelineData.incrementSuccesses();
