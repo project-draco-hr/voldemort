@@ -1,23 +1,13 @@
 {
   StoreUtils.assertValidKeys(keys);
   GetAllPipelineData pipelineData=new GetAllPipelineData();
-  Pipeline pipeline=new Pipeline(Operation.GET_ALL);
-  Action configureNodes=new GetAllConfigureNodes(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),routingStrategy,keys);
-  Action performParallelRequests=new PerformParallelGetAllRequests(pipelineData,null,storeDef.getPreferredReads(),nonblockingStores);
-  Action acknowledgeResponse=new GetAllAcknowledgeResponse(pipelineData,Event.INSUFFICIENT_SUCCESSES,failureDetector);
-  Action performSerialRequests=new PerformSerialGetAllRequests(pipelineData,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,keys,failureDetector,innerStores,storeDef.getPreferredReads(),storeDef.getRequiredReads());
-  Map<Event,Action> eventActions=new HashMap<Event,Action>();
-  eventActions.put(Event.STARTED,configureNodes);
-  eventActions.put(Event.CONFIGURED,performParallelRequests);
-  eventActions.put(Event.RESPONSE_RECEIVED,acknowledgeResponse);
-  if (repairReads) {
-    Action readRepair=new GetAllReadRepair(pipelineData,Event.COMPLETED,storeDef.getPreferredReads(),nonblockingStores,readRepairer);
-    eventActions.put(Event.RESPONSES_RECEIVED,readRepair);
-  }
-  eventActions.put(Event.INSUFFICIENT_SUCCESSES,performSerialRequests);
-  pipeline.setEventActions(eventActions);
-  pipeline.addEvent(Event.STARTED);
-  pipeline.processEvents(timeoutMs,TimeUnit.MILLISECONDS);
+  Pipeline pipeline=new Pipeline(Operation.GET_ALL,timeoutMs,TimeUnit.MILLISECONDS);
+  pipeline.addEventAction(Event.STARTED,new GetAllConfigureNodes(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),routingStrategy,keys));
+  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelGetAllRequests(pipelineData,null,storeDef.getPreferredReads(),nonblockingStores));
+  pipeline.addEventAction(Event.RESPONSE_RECEIVED,new GetAllAcknowledgeResponse(pipelineData,Event.INSUFFICIENT_SUCCESSES,failureDetector));
+  pipeline.addEventAction(Event.INSUFFICIENT_SUCCESSES,new PerformSerialGetAllRequests(pipelineData,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,keys,failureDetector,innerStores,storeDef.getPreferredReads(),storeDef.getRequiredReads()));
+  if (repairReads)   pipeline.addEventAction(Event.RESPONSES_RECEIVED,new GetAllReadRepair(pipelineData,Event.COMPLETED,storeDef.getPreferredReads(),nonblockingStores,readRepairer));
+  pipeline.execute();
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   return pipelineData.getResult();
 }

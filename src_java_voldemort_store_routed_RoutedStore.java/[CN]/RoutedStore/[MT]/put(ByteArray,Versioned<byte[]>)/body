@@ -1,20 +1,12 @@
 {
   StoreUtils.assertValidKey(key);
   PutPipelineData pipelineData=new PutPipelineData();
-  Pipeline pipeline=new Pipeline(Operation.PUT);
-  Action configureNodes=new ConfigureNodes<Void,PutPipelineData>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key);
-  Action performSerialRequests=new PerformSerialPutRequests(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getRequiredWrites(),versioned,time,Event.MASTER_DETERMINED);
-  Action performParallelRequests=new PerformParallelPutRequests(pipelineData,Event.NOP,key,nonblockingStores);
-  Action acknowledgeResponse=new AcknowledgeResponse<Void,PutPipelineData>(pipelineData,Event.RESPONSES_RECEIVED,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),null);
-  Action incrementClock=new IncrementClock(pipelineData,Event.COMPLETED,versioned,time);
-  Map<Event,Action> eventActions=new HashMap<Event,Action>();
-  eventActions.put(Event.STARTED,configureNodes);
-  eventActions.put(Event.CONFIGURED,performSerialRequests);
-  eventActions.put(Event.MASTER_DETERMINED,performParallelRequests);
-  eventActions.put(Event.RESPONSE_RECEIVED,acknowledgeResponse);
-  eventActions.put(Event.RESPONSES_RECEIVED,incrementClock);
-  pipeline.setEventActions(eventActions);
-  pipeline.addEvent(Event.STARTED);
-  pipeline.processEvents(timeoutMs,TimeUnit.MILLISECONDS);
+  Pipeline pipeline=new Pipeline(Operation.PUT,timeoutMs,TimeUnit.MILLISECONDS);
+  pipeline.addEventAction(Event.STARTED,new ConfigureNodes<Void,PutPipelineData>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key));
+  pipeline.addEventAction(Event.CONFIGURED,new PerformSerialPutRequests(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getRequiredWrites(),versioned,time,Event.MASTER_DETERMINED));
+  pipeline.addEventAction(Event.MASTER_DETERMINED,new PerformParallelPutRequests(pipelineData,Event.NOP,key,nonblockingStores));
+  pipeline.addEventAction(Event.RESPONSE_RECEIVED,new AcknowledgeResponse<Void,PutPipelineData>(pipelineData,Event.RESPONSES_RECEIVED,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),null));
+  pipeline.addEventAction(Event.RESPONSES_RECEIVED,new IncrementClock(pipelineData,Event.COMPLETED,versioned,time));
+  pipeline.execute();
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
 }

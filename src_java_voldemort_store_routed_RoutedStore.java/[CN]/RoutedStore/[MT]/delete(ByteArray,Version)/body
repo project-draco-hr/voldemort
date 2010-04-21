@@ -1,7 +1,7 @@
 {
   StoreUtils.assertValidKey(key);
   BasicPipelineData<Boolean> pipelineData=new BasicPipelineData<Boolean>();
-  final Pipeline pipeline=new Pipeline(Operation.DELETE);
+  final Pipeline pipeline=new Pipeline(Operation.DELETE,timeoutMs,TimeUnit.MILLISECONDS);
   NonblockingStoreRequest nonblockingDelete=new NonblockingStoreRequest(){
     public void request(    Node node,    NonblockingStore store){
       NonblockingStoreCallback callback=new BasicResponseCallback<ByteArray>(pipeline,node,key);
@@ -15,18 +15,11 @@
     }
   }
 ;
-  Action configureNodes=new ConfigureNodes<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key);
-  Action performRequests=new PerformParallelRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.NOP,storeDef.getPreferredWrites(),nonblockingStores,nonblockingDelete);
-  Action acknowledgeResponse=new AcknowledgeResponse<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.COMPLETED,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),Event.INSUFFICIENT_SUCCESSES);
-  Action performSerialRequests=new PerformSerialRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),blockingDelete,null);
-  Map<Event,Action> eventActions=new HashMap<Event,Action>();
-  eventActions.put(Event.STARTED,configureNodes);
-  eventActions.put(Event.CONFIGURED,performRequests);
-  eventActions.put(Event.RESPONSE_RECEIVED,acknowledgeResponse);
-  eventActions.put(Event.INSUFFICIENT_SUCCESSES,performSerialRequests);
-  pipeline.setEventActions(eventActions);
-  pipeline.addEvent(Event.STARTED);
-  pipeline.processEvents(timeoutMs,TimeUnit.MILLISECONDS);
+  pipeline.addEventAction(Event.STARTED,new ConfigureNodes<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key));
+  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.NOP,storeDef.getPreferredWrites(),nonblockingStores,nonblockingDelete));
+  pipeline.addEventAction(Event.RESPONSE_RECEIVED,new AcknowledgeResponse<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.COMPLETED,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),Event.INSUFFICIENT_SUCCESSES));
+  pipeline.addEventAction(Event.INSUFFICIENT_SUCCESSES,new PerformSerialRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),blockingDelete,null));
+  pipeline.execute();
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   for (  Response<ByteArray,Boolean> response : pipelineData.getResponses()) {
     if (response.getValue().booleanValue())     return true;
