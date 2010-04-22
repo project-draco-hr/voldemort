@@ -11,4 +11,5 @@
   FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig(voldemortConfig).setNodes(metadata.getCluster().getNodes()).setStoreVerifier(new ServerStoreVerifier(storeFactory,metadata,config));
   this.failureDetector=create(failureDetectorConfig,config.isJmxEnabled());
   this.storeStats=new StoreStats();
+  this.routedStoreFactory=new RoutedStoreFactory(voldemortConfig.isPipelineRoutedStoreEnabled(),this.clientThreadPool,voldemortConfig.getRoutingTimeoutMs());
 }

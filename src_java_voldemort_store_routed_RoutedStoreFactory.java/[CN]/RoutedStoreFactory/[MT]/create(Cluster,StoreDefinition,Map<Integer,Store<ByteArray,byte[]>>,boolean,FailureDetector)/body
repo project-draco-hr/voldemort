@@ -1,0 +1,15 @@
+{
+  if (isPipelineRoutedStoreEnabled) {
+    Map<Integer,NonblockingStore> nonblockingStores=Maps.newHashMap();
+    for (    Map.Entry<Integer,Store<ByteArray,byte[]>> entry : nodeStores.entrySet()) {
+      NonblockingStore nonblockingStore=null;
+      if (entry.getValue() instanceof NonblockingStore)       nonblockingStore=(NonblockingStore)entry.getValue();
+ else       nonblockingStore=new ThreadPoolBasedNonblockingStoreImpl(threadPool,entry.getValue());
+      nonblockingStores.put(entry.getKey(),nonblockingStore);
+    }
+    return new PipelineRoutedStore(storeDefinition.getName(),nodeStores,nonblockingStores,cluster,storeDefinition,repairReads,routingTimeoutMs,failureDetector);
+  }
+ else {
+    return new ThreadPoolRoutedStore(storeDefinition.getName(),nodeStores,cluster,storeDefinition,repairReads,threadPool,routingTimeoutMs,failureDetector,SystemTime.INSTANCE);
+  }
+}
