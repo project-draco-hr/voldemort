@@ -1,6 +1,6 @@
 {
   JobConf conf=new JobConf(config);
-  conf.setInt("io.file.buffer.size",64 * 1024);
+  conf.setInt("io.file.buffer.size",DEFAULT_BUFFER_SIZE);
   conf.set("cluster.xml",new ClusterMapper().writeCluster(cluster));
   conf.set("stores.xml",new StoreDefinitionsMapper().writeStoreList(Collections.singletonList(storeDef)));
   conf.setInt("store.output.replication.factor",replicationFactor);
@@ -18,13 +18,13 @@
   conf.set("final.output.dir",outputDir.toString());
   FileOutputFormat.setOutputPath(conf,tempDir);
   try {
-    FileSystem fs=outputDir.getFileSystem(conf);
-    if (fs.exists(outputDir)) {
+    FileSystem outputFs=outputDir.getFileSystem(conf);
+    if (outputFs.exists(outputDir)) {
       throw new IOException("Final output directory already exists.");
     }
-    fs=tempDir.getFileSystem(conf);
-    fs.delete(tempDir,true);
-    long size=sizeOfPath(fs,inputPath);
+    FileSystem tempFs=tempDir.getFileSystem(conf);
+    tempFs.delete(tempDir,true);
+    long size=sizeOfPath(tempFs,inputPath);
     int numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfNodes() / chunkSizeBytes),1);
     logger.info("Data size = " + size + ", replication factor = "+ storeDef.getReplicationFactor()+ ", numNodes = "+ cluster.getNumberOfNodes()+ ", chunk size = "+ chunkSizeBytes+ ",  num.chunks = "+ numChunks);
     conf.setInt("num.chunks",numChunks);
@@ -33,8 +33,44 @@
     logger.info("Number of reduces: " + numReduces);
     logger.info("Building store...");
     JobClient.runJob(conf);
+    if (checkSumType != CheckSumType.NONE) {
+      FileStatus[] nodes=outputFs.listStatus(outputDir);
+      CheckSum checkSumGenerator=CheckSum.getInstance(this.checkSumType);
+      CheckSum fileCheckSumGenerator=CheckSum.getInstance(this.checkSumType);
+      if (checkSumGenerator == null || fileCheckSumGenerator == null) {
+        throw new VoldemortException("Could not generate checksum digests");
+      }
+      for (      FileStatus node : nodes) {
+        if (node.isDir()) {
+          FileStatus[] storeFiles=outputFs.listStatus(node.getPath());
+          if (storeFiles != null) {
+            Arrays.sort(storeFiles,new IndexFileLastComparator());
+            byte[] buffer=new byte[DEFAULT_BUFFER_SIZE];
+            for (            FileStatus status : storeFiles) {
+              if (!status.getPath().getName().startsWith(".")) {
+                FSDataInputStream input=outputFs.open(status.getPath());
+                while (true) {
+                  int read=input.read(buffer);
+                  if (read < 0)                   break;
+ else                   if (read < DEFAULT_BUFFER_SIZE) {
+                    buffer=ByteUtils.copy(buffer,0,read);
+                  }
+                  fileCheckSumGenerator.update(buffer);
+                }
+                checkSumGenerator.update(fileCheckSumGenerator.getCheckSum());
+              }
+            }
+            byte[] checkSumBytes=checkSumGenerator.getCheckSum();
+            FSDataOutputStream checkSumStream=outputFs.create(new Path(node.getPath(),CheckSum.toString(checkSumType) + "checkSum.txt"));
+            checkSumStream.write(checkSumBytes);
+            checkSumStream.flush();
+            checkSumStream.close();
+          }
+        }
+      }
+    }
   }
- catch (  IOException e) {
+ catch (  Exception e) {
     throw new VoldemortException(e);
   }
 }

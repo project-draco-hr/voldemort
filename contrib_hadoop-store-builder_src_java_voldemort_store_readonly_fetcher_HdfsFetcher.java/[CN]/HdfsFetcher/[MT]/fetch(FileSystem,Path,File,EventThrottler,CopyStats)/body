@@ -1,17 +1,40 @@
 {
-  if (fs.isFile(source)) {
-    copyFile(fs,source,dest,throttler,stats);
-  }
- else {
+  if (!fs.isFile(source)) {
     dest.mkdirs();
     FileStatus[] statuses=fs.listStatus(source);
     if (statuses != null) {
       Arrays.sort(statuses,new IndexFileLastComparator());
+      byte[] origCheckSum=null;
+      CheckSumType checkSumType=CheckSumType.NONE;
+      CheckSum checkSumGenerator=null;
+      CheckSum fileCheckSumGenerator=null;
       for (      FileStatus status : statuses) {
-        if (!status.getPath().getName().startsWith(".")) {
-          fetch(fs,status.getPath(),new File(dest,status.getPath().getName()),throttler,stats);
+        if (status.getPath().getName().contains("checkSum.txt")) {
+          checkSumType=CheckSum.fromString(status.getPath().getName());
+          checkSumGenerator=CheckSum.getInstance(checkSumType);
+          fileCheckSumGenerator=CheckSum.getInstance(checkSumType);
+          FSDataInputStream input=fs.open(status.getPath());
+          origCheckSum=new byte[CheckSum.checkSumLength(checkSumType)];
+          input.read(origCheckSum);
+          input.close();
+          continue;
         }
+        if (!status.getPath().getName().startsWith(".")) {
+          File copyLocation=new File(dest,status.getPath().getName());
+          copyFileWithCheckSum(fs,status.getPath(),copyLocation,throttler,stats,fileCheckSumGenerator);
+          if (fileCheckSumGenerator != null && checkSumGenerator != null) {
+            checkSumGenerator.update(fileCheckSumGenerator.getCheckSum());
+          }
+        }
+      }
+      if (checkSumType != CheckSumType.NONE) {
+        byte[] newCheckSum=checkSumGenerator.getCheckSum();
+        return (ByteUtils.compare(newCheckSum,origCheckSum) == 0);
+      }
+ else {
+        return true;
       }
     }
   }
+  return false;
 }

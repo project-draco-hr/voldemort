@@ -1,0 +1,27 @@
+{
+  Path path=new Path(fileUrl);
+  Configuration config=new Configuration();
+  config.setInt("io.socket.receive.buffer",bufferSize);
+  config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
+  FileSystem fs=path.getFileSystem(config);
+  EventThrottler throttler=null;
+  if (maxBytesPerSecond != null)   throttler=new EventThrottler(maxBytesPerSecond);
+  CopyStats stats=new CopyStats(fileUrl);
+  ObjectName jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
+  try {
+    File storeDir=new File(this.tempDir,storeName + "_" + System.currentTimeMillis());
+    storeDir.mkdir();
+    File destination=new File(storeDir.getAbsoluteFile(),path.getName());
+    boolean result=fetch(fs,path,destination,throttler,stats);
+    if (result) {
+      return destination;
+    }
+ else {
+      logger.error("Check sum failed for " + fileUrl);
+      return null;
+    }
+  }
+  finally {
+    JmxUtils.unregisterMbean(jmxName);
+  }
+}

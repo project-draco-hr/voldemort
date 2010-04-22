@@ -51,9 +51,10 @@
     FileSystem fs=outputDir.getFileSystem(conf);
     fs.delete(outputDir,true);
   }
+  CheckSumType checkSumType=CheckSumType.toType(CmdUtils.valueOf(options,"checksum",""));
   Class[] deps=new Class[]{ImmutableCollection.class,JDOMException.class,VoldemortConfig.class,HadoopStoreJobRunner.class,mapperClass};
   addDepJars(conf,deps,addJars);
-  HadoopStoreBuilder builder=new HadoopStoreBuilder(conf,mapperClass,inputFormatClass,cluster,storeDef,replicationFactor,chunkSizeBytes,tempDir,outputDir,inputPath);
+  HadoopStoreBuilder builder=new HadoopStoreBuilder(conf,mapperClass,inputFormatClass,cluster,storeDef,replicationFactor,chunkSizeBytes,tempDir,outputDir,inputPath,checkSumType);
   builder.build();
   return 0;
 }
