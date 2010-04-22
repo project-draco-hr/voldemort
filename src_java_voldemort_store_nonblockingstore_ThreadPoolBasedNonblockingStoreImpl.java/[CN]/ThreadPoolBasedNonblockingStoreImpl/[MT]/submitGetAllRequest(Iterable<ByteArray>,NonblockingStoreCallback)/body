@@ -1,15 +1,8 @@
 {
-  executor.submit(new Runnable(){
-    public void run(){
-      long start=System.nanoTime();
-      try {
-        Object result=innerStore.getAll(keys);
-        if (callback != null)         callback.requestComplete(result,(System.nanoTime() - start) / Time.NS_PER_MS);
-      }
- catch (      Exception e) {
-        if (callback != null)         callback.requestComplete(e,(System.nanoTime() - start) / Time.NS_PER_MS);
-      }
+  submit(new StoreRequest<Map<ByteArray,List<Versioned<byte[]>>>>(){
+    public Map<ByteArray,List<Versioned<byte[]>>> request(    Store<ByteArray,byte[]> store){
+      return innerStore.getAll(keys);
     }
   }
-);
+,callback);
 }

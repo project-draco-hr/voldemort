@@ -3,7 +3,7 @@
   BasicPipelineData<Boolean> pipelineData=new BasicPipelineData<Boolean>();
   final Pipeline pipeline=new Pipeline(Operation.DELETE,timeoutMs,TimeUnit.MILLISECONDS);
   NonblockingStoreRequest nonblockingDelete=new NonblockingStoreRequest(){
-    public void request(    Node node,    NonblockingStore store){
+    public void submit(    Node node,    NonblockingStore store){
       NonblockingStoreCallback callback=new BasicResponseCallback<ByteArray>(pipeline,node,key);
       store.submitDeleteRequest(key,version,callback);
     }

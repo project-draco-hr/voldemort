@@ -3,7 +3,7 @@
   BasicPipelineData<List<Versioned<byte[]>>> pipelineData=new BasicPipelineData<List<Versioned<byte[]>>>();
   final Pipeline pipeline=new Pipeline(Operation.GET,timeoutMs,TimeUnit.MILLISECONDS);
   NonblockingStoreRequest nonblockingStoreRequest=new NonblockingStoreRequest(){
-    public void request(    Node node,    NonblockingStore store){
+    public void submit(    Node node,    NonblockingStore store){
       NonblockingStoreCallback callback=new BasicResponseCallback<ByteArray>(pipeline,node,key);
       store.submitGetRequest(key,callback);
     }

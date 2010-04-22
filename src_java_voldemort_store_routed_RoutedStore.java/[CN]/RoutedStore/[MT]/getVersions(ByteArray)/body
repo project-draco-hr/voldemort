@@ -3,7 +3,7 @@
   BasicPipelineData<List<Version>> pipelineData=new BasicPipelineData<List<Version>>();
   final Pipeline pipeline=new Pipeline(Operation.GET_VERSIONS,timeoutMs,TimeUnit.MILLISECONDS);
   NonblockingStoreRequest storeRequest=new NonblockingStoreRequest(){
-    public void request(    Node node,    NonblockingStore store){
+    public void submit(    Node node,    NonblockingStore store){
       NonblockingStoreCallback callback=new BasicResponseCallback<ByteArray>(pipeline,node,key);
       store.submitGetVersionsRequest(key,callback);
     }

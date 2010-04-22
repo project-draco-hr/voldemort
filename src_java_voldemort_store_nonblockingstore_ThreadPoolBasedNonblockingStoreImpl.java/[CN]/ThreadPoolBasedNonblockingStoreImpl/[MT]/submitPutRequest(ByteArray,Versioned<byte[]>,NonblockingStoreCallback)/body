@@ -1,15 +1,9 @@
 {
-  executor.submit(new Runnable(){
-    public void run(){
-      long start=System.nanoTime();
-      try {
-        innerStore.put(key,value);
-        if (callback != null)         callback.requestComplete(null,(System.nanoTime() - start) / Time.NS_PER_MS);
-      }
- catch (      Exception e) {
-        if (callback != null)         callback.requestComplete(e,(System.nanoTime() - start) / Time.NS_PER_MS);
-      }
+  submit(new StoreRequest<Void>(){
+    public Void request(    Store<ByteArray,byte[]> store){
+      innerStore.put(key,value);
+      return null;
     }
   }
-);
+,callback);
 }
