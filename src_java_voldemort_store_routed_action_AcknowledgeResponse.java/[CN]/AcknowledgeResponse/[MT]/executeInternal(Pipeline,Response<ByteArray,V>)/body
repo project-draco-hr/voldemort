@@ -4,7 +4,7 @@
     pipelineData.getResponses().add(response);
     failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
   }
-  if (logger.isTraceEnabled())   logger.trace("Response received, successes: " + pipelineData.getSuccesses() + ", preferred: "+ preferred+ ", required: "+ required);
+  if (logger.isTraceEnabled())   logger.trace("Response received (" + response.getRequestTime() + " ms.) from node "+ response.getNode().getId()+ ", successes: "+ pipelineData.getSuccesses()+ ", preferred: "+ preferred+ ", required: "+ required);
   if (pipelineData.getCompleted() == pipelineData.getAttempts() && pipelineData.getSuccesses() < required) {
     if (insufficientSuccessesEvent != null) {
       pipeline.addEvent(insufficientSuccessesEvent);
