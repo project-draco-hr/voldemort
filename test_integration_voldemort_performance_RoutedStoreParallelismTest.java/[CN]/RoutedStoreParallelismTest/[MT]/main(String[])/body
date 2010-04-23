@@ -2,12 +2,10 @@
   int argsIndex=0;
   int numKeys=Integer.parseInt(args[argsIndex++]);
   boolean usePipeline=args[argsIndex++].equals("pipeline");
-  Random random=new Random();
   final List<ByteArray> keys=new ArrayList<ByteArray>();
   for (int i=0; i < numKeys; i++) {
-    byte[] bytes=new byte[16];
-    random.nextBytes(bytes);
-    keys.add(new ByteArray(bytes));
+    ByteArray key=new ByteArray(("test-key-" + i).getBytes());
+    keys.add(key);
   }
   ClientConfig clientConfig=new ClientConfig();
   Map<Integer,VoldemortServer> serverMap=new HashMap<Integer,VoldemortServer>();
