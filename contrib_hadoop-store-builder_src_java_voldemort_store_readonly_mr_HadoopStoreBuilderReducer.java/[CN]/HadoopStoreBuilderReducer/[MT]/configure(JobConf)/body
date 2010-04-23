@@ -6,6 +6,9 @@
     this.numChunks=job.getInt("num.chunks",-1);
     this.outputDir=job.get("final.output.dir");
     this.taskId=job.get("mapred.task.id");
+    this.checkSumType=CheckSum.fromString(job.get("checksum.type"));
+    this.checkSumDigestIndex=CheckSum.getInstance(checkSumType);
+    this.checkSumDigestValue=CheckSum.getInstance(checkSumType);
     this.taskIndexFileName=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + this.taskId+ ".index");
     this.taskValueFileName=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + this.taskId+ ".data");
     int replicationFactor=job.getInt("store.output.replication.factor",2);

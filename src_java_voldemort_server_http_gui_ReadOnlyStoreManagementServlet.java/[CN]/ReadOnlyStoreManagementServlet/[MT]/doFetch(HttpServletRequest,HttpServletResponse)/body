@@ -9,9 +9,11 @@
     logger.info("Executing fetch of " + fetchUrl);
     fetchDir=fileFetcher.fetch(fetchUrl,storeName);
     if (fetchDir == null) {
-      fetchDir=new File(fetchUrl);
+      throw new ServletException("Checksum failed for " + fetchUrl + " and store name = "+ storeName);
     }
-    logger.info("Fetch complete.");
+ else {
+      logger.info("Fetch complete.");
+    }
   }
   resp.getWriter().write(fetchDir.getAbsolutePath());
 }
