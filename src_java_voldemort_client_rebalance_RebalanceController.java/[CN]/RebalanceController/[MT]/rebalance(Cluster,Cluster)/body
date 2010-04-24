@@ -19,7 +19,6 @@
             final int stealerNodeId=rebalanceTask.getStealerNode();
             final SetMultimap<Integer,RebalancePartitionsInfo> rebalanceSubTaskMap=divideRebalanceNodePlan(rebalanceTask);
             final Set<Integer> parallelDonors=rebalanceSubTaskMap.keySet();
-            final CountDownLatch latch=new CountDownLatch(parallelDonors.size());
             ExecutorService parallelDonorExecutor=createExecutors(rebalanceConfig.getMaxParallelRebalancing());
             for (            final int donorNodeId : parallelDonors) {
               parallelDonorExecutor.execute(new Runnable(){
@@ -53,20 +52,16 @@ catch (                    VoldemortRebalancingException e) {
 catch (                    Exception e) {
                       logger.error("Rebalancing task failed with exception",e);
                     }
- finally {
-                      latch.countDown();
-                    }
                   }
                 }
               }
 );
             }
             try {
-              latch.await(rebalanceConfig.getRebalancingClientTimeoutSeconds() * parallelDonors.size(),TimeUnit.SECONDS);
+              executorShutDown(parallelDonorExecutor);
             }
- catch (            InterruptedException e) {
+ catch (            Exception e) {
               logger.error("Interrupted",e);
-              Thread.currentThread().interrupt();
             }
           }
         }

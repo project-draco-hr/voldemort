@@ -1,6 +1,21 @@
 {
-  metadataStore.put(MetadataStore.SERVER_STATE_KEY,VoldemortState.REBALANCING_MASTER_SERVER);
-  List<RebalancePartitionsInfo> stealInfoList=metadataStore.getRebalancingStealInfo();
-  stealInfoList.add(stealInfo);
-  metadataStore.put(MetadataStore.REBALANCING_STEAL_INFO,stealInfoList);
+synchronized (metadataStore.getLock()) {
+    metadataStore.put(MetadataStore.SERVER_STATE_KEY,VoldemortState.REBALANCING_MASTER_SERVER);
+    List<RebalancePartitionsInfo> stealInfoList=metadataStore.getRebalancingStealInfo();
+    int index=-1;
+    for (int i=0; i < stealInfoList.size(); i++) {
+      if (stealInfoList.get(i).getDonorId() == stealInfo.getDonorId()) {
+        index=i;
+        break;
+      }
+    }
+    if (index != -1) {
+      stealInfoList.remove(index);
+      stealInfoList.add(index,stealInfo);
+    }
+ else {
+      stealInfoList.add(stealInfo);
+    }
+    metadataStore.put(MetadataStore.REBALANCING_STEAL_INFO,stealInfoList);
+  }
 }
