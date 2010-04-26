@@ -7,6 +7,7 @@
   pipeline.addEventAction(Event.RESPONSE_RECEIVED,new GetAllAcknowledgeResponse(pipelineData,Event.INSUFFICIENT_SUCCESSES,failureDetector));
   pipeline.addEventAction(Event.INSUFFICIENT_SUCCESSES,new PerformSerialGetAllRequests(pipelineData,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,keys,failureDetector,innerStores,storeDef.getPreferredReads(),storeDef.getRequiredReads()));
   if (repairReads)   pipeline.addEventAction(Event.RESPONSES_RECEIVED,new GetAllReadRepair(pipelineData,Event.COMPLETED,storeDef.getPreferredReads(),nonblockingStores,readRepairer));
+  pipeline.addEvent(Event.STARTED);
   pipeline.execute();
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   return pipelineData.getResult();

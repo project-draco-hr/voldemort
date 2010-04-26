@@ -19,6 +19,7 @@
   pipeline.addEventAction(Event.CONFIGURED,new PerformParallelRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.NOP,storeDef.getPreferredWrites(),nonblockingStores,nonblockingDelete));
   pipeline.addEventAction(Event.RESPONSE_RECEIVED,new AcknowledgeResponse<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.COMPLETED,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),Event.INSUFFICIENT_SUCCESSES));
   pipeline.addEventAction(Event.INSUFFICIENT_SUCCESSES,new PerformSerialRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),blockingDelete,null));
+  pipeline.addEvent(Event.STARTED);
   pipeline.execute();
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   for (  Response<ByteArray,Boolean> response : pipelineData.getResponses()) {

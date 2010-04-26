@@ -20,6 +20,7 @@
   pipeline.addEventAction(Event.RESPONSE_RECEIVED,new AcknowledgeResponse<List<Versioned<byte[]>>,BasicPipelineData<List<Versioned<byte[]>>>>(pipelineData,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),Event.INSUFFICIENT_SUCCESSES));
   pipeline.addEventAction(Event.INSUFFICIENT_SUCCESSES,new PerformSerialRequests<List<Versioned<byte[]>>,BasicPipelineData<List<Versioned<byte[]>>>>(pipelineData,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,key,failureDetector,innerStores,storeDef.getPreferredReads(),storeDef.getRequiredReads(),blockingStoreRequest,null));
   if (repairReads)   pipeline.addEventAction(Event.RESPONSES_RECEIVED,new ReadRepair<BasicPipelineData<List<Versioned<byte[]>>>>(pipelineData,Event.COMPLETED,storeDef.getPreferredReads(),nonblockingStores,readRepairer));
+  pipeline.addEvent(Event.STARTED);
   pipeline.execute();
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   List<Versioned<byte[]>> results=new ArrayList<Versioned<byte[]>>();

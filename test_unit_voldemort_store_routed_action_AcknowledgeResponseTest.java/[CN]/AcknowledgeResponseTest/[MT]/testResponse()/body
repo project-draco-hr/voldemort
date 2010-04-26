@@ -1,0 +1,13 @@
+{
+  BasicPipelineData<byte[]> pipelineData=new BasicPipelineData<byte[]>();
+  pipelineData.setAttempts(1);
+  AcknowledgeResponse<byte[],BasicPipelineData<byte[]>> action=new AcknowledgeResponse<byte[],BasicPipelineData<byte[]>>(pipelineData,Event.COMPLETED,failureDetector,1,1,Event.COMPLETED);
+  Node node=cluster.getNodeById(0);
+  Response<ByteArray,byte[]> response=new Response<ByteArray,byte[]>(node,aKey,new byte[8],777);
+  Pipeline pipeline=new Pipeline(Operation.GET,10000,TimeUnit.MILLISECONDS);
+  action.execute(pipeline,response);
+  if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
+  assertEquals(1,pipelineData.getSuccesses());
+  assertEquals(response,pipelineData.getResponses().get(0));
+  assertTrue(failureDetector.isAvailable(node));
+}

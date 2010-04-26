@@ -1,11 +1,11 @@
 {
-  cluster=VoldemortTestConstants.getThreeNodeCluster();
   RoutingStrategy routingStrategy=new RouteToAllStrategy(cluster.getNodes());
-  failureDetector=new NoopFailureDetector();
   BasicPipelineData<byte[]> pipelineData=new BasicPipelineData<byte[]>();
   ConfigureNodes<byte[],BasicPipelineData<byte[]>> action=new ConfigureNodes<byte[],BasicPipelineData<byte[]>>(pipelineData,Event.COMPLETED,failureDetector,1,routingStrategy,aKey);
   Pipeline pipeline=new Pipeline(Operation.GET,10000,TimeUnit.MILLISECONDS);
   pipeline.addEventAction(Event.STARTED,action);
+  pipeline.addEvent(Event.STARTED);
   pipeline.execute();
+  if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   assertEquals(cluster.getNodes().size(),pipelineData.getNodes().size());
 }
