@@ -1,9 +1,8 @@
 {
   if (!acquireRebalancingPermit(stealInfo.getDonorId())) {
-    for (    RebalancePartitionsInfo info : metadataStore.getRebalancingStealInfo()) {
-      if (info.getDonorId() == stealInfo.getDonorId()) {
-        throw new AlreadyRebalancingException("Node " + metadataStore.getCluster().getNodeById(info.getStealerId()) + " is already rebalancing from "+ info.getDonorId()+ " rebalanceInfo:"+ info);
-      }
+    RebalancePartitionsInfo info=metadataStore.findStealInfo(stealInfo.getDonorId());
+    if (info != null) {
+      throw new AlreadyRebalancingException("Node " + metadataStore.getCluster().getNodeById(info.getStealerId()) + " is already rebalancing from "+ info.getDonorId()+ " rebalanceInfo:"+ info);
     }
   }
   checkCurrentState(metadataStore,stealInfo);

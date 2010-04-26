@@ -1,5 +1,10 @@
 {
-synchronized (metadataStore.getLock()) {
-    if (metadataStore.getServerState().equals(VoldemortState.REBALANCING_MASTER_SERVER) && Iterables.any(metadataStore.getRebalancingStealInfo(),new DonorIdPredicate(stealInfo.getDonorId())))     throw new VoldemortException("Server " + metadataStore.getNodeId() + " is already rebalancing from:"+ Joiner.on(",").join(metadataStore.getRebalancingStealInfo())+ " rejecting rebalance request:"+ stealInfo);
+  if (metadataStore.getServerState().equals(VoldemortState.REBALANCING_MASTER_SERVER)) {
+synchronized (MetadataStore.lock) {
+      RebalancePartitionsInfo info=metadataStore.findStealInfo(stealInfo.getDonorId());
+      if (info != null) {
+        throw new VoldemortException("Server " + metadataStore.getNodeId() + " is already rebalancing from: "+ info+ " rejecting rebalance request:"+ stealInfo);
+      }
+    }
   }
 }
