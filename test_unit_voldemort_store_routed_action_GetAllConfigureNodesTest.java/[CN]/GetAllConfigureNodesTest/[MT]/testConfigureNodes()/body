@@ -1,0 +1,28 @@
+{
+  RoutingStrategy routingStrategy=new RouteToAllStrategy(cluster.getNodes());
+  GetAllPipelineData pipelineData=new GetAllPipelineData();
+  List<ByteArray> keys=new ArrayList<ByteArray>();
+  for (int i=0; i < 10; i++)   keys.add(TestUtils.toByteArray("key-" + i));
+  int preferred=cluster.getNumberOfNodes() - 1;
+  GetAllConfigureNodes action=new GetAllConfigureNodes(pipelineData,Event.COMPLETED,failureDetector,preferred,preferred - 1,routingStrategy,keys);
+  Pipeline pipeline=new Pipeline(Operation.GET,10000,TimeUnit.MILLISECONDS);
+  pipeline.addEventAction(Event.STARTED,action);
+  pipeline.addEvent(Event.STARTED);
+  pipeline.execute();
+  if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
+  for (  ByteArray key : keys) {
+    List<Node> allNodesList=routingStrategy.routeRequest(key.get());
+    assertEquals(cluster.getNumberOfNodes(),allNodesList.size());
+    List<Node> extraNodes=pipelineData.getKeyToExtraNodesMap().get(key);
+    assertEquals(cluster.getNumberOfNodes() - preferred,extraNodes.size());
+    Node expectedExtraNode=allNodesList.get(preferred);
+    Node actualExtraNode=extraNodes.get(0);
+    assertEquals(expectedExtraNode,actualExtraNode);
+    List<Node> preferredNodes=allNodesList.subList(0,preferred);
+    assertEquals(preferred,preferredNodes.size());
+    for (    Node node : preferredNodes) {
+      List<ByteArray> nodeKeys=pipelineData.getNodeToKeysMap().get(node);
+      if (!nodeKeys.contains(key))       fail();
+    }
+  }
+}

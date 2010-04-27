@@ -1,0 +1,11 @@
+{
+  for (  Node node : cluster.getNodes())   failureDetector.recordException(node,0,new UnreachableStoreException("Test for " + getClass().getName()));
+  RoutingStrategy routingStrategy=new RouteToAllStrategy(cluster.getNodes());
+  GetAllPipelineData pipelineData=new GetAllPipelineData();
+  GetAllConfigureNodes action=new GetAllConfigureNodes(pipelineData,Event.COMPLETED,failureDetector,1,1,routingStrategy,Arrays.asList(aKey));
+  Pipeline pipeline=new Pipeline(Operation.GET,10000,TimeUnit.MILLISECONDS);
+  pipeline.addEventAction(Event.STARTED,action);
+  pipeline.addEvent(Event.STARTED);
+  pipeline.execute();
+  throw pipelineData.getFatalError();
+}
