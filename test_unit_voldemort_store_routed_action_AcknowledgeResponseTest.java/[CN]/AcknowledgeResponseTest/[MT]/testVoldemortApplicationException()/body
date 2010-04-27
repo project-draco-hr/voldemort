@@ -1,0 +1,12 @@
+{
+  BasicPipelineData<byte[]> pipelineData=new BasicPipelineData<byte[]>();
+  pipelineData.setAttempts(1);
+  AcknowledgeResponse<byte[],BasicPipelineData<byte[]>> action=new AcknowledgeResponse<byte[],BasicPipelineData<byte[]>>(pipelineData,Event.COMPLETED,failureDetector,1,1,null);
+  Node node1=cluster.getNodeById(0);
+  VoldemortApplicationException node1Error=new VoldemortApplicationException("testing failures in " + getClass().getSimpleName());
+  Response<ByteArray,Object> response1=new Response<ByteArray,Object>(node1,aKey,node1Error,777);
+  Pipeline pipeline=new Pipeline(Operation.GET,10000,TimeUnit.MILLISECONDS);
+  action.execute(pipeline,response1);
+  if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
+ else   fail();
+}
