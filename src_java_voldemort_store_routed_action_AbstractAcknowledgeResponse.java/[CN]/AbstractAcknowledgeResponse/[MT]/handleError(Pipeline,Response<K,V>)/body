@@ -1,5 +1,4 @@
 {
-  if (!(response.getValue() instanceof Exception))   return false;
   Node node=response.getNode();
   Exception e=(Exception)response.getValue();
   long requestTime=response.getRequestTime();
@@ -11,6 +10,7 @@
  else   if (e instanceof VoldemortApplicationException) {
     pipelineData.setFatalError((VoldemortApplicationException)e);
     pipeline.addEvent(Event.ERROR);
+    return false;
   }
  else {
     pipelineData.recordFailure(e);

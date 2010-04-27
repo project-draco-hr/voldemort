@@ -1,5 +1,8 @@
 {
-  if (!checkError(pipeline,response)) {
+  if (response.getValue() instanceof Exception) {
+    if (!handleError(pipeline,response))     return;
+  }
+ else {
     Map<ByteArray,List<Versioned<byte[]>>> responseValue=response.getValue();
     for (    ByteArray key : response.getKey()) {
       if (logger.isTraceEnabled())       logger.trace("Response received from node " + response.getNode().getId() + " for "+ pipeline.getOperation().getSimpleName());
