@@ -1,7 +1,7 @@
 {
   if (metadataStore.getServerState().equals(VoldemortState.REBALANCING_MASTER_SERVER)) {
 synchronized (MetadataStore.lock) {
-      RebalancePartitionsInfo info=metadataStore.findStealInfo(stealInfo.getDonorId());
+      RebalancePartitionsInfo info=metadataStore.getRebalancingStealInfo(stealInfo.getDonorId());
       if (info != null) {
         throw new VoldemortException("Server " + metadataStore.getNodeId() + " is already rebalancing from: "+ info+ " rejecting rebalance request:"+ stealInfo);
       }

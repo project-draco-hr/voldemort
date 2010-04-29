@@ -1,12 +1,8 @@
 {
 synchronized (rebalancePermitMap) {
-    if (!rebalancePermitMap.containsKey(donorNodeId)) {
-      rebalancePermitMap.put(donorNodeId,new AtomicBoolean(false));
-    }
+    if (!rebalancePermitMap.containsKey(donorNodeId))     rebalancePermitMap.put(donorNodeId,new AtomicBoolean(false));
     AtomicBoolean rebalancePermit=rebalancePermitMap.get(donorNodeId);
-    if (rebalancePermit.compareAndSet(false,true)) {
-      return true;
-    }
+    if (rebalancePermit.compareAndSet(false,true))     return true;
   }
   return false;
 }
