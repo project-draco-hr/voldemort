@@ -1,10 +1,8 @@
 {
-  String storeName=getName();
   if (VoldemortState.REBALANCING_MASTER_SERVER.equals(metadata.getServerState())) {
-    for (    RebalancePartitionsInfo rebalancePartitionsInfo : metadata.getRebalancingStealInfo()) {
-      if (rebalancePartitionsInfo.getUnbalancedStoreList().contains(storeName)) {
-        return checkKeyBelongsToStolenPartitions(key,rebalancePartitionsInfo);
-      }
+    List<Integer> partitionIds=metadata.getRoutingStrategy(getName()).getPartitionList(key.get());
+    if (getRebalancePartitionsInfo(partitionIds) != null) {
+      return true;
     }
   }
   return false;

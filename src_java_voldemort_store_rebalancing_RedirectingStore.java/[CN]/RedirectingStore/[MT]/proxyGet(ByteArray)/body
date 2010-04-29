@@ -1,13 +1,6 @@
 {
-  RebalancePartitionsInfo rebalancePartitionsInfo=null;
   List<Integer> partitionIds=metadata.getRoutingStrategy(getName()).getPartitionList(key.get());
-  for (  int partitionId : partitionIds) {
-    for (    RebalancePartitionsInfo candidate : metadata.getRebalancingStealInfo()) {
-      if (candidate.getPartitionList().contains(partitionId)) {
-        rebalancePartitionsInfo=candidate;
-      }
-    }
-  }
+  RebalancePartitionsInfo rebalancePartitionsInfo=getRebalancePartitionsInfo(partitionIds);
   if (rebalancePartitionsInfo == null) {
     throw new IllegalStateException("No steal operation in progress for key " + key + " partitions("+ Joiner.on(", ").join(partitionIds)+ ")");
   }
