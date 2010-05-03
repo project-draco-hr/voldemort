@@ -4,7 +4,7 @@
   Pipeline pipeline=new Pipeline(Operation.PUT,timeoutMs,TimeUnit.MILLISECONDS);
   pipeline.addEventAction(Event.STARTED,new ConfigureNodes<Void,PutPipelineData>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key));
   pipeline.addEventAction(Event.CONFIGURED,new PerformSerialPutRequests(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getRequiredWrites(),versioned,time,Event.MASTER_DETERMINED));
-  pipeline.addEventAction(Event.MASTER_DETERMINED,new PerformParallelPutRequests(pipelineData,Event.RESPONSES_RECEIVED,key,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredWrites(),timeoutMs,nonblockingStores));
+  pipeline.addEventAction(Event.MASTER_DETERMINED,new PerformParallelPutRequests(pipelineData,Event.RESPONSES_RECEIVED,key,failureDetector,storeDef.getRequiredWrites(),timeoutMs,nonblockingStores));
   pipeline.addEventAction(Event.RESPONSES_RECEIVED,new IncrementClock(pipelineData,Event.COMPLETED,versioned,time));
   pipeline.addEvent(Event.STARTED);
   pipeline.execute();
