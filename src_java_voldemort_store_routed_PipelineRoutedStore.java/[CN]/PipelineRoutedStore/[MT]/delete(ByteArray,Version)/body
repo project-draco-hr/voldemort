@@ -3,8 +3,7 @@
   BasicPipelineData<Boolean> pipelineData=new BasicPipelineData<Boolean>();
   final Pipeline pipeline=new Pipeline(Operation.DELETE,timeoutMs,TimeUnit.MILLISECONDS);
   NonblockingStoreRequest nonblockingDelete=new NonblockingStoreRequest(){
-    public void submit(    Node node,    NonblockingStore store){
-      NonblockingStoreCallback callback=new BasicResponseCallback<ByteArray>(pipeline,node,key);
+    public void submit(    Node node,    NonblockingStore store,    NonblockingStoreCallback callback){
       store.submitDeleteRequest(key,version,callback);
     }
   }
@@ -16,8 +15,7 @@
   }
 ;
   pipeline.addEventAction(Event.STARTED,new ConfigureNodes<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key));
-  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.NOP,storeDef.getPreferredWrites(),nonblockingStores,nonblockingDelete));
-  pipeline.addEventAction(Event.RESPONSE_RECEIVED,new AcknowledgeResponse<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.COMPLETED,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),Event.INSUFFICIENT_SUCCESSES));
+  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.COMPLETED,key,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),timeoutMs,nonblockingStores,nonblockingDelete,Event.INSUFFICIENT_SUCCESSES));
   pipeline.addEventAction(Event.INSUFFICIENT_SUCCESSES,new PerformSerialRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),blockingDelete,null));
   pipeline.addEvent(Event.STARTED);
   pipeline.execute();

@@ -3,15 +3,13 @@
   BasicPipelineData<List<Version>> pipelineData=new BasicPipelineData<List<Version>>();
   final Pipeline pipeline=new Pipeline(Operation.GET_VERSIONS,timeoutMs,TimeUnit.MILLISECONDS);
   NonblockingStoreRequest storeRequest=new NonblockingStoreRequest(){
-    public void submit(    Node node,    NonblockingStore store){
-      NonblockingStoreCallback callback=new BasicResponseCallback<ByteArray>(pipeline,node,key);
+    public void submit(    Node node,    NonblockingStore store,    NonblockingStoreCallback callback){
       store.submitGetVersionsRequest(key,callback);
     }
   }
 ;
   pipeline.addEventAction(Event.STARTED,new ConfigureNodes<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredReads(),routingStrategy,key));
-  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelRequests<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.NOP,storeDef.getPreferredReads(),nonblockingStores,storeRequest));
-  pipeline.addEventAction(Event.RESPONSE_RECEIVED,new AcknowledgeResponse<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.COMPLETED,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),null));
+  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelRequests<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.COMPLETED,key,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),timeoutMs,nonblockingStores,storeRequest,null));
   pipeline.addEvent(Event.STARTED);
   pipeline.execute();
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
