@@ -15,7 +15,7 @@
   RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,10000L);
   RoutedStore routedStore=routedStoreFactory.create(cluster,storeDef,subStores,true,failureDetector);
   routedStore.put(aKey,Versioned.value(aValue));
-  routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,sleepTimeMs - 1);
+  routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,sleepTimeMs / 2);
   routedStore=routedStoreFactory.create(cluster,storeDef,subStores,true,failureDetector);
   List<Versioned<byte[]>> versioneds=routedStore.get(aKey);
   assertEquals(2,versioneds.size());
