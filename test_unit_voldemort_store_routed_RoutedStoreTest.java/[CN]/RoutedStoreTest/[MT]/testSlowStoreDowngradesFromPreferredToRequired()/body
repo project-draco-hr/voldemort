@@ -1,7 +1,7 @@
 {
   cluster=VoldemortTestConstants.getThreeNodeCluster();
   StoreDefinition storeDef=ServerTestUtils.getStoreDef("test",3,3,2,3,1,RoutingStrategyType.CONSISTENT_STRATEGY);
-  int sleepTimeMs=1000;
+  int sleepTimeMs=500;
   Map<Integer,Store<ByteArray,byte[]>> subStores=Maps.newHashMap();
   for (  Node node : cluster.getNodes()) {
     Store<ByteArray,byte[]> store=new InMemoryStorageEngine<ByteArray,byte[]>("test");
@@ -15,7 +15,7 @@
   RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,10000L);
   RoutedStore routedStore=routedStoreFactory.create(cluster,storeDef,subStores,true,failureDetector);
   routedStore.put(aKey,Versioned.value(aValue));
-  routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,sleepTimeMs);
+  routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,sleepTimeMs / 2);
   routedStore=routedStoreFactory.create(cluster,storeDef,subStores,true,failureDetector);
   List<Versioned<byte[]>> versioneds=routedStore.get(aKey);
   assertEquals(2,versioneds.size());

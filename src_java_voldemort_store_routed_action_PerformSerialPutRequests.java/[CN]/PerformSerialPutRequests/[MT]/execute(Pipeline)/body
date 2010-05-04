@@ -9,7 +9,24 @@
       VectorClock versionedClock=(VectorClock)versioned.getVersion();
       Versioned<byte[]> versionedCopy=new Versioned<byte[]>(versioned.getValue(),versionedClock.incremented(node.getId(),time.getMilliseconds()));
       if (logger.isTraceEnabled())       logger.trace("Attempt # " + (currentNode + 1) + " to perform put (node "+ node.getId()+ ")");
-      stores.get(node.getId()).put(key,versionedCopy);
+      final CountDownLatch latch=new CountDownLatch(1);
+      PutCallback callback=new PutCallback(latch);
+      NonblockingStore store=nonblockingStores.get(node.getId());
+      store.submitPutRequest(key,versionedCopy,callback);
+      boolean successful=false;
+      try {
+        successful=latch.await(timeoutMs,TimeUnit.MILLISECONDS);
+      }
+ catch (      InterruptedException e) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(e,e);
+      }
+      if (!successful) {
+        List<Exception> failures=pipelineData.getFailures();
+        pipelineData.setFatalError(new InsufficientOperationalNodesException("No master node succeeded!",failures.size() > 0 ? failures.get(0) : null));
+        pipeline.addEvent(Event.ERROR);
+        return;
+      }
+      if (callback.result instanceof Exception)       throw (Exception)callback.result;
       pipelineData.incrementSuccesses();
       long requestTime=(System.nanoTime() - startNs) / Time.NS_PER_MS;
       failureDetector.recordSuccess(node,requestTime);
