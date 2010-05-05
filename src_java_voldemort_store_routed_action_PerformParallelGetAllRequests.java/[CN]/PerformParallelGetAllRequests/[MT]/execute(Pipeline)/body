@@ -1,21 +1,16 @@
 {
   int attempts=pipelineData.getNodeToKeysMap().size();
-  final List<Response<Iterable<ByteArray>,Object>> responses=new ArrayList<Response<Iterable<ByteArray>,Object>>();
+  final Map<Integer,Response<Iterable<ByteArray>,Object>> responses=new ConcurrentHashMap<Integer,Response<Iterable<ByteArray>,Object>>();
   final CountDownLatch latch=new CountDownLatch(attempts);
-  final AtomicBoolean isComplete=new AtomicBoolean(false);
-  final Object lock=new Object();
   if (logger.isTraceEnabled())   logger.trace("Attempting " + attempts + " "+ pipeline.getOperation().getSimpleName()+ " operations in parallel");
   for (  Map.Entry<Node,List<ByteArray>> entry : pipelineData.getNodeToKeysMap().entrySet()) {
     final Node node=entry.getKey();
     final Collection<ByteArray> keys=entry.getValue();
     NonblockingStoreCallback callback=new NonblockingStoreCallback(){
       public void requestComplete(      Object result,      long requestTime){
-synchronized (lock) {
-          if (isComplete.get())           return;
-          if (logger.isTraceEnabled())           logger.trace(pipeline.getOperation().getSimpleName() + " response received (" + requestTime+ " ms.) from node "+ node.getId());
-          responses.add(new Response<Iterable<ByteArray>,Object>(node,keys,result,requestTime));
-          latch.countDown();
-        }
+        if (logger.isTraceEnabled())         logger.trace(pipeline.getOperation().getSimpleName() + " response received (" + requestTime+ " ms.) from node "+ node.getId());
+        responses.put(node.getId(),new Response<Iterable<ByteArray>,Object>(node,keys,result,requestTime));
+        latch.countDown();
       }
     }
 ;
@@ -29,10 +24,7 @@ synchronized (lock) {
  catch (  InterruptedException e) {
     if (logger.isEnabledFor(Level.WARN))     logger.warn(e,e);
   }
-synchronized (lock) {
-    isComplete.set(true);
-  }
-  for (  Response<Iterable<ByteArray>,Object> response : responses) {
+  for (  Response<Iterable<ByteArray>,Object> response : responses.values()) {
     if (response.getValue() instanceof Exception) {
       Node node=response.getNode();
       Exception e=(Exception)response.getValue();

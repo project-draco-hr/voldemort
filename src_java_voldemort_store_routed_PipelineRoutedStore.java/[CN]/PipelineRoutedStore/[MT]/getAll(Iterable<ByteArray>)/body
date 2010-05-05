@@ -3,7 +3,7 @@
   GetAllPipelineData pipelineData=new GetAllPipelineData();
   Pipeline pipeline=new Pipeline(Operation.GET_ALL,timeoutMs,TimeUnit.MILLISECONDS);
   pipeline.addEventAction(Event.STARTED,new GetAllConfigureNodes(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),routingStrategy,keys));
-  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelGetAllRequests(pipelineData,Event.INSUFFICIENT_SUCCESSES,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),timeoutMs,nonblockingStores));
+  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelGetAllRequests(pipelineData,Event.INSUFFICIENT_SUCCESSES,failureDetector,timeoutMs,nonblockingStores));
   pipeline.addEventAction(Event.INSUFFICIENT_SUCCESSES,new PerformSerialGetAllRequests(pipelineData,repairReads ? Event.RESPONSES_RECEIVED : Event.COMPLETED,keys,failureDetector,innerStores,storeDef.getPreferredReads(),storeDef.getRequiredReads()));
   if (repairReads)   pipeline.addEventAction(Event.RESPONSES_RECEIVED,new GetAllReadRepair(pipelineData,Event.COMPLETED,storeDef.getPreferredReads(),nonblockingStores,readRepairer));
   pipeline.addEvent(Event.STARTED);
