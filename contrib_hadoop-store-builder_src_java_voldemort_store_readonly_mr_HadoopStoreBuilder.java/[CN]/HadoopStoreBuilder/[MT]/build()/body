@@ -16,6 +16,7 @@
   conf.setJarByClass(getClass());
   FileInputFormat.setInputPaths(conf,inputPath);
   conf.set("final.output.dir",outputDir.toString());
+  conf.set("checksum.type",CheckSum.toString(checkSumType));
   FileOutputFormat.setOutputPath(conf,tempDir);
   try {
     FileSystem outputFs=outputDir.getFileSystem(conf);
@@ -36,33 +37,31 @@
     if (checkSumType != CheckSumType.NONE) {
       FileStatus[] nodes=outputFs.listStatus(outputDir);
       CheckSum checkSumGenerator=CheckSum.getInstance(this.checkSumType);
-      CheckSum fileCheckSumGenerator=CheckSum.getInstance(this.checkSumType);
-      if (checkSumGenerator == null || fileCheckSumGenerator == null) {
+      if (checkSumGenerator == null) {
         throw new VoldemortException("Could not generate checksum digests");
       }
       for (      FileStatus node : nodes) {
         if (node.isDir()) {
-          FileStatus[] storeFiles=outputFs.listStatus(node.getPath());
+          FileStatus[] storeFiles=outputFs.listStatus(node.getPath(),new PathFilter(){
+            public boolean accept(            Path arg0){
+              if (arg0.getName().endsWith("checksum") && !arg0.getName().startsWith(".")) {
+                return true;
+              }
+              return false;
+            }
+          }
+);
           if (storeFiles != null) {
             Arrays.sort(storeFiles,new IndexFileLastComparator());
-            byte[] buffer=new byte[DEFAULT_BUFFER_SIZE];
-            for (            FileStatus status : storeFiles) {
-              if (!status.getPath().getName().startsWith(".")) {
-                FSDataInputStream input=outputFs.open(status.getPath());
-                while (true) {
-                  int read=input.read(buffer);
-                  if (read < 0)                   break;
- else                   if (read < DEFAULT_BUFFER_SIZE) {
-                    buffer=ByteUtils.copy(buffer,0,read);
-                  }
-                  fileCheckSumGenerator.update(buffer);
-                }
-                checkSumGenerator.update(fileCheckSumGenerator.getCheckSum());
-              }
+            for (            FileStatus file : storeFiles) {
+              FSDataInputStream input=outputFs.open(file.getPath());
+              byte fileCheckSum[]=new byte[CheckSum.checkSumLength(this.checkSumType)];
+              input.read(fileCheckSum);
+              checkSumGenerator.update(fileCheckSum);
+              outputFs.delete(file.getPath(),true);
             }
-            byte[] checkSumBytes=checkSumGenerator.getCheckSum();
             FSDataOutputStream checkSumStream=outputFs.create(new Path(node.getPath(),CheckSum.toString(checkSumType) + "checkSum.txt"));
-            checkSumStream.write(checkSumBytes);
+            checkSumStream.write(checkSumGenerator.getCheckSum());
             checkSumStream.flush();
             checkSumStream.close();
           }
