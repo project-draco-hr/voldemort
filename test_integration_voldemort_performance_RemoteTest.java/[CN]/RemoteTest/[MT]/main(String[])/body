@@ -7,7 +7,7 @@
   parser.accepts("v","verbose");
   parser.accepts("ignore-nulls","ignore null values");
   parser.accepts("node","go to this node id").withRequiredArg().ofType(Integer.class);
-  parser.accepts("interval","print requests on this interval").withRequiredArg().ofType(Integer.class);
+  parser.accepts("interval","print requests on this interval, -1 to disable").withRequiredArg().ofType(Integer.class);
   parser.accepts("handshake","perform a handshake");
   parser.accepts("verify","verify values read");
   parser.accepts("request-file","execute specific requests in order").withRequiredArg();
@@ -104,7 +104,7 @@
             }
  finally {
               latch0.countDown();
-              if (j % interval == 0) {
+              if (interval != -1 && j % interval == 0) {
                 printStatistics("deletes",successes.get(),start);
               }
             }
@@ -147,7 +147,7 @@
             }
  finally {
               latch1.countDown();
-              if (j % interval == 0) {
+              if (interval != -1 && j % interval == 0) {
                 printStatistics("writes",numWrites.get(),start);
               }
             }
@@ -197,7 +197,7 @@
             }
  finally {
               latch.countDown();
-              if (j % interval == 0) {
+              if (interval != -1 && j % interval == 0) {
                 printStatistics("reads",numReads.get(),start);
                 printNulls(numNulls.get(),start);
               }
@@ -248,7 +248,7 @@
             }
           }
  finally {
-            if (j % interval == 0) {
+            if (interval != -1 && j % interval == 0) {
               printStatistics("reads",numReads.get(),start);
               printStatistics("writes",numWrites.get(),start);
               printNulls(numNulls.get(),start);
