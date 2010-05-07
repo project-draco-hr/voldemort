@@ -1,0 +1,27 @@
+{
+  try {
+    ClientRequestExecutor clientRequestExecutor=null;
+    while ((clientRequestExecutor=registrationQueue.poll()) != null) {
+      if (isClosed.get()) {
+        if (logger.isDebugEnabled())         logger.debug("Closed, exiting");
+        break;
+      }
+      SocketChannel socketChannel=clientRequestExecutor.getSocketChannel();
+      try {
+        if (logger.isDebugEnabled())         logger.debug("Registering connection from " + socketChannel.socket());
+        socketChannel.register(selector,SelectionKey.OP_WRITE,clientRequestExecutor);
+      }
+ catch (      ClosedSelectorException e) {
+        if (logger.isDebugEnabled())         logger.debug("Selector is closed, exiting");
+        close();
+        break;
+      }
+catch (      Exception e) {
+        if (logger.isEnabledFor(Level.ERROR))         logger.error(e.getMessage(),e);
+      }
+    }
+  }
+ catch (  Exception e) {
+    if (logger.isEnabledFor(Level.ERROR))     logger.error(e.getMessage(),e);
+  }
+}

@@ -1,5 +1,5 @@
 {
-  if (logger.isTraceEnabled())   logger.trace("Associating client with " + socketChannel.socket().getRemoteSocketAddress());
+  if (logger.isTraceEnabled())   logger.trace("Associating client with " + socketChannel.socket());
   this.clientRequest=clientRequest;
   outputStream.getBuffer().clear();
   boolean wasSuccessful=clientRequest.formatRequest(new DataOutputStream(outputStream));
@@ -15,11 +15,11 @@
       selector.wakeup();
     }
  else {
-      if (logger.isDebugEnabled())       logger.debug("Client associated with " + socketChannel.socket().getRemoteSocketAddress() + " was not registered with Selector, assuming initial protocol negotiation");
+      if (logger.isDebugEnabled())       logger.debug("Client associated with " + socketChannel.socket() + " was not registered with Selector "+ selector+ ", assuming initial protocol negotiation");
     }
   }
  else {
-    if (logger.isEnabledFor(Level.WARN))     logger.warn("Client associated with " + socketChannel.socket().getRemoteSocketAddress() + " did not successfully buffer output for request");
+    if (logger.isEnabledFor(Level.WARN))     logger.warn("Client associated with " + socketChannel.socket() + " did not successfully buffer output for request");
     completeClientRequest();
   }
 }

@@ -11,18 +11,9 @@
       pipelineData.getResponses().add(response);
       failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
     }
- catch (    UnreachableStoreException e) {
-      pipelineData.recordFailure(e);
-      failureDetector.recordException(node,((System.nanoTime() - start) / Time.NS_PER_MS),e);
-    }
-catch (    VoldemortApplicationException e) {
-      pipelineData.setFatalError(e);
-      pipeline.addEvent(Event.ERROR);
-      return;
-    }
-catch (    Exception e) {
-      pipelineData.recordFailure(e);
-      if (logger.isEnabledFor(Level.WARN))       logger.warn("Error in " + pipeline.getOperation() + " on node "+ node.getId()+ "("+ node.getHost()+ ")",e);
+ catch (    Exception e) {
+      long requestTime=(System.nanoTime() - start) / Time.NS_PER_MS;
+      if (handleResponseError(e,node,requestTime,pipeline,failureDetector))       return;
     }
     pipelineData.incrementNodeIndex();
   }

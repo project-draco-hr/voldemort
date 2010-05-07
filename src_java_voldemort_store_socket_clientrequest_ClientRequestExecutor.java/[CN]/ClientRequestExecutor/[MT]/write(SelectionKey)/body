@@ -1,10 +1,10 @@
 {
   if (outputStream.getBuffer().hasRemaining()) {
     int count=socketChannel.write(outputStream.getBuffer());
-    if (logger.isTraceEnabled())     logger.trace("Wrote " + count + " bytes, remaining: "+ outputStream.getBuffer().remaining()+ " for "+ socketChannel.socket().getRemoteSocketAddress());
+    if (logger.isTraceEnabled())     logger.trace("Wrote " + count + " bytes, remaining: "+ outputStream.getBuffer().remaining()+ " for "+ socketChannel.socket());
   }
  else {
-    if (logger.isTraceEnabled())     logger.trace("Wrote no bytes for " + socketChannel.socket().getRemoteSocketAddress());
+    if (logger.isTraceEnabled())     logger.trace("Wrote no bytes for " + socketChannel.socket());
   }
   if (outputStream.getBuffer().hasRemaining())   return;
   if (outputStream.getBuffer().capacity() >= resizeThreshold)   outputStream.setBuffer(ByteBuffer.allocate(socketBufferSize));

@@ -1,0 +1,21 @@
+{
+  try {
+    for (int i=0; i < selectorManagers.length; i++) {
+      try {
+        selectorManagers[i].close();
+      }
+ catch (      Exception e) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(e.getMessage(),e);
+      }
+    }
+    selectorManagerThreadPool.shutdown();
+    if (logger.isTraceEnabled())     logger.trace("Shut down SelectorManager thread pool acceptor, waiting " + SHUTDOWN_TIMEOUT_MS + " ms for termination");
+    boolean terminated=selectorManagerThreadPool.awaitTermination(SHUTDOWN_TIMEOUT_MS,TimeUnit.MILLISECONDS);
+    if (!terminated) {
+      if (logger.isEnabledFor(Level.WARN))       logger.warn("SelectorManager thread pool did not stop cleanly after " + SHUTDOWN_TIMEOUT_MS + " ms");
+    }
+  }
+ catch (  Exception e) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
+  }
+}

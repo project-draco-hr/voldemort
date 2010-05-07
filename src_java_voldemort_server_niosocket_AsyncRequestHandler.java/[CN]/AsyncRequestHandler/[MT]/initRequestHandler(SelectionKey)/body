@@ -7,7 +7,7 @@
     String proto=ByteUtils.getString(protoBytes,"UTF-8");
     RequestFormatType requestFormatType=RequestFormatType.fromCode(proto);
     requestHandler=requestHandlerFactory.getRequestHandler(requestFormatType);
-    if (logger.isInfoEnabled())     logger.info("Protocol negotiated for " + socketChannel.socket().getRemoteSocketAddress() + ": "+ requestFormatType.getDisplayName());
+    if (logger.isInfoEnabled())     logger.info("Protocol negotiated for " + socketChannel.socket() + ": "+ requestFormatType.getDisplayName());
     outputStream.getBuffer().put(ByteUtils.getBytes("ok","UTF-8"));
     prepForWrite(selectionKey);
     return false;
@@ -15,7 +15,7 @@
  catch (  IllegalArgumentException e) {
     RequestFormatType requestFormatType=RequestFormatType.VOLDEMORT_V0;
     requestHandler=requestHandlerFactory.getRequestHandler(requestFormatType);
-    if (logger.isInfoEnabled())     logger.info("No protocol proposal given for " + socketChannel.socket().getRemoteSocketAddress() + ", assuming "+ requestFormatType.getDisplayName());
+    if (logger.isInfoEnabled())     logger.info("No protocol proposal given for " + socketChannel.socket() + ", assuming "+ requestFormatType.getDisplayName());
     return true;
   }
 }

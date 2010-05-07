@@ -38,7 +38,7 @@
   Cluster cluster=ServerTestUtils.getLocalCluster(numNodes,partitionMap);
   String storeDefinitionFile="test/common/voldemort/config/single-store.xml";
   StoreDefinition storeDefinition=new StoreDefinitionsMapper().readStoreList(new File(storeDefinitionFile)).get(0);
-  SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(clientConfig.getMaxConnectionsPerNode(),clientConfig.getConnectionTimeout(TimeUnit.MILLISECONDS),clientConfig.getSocketTimeout(TimeUnit.MILLISECONDS),clientConfig.getSocketBufferSize(),clientConfig.getSocketKeepAlive());
+  SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(clientConfig.getSelectors(),clientConfig.getMaxConnectionsPerNode(),clientConfig.getConnectionTimeout(TimeUnit.MILLISECONDS),clientConfig.getSocketTimeout(TimeUnit.MILLISECONDS),clientConfig.getSocketBufferSize(),clientConfig.getSocketKeepAlive());
   for (int i=0; i < cluster.getNumberOfNodes(); i++) {
     VoldemortConfig config=ServerTestUtils.createServerConfig(true,i,TestUtils.createTempDir().getAbsolutePath(),null,storeDefinitionFile,new Properties());
     VoldemortServer server=ServerTestUtils.startVoldemortServer(socketStoreFactory,config,cluster);

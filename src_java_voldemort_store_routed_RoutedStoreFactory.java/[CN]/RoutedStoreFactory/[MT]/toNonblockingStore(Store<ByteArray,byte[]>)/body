@@ -1,4 +1,5 @@
 {
   if (store instanceof NonblockingStore)   return (NonblockingStore)store;
- else   return new ThreadPoolBasedNonblockingStoreImpl(threadPool,store);
+  if (logger.isEnabledFor(Level.WARN))   logger.warn("Using pseudo NonblockingStore implementation for " + store.getClass());
+  return new ThreadPoolBasedNonblockingStoreImpl(threadPool,store);
 }

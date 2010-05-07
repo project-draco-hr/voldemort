@@ -20,20 +20,9 @@
         failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
         if (successCount.intValue() >= preferred)         break;
       }
- catch (      UnreachableStoreException e) {
-        if (logger.isTraceEnabled())         logger.trace("GetAll on node " + node.getId() + " failed: "+ e);
-        pipelineData.recordFailure(e);
+ catch (      Exception e) {
         long requestTime=(System.nanoTime() - start) / Time.NS_PER_MS;
-        failureDetector.recordException(node,requestTime,e);
-      }
-catch (      VoldemortApplicationException e) {
-        pipelineData.setFatalError(e);
-        pipeline.addEvent(Event.ERROR);
-        return;
-      }
-catch (      Exception e) {
-        if (logger.isTraceEnabled())         logger.trace("GetAll on node " + node.getId() + " failed: "+ e);
-        pipelineData.recordFailure(e);
+        if (handleResponseError(e,node,requestTime,pipeline,failureDetector))         return;
       }
     }
   }

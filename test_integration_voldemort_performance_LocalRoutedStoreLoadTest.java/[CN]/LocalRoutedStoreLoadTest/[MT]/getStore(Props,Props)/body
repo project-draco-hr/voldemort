@@ -12,7 +12,7 @@
   FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig(voldemortConfig).setNodes(cluster.getNodes()).setStoreVerifier(new BasicStoreVerifier<ByteArray,byte[]>(clientMapping,new ByteArray("key".getBytes())));
   FailureDetector failureDetector=create(failureDetectorConfig,false);
   StoreDefinition storeDef=ServerTestUtils.getStoreDef("test",1,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY);
-  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(voldemortConfig.isPipelineRoutedStoreEnabled(),threadPool,voldemortConfig.getRoutingTimeoutMs());
+  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(voldemortConfig.isPipelineRoutedStoreEnabled(),threadPool,voldemortConfig.getClientRoutingTimeoutMs());
   RoutedStore store=routedStoreFactory.create(cluster,storeDef,clientMapping,true,failureDetector);
   Store<String,String> serializingStore=SerializingStore.wrap(store,new StringSerializer(),new StringSerializer());
   Store<String,String> resolvingStore=new InconsistencyResolvingStore<String,String>(serializingStore,resolver);

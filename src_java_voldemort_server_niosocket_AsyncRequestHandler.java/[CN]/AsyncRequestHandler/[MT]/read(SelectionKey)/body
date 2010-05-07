@@ -1,6 +1,6 @@
 {
   int count=0;
-  if ((count=socketChannel.read(inputStream.getBuffer())) == -1)   throw new EOFException("EOF for " + socketChannel.socket().getRemoteSocketAddress());
+  if ((count=socketChannel.read(inputStream.getBuffer())) == -1)   throw new EOFException("EOF for " + socketChannel.socket());
   if (logger.isTraceEnabled())   traceInputBufferState("Read " + count + " bytes");
   if (count == 0)   return;
   final int position=inputStream.getBuffer().position();
@@ -19,12 +19,12 @@
     return;
   }
   inputStream.getBuffer().rewind();
-  if (logger.isTraceEnabled())   logger.trace("Starting execution for " + socketChannel.socket().getRemoteSocketAddress());
+  if (logger.isTraceEnabled())   logger.trace("Starting execution for " + socketChannel.socket());
   streamRequestHandler=requestHandler.handleRequest(new DataInputStream(inputStream),new DataOutputStream(outputStream));
   if (streamRequestHandler != null) {
     handleStreamRequest(selectionKey);
     return;
   }
-  if (logger.isTraceEnabled())   logger.trace("Finished execution for " + socketChannel.socket().getRemoteSocketAddress());
+  if (logger.isTraceEnabled())   logger.trace("Finished execution for " + socketChannel.socket());
   prepForWrite(selectionKey);
 }

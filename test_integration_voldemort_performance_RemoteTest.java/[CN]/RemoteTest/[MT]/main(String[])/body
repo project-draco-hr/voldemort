@@ -6,8 +6,9 @@
   parser.accepts("m","generate a mix of read and write requests");
   parser.accepts("v","verbose");
   parser.accepts("ignore-nulls","ignore null values");
+  parser.accepts("pipeline-routed-store","Use the Pipeline RoutedStore");
   parser.accepts("node","go to this node id").withRequiredArg().ofType(Integer.class);
-  parser.accepts("interval","print requests on this interval").withRequiredArg().ofType(Integer.class);
+  parser.accepts("interval","print requests on this interval, -1 disables").withRequiredArg().ofType(Integer.class);
   parser.accepts("handshake","perform a handshake");
   parser.accepts("verify","verify values read");
   parser.accepts("request-file","execute specific requests in order").withRequiredArg();
@@ -67,7 +68,7 @@
   System.out.println("threads : " + numThreads);
   System.out.println("cache percentage : " + percentCached + "%");
   System.out.println("Bootstraping cluster data.");
-  ClientConfig clientConfig=new ClientConfig().setMaxThreads(numThreads).setMaxTotalConnections(numThreads).setMaxConnectionsPerNode(numThreads).setBootstrapUrls(url).setConnectionTimeout(60,TimeUnit.SECONDS).setSocketTimeout(60,TimeUnit.SECONDS).setSocketBufferSize(4 * 1024);
+  ClientConfig clientConfig=new ClientConfig().setMaxThreads(numThreads).setMaxTotalConnections(numThreads).setMaxConnectionsPerNode(numThreads).setBootstrapUrls(url).setConnectionTimeout(60,TimeUnit.SECONDS).setSocketTimeout(60,TimeUnit.SECONDS).setSocketBufferSize(4 * 1024).setEnablePipelineRoutedStore(options.has("pipeline-routed-store"));
   SocketStoreClientFactory factory=new SocketStoreClientFactory(clientConfig);
   final StoreClient<Object,Object> store=factory.getStoreClient(storeName);
   StoreDefinition storeDef=getStoreDefinition(factory,storeName);
@@ -104,7 +105,7 @@
             }
  finally {
               latch0.countDown();
-              if (j % interval == 0) {
+              if (interval != -1 && j % interval == 0) {
                 printStatistics("deletes",successes.get(),start);
               }
             }
@@ -147,7 +148,7 @@
             }
  finally {
               latch1.countDown();
-              if (j % interval == 0) {
+              if (interval != -1 && j % interval == 0) {
                 printStatistics("writes",numWrites.get(),start);
               }
             }
@@ -197,7 +198,7 @@
             }
  finally {
               latch.countDown();
-              if (j % interval == 0) {
+              if (interval != -1 && j % interval == 0) {
                 printStatistics("reads",numReads.get(),start);
                 printNulls(numNulls.get(),start);
               }
@@ -248,7 +249,7 @@
             }
           }
  finally {
-            if (j % interval == 0) {
+            if (interval != -1 && j % interval == 0) {
               printStatistics("reads",numReads.get(),start);
               printStatistics("writes",numWrites.get(),start);
               printNulls(numNulls.get(),start);

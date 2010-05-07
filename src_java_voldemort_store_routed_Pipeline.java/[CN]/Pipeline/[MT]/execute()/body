@@ -7,6 +7,7 @@
  catch (    InterruptedException e) {
       throw new InsufficientOperationalNodesException(operation.getSimpleName() + " operation interrupted!",e);
     }
+    if (event == null)     throw new VoldemortException(operation.getSimpleName() + " returned a null event");
     if (event.equals(Event.ERROR)) {
       if (logger.isTraceEnabled())       logger.trace(operation.getSimpleName() + " request, events complete due to error");
       break;
