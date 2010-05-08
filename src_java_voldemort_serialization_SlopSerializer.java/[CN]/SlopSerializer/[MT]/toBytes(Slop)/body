@@ -2,19 +2,9 @@
   ByteArrayOutputStream byteOutput=new ByteArrayOutputStream();
   DataOutputStream data=new DataOutputStream(byteOutput);
   try {
-    data.writeUTF(slop.getStoreName());
-    data.writeUTF(slop.getOperation().toString());
-    data.writeInt(slop.getKey().get().length);
-    data.write(slop.getKey().get());
-    if (slop.getValue() == null) {
-      data.writeInt(-1);
-    }
- else {
-      data.writeInt(slop.getValue().length);
-      data.write(slop.getValue());
-    }
-    data.writeInt(slop.getNodeId());
-    data.writeLong(slop.getArrived().getTime());
+    VSlopProto.Slop.Builder builder=VSlopProto.Slop.newBuilder().setStore(slop.getStoreName()).setOperation(slop.getOperation().toString()).setKey(ProtoUtils.encodeBytes(slop.getKey())).setNodeId(slop.getNodeId()).setArrived(slop.getArrived().getTime());
+    if (slop.getValue() != null)     builder.setValue(ProtoUtils.encodeBytes(new ByteArray(slop.getValue())));
+    ProtoUtils.writeMessage(data,builder.build());
     return byteOutput.toByteArray();
   }
  catch (  IOException e) {
