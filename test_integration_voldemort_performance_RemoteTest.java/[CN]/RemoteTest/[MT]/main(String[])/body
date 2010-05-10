@@ -9,6 +9,7 @@
   parser.accepts("pipeline-routed-store","Use the Pipeline RoutedStore");
   parser.accepts("node","go to this node id").withRequiredArg().ofType(Integer.class);
   parser.accepts("interval","print requests on this interval, -1 to disable").withRequiredArg().ofType(Integer.class);
+  parser.accepts("selectors","Number of client selectors to use. Default = " + SELECTORS).withRequiredArg().ofType(Integer.class);
   parser.accepts("handshake","perform a handshake");
   parser.accepts("verify","verify values read");
   parser.accepts("request-file","execute specific requests in order").withRequiredArg();
@@ -39,8 +40,8 @@
   if (percentCached < 0 || percentCached > 100) {
     printUsage(System.err,parser);
   }
-  Integer nodeId=CmdUtils.valueOf(options,"node",0);
   final Integer interval=CmdUtils.valueOf(options,"interval",100000);
+  int selectors=CmdUtils.valueOf(options,"selectors",SELECTORS);
   final boolean verifyValues=options.has("verify");
   final boolean verbose=options.has("v");
   if (options.has("request-file")) {
@@ -68,7 +69,7 @@
   System.out.println("threads : " + numThreads);
   System.out.println("cache percentage : " + percentCached + "%");
   System.out.println("Bootstraping cluster data.");
-  ClientConfig clientConfig=new ClientConfig().setMaxThreads(numThreads).setMaxTotalConnections(numThreads).setMaxConnectionsPerNode(numThreads).setBootstrapUrls(url).setConnectionTimeout(60,TimeUnit.SECONDS).setSocketTimeout(60,TimeUnit.SECONDS).setSocketBufferSize(4 * 1024).setEnablePipelineRoutedStore(options.has("pipeline-routed-store"));
+  ClientConfig clientConfig=new ClientConfig().setMaxThreads(numThreads).setMaxTotalConnections(numThreads).setMaxConnectionsPerNode(numThreads).setBootstrapUrls(url).setConnectionTimeout(60,TimeUnit.SECONDS).setSocketTimeout(60,TimeUnit.SECONDS).setSocketBufferSize(4 * 1024).setEnablePipelineRoutedStore(options.has("pipeline-routed-store")).setSelectors(selectors);
   SocketStoreClientFactory factory=new SocketStoreClientFactory(clientConfig);
   final StoreClient<Object,Object> store=factory.getStoreClient(storeName);
   StoreDefinition storeDef=getStoreDefinition(factory,storeName);
@@ -132,7 +133,7 @@
             try {
               final Object key=keyProvider1.next();
               store.applyUpdate(new UpdateAction<Object,Object>(){
-                public void update(                StoreClient<Object,Object> storeClient){
+                @Override public void update(                StoreClient<Object,Object> storeClient){
                   long startNs=System.nanoTime();
                   storeClient.put(key,value);
                   requestTimes[j]=(System.nanoTime() - startNs) / Time.NS_PER_MS;
@@ -229,7 +230,7 @@
           try {
             final Object key=keyProvider.next();
             store.applyUpdate(new UpdateAction<Object,Object>(){
-              public void update(              StoreClient<Object,Object> storeClient){
+              @Override public void update(              StoreClient<Object,Object> storeClient){
                 Versioned<Object> v=store.get(key);
                 numReads.incrementAndGet();
                 if (v != null) {
