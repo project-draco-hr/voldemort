@@ -1,5 +1,5 @@
 {
-synchronized (rebalancePermitMap) {
-    if (!rebalancePermitMap.get(donorNodeId).compareAndSet(true,false))     throw new VoldemortException("Invalid state rebalancePermit must be true here.");
+synchronized (rebalancePermits) {
+    if (!rebalancePermits.remove(donorNodeId))     throw new VoldemortException("Invalid state, must have have a permit to release");
   }
 }

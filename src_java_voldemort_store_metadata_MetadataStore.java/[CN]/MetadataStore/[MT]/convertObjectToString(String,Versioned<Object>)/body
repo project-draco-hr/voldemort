@@ -7,7 +7,8 @@
     valueStr=storeMapper.writeStoreList((List<StoreDefinition>)value.getValue());
   }
  else   if (REBALANCING_STEAL_INFO.equals(key)) {
-    valueStr=RebalancePartitionsInfo.listToJsonString((List<RebalancePartitionsInfo>)value.getValue());
+    RebalancerState rebalancerState=(RebalancerState)value.getValue();
+    valueStr=rebalancerState.toJsonString();
   }
  else   if (SERVER_STATE_KEY.equals(key) || CLUSTER_STATE_KEY.equals(key) || NODE_ID_KEY.equals(key)) {
     valueStr=value.getValue().toString();

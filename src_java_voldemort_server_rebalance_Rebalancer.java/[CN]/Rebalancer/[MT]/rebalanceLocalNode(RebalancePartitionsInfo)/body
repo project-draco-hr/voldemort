@@ -1,6 +1,7 @@
 {
   if (!acquireRebalancingPermit(stealInfo.getDonorId())) {
-    RebalancePartitionsInfo info=metadataStore.getRebalancingStealInfo(stealInfo.getDonorId());
+    RebalancerState rebalancerState=metadataStore.getRebalancerState();
+    RebalancePartitionsInfo info=rebalancerState.find(stealInfo.getDonorId());
     if (info != null) {
       throw new AlreadyRebalancingException("Node " + metadataStore.getCluster().getNodeById(info.getStealerId()) + " is already rebalancing from "+ info.getDonorId()+ " rebalanceInfo:"+ info);
     }

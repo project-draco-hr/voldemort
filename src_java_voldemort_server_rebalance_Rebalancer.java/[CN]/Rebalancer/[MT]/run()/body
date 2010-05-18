@@ -1,8 +1,8 @@
 {
   logger.debug("rebalancer run() called.");
   if (VoldemortState.REBALANCING_MASTER_SERVER.equals(metadataStore.getServerState())) {
-    List<RebalancePartitionsInfo> stealInfoList=metadataStore.getRebalancingStealInfoList();
-    for (    RebalancePartitionsInfo stealInfo : stealInfoList) {
+    RebalancerState rebalancerState=metadataStore.getRebalancerState();
+    for (    RebalancePartitionsInfo stealInfo : rebalancerState.getAll()) {
       if (acquireRebalancingPermit(stealInfo.getDonorId())) {
         releaseRebalancingPermit(stealInfo.getDonorId());
         try {

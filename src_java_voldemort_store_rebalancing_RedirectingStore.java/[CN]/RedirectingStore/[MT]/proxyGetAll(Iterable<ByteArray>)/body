@@ -3,12 +3,11 @@
   int numKeys=0;
   for (  ByteArray key : keys) {
     numKeys++;
-    for (    RebalancePartitionsInfo stealInfo : metadata.getRebalancingStealInfoList()) {
-      if (stealInfo.getUnbalancedStoreList().contains(getName())) {
-        byte[] keyBytes=key.get();
-        for (        int p : metadata.getRoutingStrategy(getName()).getPartitionList(keyBytes)) {
-          if (stealInfo.getPartitionList().contains(p))           scatterMap.put(stealInfo.getDonorId(),key);
-        }
+    RebalancerState rebalancerState=metadata.getRebalancerState();
+    for (    RebalancePartitionsInfo stealInfo : rebalancerState.find(getName())) {
+      byte[] keyBytes=key.get();
+      for (      int p : metadata.getRoutingStrategy(getName()).getPartitionList(keyBytes)) {
+        if (stealInfo.getPartitionList().contains(p))         scatterMap.put(stealInfo.getDonorId(),key);
       }
     }
   }

@@ -1,10 +1,4 @@
 {
-  for (  int partitionId : partitionIds) {
-    for (    RebalancePartitionsInfo candidate : metadata.getRebalancingStealInfoList()) {
-      if (candidate.getUnbalancedStoreList().contains(getName()) && candidate.getPartitionList().contains(partitionId)) {
-        return candidate;
-      }
-    }
-  }
-  return null;
+  RebalancerState rebalancerState=metadata.getRebalancerState();
+  return rebalancerState.find(getName(),partitionIds);
 }

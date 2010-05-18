@@ -1,15 +1,13 @@
 {
 synchronized (lock) {
-    List<RebalancePartitionsInfo> stealInfoList=getRebalancingStealInfoList();
-    int index=getRebalancingStealInfoIndex(stealInfo.getDonorId());
-    if (index != -1)     stealInfoList.remove(index);
- else     throw new IllegalArgumentException("Couldn't find " + stealInfo + " in stealInfoList "+ RebalancePartitionsInfo.listToJsonString(stealInfoList));
-    if (stealInfoList.isEmpty()) {
+    RebalancerState rebalancerState=getRebalancerState();
+    if (!rebalancerState.remove(stealInfo))     throw new IllegalArgumentException("Couldn't find " + stealInfo + " in "+ rebalancerState);
+    if (rebalancerState.isEmpty()) {
       logger.debug("stealInfoList empty, cleaning all rebalancing state");
       cleanAllRebalancingState();
     }
  else {
-      put(REBALANCING_STEAL_INFO,stealInfoList);
+      put(REBALANCING_STEAL_INFO,rebalancerState);
       initCache(REBALANCING_STEAL_INFO);
     }
   }
