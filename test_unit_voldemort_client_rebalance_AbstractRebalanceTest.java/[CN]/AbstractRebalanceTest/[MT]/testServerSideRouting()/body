@@ -40,7 +40,10 @@ catch (          Exception e) {
     public void run(){
       try {
         Thread.sleep(500);
-        RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCluster,0),new RebalanceClientConfig());
+        RebalanceClientConfig rebalanceClientConfig=new RebalanceClientConfig();
+        rebalanceClientConfig.setMaxParallelDonors(2);
+        rebalanceClientConfig.setMaxParallelRebalancing(2);
+        RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCluster,0),rebalanceClientConfig);
         rebalanceAndCheck(updatedCluster,targetCluster,rebalanceClient,Arrays.asList(1));
         Thread.sleep(500);
         rebalancingToken.set(true);
