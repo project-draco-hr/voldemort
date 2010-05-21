@@ -1,5 +1,6 @@
 {
-synchronized (lock) {
+  writeLock.lock();
+  try {
     RebalancerState rebalancerState=getRebalancerState();
     if (!rebalancerState.remove(stealInfo))     throw new IllegalArgumentException("Couldn't find " + stealInfo + " in "+ rebalancerState);
     if (rebalancerState.isEmpty()) {
@@ -10,5 +11,8 @@ synchronized (lock) {
       put(REBALANCING_STEAL_INFO,rebalancerState);
       initCache(REBALANCING_STEAL_INFO);
     }
+  }
+  finally {
+    writeLock.unlock();
   }
 }

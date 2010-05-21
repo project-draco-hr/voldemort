@@ -1,8 +1,12 @@
 {
-synchronized (MetadataStore.lock) {
+  metadataStore.writeLock.lock();
+  try {
     metadataStore.put(MetadataStore.SERVER_STATE_KEY,VoldemortState.REBALANCING_MASTER_SERVER);
     RebalancerState rebalancerState=metadataStore.getRebalancerState();
     rebalancerState.add(stealInfo);
     metadataStore.put(MetadataStore.REBALANCING_STEAL_INFO,rebalancerState);
+  }
+  finally {
+    metadataStore.writeLock.unlock();
   }
 }

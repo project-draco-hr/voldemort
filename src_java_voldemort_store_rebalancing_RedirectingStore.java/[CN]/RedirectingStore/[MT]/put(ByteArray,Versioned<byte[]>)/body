@@ -1,6 +1,12 @@
 {
-  if (redirectingKey(key)) {
-    proxyGetAndLocalPut(key);
+  metadata.readLock.lock();
+  try {
+    if (redirectingKey(key)) {
+      proxyGetAndLocalPut(key);
+    }
+  }
+  finally {
+    metadata.readLock.unlock();
   }
   getInnerStore().put(key,value);
 }

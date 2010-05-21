@@ -1,8 +1,14 @@
 {
-  List<ByteArray> redirectingKeys=new ArrayList<ByteArray>();
-  for (  ByteArray key : keys) {
-    if (redirectingKey(key))     redirectingKeys.add(key);
+  metadata.readLock.lock();
+  try {
+    List<ByteArray> redirectingKeys=new ArrayList<ByteArray>();
+    for (    ByteArray key : keys) {
+      if (redirectingKey(key))       redirectingKeys.add(key);
+    }
+    if (!redirectingKeys.isEmpty())     proxyGetAllAndLocalPut(redirectingKeys);
   }
-  if (!redirectingKeys.isEmpty())   proxyGetAllAndLocalPut(redirectingKeys);
+  finally {
+    metadata.readLock.unlock();
+  }
   return getInnerStore().getAll(keys);
 }

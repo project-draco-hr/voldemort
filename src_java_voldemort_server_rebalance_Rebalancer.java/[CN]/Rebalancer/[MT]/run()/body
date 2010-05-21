@@ -1,7 +1,20 @@
 {
   logger.debug("rebalancer run() called.");
-  if (VoldemortState.REBALANCING_MASTER_SERVER.equals(metadataStore.getServerState())) {
-    RebalancerState rebalancerState=metadataStore.getRebalancerState();
+  VoldemortState voldemortState;
+  RebalancerState rebalancerState;
+  metadataStore.readLock.lock();
+  try {
+    voldemortState=metadataStore.getServerState();
+    rebalancerState=metadataStore.getRebalancerState();
+  }
+ catch (  Exception e) {
+    logger.error("Error determining state",e);
+    return;
+  }
+ finally {
+    metadataStore.readLock.unlock();
+  }
+  if (VoldemortState.REBALANCING_MASTER_SERVER.equals(voldemortState)) {
     for (    RebalancePartitionsInfo stealInfo : rebalancerState.getAll()) {
       if (acquireRebalancingPermit(stealInfo.getDonorId())) {
         releaseRebalancingPermit(stealInfo.getDonorId());
