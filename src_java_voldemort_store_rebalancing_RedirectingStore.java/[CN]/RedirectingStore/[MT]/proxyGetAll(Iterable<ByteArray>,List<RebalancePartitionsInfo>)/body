@@ -3,8 +3,7 @@
   int numKeys=0;
   for (  ByteArray key : keys) {
     numKeys++;
-    RebalancerState rebalancerState=metadata.getRebalancerState();
-    for (    RebalancePartitionsInfo stealInfo : rebalancerState.find(getName())) {
+    for (    RebalancePartitionsInfo stealInfo : stealInfoList) {
       byte[] keyBytes=key.get();
       for (      int p : metadata.getRoutingStrategy(getName()).getPartitionList(keyBytes)) {
         if (stealInfo.getPartitionList().contains(p))         scatterMap.put(stealInfo.getDonorId(),key);

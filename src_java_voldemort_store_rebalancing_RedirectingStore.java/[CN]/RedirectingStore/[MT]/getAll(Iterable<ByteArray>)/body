@@ -1,14 +1,20 @@
 {
   metadata.readLock.lock();
+  List<ByteArray> redirectingKeys=new ArrayList<ByteArray>();
+  List<RebalancePartitionsInfo> rebalancePartitionsInfos=new ArrayList<RebalancePartitionsInfo>();
   try {
-    List<ByteArray> redirectingKeys=new ArrayList<ByteArray>();
     for (    ByteArray key : keys) {
-      if (redirectingKey(key))       redirectingKeys.add(key);
+      RebalancePartitionsInfo info;
+      info=redirectingKey(key);
+      if (info != null) {
+        redirectingKeys.add(key);
+        rebalancePartitionsInfos.add(info);
+      }
     }
-    if (!redirectingKeys.isEmpty())     proxyGetAllAndLocalPut(redirectingKeys);
   }
   finally {
     metadata.readLock.unlock();
   }
+  if (!redirectingKeys.isEmpty())   proxyGetAllAndLocalPut(redirectingKeys,rebalancePartitionsInfos);
   return getInnerStore().getAll(keys);
 }
