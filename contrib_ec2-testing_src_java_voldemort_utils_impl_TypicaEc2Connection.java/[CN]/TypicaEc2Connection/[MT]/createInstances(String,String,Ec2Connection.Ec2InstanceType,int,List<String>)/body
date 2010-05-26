@@ -4,6 +4,9 @@
   launchConfiguration.setKeyName(keypairId);
   launchConfiguration.setMinCount(instanceCount);
   launchConfiguration.setMaxCount(instanceCount);
+  if (securityGroups != null && securityGroups.size() > 0) {
+    launchConfiguration.setSecurityGroup(securityGroups);
+  }
   ReservationDescription reservationDescription=ec2.runInstances(launchConfiguration);
   List<String> instanceIds=new ArrayList<String>();
   for (  ReservationDescription.Instance instance : reservationDescription.getInstances()) {
