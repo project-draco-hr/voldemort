@@ -1,7 +1,7 @@
 {
-  if (VoldemortState.REBALANCING_MASTER_SERVER.equals(metadata.getServerState())) {
+  if (VoldemortState.REBALANCING_MASTER_SERVER.equals(metadata.getServerState()) && !getName().equals(MetadataStore.METADATA_STORE_NAME)) {
     List<Integer> partitionIds=metadata.getRoutingStrategy(getName()).getPartitionList(key.get());
-    if (getRebalancePartitionsInfo(partitionIds) != null)     return true;
+    return getRebalancePartitionsInfo(partitionIds);
   }
-  return false;
+  return null;
 }
