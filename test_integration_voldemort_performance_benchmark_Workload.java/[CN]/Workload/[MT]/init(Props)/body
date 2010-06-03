@@ -1,0 +1,79 @@
+{
+  int readPercent=props.getInt(Benchmark.READS,0);
+  int writePercent=props.getInt(Benchmark.WRITES,0);
+  int deletePercent=props.getInt(Benchmark.DELETES,0);
+  int mixedPercent=props.getInt(Benchmark.MIXED,0);
+  int recordCount=props.getInt(Benchmark.RECORD_COUNT);
+  int opCount=props.getInt(Benchmark.OPS_COUNT);
+  int valueSize=props.getInt(Benchmark.VALUE_SIZE,1024);
+  this.value=BenchmarkUtils.ASCIIString(valueSize);
+  int cachedPercent=props.getInt(Benchmark.PERCENT_CACHED,0);
+  String keyType=props.getString(Benchmark.KEY_TYPE,Benchmark.STRING_KEY_TYPE);
+  String recordSelection=props.getString(Benchmark.RECORD_SELECTION,Benchmark.UNIFORM_RECORD_SELECTION);
+  double readProportion=(double)readPercent / (double)100;
+  double writeProportion=(double)writePercent / (double)100;
+  double deleteProportion=(double)deletePercent / (double)100;
+  double mixedProportion=(double)mixedPercent / (double)100;
+  if (Math.abs((writeProportion + readProportion + mixedProportion+ deleteProportion) - 1.0) > 0.1) {
+    readProportion=1.0;
+    mixedProportion=0.0;
+    writeProportion=0.0;
+    deleteProportion=0.0;
+  }
+  List<Integer> keysFromFile=null;
+  if (props.containsKey(Benchmark.REQUEST_FILE)) {
+    try {
+      String fileRecordSelectionFile=props.getString(Benchmark.REQUEST_FILE);
+      if (!new File(fileRecordSelectionFile).exists()) {
+        throw new UndefinedPropertyException("File does not exist");
+      }
+      keysFromFile=loadKeys(new File(fileRecordSelectionFile));
+      recordSelection=new String(Benchmark.FILE_RECORD_SELECTION);
+    }
+ catch (    Exception e) {
+      recordSelection=new String(Benchmark.UNIFORM_RECORD_SELECTION);
+    }
+  }
+  Class<?> keyTypeClass=getKeyTypeClass(keyType);
+  int insertStart=props.getInt(Benchmark.START_KEY_INDEX,0);
+  IntegerGenerator warmUpKeySequence=new CounterGenerator(insertStart);
+  this.warmUpKeyProvider=getKeyProvider(keyTypeClass,warmUpKeySequence,0);
+  operationChooser=new DiscreteGenerator();
+  if (readProportion > 0) {
+    operationChooser.addValue(readProportion,Benchmark.READS);
+  }
+  if (mixedProportion > 0) {
+    operationChooser.addValue(mixedProportion,Benchmark.MIXED);
+  }
+  if (writeProportion > 0) {
+    operationChooser.addValue(writeProportion,Benchmark.WRITES);
+  }
+  if (deleteProportion > 0) {
+    operationChooser.addValue(deleteProportion,Benchmark.DELETES);
+  }
+  CounterGenerator insertKeySequence=null;
+  if (recordCount > 0) {
+    insertKeySequence=new CounterGenerator(recordCount);
+  }
+ else {
+    Random randomizer=new Random();
+    insertKeySequence=new CounterGenerator(randomizer.nextInt(Integer.MAX_VALUE));
+  }
+  this.insertKeyProvider=getKeyProvider(keyTypeClass,insertKeySequence,0);
+  IntegerGenerator keyGenerator=null;
+  if (recordSelection.compareTo(Benchmark.UNIFORM_RECORD_SELECTION) == 0) {
+    int keySpace=(recordCount > 0) ? recordCount : Integer.MAX_VALUE;
+    keyGenerator=new UniformIntegerGenerator(0,keySpace - 1);
+  }
+ else   if (recordSelection.compareTo(Benchmark.ZIPFIAN_RECORD_SELECTION) == 0) {
+    int expectedNewKeys=(int)(opCount * writeProportion * 2.0);
+    keyGenerator=new ScrambledZipfianGenerator(recordCount + expectedNewKeys);
+  }
+ else   if (recordSelection.compareTo(Benchmark.LATEST_RECORD_SELECTION) == 0) {
+    keyGenerator=new SkewedLatestGenerator(insertKeySequence);
+  }
+ else   if (recordSelection.compareTo(Benchmark.FILE_RECORD_SELECTION) == 0) {
+    keyGenerator=new FileIntegerGenerator(insertStart,keysFromFile);
+  }
+  this.keyProvider=getKeyProvider(keyTypeClass,keyGenerator,cachedPercent);
+}

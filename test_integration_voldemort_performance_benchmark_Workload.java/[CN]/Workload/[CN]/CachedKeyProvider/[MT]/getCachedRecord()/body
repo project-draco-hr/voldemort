@@ -1,0 +1,12 @@
+{
+  int expectedCacheCount=(totalRequests.getAndIncrement() * percentCached) / 100;
+  if (expectedCacheCount >= cachedRequests.get()) {
+synchronized (visitedKeys) {
+      if (!visitedKeys.isEmpty()) {
+        cachedRequests.incrementAndGet();
+        return visitedKeys.get(new Random().nextInt(visitedKeys.size()));
+      }
+    }
+  }
+  return null;
+}

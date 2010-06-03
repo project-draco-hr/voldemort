@@ -1,0 +1,20 @@
+{
+  Results result=generateResults();
+  out.println("[" + getName() + "]\tOperations: "+ operations);
+  out.println("[" + getName() + "]\tAverage(ms): "+ (((double)totalLatency) / ((double)operations)));
+  out.println("[" + getName() + "]\tMin(ms): "+ minLatency);
+  out.println("[" + getName() + "]\tMax(ms): "+ maxLatency);
+  out.println("[" + getName() + "]\tMedian(ms): "+ result.medianLatency);
+  out.println("[" + getName() + "]\t95th(ms): "+ result.q95Latency);
+  out.println("[" + getName() + "]\t99th(ms): "+ result.q99Latency);
+  if (!this.summaryOnly) {
+    for (    Integer I : returnCodes.keySet()) {
+      int[] val=returnCodes.get(I);
+      out.println("[" + getName() + "]\tReturn: "+ I+ "\t"+ val[0]);
+    }
+    for (int i=0; i < _buckets; i++) {
+      out.println("[" + getName() + "]: "+ i+ "\t"+ histogram[i]);
+    }
+    out.println("[" + getName() + "]: >"+ _buckets+ "\t"+ histogramOverflow);
+  }
+}

@@ -1,0 +1,17 @@
+{
+  if (cls == Integer.class) {
+    IntegerKeyProvider kp=new IntegerKeyProvider(generator);
+    return percentCached != 0 ? new CachedKeyProvider<Integer>(kp,percentCached) : kp;
+  }
+ else   if (cls == String.class) {
+    StringKeyProvider kp=new StringKeyProvider(generator);
+    return percentCached != 0 ? new CachedKeyProvider<String>(kp,percentCached) : kp;
+  }
+ else   if (cls == byte[].class) {
+    ByteArrayKeyProvider kp=new ByteArrayKeyProvider(generator);
+    return percentCached != 0 ? new CachedKeyProvider<byte[]>(kp,percentCached) : kp;
+  }
+ else {
+    throw new IllegalArgumentException("No KeyProvider exists for class " + cls);
+  }
+}

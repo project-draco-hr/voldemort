@@ -1,0 +1,12 @@
+{
+  long startNs=System.nanoTime();
+  boolean deleted=voldemortStore.delete(key);
+  long endNs=System.nanoTime();
+  int res=this.Error;
+  if (deleted) {
+    res=this.Ok;
+  }
+  measurement.measure(DELETES_STRING,(int)((endNs - startNs) / Time.NS_PER_MS));
+  measurement.reportReturnCode(DELETES_STRING,res);
+  return res;
+}

@@ -1,0 +1,20 @@
+{
+  boolean updated=voldemortStore.applyUpdate(new UpdateAction<Object,Object>(){
+    @Override public void update(    StoreClient<Object,Object> storeClient){
+      long startNs=System.nanoTime();
+      Versioned<Object> v=storeClient.get(key);
+      if (v != null) {
+        voldemortStore.put(key,newValue);
+      }
+      long endNs=System.nanoTime();
+      measurement.measure(MIXED_STRING,(int)((endNs - startNs) / Time.NS_PER_MS));
+    }
+  }
+,3);
+  int res=this.Error;
+  if (updated) {
+    res=this.Ok;
+  }
+  measurement.reportReturnCode(MIXED_STRING,res);
+  return res;
+}
