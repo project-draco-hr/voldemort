@@ -1,5 +1,5 @@
 {
-  Multimap<Integer,ByteArray> scatterMap=HashMultimap.create();
+  Multimap<Integer,ByteArray> scatterMap=HashMultimap.create(stealInfoList.size(),keys.size());
   int numKeys=0;
   for (  ByteArray key : keys) {
     numKeys++;
@@ -10,7 +10,7 @@
       }
     }
   }
-  Map<ByteArray,List<Versioned<byte[]>>> gatherMap=new HashMap<ByteArray,List<Versioned<byte[]>>>(numKeys);
+  Map<ByteArray,List<Versioned<byte[]>>> gatherMap=Maps.newHashMapWithExpectedSize(numKeys);
   for (  int donorNodeId : scatterMap.keySet()) {
     Node donorNode=metadata.getCluster().getNodeById(donorNodeId);
     checkNodeAvailable(donorNode);

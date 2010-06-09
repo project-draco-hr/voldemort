@@ -1,12 +1,5 @@
 {
-  metadata.readLock.lock();
-  RebalancePartitionsInfo stealInfo=null;
-  try {
-    stealInfo=redirectingKey(key);
-  }
-  finally {
-    metadata.readLock.unlock();
-  }
+  RebalancePartitionsInfo stealInfo=redirectingKey(key);
   if (stealInfo != null)   proxyGetAndLocalPut(key,stealInfo.getDonorId());
   getInnerStore().put(key,value);
 }
