@@ -1,0 +1,29 @@
+{
+  StoreUtils.assertValidKey(key);
+  List<Versioned<byte[]>> existingValuesList=this.get(key);
+  if (existingValuesList.size() == 0) {
+    existingValuesList=new ArrayList<Versioned<byte[]>>();
+    existingValuesList.add(new Versioned<byte[]>(value.getValue(),value.getVersion()));
+  }
+ else {
+    List<Versioned<byte[]>> removedValueList=new ArrayList<Versioned<byte[]>>();
+    for (    Versioned<byte[]> versioned : existingValuesList) {
+      Occured occured=value.getVersion().compare(versioned.getVersion());
+      if (occured == Occured.BEFORE) {
+        throw new ObsoleteVersionException("Obsolete version for key '" + key + "': "+ value.getVersion());
+      }
+ else       if (occured == Occured.AFTER) {
+        removedValueList.add(versioned);
+      }
+    }
+    existingValuesList.removeAll(removedValueList);
+    existingValuesList.add(value);
+  }
+  try {
+    datastore.put(key.get(),assembleValues(existingValuesList));
+  }
+ catch (  Exception e) {
+    logger.error(e);
+    throw new VoldemortException("Failed to put key " + key);
+  }
+}

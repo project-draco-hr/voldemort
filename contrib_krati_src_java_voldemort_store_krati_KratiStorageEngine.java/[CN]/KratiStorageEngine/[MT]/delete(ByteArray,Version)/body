@@ -1,0 +1,37 @@
+{
+  StoreUtils.assertValidKey(key);
+  if (maxVersion == null) {
+    try {
+      return datastore.delete(key.get());
+    }
+ catch (    Exception e) {
+      logger.error(e);
+      throw new VoldemortException("Failed to delete key" + key);
+    }
+  }
+  List<Versioned<byte[]>> returnedValuesList=this.get(key);
+  if (returnedValuesList.size() == 0) {
+    return false;
+  }
+  Iterator<Versioned<byte[]>> iter=returnedValuesList.iterator();
+  while (iter.hasNext()) {
+    Versioned<byte[]> currentValue=iter.next();
+    Version currentVersion=currentValue.getVersion();
+    if (currentVersion.compare(maxVersion) == Occured.BEFORE) {
+      iter.remove();
+    }
+  }
+  try {
+    if (returnedValuesList.size() == 0) {
+      List<Versioned<byte[]>> genList=this.get(key);
+      return datastore.delete(key.get());
+    }
+ else {
+      return datastore.put(key.get(),assembleValues(returnedValuesList));
+    }
+  }
+ catch (  Exception e) {
+    logger.error(e);
+    throw new VoldemortException("Failed to delete key " + key);
+  }
+}
