@@ -1,0 +1,17 @@
+{
+  Configuration conf=context.getConfiguration();
+  String bootstrapURL=VoldemortHadoopConfig.getVoldemortURL(conf);
+  String storeName=VoldemortHadoopConfig.getVoldemortStoreName(conf);
+  AdminClient adminClient=new AdminClient(bootstrapURL,new AdminClientConfig());
+  Cluster cluster=adminClient.getAdminClientCluster();
+  Collection<Node> nodes=cluster.getNodes();
+  Iterator<Node> nodeIter=nodes.iterator();
+  List<InputSplit> splits=new ArrayList<InputSplit>();
+  while (nodeIter.hasNext()) {
+    Node currentNode=nodeIter.next();
+    VoldemortInputSplit split=new VoldemortInputSplit(storeName,currentNode);
+    splits.add(split);
+  }
+  adminClient.stop();
+  return splits;
+}
