@@ -1,0 +1,7 @@
+{
+  StoreUtils.assertValidKeys(keys);
+  RoutingStrategy routingStrategy=metadata.getRoutingStrategy(getName());
+  Node node=metadata.getCluster().getNodeById(nodeId);
+  for (  ByteArray key : keys)   StoreUtils.assertValidMetadata(key,routingStrategy,node);
+  return getInnerStore().getAll(keys);
+}

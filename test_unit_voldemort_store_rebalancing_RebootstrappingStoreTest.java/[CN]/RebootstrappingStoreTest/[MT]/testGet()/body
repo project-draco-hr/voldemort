@@ -1,0 +1,11 @@
+{
+  Versioned<String> r0=storeClient.get("a");
+  Versioned<String> r1=storeClient.get("b");
+  assertEquals("1",r0.getValue());
+  assertEquals("2",r1.getValue());
+  rebalance();
+  r0=storeClient.get("a");
+  r1=storeClient.get("b");
+  assertEquals("#1 get() okay after re-bootstrap","1",r0.getValue());
+  assertEquals("#2 get() okay after re-bootstrap","2",r1.getValue());
+}
