@@ -1,0 +1,15 @@
+{
+  if (keyType.compareTo(STRING_KEY_TYPE) == 0) {
+    return new StringSerializer();
+  }
+ else   if (keyType.compareTo(JSONINT_KEY_TYPE) == 0) {
+    return new JsonTypeSerializer("\"int32\"");
+  }
+ else   if (keyType.compareTo(JSONSTRING_KEY_TYPE) == 0) {
+    return new JsonTypeSerializer("\"string\"");
+  }
+ else   if (keyType.compareTo(IDENTITY_KEY_TYPE) == 0) {
+    return new IdentitySerializer();
+  }
+  throw new Exception("Can't determine for keyType = " + keyType);
+}

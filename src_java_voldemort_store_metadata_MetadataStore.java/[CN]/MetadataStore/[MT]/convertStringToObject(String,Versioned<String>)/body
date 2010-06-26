@@ -13,7 +13,13 @@
     valueObject=Integer.parseInt(value.getValue());
   }
  else   if (REBALANCING_STEAL_INFO.equals(key)) {
-    valueObject=new RebalancePartitionsInfo(value.getValue());
+    String valueString=value.getValue();
+    if (valueString.startsWith("[")) {
+      valueObject=RebalancerState.create(valueString);
+    }
+ else {
+      valueObject=new RebalancerState(Arrays.asList(RebalancePartitionsInfo.create(valueString)));
+    }
   }
  else {
     throw new VoldemortException("Unhandled key:'" + key + "' for String to Object serialization.");

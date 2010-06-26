@@ -1,0 +1,13 @@
+{
+  ByteArrayOutputStream stream=new ByteArrayOutputStream();
+  DataOutputStream dataStream=new DataOutputStream(stream);
+  for (  Versioned<byte[]> value : values) {
+    byte[] object=value.getValue();
+    dataStream.writeInt(object.length);
+    dataStream.write(object);
+    VectorClock clock=(VectorClock)value.getVersion();
+    dataStream.writeInt(clock.sizeInBytes());
+    dataStream.write(clock.toBytes());
+  }
+  return stream.toByteArray();
+}

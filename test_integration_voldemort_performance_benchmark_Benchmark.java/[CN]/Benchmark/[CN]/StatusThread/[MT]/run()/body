@@ -1,0 +1,24 @@
+{
+  boolean testComplete=true;
+  int totalOps=0, prevTotalOps=0;
+  do {
+    testComplete=true;
+    totalOps=0;
+    for (    Thread thread : this.threads) {
+      if (thread.getState() != Thread.State.TERMINATED) {
+        testComplete=false;
+      }
+      totalOps+=((ClientThread)thread).getOpsDone();
+    }
+    if (totalOps != 0 && totalOps != prevTotalOps) {
+      System.out.println("[status]\tThroughput(ops/sec): " + Time.MS_PER_SECOND * ((double)totalOps / (double)(System.currentTimeMillis() - startTime)) + "\tOperations: " + totalOps);
+    }
+    prevTotalOps=totalOps;
+    try {
+      sleep(intervalSec * Time.MS_PER_SECOND);
+    }
+ catch (    InterruptedException e) {
+    }
+  }
+ while (!testComplete);
+}

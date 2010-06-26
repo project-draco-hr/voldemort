@@ -1,0 +1,34 @@
+{
+  List<Pair<ByteArray,Versioned<byte[]>>> returnedList=new ArrayList<Pair<ByteArray,Versioned<byte[]>>>();
+  DataArray array=datastore.getDataArray();
+  for (int index=0; index < array.length(); index++) {
+    byte[] returnedBytes=array.getData(index);
+    if (returnedBytes != null) {
+      ByteBuffer bb=ByteBuffer.wrap(returnedBytes);
+      int cnt=bb.getInt();
+      if (cnt > 0) {
+        int keyLen=bb.getInt();
+        byte[] key=new byte[keyLen];
+        bb.get(key);
+        int valueLen=bb.getInt();
+        byte[] value=new byte[valueLen];
+        bb.get(value);
+        List<Versioned<byte[]>> versions;
+        try {
+          versions=disassembleValues(value);
+        }
+ catch (        IOException e) {
+          versions=null;
+        }
+        if (versions != null) {
+          Iterator<Versioned<byte[]>> iterVersions=versions.iterator();
+          while (iterVersions.hasNext()) {
+            Versioned<byte[]> currentVersion=iterVersions.next();
+            returnedList.add(Pair.create(new ByteArray(key),currentVersion));
+          }
+        }
+      }
+    }
+  }
+  return new KratiClosableIterator(returnedList);
+}

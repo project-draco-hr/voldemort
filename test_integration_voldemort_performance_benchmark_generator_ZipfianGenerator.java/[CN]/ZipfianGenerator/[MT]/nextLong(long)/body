@@ -1,0 +1,25 @@
+{
+  if (itemCount != countZeta) {
+synchronized (this) {
+      if (itemCount > countZeta) {
+        zetan=zeta(countZeta,itemCount,theta,zetan);
+        eta=(1 - Math.pow(2.0 / items,1 - theta)) / (1 - zeta2theta / zetan);
+      }
+ else       if ((itemCount < countZeta) && (allowItemCountDecrease)) {
+        zetan=zeta(itemCount,theta);
+        eta=(1 - Math.pow(2.0 / items,1 - theta)) / (1 - zeta2theta / zetan);
+      }
+    }
+  }
+  double u=random.nextDouble();
+  double uz=u * zetan;
+  if (uz < 1.0) {
+    return 0;
+  }
+  if (uz < 1.0 + Math.pow(0.5,theta)) {
+    return 1;
+  }
+  long ret=base + (long)((itemCount) * Math.pow(eta * u - eta + 1,alpha));
+  setLastInt((int)ret);
+  return ret;
+}

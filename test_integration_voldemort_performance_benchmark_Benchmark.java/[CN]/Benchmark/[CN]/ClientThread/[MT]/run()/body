@@ -1,0 +1,25 @@
+{
+  long startTime=System.currentTimeMillis();
+  while (opsDone < this.opsCount) {
+    if (runBenchmark) {
+      if (!workLoad.doTransaction(this.db)) {
+        break;
+      }
+    }
+ else {
+      if (!workLoad.doWrite(this.db)) {
+        break;
+      }
+    }
+    opsDone++;
+    if (targetThroughputPerMs > 0) {
+      while (System.currentTimeMillis() - startTime < ((double)opsDone) / targetThroughputPerMs) {
+        try {
+          sleep(1);
+        }
+ catch (        InterruptedException e) {
+        }
+      }
+    }
+  }
+}

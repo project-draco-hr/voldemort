@@ -2,7 +2,8 @@
 synchronized (adminClient) {
     Cluster currentCluster=adminClient.getAdminClientCluster();
     Node donorNode=currentCluster.getNodeById(rebalanceStealInfo.getDonorId());
-    VectorClock latestClock=(VectorClock)RebalanceUtils.getLatestCluster(Arrays.asList(stealerNode.getId(),rebalanceStealInfo.getDonorId()),adminClient).getVersion();
+    Versioned<Cluster> latestCluster=RebalanceUtils.getLatestCluster(Arrays.asList(donorNode.getId(),rebalanceStealInfo.getStealerId()),adminClient);
+    VectorClock latestClock=(VectorClock)latestCluster.getVersion();
     Cluster updatedCluster=RebalanceUtils.createUpdatedCluster(currentCluster,stealerNode,donorNode,rebalanceStealInfo.getStealMasterPartitions());
     latestClock.incrementVersion(stealerNode.getId(),System.currentTimeMillis());
     try {

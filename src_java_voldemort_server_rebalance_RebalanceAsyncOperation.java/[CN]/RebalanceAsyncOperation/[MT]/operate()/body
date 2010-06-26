@@ -1,0 +1,38 @@
+{
+  adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),maxParallelStoresRebalancing * 4,maxParallelStoresRebalancing * 2);
+  final List<Exception> failures=new ArrayList<Exception>();
+  try {
+    logger.info("starting rebalancing task" + stealInfo);
+    for (    final String storeName : ImmutableList.copyOf(stealInfo.getUnbalancedStoreList())) {
+      executors.submit(new Runnable(){
+        public void run(){
+          try {
+            rebalanceStore(storeName,adminClient,stealInfo);
+            List<String> tempUnbalancedStoreList=new ArrayList<String>(stealInfo.getUnbalancedStoreList());
+            tempUnbalancedStoreList.remove(storeName);
+            stealInfo.setUnbalancedStoreList(tempUnbalancedStoreList);
+            rebalancer.setRebalancingState(stealInfo);
+          }
+ catch (          Exception e) {
+            logger.error("rebalanceSubTask:" + stealInfo + " failed for store:"+ storeName,e);
+            failures.add(e);
+          }
+        }
+      }
+);
+    }
+    waitForShutdown();
+    if (stealInfo.getUnbalancedStoreList().isEmpty()) {
+      logger.info("Rebalancer: rebalance " + stealInfo + " completed successfully.");
+      metadataStore.cleanRebalancingState(stealInfo);
+    }
+ else {
+      throw new VoldemortRebalancingException("Failed to rebalance task " + stealInfo,failures);
+    }
+  }
+  finally {
+    rebalancer.releaseRebalancingPermit(stealInfo.getDonorId());
+    adminClient.stop();
+    adminClient=null;
+  }
+}

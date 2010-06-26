@@ -1,0 +1,9 @@
+{
+  updateStatus("stop() called on rebalance operation !!");
+  if (null != adminClient) {
+    for (    int asyncID : rebalanceStatusList) {
+      adminClient.stopAsyncRequest(metadataStore.getNodeId(),asyncID);
+    }
+  }
+  executors.shutdownNow();
+}

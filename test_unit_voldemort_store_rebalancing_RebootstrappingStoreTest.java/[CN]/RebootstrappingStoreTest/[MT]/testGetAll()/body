@@ -1,0 +1,10 @@
+{
+  Versioned<String> r0=storeClient.get("a");
+  assertEquals("1",r0.getValue());
+  rebalance();
+  Map<String,Versioned<String>> res=storeClient.getAll(ImmutableList.of("a","b"));
+  assertTrue("getAll() contains a",res.containsKey("a"));
+  assertTrue("getAll() contains b",res.containsKey("b"));
+  assertEquals("getAll() returns correct value #1","1",res.get("a").getValue());
+  assertEquals("getAll() returns correct value #2","2",res.get("b").getValue());
+}

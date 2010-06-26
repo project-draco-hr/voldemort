@@ -1,85 +1,15 @@
 {
-  if (!acquireRebalancingPermit()) {
-    RebalancePartitionsInfo info=metadataStore.getRebalancingStealInfo();
-    throw new AlreadyRebalancingException("Node " + metadataStore.getCluster().getNodeById(info.getStealerId()) + " is already rebalancing from "+ info.getDonorId()+ " rebalanceInfo:"+ info);
+  if (!acquireRebalancingPermit(stealInfo.getDonorId())) {
+    RebalancerState rebalancerState=metadataStore.getRebalancerState();
+    RebalancePartitionsInfo info=rebalancerState.find(stealInfo.getDonorId());
+    if (info != null) {
+      throw new AlreadyRebalancingException("Node " + metadataStore.getCluster().getNodeById(info.getStealerId()) + " is already rebalancing from "+ info.getDonorId()+ " rebalanceInfo:"+ info);
+    }
   }
-  checkCurrentState(metadataStore,stealInfo);
-  setRebalancingState(metadataStore,stealInfo);
+  checkCurrentState(stealInfo);
+  setRebalancingState(stealInfo);
   final int maxParallelStoresRebalancing=(-1 != voldemortConfig.getMaxParallelStoresRebalancing()) ? voldemortConfig.getMaxParallelStoresRebalancing() : stealInfo.getUnbalancedStoreList().size();
   int requestId=asyncService.getUniqueRequestId();
-  asyncService.submitOperation(requestId,new AsyncOperation(requestId,"Rebalance Operation:" + stealInfo.toString()){
-    private List<Integer> rebalanceStatusList=new ArrayList<Integer>();
-    AdminClient adminClient=null;
-    final ExecutorService executors=createExecutors(maxParallelStoresRebalancing);
-    @Override public void operate() throws Exception {
-      adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),maxParallelStoresRebalancing * 4,maxParallelStoresRebalancing * 2);
-      final List<Exception> failures=new ArrayList<Exception>();
-      try {
-        logger.info("starting rebalancing task" + stealInfo);
-        for (        final String storeName : ImmutableList.copyOf(stealInfo.getUnbalancedStoreList())) {
-          executors.submit(new Runnable(){
-            public void run(){
-              try {
-                rebalanceStore(storeName,adminClient,stealInfo);
-                List<String> tempUnbalancedStoreList=new ArrayList<String>(stealInfo.getUnbalancedStoreList());
-                tempUnbalancedStoreList.remove(storeName);
-                stealInfo.setUnbalancedStoreList(tempUnbalancedStoreList);
-                setRebalancingState(metadataStore,stealInfo);
-              }
- catch (              Exception e) {
-                logger.error("rebalanceSubTask:" + stealInfo + " failed for store:"+ storeName,e);
-                failures.add(e);
-              }
-            }
-          }
-);
-        }
-        waitForShutdown();
-        if (stealInfo.getUnbalancedStoreList().isEmpty()) {
-          logger.info("Rebalancer: rebalance " + stealInfo + " completed successfully.");
-          metadataStore.cleanAllRebalancingState();
-        }
- else {
-          throw new VoldemortRebalancingException("Failed to rebalance task " + stealInfo,failures);
-        }
-      }
-  finally {
-        releaseRebalancingPermit();
-        adminClient.stop();
-        adminClient=null;
-      }
-    }
-    private void waitForShutdown(){
-      try {
-        executors.shutdown();
-        executors.awaitTermination(voldemortConfig.getAdminSocketTimeout(),TimeUnit.SECONDS);
-      }
- catch (      InterruptedException e) {
-        logger.error("Interrupted while awaiting termination for executors.",e);
-      }
-    }
-    @Override public void stop(){
-      updateStatus("stop() called on rebalance operation !!");
-      if (null != adminClient) {
-        for (        int asyncID : rebalanceStatusList) {
-          adminClient.stopAsyncRequest(metadataStore.getNodeId(),asyncID);
-        }
-      }
-      executors.shutdownNow();
-    }
-    private void rebalanceStore(    String storeName,    AdminClient adminClient,    RebalancePartitionsInfo stealInfo) throws Exception {
-      logger.info("starting partitions migration for store:" + storeName);
-      int asyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getPartitionList(),null);
-      rebalanceStatusList.add(asyncId);
-      adminClient.waitForCompletion(metadataStore.getNodeId(),asyncId,voldemortConfig.getAdminSocketTimeout(),TimeUnit.SECONDS);
-      rebalanceStatusList.remove((Object)asyncId);
-      if (stealInfo.getDeletePartitionsList().size() > 0) {
-        adminClient.deletePartitions(stealInfo.getDonorId(),storeName,stealInfo.getDeletePartitionsList(),null);
-        logger.debug("Deleted partitions " + stealInfo.getDeletePartitionsList() + " from donorNode:"+ stealInfo.getDonorId()+ " for store "+ storeName);
-      }
-      logger.info("partitions migration for store:" + storeName + " completed.");
-    }
-  }
-);
+  asyncService.submitOperation(requestId,new RebalanceAsyncOperation(this,voldemortConfig,metadataStore,requestId,stealInfo,maxParallelStoresRebalancing));
   return requestId;
 }

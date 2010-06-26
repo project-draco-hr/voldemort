@@ -1,0 +1,15 @@
+{
+  if (values == null)   return new ArrayList<Versioned<byte[]>>(0);
+  List<Versioned<byte[]>> returnList=new ArrayList<Versioned<byte[]>>();
+  ByteArrayInputStream stream=new ByteArrayInputStream(values);
+  DataInputStream dataStream=new DataInputStream(stream);
+  while (dataStream.available() > 0) {
+    byte[] object=new byte[dataStream.readInt()];
+    dataStream.read(object);
+    byte[] clockBytes=new byte[dataStream.readInt()];
+    dataStream.read(clockBytes);
+    VectorClock clock=new VectorClock(clockBytes);
+    returnList.add(new Versioned<byte[]>(object,clock));
+  }
+  return returnList;
+}

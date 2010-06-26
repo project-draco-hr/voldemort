@@ -7,6 +7,7 @@
   parser.accepts("v","verbose");
   parser.accepts("ignore-nulls","ignore null values");
   parser.accepts("pipeline-routed-store","Use the Pipeline RoutedStore");
+  parser.accepts("save-nulls","save keys which had null to a file").withRequiredArg().ofType(String.class);
   parser.accepts("node","go to this node id").withRequiredArg().ofType(Integer.class);
   parser.accepts("interval","print requests on this interval, -1 to disable").withRequiredArg().ofType(Integer.class);
   parser.accepts("selectors","Number of client selectors to use. Default = " + SELECTORS).withRequiredArg().ofType(Integer.class);
@@ -47,6 +48,13 @@
   if (options.has("request-file")) {
     keys=loadKeys((String)options.valueOf("request-file"));
   }
+  final BufferedWriter nullWriter;
+  if (options.has("save-nulls")) {
+    nullWriter=new BufferedWriter(new FileWriter((String)options.valueOf("save-nulls")));
+  }
+ else {
+    nullWriter=null;
+  }
   if (options.has("r")) {
     ops+="r";
   }
@@ -69,7 +77,7 @@
   System.out.println("threads : " + numThreads);
   System.out.println("cache percentage : " + percentCached + "%");
   System.out.println("Bootstraping cluster data.");
-  ClientConfig clientConfig=new ClientConfig().setMaxThreads(numThreads).setMaxTotalConnections(numThreads).setMaxConnectionsPerNode(numThreads).setBootstrapUrls(url).setConnectionTimeout(60,TimeUnit.SECONDS).setSocketTimeout(60,TimeUnit.SECONDS).setSocketBufferSize(4 * 1024).setEnablePipelineRoutedStore(options.has("pipeline-routed-store")).setSelectors(selectors);
+  ClientConfig clientConfig=new ClientConfig().setMaxThreads(numThreads).setMaxTotalConnections(numThreads).setMaxConnectionsPerNode(numThreads).setBootstrapUrls(url).setConnectionTimeout(60,TimeUnit.SECONDS).setSocketTimeout(60,TimeUnit.SECONDS).setFailureDetectorRequestLengthThreshold(TimeUnit.SECONDS.toMillis(60)).setSocketBufferSize(4 * 1024).setEnablePipelineRoutedStore(options.has("pipeline-routed-store")).setSelectors(selectors);
   SocketStoreClientFactory factory=new SocketStoreClientFactory(clientConfig);
   final StoreClient<Object,Object> store=factory.getStoreClient(storeName);
   StoreDefinition storeDef=getStoreDefinition(factory,storeName);
@@ -187,6 +195,9 @@
                 if (!ignoreNulls) {
                   throw new Exception("value returned is null for key " + key);
                 }
+                if (nullWriter != null) {
+                  nullWriter.write(key.toString() + "\n");
+                }
               }
               if (verifyValues && !value.equals(v.getValue())) {
                 throw new Exception("value returned isn't same as set value for key " + key);
@@ -238,6 +249,14 @@
                 }
  else {
                   numNulls.incrementAndGet();
+                  if (nullWriter != null) {
+                    try {
+                      nullWriter.write(key.toString() + "\n");
+                    }
+ catch (                    IOException e) {
+                      e.printStackTrace();
+                    }
+                  }
                 }
                 numWrites.incrementAndGet();
               }
@@ -265,6 +284,9 @@
     latch.await();
     printStatistics("reads",numReads.get(),start);
     printStatistics("writes",numWrites.get(),start);
+  }
+  if (nullWriter != null) {
+    nullWriter.close();
   }
   System.exit(0);
 }

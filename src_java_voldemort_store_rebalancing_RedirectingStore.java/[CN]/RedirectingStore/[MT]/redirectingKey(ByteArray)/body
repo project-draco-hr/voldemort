@@ -1,3 +1,7 @@
 {
-  return MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER.equals(metadata.getServerState()) && metadata.getRebalancingStealInfo().getUnbalancedStoreList().contains(getName()) && checkKeyBelongsToStolenPartitions(key);
+  if (VoldemortState.REBALANCING_MASTER_SERVER.equals(metadata.getServerState()) && !getName().equals(MetadataStore.METADATA_STORE_NAME)) {
+    List<Integer> partitionIds=metadata.getRoutingStrategy(getName()).getPartitionList(key.get());
+    return getRebalancePartitionsInfo(partitionIds);
+  }
+  return null;
 }

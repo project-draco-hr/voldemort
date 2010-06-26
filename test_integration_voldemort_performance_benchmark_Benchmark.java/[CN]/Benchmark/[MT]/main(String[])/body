@@ -1,0 +1,152 @@
+{
+  OptionParser parser=new OptionParser();
+  parser.accepts(READS,"execute read operations").withOptionalArg().ofType(Integer.class);
+  parser.accepts(WRITES,"execute write operations").withOptionalArg().ofType(Integer.class);
+  parser.accepts(DELETES,"execute delete operations").withOptionalArg().ofType(Integer.class);
+  parser.accepts(MIXED,"generate a mix of read and write requests").withOptionalArg().ofType(Integer.class);
+  parser.accepts(VERBOSE,"verbose");
+  parser.accepts(THREADS,"max number concurrent worker threads  Default = 1").withRequiredArg().ofType(Integer.class);
+  parser.accepts(ITERATIONS,"number of times to repeat the test  Default = 1").withRequiredArg().ofType(Integer.class);
+  parser.accepts(VERIFY,"verify values read");
+  parser.accepts(HANDSHAKE,"perform a handshake");
+  parser.accepts(PERCENT_CACHED,"percentage of requests to come from previously requested keys; valid values are in range [0..100]; 0 means caching disabled  Default = 0").withRequiredArg().ofType(Integer.class);
+  parser.accepts(START_KEY_INDEX,"starting point when using int keys. Default = 0").withRequiredArg().ofType(Integer.class);
+  parser.accepts(INTERVAL,"print requests on this interval  Default = 0").withRequiredArg().ofType(Integer.class);
+  parser.accepts(IGNORE_NULLS,"ignore null values");
+  parser.accepts(PROP_FILE,"file containing all the properties").withRequiredArg();
+  parser.accepts(STORAGE_ENGINE_TYPE,"file containing all the properties  Default = memory").withRequiredArg();
+  parser.accepts(KEY_TYPE,"which key type to support  Default = string").withRequiredArg();
+  parser.accepts(REQUEST_FILE,"execute specific requests in order. Overrides " + RECORD_SELECTION).withRequiredArg();
+  parser.accepts(VALUE_SIZE,"size in bytes for random value.  Default = 1024").withRequiredArg().ofType(Integer.class);
+  parser.accepts(RECORD_SELECTION,"how to select record [zipfian | latest | uniform <default>]").withRequiredArg();
+  parser.accepts(TARGET_THROUGHPUT,"fix the throughput").withRequiredArg().ofType(Integer.class);
+  parser.accepts(RECORD_COUNT,"number of records inserted during warmup phase").withRequiredArg().ofType(Integer.class);
+  parser.accepts(OPS_COUNT,"number of operations to do").withRequiredArg().ofType(Integer.class);
+  parser.accepts(URL,"url on which to run remote tests").withRequiredArg();
+  parser.accepts(STORE_NAME,"store name on the remote URL").withRequiredArg();
+  parser.accepts(METRIC_TYPE,"type of metric [histogram | summary]").withRequiredArg();
+  parser.accepts(HELP);
+  OptionSet options=parser.parse(args);
+  if (options.has(HELP)) {
+    parser.printHelpOn(System.out);
+    System.exit(0);
+  }
+  Props mainProps=null;
+  if (options.has(PROP_FILE)) {
+    String propFileDestination=(String)options.valueOf(PROP_FILE);
+    File propertyFile=new File(propFileDestination);
+    if (!propertyFile.exists()) {
+      printUsage(parser,"Property file does not exist");
+    }
+    try {
+      mainProps=new Props(propertyFile);
+    }
+ catch (    Exception e) {
+      printUsage(parser,"Unable to parse the property file");
+    }
+  }
+ else {
+    mainProps=new Props();
+    List<String> nonOptions=options.nonOptionArguments();
+    if (nonOptions.size() != 3 && nonOptions.size() != 0) {
+      printUsage(parser,"Incorrect options");
+    }
+    if (nonOptions.size() == 3) {
+      mainProps.put(URL,nonOptions.get(0));
+      mainProps.put(STORE_NAME,nonOptions.get(1));
+      mainProps.put(OPS_COUNT,Integer.parseInt(nonOptions.get(2)));
+    }
+ else {
+      if (!options.has(OPS_COUNT)) {
+        printUsage(parser,"Missing " + OPS_COUNT);
+      }
+      mainProps.put(OPS_COUNT,(Integer)options.valueOf(OPS_COUNT));
+      if (options.has(URL)) {
+        mainProps.put(URL,(String)options.valueOf(URL));
+        if (options.has(HANDSHAKE)) {
+          mainProps.put(HANDSHAKE,"true");
+        }
+ else {
+          mainProps.put(HANDSHAKE,"false");
+        }
+        if (options.has(STORE_NAME)) {
+          mainProps.put(STORE_NAME,(String)options.valueOf(STORE_NAME));
+        }
+ else {
+          printUsage(parser,"Missing store name");
+        }
+      }
+ else {
+        mainProps.put(KEY_TYPE,CmdUtils.valueOf(options,KEY_TYPE,STRING_KEY_TYPE));
+        mainProps.put(STORAGE_ENGINE_TYPE,CmdUtils.valueOf(options,STORAGE_ENGINE_TYPE,InMemoryStorageConfiguration.TYPE_NAME));
+      }
+    }
+    if (options.has(RECORD_COUNT)) {
+      mainProps.put(RECORD_COUNT,(Integer)options.valueOf(RECORD_COUNT));
+    }
+ else {
+      mainProps.put(RECORD_COUNT,0);
+    }
+    mainProps.put(RECORD_SELECTION,CmdUtils.valueOf(options,RECORD_SELECTION,UNIFORM_RECORD_SELECTION));
+    if (options.has(REQUEST_FILE)) {
+      mainProps.put(REQUEST_FILE,(String)options.valueOf(REQUEST_FILE));
+      mainProps.put(RECORD_SELECTION,FILE_RECORD_SELECTION);
+    }
+    if (options.has(VERBOSE)) {
+      mainProps.put(VERBOSE,"true");
+    }
+ else {
+      mainProps.put(VERBOSE,"false");
+    }
+    if (options.has(VERIFY)) {
+      mainProps.put(VERIFY,"true");
+    }
+ else {
+      mainProps.put(VERIFY,"false");
+    }
+    if (options.has(IGNORE_NULLS)) {
+      mainProps.put(IGNORE_NULLS,"true");
+    }
+ else {
+      mainProps.put(IGNORE_NULLS,"false");
+    }
+    mainProps.put(START_KEY_INDEX,CmdUtils.valueOf(options,START_KEY_INDEX,0));
+    mainProps.put(VALUE_SIZE,CmdUtils.valueOf(options,VALUE_SIZE,1024));
+    mainProps.put(ITERATIONS,CmdUtils.valueOf(options,ITERATIONS,1));
+    mainProps.put(THREADS,CmdUtils.valueOf(options,THREADS,MAX_WORKERS));
+    mainProps.put(PERCENT_CACHED,CmdUtils.valueOf(options,PERCENT_CACHED,0));
+    mainProps.put(INTERVAL,CmdUtils.valueOf(options,INTERVAL,0));
+    mainProps.put(TARGET_THROUGHPUT,CmdUtils.valueOf(options,TARGET_THROUGHPUT,-1));
+    mainProps.put(METRIC_TYPE,CmdUtils.valueOf(options,METRIC_TYPE,SUMMARY_METRIC_TYPE));
+    String ops="";
+    ops+=checkOpsRatio(options,mainProps,READS);
+    ops+=checkOpsRatio(options,mainProps,WRITES);
+    ops+=checkOpsRatio(options,mainProps,DELETES);
+    ops+=checkOpsRatio(options,mainProps,MIXED);
+    if (ops.compareTo("") != 0) {
+      int contrib=100 / ops.length();
+      if (ops.contains(READS))       mainProps.put(READS,contrib);
+ else       mainProps.put(READS,0);
+      if (ops.contains(WRITES))       mainProps.put(WRITES,contrib);
+ else       mainProps.put(WRITES,0);
+      if (ops.contains(DELETES))       mainProps.put(DELETES,contrib);
+ else       mainProps.put(DELETES,0);
+      if (ops.contains(MIXED))       mainProps.put(MIXED,contrib);
+ else       mainProps.put(MIXED,0);
+    }
+  }
+  Benchmark benchmark=null;
+  try {
+    benchmark=new Benchmark();
+    benchmark.initialize(mainProps);
+    benchmark.warmUpAndRun();
+    benchmark.close();
+  }
+ catch (  Exception e) {
+    if (options.has(VERBOSE)) {
+      e.printStackTrace();
+    }
+    parser.printHelpOn(System.err);
+    System.exit(-1);
+  }
+}
