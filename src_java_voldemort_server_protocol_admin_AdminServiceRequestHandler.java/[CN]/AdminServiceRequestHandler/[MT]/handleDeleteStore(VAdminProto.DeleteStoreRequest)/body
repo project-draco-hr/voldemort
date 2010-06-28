@@ -1,0 +1,48 @@
+{
+  VAdminProto.DeleteStoreResponse.Builder response=VAdminProto.DeleteStoreResponse.newBuilder();
+  if (metadataStore.getServerState().equals(MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER) || metadataStore.getServerState().equals(MetadataStore.VoldemortState.REBALANCING_CLUSTER)) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,new VoldemortException("Rebalancing in progress")));
+    return response.build();
+  }
+  try {
+    String storeName=request.getStoreName();
+synchronized (lock) {
+      if (storeRepository.hasLocalStore(storeName)) {
+        List<StoreDefinition> oldStoreDefList=metadataStore.getStoreDefList();
+        List<StoreDefinition> newStoreDefList=new ArrayList<StoreDefinition>();
+        for (        StoreDefinition storeDef : oldStoreDefList) {
+          if (storeDef.isView()) {
+            if (storeDef.getViewTargetStoreName().compareTo(storeName) != 0) {
+              newStoreDefList.add(storeDef);
+            }
+ else {
+              storageService.unregisterEngine(storeDef,storeRepository.getStorageEngine(storeDef.getName()));
+            }
+          }
+ else {
+            if (storeDef.getName().compareTo(storeName) != 0) {
+              newStoreDefList.add(storeDef);
+            }
+ else {
+              storageService.unregisterEngine(storeDef,storeRepository.getStorageEngine(storeDef.getName()));
+            }
+          }
+        }
+        try {
+          metadataStore.put(MetadataStore.STORES_KEY,newStoreDefList);
+        }
+ catch (        Exception e) {
+          throw new VoldemortException(e);
+        }
+      }
+ else {
+        throw new StoreOperationFailureException(String.format("Store '%s' does not exist on this server",storeName));
+      }
+    }
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleDeleteStore failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

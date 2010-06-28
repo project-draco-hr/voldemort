@@ -12,6 +12,7 @@
   parser.accepts("outdir","Output directory").withRequiredArg().describedAs("output-directory").ofType(String.class);
   parser.accepts("stores","Store names").withRequiredArg().describedAs("store-names").withValuesSeparatedBy(',').ofType(String.class);
   parser.accepts("add-stores","Add stores in this stores.xml").withRequiredArg().describedAs("stores.xml").ofType(String.class);
+  parser.accepts("delete-store","Delete store").withRequiredArg().describedAs("store-name").ofType(String.class);
   parser.accepts("update-entries","[EXPERIMENTAL] Insert or update entries").withRequiredArg().describedAs("input-directory").ofType(String.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
@@ -20,7 +21,7 @@
   }
   Set<String> missing=CmdUtils.missing(options,"url","node");
   if (missing.size() > 0) {
-    if (!(missing.equals(ImmutableSet.of("node")) && options.has("add-stores"))) {
+    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store")))) {
       System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
       parser.printHelpOn(System.err);
       System.exit(1);
@@ -49,8 +50,11 @@
   if (options.has("update-entries")) {
     ops+="u";
   }
+  if (options.has("delete-store")) {
+    ops+="s";
+  }
   if (ops.length() < 1) {
-    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, fetch-keys) must be specified");
+    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, fetch-keys, add-stores, delete-store, update-entries) must be specified");
   }
   List<String> storeNames=null;
   if (options.has("stores")) {
@@ -96,6 +100,10 @@
       String inputDir=(String)options.valueOf("update-entries");
       boolean useAscii=options.has("ascii");
       executeUpdateEntries(nodeId,adminClient,storeNames,inputDir,useAscii);
+    }
+    if (ops.contains("s")) {
+      String storeName=(String)options.valueOf("delete-store");
+      executeDeleteStore(adminClient,storeName);
     }
   }
  catch (  Exception e) {
