@@ -1,3 +1,16 @@
 {
-  return null;
+  final String dir=request.getStoreDir();
+  final String storeName=request.getStoreName();
+  VAdminProto.SwapStoreResponse.Builder response=VAdminProto.SwapStoreResponse.newBuilder();
+  try {
+    ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)storeRepository.getStorageEngine(storeName);
+    if (store == null)     throw new VoldemortException("'" + storeName + "' is not a registered read-only store.");
+    if (!Utils.isReadableDir(dir))     throw new VoldemortException("Store directory '" + dir + "' is not a readable directory.");
+    store.swapFiles(dir);
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleSwapStore failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
 }
