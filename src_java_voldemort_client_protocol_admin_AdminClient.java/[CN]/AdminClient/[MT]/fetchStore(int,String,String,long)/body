@@ -6,5 +6,11 @@
     throwException(response.getError());
   }
   int asyncId=response.getRequestId();
-  return waitForCompletion(nodeId,asyncId,timeoutMs,TimeUnit.MILLISECONDS);
+  try {
+    return waitForCompletion(nodeId,asyncId,timeoutMs,TimeUnit.MILLISECONDS);
+  }
+ catch (  VoldemortException e) {
+    stopAsyncRequest(nodeId,asyncId);
+    throw e;
+  }
 }
