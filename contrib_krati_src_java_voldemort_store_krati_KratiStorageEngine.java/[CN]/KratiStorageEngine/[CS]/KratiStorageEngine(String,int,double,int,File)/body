@@ -1,8 +1,8 @@
 {
   this.name=Utils.notNull(name);
-  SegmentFactory segmentFactory=new MemorySegmentFactory();
+  SegmentFactory segmentFactory=new ChannelSegmentFactory();
   try {
-    datastore=new DynamicDataStore(dataDirectory,initLevel,segmentFileSizeMB,segmentFactory,hashLoadFactor);
+    datastore=new DynamicDataStore(dataDirectory,initLevel,segmentFileSizeMB,segmentFactory,hashLoadFactor,new FnvHashFunction());
   }
  catch (  Exception e) {
     logger.error("Failed to initialize datastore");
