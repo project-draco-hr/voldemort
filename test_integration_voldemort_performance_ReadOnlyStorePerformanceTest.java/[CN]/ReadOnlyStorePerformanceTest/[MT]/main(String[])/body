@@ -11,6 +11,7 @@
   parser.accepts("internal-sort-size","The number of items to sort in memory at a time").withRequiredArg().describedAs("size").ofType(Integer.class);
   parser.accepts("value-size","The size of the values in the store").withRequiredArg().describedAs("size").ofType(Integer.class);
   parser.accepts("working-dir","The directory in which to store temporary data").withRequiredArg().describedAs("dir");
+  parser.accepts("gzip","Compress the intermediate temp files used in building the store");
   parser.accepts("request-file","file get request ids from").withRequiredArg();
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
@@ -24,6 +25,7 @@
   int numValues=numRequests;
   final String inputFile=(String)options.valueOf("request-file");
   final String searcherClass=CmdUtils.valueOf(options,"search-strategy",BinarySearchStrategy.class.getName()).trim();
+  final boolean gzipIntermediate=options.has("gzip");
   final SearchStrategy searcher=(SearchStrategy)ReflectUtils.callConstructor(ReflectUtils.loadClass(searcherClass));
   final File workingDir=new File(CmdUtils.valueOf(options,"working-dir",System.getProperty("java.io.tmpdir")));
   String storeDir=(String)options.valueOf("store-dir");
@@ -57,7 +59,7 @@
     SerializerDefinition sdef=new SerializerDefinition("json","'string'");
     Cluster cluster=ServerTestUtils.getLocalCluster(1);
     StoreDefinition storeDef=new StoreDefinitionBuilder().setName("test").setKeySerializer(sdef).setValueSerializer(sdef).setRequiredReads(1).setReplicationFactor(1).setRequiredWrites(1).setType("read-only").setRoutingPolicy(RoutingTier.CLIENT).build();
-    JsonStoreBuilder builder=new JsonStoreBuilder(new JsonReader(r),cluster,storeDef,new ConsistentRoutingStrategy(cluster.getNodes(),1),output,tempDir,internalSortSize,2,numChunks,64 * 1024);
+    JsonStoreBuilder builder=new JsonStoreBuilder(new JsonReader(r),cluster,storeDef,new ConsistentRoutingStrategy(cluster.getNodes(),1),output,tempDir,internalSortSize,2,numChunks,64 * 1024,gzipIntermediate);
     builder.build();
     File dir=new File(storeDir);
     Utils.rm(dir);
