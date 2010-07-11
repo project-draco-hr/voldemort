@@ -5,6 +5,7 @@ synchronized (lock) {
       logger.info("Creating Krati data directory '" + storeDir.getAbsolutePath() + ".");
       storeDir.mkdirs();
     }
-    return new KratiStorageEngine(storeName,segmentFileSizeMB,hashLoadFactor,initLevel,storeDir);
+    SegmentFactory segmentFactory=(SegmentFactory)ReflectUtils.callConstructor(factoryClass);
+    return new KratiStorageEngine(storeName,segmentFactory,segmentFileSizeMB,hashLoadFactor,initLevel,storeDir);
   }
 }
