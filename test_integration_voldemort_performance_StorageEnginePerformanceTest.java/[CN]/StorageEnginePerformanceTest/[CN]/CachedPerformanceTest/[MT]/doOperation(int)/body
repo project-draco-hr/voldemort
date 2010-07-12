@@ -1,0 +1,13 @@
+{
+  int req;
+  if (random.nextFloat() < cachePercent && index > 1000) {
+    req=cache[Math.abs(random.nextInt()) % Math.max(cache.length,index - 1)];
+    System.out.println("Cache request: " + req);
+  }
+ else {
+    req=Math.abs(random.nextInt()) % size;
+    System.out.println("Random request: " + req);
+  }
+  test.doOperation(req);
+  cache[index % cache.length]=req;
+}

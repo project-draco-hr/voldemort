@@ -18,7 +18,7 @@
     parser.printHelpOn(System.out);
     System.exit(0);
   }
-  failIfMissing(parser,options,"requests","store-dir");
+  CmdUtils.croakIfMissing(parser,options,"requests","store-dir");
   final int numThreads=CmdUtils.valueOf(options,"threads",10);
   final int numRequests=(Integer)options.valueOf("requests");
   final int internalSortSize=CmdUtils.valueOf(options,"internal-sort-size",500000);
@@ -30,7 +30,7 @@
   final File workingDir=new File(CmdUtils.valueOf(options,"working-dir",System.getProperty("java.io.tmpdir")));
   String storeDir=(String)options.valueOf("store-dir");
   if (options.has("build")) {
-    failIfMissing(parser,options,"num-values","value-size");
+    CmdUtils.croakIfMissing(parser,options,"num-values","value-size");
     numValues=(Integer)options.valueOf("num-values");
     int numChunks=1;
     if (options.has("num-chunks"))     numChunks=(Integer)options.valueOf("num-chunks");
