@@ -18,7 +18,7 @@
   }
   logger.info("Reading items...");
   int count=0;
-  ExternalSorter<KeyValuePair> sorter=new ExternalSorter<KeyValuePair>(new KeyValuePairSerializer(),new KeyMd5Comparator(),internalSortSize,tempDir.getAbsolutePath(),ioBufferSize,numThreads);
+  ExternalSorter<KeyValuePair> sorter=new ExternalSorter<KeyValuePair>(new KeyValuePairSerializer(),new KeyMd5Comparator(),internalSortSize,tempDir.getAbsolutePath(),ioBufferSize,numThreads,gzipIntermediate);
   JsonObjectIterator iter=new JsonObjectIterator(reader,storeDefinition);
   for (  KeyValuePair pair : sorter.sorted(iter)) {
     List<Node> nodes=this.routingStrategy.routeRequest(pair.getKey());

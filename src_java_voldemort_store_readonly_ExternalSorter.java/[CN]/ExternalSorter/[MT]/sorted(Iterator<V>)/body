@@ -22,7 +22,9 @@
           File tempFile=File.createTempFile("segment-",".dat",tempDir);
           tempFile.deleteOnExit();
           tempFiles.add(tempFile);
-          DataOutputStream output=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(tempFile),bufferSize));
+          OutputStream os=new BufferedOutputStream(new FileOutputStream(tempFile),bufferSize);
+          if (gzip)           os=new GZIPOutputStream(os);
+          DataOutputStream output=new DataOutputStream(os);
           for (int i=0; i < segmentSize; i++)           writeValue(output,buffer[i]);
           output.close();
         }

@@ -2,7 +2,9 @@
   this.inputs=new ArrayList<FileAndStream>(files.size());
   for (  File f : files) {
     try {
-      DataInputStream inputStream=new DataInputStream(new BufferedInputStream(new FileInputStream(f),readBufferSize));
+      InputStream is=new BufferedInputStream(new FileInputStream(f),readBufferSize);
+      if (gzip)       is=new GZIPInputStream(is);
+      DataInputStream inputStream=new DataInputStream(is);
       this.inputs.add(new FileAndStream(f,inputStream));
     }
  catch (    IOException e) {
