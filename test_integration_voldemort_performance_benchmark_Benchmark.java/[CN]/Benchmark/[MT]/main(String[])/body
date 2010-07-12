@@ -1,31 +1,31 @@
 {
   OptionParser parser=new OptionParser();
-  parser.accepts(READS,"percentage of --ops-count to be reads; valid values [0-100]").withRequiredArg().ofType(Integer.class);
-  parser.accepts(WRITES,"percentage of --ops-count to be writes; valid values [0-100]").withRequiredArg().ofType(Integer.class);
-  parser.accepts(DELETES,"percentage of --ops-count to be deletes; valid values [0-100]").withRequiredArg().ofType(Integer.class);
-  parser.accepts(MIXED,"percentage of --ops-count to be updates; valid values [0-100]").withRequiredArg().ofType(Integer.class);
+  parser.accepts(READS,"percentage of --ops-count to be reads; valid values [0-100]").withRequiredArg().describedAs("read-percent").ofType(Integer.class);
+  parser.accepts(WRITES,"percentage of --ops-count to be writes; valid values [0-100]").withRequiredArg().describedAs("write-percent").ofType(Integer.class);
+  parser.accepts(DELETES,"percentage of --ops-count to be deletes; valid values [0-100]").withRequiredArg().describedAs("delete-percent").ofType(Integer.class);
+  parser.accepts(MIXED,"percentage of --ops-count to be updates; valid values [0-100]").withRequiredArg().describedAs("update-percent").ofType(Integer.class);
   parser.accepts(VERBOSE,"verbose");
-  parser.accepts(THREADS,"max number concurrent worker threads; Default = " + MAX_WORKERS).withRequiredArg().ofType(Integer.class);
-  parser.accepts(ITERATIONS,"number of times to repeat benchmark phase; Default = 1").withRequiredArg().ofType(Integer.class);
+  parser.accepts(THREADS,"max number concurrent worker threads; Default = " + MAX_WORKERS).withRequiredArg().describedAs("num-threads").ofType(Integer.class);
+  parser.accepts(ITERATIONS,"number of times to repeat benchmark phase; Default = 1").withRequiredArg().describedAs("num-iter").ofType(Integer.class);
   parser.accepts(VERIFY,"verify values read; runs only if warm-up phase is included");
-  parser.accepts(PERCENT_CACHED,"percentage of requests to come from previously requested keys; valid values are in range [0..100]; 0 means caching disabled. Default = 0").withRequiredArg().ofType(Integer.class);
-  parser.accepts(START_KEY_INDEX,"key index to start warm-up phase from; Default = 0").withRequiredArg().ofType(Integer.class);
-  parser.accepts(INTERVAL,"print status at interval seconds; Default = 0").withRequiredArg().ofType(Integer.class);
+  parser.accepts(PERCENT_CACHED,"percentage of requests to come from previously requested keys; valid values are in range [0..100]; 0 means caching disabled. Default = 0").withRequiredArg().describedAs("percent").ofType(Integer.class);
+  parser.accepts(START_KEY_INDEX,"key index to start warm-up phase from; Default = 0").withRequiredArg().describedAs("index").ofType(Integer.class);
+  parser.accepts(INTERVAL,"print status at interval seconds; Default = 0").withRequiredArg().describedAs("sec").ofType(Integer.class);
   parser.accepts(IGNORE_NULLS,"ignore null values in results");
-  parser.accepts(PROP_FILE,"file containing all the properties in key=value format; will override all other command line options specified").withRequiredArg();
-  parser.accepts(STORAGE_ENGINE_TYPE,"storage engine type; [ " + BdbStorageConfiguration.TYPE_NAME + " | "+ MysqlStorageConfiguration.TYPE_NAME+ " | "+ InMemoryStorageConfiguration.TYPE_NAME+ " <default> ]").withRequiredArg();
-  parser.accepts(KEY_TYPE,"for local tests; key type to support; [ " + IDENTITY_KEY_TYPE + " | "+ JSONINT_KEY_TYPE+ " | "+ JSONSTRING_KEY_TYPE+ "|"+ STRING_KEY_TYPE+ " <default> ]").withRequiredArg();
+  parser.accepts(PROP_FILE,"file containing all the properties in key=value format; will override all other command line options specified").withRequiredArg().describedAs("prop-file");
+  parser.accepts(STORAGE_CONFIGURATION_CLASS,"class of the storage engine configuration to use [e.g. voldemort.store.bdb.BdbStorageConfiguration]").withRequiredArg().describedAs("class-name");
+  parser.accepts(KEY_TYPE,"for local tests; key type to support; [ " + IDENTITY_KEY_TYPE + " | "+ JSONINT_KEY_TYPE+ " | "+ JSONSTRING_KEY_TYPE+ "|"+ STRING_KEY_TYPE+ " <default> ]").withRequiredArg().describedAs("type");
   parser.accepts(REQUEST_FILE,"file with limited list of keys to be used during benchmark phase; Overrides " + RECORD_SELECTION).withRequiredArg();
-  parser.accepts(VALUE_SIZE,"size in bytes for random value; used during warm-up phase and write operation of benchmark phase; Default = 1024").withRequiredArg().ofType(Integer.class);
+  parser.accepts(VALUE_SIZE,"size in bytes for random value; used during warm-up phase and write operation of benchmark phase; Default = 1024").withRequiredArg().describedAs("bytes").ofType(Integer.class);
   parser.accepts(RECORD_SELECTION,"record selection distribution [ " + ZIPFIAN_RECORD_SELECTION + " | "+ LATEST_RECORD_SELECTION+ " | "+ UNIFORM_RECORD_SELECTION+ " <default> ]").withRequiredArg();
-  parser.accepts(TARGET_THROUGHPUT,"fix ops/sec").withRequiredArg().ofType(Integer.class);
-  parser.accepts(RECORD_COUNT,"number of records inserted during warmup phase").withRequiredArg().ofType(Integer.class);
-  parser.accepts(OPS_COUNT,"number of operations to do during benchmark phase").withRequiredArg().ofType(Integer.class);
+  parser.accepts(TARGET_THROUGHPUT,"fix throughput").withRequiredArg().describedAs("ops/sec").ofType(Integer.class);
+  parser.accepts(RECORD_COUNT,"number of records inserted during warmup phase").withRequiredArg().describedAs("count").ofType(Integer.class);
+  parser.accepts(OPS_COUNT,"number of operations to do during benchmark phase").withRequiredArg().describedAs("count").ofType(Integer.class);
   parser.accepts(URL,"for remote tests; url of remote server").withRequiredArg();
-  parser.accepts(STORE_NAME,"for remote tests; store name on the remote " + URL).withRequiredArg();
+  parser.accepts(STORE_NAME,"for remote tests; store name on the remote " + URL).withRequiredArg().describedAs("name");
   parser.accepts(HANDSHAKE,"for remote tests; basic handshake operations with " + URL);
   parser.accepts(METRIC_TYPE,"type of result metric [ " + HISTOGRAM_METRIC_TYPE + " | "+ SUMMARY_METRIC_TYPE+ " <default> ]").withRequiredArg();
-  parser.accepts(PLUGIN_CLASS,"classname of implementation of WorkloadPlugin; used to run customized operations ").withRequiredArg();
+  parser.accepts(PLUGIN_CLASS,"classname of implementation of WorkloadPlugin; used to run customized operations ").withRequiredArg().describedAs("class-name");
   parser.accepts(HELP);
   OptionSet options=parser.parse(args);
   if (options.has(HELP)) {
@@ -77,7 +77,7 @@
     }
  else {
       mainProps.put(KEY_TYPE,CmdUtils.valueOf(options,KEY_TYPE,STRING_KEY_TYPE));
-      mainProps.put(STORAGE_ENGINE_TYPE,CmdUtils.valueOf(options,STORAGE_ENGINE_TYPE,InMemoryStorageConfiguration.TYPE_NAME));
+      mainProps.put(STORAGE_CONFIGURATION_CLASS,CmdUtils.valueOf(options,STORAGE_CONFIGURATION_CLASS,BdbStorageConfiguration.class.getName()));
     }
     mainProps.put(VERBOSE,getCmdBoolean(options,VERBOSE));
     mainProps.put(VERIFY,getCmdBoolean(options,VERIFY));
