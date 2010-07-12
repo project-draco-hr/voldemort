@@ -43,6 +43,12 @@
     }
   }
   this.clientThreadPool.shutdown();
+  try {
+    if (!this.clientThreadPool.awaitTermination(10,TimeUnit.SECONDS))     this.clientThreadPool.shutdownNow();
+  }
+ catch (  InterruptedException e) {
+    this.clientThreadPool.shutdownNow();
+  }
   logger.info("Closed client threadpool.");
   if (this.failureDetector != null) {
     try {
