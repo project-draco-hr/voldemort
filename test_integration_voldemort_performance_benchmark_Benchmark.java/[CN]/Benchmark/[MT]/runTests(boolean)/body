@@ -52,9 +52,11 @@ catch (      InstantiationException e) {
   if (this.statusIntervalSec > 0) {
     statusThread.interrupt();
   }
-  System.out.println("[" + label + "]\tRunTime(ms): "+ (endRunBenchmark - startRunBenchmark));
+  NumberFormat nf=NumberFormat.getInstance();
+  nf.setMaximumFractionDigits(4);
+  System.out.println("[" + label + "]\tRunTime(ms): "+ nf.format((endRunBenchmark - startRunBenchmark)));
   double throughput=Time.MS_PER_SECOND * ((double)localOpsCounts) / ((double)(endRunBenchmark - startRunBenchmark));
-  System.out.println("[" + label + "]\tThroughput(ops/sec): "+ throughput);
+  System.out.println("[" + label + "]\tThroughput(ops/sec): "+ nf.format(throughput));
   if (runBenchmark) {
     Metrics.getInstance().printReport(System.out);
   }
