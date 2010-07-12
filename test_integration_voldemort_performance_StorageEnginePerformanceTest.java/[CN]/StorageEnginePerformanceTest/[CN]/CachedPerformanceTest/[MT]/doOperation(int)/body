@@ -1,13 +1,13 @@
 {
   int req;
-  if (random.nextFloat() < cachePercent && index > 1000) {
-    req=cache[Math.abs(random.nextInt()) % Math.max(cache.length,index - 1)];
-    System.out.println("Cache request: " + req);
+  if (random.nextFloat() < cachePercent && index > 1) {
+    int maxValid=Math.min(Math.min(Math.max(cache.length,index - 1),uncached.get() - 1),cache.length);
+    int cacheIndex=Math.abs(random.nextInt()) % maxValid;
+    req=cache[cacheIndex];
   }
  else {
     req=Math.abs(random.nextInt()) % size;
-    System.out.println("Random request: " + req);
+    cache[uncached.getAndIncrement() % cache.length]=req;
   }
   test.doOperation(req);
-  cache[index % cache.length]=req;
 }
