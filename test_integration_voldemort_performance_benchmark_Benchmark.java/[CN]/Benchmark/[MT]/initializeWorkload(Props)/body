@@ -5,16 +5,17 @@
   this.targetThroughput=workloadProps.getInt(TARGET_THROUGHPUT,-1);
   this.perThreadThroughputPerMs=-1;
   if (targetThroughput > 0) {
-    double targetperthread=((double)targetThroughput) / ((double)numThreads);
-    this.perThreadThroughputPerMs=targetperthread / 1000.0;
+    double targetPerThread=((double)targetThroughput) / ((double)numThreads);
+    this.perThreadThroughputPerMs=targetPerThread / 1000.0;
   }
-  if (workloadProps.containsKey(RECORD_COUNT) && workloadProps.containsKey(OPS_COUNT)) {
-    this.recordCount=workloadProps.getInt(RECORD_COUNT);
+  if (workloadProps.containsKey(OPS_COUNT)) {
     this.opsCount=workloadProps.getInt(OPS_COUNT);
   }
  else {
-    throw new VoldemortException("Missing compulsory parameters - " + RECORD_COUNT + "  or "+ OPS_COUNT);
+    throw new VoldemortException("Missing compulsory parameters - " + OPS_COUNT);
   }
+  this.recordCount=workloadProps.getInt(RECORD_COUNT,-1);
+  this.pluginName=workloadProps.getString(PLUGIN_CLASS,null);
   Metrics.setProperties(workloadProps);
   Metrics.getInstance().reset();
   this.workLoad=new Workload();

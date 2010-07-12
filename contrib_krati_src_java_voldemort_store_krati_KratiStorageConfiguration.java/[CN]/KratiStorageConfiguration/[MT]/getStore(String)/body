@@ -2,9 +2,10 @@
 synchronized (lock) {
     File storeDir=new File(dataDirectory,storeName);
     if (!storeDir.exists()) {
-      logger.info("Creating Krati data directory '" + storeDir.getAbsolutePath() + ".");
+      logger.info("Creating krati data directory '" + storeDir.getAbsolutePath() + "'.");
       storeDir.mkdirs();
     }
-    return new KratiStorageEngine(storeName,segmentFileSizeMB,hashLoadFactor,initLevel,storeDir);
+    SegmentFactory segmentFactory=(SegmentFactory)ReflectUtils.callConstructor(factoryClass);
+    return new KratiStorageEngine(storeName,segmentFactory,segmentFileSizeMb,lockStripes,hashLoadFactor,initLevel,storeDir);
   }
 }

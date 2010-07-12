@@ -1,0 +1,14 @@
+{
+  final String storeName=request.getStoreName();
+  VAdminProto.RollbackStoreResponse.Builder response=VAdminProto.RollbackStoreResponse.newBuilder();
+  try {
+    ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)storeRepository.getStorageEngine(storeName);
+    if (store == null)     throw new VoldemortException("'" + storeName + "' is not a registered read-only store.");
+    store.rollback();
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleRollbackStore failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

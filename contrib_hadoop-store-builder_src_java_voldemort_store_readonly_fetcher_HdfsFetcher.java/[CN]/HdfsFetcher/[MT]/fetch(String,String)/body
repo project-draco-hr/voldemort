@@ -10,7 +10,7 @@
   ObjectName jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
   try {
     File storeDir=new File(this.tempDir,storeName + "_" + System.currentTimeMillis());
-    storeDir.mkdir();
+    Utils.mkdirs(storeDir);
     File destination=new File(storeDir.getAbsoluteFile(),path.getName());
     boolean result=fetch(fs,path,destination,throttler,stats);
     if (result) {

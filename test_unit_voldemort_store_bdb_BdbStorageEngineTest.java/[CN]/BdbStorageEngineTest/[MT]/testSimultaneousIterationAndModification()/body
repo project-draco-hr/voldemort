@@ -2,9 +2,10 @@
   ExecutorService executor=Executors.newFixedThreadPool(2);
   final Random rand=new Random();
   final AtomicInteger count=new AtomicInteger(0);
+  final AtomicBoolean keepRunning=new AtomicBoolean(true);
   executor.execute(new Runnable(){
     public void run(){
-      while (!Thread.interrupted()) {
+      while (keepRunning.get()) {
         byte[] bytes=Integer.toString(count.getAndIncrement()).getBytes();
         store.put(new ByteArray(bytes),Versioned.value(bytes));
         count.incrementAndGet();
@@ -14,7 +15,7 @@
 );
   executor.execute(new Runnable(){
     public void run(){
-      while (!Thread.interrupted()) {
+      while (keepRunning.get()) {
         byte[] bytes=Integer.toString(rand.nextInt(count.get())).getBytes();
         store.delete(new ByteArray(bytes),new VectorClock());
         count.incrementAndGet();
@@ -26,6 +27,7 @@
   ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iter=this.store.entries();
   while (iter.hasNext())   iter.next();
   iter.close();
-  executor.shutdownNow();
-  assertTrue(executor.awaitTermination(15,TimeUnit.SECONDS));
+  keepRunning.set(false);
+  executor.shutdown();
+  assertTrue(executor.awaitTermination(5,TimeUnit.SECONDS));
 }

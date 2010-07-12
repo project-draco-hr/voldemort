@@ -1,0 +1,30 @@
+{
+  Map<Integer,Future<String>> fetchDirs=new HashMap<Integer,Future<String>>();
+  for (  final Node node : cluster.getNodes()) {
+    fetchDirs.put(node.getId(),executor.submit(new Callable<String>(){
+      public String call() throws Exception {
+        String storeDir=basePath + "/node-" + node.getId();
+        logger.info("Invoking fetch for node " + node.getId() + " for "+ storeDir);
+        String response=adminClient.fetchStore(node.getId(),storeName,storeDir,timeoutMs);
+        if (response == null)         throw new VoldemortException("Swap request on node " + node.getId() + " ("+ node.getHost()+ ") failed");
+        logger.info("Fetch succeeded on node " + node.getId());
+        return response.trim();
+      }
+    }
+));
+  }
+  List<String> results=new ArrayList<String>();
+  for (int nodeId=0; nodeId < cluster.getNumberOfNodes(); nodeId++) {
+    Future<String> val=fetchDirs.get(nodeId);
+    try {
+      results.add(val.get());
+    }
+ catch (    ExecutionException e) {
+      throw new VoldemortException(e.getCause());
+    }
+catch (    InterruptedException e) {
+      throw new VoldemortException(e);
+    }
+  }
+  return results;
+}

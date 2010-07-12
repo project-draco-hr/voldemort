@@ -115,7 +115,7 @@
  finally {
               latch0.countDown();
               if (interval != -1 && j % interval == 0) {
-                printStatistics("deletes",successes.get(),start);
+                printStatistics("deletes",successes.get(),start,requestTimes);
               }
             }
           }
@@ -123,9 +123,7 @@
 );
       }
       latch0.await();
-      printStatistics("deletes",successes.get(),start);
-      System.out.println("95th percentile delete latency: " + TestUtils.quantile(requestTimes,.95) + " ms.");
-      System.out.println("99th percentile delete latency: " + TestUtils.quantile(requestTimes,.99) + " ms.");
+      printStatistics("deletes",successes.get(),start,requestTimes);
     }
     if (ops.contains("w")) {
       final AtomicInteger numWrites=new AtomicInteger(0);
@@ -158,7 +156,7 @@
  finally {
               latch1.countDown();
               if (interval != -1 && j % interval == 0) {
-                printStatistics("writes",numWrites.get(),start);
+                printStatistics("writes",numWrites.get(),start,requestTimes);
               }
             }
           }
@@ -166,9 +164,7 @@
 );
       }
       latch1.await();
-      printStatistics("writes",numWrites.get(),start);
-      System.out.println("95th percentile write latency: " + TestUtils.quantile(requestTimes,.95) + " ms.");
-      System.out.println("99th percentile write latency: " + TestUtils.quantile(requestTimes,.99) + " ms.");
+      printStatistics("writes",numWrites.get(),start,requestTimes);
     }
     if (ops.contains("r")) {
       final boolean ignoreNulls=options.has("ignore-nulls");
@@ -211,7 +207,7 @@
  finally {
               latch.countDown();
               if (interval != -1 && j % interval == 0) {
-                printStatistics("reads",numReads.get(),start);
+                printStatistics("reads",numReads.get(),start,requestTimes);
                 printNulls(numNulls.get(),start);
               }
             }
@@ -220,9 +216,7 @@
 );
       }
       latch.await();
-      printStatistics("reads",numReads.get(),start);
-      System.out.println("95th percentile read latency: " + TestUtils.quantile(requestTimes,.95) + " ms.");
-      System.out.println("99th percentile read latency: " + TestUtils.quantile(requestTimes,.99) + " ms.");
+      printStatistics("reads",numReads.get(),start,requestTimes);
     }
   }
   if (ops.contains("m")) {
@@ -232,6 +226,7 @@
     System.out.println("Beginning mixed test.");
     final KeyProvider<?> keyProvider=getKeyProvider(keyType,startNum,keys,percentCached);
     final CountDownLatch latch=new CountDownLatch(numRequests);
+    final long[] requestTimes=new long[numRequests];
     final long start=System.nanoTime();
     keyProvider.next();
     for (int i=0; i < numRequests; i++) {
@@ -242,6 +237,7 @@
             final Object key=keyProvider.next();
             store.applyUpdate(new UpdateAction<Object,Object>(){
               @Override public void update(              StoreClient<Object,Object> storeClient){
+                long startNs=System.nanoTime();
                 Versioned<Object> v=store.get(key);
                 numReads.incrementAndGet();
                 if (v != null) {
@@ -258,6 +254,7 @@
                     }
                   }
                 }
+                requestTimes[j]=(System.nanoTime() - startNs) / Time.NS_PER_MS;
                 numWrites.incrementAndGet();
               }
             }
@@ -270,10 +267,10 @@
           }
  finally {
             if (interval != -1 && j % interval == 0) {
-              printStatistics("reads",numReads.get(),start);
-              printStatistics("writes",numWrites.get(),start);
+              printStatistics("reads",numReads.get(),start,requestTimes);
+              printStatistics("writes",numWrites.get(),start,requestTimes);
               printNulls(numNulls.get(),start);
-              printStatistics("transactions",j,start);
+              printStatistics("transactions",j,start,requestTimes);
             }
             latch.countDown();
           }
@@ -282,8 +279,8 @@
 );
     }
     latch.await();
-    printStatistics("reads",numReads.get(),start);
-    printStatistics("writes",numWrites.get(),start);
+    printStatistics("reads",numReads.get(),start,requestTimes);
+    printStatistics("writes",numWrites.get(),start,requestTimes);
   }
   if (nullWriter != null) {
     nullWriter.close();

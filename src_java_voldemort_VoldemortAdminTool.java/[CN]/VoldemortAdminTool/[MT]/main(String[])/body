@@ -2,15 +2,18 @@
   OptionParser parser=new OptionParser();
   parser.accepts("help","print help information");
   parser.accepts("url","[REQUIRED] bootstrap URL").withRequiredArg().describedAs("bootstrap-url").ofType(String.class);
-  parser.accepts("node","[REQUIRED] node id").withRequiredArg().describedAs("node-id").ofType(Integer.class);
+  parser.accepts("node","node id").withRequiredArg().describedAs("node-id").ofType(Integer.class);
   parser.accepts("delete-partitions","Delete partitions").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("restore","Restore from replication");
   parser.accepts("ascii","Fetch keys as ASCII");
   parser.accepts("parallelism","Parallelism").withRequiredArg().describedAs("parallelism").ofType(Integer.class);
   parser.accepts("fetch-keys","Fetch keys").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
-  parser.accepts("fetch-values","Fetch values").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
+  parser.accepts("fetch-entries","[EXPERIMENTAL] Fetch full entries").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("outdir","Output directory").withRequiredArg().describedAs("output-directory").ofType(String.class);
   parser.accepts("stores","Store names").withRequiredArg().describedAs("store-names").withValuesSeparatedBy(',').ofType(String.class);
+  parser.accepts("add-stores","Add stores in this stores.xml").withRequiredArg().describedAs("stores.xml").ofType(String.class);
+  parser.accepts("delete-store","Delete store").withRequiredArg().describedAs("store-name").ofType(String.class);
+  parser.accepts("update-entries","[EXPERIMENTAL] Insert or update entries").withRequiredArg().describedAs("input-directory").ofType(String.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     parser.printHelpOn(System.out);
@@ -18,9 +21,11 @@
   }
   Set<String> missing=CmdUtils.missing(options,"url","node");
   if (missing.size() > 0) {
-    System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
-    parser.printHelpOn(System.err);
-    System.exit(1);
+    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store")))) {
+      System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
+      parser.printHelpOn(System.err);
+      System.exit(1);
+    }
   }
   String url=(String)options.valueOf("url");
   Integer nodeId=(Integer)options.valueOf("node");
@@ -33,14 +38,23 @@
   if (options.has("fetch-keys")) {
     ops+="k";
   }
-  if (options.has("fetch-values")) {
+  if (options.has("fetch-entries")) {
     ops+="v";
   }
   if (options.has("restore")) {
     ops+="r";
   }
+  if (options.has("add-stores")) {
+    ops+="a";
+  }
+  if (options.has("update-entries")) {
+    ops+="u";
+  }
+  if (options.has("delete-store")) {
+    ops+="s";
+  }
   if (ops.length() < 1) {
-    Utils.croak("At least one of (delete-partitions, restore, add-node) must be specified");
+    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, fetch-keys, add-stores, delete-store, update-entries) must be specified");
   }
   List<String> storeNames=null;
   if (options.has("stores")) {
@@ -76,7 +90,20 @@
       String outputDir=(String)options.valueOf("outdir");
       boolean useAscii=options.has("ascii");
       @SuppressWarnings("unchecked") List<Integer> partitionIdList=(List<Integer>)options.valuesOf("fetch-values");
-      executeFetchValues(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
+      executeFetchEntries(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
+    }
+    if (ops.contains("a")) {
+      String storesXml=(String)options.valueOf("add-stores");
+      executeAddStores(adminClient,storesXml,storeNames);
+    }
+    if (ops.contains("u")) {
+      String inputDir=(String)options.valueOf("update-entries");
+      boolean useAscii=options.has("ascii");
+      executeUpdateEntries(nodeId,adminClient,storeNames,inputDir,useAscii);
+    }
+    if (ops.contains("s")) {
+      String storeName=(String)options.valueOf("delete-store");
+      executeDeleteStore(adminClient,storeName);
     }
   }
  catch (  Exception e) {

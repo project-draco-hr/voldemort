@@ -1,0 +1,45 @@
+{
+  File inputFile=new File(inputDir,storeName + ".entries");
+  if (!inputFile.exists()) {
+    throw new FileNotFoundException("File " + inputFile.getAbsolutePath() + " does not exist!");
+  }
+  final DataInputStream dis=new DataInputStream(new BufferedInputStream(new FileInputStream(inputFile)));
+  return new AbstractIterator<Pair<ByteArray,Versioned<byte[]>>>(){
+    @Override protected Pair<ByteArray,Versioned<byte[]>> computeNext(){
+      try {
+        int length=dis.readInt();
+        byte[] keyBytes=new byte[length];
+        ByteUtils.read(dis,keyBytes);
+        length=dis.readInt();
+        byte[] versionBytes=new byte[length];
+        ByteUtils.read(dis,versionBytes);
+        length=dis.readInt();
+        byte[] valueBytes=new byte[length];
+        ByteUtils.read(dis,valueBytes);
+        ByteArray key=new ByteArray(keyBytes);
+        VectorClock version=new VectorClock(versionBytes);
+        Versioned<byte[]> value=new Versioned<byte[]>(valueBytes,version);
+        return new Pair<ByteArray,Versioned<byte[]>>(key,value);
+      }
+ catch (      EOFException e) {
+        try {
+          dis.close();
+        }
+ catch (        IOException ie) {
+          ie.printStackTrace();
+        }
+        return endOfData();
+      }
+catch (      IOException e) {
+        try {
+          dis.close();
+        }
+ catch (        IOException ie) {
+          ie.printStackTrace();
+        }
+        throw new VoldemortException("Error reading from input file ",e);
+      }
+    }
+  }
+;
+}

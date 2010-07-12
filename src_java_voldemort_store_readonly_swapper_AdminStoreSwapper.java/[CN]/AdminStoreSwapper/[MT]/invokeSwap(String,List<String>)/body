@@ -1,0 +1,16 @@
+{
+  Exception exception=null;
+  for (int nodeId=0; nodeId < cluster.getNumberOfNodes(); nodeId++) {
+    try {
+      String dir=fetchFiles.get(nodeId);
+      logger.info("Attempting swap for node " + nodeId + " dir = "+ dir);
+      adminClient.swapStore(nodeId,storeName,dir);
+      logger.info("Swap succeeded for node " + nodeId);
+    }
+ catch (    Exception e) {
+      exception=e;
+      logger.error("Exception thrown during swap operation on node " + nodeId + ": ",e);
+    }
+  }
+  if (exception != null)   throw new VoldemortException(exception);
+}

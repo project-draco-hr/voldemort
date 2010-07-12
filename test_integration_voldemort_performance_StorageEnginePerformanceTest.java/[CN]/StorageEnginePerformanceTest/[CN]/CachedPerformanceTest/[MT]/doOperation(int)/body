@@ -1,0 +1,13 @@
+{
+  int req;
+  if (random.nextFloat() < cachePercent && index > 1) {
+    int maxValid=Math.min(Math.min(Math.max(cache.length,index - 1),uncached.get() - 1),cache.length);
+    int cacheIndex=Math.abs(random.nextInt()) % maxValid;
+    req=cache[cacheIndex];
+  }
+ else {
+    req=Math.abs(random.nextInt()) % size;
+    cache[uncached.getAndIncrement() % cache.length]=req;
+  }
+  test.doOperation(req);
+}
