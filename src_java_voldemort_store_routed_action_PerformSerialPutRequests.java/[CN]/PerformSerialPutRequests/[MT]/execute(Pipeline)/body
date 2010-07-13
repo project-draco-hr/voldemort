@@ -17,6 +17,7 @@
       if (logger.isTraceEnabled())       logger.trace("Put on node " + node.getId() + " succeeded, using as master");
       pipelineData.setMaster(node);
       pipelineData.setVersionedCopy(versionedCopy);
+      pipelineData.getZoneResponses().add(node.getZoneId());
       break;
     }
  catch (    Exception e) {
@@ -33,11 +34,23 @@
   currentNode++;
   if (currentNode == nodes.size()) {
     if (pipelineData.getSuccesses() < required) {
-      pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but "+ pipelineData.getSuccesses()+ " succeeded",pipelineData.getFailures()));
+      pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but only "+ pipelineData.getSuccesses()+ " succeeded",pipelineData.getFailures()));
       pipeline.addEvent(Event.ERROR);
     }
  else {
-      pipeline.addEvent(completeEvent);
+      if (pipelineData.getZonesRequired() != null) {
+        int zonesSatisfied=pipelineData.getZoneResponses().size();
+        if (zonesSatisfied >= (pipelineData.getZonesRequired() + 1)) {
+          pipeline.addEvent(completeEvent);
+        }
+ else {
+          pipelineData.setFatalError(new InsufficientZoneResponsesException((pipelineData.getZonesRequired() + 1) + " " + pipeline.getOperation().getSimpleName()+ "s required zone, but only "+ zonesSatisfied+ " succeeded"));
+          pipeline.addEvent(Event.ERROR);
+        }
+      }
+ else {
+        pipeline.addEvent(completeEvent);
+      }
     }
   }
  else {

@@ -19,7 +19,7 @@
     store.submitGetAllRequest(keys,callback);
   }
   try {
-    latch.await(timeoutMs,TimeUnit.MILLISECONDS);
+    latch.await(timeoutMs * 3,TimeUnit.MILLISECONDS);
   }
  catch (  InterruptedException e) {
     if (logger.isEnabledFor(Level.WARN))     logger.warn(e,e);
@@ -39,6 +39,14 @@
           if (existing == null)           pipelineData.getResult().put(key,Lists.newArrayList(retrieved));
  else           existing.addAll(retrieved);
         }
+        HashSet<Integer> zoneResponses=null;
+        if (pipelineData.getKeyToZoneResponse().containsKey(key)) {
+          zoneResponses=pipelineData.getKeyToZoneResponse().get(key);
+        }
+ else {
+          zoneResponses=new HashSet<Integer>();
+        }
+        zoneResponses.add(response.getNode().getZoneId());
       }
       pipelineData.getResponses().add(new Response<Iterable<ByteArray>,Map<ByteArray,List<Versioned<byte[]>>>>(response.getNode(),response.getKey(),values,response.getRequestTime()));
       failureDetector.recordSuccess(response.getNode(),response.getRequestTime());

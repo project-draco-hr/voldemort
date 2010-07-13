@@ -33,6 +33,7 @@
       pipelineData.incrementSuccesses();
       pipelineData.getResponses().add((Response<ByteArray,V>)response);
       failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
+      pipelineData.getZoneResponses().add(response.getNode().getZoneId());
     }
   }
   if (pipelineData.getSuccesses() < required) {
@@ -40,11 +41,27 @@
       pipeline.addEvent(insufficientSuccessesEvent);
     }
  else {
-      pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but "+ pipelineData.getSuccesses()+ " succeeded",pipelineData.getFailures()));
+      pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but only "+ pipelineData.getSuccesses()+ " succeeded",pipelineData.getFailures()));
       pipeline.addEvent(Event.ERROR);
     }
   }
  else {
-    pipeline.addEvent(completeEvent);
+    if (pipelineData.getZonesRequired() != null) {
+      int zonesSatisfied=pipelineData.getZoneResponses().size();
+      if (zonesSatisfied >= (pipelineData.getZonesRequired() + 1)) {
+        pipeline.addEvent(completeEvent);
+      }
+ else {
+        if (this.insufficientZonesEvent != null) {
+          pipeline.addEvent(this.insufficientZonesEvent);
+        }
+ else {
+          pipelineData.setFatalError(new InsufficientZoneResponsesException((pipelineData.getZonesRequired() + 1) + " " + pipeline.getOperation().getSimpleName()+ "s required zone, but only "+ zonesSatisfied+ " succeeded"));
+        }
+      }
+    }
+ else {
+      pipeline.addEvent(completeEvent);
+    }
   }
 }
