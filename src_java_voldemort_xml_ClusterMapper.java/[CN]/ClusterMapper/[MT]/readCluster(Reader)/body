@@ -7,9 +7,11 @@
     Element root=doc.getRootElement();
     if (!root.getName().equals(CLUSTER_ELMT))     throw new MappingException("Invalid root element: " + doc.getRootElement().getName());
     String name=root.getChildText(CLUSTER_NAME_ELMT);
-    List<Node> nodes=new ArrayList<Node>();
-    for (    Element node : (List<Element>)root.getChildren(SERVER_ELMT))     nodes.add(readServer(node));
-    return new Cluster(name,nodes);
+    List<Zone> zones=new ArrayList<Zone>();
+    for (    Element node : (List<Element>)root.getChildren(ZONE_ELMT))     zones.add(readZone(node));
+    List<Node> servers=new ArrayList<Node>();
+    for (    Element node : (List<Element>)root.getChildren(SERVER_ELMT))     servers.add(readServer(node));
+    return new Cluster(name,servers,zones);
   }
  catch (  JDOMException e) {
     throw new MappingException(e);

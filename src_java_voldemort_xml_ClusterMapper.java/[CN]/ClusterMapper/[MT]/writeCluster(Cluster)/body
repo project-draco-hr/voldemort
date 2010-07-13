@@ -1,6 +1,7 @@
 {
   Document doc=new Document(new Element(CLUSTER_ELMT));
   doc.getRootElement().addContent(new Element(CLUSTER_NAME_ELMT).setText(cluster.getName()));
+  for (  Zone n : cluster.getZones())   doc.getRootElement().addContent(mapZone(n));
   for (  Node n : cluster.getNodes())   doc.getRootElement().addContent(mapServer(n));
   XMLOutputter serializer=new XMLOutputter(Format.getPrettyFormat());
   return serializer.outputString(doc.getRootElement());

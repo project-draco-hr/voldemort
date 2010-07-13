@@ -12,4 +12,15 @@
     if (preferredReads > replicationFactor)     throw new IllegalArgumentException("Cannot have more preferredReads then there are replicas.");
   }
   if (retentionPeriodDays != null && retentionPeriodDays < 0)   throw new IllegalArgumentException("Retention days must be non-negative.");
+  if (zoneCountReads != null && zoneCountReads < 0)   throw new IllegalArgumentException("Zone Counts reads must be non-negative");
+  if (zoneCountWrites != null && zoneCountWrites < 0)   throw new IllegalArgumentException("Zone Counts writes must be non-negative");
+  if (zoneReplicationFactor != null && zoneReplicationFactor.size() != 0) {
+    int sumZoneReplicationFactor=0;
+    for (    Integer zoneId : zoneReplicationFactor.keySet()) {
+      sumZoneReplicationFactor+=zoneReplicationFactor.get(zoneId);
+    }
+    if (sumZoneReplicationFactor != replicationFactor) {
+      throw new IllegalArgumentException("Sum total of zones does not match the total replication factor");
+    }
+  }
 }

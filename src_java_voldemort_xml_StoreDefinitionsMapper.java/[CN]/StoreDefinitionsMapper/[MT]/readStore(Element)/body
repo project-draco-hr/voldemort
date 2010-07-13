@@ -2,6 +2,22 @@
   String name=store.getChildText(STORE_NAME_ELMT);
   String storeType=store.getChildText(STORE_PERSISTENCE_ELMT);
   int replicationFactor=Integer.parseInt(store.getChildText(STORE_REPLICATION_FACTOR_ELMT));
+  HashMap<Integer,Integer> zoneReplicationFactor=null;
+  Element zoneReplicationFactorNode=store.getChild(STORE_ZONE_REPLICATION_FACTOR_ELMT);
+  if (zoneReplicationFactorNode != null) {
+    zoneReplicationFactor=new HashMap<Integer,Integer>();
+    for (    Element node : (List<Element>)zoneReplicationFactorNode.getChildren(STORE_REPLICATION_FACTOR_ELMT)) {
+      int zone=Integer.parseInt(node.getAttribute(STORE_ZONE_ID_ELMT).getValue());
+      int repFactor=Integer.parseInt(node.getText());
+      zoneReplicationFactor.put(zone,repFactor);
+    }
+  }
+  String zoneCountReadsStr=store.getChildText(STORE_ZONE_COUNT_READS);
+  Integer zoneCountReads=null;
+  if (zoneCountReadsStr != null)   zoneCountReads=Integer.parseInt(zoneCountReadsStr);
+  String zoneCountWritesStr=store.getChildText(STORE_ZONE_COUNT_READS);
+  Integer zoneCountWrites=null;
+  if (zoneCountWritesStr != null)   zoneCountWrites=Integer.parseInt(zoneCountWritesStr);
   int requiredReads=Integer.parseInt(store.getChildText(STORE_REQUIRED_READS_ELMT));
   int requiredWrites=Integer.parseInt(store.getChildText(STORE_REQUIRED_WRITES_ELMT));
   String preferredReadsStr=store.getChildText(STORE_PREFERRED_READS_ELMT);
@@ -23,5 +39,5 @@
     Element throttleRate=store.getChild(STORE_RETENTION_SCAN_THROTTLE_RATE_ELMT);
     if (throttleRate != null)     retentionThrottleRate=Integer.parseInt(throttleRate.getText());
   }
-  return new StoreDefinitionBuilder().setName(name).setType(storeType).setKeySerializer(keySerializer).setValueSerializer(valueSerializer).setRoutingPolicy(routingTier).setRoutingStrategyType(routingStrategyType).setReplicationFactor(replicationFactor).setPreferredReads(preferredReads).setRequiredReads(requiredReads).setPreferredWrites(preferredWrites).setRequiredWrites(requiredWrites).setRetentionPeriodDays(retentionPolicyDays).setRetentionScanThrottleRate(retentionThrottleRate).build();
+  return new StoreDefinitionBuilder().setName(name).setType(storeType).setKeySerializer(keySerializer).setValueSerializer(valueSerializer).setRoutingPolicy(routingTier).setRoutingStrategyType(routingStrategyType).setReplicationFactor(replicationFactor).setPreferredReads(preferredReads).setRequiredReads(requiredReads).setPreferredWrites(preferredWrites).setRequiredWrites(requiredWrites).setRetentionPeriodDays(retentionPolicyDays).setRetentionScanThrottleRate(retentionThrottleRate).setZoneReplicationFactor(zoneReplicationFactor).setZoneCountReads(zoneCountReads).setZoneCountWrites(zoneCountWrites).build();
 }

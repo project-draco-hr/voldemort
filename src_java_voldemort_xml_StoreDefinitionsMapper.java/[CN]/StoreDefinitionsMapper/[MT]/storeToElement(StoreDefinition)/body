@@ -2,12 +2,23 @@
   Element store=new Element(STORE_ELMT);
   store.addContent(new Element(STORE_NAME_ELMT).setText(storeDefinition.getName()));
   store.addContent(new Element(STORE_PERSISTENCE_ELMT).setText(storeDefinition.getType()));
+  store.addContent(new Element(STORE_ROUTING_STRATEGY).setText(storeDefinition.getRoutingStrategyType()));
   store.addContent(new Element(STORE_ROUTING_TIER_ELMT).setText(storeDefinition.getRoutingPolicy().toDisplay()));
   store.addContent(new Element(STORE_REPLICATION_FACTOR_ELMT).setText(Integer.toString(storeDefinition.getReplicationFactor())));
+  HashMap<Integer,Integer> zoneReplicationFactor=storeDefinition.getZoneReplicationFactor();
+  if (zoneReplicationFactor != null) {
+    Element zoneReplicationFactorNode=new Element(STORE_ZONE_REPLICATION_FACTOR_ELMT);
+    for (    Integer zone : zoneReplicationFactor.keySet()) {
+      zoneReplicationFactorNode.addContent(new Element(STORE_REPLICATION_FACTOR_ELMT).setText(Integer.toString(zoneReplicationFactor.get(zone))).setAttribute(STORE_ZONE_ID_ELMT,Integer.toString(zone)));
+    }
+    store.addContent(zoneReplicationFactorNode);
+  }
   if (storeDefinition.hasPreferredReads())   store.addContent(new Element(STORE_PREFERRED_READS_ELMT).setText(Integer.toString(storeDefinition.getPreferredReads())));
   store.addContent(new Element(STORE_REQUIRED_READS_ELMT).setText(Integer.toString(storeDefinition.getRequiredReads())));
   if (storeDefinition.hasPreferredWrites())   store.addContent(new Element(STORE_PREFERRED_WRITES_ELMT).setText(Integer.toString(storeDefinition.getPreferredWrites())));
   store.addContent(new Element(STORE_REQUIRED_WRITES_ELMT).setText(Integer.toString(storeDefinition.getRequiredWrites())));
+  if (storeDefinition.hasZoneCountReads())   store.addContent(new Element(STORE_ZONE_COUNT_READS).setText(Integer.toString(storeDefinition.getZoneCountReads())));
+  if (storeDefinition.hasZoneCountWrites())   store.addContent(new Element(STORE_ZONE_COUNT_WRITES).setText(Integer.toString(storeDefinition.getZoneCountWrites())));
   Element keySerializer=new Element(STORE_KEY_SERIALIZER_ELMT);
   addSerializer(keySerializer,storeDefinition.getKeySerializer());
   store.addContent(keySerializer);
