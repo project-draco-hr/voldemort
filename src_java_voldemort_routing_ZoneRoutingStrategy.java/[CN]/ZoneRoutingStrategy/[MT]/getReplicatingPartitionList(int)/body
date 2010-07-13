@@ -1,0 +1,24 @@
+{
+  List<Node> preferenceNodesList=new ArrayList<Node>(getNumReplicas());
+  List<Integer> replicationPartitionsList=new ArrayList<Integer>(getNumReplicas());
+  HashMap<Integer,Integer> requiredRepFactor=new HashMap<Integer,Integer>();
+  requiredRepFactor.putAll(zoneReplicationFactor);
+  int sum=0;
+  for (  Integer zoneRepFactor : requiredRepFactor.values()) {
+    sum+=zoneRepFactor;
+  }
+  if (sum != getNumReplicas())   throw new IllegalArgumentException("Number of zone replicas is not equal to the total replication factor");
+  if (getPartitionToNode().length == 0) {
+    return new ArrayList<Integer>(0);
+  }
+  for (int i=0; i < getPartitionToNode().length; i++) {
+    Node currentNode=getNodeByPartition(index);
+    if (!preferenceNodesList.contains(currentNode)) {
+      preferenceNodesList.add(currentNode);
+      if (checkZoneRequirement(requiredRepFactor,currentNode.getZoneId()))       replicationPartitionsList.add(index);
+    }
+    if (replicationPartitionsList.size() >= getNumReplicas())     return replicationPartitionsList;
+    index=(index + 1) % getPartitionToNode().length;
+  }
+  return replicationPartitionsList;
+}
