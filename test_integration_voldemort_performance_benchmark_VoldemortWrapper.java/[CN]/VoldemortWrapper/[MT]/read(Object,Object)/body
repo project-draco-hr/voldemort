@@ -2,14 +2,13 @@
   long startNs=System.nanoTime();
   Versioned<Object> returnedValue=voldemortStore.get(key);
   long endNs=System.nanoTime();
-  measurement.measure(READS_STRING,(int)((endNs - startNs) / Time.NS_PER_MS));
-  int res=this.Ok;
+  measurement.recordLatency(Operations.Read.getOpString(),(int)((endNs - startNs) / Time.NS_PER_MS));
+  ReturnCode res=ReturnCode.Ok;
   if (returnedValue == null && !this.ignoreNulls) {
-    res=this.Error;
+    res=ReturnCode.Error;
   }
   if (verifyReads && !expectedValue.equals(returnedValue.getValue())) {
-    res=this.Error;
+    res=ReturnCode.Error;
   }
-  measurement.reportReturnCode(READS_STRING,res);
-  return res;
+  measurement.recordReturnCode(Operations.Read.getOpString(),res.ordinal());
 }

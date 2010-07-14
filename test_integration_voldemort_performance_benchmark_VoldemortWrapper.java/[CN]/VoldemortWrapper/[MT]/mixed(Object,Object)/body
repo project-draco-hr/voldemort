@@ -7,14 +7,13 @@
         voldemortStore.put(key,newValue);
       }
       long endNs=System.nanoTime();
-      measurement.measure(MIXED_STRING,(int)((endNs - startNs) / Time.NS_PER_MS));
+      measurement.recordLatency(Operations.Mixed.getOpString(),(int)((endNs - startNs) / Time.NS_PER_MS));
     }
   }
 ,3);
-  int res=this.Error;
+  ReturnCode res=ReturnCode.Error;
   if (updated) {
-    res=this.Ok;
+    res=ReturnCode.Ok;
   }
-  measurement.reportReturnCode(MIXED_STRING,res);
-  return res;
+  measurement.recordReturnCode(Operations.Mixed.getOpString(),res.ordinal());
 }

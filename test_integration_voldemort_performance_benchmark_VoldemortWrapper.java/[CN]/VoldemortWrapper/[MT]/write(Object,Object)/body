@@ -4,14 +4,13 @@
       long startNs=System.nanoTime();
       storeClient.put(key,value);
       long endNs=System.nanoTime();
-      measurement.measure(WRITES_STRING,(int)((endNs - startNs) / Time.NS_PER_MS));
+      measurement.recordLatency(Operations.Write.getOpString(),(int)((endNs - startNs) / Time.NS_PER_MS));
     }
   }
 ,3);
-  int res=this.Error;
+  ReturnCode res=ReturnCode.Error;
   if (written) {
-    res=this.Ok;
+    res=ReturnCode.Ok;
   }
-  measurement.reportReturnCode(WRITES_STRING,res);
-  return res;
+  measurement.recordReturnCode(Operations.Write.getOpString(),res.ordinal());
 }

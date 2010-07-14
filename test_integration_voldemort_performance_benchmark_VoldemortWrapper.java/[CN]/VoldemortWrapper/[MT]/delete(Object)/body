@@ -2,11 +2,10 @@
   long startNs=System.nanoTime();
   boolean deleted=voldemortStore.delete(key);
   long endNs=System.nanoTime();
-  int res=this.Error;
+  ReturnCode res=ReturnCode.Error;
   if (deleted) {
-    res=this.Ok;
+    res=ReturnCode.Ok;
   }
-  measurement.measure(DELETES_STRING,(int)((endNs - startNs) / Time.NS_PER_MS));
-  measurement.reportReturnCode(DELETES_STRING,res);
-  return res;
+  measurement.recordLatency(Operations.Delete.getOpString(),(int)((endNs - startNs) / Time.NS_PER_MS));
+  measurement.recordReturnCode(Operations.Delete.getOpString(),res.ordinal());
 }
