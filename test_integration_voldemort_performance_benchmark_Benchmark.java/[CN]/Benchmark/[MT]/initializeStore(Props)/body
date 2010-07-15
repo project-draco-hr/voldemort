@@ -26,20 +26,11 @@
     }
   }
  else {
-    String storageEngineType=benchmarkProps.getString(STORAGE_ENGINE_TYPE);
+    String storageEngineClass=benchmarkProps.getString(STORAGE_CONFIGURATION_CLASS);
     this.keyType=benchmarkProps.getString(KEY_TYPE,STRING_KEY_TYPE);
     Serializer serializer=findKeyType(this.keyType);
     Store<Object,Object> store=null;
-    StorageConfiguration conf=null;
-    if (storageEngineType.compareTo(BdbStorageConfiguration.TYPE_NAME) == 0) {
-      conf=new BdbStorageConfiguration(ServerTestUtils.getVoldemortConfig());
-    }
- else     if (storageEngineType.compareTo(MysqlStorageConfiguration.TYPE_NAME) == 0) {
-      conf=new MysqlStorageConfiguration(ServerTestUtils.getVoldemortConfig());
-    }
- else     if (storageEngineType.compareTo(InMemoryStorageConfiguration.TYPE_NAME) == 0) {
-      conf=new InMemoryStorageConfiguration(ServerTestUtils.getVoldemortConfig());
-    }
+    StorageConfiguration conf=(StorageConfiguration)ReflectUtils.callConstructor(ReflectUtils.loadClass(storageEngineClass),new Object[]{ServerTestUtils.getVoldemortConfig()});
     store=SerializingStore.wrap(conf.getStore(DUMMY_DB),serializer,new StringSerializer());
     this.factory=new StaticStoreClientFactory(store);
     this.storeClient=factory.getStoreClient(store.getName());
