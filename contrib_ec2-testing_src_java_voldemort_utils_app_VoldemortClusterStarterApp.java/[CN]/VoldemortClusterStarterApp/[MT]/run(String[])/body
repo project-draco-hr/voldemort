@@ -7,6 +7,7 @@
   parser.accepts("voldemortroot","Voldemort's root directory on remote host").withRequiredArg();
   parser.accepts("voldemorthome","Voldemort's home directory on remote host").withRequiredArg();
   parser.accepts("clusterxml","Voldemort's cluster.xml file on the local file system; used to determine host names").withRequiredArg();
+  parser.accepts("useinternal","Use internal host name; defaults to true").withRequiredArg().ofType(Boolean.class);
   OptionSet options=parse(args);
   File hostNamesFile=getRequiredInputFile(options,"hostnames");
   List<HostNamePair> hostNamePairs=getHostNamesPairsFromFile(hostNamesFile);
@@ -20,8 +21,9 @@
   final String hostUserId=CmdUtils.valueOf(options,"hostuserid","root");
   String voldemortHomeDirectory=getRequiredString(options,"voldemorthome");
   final String voldemortRootDirectory=getRequiredString(options,"voldemortroot");
+  boolean useInternal=CmdUtils.valueOf(options,"useinternal",true);
   File clusterXmlFile=getRequiredInputFile(options,"clusterxml");
-  Map<String,Integer> nodeIds=getNodeIds(hostNamesFile,clusterXmlFile,hostNamePairs);
+  Map<String,Integer> nodeIds=getNodeIds(hostNamesFile,clusterXmlFile,hostNamePairs,useInternal);
   Runtime.getRuntime().addShutdownHook(new Thread(){
     @Override public void run(){
       RemoteOperation operation=new SshClusterStopper(externalHostNames,sshPrivateKey,hostUserId,voldemortRootDirectory,true);

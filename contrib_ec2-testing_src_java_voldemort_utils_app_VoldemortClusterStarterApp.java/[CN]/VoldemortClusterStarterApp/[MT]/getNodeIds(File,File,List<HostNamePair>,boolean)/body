@@ -7,16 +7,21 @@
     Node documentChild=documentChildren.item(i);
     if (documentChild.getNodeName().equals("server")) {
       NodeList serverChildren=documentChild.getChildNodes();
-      String internalHostName=null;
+      String hostName=null;
       String id=null;
       for (int j=0; j < serverChildren.getLength(); j++) {
         Node serverChild=serverChildren.item(j);
-        if (serverChild.getNodeName().equals("host"))         internalHostName=serverChild.getTextContent();
+        if (serverChild.getNodeName().equals("host"))         hostName=serverChild.getTextContent();
  else         if (serverChild.getNodeName().equals("id"))         id=serverChild.getTextContent();
       }
-      if (internalHostName != null && id != null) {
+      if (hostName != null && id != null) {
         for (        HostNamePair hostNamePair : hostNamePairs) {
-          if (hostNamePair.getInternalHostName().equals(internalHostName))           nodeIds.put(hostNamePair.getExternalHostName(),Integer.parseInt(id));
+          if (useInternal) {
+            if (hostNamePair.getInternalHostName().equals(hostName))             nodeIds.put(hostNamePair.getExternalHostName(),Integer.parseInt(id));
+          }
+ else {
+            if (hostNamePair.getExternalHostName().equals(hostName))             nodeIds.put(hostNamePair.getExternalHostName(),Integer.parseInt(id));
+          }
         }
       }
  else {

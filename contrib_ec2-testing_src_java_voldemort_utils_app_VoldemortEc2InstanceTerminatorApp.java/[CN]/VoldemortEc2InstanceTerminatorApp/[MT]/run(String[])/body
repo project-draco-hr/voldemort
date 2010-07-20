@@ -7,10 +7,12 @@
   parser.accepts("secretkeyfile","Secret key file (used instead of secretkey)").withRequiredArg();
   parser.accepts("hostnames","File containing host names").withRequiredArg();
   parser.accepts("instances","File containing instance IDs").withRequiredArg();
+  parser.accepts("region","Region type; options are " + RegionInfo.REGIONURL_AP_SOUTHEAST + ", "+ RegionInfo.REGIONURL_EU_WEST+ ", "+ RegionInfo.REGIONURL_US_WEST+ ", "+ RegionInfo.REGIONURL_US_EAST+ " (default) ").withRequiredArg();
   OptionSet options=parse(args);
   String accessId=getAccessId(options);
   String secretKey=getSecretKey(options);
-  Ec2Connection ec2Connection=new TypicaEc2Connection(accessId,secretKey);
+  String regionUrl=getRegionUrl(options);
+  Ec2Connection ec2Connection=new TypicaEc2Connection(accessId,secretKey,null,regionUrl);
   List<String> hostNames=new ArrayList<String>();
   File hostNamesFile=getInputFile(options,"hostnames");
   File instancesFile=getInputFile(options,"instances");

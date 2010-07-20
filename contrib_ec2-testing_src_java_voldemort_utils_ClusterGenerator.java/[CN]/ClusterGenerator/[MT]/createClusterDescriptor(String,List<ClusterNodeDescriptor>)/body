@@ -3,17 +3,28 @@
   PrintWriter pw=new PrintWriter(sw);
   pw.println("<cluster>");
   pw.println("\t<name>" + clusterName + "</name>");
+  StringBuffer nodesBuffer=new StringBuffer();
+  Set<Integer> zoneIds=new HashSet<Integer>();
   for (  ClusterNodeDescriptor cnd : clusterNodeDescriptors) {
     String partitions=StringUtils.join(cnd.getPartitions(),", ");
-    pw.println("\t<server>");
-    pw.println("\t\t<id>" + cnd.getId() + "</id>");
-    pw.println("\t\t<host>" + cnd.getHostName() + "</host>");
-    pw.println("\t\t<http-port>" + cnd.getHttpPort() + "</http-port>");
-    pw.println("\t\t<socket-port>" + cnd.getSocketPort() + "</socket-port>");
-    pw.println("\t\t<admin-port>" + cnd.getAdminPort() + "</admin-port>");
-    pw.println("\t\t<partitions>" + partitions + "</partitions>");
-    pw.println("\t</server>");
+    nodesBuffer.append("\t<server>\n");
+    nodesBuffer.append("\t\t<id>" + cnd.getId() + "</id>\n");
+    nodesBuffer.append("\t\t<host>" + cnd.getHostName() + "</host>\n");
+    nodesBuffer.append("\t\t<http-port>" + cnd.getHttpPort() + "</http-port>\n");
+    nodesBuffer.append("\t\t<socket-port>" + cnd.getSocketPort() + "</socket-port>\n");
+    nodesBuffer.append("\t\t<admin-port>" + cnd.getAdminPort() + "</admin-port>\n");
+    nodesBuffer.append("\t\t<partitions>" + partitions + "</partitions>\n");
+    nodesBuffer.append("\t\t<zone-id>" + cnd.getZoneId() + "</zone-id>\n");
+    nodesBuffer.append("\t</server>");
+    zoneIds.add(cnd.getZoneId());
   }
+  for (  Integer zoneId : zoneIds) {
+    pw.println("\t<zone>");
+    pw.println("\t\t<zone-id>" + zoneId + "</zone-id>");
+    pw.println("\t\t<proximity-list>" + generateProximityList(zoneId,zoneIds.size()) + "</proximity-list>");
+    pw.println("\t</zone>");
+  }
+  pw.println(nodesBuffer.toString());
   pw.println("</cluster>");
   return sw.toString();
 }

@@ -10,11 +10,13 @@
   parser.accepts("keypairid","KeyPairID").withRequiredArg();
   parser.accepts("instances","Number of instances (default 1)").withRequiredArg().ofType(Integer.class);
   parser.accepts("instancetype","Instance type; options are " + Ec2Connection.Ec2InstanceType.DEFAULT + " (default), "+ Ec2Connection.Ec2InstanceType.LARGE+ ", "+ Ec2Connection.Ec2InstanceType.XLARGE+ ", "+ Ec2Connection.Ec2InstanceType.MEDIUM_HCPU+ ", and "+ Ec2Connection.Ec2InstanceType.XLARGE_HCPU).withRequiredArg();
+  parser.accepts("region","Region type; options are " + RegionInfo.REGIONURL_AP_SOUTHEAST + ", "+ RegionInfo.REGIONURL_EU_WEST+ ", "+ RegionInfo.REGIONURL_US_WEST+ ", "+ RegionInfo.REGIONURL_US_EAST+ " (default) ").withRequiredArg();
   OptionSet options=parse(args);
   String accessId=getAccessId(options);
   String secretKey=getSecretKey(options);
   String ami=getRequiredString(options,"ami");
   String keypairId=getRequiredString(options,"keypairid");
+  String regionUrl=getRegionUrl(options);
   int instanceCount=CmdUtils.valueOf(options,"instances",1);
   String securityGroups=CmdUtils.valueOf(options,"securitygroups",null);
   List<String> securityGroupsList=(securityGroups != null) ? Arrays.asList(securityGroups.split(",")) : null;
@@ -25,7 +27,7 @@
  catch (  Exception e) {
     printUsage();
   }
-  Ec2Connection ec2Connection=new TypicaEc2Connection(accessId,secretKey);
+  Ec2Connection ec2Connection=new TypicaEc2Connection(accessId,secretKey,null,regionUrl);
   List<HostNamePair> hostNamePairs=ec2Connection.createInstances(ami,keypairId,instanceType,instanceCount,securityGroupsList);
   StringBuilder s=new StringBuilder();
   for (  HostNamePair hostNamePair : hostNamePairs) {
