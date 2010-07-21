@@ -1,7 +1,8 @@
 {
   StoreUtils.assertValidKey(key);
   BasicPipelineData<List<Version>> pipelineData=new BasicPipelineData<List<Version>>();
-  pipelineData.setZonesRequired(storeDef.getZoneCountReads());
+  if (zoneRoutingEnabled)   pipelineData.setZonesRequired(storeDef.getZoneCountReads());
+ else   pipelineData.setZonesRequired(null);
   final Pipeline pipeline=new Pipeline(Operation.GET_VERSIONS,timeoutMs,TimeUnit.MILLISECONDS);
   NonblockingStoreRequest storeRequest=new NonblockingStoreRequest(){
     public void submit(    Node node,    NonblockingStore store,    NonblockingStoreCallback callback){

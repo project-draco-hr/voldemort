@@ -1,7 +1,8 @@
 {
   StoreUtils.assertValidKey(key);
   PutPipelineData pipelineData=new PutPipelineData();
-  pipelineData.setZonesRequired(storeDef.getZoneCountWrites());
+  if (zoneRoutingEnabled)   pipelineData.setZonesRequired(storeDef.getZoneCountWrites());
+ else   pipelineData.setZonesRequired(null);
   pipelineData.setStartTimeNs(System.nanoTime());
   Pipeline pipeline=new Pipeline(Operation.PUT,timeoutMs,TimeUnit.MILLISECONDS);
   pipeline.addEventAction(Event.STARTED,new ConfigureNodes<Void,PutPipelineData>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key,clientZone));

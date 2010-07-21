@@ -39,5 +39,10 @@
     Element throttleRate=store.getChild(STORE_RETENTION_SCAN_THROTTLE_RATE_ELMT);
     if (throttleRate != null)     retentionThrottleRate=Integer.parseInt(throttleRate.getText());
   }
+  if (routingStrategyType.compareTo(RoutingStrategyType.ZONE_STRATEGY) == 0) {
+    if (zoneCountReads == null || zoneCountWrites == null || zoneReplicationFactor == null) {
+      throw new MappingException("Have not set one of the following correctly for store '" + name + "' - "+ STORE_ZONE_COUNT_READS+ ", "+ STORE_ZONE_COUNT_WRITES+ ", "+ STORE_ZONE_REPLICATION_FACTOR_ELMT);
+    }
+  }
   return new StoreDefinitionBuilder().setName(name).setType(storeType).setKeySerializer(keySerializer).setValueSerializer(valueSerializer).setRoutingPolicy(routingTier).setRoutingStrategyType(routingStrategyType).setReplicationFactor(replicationFactor).setPreferredReads(preferredReads).setRequiredReads(requiredReads).setPreferredWrites(preferredWrites).setRequiredWrites(requiredWrites).setRetentionPeriodDays(retentionPolicyDays).setRetentionScanThrottleRate(retentionThrottleRate).setZoneReplicationFactor(zoneReplicationFactor).setZoneCountReads(zoneCountReads).setZoneCountWrites(zoneCountWrites).build();
 }
