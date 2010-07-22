@@ -1,0 +1,24 @@
+{
+  Set<Integer> failedNodes=getFailedNodes();
+  Set<ByteArray> failedKeys=populateStore(failedNodes);
+  Map<ByteArray,byte[]> dataInSlops=Maps.newHashMap();
+  Set<ByteArray> slopKeys=Sets.newHashSet();
+  byte[] opCode=new byte[]{Slop.Operation.PUT.getOpCode()};
+  byte[] spacer=new byte[]{(byte)0};
+  byte[] storeName=ByteUtils.getBytes(STORE_NAME,"UTF-8");
+  for (  ByteArray key : failedKeys)   slopKeys.add(new ByteArray(ByteUtils.cat(opCode,spacer,storeName,spacer,key.get())));
+  for (  Store<ByteArray,Slop> slopStore : slopStores.values()) {
+    Map<ByteArray,List<Versioned<Slop>>> res=slopStore.getAll(slopKeys);
+    for (    Map.Entry<ByteArray,List<Versioned<Slop>>> entry : res.entrySet()) {
+      Slop slop=entry.getValue().get(0).getValue();
+      dataInSlops.put(slop.getKey(),slop.getValue());
+      if (logger.isTraceEnabled())       logger.trace(slop);
+    }
+  }
+  for (  ByteArray failedKey : failedKeys) {
+    byte[] expected=keyValues.get(failedKey).get();
+    byte[] actual=dataInSlops.get(failedKey);
+    assertNotNull("data should be stored in the slop",actual);
+    assertEquals("correct should be stored in slop",0,ByteUtils.compare(actual,expected));
+  }
+}

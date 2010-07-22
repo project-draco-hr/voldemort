@@ -1,0 +1,21 @@
+{
+  Set<ByteArray> failedKeys=Sets.newHashSet();
+  for (  ByteArray key : keysToNodes.keySet()) {
+    Iterable<Integer> nodes=keysToNodes.get(key);
+    for (int i=0; i < REPLICATION_FACTOR; i++) {
+      int node=Iterables.get(nodes,i);
+      if (failedNodes.contains(node)) {
+        failedKeys.add(key);
+        break;
+      }
+    }
+    try {
+      Versioned<byte[]> versioned=new Versioned<byte[]>(keyValues.get(key).get());
+      store.put(key,versioned);
+    }
+ catch (    Exception e) {
+      if (logger.isTraceEnabled())       logger.trace(e,e);
+    }
+  }
+  return failedKeys;
+}

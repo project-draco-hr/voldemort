@@ -9,7 +9,7 @@
       NonblockingStore nonblockingStore=routedStoreFactory.toNonblockingStore(store);
       nonblockingStores.put(node.getId(),nonblockingStore);
     }
-    Store<ByteArray,byte[]> store=routedStoreFactory.create(cluster,def,nodeStores,nonblockingStores,true,cluster.getNodeById(localNode).getZoneId(),failureDetector);
+    Store<ByteArray,byte[]> store=routedStoreFactory.create(cluster,def,nodeStores,nonblockingStores,null,true,cluster.getNodeById(localNode).getZoneId(),failureDetector);
     store=new RebootstrappingStore(metadata,storeRepository,voldemortConfig,(RoutedStore)store,storeFactory);
     store=new InconsistencyResolvingStore<ByteArray,byte[]>(store,new VectorClockInconsistencyResolver<byte[]>());
     this.storeRepository.addRoutedStore(store);

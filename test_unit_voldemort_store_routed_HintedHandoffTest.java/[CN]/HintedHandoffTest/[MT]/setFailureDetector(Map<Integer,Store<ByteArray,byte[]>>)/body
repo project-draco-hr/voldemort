@@ -1,0 +1,11 @@
+{
+  if (failureDetector != null)   failureDetector.destroy();
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig();
+  failureDetectorConfig.setImplementationClassName(failureDetectorCls.getName());
+  failureDetectorConfig.setBannagePeriod(30);
+  failureDetectorConfig.setThresholdInterval(15000);
+  failureDetectorConfig.setRequestLengthThreshold(2000);
+  failureDetectorConfig.setNodes(cluster.getNodes());
+  failureDetectorConfig.setStoreVerifier(MutableStoreVerifier.create(subStores));
+  failureDetector=FailureDetectorUtils.create(failureDetectorConfig,false);
+}

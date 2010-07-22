@@ -1,0 +1,32 @@
+{
+  cluster=getNineNodeCluster();
+  storeDef=ServerTestUtils.getStoreDef(STORE_NAME,REPLICATION_FACTOR,P_READS,R_READS,P_WRITES,R_WRITES,RoutingStrategyType.CONSISTENT_STRATEGY);
+  Random rand=new Random();
+  for (  Node node : cluster.getNodes()) {
+    VoldemortException e;
+    if (rand.nextBoolean())     e=new VoldemortException("Operation failed");
+ else     e=new UnreachableStoreException("Node down");
+    InMemoryStorageEngine<ByteArray,byte[]> storageEngine=new InMemoryStorageEngine<ByteArray,byte[]>(STORE_NAME);
+    LoggingStore<ByteArray,byte[]> loggingStore=new LoggingStore<ByteArray,byte[]>(storageEngine);
+    subStores.put(node.getId(),new ForceFailStore<ByteArray,byte[]>(loggingStore,e,node.getId()));
+  }
+  setFailureDetector(subStores);
+  for (  Node node : cluster.getNodes()) {
+    int nodeId=node.getId();
+    StoreRepository storeRepo=new StoreRepository();
+    storeRepo.addLocalStore(subStores.get(nodeId));
+    for (int i=0; i < NUM_NODES_TOTAL; i++)     storeRepo.addNodeStore(i,subStores.get(i));
+    StorageEngine<ByteArray,Slop> storageEngine=new InMemoryStorageEngine<ByteArray,Slop>(SLOP_STORE_NAME);
+    storeRepo.setSlopStore(storageEngine);
+    slopStores.put(nodeId,storageEngine);
+    SlopPusherJob pusher=new SlopPusherJob(storeRepo);
+    slopPusherJobs.add(pusher);
+  }
+  routedStoreThreadPool=Executors.newFixedThreadPool(NUM_THREADS);
+  routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,1000L);
+  strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+  Map<Integer,NonblockingStore> nonblockingStores=Maps.newHashMap();
+  for (  Map.Entry<Integer,Store<ByteArray,byte[]>> entry : subStores.entrySet())   nonblockingStores.put(entry.getKey(),routedStoreFactory.toNonblockingStore(entry.getValue()));
+  store=routedStoreFactory.create(cluster,storeDef,subStores,nonblockingStores,slopStores,false,Zone.DEFAULT_ZONE_ID,failureDetector);
+  generateData();
+}
