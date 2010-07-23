@@ -15,8 +15,8 @@
         Slop slop=versioned.getValue();
         Store<ByteArray,byte[]> store=storeRepo.getNodeStore(slop.getStoreName(),slop.getNodeId());
         try {
-          if (slop.getOperation() == Operation.PUT)           store.put(keyAndVal.getFirst(),new Versioned<byte[]>(slop.getValue(),versioned.getVersion()));
- else           if (slop.getOperation() == Operation.DELETE)           store.delete(keyAndVal.getFirst(),versioned.getVersion());
+          if (slop.getOperation() == Operation.PUT)           store.put(slop.getKey(),new Versioned<byte[]>(slop.getValue(),versioned.getVersion()));
+ else           if (slop.getOperation() == Operation.DELETE)           store.delete(slop.getKey(),versioned.getVersion());
  else           logger.error("Unknown slop operation: " + slop.getOperation());
           slopStore.delete(slop.makeKey(),versioned.getVersion());
           slopsPushed++;

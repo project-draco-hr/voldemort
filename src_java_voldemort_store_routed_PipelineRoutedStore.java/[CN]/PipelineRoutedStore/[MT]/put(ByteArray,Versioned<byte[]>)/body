@@ -4,11 +4,18 @@
   if (zoneRoutingEnabled)   pipelineData.setZonesRequired(storeDef.getZoneCountWrites());
  else   pipelineData.setZonesRequired(null);
   pipelineData.setStartTimeNs(System.nanoTime());
+  pipelineData.setStoreName(name);
   Pipeline pipeline=new Pipeline(Operation.PUT,timeoutMs,TimeUnit.MILLISECONDS);
+  pipeline.setEnableHintedHandoff(slopStores != null);
   pipeline.addEventAction(Event.STARTED,new ConfigureNodes<Void,PutPipelineData>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key,clientZone));
-  pipeline.addEventAction(Event.CONFIGURED,new PerformSerialPutRequests(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getRequiredWrites(),versioned,time,Event.MASTER_DETERMINED));
+  pipeline.addEventAction(Event.CONFIGURED,new PerformSerialPutRequests(pipelineData,slopStores != null ? Event.RESPONSES_RECEIVED : Event.COMPLETED,key,failureDetector,innerStores,storeDef.getRequiredWrites(),versioned,time,Event.MASTER_DETERMINED));
   pipeline.addEventAction(Event.MASTER_DETERMINED,new PerformParallelPutRequests(pipelineData,Event.RESPONSES_RECEIVED,key,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),timeoutMs,nonblockingStores));
-  pipeline.addEventAction(Event.RESPONSES_RECEIVED,new IncrementClock(pipelineData,Event.COMPLETED,versioned,time));
+  if (slopStores != null) {
+    pipeline.addEventAction(Event.ABORTED,new PerformHintedHandoff(pipelineData,Event.ERROR,key,versioned,failureDetector,slopStores,cluster,time));
+    pipeline.addEventAction(Event.RESPONSES_RECEIVED,new PerformHintedHandoff(pipelineData,Event.HANDOFF_FINISHED,key,versioned,failureDetector,slopStores,cluster,time));
+    pipeline.addEventAction(Event.HANDOFF_FINISHED,new IncrementClock(pipelineData,Event.COMPLETED,versioned,time));
+  }
+ else   pipeline.addEventAction(Event.RESPONSES_RECEIVED,new IncrementClock(pipelineData,Event.COMPLETED,versioned,time));
   pipeline.addEvent(Event.STARTED);
   pipeline.execute();
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();

@@ -5,7 +5,8 @@
   }
  catch (  VoldemortException e) {
     pipelineData.setFatalError(e);
-    pipeline.addEvent(Event.ERROR);
+    if (pipeline.isHintedHandoffEnabled())     pipeline.addEvent(Event.ABORTED);
+ else     pipeline.addEvent(Event.ERROR);
     return;
   }
   if (logger.isDebugEnabled())   logger.debug("Adding " + nodes.size() + " node(s) to preference list");
