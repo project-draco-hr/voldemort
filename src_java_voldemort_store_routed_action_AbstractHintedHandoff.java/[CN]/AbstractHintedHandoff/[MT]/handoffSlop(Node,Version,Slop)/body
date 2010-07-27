@@ -1,0 +1,27 @@
+{
+  Set<Node> used=new HashSet<Node>(nodes.size());
+  boolean persisted=false;
+  for (  Node node : nodes) {
+    int nodeId=node.getId();
+    Store<ByteArray,Slop> slopStore=slopStores.get(nodeId);
+    if (!failedNodes.contains(node) && failureDetector.isAvailable(node)) {
+      Utils.notNull(slopStore);
+      long startNs=System.nanoTime();
+      try {
+        if (logger.isTraceEnabled())         logger.trace("Attempt to write " + slop.getKey() + " for "+ failedNode+ " to node "+ node);
+        slopStore.put(slop.makeKey(),new Versioned<Slop>(slop,version));
+        persisted=true;
+        failureDetector.recordSuccess(node,(System.nanoTime() - startNs) / Time.NS_PER_MS);
+        used.add(node);
+        if (logger.isTraceEnabled())         logger.trace("Finished hinted handoff for " + failedNode + " wrote slop to "+ node);
+        break;
+      }
+ catch (      UnreachableStoreException e) {
+        failureDetector.recordException(node,(System.nanoTime() - startNs) / Time.NS_PER_MS,e);
+        logger.warn("Error during hinted handoff",e);
+      }
+    }
+  }
+  if (nodes.size() > used.size())   for (  Node usedNode : used)   nodes.remove(usedNode);
+  return persisted;
+}

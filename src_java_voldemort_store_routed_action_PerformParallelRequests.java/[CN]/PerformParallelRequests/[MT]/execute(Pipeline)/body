@@ -42,7 +42,8 @@
     }
  else {
       pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but only "+ pipelineData.getSuccesses()+ " succeeded",pipelineData.getFailures()));
-      pipeline.addEvent(Event.ERROR);
+      if (pipeline.isHintedHandoffEnabled())       pipeline.addEvent(Event.ABORTED);
+ else       pipeline.addEvent(Event.ERROR);
     }
   }
  else {

@@ -1,0 +1,14 @@
+{
+  for (  Node failedNode : failedNodes) {
+    int failedNodeId=failedNode.getId();
+    if (logger.isTraceEnabled())     logger.trace("Performing hinted handoff for node " + failedNode + ", store "+ pipelineData.getStoreName()+ "key "+ key+ ", version"+ version);
+    Slop slop=new Slop(pipelineData.getStoreName(),Slop.Operation.DELETE,key,null,failedNodeId,new Date());
+    boolean persisted=handoffSlop(failedNode,version,slop);
+    Exception e=pipelineData.getFatalError();
+    if (e != null) {
+      if (persisted)       pipelineData.setFatalError(new UnreachableStoreException("Delete operation failed on node " + failedNodeId + ", but has been persisted to slop storage for eventual replication.",e));
+ else       pipelineData.setFatalError(new InsufficientOperationalNodesException("All slop servers are unavailable from node " + failedNodeId + ".",e));
+    }
+  }
+  pipeline.addEvent(completeEvent);
+}

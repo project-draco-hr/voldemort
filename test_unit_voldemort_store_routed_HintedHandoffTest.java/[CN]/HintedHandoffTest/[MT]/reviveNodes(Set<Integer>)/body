@@ -1,0 +1,8 @@
+{
+  for (  int node : failedNodes) {
+    ForceFailStore forceFailStore=getForceFailStore(node);
+    forceFailStore.setFail(false);
+    if (logger.isTraceEnabled())     logger.trace("Stopped failing requests to " + node);
+  }
+  while (!failedNodes.isEmpty())   for (  int node : failedNodes)   if (failureDetector.isAvailable(cluster.getNodeById(node)))   failedNodes.remove(node);
+}
