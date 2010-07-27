@@ -34,6 +34,12 @@
     logger.info("Number of reduces: " + numReduces);
     logger.info("Building store...");
     JobClient.runJob(conf);
+    for (    Node node : cluster.getNodes()) {
+      Path nodePath=new Path(outputDir.toString(),"node-" + node.getId());
+      if (!outputFs.exists(nodePath)) {
+        outputFs.mkdirs(nodePath);
+      }
+    }
     if (checkSumType != CheckSumType.NONE) {
       FileStatus[] nodes=outputFs.listStatus(outputDir);
       CheckSum checkSumGenerator=CheckSum.getInstance(this.checkSumType);
