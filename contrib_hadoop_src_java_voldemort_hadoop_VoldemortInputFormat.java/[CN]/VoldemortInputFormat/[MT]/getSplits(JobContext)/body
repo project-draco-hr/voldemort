@@ -4,8 +4,18 @@
   String storeName=VoldemortHadoopConfig.getVoldemortStoreName(conf);
   AdminClient adminClient=new AdminClient(bootstrapURL,new AdminClientConfig());
   Cluster cluster=adminClient.getAdminClientCluster();
-  Collection<Node> nodes=cluster.getNodes();
-  Iterator<Node> nodeIter=nodes.iterator();
+  List<StoreDefinition> storeDefList=adminClient.getRemoteStoreDefList(0).getValue();
+  boolean foundStore=false;
+  for (  StoreDefinition storeDef : storeDefList) {
+    if (storeDef.getName().compareTo(storeName) == 0) {
+      foundStore=true;
+      break;
+    }
+  }
+  if (!foundStore) {
+    throw new VoldemortException("Store '" + storeName + "' not found");
+  }
+  Iterator<Node> nodeIter=cluster.getNodes().iterator();
   List<InputSplit> splits=new ArrayList<InputSplit>();
   while (nodeIter.hasNext()) {
     Node currentNode=nodeIter.next();
