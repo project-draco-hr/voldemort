@@ -21,9 +21,9 @@
       if (stats.getBytesSinceLastReport() > REPORTING_INTERVAL_BYTES) {
         NumberFormat format=NumberFormat.getNumberInstance();
         format.setMaximumFractionDigits(2);
-        logger.info(stats.getTotalBytesCopied() / (1024 * 1024) + " MB copied at " + format.format(stats.getBytesPerSecond() / (1024 * 1024)) + " MB/sec");
+        logger.info(stats.getTotalBytesCopied() / (1024 * 1024) + " MB copied at " + format.format(stats.getBytesPerSecond() / (1024 * 1024)) + " MB/sec - " + format.format(stats.getPercentCopied()) + " % complete");
         if (this.status != null) {
-          this.status.setStatus(stats.getTotalBytesCopied() / (1024 * 1024) + " MB copied at " + format.format(stats.getBytesPerSecond() / (1024 * 1024)) + " MB/sec");
+          this.status.setStatus(stats.getTotalBytesCopied() / (1024 * 1024) + " MB copied at " + format.format(stats.getBytesPerSecond() / (1024 * 1024)) + " MB/sec - " + format.format(stats.getPercentCopied()) + " % complete");
         }
         stats.reset();
       }

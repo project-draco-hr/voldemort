@@ -3,6 +3,7 @@
   String storeName=getOptional(req,"store");
   File fetchDir=null;
   if (fileFetcher == null) {
+    logger.warn("File fetcher class has not instantiated correctly");
     fetchDir=new File(fetchUrl);
   }
  else {
@@ -14,7 +15,7 @@
       throw new ServletException("Exception in Fetcher = " + e.getMessage());
     }
     if (fetchDir == null) {
-      throw new ServletException("Checksum failed for " + fetchUrl + " and store name = "+ storeName);
+      throw new VoldemortException("File fetcher failed for " + fetchUrl + " and store name = "+ storeName+ " due to incorrect path/checksum error");
     }
  else {
       logger.info("Fetch complete.");
