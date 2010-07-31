@@ -1,0 +1,10 @@
+{
+  cluster=ServerTestUtils.getLocalCluster(1);
+  SerializerDefinition serDef=new SerializerDefinition("string");
+  storeDef=new StoreDefinitionBuilder().setName(storeName).setType(BdbStorageConfiguration.TYPE_NAME).setKeySerializer(serDef).setValueSerializer(serDef).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(1).setRequiredReads(1).setRequiredWrites(1).build();
+  File tempConfDir=TestUtils.createTempDir();
+  File storeXml=new File(tempConfDir,"stores.xml");
+  FileUtils.writeStringToFile(storeXml,new StoreDefinitionsMapper().writeStoreList(Lists.newArrayList(storeDef)));
+  server=ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(true,0,tempConfDir.getAbsolutePath(),null,storeXml.getAbsolutePath(),new Properties()),cluster);
+  adminClient=new AdminClient(cluster,new AdminClientConfig().setMaxThreads(1));
+}

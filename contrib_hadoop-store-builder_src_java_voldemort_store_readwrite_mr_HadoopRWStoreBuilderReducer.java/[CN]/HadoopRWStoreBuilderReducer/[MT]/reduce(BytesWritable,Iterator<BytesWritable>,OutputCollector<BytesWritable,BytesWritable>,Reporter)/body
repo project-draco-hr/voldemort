@@ -1,0 +1,25 @@
+{
+  this.transferStartTime=System.nanoTime();
+  this.iterator=new AbstractIterator<Pair<ByteArray,Versioned<byte[]>>>(){
+    @Override protected Pair<ByteArray,Versioned<byte[]>> computeNext(){
+      while (values.hasNext()) {
+        BytesWritable keyValue=values.next();
+        byte[] tempKeyValueBytes=new byte[keyValue.get().length];
+        System.arraycopy(keyValue.get(),0,tempKeyValueBytes,0,keyValue.get().length);
+        int keyBytesLength=ByteUtils.readInt(tempKeyValueBytes,0);
+        byte[] keyBytes=new byte[keyBytesLength];
+        System.arraycopy(tempKeyValueBytes,sizeInt,keyBytes,0,keyBytesLength);
+        int valueBytesLength=ByteUtils.readInt(tempKeyValueBytes,sizeInt + keyBytesLength);
+        byte[] valueBytes=new byte[valueBytesLength];
+        System.arraycopy(tempKeyValueBytes,sizeInt + sizeInt + keyBytesLength,valueBytes,0,valueBytesLength);
+        totalBytes+=(keyBytesLength + valueBytesLength);
+        ByteArray key=new ByteArray(keyBytes);
+        Versioned<byte[]> versioned=Versioned.value(valueBytes,vectorClock);
+        return new Pair<ByteArray,Versioned<byte[]>>(key,versioned);
+      }
+      return endOfData();
+    }
+  }
+;
+  this.client.updateEntries(this.nodeId,getStoreName(),this.iterator,null);
+}

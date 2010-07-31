@@ -1,0 +1,32 @@
+{
+  Map<String,String> values=new HashMap<String,String>();
+  File inputDir=TestUtils.createTempDir();
+  File tempDir=TestUtils.createTempDir();
+  for (int i=0; i < numEntries; i++)   values.put(Integer.toString(i),Integer.toBinaryString(i));
+  File inputFile=File.createTempFile("input",".txt",inputDir);
+  inputFile.deleteOnExit();
+  StringBuilder contents=new StringBuilder();
+  for (  Map.Entry<String,String> entry : values.entrySet())   contents.append(entry.getKey() + "\t" + entry.getValue()+ "\n");
+  FileUtils.writeStringToFile(inputFile,contents.toString());
+  int hadoopNodeId=123;
+  int hadoopPushVersion=456;
+  HadoopRWStoreBuilder builder=new HadoopRWStoreBuilder(new Configuration(),TextStoreMapper.class,TextInputFormat.class,cluster,storeDef,60 * 1000,hadoopNodeId,hadoopPushVersion,new Path(tempDir.getAbsolutePath()),new Path(inputDir.getAbsolutePath()));
+  builder.build();
+  int countDown=numEntries * storeDef.getReplicationFactor();
+  for (int partitionId=0; partitionId < cluster.getNumberOfPartitions(); partitionId++) {
+    Iterator<Pair<ByteArray,Versioned<byte[]>>> iter=adminClient.fetchEntries(0,storeDef.getName(),Lists.newArrayList(partitionId),null,false);
+    while (iter.hasNext()) {
+      Pair<ByteArray,Versioned<byte[]>> currentEntry=iter.next();
+      String key=new String(currentEntry.getFirst().get());
+      assertTrue(values.containsKey(key));
+      String value=new String(currentEntry.getSecond().getValue());
+      assertEquals(values.get(key),value);
+      VectorClock vectorClock=(VectorClock)currentEntry.getSecond().getVersion();
+      assertEquals(vectorClock.getEntries().size(),1);
+      assertEquals(vectorClock.getEntries().get(0).getNodeId(),hadoopNodeId);
+      assertEquals(vectorClock.getEntries().get(0).getVersion(),hadoopPushVersion);
+      countDown--;
+    }
+  }
+  assertTrue(countDown == 0);
+}
