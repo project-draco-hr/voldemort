@@ -1,5 +1,11 @@
 {
-  DataOutputStream dos=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)));
+  DataOutputStream dos=null;
+  if (outputFile != null) {
+    dos=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)));
+  }
+ else {
+    dos=new DataOutputStream(new BufferedOutputStream(System.out));
+  }
   try {
     while (iterator.hasNext()) {
       Pair<ByteArray,Versioned<byte[]>> kvPair=iterator.next();

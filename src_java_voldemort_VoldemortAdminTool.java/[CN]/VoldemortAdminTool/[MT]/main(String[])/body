@@ -8,12 +8,13 @@
   parser.accepts("ascii","Fetch keys as ASCII");
   parser.accepts("parallelism","Parallelism").withRequiredArg().describedAs("parallelism").ofType(Integer.class);
   parser.accepts("fetch-keys","Fetch keys").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
-  parser.accepts("fetch-entries","[EXPERIMENTAL] Fetch full entries").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
+  parser.accepts("fetch-entries","Fetch full entries").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("outdir","Output directory").withRequiredArg().describedAs("output-directory").ofType(String.class);
   parser.accepts("stores","Store names").withRequiredArg().describedAs("store-names").withValuesSeparatedBy(',').ofType(String.class);
   parser.accepts("add-stores","Add stores in this stores.xml").withRequiredArg().describedAs("stores.xml").ofType(String.class);
   parser.accepts("delete-store","Delete store").withRequiredArg().describedAs("store-name").ofType(String.class);
   parser.accepts("update-entries","[EXPERIMENTAL] Insert or update entries").withRequiredArg().describedAs("input-directory").ofType(String.class);
+  parser.accepts("get-metadata","retreive metadata information [stores.xml | cluster.xml]").withRequiredArg().describedAs("metadata-key").ofType(String.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     parser.printHelpOn(System.out);
@@ -53,8 +54,11 @@
   if (options.has("delete-store")) {
     ops+="s";
   }
+  if (options.has("get-metadata")) {
+    ops+="g";
+  }
   if (ops.length() < 1) {
-    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, fetch-keys, add-stores, delete-store, update-entries) must be specified");
+    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, fetch-keys, add-stores, delete-store, update-entries, get-metadata) must be specified");
   }
   List<String> storeNames=null;
   if (options.has("stores")) {
@@ -74,22 +78,22 @@
       System.err.println("Finished restore");
     }
     if (ops.contains("k")) {
-      if (!options.has("outdir")) {
-        Utils.croak("Directory name (outdir) must be specified for fetch-keys");
+      String outputDir=null;
+      if (options.has("outdir")) {
+        outputDir=(String)options.valueOf("outdir");
       }
-      String outputDir=(String)options.valueOf("outdir");
       boolean useAscii=options.has("ascii");
       System.out.println("Starting fetch keys");
       @SuppressWarnings("unchecked") List<Integer> partitionIdList=(List<Integer>)options.valuesOf("fetch-keys");
       executeFetchKeys(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
     }
     if (ops.contains("v")) {
-      if (!options.has("outdir")) {
-        Utils.croak("Directory name (outdir) must be specified for fetch-values");
+      String outputDir=null;
+      if (options.has("outdir")) {
+        outputDir=(String)options.valueOf("outdir");
       }
-      String outputDir=(String)options.valueOf("outdir");
       boolean useAscii=options.has("ascii");
-      @SuppressWarnings("unchecked") List<Integer> partitionIdList=(List<Integer>)options.valuesOf("fetch-values");
+      @SuppressWarnings("unchecked") List<Integer> partitionIdList=(List<Integer>)options.valuesOf("fetch-entries");
       executeFetchEntries(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
     }
     if (ops.contains("a")) {
@@ -104,6 +108,10 @@
     if (ops.contains("s")) {
       String storeName=(String)options.valueOf("delete-store");
       executeDeleteStore(adminClient,storeName);
+    }
+    if (ops.contains("g")) {
+      String metadataKey=(String)options.valueOf("get-metadata");
+      executeGetMetadata(nodeId,adminClient,metadataKey);
     }
   }
  catch (  Exception e) {
