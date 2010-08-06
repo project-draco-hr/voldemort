@@ -15,6 +15,7 @@
         totalBytes+=(keyBytesLength + valueBytesLength);
         ByteArray key=new ByteArray(keyBytes);
         Versioned<byte[]> versioned=Versioned.value(valueBytes,vectorClock);
+        reporter.incrCounter(RecordCounter.RECORDS_STREAMED,1);
         return new Pair<ByteArray,Versioned<byte[]>>(key,versioned);
       }
       return endOfData();
