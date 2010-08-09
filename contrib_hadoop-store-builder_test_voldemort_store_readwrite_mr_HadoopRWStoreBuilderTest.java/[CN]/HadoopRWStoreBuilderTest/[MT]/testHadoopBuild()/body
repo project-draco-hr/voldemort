@@ -10,7 +10,7 @@
   FileUtils.writeStringToFile(inputFile,contents.toString());
   int hadoopNodeId=123;
   int hadoopPushVersion=456;
-  HadoopRWStoreBuilder builder=new HadoopRWStoreBuilder(new Configuration(),TextStoreMapper.class,TextInputFormat.class,cluster,storeDef,60 * 1000,hadoopNodeId,hadoopPushVersion,new Path(tempDir.getAbsolutePath()),new Path(inputDir.getAbsolutePath()));
+  HadoopRWStoreBuilder builder=new HadoopRWStoreBuilder(new Configuration(),TextStoreMapper.class,TextInputFormat.class,cluster,storeDef,1,hadoopNodeId,hadoopPushVersion,new Path(tempDir.getAbsolutePath()),new Path(inputDir.getAbsolutePath()));
   builder.build();
   int countDown=numEntries * storeDef.getReplicationFactor();
   for (int partitionId=0; partitionId < cluster.getNumberOfPartitions(); partitionId++) {
