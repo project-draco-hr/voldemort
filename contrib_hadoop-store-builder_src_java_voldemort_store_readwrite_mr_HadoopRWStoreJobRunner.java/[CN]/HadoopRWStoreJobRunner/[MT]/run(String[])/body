@@ -48,12 +48,19 @@
   if (inputFormatClass == null) {
     inputFormatClass=TextInputFormat.class;
   }
-  int hadoopNodeId;
-  if (options.has("hadoopnodeid")) {
-    hadoopNodeId=(Integer)options.valueOf("hadoopnodeid");
+  int vectorNodeId;
+  if (options.has("vectornodeid")) {
+    vectorNodeId=(Integer)options.valueOf("vectornodeid");
   }
  else {
-    hadoopNodeId=(short)cluster.getNumberOfNodes();
+    vectorNodeId=-1;
+  }
+  long vectorNodeVersion;
+  if (options.has("vectorversion")) {
+    vectorNodeVersion=(Long)options.valueOf("vectorversion");
+  }
+ else {
+    vectorNodeVersion=1L;
   }
   int reducersPerNode;
   if (options.has("reducerspernode")) {
@@ -62,17 +69,10 @@
  else {
     reducersPerNode=1;
   }
-  long pushVersion;
-  if (options.has("pushversion")) {
-    pushVersion=(Long)options.valueOf("pushversion");
-  }
- else {
-    pushVersion=1L;
-  }
   Configuration conf=getConf();
   Class[] deps=new Class[]{ImmutableCollection.class,JDOMException.class,VoldemortConfig.class,HadoopRWStoreJobRunner.class,mapperClass,com.google.protobuf.Message.class,org.jdom.Content.class,com.google.common.collect.ImmutableList.class,org.apache.commons.io.IOUtils.class};
   addDepJars(conf,deps,addJars);
-  HadoopRWStoreBuilder builder=new HadoopRWStoreBuilder(conf,mapperClass,inputFormatClass,cluster,storeDef,reducersPerNode,hadoopNodeId,pushVersion,tempPath,inputPath);
+  HadoopRWStoreBuilder builder=new HadoopRWStoreBuilder(conf,mapperClass,inputFormatClass,cluster,storeDef,reducersPerNode,vectorNodeId,vectorNodeVersion,tempPath,inputPath);
   builder.build();
   return 0;
 }

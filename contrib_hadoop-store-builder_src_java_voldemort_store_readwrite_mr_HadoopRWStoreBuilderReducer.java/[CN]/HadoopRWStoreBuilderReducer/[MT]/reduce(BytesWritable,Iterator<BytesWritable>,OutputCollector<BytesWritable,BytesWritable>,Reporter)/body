@@ -4,15 +4,19 @@
     @Override protected Pair<ByteArray,Versioned<byte[]>> computeNext(){
       while (values.hasNext()) {
         BytesWritable keyValue=values.next();
-        byte[] tempKeyValueBytes=new byte[keyValue.get().length];
-        System.arraycopy(keyValue.get(),0,tempKeyValueBytes,0,keyValue.get().length);
-        int keyBytesLength=ByteUtils.readInt(tempKeyValueBytes,0);
+        byte[] keyValueBytes=new byte[keyValue.get().length];
+        System.arraycopy(keyValue.get(),0,keyValueBytes,0,keyValue.get().length);
+        int keyBytesLength=ByteUtils.readInt(keyValueBytes,0);
         byte[] keyBytes=new byte[keyBytesLength];
-        System.arraycopy(tempKeyValueBytes,sizeInt,keyBytes,0,keyBytesLength);
-        int valueBytesLength=ByteUtils.readInt(tempKeyValueBytes,sizeInt + keyBytesLength);
+        System.arraycopy(keyValueBytes,sizeInt,keyBytes,0,keyBytesLength);
+        int valueBytesLength=ByteUtils.readInt(keyValueBytes,sizeInt + keyBytesLength);
         byte[] valueBytes=new byte[valueBytesLength];
-        System.arraycopy(tempKeyValueBytes,sizeInt + sizeInt + keyBytesLength,valueBytes,0,valueBytesLength);
-        totalBytes+=(keyBytesLength + valueBytesLength);
+        System.arraycopy(keyValueBytes,sizeInt + sizeInt + keyBytesLength,valueBytes,0,valueBytesLength);
+        int vectorClockBytesLength=ByteUtils.readInt(keyValueBytes,sizeInt + sizeInt + keyBytesLength+ valueBytesLength);
+        byte[] vectorClockBytes=new byte[vectorClockBytesLength];
+        System.arraycopy(keyValueBytes,sizeInt + sizeInt + sizeInt+ keyBytesLength+ valueBytesLength,vectorClockBytes,0,vectorClockBytesLength);
+        VectorClock vectorClock=new VectorClock(vectorClockBytes);
+        totalBytes+=(keyBytesLength + valueBytesLength + vectorClockBytesLength);
         ByteArray key=new ByteArray(keyBytes);
         Versioned<byte[]> versioned=Versioned.value(valueBytes,vectorClock);
         reporter.incrCounter(RecordCounter.RECORDS_STREAMED,1);
