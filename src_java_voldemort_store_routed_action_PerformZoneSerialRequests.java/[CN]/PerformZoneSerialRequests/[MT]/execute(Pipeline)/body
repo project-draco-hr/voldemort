@@ -24,7 +24,6 @@
   }
  else {
     pipelineData.setFatalError(new InsufficientZoneResponsesException((pipelineData.getZonesRequired() + 1) + " " + pipeline.getOperation().getSimpleName()+ "s required zone, but only "+ zonesSatisfied+ " succeeded"));
-    if (pipeline.isHintedHandoffEnabled())     pipeline.addEvent(Event.ABORTED);
- else     pipeline.addEvent(Event.ERROR);
+    pipeline.abort();
   }
 }
