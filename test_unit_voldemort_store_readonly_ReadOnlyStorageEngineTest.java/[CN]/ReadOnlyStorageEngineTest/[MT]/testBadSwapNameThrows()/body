@@ -5,5 +5,18 @@
   assertVersionsExist(dir,0);
   File newDir=TestUtils.createTempDir();
   createStoreFiles(newDir,73,1024,2);
-  engine.swapFiles(newDir.getAbsolutePath());
+  try {
+    engine.swapFiles(newDir.getAbsolutePath());
+    fail("Swap files should have failed since parent directory is incorrect");
+  }
+ catch (  VoldemortException e) {
+  }
+  newDir=new File(dir,"blah");
+  createStoreFiles(newDir,73,1024,2);
+  try {
+    engine.swapFiles(newDir.getAbsolutePath());
+    fail("Swap files should have failed since name is incorrect");
+  }
+ catch (  VoldemortException e) {
+  }
 }

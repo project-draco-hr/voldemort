@@ -2,7 +2,7 @@
   logger.info("Swapping files for store '" + getName() + "' to "+ newStoreDirectory);
   File newDataDir=new File(newStoreDirectory);
   if (!newDataDir.exists())   throw new VoldemortException("File " + newDataDir.getAbsolutePath() + " does not exist.");
-  if (!newDataDir.getName().startsWith("version-"))   throw new VoldemortException("Invalid version folder name '" + newDataDir.getName() + "'. Should be of the format 'version-n'");
+  if (!(newDataDir.getParentFile().compareTo(storeDir.getAbsoluteFile()) == 0 && checkVersionDirName(newDataDir)))   throw new VoldemortException("Invalid version folder name '" + newDataDir + "'. Either parent directory is incorrect or format(version-n) is incorrect");
   logger.info("Acquiring write lock on '" + getName() + "':");
   fileModificationLock.writeLock().lock();
   boolean success=false;
