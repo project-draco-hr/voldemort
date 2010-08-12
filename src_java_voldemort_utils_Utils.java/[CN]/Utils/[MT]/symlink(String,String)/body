@@ -1,0 +1,9 @@
+{
+  File file=new File(filePath);
+  File symLink=new File(symLinkPath);
+  symLink.delete();
+  if (!file.exists())   throw new VoldemortException("File " + filePath + " does not exist");
+  Posix posix=(Posix)Native.loadLibrary("c",Posix.class);
+  int returnCode=posix.symlink(filePath,symLinkPath);
+  if (returnCode < 0)   throw new VoldemortException("Unable to create symbolic link for " + filePath);
+}

@@ -1,15 +1,15 @@
 {
-  Path path=new Path(fileUrl);
+  Path path=new Path(sourceFileUrl);
   Configuration config=new Configuration();
   config.setInt("io.socket.receive.buffer",bufferSize);
   config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
   FileSystem fs=path.getFileSystem(config);
-  CopyStats stats=new CopyStats(fileUrl,sizeOfPath(fs,path));
+  CopyStats stats=new CopyStats(sourceFileUrl,sizeOfPath(fs,path));
   ObjectName jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
   try {
     File storeDir=new File(this.tempDir,storeName + "_" + System.currentTimeMillis());
     Utils.mkdirs(storeDir);
-    File destination=new File(storeDir.getAbsoluteFile(),path.getName());
+    File destination=new File(destinationFile);
     boolean result=fetch(fs,path,destination,stats);
     if (result) {
       return destination;

@@ -1,0 +1,35 @@
+{
+  String tempParentDir=System.getProperty("java.io.tmpdir");
+  File tempDir=new File(tempParentDir,"temp" + (System.currentTimeMillis() + 1));
+  File tempSymLink=new File(tempParentDir,"link" + (System.currentTimeMillis() + 2));
+  File tempDir2=new File(tempParentDir,"temp" + (System.currentTimeMillis() + 3));
+  assertTrue(!tempDir.exists());
+  try {
+    Utils.symlink(tempDir.getAbsolutePath(),tempSymLink.getAbsolutePath());
+    fail("Symlink should have thrown an exception since directory did not exist");
+  }
+ catch (  VoldemortException e) {
+  }
+  Utils.mkdirs(tempDir);
+  try {
+    Utils.symlink(tempDir.getAbsolutePath(),tempSymLink.getAbsolutePath());
+  }
+ catch (  VoldemortException e) {
+    fail("Test against non-existing symlink");
+  }
+  assertTrue(!Utils.isSymLink(tempDir));
+  assertTrue(Utils.isSymLink(tempSymLink));
+  Utils.mkdirs(tempDir2);
+  try {
+    Utils.symlink(tempDir2.getAbsolutePath(),tempSymLink.getAbsolutePath());
+  }
+ catch (  VoldemortException e) {
+    e.printStackTrace();
+    fail("Test against already existing symlink ");
+  }
+  assertTrue(Utils.isSymLink(tempSymLink));
+  assertTrue(tempDir.exists());
+  File dumbFile=new File(tempDir2,"dumbFile");
+  dumbFile.createNewFile();
+  assertEquals(1,tempSymLink.list().length);
+}

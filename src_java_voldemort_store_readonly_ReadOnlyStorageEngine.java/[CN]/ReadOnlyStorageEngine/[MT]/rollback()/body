@@ -1,12 +1,14 @@
 {
-  logger.info("Rolling back store '" + getName() + "' to version 1.");
+  logger.info("Rolling back store '" + getName() + "'");
   fileModificationLock.writeLock().lock();
   try {
     if (isOpen)     close();
-    File backup=new File(storeDir,"version-1");
-    if (!backup.exists())     throw new VoldemortException("Version 1 does not exists, nothing to roll back to.");
-    shiftBackupsLeft();
-    open();
+    File backup=new File(storeDir,"version-" + (maxVersion - 1));
+    if (!backup.exists())     throw new VoldemortException("Version " + (maxVersion - 1) + " does not exists, nothing to roll back to.");
+    File primary=new File(storeDir,"version-" + maxVersion);
+    DateFormat df=new SimpleDateFormat("MM-dd-yyyy");
+    if (primary.exists())     Utils.move(primary,new File(storeDir,"version-" + maxVersion + "."+ df.format(new Date())+ ".bak"));
+    open(backup);
   }
   finally {
     fileModificationLock.writeLock().unlock();

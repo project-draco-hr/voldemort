@@ -1,0 +1,16 @@
+{
+  try {
+    File canonicalFile=null;
+    if (symlinkFile.getParent() != null) {
+      File canonicalDir=symlinkFile.getParentFile().getCanonicalFile();
+      canonicalFile=new File(canonicalDir,symlinkFile.getName());
+    }
+ else {
+      canonicalFile=symlinkFile;
+    }
+    return !canonicalFile.getCanonicalFile().equals(canonicalFile.getAbsoluteFile());
+  }
+ catch (  IOException e) {
+    return false;
+  }
+}

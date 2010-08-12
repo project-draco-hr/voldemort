@@ -1,0 +1,20 @@
+{
+  File latestVersion=new File(storeDir,"latest");
+  if (latestVersion.exists() && Utils.isSymLink(latestVersion)) {
+    File canonicalLatestDir=null;
+    try {
+      canonicalLatestDir=latestVersion.getCanonicalFile();
+    }
+ catch (    IOException e) {
+    }
+    if (canonicalLatestDir != null) {
+      return setMaxVersion(canonicalLatestDir);
+    }
+  }
+  File[] versionDirs=storeDir.listFiles();
+  if (versionDirs == null || versionDirs.length == 0) {
+    File version0=new File(storeDir,"version-0");
+    return setMaxVersion(version0);
+  }
+  return setMaxVersion(versionDirs);
+}

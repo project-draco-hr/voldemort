@@ -3,8 +3,7 @@
   final String storeName=request.getStoreName();
   VAdminProto.SwapStoreResponse.Builder response=VAdminProto.SwapStoreResponse.newBuilder();
   try {
-    ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)storeRepository.getStorageEngine(storeName);
-    if (store == null)     throw new VoldemortException("'" + storeName + "' is not a registered read-only store.");
+    ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)getStorageEngine(storeRepository,storeName);
     if (!Utils.isReadableDir(dir))     throw new VoldemortException("Store directory '" + dir + "' is not a readable directory.");
     store.swapFiles(dir);
   }

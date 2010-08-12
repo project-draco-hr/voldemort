@@ -1,6 +1,7 @@
 {
   String fetchUrl=getRequired(req,"dir");
   String storeName=getOptional(req,"store");
+  ReadOnlyStorageEngine store=this.getStore(storeName);
   File fetchDir=null;
   if (fileFetcher == null) {
     logger.warn("File fetcher class has not instantiated correctly");
@@ -9,7 +10,7 @@
  else {
     logger.info("Executing fetch of " + fetchUrl);
     try {
-      fetchDir=fileFetcher.fetch(fetchUrl,storeName);
+      fetchDir=fileFetcher.fetch(fetchUrl,store.getStoreDirPath() + File.separator + "version-"+ (store.getMaxVersion() + 1),storeName);
     }
  catch (    Exception e) {
       throw new ServletException("Exception in Fetcher = " + e.getMessage());

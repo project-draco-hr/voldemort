@@ -1,0 +1,20 @@
+{
+  fileModificationLock.writeLock().lock();
+  try {
+    if (isOpen)     throw new IllegalStateException("Attempt to open already open store.");
+    if (versionDir == null) {
+      versionDir=findLatestVersion();
+    }
+ else {
+      setMaxVersion(versionDir);
+    }
+    versionDir.mkdirs();
+    logger.info("Creating symbolic link for '" + getName() + "' using directory "+ versionDir.getAbsolutePath());
+    Utils.symlink(versionDir.getAbsolutePath(),storeDir.getAbsolutePath() + File.separator + "latest");
+    this.fileSet=new ChunkedFileSet(versionDir);
+    isOpen=true;
+  }
+  finally {
+    fileModificationLock.writeLock().unlock();
+  }
+}

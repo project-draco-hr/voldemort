@@ -1,8 +1,13 @@
 {
+  int max=0;
   for (int i=0; i < versions.length; i++) {
     File versionDir=new File(dir,"version-" + versions[i]);
+    if (versions[i] > max)     max=versions[i];
     assertTrue("Could not find " + dir + "/version-"+ versions[i],versionDir.exists());
   }
+  File latest=new File(dir,"latest");
+  assertTrue(latest.exists());
+  assertTrue(latest.getCanonicalPath().contains("version-" + max));
   File versionDir=new File(dir,"version-" + versions.length);
   assertFalse("Found version directory that should not exist.",versionDir.exists());
 }
