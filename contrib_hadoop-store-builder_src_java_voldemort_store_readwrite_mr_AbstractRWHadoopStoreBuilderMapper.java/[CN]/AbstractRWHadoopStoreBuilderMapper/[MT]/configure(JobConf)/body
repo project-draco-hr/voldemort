@@ -18,4 +18,10 @@
   valueCompressor=new CompressionStrategyFactory().get(valueSerializerDefinition.getCompression());
   RoutingStrategyFactory factory=new RoutingStrategyFactory();
   routingStrategy=factory.updateRoutingStrategy(getStoreDef(),getCluster());
+  vectorNodeId=conf.getInt("vector.node.id",-1);
+  vectorNodeVersion=conf.getLong("vector.node.version",1L);
+  jobStartTime=conf.getLong("job.start.time.ms",-1);
+  if (jobStartTime < 0) {
+    throw new RuntimeException("Incorrect job start time");
+  }
 }

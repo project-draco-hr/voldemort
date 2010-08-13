@@ -3,8 +3,8 @@
   conf.setInt("io.file.buffer.size",DEFAULT_BUFFER_SIZE);
   conf.set("cluster.xml",new ClusterMapper().writeCluster(cluster));
   conf.set("stores.xml",new StoreDefinitionsMapper().writeStoreList(Collections.singletonList(storeDef)));
-  conf.setInt("hadoop.node.id",this.hadoopNodeId);
-  conf.setLong("hadoop.push.version",this.hadoopPushVersion);
+  conf.setInt("vector.node.id",this.vectorNodeId);
+  conf.setLong("vector.node.version",this.vectorNodeVersion);
   conf.setLong("job.start.time.ms",System.currentTimeMillis());
   conf.setPartitionerClass(HadoopRWStoreBuilderPartitioner.class);
   conf.setInputFormat(inputFormatClass);
@@ -15,19 +15,17 @@
   conf.setOutputFormat(SequenceFileOutputFormat.class);
   conf.setOutputKeyClass(BytesWritable.class);
   conf.setOutputValueClass(BytesWritable.class);
+  conf.setReduceSpeculativeExecution(false);
   conf.setJarByClass(getClass());
   FileInputFormat.setInputPaths(conf,inputPath);
   FileOutputFormat.setOutputPath(conf,tempPath);
   try {
     FileSystem tempFs=tempPath.getFileSystem(conf);
     tempFs.delete(tempPath,true);
-    long size=sizeOfPath(tempFs,inputPath);
-    int numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfNodes() / chunkSizeBytes),1);
-    logger.info("Data size = " + size + ", replication factor = "+ storeDef.getReplicationFactor()+ ", numNodes = "+ cluster.getNumberOfNodes()+ ", chunk size = "+ chunkSizeBytes+ ",  num.chunks = "+ numChunks);
-    conf.setInt("num.chunks",numChunks);
-    int numReduces=cluster.getNumberOfNodes() * numChunks;
-    conf.setNumReduceTasks(numReduces);
-    logger.info("Number of reduces: " + numReduces);
+    conf.setInt("num.chunks",reducersPerNode);
+    int numReducers=cluster.getNumberOfNodes() * reducersPerNode;
+    logger.info("Replication factor = " + storeDef.getReplicationFactor() + ", numNodes = "+ cluster.getNumberOfNodes()+ ", reducers per node = "+ reducersPerNode+ ", numReducers = "+ numReducers);
+    conf.setNumReduceTasks(numReducers);
     logger.info("Building RW store...");
     JobClient.runJob(conf);
   }

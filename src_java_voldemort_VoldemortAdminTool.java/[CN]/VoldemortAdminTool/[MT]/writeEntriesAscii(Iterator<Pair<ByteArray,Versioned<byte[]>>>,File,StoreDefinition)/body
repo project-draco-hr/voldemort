@@ -1,5 +1,11 @@
 {
-  BufferedWriter writer=new BufferedWriter(new FileWriter(outputFile));
+  BufferedWriter writer=null;
+  if (outputFile != null) {
+    writer=new BufferedWriter(new FileWriter(outputFile));
+  }
+ else {
+    writer=new BufferedWriter(new OutputStreamWriter(System.out));
+  }
   SerializerFactory serializerFactory=new DefaultSerializerFactory();
   StringWriter stringWriter=new StringWriter();
   JsonGenerator generator=new JsonFactory(new ObjectMapper()).createJsonGenerator(stringWriter);

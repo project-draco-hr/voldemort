@@ -4,24 +4,32 @@
   for (  StoreDefinition storeDefinition : storeDefinitionList) {
     storeDefinitionMap.put(storeDefinition.getName(),storeDefinition);
   }
-  File directory=new File(outputDir);
-  if (directory.exists() || directory.mkdir()) {
-    List<String> stores=storeNames;
-    if (stores == null) {
-      stores=Lists.newArrayList();
-      stores.addAll(storeDefinitionMap.keySet());
+  File directory=null;
+  if (outputDir != null) {
+    directory=new File(outputDir);
+    if (!(directory.exists() || directory.mkdir())) {
+      Utils.croak("Can't find or create directory " + outputDir);
     }
-    for (    String store : stores) {
-      System.out.println("Fetching entries in partitions " + Joiner.on(", ").join(partitionIdList) + " of "+ store);
-      Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=adminClient.fetchEntries(nodeId,store,partitionIdList,null,false);
-      File outputFile=new File(directory,store + ".entries");
-      if (useAscii) {
-        StoreDefinition storeDefinition=storeDefinitionMap.get(store);
-        writeEntriesAscii(entriesIterator,outputFile,storeDefinition);
-      }
+  }
+  List<String> stores=storeNames;
+  if (stores == null) {
+    stores=Lists.newArrayList();
+    stores.addAll(storeDefinitionMap.keySet());
+  }
+  for (  String store : stores) {
+    System.out.println("Fetching entries in partitions " + Joiner.on(", ").join(partitionIdList) + " of "+ store);
+    Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=adminClient.fetchEntries(nodeId,store,partitionIdList,null,false);
+    File outputFile=null;
+    if (directory != null) {
+      outputFile=new File(directory,store + ".entries");
+    }
+    if (useAscii) {
+      StoreDefinition storeDefinition=storeDefinitionMap.get(store);
+      writeEntriesAscii(entriesIterator,outputFile,storeDefinition);
+    }
  else {
-        writeEntriesBinary(entriesIterator,outputFile);
-      }
+      writeEntriesBinary(entriesIterator,outputFile);
     }
+    if (outputFile != null)     System.out.println("Fetched keys from " + store + " to "+ outputFile);
   }
 }

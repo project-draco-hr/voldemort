@@ -9,6 +9,10 @@ synchronized (mbeanServer) {
         if (mbeanServer.isRegistered(name))         JmxUtils.unregisterMbean(mbeanServer,name);
       }
     }
+    if (voldemortConfig.isServerRoutingEnabled()) {
+      this.storeRepository.removeRoutedStore(engineName);
+      for (      Node node : metadata.getCluster().getNodes())       this.storeRepository.removeNodeStore(storeDef.getName(),node.getId());
+    }
   }
   storeRepository.removeStorageEngine(engineName);
   if (!storeDef.isView())   engine.truncate();
