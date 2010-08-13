@@ -1,0 +1,22 @@
+{
+  for (  Node node : cluster.getNodes()) {
+    try {
+      logger.info("Attempting rollback for node " + node.getId() + " storeName = "+ storeName);
+      String url=node.getHttpUrl() + "/" + readOnlyMgmtPath;
+      PostMethod post=new PostMethod(url);
+      post.addParameter("operation","rollback");
+      post.addParameter("store",storeName);
+      int responseCode=httpClient.executeMethod(post);
+      String response=post.getStatusText();
+      if (responseCode == 200) {
+        logger.info("Rollback succeeded for node " + node.getId());
+      }
+ else {
+        throw new VoldemortException(response);
+      }
+    }
+ catch (    Exception e) {
+      logger.error("Exception thrown during rollback operation on node " + node.getId() + ": ",e);
+    }
+  }
+}

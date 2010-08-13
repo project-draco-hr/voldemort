@@ -8,6 +8,7 @@
   parser.accepts("timeout","http timeout for the fetch in ms").withRequiredArg().describedAs("timeout ms").ofType(Integer.class);
   parser.accepts("rollback","Rollback store to older version");
   parser.accepts("admin","Use admin services. Default = false");
+  parser.accepts("push-version","Version of push. Default = latest_version+1").withRequiredArg().ofType(Long.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     parser.printHelpOn(System.out);
@@ -26,6 +27,10 @@
   int timeoutMs=CmdUtils.valueOf(options,"timeout",(int)(3 * Time.SECONDS_PER_HOUR * Time.MS_PER_SECOND));
   boolean useAdminServices=options.has("admin");
   boolean rollbackStore=options.has("rollback");
+  Long pushVersion=-1L;
+  if (options.has("push-version")) {
+    pushVersion=(Long)options.valueOf("push-version");
+  }
   String clusterStr=FileUtils.readFileToString(new File(clusterXml));
   Cluster cluster=new ClusterMapper().readCluster(new StringReader(clusterStr));
   ExecutorService executor=Executors.newFixedThreadPool(10);
@@ -42,24 +47,15 @@
     client.getParams().setParameter("http.socket.timeout",timeoutMs);
     swapper=new HttpStoreSwapper(cluster,executor,client,mgmtPath);
   }
+  long start=System.currentTimeMillis();
   if (rollbackStore) {
-    if (useAdminServices) {
-      long start=System.currentTimeMillis();
-      ((AdminStoreSwapper)swapper).invokeRollback(storeName);
-      long end=System.currentTimeMillis();
-      logger.info("Rollback succeeded on all nodes in " + ((end - start) / Time.MS_PER_SECOND) + " seconds.");
-    }
- else {
-      System.err.println("Rollback supported only using admin services");
-      System.exit(1);
-    }
+    swapper.invokeRollback(storeName);
   }
  else {
-    long start=System.currentTimeMillis();
-    swapper.swapStoreData(storeName,filePath);
-    long end=System.currentTimeMillis();
-    logger.info("Swap succeeded on all nodes in " + ((end - start) / Time.MS_PER_SECOND) + " seconds.");
+    swapper.swapStoreData(storeName,filePath,pushVersion.longValue());
   }
+  long end=System.currentTimeMillis();
+  logger.info("Succeeded on all nodes in " + ((end - start) / Time.MS_PER_SECOND) + " seconds.");
   executor.shutdownNow();
   executor.awaitTermination(1,TimeUnit.SECONDS);
   System.exit(0);

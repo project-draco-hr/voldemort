@@ -8,6 +8,9 @@
   ObjectName jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
   try {
     File destination=new File(destinationFile);
+    if (destination.exists()) {
+      throw new VoldemortException("Version directory " + destination.getAbsolutePath() + " already exists");
+    }
     boolean result=fetch(fs,path,destination,stats);
     if (result) {
       return destination;
