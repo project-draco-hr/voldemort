@@ -27,6 +27,7 @@
   parser.accepts(METRIC_TYPE,"type of result metric [ " + HISTOGRAM_METRIC_TYPE + " | "+ SUMMARY_METRIC_TYPE+ " <default> ]").withRequiredArg();
   parser.accepts(PLUGIN_CLASS,"classname of implementation of WorkloadPlugin; used to run customized operations ").withRequiredArg().describedAs("class-name");
   parser.accepts(PIPELINE_ROUTED_STORE,"enable pipeline routed store");
+  parser.accepts(HINTED_HANDOFF,"enable hinted handoff");
   parser.accepts(CLIENT_ZONE_ID,"zone id for client; enables zone routing").withRequiredArg().describedAs("zone-id").ofType(Integer.class);
   parser.accepts(HELP);
   OptionSet options=parser.parse(args);
@@ -85,6 +86,7 @@
     mainProps.put(VERIFY,getCmdBoolean(options,VERIFY));
     mainProps.put(IGNORE_NULLS,getCmdBoolean(options,IGNORE_NULLS));
     mainProps.put(PIPELINE_ROUTED_STORE,getCmdBoolean(options,PIPELINE_ROUTED_STORE));
+    mainProps.put(HINTED_HANDOFF,getCmdBoolean(options,HINTED_HANDOFF));
     mainProps.put(CLIENT_ZONE_ID,CmdUtils.valueOf(options,CLIENT_ZONE_ID,-1));
     mainProps.put(START_KEY_INDEX,CmdUtils.valueOf(options,START_KEY_INDEX,0));
     mainProps.put(VALUE_SIZE,CmdUtils.valueOf(options,VALUE_SIZE,1024));
