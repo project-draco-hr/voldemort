@@ -2,7 +2,21 @@
   logger.info("Swapping files for store '" + getName() + "' to "+ newStoreDirectory);
   File newDataDir=new File(newStoreDirectory);
   if (!newDataDir.exists())   throw new VoldemortException("File " + newDataDir.getAbsolutePath() + " does not exist.");
-  if (!(newDataDir.getParentFile().compareTo(storeDir.getAbsoluteFile()) == 0 && checkVersionDirName(newDataDir)))   throw new VoldemortException("Invalid version folder name '" + newDataDir + "'. Either parent directory is incorrect or format(version-n) is incorrect");
+  if (!(newDataDir.getParentFile().compareTo(storeDir.getAbsoluteFile()) == 0 && ReadOnlyUtils.checkVersionDirName(newDataDir)))   throw new VoldemortException("Invalid version folder name '" + newDataDir + "'. Either parent directory is incorrect or format(version-n) is incorrect");
+  File latestVersion=new File(storeDir,"latest");
+  if (latestVersion.exists() && Utils.isSymLink(latestVersion)) {
+    File canonicalLatestVersion=null;
+    try {
+      canonicalLatestVersion=latestVersion.getCanonicalFile();
+    }
+ catch (    IOException e) {
+    }
+    if (canonicalLatestVersion != null && ReadOnlyUtils.checkVersionDirName(canonicalLatestVersion)) {
+      long latestVersionId=ReadOnlyUtils.getVersionId(canonicalLatestVersion);
+      long newVersionId=ReadOnlyUtils.getVersionId(newDataDir);
+      if (latestVersionId >= newVersionId)       return;
+    }
+  }
   logger.info("Acquiring write lock on '" + getName() + "':");
   fileModificationLock.writeLock().lock();
   boolean success=false;
@@ -22,6 +36,7 @@
  else       logger.error("Swap operation failed.");
     }
   }
-  File extraBackup=new File(storeDir,"version-" + (maxVersion - numBackups - 1));
-  if (extraBackup.exists())   deleteAsync(extraBackup);
+  File[] storeDirList=ReadOnlyUtils.versionDirs(storeDir);
+  File extraBackup=ReadOnlyUtils.findKthVersionedDir(storeDirList,storeDirList.length - numBackups - 1);
+  if (extraBackup != null && extraBackup.exists())   deleteAsync(extraBackup);
 }

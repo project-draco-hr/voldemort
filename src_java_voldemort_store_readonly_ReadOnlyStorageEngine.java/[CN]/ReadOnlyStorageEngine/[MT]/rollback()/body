@@ -3,11 +3,12 @@
   fileModificationLock.writeLock().lock();
   try {
     if (isOpen)     close();
-    File backup=new File(storeDir,"version-" + (maxVersion - 1));
-    if (!backup.exists())     throw new VoldemortException("Version " + (maxVersion - 1) + " does not exists, nothing to roll back to.");
-    File primary=new File(storeDir,"version-" + maxVersion);
+    File[] storeDirList=ReadOnlyUtils.versionDirs(storeDir);
+    File backup=ReadOnlyUtils.findKthVersionedDir(storeDirList,storeDirList.length - 1);
+    if (backup == null || !backup.exists())     throw new VoldemortException("Previous version does not exists, nothing to roll back to.");
+    File primary=new File(storeDir,"version-" + maxVersionId);
     DateFormat df=new SimpleDateFormat("MM-dd-yyyy");
-    if (primary.exists())     Utils.move(primary,new File(storeDir,"version-" + maxVersion + "."+ df.format(new Date())+ ".bak"));
+    if (primary.exists())     Utils.move(primary,new File(storeDir,"version-" + maxVersionId + "."+ df.format(new Date())+ ".bak"));
     open(backup);
   }
   finally {
