@@ -3,18 +3,20 @@
   File newDataDir=new File(newStoreDirectory);
   if (!newDataDir.exists())   throw new VoldemortException("File " + newDataDir.getAbsolutePath() + " does not exist.");
   if (!(newDataDir.getParentFile().compareTo(storeDir.getAbsoluteFile()) == 0 && ReadOnlyUtils.checkVersionDirName(newDataDir)))   throw new VoldemortException("Invalid version folder name '" + newDataDir + "'. Either parent directory is incorrect or format(version-n) is incorrect");
-  File latestVersion=new File(storeDir,"latest");
-  if (latestVersion.exists() && Utils.isSymLink(latestVersion)) {
-    File canonicalLatestVersion=null;
-    try {
-      canonicalLatestVersion=latestVersion.getCanonicalFile();
+  long newVersionId=ReadOnlyUtils.getVersionId(newDataDir);
+  if (newVersionId == -1)   throw new VoldemortException("Unable to parse folder name since format(version-n) is incorrect: " + newStoreDirectory);
+  File latestVersion=getLatestFile();
+  if (latestVersion != null) {
+    long latestVersionId=ReadOnlyUtils.getVersionId(latestVersion);
+    if (latestVersionId == -1) {
+      logger.error("Unable to parse current latest version: " + latestVersion.getAbsolutePath());
     }
- catch (    IOException e) {
-    }
-    if (canonicalLatestVersion != null && ReadOnlyUtils.checkVersionDirName(canonicalLatestVersion)) {
-      long latestVersionId=ReadOnlyUtils.getVersionId(canonicalLatestVersion);
-      long newVersionId=ReadOnlyUtils.getVersionId(newDataDir);
-      if (latestVersionId >= newVersionId)       return;
+ else {
+      if (latestVersionId >= newVersionId) {
+        logger.info("No swap required since current latest version " + latestVersionId + " is greater than swap version "+ newVersionId);
+        deleteBackups();
+        return;
+      }
     }
   }
   logger.info("Acquiring write lock on '" + getName() + "':");
@@ -28,7 +30,7 @@
   }
   finally {
     try {
-      if (!success)       rollback();
+      if (!success)       rollback(newDataDir);
     }
   finally {
       fileModificationLock.writeLock().unlock();
@@ -36,7 +38,5 @@
  else       logger.error("Swap operation failed.");
     }
   }
-  File[] storeDirList=ReadOnlyUtils.versionDirs(storeDir);
-  File extraBackup=ReadOnlyUtils.findKthVersionedDir(storeDirList,storeDirList.length - numBackups - 1);
-  if (extraBackup != null && extraBackup.exists())   deleteAsync(extraBackup);
+  deleteBackups();
 }

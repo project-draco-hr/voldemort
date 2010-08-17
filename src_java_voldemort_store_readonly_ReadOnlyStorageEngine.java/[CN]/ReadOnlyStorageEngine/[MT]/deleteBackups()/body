@@ -1,0 +1,10 @@
+{
+  File[] storeDirList=ReadOnlyUtils.getVersionDirs(storeDir,maxVersionId);
+  if (storeDirList.length > (numBackups + 1)) {
+    File extraBackup;
+    for (int k=storeDirList.length - numBackups - 1; k > 0; k--) {
+      extraBackup=ReadOnlyUtils.findKthVersionedDir(storeDirList,k);
+      if (extraBackup != null)       deleteAsync(extraBackup);
+    }
+  }
+}

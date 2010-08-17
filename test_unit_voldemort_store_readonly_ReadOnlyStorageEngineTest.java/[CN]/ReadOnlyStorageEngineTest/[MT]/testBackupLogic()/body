@@ -1,0 +1,20 @@
+{
+  File dirv0=new File(dir,"version-0");
+  createStoreFiles(dirv0,ReadOnlyUtils.INDEX_ENTRY_SIZE * 5,4 * 5 * 10,2);
+  ReadOnlyStorageEngine engine=new ReadOnlyStorageEngine("test",strategy,dir,0);
+  assertVersionsExist(dir,0);
+  File dirv2=new File(dir,"version-2");
+  createStoreFiles(dirv2,ReadOnlyUtils.INDEX_ENTRY_SIZE * 5,4 * 5 * 10,2);
+  File dirv1=new File(dir,"version-1");
+  createStoreFiles(dirv1,ReadOnlyUtils.INDEX_ENTRY_SIZE * 5,4 * 5 * 10,2);
+  engine.swapFiles(dirv1.getAbsolutePath());
+  File latest=new File(dir,"latest");
+  assertTrue(latest.exists());
+  assertTrue(latest.getCanonicalPath().contains("version-1"));
+  TestUtils.assertWithBackoff(100,5000,new Attempt(){
+    public void checkCondition() throws Exception, AssertionError {
+      assertEquals(ReadOnlyUtils.getVersionDirs(dir).length,2);
+    }
+  }
+);
+}

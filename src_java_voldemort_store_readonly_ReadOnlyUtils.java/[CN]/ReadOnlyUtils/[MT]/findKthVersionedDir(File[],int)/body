@@ -1,6 +1,22 @@
 {
-  if (kth < versionDirs.length) {
+  if (versionDirs.length < kth || kth <= 0) {
+    logger.error("Incorrect version number requested " + kth);
     return null;
   }
-  return findKthVersionedDir(versionDirs,0,versionDirs.length,kth);
+  Collections.sort(Arrays.asList(versionDirs),new Comparator<File>(){
+    public int compare(    File file1,    File file2){
+      long fileId1=getVersionId(file1), fileId2=getVersionId(file2);
+      if (fileId1 == fileId2) {
+        return 0;
+      }
+ else       if (fileId1 < fileId2) {
+        return -1;
+      }
+ else {
+        return 1;
+      }
+    }
+  }
+);
+  return versionDirs[kth - 1];
 }

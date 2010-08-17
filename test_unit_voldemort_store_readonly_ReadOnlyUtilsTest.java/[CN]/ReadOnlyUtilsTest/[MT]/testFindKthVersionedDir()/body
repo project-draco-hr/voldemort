@@ -1,0 +1,15 @@
+{
+  File tempParentDir=TestUtils.createTempDir();
+  generateVersionDirs(tempParentDir,0);
+  assertNull(ReadOnlyUtils.findKthVersionedDir(ReadOnlyUtils.getVersionDirs(tempParentDir),2));
+  assertEquals(new File(tempParentDir,"version-0"),ReadOnlyUtils.findKthVersionedDir(ReadOnlyUtils.getVersionDirs(tempParentDir),1));
+  tempParentDir=TestUtils.createTempDir();
+  int[] versions={6,10,20,100,200,250,300};
+  generateVersionDirs(tempParentDir,versions);
+  assertNull(ReadOnlyUtils.findKthVersionedDir(ReadOnlyUtils.getVersionDirs(tempParentDir),-1));
+  assertNull(ReadOnlyUtils.findKthVersionedDir(ReadOnlyUtils.getVersionDirs(tempParentDir),8));
+  int numVersion=1;
+  for (  int version : versions) {
+    assertEquals(new File(tempParentDir,"version-" + version),ReadOnlyUtils.findKthVersionedDir(ReadOnlyUtils.getVersionDirs(tempParentDir),numVersion++));
+  }
+}

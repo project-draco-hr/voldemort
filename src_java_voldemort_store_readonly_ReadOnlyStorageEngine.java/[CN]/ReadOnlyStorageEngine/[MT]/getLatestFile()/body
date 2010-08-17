@@ -1,0 +1,14 @@
+{
+  File latestSymLink=new File(storeDir,"latest");
+  if (latestSymLink.exists() && Utils.isSymLink(latestSymLink)) {
+    File canonicalLatestVersion=null;
+    try {
+      canonicalLatestVersion=latestSymLink.getCanonicalFile();
+    }
+ catch (    IOException e) {
+    }
+    if (canonicalLatestVersion != null && ReadOnlyUtils.checkVersionDirName(canonicalLatestVersion))     return canonicalLatestVersion;
+ else     return null;
+  }
+  return null;
+}

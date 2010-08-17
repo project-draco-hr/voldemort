@@ -1,3 +1,9 @@
 {
-  return Long.parseLong(versionDir.getName().replace("version-",""));
+  try {
+    return Long.parseLong(versionDir.getName().replace("version-",""));
+  }
+ catch (  NumberFormatException e) {
+    logger.error("Cannot parse version directory to obtain id " + versionDir.getAbsolutePath());
+    return -1;
+  }
 }

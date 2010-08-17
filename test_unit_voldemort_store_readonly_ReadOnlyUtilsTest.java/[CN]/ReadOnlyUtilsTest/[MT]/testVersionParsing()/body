@@ -1,0 +1,24 @@
+{
+  File tempParentDir=TestUtils.createTempDir();
+  File testFile=new File(tempParentDir,"blahDir");
+  Utils.mkdirs(testFile);
+  assertFalse(ReadOnlyUtils.checkVersionDirName(testFile));
+  assertEquals(ReadOnlyUtils.getVersionId(testFile),-1);
+  File testFile2=new File(tempParentDir,"blahFile");
+  testFile2.createNewFile();
+  assertFalse(ReadOnlyUtils.checkVersionDirName(testFile2));
+  assertEquals(ReadOnlyUtils.getVersionId(testFile2),-1);
+  File testFile3=new File(tempParentDir,"version-23");
+  Utils.mkdirs(testFile3);
+  assertTrue(ReadOnlyUtils.checkVersionDirName(testFile3));
+  assertEquals(ReadOnlyUtils.getVersionId(testFile3),23);
+  File testFile4=new File(tempParentDir,"version-23.bak");
+  Utils.mkdirs(testFile4);
+  assertFalse(ReadOnlyUtils.checkVersionDirName(testFile4));
+  assertEquals(ReadOnlyUtils.getVersionId(testFile4),-1);
+  File latestSymLink=new File(tempParentDir,"latest");
+  Utils.symlink(testFile.getAbsolutePath(),latestSymLink.getAbsolutePath());
+  assertFalse(ReadOnlyUtils.checkVersionDirName(latestSymLink));
+  assertEquals(ReadOnlyUtils.getVersionId(latestSymLink),-1);
+  assertEquals(ReadOnlyUtils.getVersionDirs(tempParentDir).length,1);
+}

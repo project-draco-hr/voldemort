@@ -3,10 +3,10 @@
   createStoreFiles(versionDir,ReadOnlyUtils.INDEX_ENTRY_SIZE * 5,4 * 5 * 10,2);
   ReadOnlyStorageEngine engine=new ReadOnlyStorageEngine("test",strategy,dir,2);
   assertVersionsExist(dir,0);
-  File newDir=new File(dir,"version-1");
-  createStoreFiles(newDir,0,0,2);
-  engine.swapFiles(newDir.getAbsolutePath());
+  File newDirv1=new File(dir,"version-1");
+  createStoreFiles(newDirv1,0,0,2);
+  engine.swapFiles(newDirv1.getAbsolutePath());
   assertVersionsExist(dir,0,1);
-  engine.rollback();
+  engine.rollback(null);
   assertVersionsExist(dir,0);
 }
