@@ -7,14 +7,14 @@
     if (storeDirList.length < 2)     throw new VoldemortException("Previous version does not exists, nothing to roll back to.");
     File backup=ReadOnlyUtils.findKthVersionedDir(storeDirList,storeDirList.length - 1);
     File primary;
-    if (versionDir == null) {
-      primary=new File(storeDir,"version-" + maxVersionId);
-    }
- else {
+    if (versionDir != null && versionDir.exists()) {
       primary=versionDir;
     }
+ else {
+      primary=new File(storeDir,"version-" + maxVersionId);
+    }
     DateFormat df=new SimpleDateFormat("MM-dd-yyyy");
-    if (primary.exists())     Utils.move(primary,new File(storeDir,"version-" + maxVersionId + "."+ df.format(new Date())+ ".bak"));
+    if (primary.exists())     Utils.move(primary,new File(storeDir,primary.getName() + "." + df.format(new Date())+ ".bak"));
     open(backup);
   }
   finally {
