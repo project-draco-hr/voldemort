@@ -8,7 +8,7 @@
   parser.accepts("timeout","http timeout for the fetch in ms").withRequiredArg().describedAs("timeout ms").ofType(Integer.class);
   parser.accepts("rollback","Rollback store to older version");
   parser.accepts("admin","Use admin services. Default = false");
-  parser.accepts("push-version","Version of push. Default = latest_version+1").withRequiredArg().ofType(Long.class);
+  parser.accepts("push-version","Version of push").withRequiredArg().ofType(Long.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     parser.printHelpOn(System.out);
@@ -51,7 +51,7 @@
   }
   long start=System.currentTimeMillis();
   if (rollbackStore) {
-    swapper.invokeRollback(storeName);
+    swapper.invokeRollback(storeName,pushVersion.longValue());
   }
  else {
     swapper.swapStoreData(storeName,filePath,pushVersion.longValue());

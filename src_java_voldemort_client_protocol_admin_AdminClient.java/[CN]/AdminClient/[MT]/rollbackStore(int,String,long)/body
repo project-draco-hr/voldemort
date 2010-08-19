@@ -1,5 +1,8 @@
 {
   VAdminProto.RollbackStoreRequest.Builder rollbackStoreRequest=VAdminProto.RollbackStoreRequest.newBuilder().setStoreName(storeName);
+  if (pushVersion > 0) {
+    rollbackStoreRequest.setPushVersion(pushVersion);
+  }
   VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setRollbackStore(rollbackStoreRequest).setType(VAdminProto.AdminRequestType.ROLLBACK_STORE).build();
   VAdminProto.RollbackStoreResponse.Builder response=sendAndReceive(nodeId,adminRequest,VAdminProto.RollbackStoreResponse.newBuilder());
   if (response.hasError()) {

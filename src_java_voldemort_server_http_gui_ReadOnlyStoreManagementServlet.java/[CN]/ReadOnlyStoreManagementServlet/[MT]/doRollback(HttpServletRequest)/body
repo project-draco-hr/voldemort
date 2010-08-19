@@ -1,5 +1,16 @@
 {
   String storeName=getRequired(req,"store");
+  String pushVersionString=getOptional(req,"pushVersion");
   ReadOnlyStorageEngine store=getStore(storeName);
-  store.rollback(null);
+  if (store == null)   throw new ServletException("'" + storeName + "' is not a registered read-only store.");
+  long pushVersion;
+  if (pushVersionString == null) {
+    pushVersion=store.getMaxVersionId();
+  }
+ else {
+    pushVersion=Long.parseLong(pushVersionString);
+  }
+  File rollbackVersionDir=new File(store.getStoreDirPath(),"version-" + pushVersion);
+  if (!rollbackVersionDir.exists())   throw new ServletException("Rollback failed since version of push specified (" + pushVersion + ") does not exist. ");
+  store.rollback(rollbackVersionDir);
 }
