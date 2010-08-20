@@ -14,7 +14,12 @@
   engine.swapFiles(newDirv2.getAbsolutePath());
   assertVersionsExist(dir,0,1,2);
   engine.rollback(versionDir);
-  assertVersionsExist(dir,0);
+  TestUtils.assertWithBackoff(100,5000,new Attempt(){
+    public void checkCondition() throws Exception, AssertionError {
+      assertVersionsExist(dir,0);
+    }
+  }
+);
   engine.close();
   latestSymLink.delete();
   File newDirv100=new File(dir,"version-100");
