@@ -8,7 +8,12 @@
  catch (    IOException e) {
     }
     if (canonicalLatestVersion != null && ReadOnlyUtils.checkVersionDirName(canonicalLatestVersion))     return canonicalLatestVersion;
- else     return null;
   }
-  return null;
+  File[] versionDirs=ReadOnlyUtils.getVersionDirs(storeDir);
+  if (versionDirs == null || versionDirs.length == 0) {
+    return null;
+  }
+ else {
+    return ReadOnlyUtils.findKthVersionedDir(versionDirs,versionDirs.length);
+  }
 }

@@ -2,20 +2,20 @@
   logger.info("Rolling back store '" + getName() + "'");
   fileModificationLock.writeLock().lock();
   try {
+    if (rollbackToDir == null || !rollbackToDir.exists())     throw new VoldemortException("Version directory specified to rollback to does not exist or is null");
+    long versionId=ReadOnlyUtils.getVersionId(rollbackToDir);
+    if (versionId == -1)     throw new VoldemortException("Cannot parse version id");
+    File[] backUpDirs=ReadOnlyUtils.getVersionDirs(storeDir,versionId,Long.MAX_VALUE);
+    if (backUpDirs.length <= 1) {
+      logger.warn("No rollback performed since there are no back-up directories");
+      return;
+    }
     if (isOpen)     close();
-    File[] storeDirList=ReadOnlyUtils.getVersionDirs(storeDir);
-    if (storeDirList.length < 2)     throw new VoldemortException("Previous version does not exists, nothing to roll back to.");
-    File backup=ReadOnlyUtils.findKthVersionedDir(storeDirList,storeDirList.length - 1);
-    File primary;
-    if (versionDir != null) {
-      primary=versionDir;
-    }
- else {
-      primary=new File(storeDir,"version-" + maxVersionId);
-    }
+    open(rollbackToDir);
     DateFormat df=new SimpleDateFormat("MM-dd-yyyy");
-    if (primary.exists())     Utils.move(primary,new File(storeDir,primary.getName() + "." + df.format(new Date())+ ".bak"));
-    open(backup);
+    for (int index=1; index < backUpDirs.length; index++) {
+      Utils.move(backUpDirs[index],new File(storeDir,backUpDirs[index].getName() + "." + df.format(new Date())+ ".bak"));
+    }
   }
   finally {
     fileModificationLock.writeLock().unlock();

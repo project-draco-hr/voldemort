@@ -1,23 +1,17 @@
 {
   logger.info("Swapping files for store '" + getName() + "' to "+ newStoreDirectory);
-  File newDataDir=new File(newStoreDirectory);
-  if (!newDataDir.exists())   throw new VoldemortException("File " + newDataDir.getAbsolutePath() + " does not exist.");
-  if (!(newDataDir.getParentFile().compareTo(storeDir.getAbsoluteFile()) == 0 && ReadOnlyUtils.checkVersionDirName(newDataDir)))   throw new VoldemortException("Invalid version folder name '" + newDataDir + "'. Either parent directory is incorrect or format(version-n) is incorrect");
-  long newVersionId=ReadOnlyUtils.getVersionId(newDataDir);
-  if (newVersionId == -1)   throw new VoldemortException("Unable to parse folder name since format(version-n) is incorrect: " + newStoreDirectory);
-  File latestVersion=getLatestFile();
-  if (latestVersion != null) {
-    long latestVersionId=ReadOnlyUtils.getVersionId(latestVersion);
-    if (latestVersionId == -1) {
-      logger.error("Unable to parse current latest version: " + latestVersion.getAbsolutePath());
-    }
- else {
-      if (latestVersionId >= newVersionId) {
-        logger.info("No swap required since current latest version " + latestVersionId + " is greater than swap version "+ newVersionId);
-        deleteBackups();
-        return;
-      }
-    }
+  File newVersionDir=new File(newStoreDirectory);
+  if (!newVersionDir.exists())   throw new VoldemortException("File " + newVersionDir.getAbsolutePath() + " does not exist.");
+  if (!(newVersionDir.getParentFile().compareTo(storeDir.getAbsoluteFile()) == 0 && ReadOnlyUtils.checkVersionDirName(newVersionDir)))   throw new VoldemortException("Invalid version folder name '" + newVersionDir + "'. Either parent directory is incorrect or format(version-n) is incorrect");
+  File previousVersionDir=getCurrentVersion();
+  if (previousVersionDir == null)   throw new VoldemortException("Could not find any latest directory to swap with in store '" + getName() + "'");
+  long newVersionId=ReadOnlyUtils.getVersionId(newVersionDir);
+  long previousVersionId=ReadOnlyUtils.getVersionId(previousVersionDir);
+  if (newVersionId == -1 || previousVersionId == -1)   throw new VoldemortException("Unable to parse folder names (" + newVersionDir.getName() + ","+ previousVersionDir.getName()+ ") since format(version-n) is incorrect");
+  if (previousVersionId > newVersionId) {
+    logger.info("No swap required since current latest version " + previousVersionId + " is greater than swap version "+ newVersionId);
+    deleteBackups();
+    return;
   }
   logger.info("Acquiring write lock on '" + getName() + "':");
   fileModificationLock.writeLock().lock();
@@ -25,12 +19,12 @@
   try {
     close();
     logger.info("Opening primary files for store '" + getName() + "' at "+ newStoreDirectory);
-    open(newDataDir);
+    open(newVersionDir);
     success=true;
   }
   finally {
     try {
-      if (!success)       rollback(null);
+      if (!success)       rollback(previousVersionDir);
     }
   finally {
       fileModificationLock.writeLock().unlock();
