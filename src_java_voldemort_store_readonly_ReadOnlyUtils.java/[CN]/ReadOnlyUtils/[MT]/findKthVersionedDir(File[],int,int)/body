@@ -1,6 +1,6 @@
 {
-  if (versionDirs.length < kth || kth <= 0) {
-    logger.error("Incorrect version number requested " + kth);
+  if (start < 0 || end >= versionDirs.length) {
+    logger.error("Incorrect version number requested (" + start + ","+ end+ "). Should be between (0,"+ (versionDirs.length - 1)+ ")");
     return null;
   }
   Collections.sort(Arrays.asList(versionDirs),new Comparator<File>(){
@@ -26,5 +26,9 @@
     }
   }
 );
-  return versionDirs[kth - 1];
+  File[] returnedFiles=new File[end - start + 1];
+  for (int index=start, index2=0; index <= end; index++, index2++) {
+    returnedFiles[index2]=versionDirs[index];
+  }
+  return returnedFiles;
 }
