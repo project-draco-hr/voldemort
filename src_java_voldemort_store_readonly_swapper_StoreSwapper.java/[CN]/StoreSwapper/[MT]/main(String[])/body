@@ -46,16 +46,21 @@
     client.getParams().setParameter("http.socket.timeout",timeoutMs);
     swapper=new HttpStoreSwapper(cluster,executor,client,mgmtPath);
   }
-  long start=System.currentTimeMillis();
-  if (rollbackStore) {
-    swapper.invokeRollback(storeName,pushVersion.longValue());
-  }
+  try {
+    long start=System.currentTimeMillis();
+    if (rollbackStore) {
+      swapper.invokeRollback(storeName,pushVersion.longValue());
+    }
  else {
-    swapper.swapStoreData(storeName,filePath,pushVersion.longValue());
+      swapper.swapStoreData(storeName,filePath,pushVersion.longValue());
+    }
+    long end=System.currentTimeMillis();
+    logger.info("Succeeded on all nodes in " + ((end - start) / Time.MS_PER_SECOND) + " seconds.");
   }
-  long end=System.currentTimeMillis();
-  logger.info("Succeeded on all nodes in " + ((end - start) / Time.MS_PER_SECOND) + " seconds.");
-  executor.shutdownNow();
-  executor.awaitTermination(1,TimeUnit.SECONDS);
+  finally {
+    swapper.stop();
+    executor.shutdownNow();
+    executor.awaitTermination(1,TimeUnit.SECONDS);
+  }
   System.exit(0);
 }
