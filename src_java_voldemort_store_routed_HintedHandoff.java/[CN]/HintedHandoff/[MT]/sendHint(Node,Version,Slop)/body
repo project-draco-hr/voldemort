@@ -1,7 +1,6 @@
 {
-  Set<Node> used=Sets.newHashSetWithExpectedSize(nodes.size());
   boolean persisted=false;
-  for (  Node node : nodes) {
+  for (  Node node : handoffStrategy.routeHint(failedNode)) {
     int nodeId=node.getId();
     if (!failedNodes.contains(node) && failureDetector.isAvailable(node)) {
       Store<ByteArray,Slop> slopStore=slopStores.get(nodeId);
@@ -12,7 +11,6 @@
         slopStore.put(slop.makeKey(),new Versioned<Slop>(slop,version));
         persisted=true;
         failureDetector.recordSuccess(node,(System.nanoTime() - startNs) / Time.NS_PER_MS);
-        used.add(node);
         if (logger.isTraceEnabled())         logger.trace("Finished hinted handoff for " + failedNode + " wrote slop to "+ node);
         break;
       }
@@ -22,6 +20,5 @@
       }
     }
   }
-  if (nodes.size() > used.size())   for (  Node usedNode : used)   nodes.remove(usedNode);
   return persisted;
 }

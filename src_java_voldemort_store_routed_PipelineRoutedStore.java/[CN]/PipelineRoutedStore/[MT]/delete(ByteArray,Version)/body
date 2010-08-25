@@ -23,8 +23,8 @@
   pipeline.addEventAction(Event.INSUFFICIENT_SUCCESSES,new PerformSerialRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,isHintedHandoffEnabled() ? Event.RESPONSES_RECEIVED : Event.COMPLETED,key,failureDetector,innerStores,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),blockingDelete,null));
   if (zoneRoutingEnabled)   pipeline.addEventAction(Event.INSUFFICIENT_ZONES,new PerformZoneSerialRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,isHintedHandoffEnabled() ? Event.RESPONSES_RECEIVED : Event.COMPLETED,key,failureDetector,innerStores,blockingDelete));
   if (isHintedHandoffEnabled()) {
-    pipeline.addEventAction(Event.RESPONSES_RECEIVED,new PerformDeleteHintedHandoff(pipelineData,Event.COMPLETED,key,version,failureDetector,slopStores,cluster));
-    pipeline.addEventAction(Event.ABORTED,new PerformDeleteHintedHandoff(pipelineData,Event.ERROR,key,version,failureDetector,slopStores,cluster));
+    pipeline.addEventAction(Event.RESPONSES_RECEIVED,new PerformDeleteHintedHandoff(pipelineData,Event.COMPLETED,key,version,failureDetector,slopStores,handoffStrategy));
+    pipeline.addEventAction(Event.ABORTED,new PerformDeleteHintedHandoff(pipelineData,Event.ERROR,key,version,failureDetector,slopStores,handoffStrategy));
   }
   pipeline.addEvent(Event.STARTED);
   pipeline.execute();
