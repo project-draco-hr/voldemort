@@ -9,7 +9,7 @@
   config.setInt("io.socket.receive.buffer",1 * 1024 * 1024 - 10000);
   FileStatus status=p.getFileSystem(config).getFileStatus(p);
   long size=status.getLen();
-  HdfsFetcher fetcher=new HdfsFetcher(maxBytesPerSec,DEFAULT_BUFFER_SIZE);
+  HdfsFetcher fetcher=new HdfsFetcher(maxBytesPerSec,REPORTING_INTERVAL_BYTES,DEFAULT_BUFFER_SIZE);
   long start=System.currentTimeMillis();
   File location=fetcher.fetch(url,System.getProperty("java.io.tmpdir") + File.separator + start);
   double rate=size * Time.MS_PER_SECOND / (double)(System.currentTimeMillis() - start);

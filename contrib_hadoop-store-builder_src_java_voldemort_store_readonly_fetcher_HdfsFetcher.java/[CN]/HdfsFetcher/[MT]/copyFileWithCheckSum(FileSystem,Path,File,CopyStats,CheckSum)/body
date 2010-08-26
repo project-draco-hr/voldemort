@@ -18,7 +18,7 @@
       if (fileCheckSumGenerator != null)       fileCheckSumGenerator.update(buffer);
       if (throttler != null)       throttler.maybeThrottle(read);
       stats.recordBytes(read);
-      if (stats.getBytesSinceLastReport() > REPORTING_INTERVAL_BYTES) {
+      if (stats.getBytesSinceLastReport() > reportingIntervalBytes) {
         NumberFormat format=NumberFormat.getNumberInstance();
         format.setMaximumFractionDigits(2);
         logger.info(stats.getTotalBytesCopied() / (1024 * 1024) + " MB copied at " + format.format(stats.getBytesPerSecond() / (1024 * 1024)) + " MB/sec - " + format.format(stats.getPercentCopied()) + " % complete");
