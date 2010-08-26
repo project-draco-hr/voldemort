@@ -1,19 +1,19 @@
 {
   String testStoreName="test-recovery-data";
   HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(TEST_STREAM_KEYS_SIZE);
-  Store<ByteArray,byte[]> store=getStore(0,testStoreName);
+  Store<ByteArray,byte[],byte[]> store=getStore(0,testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
-    store.put(entry.getKey(),new Versioned<byte[]>(entry.getValue()));
+    store.put(entry.getKey(),new Versioned<byte[]>(entry.getValue()),null);
   }
   store=getStore(1,testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
-    assertSame("entry should NOT be present at store",0,store.get(entry.getKey()).size());
+    assertSame("entry should NOT be present at store",0,store.get(entry.getKey(),null).size());
   }
   adminClient.restoreDataFromReplications(1,2);
   store=getStore(1,testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
     ByteArray key=entry.getKey();
-    assertSame("entry should be present for key " + key,1,store.get(entry.getKey()).size());
-    assertEquals("entry value should match",new String(entry.getValue()),new String(store.get(entry.getKey()).get(0).getValue()));
+    assertSame("entry should be present for key " + key,1,store.get(entry.getKey(),null).size());
+    assertEquals("entry value should match",new String(entry.getValue()),new String(store.get(entry.getKey(),null).get(0).getValue()));
   }
 }

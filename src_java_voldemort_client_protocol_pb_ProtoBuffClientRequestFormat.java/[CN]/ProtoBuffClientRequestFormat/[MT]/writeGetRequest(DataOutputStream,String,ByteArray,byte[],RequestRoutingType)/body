@@ -1,0 +1,9 @@
+{
+  StoreUtils.assertValidKey(key);
+  VProto.GetRequest.Builder get=VProto.GetRequest.newBuilder();
+  get.setKey(ByteString.copyFrom(key.get()));
+  if (transforms != null) {
+    get.setTransforms(ByteString.copyFrom(transforms));
+  }
+  ProtoUtils.writeMessage(output,VProto.VoldemortRequest.newBuilder().setType(RequestType.GET).setStore(storeName).setShouldRoute(routingType.equals(RequestRoutingType.ROUTED)).setRequestRouteType(routingType.getRoutingTypeCode()).setGet(get).build());
+}

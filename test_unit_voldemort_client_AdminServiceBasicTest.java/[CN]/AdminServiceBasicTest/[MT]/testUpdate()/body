@@ -12,9 +12,9 @@
   }
 ;
   getAdminClient().updateEntries(0,testStoreName,iterator,null);
-  Store<ByteArray,byte[]> store=getStore(0,testStoreName);
+  Store<ByteArray,byte[],byte[]> store=getStore(0,testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
-    assertNotSame("entry should be present at store",0,store.get(entry.getKey()).size());
-    assertEquals("entry value should match",new String(entry.getValue()),new String(store.get(entry.getKey()).get(0).getValue()));
+    assertNotSame("entry should be present at store",0,store.get(entry.getKey(),null).size());
+    assertEquals("entry value should match",new String(entry.getValue()),new String(store.get(entry.getKey(),null).get(0).getValue()));
   }
 }

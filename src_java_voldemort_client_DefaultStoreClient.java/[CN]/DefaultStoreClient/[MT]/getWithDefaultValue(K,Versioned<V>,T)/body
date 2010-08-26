@@ -1,0 +1,12 @@
+{
+  for (int attempts=0; attempts < this.metadataRefreshAttempts; attempts++) {
+    try {
+      List<Versioned<V>> items=store.get(key,transforms);
+      return getItemOrThrow(key,defaultValue,items);
+    }
+ catch (    InvalidMetadataException e) {
+      bootStrap();
+    }
+  }
+  throw new VoldemortException(this.metadataRefreshAttempts + " metadata refresh attempts failed.");
+}

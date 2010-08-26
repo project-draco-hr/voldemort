@@ -1,0 +1,12 @@
+{
+  StoreUtils.assertValidKeys(keys);
+  Map<ByteArray,K> byteKeyToKey=keysToBytes(keys);
+  Map<ByteArray,List<Versioned<byte[]>>> storeResult=store.getAll(byteKeyToKey.keySet(),transformsToBytes(transforms));
+  Map<K,List<Versioned<V>>> result=Maps.newHashMapWithExpectedSize(storeResult.size());
+  for (  Map.Entry<ByteArray,List<Versioned<byte[]>>> mapEntry : storeResult.entrySet()) {
+    List<Versioned<V>> values=Lists.newArrayListWithExpectedSize(mapEntry.getValue().size());
+    for (    Versioned<byte[]> versioned : mapEntry.getValue())     values.add(new Versioned<V>(valueSerializer.toObject(versioned.getValue()),versioned.getVersion()));
+    result.put(byteKeyToKey.get(mapEntry.getKey()),values);
+  }
+  return result;
+}

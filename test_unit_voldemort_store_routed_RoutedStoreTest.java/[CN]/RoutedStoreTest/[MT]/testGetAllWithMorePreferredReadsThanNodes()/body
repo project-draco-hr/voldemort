@@ -1,19 +1,19 @@
 {
   cluster=VoldemortTestConstants.getTwoNodeCluster();
   StoreDefinition storeDef=ServerTestUtils.getStoreDef("test",2,2,1,2,2,RoutingStrategyType.CONSISTENT_STRATEGY);
-  Map<Integer,Store<ByteArray,byte[]>> subStores=Maps.newHashMap();
+  Map<Integer,Store<ByteArray,byte[],byte[]>> subStores=Maps.newHashMap();
   int id1=Iterables.get(cluster.getNodes(),0).getId();
   int id2=Iterables.get(cluster.getNodes(),1).getId();
-  subStores.put(id1,new InMemoryStorageEngine<ByteArray,byte[]>("test"));
-  subStores.put(id2,new InMemoryStorageEngine<ByteArray,byte[]>("test"));
+  subStores.put(id1,new InMemoryStorageEngine<ByteArray,byte[],byte[]>("test"));
+  subStores.put(id2,new InMemoryStorageEngine<ByteArray,byte[],byte[]>("test"));
   setFailureDetector(subStores);
   routedStoreThreadPool=Executors.newFixedThreadPool(1);
   RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,1000L);
   RoutedStore routedStore=routedStoreFactory.create(cluster,storeDef,subStores,true,failureDetector);
-  Store<ByteArray,byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
-  store.put(aKey,Versioned.value(aValue));
+  Store<ByteArray,byte[],byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[],byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
+  store.put(aKey,Versioned.value(aValue),aTransform);
   recordException(failureDetector,cluster.getNodes().iterator().next());
-  Map<ByteArray,List<Versioned<byte[]>>> all=store.getAll(Arrays.asList(aKey));
+  Map<ByteArray,List<Versioned<byte[]>>> all=store.getAll(Arrays.asList(aKey),Collections.singletonMap(aKey,aTransform));
   assertEquals(1,all.size());
   assertTrue(Arrays.equals(aValue,all.values().iterator().next().get(0).getValue()));
 }

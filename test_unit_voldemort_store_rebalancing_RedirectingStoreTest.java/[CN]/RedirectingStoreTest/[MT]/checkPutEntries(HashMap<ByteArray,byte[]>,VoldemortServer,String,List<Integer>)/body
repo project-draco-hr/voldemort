@@ -5,7 +5,7 @@
     List<Integer> partitions=routing.getPartitionList(entry.getKey().get());
     if (availablePartitions.containsAll(partitions)) {
       try {
-        redirectingStore.put(entry.getKey(),Versioned.value(entry.getValue(),new VectorClock().incremented(0,System.currentTimeMillis())));
+        redirectingStore.put(entry.getKey(),Versioned.value(entry.getValue(),new VectorClock().incremented(0,System.currentTimeMillis())),null);
         fail("Should see obsoleteVersionException here.");
       }
  catch (      ObsoleteVersionException e) {

@@ -2,9 +2,9 @@
   List<ByteArray> keys=getKeys(2);
   ByteArray key=keys.get(0);
   byte[] value=getValue();
-  Store<ByteArray,byte[]> store=getStore();
-  store.put(key,Versioned.value(value));
-  List<Versioned<byte[]>> versioneds=store.get(key);
+  Store<ByteArray,byte[],byte[]> store=getStore();
+  store.put(key,Versioned.value(value),null);
+  List<Versioned<byte[]>> versioneds=store.get(key,null);
   List<Version> versions=store.getVersions(key);
   assertEquals(1,versioneds.size());
   assertEquals(9,versions.size());

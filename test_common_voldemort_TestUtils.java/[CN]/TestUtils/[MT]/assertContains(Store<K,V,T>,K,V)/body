@@ -1,0 +1,9 @@
+{
+  List<Versioned<V>> found=store.get(key,null);
+  if (found.size() != values.length)   throw new AssertionFailedError("Expected to find " + values.length + " values in store, but found only "+ found.size()+ ".");
+  for (  V v : values) {
+    boolean isFound=false;
+    for (    Versioned<V> f : found)     if (Utils.deepEquals(f.getValue(),v))     isFound=true;
+    if (!isFound)     throw new AssertionFailedError("Could not find value " + v + " in results.");
+  }
+}

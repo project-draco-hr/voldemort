@@ -2,15 +2,15 @@
   HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(TEST_STREAM_KEYS_SIZE);
   List<Integer> fetchAndUpdatePartitionsList=Arrays.asList(0,2);
   int fetchPartitionKeyCount=0;
-  Store<ByteArray,byte[]> store=getStore(0,testStoreName);
+  Store<ByteArray,byte[],byte[]> store=getStore(0,testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
-    store.put(entry.getKey(),new Versioned<byte[]>(entry.getValue()));
+    store.put(entry.getKey(),new Versioned<byte[]>(entry.getValue()),null);
     if (isKeyPartition(entry.getKey(),0,testStoreName,fetchAndUpdatePartitionsList)) {
       fetchPartitionKeyCount++;
     }
   }
   store=getStore(1,testStoreName);
-  for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet())   assertEquals("server1 should be empty at start.",0,store.get(entry.getKey()).size());
+  for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet())   assertEquals("server1 should be empty at start.",0,store.get(entry.getKey(),null).size());
   AdminClient client=getAdminClient();
   int id=client.migratePartitions(0,1,testStoreName,fetchAndUpdatePartitionsList,null);
   client.waitForCompletion(1,id,60,TimeUnit.SECONDS);
@@ -18,8 +18,8 @@
   store=getStore(1,testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
     if (isKeyPartition(entry.getKey(),0,testStoreName,fetchAndUpdatePartitionsList)) {
-      assertEquals("server1 store should contain fetchAndupdated partitions.",1,store.get(entry.getKey()).size());
-      assertEquals("entry value should match",new String(entry.getValue()),new String(store.get(entry.getKey()).get(0).getValue()));
+      assertEquals("server1 store should contain fetchAndupdated partitions.",1,store.get(entry.getKey(),null).size());
+      assertEquals("entry value should match",new String(entry.getValue()),new String(store.get(entry.getKey(),null).get(0).getValue()));
       count++;
     }
   }

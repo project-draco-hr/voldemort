@@ -1,0 +1,27 @@
+{
+  try {
+    for (int i=0; i < keys.length; i++) {
+      if (isFound[i])       store.put(keys[i],Versioned.value(values[i],versions[i]),null);
+    }
+    ByteArrayOutputStream getAllRequest=new ByteArrayOutputStream();
+    this.clientWireFormat.writeGetAllRequest(new DataOutputStream(getAllRequest),storeName,Arrays.asList(keys),transforms,RequestRoutingType.NORMAL);
+    ByteArrayOutputStream getAllResponse=new ByteArrayOutputStream();
+    this.serverWireFormat.handleRequest(inputStream(getAllRequest),new DataOutputStream(getAllResponse));
+    Map<ByteArray,List<Versioned<byte[]>>> found=this.clientWireFormat.readGetAllResponse(inputStream(getAllResponse));
+    for (int i=0; i < keys.length; i++) {
+      if (isFound[i]) {
+        assertTrue(keys[i] + " is not in the found set.",found.containsKey(keys[i]));
+        assertEquals(1,found.get(keys[i]).size());
+        Versioned<byte[]> versioned=found.get(keys[i]).get(0);
+        assertEquals(versions[i],versioned.getVersion());
+        assertTrue(Arrays.equals(values[i],versioned.getValue()));
+      }
+ else {
+        assertTrue(keys[i] + " is in the found set but should not be.",!found.containsKey(keys[i]));
+      }
+    }
+  }
+  finally {
+    this.store.deleteAll();
+  }
+}

@@ -1,0 +1,11 @@
+{
+  StoreUtils.assertValidKeys(keys);
+  VProto.GetAllRequest.Builder req=VProto.GetAllRequest.newBuilder();
+  for (  ByteArray key : keys)   req.addKeys(ByteString.copyFrom(key.get()));
+  if (transforms != null) {
+    for (    Map.Entry<ByteArray,byte[]> transform : transforms.entrySet()) {
+      req.addTransforms(VProto.GetAllRequest.GetAllTransform.newBuilder().setKey(ByteString.copyFrom(transform.getKey().get())).setTransform(ByteString.copyFrom(transform.getValue())));
+    }
+  }
+  ProtoUtils.writeMessage(output,VProto.VoldemortRequest.newBuilder().setType(RequestType.GET_ALL).setStore(storeName).setShouldRoute(routingType.equals(RequestRoutingType.ROUTED)).setRequestRouteType(routingType.getRoutingTypeCode()).setGetAll(req).build());
+}

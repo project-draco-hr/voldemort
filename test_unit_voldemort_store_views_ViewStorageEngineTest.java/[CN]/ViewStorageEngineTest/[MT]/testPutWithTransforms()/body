@@ -1,0 +1,18 @@
+{
+  Integer[] values1={9,90,10,15,25,106};
+  Integer[] filter1={1,10};
+  Versioned<List<Integer>> values=Versioned.value(Arrays.asList(values1));
+  VectorClock clock=(VectorClock)values.getVersion();
+  clock.incrementVersion(0,System.currentTimeMillis());
+  view.put(1,Versioned.value(values.getValue(),clock),Arrays.asList(filter1));
+  assertEquals(10,view.get(1,Arrays.asList(filter1)).get(0).getValue().size());
+  Integer[] filter2={5,10};
+  assertEquals(6,view.get(1,Arrays.asList(filter2)).get(0).getValue().size());
+  Version updatedVersion=view.get(1,Arrays.asList(filter2)).get(0).getVersion();
+  Integer[] filter3={1,50};
+  Integer[] values2={90,15,25,106};
+  clock=(VectorClock)updatedVersion;
+  VectorClock clock1=clock.incremented(0,System.currentTimeMillis());
+  view.put(1,Versioned.value(Arrays.asList(values2),clock1),Arrays.asList(filter3));
+  assertEquals(12,view.get(1,Arrays.asList(filter3)).get(0).getValue().size());
+}

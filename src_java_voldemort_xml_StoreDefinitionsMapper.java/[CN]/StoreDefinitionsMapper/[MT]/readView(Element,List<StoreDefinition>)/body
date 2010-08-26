@@ -10,8 +10,10 @@
   SerializerDefinition keySerializer=target.getKeySerializer();
   SerializerDefinition valueSerializer=target.getValueSerializer();
   if (store.getChild(STORE_VALUE_SERIALIZER_ELMT) != null)   valueSerializer=readSerializer(store.getChild(STORE_VALUE_SERIALIZER_ELMT));
+  SerializerDefinition transformSerializer=null;
+  if (store.getChild(STORE_TRANSFORM_SERIALIZER_ELMT) != null)   transformSerializer=readSerializer(store.getChild(STORE_TRANSFORM_SERIALIZER_ELMT));
   RoutingTier policy=target.getRoutingPolicy();
   if (store.getChild(STORE_ROUTING_STRATEGY) != null)   policy=RoutingTier.fromDisplay(store.getChildText(STORE_ROUTING_STRATEGY));
   View<?,?,?,?> valTrans=loadTransformation(store.getChildText(VIEW_TRANS_ELMT));
-  return new StoreDefinitionBuilder().setName(name).setViewOf(targetName).setType(ViewStorageConfiguration.TYPE_NAME).setRoutingPolicy(policy).setRoutingStrategyType(target.getRoutingStrategyType()).setKeySerializer(keySerializer).setValueSerializer(valueSerializer).setReplicationFactor(target.getReplicationFactor()).setPreferredReads(preferredReads).setRequiredReads(requiredReads).setPreferredWrites(preferredWrites).setRequiredWrites(requiredWrites).setView(valTrans).build();
+  return new StoreDefinitionBuilder().setName(name).setViewOf(targetName).setType(ViewStorageConfiguration.TYPE_NAME).setRoutingPolicy(policy).setRoutingStrategyType(target.getRoutingStrategyType()).setKeySerializer(keySerializer).setValueSerializer(valueSerializer).setTransformsSerializer(transformSerializer).setReplicationFactor(target.getReplicationFactor()).setPreferredReads(preferredReads).setRequiredReads(requiredReads).setPreferredWrites(preferredWrites).setRequiredWrites(requiredWrites).setView(valTrans).build();
 }

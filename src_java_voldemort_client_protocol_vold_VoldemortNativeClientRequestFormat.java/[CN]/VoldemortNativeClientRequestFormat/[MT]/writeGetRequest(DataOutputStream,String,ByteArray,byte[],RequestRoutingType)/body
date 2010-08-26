@@ -1,0 +1,19 @@
+{
+  StoreUtils.assertValidKey(key);
+  outputStream.writeByte(VoldemortOpCode.GET_OP_CODE);
+  outputStream.writeUTF(storeName);
+  outputStream.writeBoolean(routingType.equals(RequestRoutingType.ROUTED));
+  if (protocolVersion > 1) {
+    outputStream.writeUTF(routingType.toString());
+  }
+  outputStream.writeInt(key.length());
+  outputStream.write(key.get());
+  if (protocolVersion > 2) {
+    if (transforms != null) {
+      outputStream.writeBoolean(true);
+      outputStream.writeInt(transforms.length);
+      outputStream.write(transforms);
+    }
+ else     outputStream.writeBoolean(false);
+  }
+}

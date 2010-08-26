@@ -1,8 +1,8 @@
 {
   Map<ByteArray,byte[]> entryMap=ServerTestUtils.createRandomKeyValuePairs(TEST_VALUES_SIZE);
-  Store<ByteArray,byte[]> store=server1.getStoreRepository().getStorageEngine(testStoreName);
+  Store<ByteArray,byte[],byte[]> store=server1.getStoreRepository().getStorageEngine(testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entryMap.entrySet()) {
-    store.put(entry.getKey(),Versioned.value(entry.getValue(),new VectorClock().incremented(0,System.currentTimeMillis())));
+    store.put(entry.getKey(),Versioned.value(entry.getValue(),new VectorClock().incremented(0,System.currentTimeMillis())),null);
   }
   server0.getMetadataStore().put(MetadataStore.CLUSTER_KEY,targetCluster);
   server1.getMetadataStore().put(MetadataStore.CLUSTER_KEY,targetCluster);

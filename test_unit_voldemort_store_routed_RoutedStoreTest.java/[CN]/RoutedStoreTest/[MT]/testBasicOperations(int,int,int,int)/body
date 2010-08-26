@@ -1,11 +1,11 @@
 {
   RoutedStore routedStore=getStore(cluster,reads,writes,threads,failures);
-  Store<ByteArray,byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
+  Store<ByteArray,byte[],byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[],byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
   VectorClock clock=getClock(1);
   Versioned<byte[]> versioned=new Versioned<byte[]>(aValue,clock);
-  routedStore.put(aKey,versioned);
+  routedStore.put(aKey,versioned,aTransform);
   assertNOrMoreEqual(routedStore,cluster.getNumberOfNodes() - failures,aKey,versioned);
-  List<Versioned<byte[]>> found=store.get(aKey);
+  List<Versioned<byte[]>> found=store.get(aKey,aTransform);
   assertEquals(1,found.size());
   assertEquals(versioned,found.get(0));
   assertNOrMoreEqual(routedStore,cluster.getNumberOfNodes() - failures,aKey,versioned);

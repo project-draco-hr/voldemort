@@ -1,0 +1,24 @@
+{
+  StoreUtils.assertValidKey(key);
+  try {
+    getInnerStore().put(key,value,transforms);
+  }
+ catch (  UnreachableStoreException e) {
+    List<Exception> failures=new ArrayList<Exception>();
+    failures.add(e);
+    boolean persisted=false;
+    Slop slop=new Slop(getName(),Slop.Operation.PUT,key,value.getValue(),transforms,node,new Date());
+    for (    Store<ByteArray,Slop,byte[]> slopStore : backupStores) {
+      try {
+        slopStore.put(slop.makeKey(),new Versioned<Slop>(slop,value.getVersion()),null);
+        persisted=true;
+        break;
+      }
+ catch (      UnreachableStoreException u) {
+        failures.add(u);
+      }
+    }
+    if (persisted)     throw new UnreachableStoreException("Put operation failed on node " + node + ", but has been persisted to slop storage for eventual replication.",e);
+ else     throw new InsufficientOperationalNodesException("All slop servers are unavailable from node " + node + ".",failures);
+  }
+}

@@ -34,9 +34,9 @@
     String storageEngineClass=benchmarkProps.getString(STORAGE_CONFIGURATION_CLASS);
     this.keyType=benchmarkProps.getString(KEY_TYPE,STRING_KEY_TYPE);
     Serializer serializer=findKeyType(this.keyType);
-    Store<Object,Object> store=null;
+    Store<Object,Object,Object> store=null;
     StorageConfiguration conf=(StorageConfiguration)ReflectUtils.callConstructor(ReflectUtils.loadClass(storageEngineClass),new Object[]{ServerTestUtils.getVoldemortConfig()});
-    store=SerializingStore.wrap(conf.getStore(DUMMY_DB),serializer,new StringSerializer());
+    store=SerializingStore.wrap(conf.getStore(DUMMY_DB),serializer,new StringSerializer(),new IdentitySerializer());
     this.factory=new StaticStoreClientFactory(store);
     this.storeClient=factory.getStoreClient(store.getName());
   }

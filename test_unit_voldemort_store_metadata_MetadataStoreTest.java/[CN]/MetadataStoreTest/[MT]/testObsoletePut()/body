@@ -1,12 +1,12 @@
 {
   for (int i=0; i <= TEST_RUNS; i++) {
     ByteArray key=getValidKey();
-    VectorClock clock=(VectorClock)metadataStore.get(key).get(0).getVersion();
+    VectorClock clock=(VectorClock)metadataStore.get(key,null).get(0).getVersion();
     Versioned<byte[]> value=new Versioned<byte[]>(getValidValue(key),clock.incremented(0,1));
     try {
-      metadataStore.put(key,value);
+      metadataStore.put(key,value,null);
       assertTrue(true);
-      metadataStore.put(key,value);
+      metadataStore.put(key,value,null);
       fail();
     }
  catch (    ObsoleteVersionException e) {

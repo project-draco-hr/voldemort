@@ -1,11 +1,11 @@
 {
   String key=getKey();
-  Store<String,String> store=getStore();
+  Store<String,String,String> store=getStore();
   VectorClock c1=getClock(1,1);
   String value=getValue();
   assertTrue(!store.delete(key,c1));
-  store.put(key,new Versioned<String>(value,c1));
-  assertEquals(1,store.get(key).size());
+  store.put(key,new Versioned<String>(value,c1),null);
+  assertEquals(1,store.get(key,null).size());
   assertTrue("Delete failed!",store.delete(key,c1));
-  assertEquals(0,store.get(key).size());
+  assertEquals(0,store.get(key,null).size());
 }

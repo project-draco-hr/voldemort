@@ -1,25 +1,25 @@
 {
-  Store<K,V> store=getStore();
+  Store<K,V,T> store=getStore();
   try {
-    store.put(null,new Versioned<V>(getValue()));
+    store.put(null,new Versioned<V>(getValue()),null);
     fail("Store should not put null keys!");
   }
  catch (  IllegalArgumentException e) {
   }
   try {
-    store.get(null);
+    store.get(null,null);
     fail("Store should not get null keys!");
   }
  catch (  IllegalArgumentException e) {
   }
   try {
-    store.getAll(null);
+    store.getAll(null,null);
     fail("Store should not getAll null keys!");
   }
  catch (  IllegalArgumentException e) {
   }
   try {
-    store.getAll(Collections.<K>singleton(null));
+    store.getAll(Collections.<K>singleton(null),Collections.<K,T>singletonMap(null,null));
     fail("Store should not getAll null keys!");
   }
  catch (  IllegalArgumentException e) {

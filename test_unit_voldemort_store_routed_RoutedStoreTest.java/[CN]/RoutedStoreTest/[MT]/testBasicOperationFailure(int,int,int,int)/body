@@ -3,13 +3,13 @@
   Versioned<byte[]> versioned=new Versioned<byte[]>(aValue,clock);
   RoutedStore routedStore=getStore(cluster,reads,writes,threads,failures,0,RoutingStrategyType.TO_ALL_STRATEGY,new UnreachableStoreException("no go"));
   try {
-    routedStore.put(aKey,versioned);
+    routedStore.put(aKey,versioned,aTransform);
     fail("Put succeeded with too few operational nodes.");
   }
  catch (  InsufficientOperationalNodesException e) {
   }
   try {
-    routedStore.get(aKey);
+    routedStore.get(aKey,aTransform);
     fail("Get succeeded with too few operational nodes.");
   }
  catch (  InsufficientOperationalNodesException e) {

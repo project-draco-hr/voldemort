@@ -1,31 +1,31 @@
 {
   K key=getKey();
-  Store<K,V> store=getStore();
+  Store<K,V,T> store=getStore();
   VectorClock clock=getClock(1,1);
   VectorClock clockCopy=clock.clone();
   V value=getValue();
-  assertEquals("Store not empty at start!",0,store.get(key).size());
+  assertEquals("Store not empty at start!",0,store.get(key,null).size());
   Versioned<V> versioned=new Versioned<V>(value,clock);
-  store.put(key,versioned);
-  assertContains(store.get(key),versioned);
+  store.put(key,versioned,null);
+  assertContains(store.get(key,null),versioned);
   testObsoletePutFails("Put of identical version/value succeeded.",store,key,new Versioned<V>(value,clockCopy));
   testObsoletePutFails("Put of identical version succeeded.",store,key,new Versioned<V>(getValue(),clockCopy));
   testObsoletePutFails("Put of obsolete version succeeded.",store,key,new Versioned<V>(getValue(),getClock(1)));
-  assertEquals("Should still only be one version in store.",store.get(key).size(),1);
-  assertContains(store.get(key),versioned);
+  assertEquals("Should still only be one version in store.",store.get(key,null).size(),1);
+  assertContains(store.get(key,null),versioned);
   if (allowConcurrentOperations()) {
-    store.put(key,new Versioned<V>(getValue(),getClock(1,2)));
-    assertEquals(2,store.get(key).size());
+    store.put(key,new Versioned<V>(getValue(),getClock(1,2)),null);
+    assertEquals(2,store.get(key,null).size());
   }
  else {
     try {
-      store.put(key,new Versioned<V>(getValue(),getClock(1,2)));
+      store.put(key,new Versioned<V>(getValue(),getClock(1,2)),null);
       fail();
     }
  catch (    ObsoleteVersionException e) {
     }
   }
   Versioned<V> newest=new Versioned<V>(getValue(),getClock(1,1,2,2));
-  store.put(key,newest);
-  assertContains(store.get(key),newest);
+  store.put(key,newest,null);
+  assertContains(store.get(key,null),newest);
 }

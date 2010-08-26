@@ -1,12 +1,12 @@
 {
   HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(TEST_STREAM_KEYS_SIZE);
-  Store<ByteArray,byte[]> store=getStore(0,testStoreName);
+  Store<ByteArray,byte[],byte[]> store=getStore(0,testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
-    store.put(entry.getKey(),new Versioned<byte[]>(entry.getValue()));
+    store.put(entry.getKey(),new Versioned<byte[]>(entry.getValue()),null);
   }
   getAdminClient().truncate(0,testStoreName);
   store=getStore(0,testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
-    assertEquals("Deleted key should be missing.",0,store.get(entry.getKey()).size());
+    assertEquals("Deleted key should be missing.",0,store.get(entry.getKey(),null).size());
   }
 }

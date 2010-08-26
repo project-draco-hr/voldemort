@@ -1,12 +1,12 @@
 {
   for (int i=0; i <= TEST_RUNS; i++) {
     ByteArray key=getValidKey();
-    VectorClock clock=(VectorClock)metadataStore.get(key).get(0).getVersion();
+    VectorClock clock=(VectorClock)metadataStore.get(key,null).get(0).getVersion();
     Versioned<byte[]> value1=new Versioned<byte[]>(getValidValue(key),clock.incremented(1,1));
     Versioned<byte[]> value2=new Versioned<byte[]>(getValidValue(key),clock.incremented(2,1));
-    metadataStore.put(key,value1);
-    metadataStore.put(key,value2);
-    assertEquals("Only one metadata value should return",1,metadataStore.get(key).size());
-    checkValues(value2,metadataStore.get(key),key);
+    metadataStore.put(key,value1,null);
+    metadataStore.put(key,value2,null);
+    assertEquals("Only one metadata value should return",1,metadataStore.get(key,null).size());
+    checkValues(value2,metadataStore.get(key,null),key);
   }
 }

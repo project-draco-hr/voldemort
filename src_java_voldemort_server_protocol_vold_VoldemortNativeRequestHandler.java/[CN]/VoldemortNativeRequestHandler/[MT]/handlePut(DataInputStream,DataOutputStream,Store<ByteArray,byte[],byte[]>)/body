@@ -1,0 +1,21 @@
+{
+  ByteArray key=readKey(inputStream);
+  int valueSize=inputStream.readInt();
+  byte[] bytes=new byte[valueSize];
+  ByteUtils.read(inputStream,bytes);
+  VectorClock clock=new VectorClock(bytes);
+  byte[] value=ByteUtils.copy(bytes,clock.sizeInBytes(),bytes.length);
+  byte[] transforms=null;
+  if (protocolVersion > 2) {
+    if (inputStream.readBoolean()) {
+      transforms=readTransforms(inputStream);
+    }
+  }
+  try {
+    store.put(key,new Versioned<byte[]>(value,clock),transforms);
+    outputStream.writeShort(0);
+  }
+ catch (  VoldemortException e) {
+    writeException(outputStream,e);
+  }
+}

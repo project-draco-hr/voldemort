@@ -1,0 +1,14 @@
+{
+  RoutingStrategy routing=server.getMetadataStore().getRoutingStrategy(store.getName());
+  List<ByteArray> keysInPartitions=new ArrayList<ByteArray>();
+  for (  ByteArray key : entryMap.keySet()) {
+    List<Integer> partitions=routing.getPartitionList(key.get());
+    if (availablePartition.containsAll(partitions)) {
+      keysInPartitions.add(key);
+    }
+  }
+  Map<ByteArray,List<Versioned<byte[]>>> results=store.getAll(keysInPartitions,null);
+  for (  Entry<ByteArray,List<Versioned<byte[]>>> entry : results.entrySet()) {
+    assertEquals("Values should match",new String(entry.getValue().get(0).getValue()),new String(entryMap.get(entry.getKey())));
+  }
+}

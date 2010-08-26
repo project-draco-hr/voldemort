@@ -1,8 +1,8 @@
 {
-  StorageEngine<ByteArray,byte[]> store=getStorageEngine();
-  StorageEngine<String,String> stringStore=SerializingStorageEngine.wrap(store,new StringSerializer(),new StringSerializer());
+  StorageEngine<ByteArray,byte[],byte[]> store=getStorageEngine();
+  StorageEngine<String,String,String> stringStore=SerializingStorageEngine.wrap(store,new StringSerializer(),new StringSerializer(),new StringSerializer());
   Map<String,String> vals=ImmutableMap.of("a","a","b","b","c","c","d","d","e","e");
-  for (  Map.Entry<String,String> entry : vals.entrySet())   stringStore.put(entry.getKey(),new Versioned<String>(entry.getValue()));
+  for (  Map.Entry<String,String> entry : vals.entrySet())   stringStore.put(entry.getKey(),new Versioned<String>(entry.getValue()),null);
   ClosableIterator<Pair<String,Versioned<String>>> iter=stringStore.entries();
   int count=0;
   while (iter.hasNext()) {

@@ -1,12 +1,12 @@
 {
-  Map<Integer,Store<ByteArray,byte[]>> subStores=Maps.newHashMap();
+  Map<Integer,Store<ByteArray,byte[],byte[]>> subStores=Maps.newHashMap();
   int count=0;
   for (  Node n : cluster.getNodes()) {
     if (count >= cluster.getNumberOfNodes())     throw new IllegalArgumentException(failing + " failing nodes, " + sleepy+ " sleepy nodes, but only "+ cluster.getNumberOfNodes()+ " nodes in the cluster.");
-    Store<ByteArray,byte[]> subStore=null;
-    if (count < failing)     subStore=new FailingStore<ByteArray,byte[]>("test",e);
- else     if (count < failing + sleepy)     subStore=new SleepyStore<ByteArray,byte[]>(Long.MAX_VALUE,new InMemoryStorageEngine<ByteArray,byte[]>("test"));
- else     subStore=new InMemoryStorageEngine<ByteArray,byte[]>("test");
+    Store<ByteArray,byte[],byte[]> subStore=null;
+    if (count < failing)     subStore=new FailingStore<ByteArray,byte[],byte[]>("test",e);
+ else     if (count < failing + sleepy)     subStore=new SleepyStore<ByteArray,byte[],byte[]>(Long.MAX_VALUE,new InMemoryStorageEngine<ByteArray,byte[],byte[]>("test"));
+ else     subStore=new InMemoryStorageEngine<ByteArray,byte[],byte[]>("test");
     subStores.put(n.getId(),subStore);
     count+=1;
   }

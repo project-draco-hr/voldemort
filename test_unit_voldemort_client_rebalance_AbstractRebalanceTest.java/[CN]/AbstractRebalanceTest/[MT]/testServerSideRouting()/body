@@ -9,7 +9,7 @@
   final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
   populateData(updatedCluster,Arrays.asList(0));
   Node node=updatedCluster.getNodeById(0);
-  final Store<ByteArray,byte[]> serverSideRoutingStore=getSocketStore(testStoreName,node.getHost(),node.getSocketPort(),true);
+  final Store<ByteArray,byte[],byte[]> serverSideRoutingStore=getSocketStore(testStoreName,node.getHost(),node.getSocketPort(),true);
   final CountDownLatch latch=new CountDownLatch(1);
   executors.execute(new Runnable(){
     public void run(){
@@ -20,7 +20,7 @@
           int index=(int)(Math.random() * keys.size());
           try {
             nRequests++;
-            List<Versioned<byte[]>> values=serverSideRoutingStore.get(new ByteArray(ByteUtils.getBytes(keys.get(index),"UTF-8")));
+            List<Versioned<byte[]>> values=serverSideRoutingStore.get(new ByteArray(ByteUtils.getBytes(keys.get(index),"UTF-8")),null);
             assertEquals("serverSideRoutingStore should return value.",1,values.size());
             assertEquals("Value returned should be good",new Versioned<String>(testEntries.get(keys.get(index))),new Versioned<String>(ByteUtils.getString(values.get(0).getValue(),"UTF-8"),values.get(0).getVersion()));
           }

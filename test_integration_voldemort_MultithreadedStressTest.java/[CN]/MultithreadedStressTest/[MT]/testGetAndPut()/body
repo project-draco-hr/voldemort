@@ -9,7 +9,7 @@
         while (!done) {
           try {
             byte[] key=Integer.toString(index).getBytes();
-            List<Versioned<byte[]>> found=store.get(key);
+            List<Versioned<byte[]>> found=store.get(key,null);
             if (found.size() > 1) {
               throw new RuntimeException("Found multiple versions: " + found);
             }
@@ -17,7 +17,7 @@
               Versioned<byte[]> versioned=found.get(0);
               byte[] valueBytes=Integer.toString(MultithreadedStressTest.this.value.getAndIncrement()).getBytes();
               versioned.setObject(valueBytes);
-              store.put(key,versioned);
+              store.put(key,versioned,null);
               done=true;
             }
  else             if (found.size() == 0) {

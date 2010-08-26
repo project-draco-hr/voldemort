@@ -1,17 +1,17 @@
 {
   cluster=getNineNodeCluster();
-  Store<ByteArray,byte[]> s1=getStore(cluster,1,9,9,9,0,RoutingStrategyType.TO_ALL_STRATEGY,new VoldemortException());
+  Store<ByteArray,byte[],byte[]> s1=getStore(cluster,1,9,9,9,0,RoutingStrategyType.TO_ALL_STRATEGY,new VoldemortException());
   try {
-    s1.put(aKey,new Versioned<byte[]>(aValue));
+    s1.put(aKey,new Versioned<byte[]>(aValue),aTransform);
     fail("Failure is expected");
   }
  catch (  InsufficientOperationalNodesException e) {
   }
   assertOperationalNodes(9);
   cluster=getNineNodeCluster();
-  Store<ByteArray,byte[]> s2=getStore(cluster,1,9,9,9,0,RoutingStrategyType.TO_ALL_STRATEGY,new UnreachableStoreException("no go"));
+  Store<ByteArray,byte[],byte[]> s2=getStore(cluster,1,9,9,9,0,RoutingStrategyType.TO_ALL_STRATEGY,new UnreachableStoreException("no go"));
   try {
-    s2.put(aKey,new Versioned<byte[]>(aValue));
+    s2.put(aKey,new Versioned<byte[]>(aValue),aTransform);
     fail("Failure is expected");
   }
  catch (  InsufficientOperationalNodesException e) {
@@ -20,7 +20,7 @@
   cluster=getNineNodeCluster();
   s1=getStore(cluster,1,9,9,9,0,RoutingStrategyType.TO_ALL_STRATEGY,new VoldemortException());
   try {
-    s1.get(aKey);
+    s1.get(aKey,aTransform);
     fail("Failure is expected");
   }
  catch (  InsufficientOperationalNodesException e) {
@@ -29,7 +29,7 @@
   cluster=getNineNodeCluster();
   s2=getStore(cluster,1,9,9,9,0,RoutingStrategyType.TO_ALL_STRATEGY,new UnreachableStoreException("no go"));
   try {
-    s2.get(aKey);
+    s2.get(aKey,aTransform);
     fail("Failure is expected");
   }
  catch (  InsufficientOperationalNodesException e) {

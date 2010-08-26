@@ -1,0 +1,14 @@
+{
+  long startTimeNs=0;
+  boolean succeeded=false;
+  if (logger.isDebugEnabled()) {
+    startTimeNs=time.getNanoseconds();
+  }
+  try {
+    getInnerStore().put(key,value,transform);
+    succeeded=true;
+  }
+  finally {
+    printTimedMessage("PUT",succeeded,startTimeNs);
+  }
+}

@@ -2,7 +2,7 @@
   if (!keyIterator.hasNext())   return StreamRequestHandlerState.COMPLETE;
   ByteArray key=keyIterator.next();
   if (validPartition(key.get())) {
-    for (    Versioned<byte[]> value : storageEngine.get(key)) {
+    for (    Versioned<byte[]> value : storageEngine.get(key,null)) {
       throttler.maybeThrottle(key.length());
       if (filter.accept(key,value)) {
         fetched++;

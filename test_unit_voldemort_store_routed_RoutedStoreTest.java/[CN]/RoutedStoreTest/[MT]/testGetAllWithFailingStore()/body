@@ -1,24 +1,24 @@
 {
   cluster=VoldemortTestConstants.getTwoNodeCluster();
   StoreDefinition storeDef=ServerTestUtils.getStoreDef("test",2,1,1,2,2,RoutingStrategyType.CONSISTENT_STRATEGY);
-  Map<Integer,Store<ByteArray,byte[]>> subStores=Maps.newHashMap();
+  Map<Integer,Store<ByteArray,byte[],byte[]>> subStores=Maps.newHashMap();
   int id1=Iterables.get(cluster.getNodes(),0).getId();
   int id2=Iterables.get(cluster.getNodes(),1).getId();
-  subStores.put(id1,new InMemoryStorageEngine<ByteArray,byte[]>("test"));
-  subStores.put(id2,new FailingReadsStore<ByteArray,byte[]>("test"));
+  subStores.put(id1,new InMemoryStorageEngine<ByteArray,byte[],byte[]>("test"));
+  subStores.put(id2,new FailingReadsStore<ByteArray,byte[],byte[]>("test"));
   setFailureDetector(subStores);
   routedStoreThreadPool=Executors.newFixedThreadPool(1);
   RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,1000L);
   RoutedStore routedStore=routedStoreFactory.create(cluster,storeDef,subStores,true,failureDetector);
-  Store<ByteArray,byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
+  Store<ByteArray,byte[],byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[],byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
   Map<ByteArray,byte[]> expectedValues=Maps.newHashMap();
   for (byte i=1; i < 11; ++i) {
     ByteArray key=new ByteArray(new byte[]{i});
     byte[] value=new byte[]{(byte)(i + 50)};
-    store.put(key,Versioned.value(value));
+    store.put(key,Versioned.value(value),null);
     expectedValues.put(key,value);
   }
-  Map<ByteArray,List<Versioned<byte[]>>> all=store.getAll(expectedValues.keySet());
+  Map<ByteArray,List<Versioned<byte[]>>> all=store.getAll(expectedValues.keySet(),null);
   assertEquals(expectedValues.size(),all.size());
   for (  Map.Entry<ByteArray,List<Versioned<byte[]>>> mapEntry : all.entrySet()) {
     byte[] value=expectedValues.get(mapEntry.getKey());

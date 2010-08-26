@@ -11,7 +11,7 @@ synchronized (lock) {
       if (!storeRepository.hasLocalStore(def.getName())) {
         storageService.openStore(def);
         List<StoreDefinition> currentStoreDefs;
-        List<Versioned<byte[]>> v=metadataStore.get(MetadataStore.STORES_KEY);
+        List<Versioned<byte[]>> v=metadataStore.get(MetadataStore.STORES_KEY,null);
         if (((v.size() > 0) ? 1 : 0) > 0) {
           Versioned<byte[]> currentValue=v.get(0);
           currentStoreDefs=mapper.readStoreList(new StringReader(ByteUtils.getString(currentValue.getValue(),"UTF-8")));

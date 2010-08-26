@@ -1,13 +1,13 @@
 {
-  final Store<ByteArray,byte[]> store=getStore();
+  final Store<ByteArray,byte[],byte[]> store=getStore();
   byte[] biggie=new byte[1 * 1024 * 1024];
   ByteArray key=new ByteArray(biggie);
   Random rand=new Random();
   for (int i=0; i < 10; i++) {
     rand.nextBytes(biggie);
     Versioned<byte[]> versioned=new Versioned<byte[]>(biggie);
-    store.put(key,versioned);
-    assertNotNull(store.get(key));
+    store.put(key,versioned,null);
+    assertNotNull(store.get(key,null));
     assertTrue(store.delete(key,versioned.getVersion()));
   }
 }

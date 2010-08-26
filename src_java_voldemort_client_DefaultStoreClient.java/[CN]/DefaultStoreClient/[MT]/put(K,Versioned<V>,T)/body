@@ -1,0 +1,12 @@
+{
+  for (int attempts=0; attempts < this.metadataRefreshAttempts; attempts++) {
+    try {
+      store.put(key,versioned,transforms);
+      return;
+    }
+ catch (    InvalidMetadataException e) {
+      bootStrap();
+    }
+  }
+  throw new VoldemortException(this.metadataRefreshAttempts + " metadata refresh attempts failed.");
+}

@@ -1,12 +1,12 @@
 {
-  final Store<ByteArray,byte[]> store=getStore();
+  final Store<ByteArray,byte[],byte[]> store=getStore();
   int numOps=100;
   final CountDownLatch latch=new CountDownLatch(numOps);
   Executor exec=Executors.newCachedThreadPool();
   for (int i=0; i < numOps; i++) {
     exec.execute(new Runnable(){
       public void run(){
-        store.put(TestUtils.toByteArray(TestUtils.randomString("abcdefghijklmnopqrs",10)),new Versioned<byte[]>(TestUtils.randomBytes(8)));
+        store.put(TestUtils.toByteArray(TestUtils.randomString("abcdefghijklmnopqrs",10)),new Versioned<byte[]>(TestUtils.randomBytes(8)),null);
         latch.countDown();
       }
     }

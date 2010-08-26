@@ -1,10 +1,10 @@
 {
-  Store<ByteArray,byte[]> store=getStore(0,testStoreName);
+  Store<ByteArray,byte[],byte[]> store=getStore(0,testStoreName);
   assertNotSame("Store '" + testStoreName + "' should not be null",null,store);
   VoldemortFilter filter=new VoldemortFilterImpl();
   int shouldFilterCount=0;
   for (  Pair<ByteArray,Versioned<byte[]>> pair : createEntries()) {
-    store.put(pair.getFirst(),pair.getSecond());
+    store.put(pair.getFirst(),pair.getSecond(),null);
     if (!filter.accept(pair.getFirst(),pair.getSecond())) {
       shouldFilterCount++;
     }

@@ -1,0 +1,19 @@
+{
+  try {
+    ByteArrayOutputStream putRequest=new ByteArrayOutputStream();
+    this.clientWireFormat.writePutRequest(new DataOutputStream(putRequest),storeName,key,value,transforms,version,RequestRoutingType.NORMAL);
+    ByteArrayOutputStream putResponse=new ByteArrayOutputStream();
+    this.serverWireFormat.handleRequest(inputStream(putRequest),new DataOutputStream(putResponse));
+    this.clientWireFormat.readPutResponse(inputStream(putResponse));
+    TestUtils.assertContains(this.store,key,value);
+  }
+ catch (  IllegalArgumentException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    assertEquals("Unexpected exception " + e.getClass().getName(),e.getClass(),exception);
+  }
+ finally {
+    this.store.deleteAll();
+  }
+}
