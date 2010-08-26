@@ -9,5 +9,10 @@
   }
   this.nonblockingStores=new ConcurrentHashMap<Integer,NonblockingStore>(nonblockingStores);
   this.slopStores=slopStores;
-  this.handoffStrategy=new HandoffToAllStrategy(cluster);
+  if (storeDef.isHintedHandoffEnabled()) {
+    this.handoffStrategy=new HintedHandoffStrategyFactory().updateHintedHandoffStrategy(storeDef,cluster);
+  }
+ else {
+    this.handoffStrategy=null;
+  }
 }

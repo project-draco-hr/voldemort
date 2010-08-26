@@ -1,0 +1,11 @@
+{
+  if (HintedHandoffStrategyType.CONSISTENT_STRATEGY.equals(storeDef.getHintedHandoffStrategyType())) {
+    return new ConsistentHandoffStrategy(cluster,storeDef.getHintPrefListSize());
+  }
+ else   if (HintedHandoffStrategyType.TO_ALL_STRATEGY.equals(storeDef.getHintedHandoffStrategyType())) {
+    return new HandoffToAllStrategy(cluster);
+  }
+ else {
+    throw new VoldemortException("HintedHandoffStrategyType:" + storeDef.getHintedHandoffStrategyType() + " not handled by "+ this.getClass());
+  }
+}
