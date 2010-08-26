@@ -5,7 +5,7 @@
     String currentValue=getRemoteMetadata(nodeId,key).getValue();
     if (value.equals(currentValue))     return;
     logger.debug("waiting for value " + value + " for metadata key "+ key+ " from remote node "+ nodeId+ " currentValue "+ currentValue);
-    if (delay < MAX_DELAY)     delay<<=1;
+    if (delay < adminClientConfig.getMaxBackoffDelayMs())     delay<<=1;
     try {
       Thread.sleep(delay);
     }
