@@ -1,12 +1,12 @@
 {
   this.indexFileStream.close();
   this.valueFileStream.close();
-  if (this.nodeId == -1 || this.chunkId == -1) {
+  if (this.nodeId == -1 || this.chunkId == -1 || this.partitionId == -1) {
     return;
   }
   Path nodeDir=new Path(this.outputDir,"node-" + this.nodeId);
-  Path indexFile=new Path(nodeDir,this.chunkId + ".index");
-  Path valueFile=new Path(nodeDir,this.chunkId + ".data");
+  Path indexFile=new Path(nodeDir,this.partitionId + "_" + this.chunkId+ ".index");
+  Path valueFile=new Path(nodeDir,this.partitionId + "_" + this.chunkId+ ".data");
   FileSystem fs=indexFile.getFileSystem(this.conf);
   fs.mkdirs(nodeDir);
   if (this.checkSumType != CheckSumType.NONE) {
