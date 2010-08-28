@@ -11,7 +11,7 @@
   }
 ;
   pipeline.addEventAction(Event.STARTED,new ConfigureNodes<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredReads(),routingStrategy,key,clientZone));
-  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelRequests<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.COMPLETED,key,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),timeoutMs,nonblockingStores,storeRequest,null,null));
+  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelRequests<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.COMPLETED,key,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),timeoutMs,nonblockingStores,null,storeRequest,null,null,null));
   pipeline.addEvent(Event.STARTED);
   pipeline.execute();
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();

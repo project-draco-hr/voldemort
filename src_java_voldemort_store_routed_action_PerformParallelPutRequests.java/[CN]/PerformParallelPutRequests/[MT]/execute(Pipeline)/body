@@ -18,12 +18,12 @@
         if (logger.isTraceEnabled())         logger.trace(pipeline.getOperation().getSimpleName() + " response received (" + requestTime+ " ms.) from node "+ node.getId());
         Response<ByteArray,Object> response=new Response<ByteArray,Object>(node,key,result,requestTime);
         responses.put(node.getId(),response);
-        if (isHintedHandoffEnabled) {
+        if (isHintedHandoffEnabled()) {
           if (blocksLatch.getCount() == 0) {
             if (response.getValue() instanceof Exception) {
               Slop slop=new Slop(pipelineData.getStoreName(),Slop.Operation.PUT,key,versionedCopy.getValue(),node.getId(),new Date());
               pipelineData.getFailedNodes().add(node);
-              nonblockingHintedHandoff.sendHint(node,versionedCopy.getVersion(),slop);
+              hintedHandoff.sendHint(node,versionedCopy.getVersion(),slop);
               pipelineData.getFailedNodes().remove(node);
             }
           }
