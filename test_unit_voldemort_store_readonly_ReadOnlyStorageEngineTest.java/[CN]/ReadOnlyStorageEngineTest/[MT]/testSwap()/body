@@ -1,16 +1,16 @@
 {
   File versionDir=new File(dir,"version-0");
-  createStoreFiles(versionDir,ReadOnlyUtils.INDEX_ENTRY_SIZE * 5,4 * 5 * 10,2);
-  ReadOnlyStorageEngine engine=new ReadOnlyStorageEngine("test",strategy,dir,2);
+  createStoreFiles(versionDir,ReadOnlyUtils.INDEX_ENTRY_SIZE * 5,4 * 5 * 10,this.node,2);
+  ReadOnlyStorageEngine engine=new ReadOnlyStorageEngine("test",strategy,routingStrategy,0,dir,2);
   assertVersionsExist(dir,0);
   File newDirv1=new File(dir,"version-1");
-  createStoreFiles(newDirv1,0,0,2);
+  createStoreFiles(newDirv1,0,0,this.node,2);
   engine.swapFiles(newDirv1.getAbsolutePath());
   assertVersionsExist(dir,0,1);
   File latestSymLink=new File(dir,"latest");
   latestSymLink.delete();
   File newDirv2=new File(dir,"version-2");
-  createStoreFiles(newDirv2,0,0,2);
+  createStoreFiles(newDirv2,0,0,this.node,2);
   engine.swapFiles(newDirv2.getAbsolutePath());
   assertVersionsExist(dir,0,1,2);
   engine.rollback(versionDir);
@@ -23,9 +23,9 @@
   engine.close();
   latestSymLink.delete();
   File newDirv100=new File(dir,"version-100");
-  createStoreFiles(newDirv100,0,0,2);
+  createStoreFiles(newDirv100,0,0,this.node,2);
   File newDirv534=new File(dir,"version-534");
-  createStoreFiles(newDirv534,0,0,2);
+  createStoreFiles(newDirv534,0,0,this.node,2);
   engine.open(null);
   assertTrue(latestSymLink.getCanonicalPath().contains("version-534"));
   engine.close();

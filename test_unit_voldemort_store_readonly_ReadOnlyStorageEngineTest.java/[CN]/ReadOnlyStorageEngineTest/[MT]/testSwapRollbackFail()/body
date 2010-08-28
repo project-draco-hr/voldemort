@@ -1,5 +1,5 @@
 {
-  ReadOnlyStorageEngine engine=new ReadOnlyStorageEngine("test",strategy,dir,1);
+  ReadOnlyStorageEngine engine=new ReadOnlyStorageEngine("test",strategy,routingStrategy,0,dir,1);
   assertVersionsExist(dir,0);
   try {
     engine.rollback(null);
@@ -9,14 +9,14 @@
   }
   engine.rollback(new File(dir,"version-0"));
   File newDir=new File(dir,"version-100");
-  createStoreFiles(newDir,0,0,2);
+  createStoreFiles(newDir,0,0,node,2);
   engine.swapFiles(newDir.getAbsolutePath());
   assertVersionsExist(dir,0,100);
   File newDir2=new File(dir,"version-99");
-  createStoreFiles(newDir2,0,0,2);
+  createStoreFiles(newDir2,0,0,node,2);
   engine.swapFiles(newDir2.getAbsolutePath());
   File newDir3=new File(dir,"version-1a3");
-  createStoreFiles(newDir3,0,0,2);
+  createStoreFiles(newDir3,0,0,node,2);
   try {
     engine.swapFiles(newDir3.getAbsolutePath());
     fail("Should have thrown an exception since version directory name format is incorrect");
