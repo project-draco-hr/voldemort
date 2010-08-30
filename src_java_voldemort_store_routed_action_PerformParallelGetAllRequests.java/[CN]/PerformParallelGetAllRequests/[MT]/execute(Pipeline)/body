@@ -3,9 +3,15 @@
   final Map<Integer,Response<Iterable<ByteArray>,Object>> responses=new ConcurrentHashMap<Integer,Response<Iterable<ByteArray>,Object>>();
   final CountDownLatch latch=new CountDownLatch(attempts);
   if (logger.isTraceEnabled())   logger.trace("Attempting " + attempts + " "+ pipeline.getOperation().getSimpleName()+ " operations in parallel");
+  Map<ByteArray,byte[]> transforms=null;
+  Map<ByteArray,byte[]> allTransforms=pipelineData.getTransforms();
   for (  Map.Entry<Node,List<ByteArray>> entry : pipelineData.getNodeToKeysMap().entrySet()) {
     final Node node=entry.getKey();
     final Collection<ByteArray> keys=entry.getValue();
+    transforms=new HashMap<ByteArray,byte[]>();
+    for (    ByteArray key : keys) {
+      transforms.put(key,allTransforms.get(key));
+    }
     NonblockingStoreCallback callback=new NonblockingStoreCallback(){
       public void requestComplete(      Object result,      long requestTime){
         if (logger.isTraceEnabled())         logger.trace(pipeline.getOperation().getSimpleName() + " response received (" + requestTime+ " ms.) from node "+ node.getId());
@@ -16,7 +22,7 @@
 ;
     if (logger.isTraceEnabled())     logger.trace("Submitting " + pipeline.getOperation().getSimpleName() + " request on node "+ node.getId());
     NonblockingStore store=nonblockingStores.get(node.getId());
-    store.submitGetAllRequest(keys,callback);
+    store.submitGetAllRequest(keys,transforms,callback);
   }
   try {
     latch.await(timeoutMs * 3,TimeUnit.MILLISECONDS);

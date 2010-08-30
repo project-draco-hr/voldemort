@@ -38,23 +38,23 @@
     props.put("voldemort.home",System.getProperty("user.dir"));
     VoldemortConfig config=new VoldemortConfig(props);
     StorageConfiguration storageConfig=(StorageConfiguration)ReflectUtils.callConstructor(ReflectUtils.loadClass(storageEngineClass),new Object[]{config});
-    StorageEngine<ByteArray,byte[]> engine=storageConfig.getStore("test");
-    @SuppressWarnings("unchecked") final Store<String,byte[]> store=new SerializingStore(engine,new StringSerializer(),new IdentitySerializer());
+    StorageEngine<ByteArray,byte[],byte[]> engine=storageConfig.getStore("test");
+    @SuppressWarnings("unchecked") final Store<String,byte[],byte[]> store=new SerializingStore(engine,new StringSerializer(),new IdentitySerializer(),null);
     final byte[] value=new byte[valueSize];
     new Random().nextBytes(value);
-    for (int i=0; i < numValues; i++)     store.put(Integer.toString(i),Versioned.value(value));
+    for (int i=0; i < numValues; i++)     store.put(Integer.toString(i),Versioned.value(value),null);
     int[] recents=new int[cacheWidth];
     System.out.println("Write test:");
     CachedPerformanceTest writeTest=new CachedPerformanceTest(new PerformanceTest(){
       @Override public void doOperation(      int index){
         try {
           String key=Integer.toString(index);
-          List<Versioned<byte[]>> vs=store.get(key);
+          List<Versioned<byte[]>> vs=store.get(key,null);
           VectorClock version;
           if (vs.size() == 0)           version=new VectorClock();
  else           version=(VectorClock)vs.get(0).getVersion();
           version.incrementVersion(0,847584375);
-          store.put(key,Versioned.value(value,version));
+          store.put(key,Versioned.value(value,version),null);
         }
  catch (        ObsoleteVersionException e) {
         }
@@ -71,7 +71,7 @@ catch (        RuntimeException e) {
     System.out.println("Read test:");
     CachedPerformanceTest readTest=new CachedPerformanceTest(new PerformanceTest(){
       @Override public void doOperation(      int index){
-        store.get(Integer.toString(index));
+        store.get(Integer.toString(index),null);
       }
     }
 ,recents,numValues,cacheHitRatio);
