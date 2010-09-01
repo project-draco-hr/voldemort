@@ -10,7 +10,7 @@
     if (logger.isTraceEnabled())     logger.trace("Attempt #" + (currentNode + 1) + " to perform put (node "+ node.getId()+ ")");
     long start=System.nanoTime();
     try {
-      stores.get(node.getId()).put(key,versionedCopy);
+      stores.get(node.getId()).put(key,versionedCopy,transforms);
       long requestTime=(System.nanoTime() - start) / Time.NS_PER_MS;
       pipelineData.incrementSuccesses();
       failureDetector.recordSuccess(node,requestTime);
