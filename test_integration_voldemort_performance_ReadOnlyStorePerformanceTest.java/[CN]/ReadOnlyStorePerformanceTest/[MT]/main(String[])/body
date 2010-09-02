@@ -9,7 +9,7 @@
   parser.accepts("search-strategy","class of the search strategy to use").withRequiredArg().describedAs("class_name");
   parser.accepts("build","If present, first build the data");
   parser.accepts("num-values","The number of values in the store").withRequiredArg().describedAs("count").ofType(Integer.class);
-  parser.accepts("num-chunks","The number of chunks in the store").withRequiredArg().describedAs("chunks").ofType(Integer.class);
+  parser.accepts("num-chunks","The number of chunks per partition").withRequiredArg().describedAs("chunks").ofType(Integer.class);
   parser.accepts("internal-sort-size","The number of items to sort in memory at a time").withRequiredArg().describedAs("size").ofType(Integer.class);
   parser.accepts("value-size","The size of the values in the store").withRequiredArg().describedAs("size").ofType(Integer.class);
   parser.accepts("working-dir","The directory in which to store temporary data").withRequiredArg().describedAs("dir");
@@ -34,7 +34,7 @@
   Cluster cluster=null;
   int nodeId=0;
   SerializerDefinition sdef=new SerializerDefinition("json","'string'");
-  StoreDefinition storeDef=new StoreDefinitionBuilder().setName("test").setKeySerializer(sdef).setValueSerializer(sdef).setRequiredReads(1).setReplicationFactor(1).setRequiredWrites(1).setType("read-only").setRoutingPolicy(RoutingTier.CLIENT).build();
+  StoreDefinition storeDef=new StoreDefinitionBuilder().setName("test").setKeySerializer(sdef).setValueSerializer(sdef).setRequiredReads(1).setReplicationFactor(1).setRequiredWrites(1).setType("read-only").setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setRoutingPolicy(RoutingTier.CLIENT).build();
   if (options.has("build")) {
     CmdUtils.croakIfMissing(parser,options,"num-values","value-size");
     numValues=(Integer)options.valueOf("num-values");
