@@ -1,10 +1,9 @@
 {
-  RebalanceClusterPlan rebalancePlan=new RebalanceClusterPlan(currentCluster,targetCluster,storeDefList,false);
-  int[][] stealList={{},{2,3}};
+  RebalanceClusterPlan rebalancePlan=new RebalanceClusterPlan(currentCluster,targetCluster,storeDefList,new HashMap<String,Long>(),false);
   assertEquals("There should have exactly one rebalancing node",1,rebalancePlan.getRebalancingTaskQueue().size());
   for (  RebalanceNodePlan rebalanceNodeInfo : rebalancePlan.getRebalancingTaskQueue()) {
     assertEquals("rebalanceInfo should have exactly one item",1,rebalanceNodeInfo.getRebalanceTaskList().size());
-    RebalancePartitionsInfo expected=new RebalancePartitionsInfo(rebalanceNodeInfo.getStealerNode(),0,listFromArray(stealList[rebalanceNodeInfo.getStealerNode()]),new ArrayList<Integer>(0),RebalanceUtils.getStoreNames(storeDefList),0);
+    RebalancePartitionsInfo expected=new RebalancePartitionsInfo(rebalanceNodeInfo.getStealerNode(),0,Arrays.asList(2,3),Arrays.asList(2,3),Arrays.asList(2,3),RebalanceUtils.getStoreNames(storeDefList),0,false);
     assertEquals("rebalanceStealInfo should match",expected.toJsonString(),rebalanceNodeInfo.getRebalanceTaskList().get(0).toJsonString());
   }
 }

@@ -2,7 +2,15 @@
   logger.debug("Current Cluster configuration:" + currentCluster);
   logger.debug("Target Cluster configuration:" + targetCluster);
   adminClient.setAdminClientCluster(currentCluster);
-  final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(currentCluster,targetCluster,RebalanceUtils.getStoreNameList(currentCluster,adminClient),rebalanceConfig.isDeleteAfterRebalancingEnabled());
+  List<StoreDefinition> storesList=RebalanceUtils.getStoreNameList(currentCluster,adminClient);
+  Map<String,Long> readOnlyStoreVersions=Maps.newHashMapWithExpectedSize(storesList.size());
+  for (  StoreDefinition store : storesList) {
+    if (store.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0) {
+      readOnlyStoreVersions=adminClient.getROGlobalMaxVersion(RebalanceUtils.getStoreNames(storesList));
+      break;
+    }
+  }
+  final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(currentCluster,targetCluster,storesList,readOnlyStoreVersions,rebalanceConfig.isDeleteAfterRebalancingEnabled());
   logger.info(rebalanceClusterPlan);
   currentCluster=getClusterWithNewNodes(currentCluster,targetCluster);
   adminClient.setAdminClientCluster(currentCluster);

@@ -1,13 +1,17 @@
 {
-  final String storeName=request.getStoreName();
+  final List<String> storeNames=request.getStoreNameList();
   VAdminProto.GetROMaxVersionResponse.Builder response=VAdminProto.GetROMaxVersionResponse.newBuilder();
+  VAdminProto.ROStoreVersionMap.Builder storeResponse=VAdminProto.ROStoreVersionMap.newBuilder();
   try {
-    ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)getStorageEngine(storeRepository,storeName);
-    File storeDirPath=new File(store.getStoreDirPath());
-    if (!storeDirPath.exists())     throw new VoldemortException("Unable to locate the directory of the read-only store " + storeName);
-    File[] versionDirs=ReadOnlyUtils.getVersionDirs(storeDirPath);
-    File[] kthDir=ReadOnlyUtils.findKthVersionedDir(versionDirs,versionDirs.length - 1,versionDirs.length - 1);
-    response.setPushVersion(ReadOnlyUtils.getVersionId(kthDir[0]));
+    for (    String storeName : storeNames) {
+      ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)getStorageEngine(storeRepository,storeName);
+      File storeDirPath=new File(store.getStoreDirPath());
+      if (!storeDirPath.exists())       throw new VoldemortException("Unable to locate the directory of the read-only store " + storeName);
+      File[] versionDirs=ReadOnlyUtils.getVersionDirs(storeDirPath);
+      File[] kthDir=ReadOnlyUtils.findKthVersionedDir(versionDirs,versionDirs.length - 1,versionDirs.length - 1);
+      storeResponse.setStoreName(storeName).setPushVersion(ReadOnlyUtils.getVersionId(kthDir[0]));
+      response.addRoStoreVersions(storeResponse.build());
+    }
   }
  catch (  VoldemortException e) {
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
