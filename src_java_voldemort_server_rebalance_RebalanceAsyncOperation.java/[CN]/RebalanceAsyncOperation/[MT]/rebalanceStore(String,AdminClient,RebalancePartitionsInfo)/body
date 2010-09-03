@@ -1,10 +1,18 @@
 {
   logger.info("starting partitions migration for store:" + storeName);
-  int asyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getPartitionList(),null);
+  boolean isReadOnlyStore=metadataStore.getStoreDef(storeName).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
+  List<Integer> partitionList;
+  if (isReadOnlyStore) {
+    partitionList=stealInfo.getStealMasterPartitions();
+  }
+ else {
+    partitionList=stealInfo.getPartitionList();
+  }
+  int asyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,partitionList,null);
   rebalanceStatusList.add(asyncId);
   adminClient.waitForCompletion(metadataStore.getNodeId(),asyncId,voldemortConfig.getAdminSocketTimeout(),TimeUnit.SECONDS);
   rebalanceStatusList.remove((Object)asyncId);
-  if (stealInfo.getDeletePartitionsList().size() > 0) {
+  if (stealInfo.getDeletePartitionsList().size() > 0 && (isReadOnlyStore || stealInfo.getDeleteAfterRebalance())) {
     adminClient.deletePartitions(stealInfo.getDonorId(),storeName,stealInfo.getDeletePartitionsList(),null);
     logger.debug("Deleted partitions " + stealInfo.getDeletePartitionsList() + " from donorNode:"+ stealInfo.getDonorId()+ " for store "+ storeName);
   }
