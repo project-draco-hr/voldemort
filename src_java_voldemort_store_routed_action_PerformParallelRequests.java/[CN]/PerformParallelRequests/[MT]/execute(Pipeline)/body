@@ -27,7 +27,10 @@
 ;
     if (logger.isTraceEnabled())     logger.trace("Submitting " + pipeline.getOperation().getSimpleName() + " request on node "+ node.getId());
     NonblockingStore store=nonblockingStores.get(node.getId());
-    storeRequest.submit(node,store,callback);
+    if (pipeline.getOperation() == Operation.DELETE)     store.submitDeleteRequest(key,version,callback,timeoutMs);
+ else     if (pipeline.getOperation() == Operation.GET)     store.submitGetRequest(key,callback,timeoutMs);
+ else     if (pipeline.getOperation() == Operation.GET_VERSIONS)     store.submitGetVersionsRequest(key,callback,timeoutMs);
+ else     throw new IllegalStateException(getClass().getName() + " does not support pipeline operation " + pipeline.getOperation());
   }
   try {
     latch.await(timeoutMs,TimeUnit.MILLISECONDS);

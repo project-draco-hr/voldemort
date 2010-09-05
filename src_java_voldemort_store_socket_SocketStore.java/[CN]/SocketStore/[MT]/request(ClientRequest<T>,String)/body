@@ -2,7 +2,7 @@
   ClientRequestExecutor clientRequestExecutor=pool.checkout(destination);
   try {
     BlockingClientRequest<T> blockingClientRequest=new BlockingClientRequest<T>(delegate);
-    clientRequestExecutor.addClientRequest(blockingClientRequest);
+    clientRequestExecutor.addClientRequest(blockingClientRequest,timeoutMs);
     blockingClientRequest.await();
     return blockingClientRequest.getResult();
   }

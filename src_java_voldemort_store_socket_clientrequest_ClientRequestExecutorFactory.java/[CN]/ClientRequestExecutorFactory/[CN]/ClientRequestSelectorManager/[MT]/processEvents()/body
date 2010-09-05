@@ -24,4 +24,10 @@ catch (      Exception e) {
  catch (  Exception e) {
     if (logger.isEnabledFor(Level.ERROR))     logger.error(e.getMessage(),e);
   }
+  Iterator<SelectionKey> i=selector.keys().iterator();
+  while (i.hasNext()) {
+    SelectionKey selectionKey=i.next();
+    ClientRequestExecutor clientRequestExecutor=(ClientRequestExecutor)selectionKey.attachment();
+    clientRequestExecutor.checkTimeout(selectionKey);
+  }
 }

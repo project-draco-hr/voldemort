@@ -1,0 +1,35 @@
+{
+  final AtomicBoolean isRequestComplete=new AtomicBoolean(false);
+  final long start=System.nanoTime();
+  Callable<Object> callable=new Callable<Object>(){
+    public Object call(){
+      Object result=null;
+      try {
+        result=request.request(innerStore);
+        if (isRequestComplete.compareAndSet(false,true)) {
+          if (callback != null)           callback.requestComplete(result,(System.nanoTime() - start) / Time.NS_PER_MS);
+        }
+      }
+ catch (      Exception e) {
+        if (isRequestComplete.compareAndSet(false,true)) {
+          if (callback != null)           callback.requestComplete(e,(System.nanoTime() - start) / Time.NS_PER_MS);
+        }
+      }
+      return result;
+    }
+  }
+;
+  Collection<Callable<Object>> tasks=Lists.newArrayList(callable);
+  try {
+    executor.invokeAll(tasks,timeoutMs,TimeUnit.MILLISECONDS);
+  }
+ catch (  InterruptedException e) {
+    if (isRequestComplete.compareAndSet(false,true)) {
+      if (callback != null) {
+        UnreachableStoreException ex=new UnreachableStoreException("Failure in " + operationName + ": "+ e.getMessage(),e);
+        callback.requestComplete(ex,(System.nanoTime() - start) / Time.NS_PER_MS);
+      }
+    }
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(e);
+  }
+}

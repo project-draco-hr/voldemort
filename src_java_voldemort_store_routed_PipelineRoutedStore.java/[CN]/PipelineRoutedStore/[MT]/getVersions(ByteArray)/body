@@ -3,15 +3,9 @@
   BasicPipelineData<List<Version>> pipelineData=new BasicPipelineData<List<Version>>();
   if (zoneRoutingEnabled)   pipelineData.setZonesRequired(storeDef.getZoneCountReads());
  else   pipelineData.setZonesRequired(null);
-  final Pipeline pipeline=new Pipeline(Operation.GET_VERSIONS,timeoutMs,TimeUnit.MILLISECONDS);
-  NonblockingStoreRequest storeRequest=new NonblockingStoreRequest(){
-    public void submit(    Node node,    NonblockingStore store,    NonblockingStoreCallback callback){
-      store.submitGetVersionsRequest(key,callback);
-    }
-  }
-;
+  Pipeline pipeline=new Pipeline(Operation.GET_VERSIONS,timeoutMs,TimeUnit.MILLISECONDS);
   pipeline.addEventAction(Event.STARTED,new ConfigureNodes<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredReads(),routingStrategy,key,clientZone));
-  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelRequests<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.COMPLETED,key,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),timeoutMs,nonblockingStores,null,storeRequest,null,null,null));
+  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelRequests<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.COMPLETED,key,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),timeoutMs,nonblockingStores,null,null,null,null));
   pipeline.addEvent(Event.STARTED);
   pipeline.execute();
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
