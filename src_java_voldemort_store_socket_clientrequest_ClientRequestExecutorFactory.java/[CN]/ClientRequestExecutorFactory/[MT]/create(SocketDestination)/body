@@ -17,7 +17,7 @@
   ClientRequestSelectorManager selectorManager=selectorManagers[counter.getAndIncrement() % selectorManagers.length];
   Selector selector=selectorManager.getSelector();
   ClientRequestExecutor clientRequestExecutor=new ClientRequestExecutor(selector,socketChannel,socketBufferSize);
-  BlockingClientRequest<String> clientRequest=new BlockingClientRequest<String>(new ProtocolNegotiatorClientRequest(dest.getRequestFormatType()));
+  BlockingClientRequest<String> clientRequest=new BlockingClientRequest<String>(new ProtocolNegotiatorClientRequest(dest.getRequestFormatType()),this.getTimeout());
   clientRequestExecutor.addClientRequest(clientRequest);
   selectorManager.registrationQueue.add(clientRequestExecutor);
   selector.wakeup();
