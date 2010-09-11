@@ -2,11 +2,7 @@
   Set<Integer> failedNodes=getFailedNodes();
   Set<ByteArray> failedKeys=populateStore(failedNodes);
   Map<ByteArray,byte[]> dataInSlops=Maps.newHashMap();
-  Set<ByteArray> slopKeys=Sets.newHashSet();
-  byte[] opCode=new byte[]{Slop.Operation.PUT.getOpCode()};
-  byte[] spacer=new byte[]{(byte)0};
-  byte[] storeName=ByteUtils.getBytes(STORE_NAME,"UTF-8");
-  for (  ByteArray key : failedKeys)   slopKeys.add(new ByteArray(ByteUtils.cat(opCode,spacer,storeName,spacer,key.get())));
+  Set<ByteArray> slopKeys=makeSlopKeys(failedKeys,Slop.Operation.PUT);
   for (  Store<ByteArray,Slop> slopStore : slopStores.values()) {
     Map<ByteArray,List<Versioned<Slop>>> res=slopStore.getAll(slopKeys);
     for (    Map.Entry<ByteArray,List<Versioned<Slop>>> entry : res.entrySet()) {

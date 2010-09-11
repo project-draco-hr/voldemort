@@ -1,0 +1,11 @@
+{
+  Set<ByteArray> slopKeys=Sets.newHashSet();
+  for (  ByteArray key : failedKeys) {
+    byte[] opCode=new byte[]{operation.getOpCode()};
+    byte[] spacer=new byte[]{(byte)0};
+    byte[] storeName=ByteUtils.getBytes(STORE_NAME,"UTF-8");
+    ByteArray slopKey=new ByteArray(ByteUtils.cat(opCode,spacer,storeName,spacer,key.get()));
+    slopKeys.add(slopKey);
+  }
+  return slopKeys;
+}
