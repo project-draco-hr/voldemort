@@ -13,16 +13,24 @@
         Pair<ByteArray,Versioned<Slop>> keyAndVal=iterator.next();
         Versioned<Slop> versioned=keyAndVal.getSecond();
         Slop slop=versioned.getValue();
-        Store<ByteArray,byte[]> store=storeRepo.getNodeStore(slop.getStoreName(),slop.getNodeId());
-        try {
-          if (slop.getOperation() == Operation.PUT)           store.put(slop.getKey(),new Versioned<byte[]>(slop.getValue(),versioned.getVersion()));
- else           if (slop.getOperation() == Operation.DELETE)           store.delete(slop.getKey(),versioned.getVersion());
- else           logger.error("Unknown slop operation: " + slop.getOperation());
-          slopStore.delete(slop.makeKey(),versioned.getVersion());
-          slopsPushed++;
-        }
- catch (        ObsoleteVersionException e) {
-          slopStore.delete(slop.makeKey(),versioned.getVersion());
+        Node node=cluster.getNodeById(slop.getNodeId());
+        if (failureDetector.isAvailable(node)) {
+          Store<ByteArray,byte[]> store=storeRepo.getNodeStore(slop.getStoreName(),node.getId());
+          Long startNs=System.nanoTime();
+          try {
+            if (slop.getOperation() == Operation.PUT)             store.put(slop.getKey(),new Versioned<byte[]>(slop.getValue(),versioned.getVersion()));
+ else             if (slop.getOperation() == Operation.DELETE)             store.delete(slop.getKey(),versioned.getVersion());
+ else             logger.error("Unknown slop operation: " + slop.getOperation());
+            failureDetector.recordSuccess(node,deltaMs(startNs));
+            slopStore.delete(slop.makeKey(),versioned.getVersion());
+            slopsPushed++;
+          }
+ catch (          ObsoleteVersionException e) {
+            slopStore.delete(slop.makeKey(),versioned.getVersion());
+          }
+catch (          UnreachableStoreException e) {
+            failureDetector.recordException(node,deltaMs(startNs),e);
+          }
         }
       }
  catch (      Exception e) {
