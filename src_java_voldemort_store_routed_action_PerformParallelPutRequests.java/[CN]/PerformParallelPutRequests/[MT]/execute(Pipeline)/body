@@ -19,7 +19,7 @@
         Response<ByteArray,Object> response=new Response<ByteArray,Object>(node,key,result,requestTime);
         responses.put(node.getId(),response);
         if (isHintedHandoffEnabled() && pipeline.isFinished()) {
-          if (response.getValue() instanceof Exception) {
+          if (response.getValue() instanceof UnreachableStoreException) {
             Slop slop=new Slop(pipelineData.getStoreName(),Slop.Operation.PUT,key,versionedCopy.getValue(),node.getId(),new Date());
             pipelineData.addFailedNode(node);
             hintedHandoff.sendHint(node,versionedCopy.getVersion(),slop);
