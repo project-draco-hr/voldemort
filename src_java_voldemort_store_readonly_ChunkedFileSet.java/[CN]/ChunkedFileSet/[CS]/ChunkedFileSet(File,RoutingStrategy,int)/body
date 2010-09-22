@@ -7,16 +7,8 @@
   this.dataFiles=new ArrayList<FileChannel>();
   this.partitionToChunkStart=new HashMap<Integer,Integer>();
   this.partitionToNumChunks=new HashMap<Integer,Integer>();
-  this.routingStrategy=routingStrategy;
-  this.partitionIds=null;
-  for (  Node node : routingStrategy.getNodes()) {
-    if (node.getId() == nodeId) {
-      this.partitionIds=new HashSet<Integer>();
-      this.partitionIds.addAll(node.getPartitionIds());
-      break;
-    }
-  }
-  if (this.partitionIds == null)   throw new VoldemortException("Could not open store since the node id could not be found");
+  this.nodeId=nodeId;
+  setRoutingStrategy(routingStrategy);
   int globalChunkId=0;
   for (  Integer partitionId : this.partitionIds) {
     int chunkId=0;
@@ -48,7 +40,6 @@
       dataFileSizes.add((int)dataLength);
       dataFiles.add(openChannel(data));
       indexFiles.add(mapFile(index));
-      System.out.println("INSIDE GLOBAL = " + globalChunkId + " => "+ index.toString());
       chunkId++;
       globalChunkId++;
     }

@@ -1,0 +1,8 @@
+{
+  this.request=request;
+  this.errorCodeMapper=errorCodeMapper;
+  this.isReadOnly=metadataStore.getStoreDef(request.getStore()).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
+  this.storageEngine=(ReadOnlyStorageEngine)AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
+  this.throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
+  this.startTime=System.currentTimeMillis();
+}

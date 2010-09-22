@@ -1,0 +1,21 @@
+{
+  final List<String> storeNames=request.getStoreNameList();
+  VAdminProto.GetROCurrentVersionResponse.Builder response=VAdminProto.GetROCurrentVersionResponse.newBuilder();
+  VAdminProto.ROStoreVersionMap.Builder storeResponse=VAdminProto.ROStoreVersionMap.newBuilder();
+  try {
+    for (    String storeName : storeNames) {
+      ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)getStorageEngine(storeRepository,storeName);
+      File storeDirPath=new File(store.getStoreDirPath());
+      if (!storeDirPath.exists())       throw new VoldemortException("Unable to locate the directory of the read-only store " + storeName);
+      File latestDir=ReadOnlyUtils.getLatestDir(storeDirPath);
+      if (latestDir == null)       throw new VoldemortException("Unable to find the latest directory for read-only store " + storeName);
+      storeResponse.setStoreName(storeName).setPushVersion(ReadOnlyUtils.getVersionId(latestDir));
+      response.addRoStoreVersions(storeResponse.build());
+    }
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleGetROCurrentVersion failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

@@ -1,0 +1,25 @@
+{
+  if (!isReadOnly) {
+  }
+  if (!keyIterator.hasNext())   return StreamRequestHandlerState.COMPLETE;
+  ByteArray key=keyIterator.next();
+  if (validPartition(key.get()) && filter.accept(key,null)) {
+    for (    Versioned<byte[]> value : storageEngine.get(key)) {
+      throttler.maybeThrottle(key.length());
+      fetched++;
+      VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
+      VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(key)).setVersioned(ProtoUtils.encodeVersioned(value)).build();
+      response.setPartitionEntry(partitionEntry);
+      Message message=response.build();
+      ProtoUtils.writeMessage(outputStream,message);
+      throttler.maybeThrottle(AdminServiceRequestHandler.valueSize(value));
+    }
+  }
+  counter++;
+  if (0 == counter % 100000) {
+    long totalTime=(System.currentTimeMillis() - startTime) / 1000;
+    if (logger.isDebugEnabled())     logger.debug("fetchMasterEntries() scanned " + counter + " entries, fetched "+ fetched+ " entries for store:"+ storageEngine.getName()+ " partition:"+ partitionList+ " in "+ totalTime+ " s");
+  }
+  if (keyIterator.hasNext())   return StreamRequestHandlerState.WRITING;
+ else   return StreamRequestHandlerState.COMPLETE;
+}

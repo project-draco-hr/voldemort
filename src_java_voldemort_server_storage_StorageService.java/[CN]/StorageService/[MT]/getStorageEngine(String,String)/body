@@ -1,8 +1,16 @@
 {
   StorageConfiguration config=storageConfigs.get(type);
   if (config == null)   throw new ConfigurationException("Attempt to open store " + name + " but "+ type+ " storage engine of type "+ type+ " has not been enabled.");
+  final StorageEngine<ByteArray,byte[]> storageEngine=config.getStore(name);
   if (type.compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0) {
-    ((ReadOnlyStorageConfiguration)config).setRoutingStrategy(new RoutingStrategyFactory().updateRoutingStrategy(metadata.getStoreDef(name),metadata.getCluster()));
+    final RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(metadata.getStoreDef(name),metadata.getCluster());
+    ((ReadOnlyStorageEngine)storageEngine).setRoutingStrategy(routingStrategy);
+    metadata.addMetadataStoreListener(new MetadataStoreListener(){
+      public void updateRoutingStrategy(      Map<String,RoutingStrategy> routingStrategyMap){
+        ((ReadOnlyStorageEngine)storageEngine).setRoutingStrategy(routingStrategy);
+      }
+    }
+);
   }
-  return config.getStore(name);
+  return storageEngine;
 }
