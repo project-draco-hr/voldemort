@@ -1,25 +1,25 @@
 {
-  if (!isReadOnly) {
-  }
-  if (!keyIterator.hasNext())   return StreamRequestHandlerState.COMPLETE;
-  ByteArray key=keyIterator.next();
-  if (validPartition(key.get()) && filter.accept(key,null)) {
-    for (    Versioned<byte[]> value : storageEngine.get(key)) {
-      throttler.maybeThrottle(key.length());
-      fetched++;
-      VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
-      VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(key)).setVersioned(ProtoUtils.encodeVersioned(value)).build();
-      response.setPartitionEntry(partitionEntry);
-      Message message=response.build();
-      ProtoUtils.writeMessage(outputStream,message);
-      throttler.maybeThrottle(AdminServiceRequestHandler.valueSize(value));
+  List<Integer> partitionIds=request.getPartitionsList();
+  for (  Integer partitionId : partitionIds) {
+    int chunkId=0;
+    while (true) {
+      String fileName=Integer.toString(partitionId) + "_" + Integer.toString(chunkId);
+      File index=new File(this.storeDir,fileName + ".index");
+      File data=new File(this.storeDir,fileName + ".data");
+      if (!index.exists() && !data.exists()) {
+        if (chunkId == 0) {
+          throw new VoldemortException("Could not find any data for partition " + partitionId);
+        }
+ else {
+          break;
+        }
+      }
+ else       if (index.exists() ^ data.exists())       throw new VoldemortException("One of the following does not exist: " + index.toString() + " and "+ data.toString()+ ".");
+      FileChannel channel=new FileInputStream(index).getChannel();
+      WritableByteChannel channelOut=Channels.newChannel(outputStream);
+      channel.transferTo(0,10L,channelOut);
+      chunkId++;
     }
   }
-  counter++;
-  if (0 == counter % 100000) {
-    long totalTime=(System.currentTimeMillis() - startTime) / 1000;
-    if (logger.isDebugEnabled())     logger.debug("fetchMasterEntries() scanned " + counter + " entries, fetched "+ fetched+ " entries for store:"+ storageEngine.getName()+ " partition:"+ partitionList+ " in "+ totalTime+ " s");
-  }
-  if (keyIterator.hasNext())   return StreamRequestHandlerState.WRITING;
- else   return StreamRequestHandlerState.COMPLETE;
+  return null;
 }

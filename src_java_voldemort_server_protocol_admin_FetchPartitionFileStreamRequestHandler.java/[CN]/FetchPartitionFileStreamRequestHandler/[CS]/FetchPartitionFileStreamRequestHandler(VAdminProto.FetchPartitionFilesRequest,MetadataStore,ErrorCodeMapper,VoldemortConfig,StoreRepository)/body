@@ -1,8 +1,12 @@
 {
   this.request=request;
   this.errorCodeMapper=errorCodeMapper;
-  this.isReadOnly=metadataStore.getStoreDef(request.getStore()).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
+  boolean isReadOnly=metadataStore.getStoreDef(request.getStore()).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
+  if (!isReadOnly) {
+    throw new VoldemortException("Should be fetching partition files only for read-only stores");
+  }
   this.storageEngine=(ReadOnlyStorageEngine)AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
+  this.storeDir=new File(storageEngine.getStoreDirPath());
   this.throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
   this.startTime=System.currentTimeMillis();
 }
