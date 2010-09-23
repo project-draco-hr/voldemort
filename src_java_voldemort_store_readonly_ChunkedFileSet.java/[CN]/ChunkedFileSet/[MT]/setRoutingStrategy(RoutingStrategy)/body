@@ -1,14 +1,12 @@
 {
-synchronized (this.routingStrategy) {
-    this.routingStrategy=routingStrategy;
-    this.partitionIds=null;
-    for (    Node node : routingStrategy.getNodes()) {
-      if (node.getId() == this.nodeId) {
-        this.partitionIds=new HashSet<Integer>();
-        this.partitionIds.addAll(node.getPartitionIds());
-        break;
-      }
+  this.routingStrategy=routingStrategy;
+  this.partitionIds=null;
+  for (  Node node : routingStrategy.getNodes()) {
+    if (node.getId() == this.nodeId) {
+      this.partitionIds=new HashSet<Integer>();
+      this.partitionIds.addAll(node.getPartitionIds());
+      break;
     }
-    if (this.partitionIds == null)     throw new VoldemortException("Could not open store since the node id could not be found");
   }
+  if (this.partitionIds == null)   throw new VoldemortException("Could not open store since the node id could not be found");
 }

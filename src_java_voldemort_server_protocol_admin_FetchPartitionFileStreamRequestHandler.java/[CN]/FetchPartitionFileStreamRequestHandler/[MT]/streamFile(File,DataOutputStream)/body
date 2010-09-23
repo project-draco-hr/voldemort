@@ -1,6 +1,6 @@
 {
   FileChannel dataChannel=new FileInputStream(fileToStream).getChannel();
-  VAdminProto.FileEntry response=VAdminProto.FileEntry.newBuilder().setFileName(fileToStream.getAbsolutePath()).setFileSizeBytes(dataChannel.size()).build();
+  VAdminProto.FileEntry response=VAdminProto.FileEntry.newBuilder().setFileName(fileToStream.getName()).setFileSizeBytes(dataChannel.size()).build();
   ProtoUtils.writeMessage(stream,response);
   throttler.maybeThrottle(response.getSerializedSize());
   WritableByteChannel channelOut=Channels.newChannel(stream);
