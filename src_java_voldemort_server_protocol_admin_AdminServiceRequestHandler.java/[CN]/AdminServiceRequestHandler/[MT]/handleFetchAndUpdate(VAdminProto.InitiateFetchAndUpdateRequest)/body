@@ -19,6 +19,8 @@
           updateStatus("Initated fetchPartitionEntries");
           EventThrottler throttler=new EventThrottler(voldemortConfig.getStreamMaxWriteBytesPerSec());
           if (isReadOnlyStore) {
+            String destinationDir=((ReadOnlyStorageEngine)storageEngine).getCurrentDirPath();
+            adminClient.fetchPartitionFiles(nodeId,storeName,partitions,destinationDir);
           }
  else {
             Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=adminClient.fetchEntries(nodeId,storeName,partitions,filter,false);

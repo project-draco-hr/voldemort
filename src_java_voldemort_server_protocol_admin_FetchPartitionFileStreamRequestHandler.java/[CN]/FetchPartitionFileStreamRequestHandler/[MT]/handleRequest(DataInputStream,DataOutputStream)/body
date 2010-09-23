@@ -15,11 +15,14 @@
         }
       }
  else       if (index.exists() ^ data.exists())       throw new VoldemortException("One of the following does not exist: " + index.toString() + " and "+ data.toString()+ ".");
-      FileChannel channel=new FileInputStream(index).getChannel();
-      WritableByteChannel channelOut=Channels.newChannel(outputStream);
-      channel.transferTo(0,10L,channelOut);
+      logger.info("Streaming " + data.getAbsolutePath());
+      streamFile(data,outputStream);
+      logger.info("Completed streaming " + data.getAbsolutePath());
+      logger.info("Streaming " + index.getAbsolutePath());
+      streamFile(index,outputStream);
+      logger.info("Completed streaming " + index.getAbsolutePath());
       chunkId++;
     }
   }
-  return null;
+  return StreamRequestHandlerState.COMPLETE;
 }
