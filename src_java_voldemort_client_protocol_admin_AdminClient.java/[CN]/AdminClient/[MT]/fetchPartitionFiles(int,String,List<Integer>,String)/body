@@ -22,7 +22,7 @@
       ByteUtils.read(inputStream,input);
       VAdminProto.FileEntry fileEntry=VAdminProto.FileEntry.newBuilder().mergeFrom(input).build();
       logger.info("Receiving file " + fileEntry.getFileName());
-      FileChannel fileChannel=new FileInputStream(new File(destinationDirPath,fileEntry.getFileName())).getChannel();
+      FileChannel fileChannel=new FileOutputStream(new File(destinationDirPath,fileEntry.getFileName())).getChannel();
       ReadableByteChannel channelIn=Channels.newChannel(inputStream);
       fileChannel.transferFrom(channelIn,0,fileEntry.getFileSizeBytes());
       fileChannel.force(true);
