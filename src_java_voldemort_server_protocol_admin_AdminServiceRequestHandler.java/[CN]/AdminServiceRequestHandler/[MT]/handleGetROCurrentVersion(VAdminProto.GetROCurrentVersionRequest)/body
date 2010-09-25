@@ -1,12 +1,11 @@
 {
   final List<String> storeNames=request.getStoreNameList();
   VAdminProto.GetROCurrentVersionResponse.Builder response=VAdminProto.GetROCurrentVersionResponse.newBuilder();
-  VAdminProto.ROStoreVersionMap.Builder storeResponse=VAdminProto.ROStoreVersionMap.newBuilder();
   try {
     for (    String storeName : storeNames) {
       ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)getStorageEngine(storeRepository,storeName);
-      storeResponse.setStoreName(storeName).setPushVersion(store.getCurrentVersionId());
-      response.addRoStoreVersions(storeResponse.build());
+      VAdminProto.ROStoreVersionMap storeResponse=VAdminProto.ROStoreVersionMap.newBuilder().setStoreName(storeName).setPushVersion(store.getCurrentVersionId()).build();
+      response.addRoStoreVersions(storeResponse);
     }
   }
  catch (  VoldemortException e) {

@@ -3,18 +3,7 @@
     ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)getStore(node.getId(),"test-readonly-fetchfiles");
     File newVersionDir=new File(store.getStoreDirPath(),"version-" + Long.toString(versionId));
     Utils.mkdirs(newVersionDir);
-    for (    Integer partitionId : node.getPartitionIds()) {
-      for (int chunkId=0; chunkId < numChunks; chunkId++) {
-        File index=new File(newVersionDir,Integer.toString(partitionId) + "_" + Integer.toString(chunkId)+ ".index");
-        File data=new File(newVersionDir,Integer.toString(partitionId) + "_" + Integer.toString(chunkId)+ ".data");
-        FileOutputStream dataOs=new FileOutputStream(data);
-        for (int i=0; i < dataSize; i++)         dataOs.write(i);
-        dataOs.close();
-        FileOutputStream indexOs=new FileOutputStream(index);
-        for (int i=0; i < indexSize; i++)         indexOs.write(i);
-        indexOs.close();
-      }
-    }
+    generateFiles(numChunks,indexSize,dataSize,node.getPartitionIds(),newVersionDir);
     store.swapFiles(newVersionDir.getAbsolutePath());
     File tempDir=TestUtils.createTempDir();
     getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",node.getPartitionIds(),tempDir.getAbsolutePath());
