@@ -3,8 +3,9 @@
     if (logger.isEnabledFor(Level.WARN))     logger.warn("No client associated with " + socketChannel.socket());
     return;
   }
-  clientRequest.complete();
+  ClientRequest<?> local=clientRequest;
   clientRequest=null;
   expiration=0;
+  local.complete();
   if (logger.isTraceEnabled())   logger.trace("Marked client associated with " + socketChannel.socket() + " as complete");
 }
