@@ -1,0 +1,31 @@
+{
+  this.indexFileStream.close();
+  this.valueFileStream.close();
+  if (this.nodeId == -1 || this.chunkId == -1) {
+    return;
+  }
+  Path nodeDir=new Path(this.outputDir,"node-" + this.nodeId);
+  Path indexFile=new Path(nodeDir,this.chunkId + ".index");
+  Path valueFile=new Path(nodeDir,this.chunkId + ".data");
+  FileSystem fs=indexFile.getFileSystem(this.conf);
+  fs.mkdirs(nodeDir);
+  if (this.checkSumType != CheckSumType.NONE) {
+    if (this.checkSumDigestIndex != null && this.checkSumDigestValue != null) {
+      Path checkSumIndexFile=new Path(nodeDir,this.chunkId + ".index.checksum");
+      Path checkSumValueFile=new Path(nodeDir,this.chunkId + ".data.checksum");
+      FSDataOutputStream output=fs.create(checkSumIndexFile);
+      output.write(this.checkSumDigestIndex.getCheckSum());
+      output.close();
+      output=fs.create(checkSumValueFile);
+      output.write(this.checkSumDigestValue.getCheckSum());
+      output.close();
+    }
+ else {
+      throw new VoldemortException("Failed to open CheckSum digest");
+    }
+  }
+  logger.info("Moving " + this.taskIndexFileName + " to "+ indexFile+ ".");
+  fs.rename(taskIndexFileName,indexFile);
+  logger.info("Moving " + this.taskValueFileName + " to "+ valueFile+ ".");
+  fs.rename(this.taskValueFileName,valueFile);
+}
