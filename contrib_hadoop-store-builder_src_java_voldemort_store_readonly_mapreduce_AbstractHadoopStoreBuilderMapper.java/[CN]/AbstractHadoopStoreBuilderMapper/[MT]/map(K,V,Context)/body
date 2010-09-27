@@ -1,0 +1,20 @@
+{
+  byte[] keyBytes=keySerializer.toBytes(makeKey(key,value));
+  byte[] valBytes=valueSerializer.toBytes(makeValue(key,value));
+  if (keySerializerDefinition.hasCompression()) {
+    keyBytes=keyCompressor.deflate(keyBytes);
+  }
+  if (valueSerializerDefinition.hasCompression()) {
+    valBytes=valueCompressor.deflate(valBytes);
+  }
+  byte[] nodeIdAndValue=new byte[valBytes.length + 4];
+  System.arraycopy(valBytes,0,nodeIdAndValue,4,valBytes.length);
+  BytesWritable outputKey=new BytesWritable(md5er.digest(keyBytes));
+  List<Node> nodes=routingStrategy.routeRequest(keyBytes);
+  for (  Node node : nodes) {
+    ByteUtils.writeInt(nodeIdAndValue,node.getId(),0);
+    BytesWritable outputVal=new BytesWritable(nodeIdAndValue);
+    context.write(outputKey,outputVal);
+  }
+  md5er.reset();
+}
