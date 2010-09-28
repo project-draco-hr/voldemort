@@ -2,10 +2,24 @@
   try {
     clientRequest.complete();
     Object result=clientRequest.getResult();
-    if (callback != null)     callback.requestComplete(result,(System.nanoTime() - startNs) / Time.NS_PER_MS);
+    if (callback != null) {
+      try {
+        callback.requestComplete(result,(System.nanoTime() - startNs) / Time.NS_PER_MS);
+      }
+ catch (      Exception e) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(e,e);
+      }
+    }
   }
  catch (  Exception e) {
-    if (callback != null)     callback.requestComplete(e,(System.nanoTime() - startNs) / Time.NS_PER_MS);
+    if (callback != null) {
+      try {
+        callback.requestComplete(e,(System.nanoTime() - startNs) / Time.NS_PER_MS);
+      }
+ catch (      Exception ex) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(ex,ex);
+      }
+    }
   }
  finally {
     pool.checkin(destination,clientRequestExecutor);

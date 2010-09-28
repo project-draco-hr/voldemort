@@ -28,6 +28,7 @@
         attemptsLatch.countDown();
         blocksLatch.countDown();
         if (logger.isTraceEnabled())         logger.trace(attemptsLatch.getCount() + " attempts remaining. Will block " + " for "+ blocksLatch.getCount()+ " more ");
+        if (pipeline.isFinished() && response.getValue() instanceof Exception)         handleResponseError(response,pipeline,failureDetector);
       }
     }
 ;

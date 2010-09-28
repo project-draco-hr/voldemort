@@ -5,7 +5,12 @@
   }
  catch (  Exception e) {
     if (!(e instanceof UnreachableStoreException))     e=new UnreachableStoreException("Failure in " + operationName + ": "+ e.getMessage(),e);
-    callback.requestComplete(e,0);
+    try {
+      callback.requestComplete(e,0);
+    }
+ catch (    Exception ex) {
+      if (logger.isEnabledFor(Level.WARN))       logger.warn(ex,ex);
+    }
     return;
   }
   NonblockingStoreCallbackClientRequest<T> clientRequest=new NonblockingStoreCallbackClientRequest<T>(delegate,clientRequestExecutor,callback);

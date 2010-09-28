@@ -1,35 +1,43 @@
 {
-  final AtomicBoolean isRequestComplete=new AtomicBoolean(false);
-  final long start=System.nanoTime();
-  Callable<Object> callable=new Callable<Object>(){
-    public Object call(){
-      Object result=null;
+  executor.submit(new Runnable(){
+    public void run(){
+      long start=System.nanoTime();
+      final long timeoutNs=timeoutMs * Time.NS_PER_MS;
       try {
-        result=request.request(innerStore);
-        if (isRequestComplete.compareAndSet(false,true)) {
-          if (callback != null)           callback.requestComplete(result,(System.nanoTime() - start) / Time.NS_PER_MS);
+        Object result=request.request(innerStore);
+        if (callback != null) {
+          long diff=System.nanoTime() - start;
+          if (diff <= timeoutNs) {
+            try {
+              callback.requestComplete(result,diff / Time.NS_PER_MS);
+            }
+ catch (            Exception e) {
+              if (logger.isEnabledFor(Level.WARN))               logger.warn(e,e);
+            }
+          }
+ else {
+            UnreachableStoreException ex=new UnreachableStoreException("Failure in " + operationName + ": time out exceeded");
+            try {
+              callback.requestComplete(ex,diff);
+            }
+ catch (            Exception e) {
+              if (logger.isEnabledFor(Level.WARN))               logger.warn(e,e);
+            }
+          }
         }
       }
  catch (      Exception e) {
-        if (isRequestComplete.compareAndSet(false,true)) {
-          if (callback != null)           callback.requestComplete(e,(System.nanoTime() - start) / Time.NS_PER_MS);
+        if (callback != null) {
+          long diff=System.nanoTime() - start;
+          try {
+            callback.requestComplete(e,diff / Time.NS_PER_MS);
+          }
+ catch (          Exception ex) {
+            if (logger.isEnabledFor(Level.WARN))             logger.warn(ex,ex);
+          }
         }
       }
-      return result;
     }
   }
-;
-  Collection<Callable<Object>> tasks=Lists.newArrayList(callable);
-  try {
-    executor.invokeAll(tasks,timeoutMs,TimeUnit.MILLISECONDS);
-  }
- catch (  InterruptedException e) {
-    if (isRequestComplete.compareAndSet(false,true)) {
-      if (callback != null) {
-        UnreachableStoreException ex=new UnreachableStoreException("Failure in " + operationName + ": "+ e.getMessage(),e);
-        callback.requestComplete(ex,(System.nanoTime() - start) / Time.NS_PER_MS);
-      }
-    }
-    if (logger.isEnabledFor(Level.WARN))     logger.warn(e);
-  }
+);
 }
