@@ -6,7 +6,11 @@
   ExecutorService executors=Executors.newFixedThreadPool(2);
   final AtomicBoolean rebalancingToken=new AtomicBoolean(false);
   final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
-  populateData(updatedCluster,Arrays.asList(0,1));
+  RebalanceClientConfig rebalanceClientConfig=new RebalanceClientConfig();
+  rebalanceClientConfig.setMaxParallelDonors(2);
+  rebalanceClientConfig.setMaxParallelRebalancing(2);
+  final RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCluster,0),rebalanceClientConfig);
+  populateData(updatedCluster,Arrays.asList(0,1),rebalanceClient.getAdminClient());
   final SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(getBootstrapUrl(updatedCluster,0)).setSocketTimeout(120,TimeUnit.SECONDS));
   final StoreClient<String,String> storeClient=new DefaultStoreClient<String,String>(testStoreNameRW,null,factory,3);
   final Boolean[] masterNodeResponded={false,false,false,false};
@@ -45,10 +49,6 @@
     public void run(){
       try {
         Thread.sleep(500);
-        RebalanceClientConfig rebalanceClientConfig=new RebalanceClientConfig();
-        rebalanceClientConfig.setMaxParallelDonors(2);
-        rebalanceClientConfig.setMaxParallelRebalancing(2);
-        RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCluster,0),rebalanceClientConfig);
         rebalanceAndCheck(updatedCluster,updateCluster(targetCluster),rebalanceClient,Arrays.asList(2,3));
         Thread.sleep(500);
         rebalancingToken.set(true);

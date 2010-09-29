@@ -7,7 +7,11 @@
   ExecutorService executors=Executors.newFixedThreadPool(2);
   final AtomicBoolean rebalancingToken=new AtomicBoolean(false);
   final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
-  populateData(updatedCluster,Arrays.asList(0));
+  RebalanceClientConfig rebalanceClientConfig=new RebalanceClientConfig();
+  rebalanceClientConfig.setMaxParallelDonors(2);
+  rebalanceClientConfig.setMaxParallelRebalancing(2);
+  final RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCluster,0),rebalanceClientConfig);
+  populateData(updatedCluster,Arrays.asList(0),rebalanceClient.getAdminClient());
   Node node=updatedCluster.getNodeById(0);
   final Store<ByteArray,byte[]> serverSideRoutingStore=getSocketStore(testStoreNameRW,node.getHost(),node.getSocketPort(),true);
   final CountDownLatch latch=new CountDownLatch(1);
@@ -42,10 +46,6 @@ catch (          Exception e) {
     public void run(){
       try {
         Thread.sleep(500);
-        RebalanceClientConfig rebalanceClientConfig=new RebalanceClientConfig();
-        rebalanceClientConfig.setMaxParallelDonors(2);
-        rebalanceClientConfig.setMaxParallelRebalancing(2);
-        RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCluster,0),rebalanceClientConfig);
         rebalanceAndCheck(updatedCluster,targetCluster,rebalanceClient,Arrays.asList(1));
         Thread.sleep(500);
         rebalancingToken.set(true);

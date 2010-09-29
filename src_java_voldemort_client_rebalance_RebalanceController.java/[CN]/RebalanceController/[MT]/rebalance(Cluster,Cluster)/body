@@ -7,7 +7,7 @@
   logger.info(rebalanceClusterPlan);
   currentCluster=getClusterWithNewNodes(currentCluster,targetCluster);
   adminClient.setAdminClientCluster(currentCluster);
-  Map<Integer,Map<String,Long>> currentROStoreVersions=Maps.newHashMapWithExpectedSize(storesList.size());
+  final Map<Integer,Map<String,String>> currentROStoreVersionsDirs=Maps.newHashMapWithExpectedSize(storesList.size());
   List<String> readOnlyStores=Lists.newArrayList();
   for (  StoreDefinition store : storesList) {
     if (store.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0) {
@@ -15,8 +15,8 @@
     }
   }
   if (readOnlyStores.size() > 0) {
-    for (    Node node : targetCluster.getNodes()) {
-      currentROStoreVersions.put(node.getId(),adminClient.getROCurrentVersion(node.getId(),readOnlyStores));
+    for (    Node node : currentCluster.getNodes()) {
+      currentROStoreVersionsDirs.put(node.getId(),adminClient.getROCurrentVersionDir(node.getId(),readOnlyStores));
     }
   }
   Node firstNode=currentCluster.getNodes().iterator().next();
@@ -83,5 +83,34 @@ catch (                    Exception e) {
     }
 );
   }
-  executorShutDown(executor);
+  try {
+    executorShutDown(executor);
+  }
+ catch (  Exception e) {
+    logger.error("Interrupted rebalance executor ",e);
+    return;
+  }
+  if (readOnlyStores.size() > 0) {
+    ExecutorService swapExecutors=createExecutors(targetCluster.getNumberOfNodes());
+    for (    final Node node : targetCluster.getNodes()) {
+      swapExecutors.submit(new Runnable(){
+        public void run(){
+          Map<String,String> storeDirs=currentROStoreVersionsDirs.get(node.getId());
+          for (          String storeName : storeDirs.keySet()) {
+            logger.info("Swapping " + storeName + " on node "+ node.getId());
+            adminClient.swapStore(node.getId(),storeName,storeDirs.get(storeName));
+            logger.info("Successfully swapped " + storeName + " on node "+ node.getId());
+          }
+        }
+      }
+);
+    }
+    try {
+      executorShutDown(swapExecutors);
+    }
+ catch (    Exception e) {
+      logger.error("Interrupted swapping executor ",e);
+      return;
+    }
+  }
 }

@@ -8,7 +8,7 @@
   rebalanceConfig.setDeleteAfterRebalancingEnabled(true);
   RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCluster,0),rebalanceConfig);
   try {
-    populateData(updatedCluster,Arrays.asList(0));
+    populateData(updatedCluster,Arrays.asList(0),rebalanceClient.getAdminClient());
     rebalanceAndCheck(updatedCluster,targetCluster,rebalanceClient,Arrays.asList(1));
     rebalanceClient.getAdminClient().updateRemoteCluster(0,updatedCluster,((VectorClock)RebalanceUtils.getLatestCluster(null,rebalanceClient.getAdminClient()).getVersion()).incremented(0,System.currentTimeMillis()));
     checkGetEntries(updatedCluster.getNodeById(0),updatedCluster,Arrays.asList(2,3),null);

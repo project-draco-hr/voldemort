@@ -1,0 +1,20 @@
+{
+  final List<String> storeNames=request.getStoreNameList();
+  VAdminProto.GetROMaxVersionDirResponse.Builder response=VAdminProto.GetROMaxVersionDirResponse.newBuilder();
+  try {
+    for (    String storeName : storeNames) {
+      ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)getStorageEngine(storeRepository,storeName);
+      File storeDirPath=new File(store.getStoreDirPath());
+      if (!storeDirPath.exists())       throw new VoldemortException("Unable to locate the directory of the read-only store " + storeName);
+      File[] versionDirs=ReadOnlyUtils.getVersionDirs(storeDirPath);
+      File[] kthDir=ReadOnlyUtils.findKthVersionedDir(versionDirs,versionDirs.length - 1,versionDirs.length - 1);
+      VAdminProto.ROStoreVersionDirMap storeResponse=VAdminProto.ROStoreVersionDirMap.newBuilder().setStoreName(storeName).setStoreDir(kthDir[0].getAbsolutePath()).build();
+      response.addRoStoreVersions(storeResponse);
+    }
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleGetROMaxVersion failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

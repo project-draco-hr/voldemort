@@ -1,14 +1,8 @@
 {
-  VAdminProto.GetROMaxVersionRequest.Builder getROMaxVersionRequest=VAdminProto.GetROMaxVersionRequest.newBuilder().addAllStoreName(storeNames);
-  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setGetRoMaxVersion(getROMaxVersionRequest).setType(VAdminProto.AdminRequestType.GET_RO_MAX_VERSION).build();
-  VAdminProto.GetROMaxVersionResponse.Builder response=sendAndReceive(nodeId,adminRequest,VAdminProto.GetROMaxVersionResponse.newBuilder());
-  if (response.hasError()) {
-    throwException(response.getError());
+  Map<String,Long> returnMap=Maps.newHashMapWithExpectedSize(storeNames.size());
+  Map<String,String> versionDirs=getROMaxVersionDir(nodeId,storeNames);
+  for (  String storeName : versionDirs.keySet()) {
+    returnMap.put(storeName,ReadOnlyUtils.getVersionId(new File(versionDirs.get(storeName))));
   }
-  Map<String,Long> storeToVersion=encodeROStoreVersionMap(response.getRoStoreVersionsList());
-  if (storeToVersion.size() != storeNames.size()) {
-    storeNames.removeAll(storeToVersion.keySet());
-    throw new VoldemortException("Did not retrieve max version id for " + storeNames);
-  }
-  return storeToVersion;
+  return returnMap;
 }

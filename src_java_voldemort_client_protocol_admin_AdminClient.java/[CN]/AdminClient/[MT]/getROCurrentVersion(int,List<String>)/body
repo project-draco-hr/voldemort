@@ -1,14 +1,8 @@
 {
-  VAdminProto.GetROCurrentVersionRequest.Builder getROCurrentVersionRequest=VAdminProto.GetROCurrentVersionRequest.newBuilder().addAllStoreName(storeNames);
-  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setGetRoCurrentVersion(getROCurrentVersionRequest).setType(VAdminProto.AdminRequestType.GET_RO_CURRENT_VERSION).build();
-  VAdminProto.GetROCurrentVersionResponse.Builder response=sendAndReceive(nodeId,adminRequest,VAdminProto.GetROCurrentVersionResponse.newBuilder());
-  if (response.hasError()) {
-    throwException(response.getError());
+  Map<String,Long> returnMap=Maps.newHashMapWithExpectedSize(storeNames.size());
+  Map<String,String> versionDirs=getROCurrentVersionDir(nodeId,storeNames);
+  for (  String storeName : versionDirs.keySet()) {
+    returnMap.put(storeName,ReadOnlyUtils.getVersionId(new File(versionDirs.get(storeName))));
   }
-  Map<String,Long> storeToVersion=encodeROStoreVersionMap(response.getRoStoreVersionsList());
-  if (storeToVersion.size() != storeNames.size()) {
-    storeNames.removeAll(storeToVersion.keySet());
-    throw new VoldemortException("Did not retrieve current version id for " + storeNames);
-  }
-  return storeToVersion;
+  return returnMap;
 }
