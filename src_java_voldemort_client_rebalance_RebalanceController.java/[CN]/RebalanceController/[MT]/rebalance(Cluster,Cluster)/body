@@ -2,9 +2,8 @@
   logger.debug("Current Cluster configuration:" + currentCluster);
   logger.debug("Target Cluster configuration:" + targetCluster);
   adminClient.setAdminClientCluster(currentCluster);
+  Cluster oldCluster=currentCluster;
   List<StoreDefinition> storesList=RebalanceUtils.getStoreNameList(currentCluster,adminClient);
-  final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(currentCluster,targetCluster,storesList,rebalanceConfig.isDeleteAfterRebalancingEnabled());
-  logger.info(rebalanceClusterPlan);
   currentCluster=getClusterWithNewNodes(currentCluster,targetCluster);
   adminClient.setAdminClientCluster(currentCluster);
   final Map<Integer,Map<String,String>> currentROStoreVersionsDirs=Maps.newHashMapWithExpectedSize(storesList.size());
@@ -19,6 +18,8 @@
       currentROStoreVersionsDirs.put(node.getId(),adminClient.getROCurrentVersionDir(node.getId(),readOnlyStores));
     }
   }
+  final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(oldCluster,targetCluster,storesList,rebalanceConfig.isDeleteAfterRebalancingEnabled());
+  logger.info(rebalanceClusterPlan);
   Node firstNode=currentCluster.getNodes().iterator().next();
   VectorClock latestClock=(VectorClock)RebalanceUtils.getLatestCluster(new ArrayList<Integer>(),adminClient).getVersion();
   RebalanceUtils.propagateCluster(adminClient,currentCluster,latestClock.incremented(firstNode.getId(),System.currentTimeMillis()),new ArrayList<Integer>());
