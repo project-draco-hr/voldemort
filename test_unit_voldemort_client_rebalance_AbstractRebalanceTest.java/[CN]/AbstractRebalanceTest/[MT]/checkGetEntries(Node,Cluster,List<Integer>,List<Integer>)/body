@@ -10,7 +10,11 @@
       try {
         List<Versioned<byte[]>> value=storeRW.get(keyBytes);
         assertEquals("unavailable partitons should return zero size list.",0,value.size());
-        value=storeRO.get(keyBytes);
+      }
+ catch (      InvalidMetadataException e) {
+      }
+      try {
+        List<Versioned<byte[]>> value=storeRO.get(keyBytes);
         assertEquals("unavailable partitons should return zero size list.",0,value.size());
       }
  catch (      InvalidMetadataException e) {

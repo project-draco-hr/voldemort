@@ -34,4 +34,26 @@
       }
     }
   }
+  metadataStore.readLock.lock();
+  try {
+    voldemortState=metadataStore.getServerState();
+    rebalancerState=metadataStore.getRebalancerState();
+  }
+ catch (  Exception e) {
+    logger.error("Error determining state",e);
+    return;
+  }
+ finally {
+    metadataStore.readLock.unlock();
+  }
+  RebalancePartitionsInfo partitionInfo=rebalancerState.getAll().iterator().next();
+  if (VoldemortState.REBALANCING_MASTER_SWAP_SERVER.equals(voldemortState)) {
+    AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),4,2);
+    try {
+      adminClient.swapStoresAndCleanState(partitionInfo.getStealerId(),partitionInfo.getStoreToRODir());
+    }
+  finally {
+      adminClient.stop();
+    }
+  }
 }

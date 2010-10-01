@@ -1,0 +1,16 @@
+{
+  this.rebalanceTaskQueue=new ConcurrentLinkedQueue<RebalanceNodePlan>();
+  this.storeDefList=storeDefList;
+  if (currentCluster.getNumberOfPartitions() != targetCluster.getNumberOfPartitions())   throw new VoldemortException("Total number of partitions should not change !!");
+  for (  Node node : targetCluster.getNodes()) {
+    List<RebalancePartitionsInfo> rebalanceNodeList=getRebalanceNodeTask(currentCluster,targetCluster,RebalanceUtils.getStoreNames(storeDefList),node.getId(),deleteDonorPartition);
+    if (rebalanceNodeList.size() > 0) {
+      if (currentROStoreVersionsDirs != null && currentROStoreVersionsDirs.size() > 0) {
+        for (        RebalancePartitionsInfo partitionsInfo : rebalanceNodeList) {
+          partitionsInfo.setStoreToRODir(currentROStoreVersionsDirs.get(partitionsInfo.getStealerId()));
+        }
+      }
+      rebalanceTaskQueue.offer(new RebalanceNodePlan(node.getId(),rebalanceNodeList));
+    }
+  }
+}

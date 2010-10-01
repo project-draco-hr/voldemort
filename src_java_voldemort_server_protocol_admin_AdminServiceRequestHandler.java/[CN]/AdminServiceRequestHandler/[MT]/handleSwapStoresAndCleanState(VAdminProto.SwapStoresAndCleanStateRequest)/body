@@ -1,0 +1,20 @@
+{
+  VAdminProto.SwapStoresAndCleanStateResponse.Builder response=VAdminProto.SwapStoresAndCleanStateResponse.newBuilder();
+  Map<String,String> storeToVersionDir=Maps.newHashMap();
+  for (  ROStoreVersionDirMap currentStore : request.getRoStoreVersionsList()) {
+    storeToVersionDir.put(currentStore.getStoreName(),currentStore.getStoreDir());
+  }
+  try {
+    for (    String storeName : storeToVersionDir.keySet()) {
+      logger.debug("Swapping " + storeName);
+      swapStore(storeName,storeToVersionDir.get(storeName));
+    }
+    logger.debug("stealInfoList empty, cleaning all rebalancing state");
+    metadataStore.cleanAllRebalancingState();
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleSwapStoresAndCleanState failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}
