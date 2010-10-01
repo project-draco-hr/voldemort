@@ -1,7 +1,7 @@
 {
   List<Integer> partitionList=routingStrategy.getPartitionList(key);
   partitionList.retainAll(partitionIds);
-  if (partitionList.size() != 1)   throw new VoldemortException("Partition list returned is incorrect");
+  if (partitionList.size() != 1)   return -1;
   Integer chunkId=ReadOnlyUtils.chunk(ByteUtils.md5(key),partitionToNumChunks.get(partitionList.get(0)));
   return partitionToChunkStart.get(partitionList.get(0)) + chunkId;
 }

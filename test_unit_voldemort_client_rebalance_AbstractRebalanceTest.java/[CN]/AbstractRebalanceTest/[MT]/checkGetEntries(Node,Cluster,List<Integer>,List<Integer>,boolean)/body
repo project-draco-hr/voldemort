@@ -13,11 +13,13 @@
       }
  catch (      InvalidMetadataException e) {
       }
-      try {
-        List<Versioned<byte[]>> value=storeRO.get(keyBytes);
-        assertEquals("unavailable partitons should return zero size list.",0,value.size());
-      }
- catch (      InvalidMetadataException e) {
+      if (!onlyReadWrite) {
+        try {
+          List<Versioned<byte[]>> value=storeRO.get(keyBytes);
+          assertEquals("unavailable partitons should return zero size list.",0,value.size());
+        }
+ catch (        InvalidMetadataException e) {
+        }
       }
     }
  else     if (null != availablePartitions && availablePartitions.containsAll(partitions)) {
@@ -26,11 +28,13 @@
       Versioned<byte[]> value=values.get(0);
       assertEquals("Value version should match",new VectorClock(),value.getVersion());
       assertEquals("Value bytes should match",entry.getValue(),ByteUtils.getString(value.getValue(),"UTF-8"));
-      values=storeRO.get(keyBytes);
-      assertEquals("Expecting exactly one version",1,values.size());
-      value=values.get(0);
-      assertEquals("Value version should match",new VectorClock(),value.getVersion());
-      assertEquals("Value bytes should match",entry.getValue(),ByteUtils.getString(value.getValue(),"UTF-8"));
+      if (!onlyReadWrite) {
+        values=storeRO.get(keyBytes);
+        assertEquals("Expecting exactly one version",1,values.size());
+        value=values.get(0);
+        assertEquals("Value version should match",new VectorClock(),value.getVersion());
+        assertEquals("Value bytes should match",entry.getValue(),ByteUtils.getString(value.getValue(),"UTF-8"));
+      }
       matchedEntries++;
     }
  else {
