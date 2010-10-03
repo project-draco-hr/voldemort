@@ -26,7 +26,7 @@
   Node firstNode=currentCluster.getNodes().iterator().next();
   VectorClock latestClock=(VectorClock)RebalanceUtils.getLatestCluster(new ArrayList<Integer>(),adminClient).getVersion();
   RebalanceUtils.propagateCluster(adminClient,currentCluster,latestClock.incremented(firstNode.getId(),System.currentTimeMillis()),new ArrayList<Integer>());
-  ExecutorService executor=createExecutors(rebalanceConfig.getMaxParallelRebalancing());
+  ExecutorService executor=RebalanceUtils.createExecutors(rebalanceConfig.getMaxParallelRebalancing());
   final List<Exception> failures=new ArrayList<Exception>();
   final Set<Integer> nodeIds=Collections.synchronizedSet(new HashSet<Integer>());
   for (int nThreads=0; nThreads < this.rebalanceConfig.getMaxParallelRebalancing(); nThreads++) {
@@ -39,7 +39,7 @@
             nodeIds.add(stealerNodeId);
             final SetMultimap<Integer,RebalancePartitionsInfo> rebalanceSubTaskMap=divideRebalanceNodePlan(rebalanceTask);
             final Set<Integer> parallelDonors=rebalanceSubTaskMap.keySet();
-            ExecutorService parallelDonorExecutor=createExecutors(rebalanceConfig.getMaxParallelDonors());
+            ExecutorService parallelDonorExecutor=RebalanceUtils.createExecutors(rebalanceConfig.getMaxParallelDonors());
             for (            final int donorNodeId : parallelDonors) {
               nodeIds.add(donorNodeId);
               parallelDonorExecutor.execute(new Runnable(){
@@ -82,7 +82,7 @@ catch (                    Exception e) {
 );
             }
             try {
-              executorShutDown(parallelDonorExecutor);
+              RebalanceUtils.executorShutDown(parallelDonorExecutor,rebalanceConfig.getRebalancingClientTimeoutSeconds());
             }
  catch (            Exception e) {
               logger.error("Interrupted",e);
@@ -96,14 +96,15 @@ catch (                    Exception e) {
 );
   }
   try {
-    executorShutDown(executor);
+    RebalanceUtils.executorShutDown(executor,rebalanceConfig.getRebalancingClientTimeoutSeconds());
   }
  catch (  Exception e) {
     logger.error("Interrupted rebalance executor ",e);
     return;
   }
   if (failures.size() == 0 && readOnlyStores.size() > 0) {
-    ExecutorService swapExecutors=createExecutors(targetCluster.getNumberOfNodes());
+    logger.info("Swapping stores " + readOnlyStores + " on "+ nodeIds);
+    ExecutorService swapExecutors=RebalanceUtils.createExecutors(targetCluster.getNumberOfNodes());
     for (    final Integer nodeId : nodeIds) {
       swapExecutors.submit(new Runnable(){
         public void run(){
@@ -121,7 +122,7 @@ catch (                    Exception e) {
 );
     }
     try {
-      executorShutDown(swapExecutors);
+      RebalanceUtils.executorShutDown(swapExecutors,rebalanceConfig.getRebalancingClientTimeoutSeconds());
     }
  catch (    Exception e) {
       logger.error("Interrupted swapping executor ",e);

@@ -8,9 +8,6 @@
         throw new VoldemortException("Server " + metadataStore.getNodeId() + " is already rebalancing from: "+ info+ " rejecting rebalance request:"+ stealInfo);
       }
     }
-    if (metadataStore.getServerState().equals(VoldemortState.REBALANCING_MASTER_SWAP_SERVER)) {
-      throw new VoldemortException("Server is still swapping the previous read-only stores");
-    }
   }
   finally {
     metadataStore.readLock.unlock();
