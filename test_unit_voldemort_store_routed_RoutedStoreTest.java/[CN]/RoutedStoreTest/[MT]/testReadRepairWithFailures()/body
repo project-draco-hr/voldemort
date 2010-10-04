@@ -3,20 +3,20 @@
   RoutedStore routedStore=getStore(cluster,cluster.getNumberOfNodes() - 1,cluster.getNumberOfNodes() - 1,1,0);
   recordException(failureDetector,Iterables.get(cluster.getNodes(),1));
   Store<ByteArray,byte[],byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[],byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
-  store.put(aKey,new Versioned<byte[]>(aValue),aTransform);
+  store.put(aKey,new Versioned<byte[]>(aValue),null);
   byte[] anotherValue="john".getBytes();
   recordException(failureDetector,Iterables.getLast(cluster.getNodes()));
   recordSuccess(failureDetector,Iterables.get(cluster.getNodes(),1));
   VectorClock clock=getClock(1);
-  store.put(aKey,new Versioned<byte[]>(anotherValue,clock),aTransform);
+  store.put(aKey,new Versioned<byte[]>(anotherValue,clock),null);
   recordException(failureDetector,Iterables.get(cluster.getNodes(),1));
   recordSuccess(failureDetector,Iterables.getLast(cluster.getNodes()));
-  List<Versioned<byte[]>> versioneds=store.get(aKey,aTransform);
+  List<Versioned<byte[]>> versioneds=store.get(aKey,null);
   assertEquals(1,versioneds.size());
   assertEquals(new ByteArray(anotherValue),new ByteArray(versioneds.get(0).getValue()));
   Thread.sleep(100);
   for (  Store<ByteArray,byte[],byte[]> innerStore : routedStore.getInnerStores().values()) {
-    List<Versioned<byte[]>> innerVersioneds=innerStore.get(aKey,aTransform);
+    List<Versioned<byte[]>> innerVersioneds=innerStore.get(aKey,null);
     assertEquals(1,versioneds.size());
     assertEquals(new ByteArray(anotherValue),new ByteArray(innerVersioneds.get(0).getValue()));
   }
