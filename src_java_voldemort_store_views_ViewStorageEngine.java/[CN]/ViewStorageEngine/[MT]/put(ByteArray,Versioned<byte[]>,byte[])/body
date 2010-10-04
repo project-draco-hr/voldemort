@@ -1,3 +1,6 @@
 {
-  target.put(key,Versioned.value(valueFromViewSchema(key,value.getValue(),transforms),value.getVersion()),null);
+  if (valueCompressionStrategy != null)   value=inflateValue(value);
+  Versioned<byte[]> result=Versioned.value(valueFromViewSchema(key,value.getValue(),transforms),value.getVersion());
+  if (valueCompressionStrategy != null)   result=deflateValue(result);
+  target.put(key,result,null);
 }

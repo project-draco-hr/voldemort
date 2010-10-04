@@ -6,13 +6,16 @@
   DefaultSerializerFactory serializerFactory=new DefaultSerializerFactory();
   Serializer<K1> keySerializer=(Serializer<K1>)serializerFactory.getSerializer(storeDef.getKeySerializer());
   Serializer<V1> valueSerializer=(Serializer<V1>)serializerFactory.getSerializer(storeDef.getValueSerializer());
-  Serializer<T1> transformsSerializer=(Serializer<T1>)serializerFactory.getSerializer(storeDef.getTransformsSerializer());
+  Serializer<T1> transformsSerializer=null;
+  if (storeDef.isView())   transformsSerializer=(Serializer<T1>)serializerFactory.getSerializer(storeDef.getTransformsSerializer());
   InconsistencyResolver<Versioned<V1>> secondaryResolver=new TimeBasedInconsistencyResolver();
-  StorageEngine engine=new InMemoryStorageEngine(storeDef.getViewTargetStoreName());
+  StorageEngine engine;
+  if (storeDef.isView())   engine=new InMemoryStorageEngine(storeDef.getViewTargetStoreName());
+ else   engine=new InMemoryStorageEngine(storeDef.getName());
   if (storeDef.isView()) {
     String targetName=storeDef.getViewTargetStoreName();
     StoreDefinition targetDef=StoreUtils.getStoreDef(storeDefs,targetName);
-    engine=new ViewStorageEngine(storeName,engine,this.viewValueSerializer != null ? this.viewValueSerializer : serializerFactory.getSerializer(storeDef.getValueSerializer()),this.transformsSerializer != null ? this.transformsSerializer : serializerFactory.getSerializer(storeDef.getTransformsSerializer()),this.keySerializer != null ? this.keySerializer : serializerFactory.getSerializer(targetDef.getKeySerializer()),this.valueSerializer != null ? this.valueSerializer : serializerFactory.getSerializer(targetDef.getValueSerializer()),storeDef.getValueTransformation());
+    engine=new ViewStorageEngine(storeName,engine,this.viewValueSerializer != null ? this.viewValueSerializer : serializerFactory.getSerializer(storeDef.getValueSerializer()),this.transformsSerializer != null ? this.transformsSerializer : serializerFactory.getSerializer(storeDef.getTransformsSerializer()),this.keySerializer != null ? this.keySerializer : serializerFactory.getSerializer(targetDef.getKeySerializer()),this.valueSerializer != null ? this.valueSerializer : serializerFactory.getSerializer(targetDef.getValueSerializer()),null,ViewStorageConfiguration.loadTransformation(storeDef.getValueTransformation()));
   }
   Store store=new VersionIncrementingStore(engine,nodeId,time);
   store=new SerializingStore(store,this.keySerializer != null ? this.keySerializer : keySerializer,this.valueSerializer != null ? this.valueSerializer : valueSerializer,this.transformsSerializer != null ? this.transformsSerializer : transformsSerializer);

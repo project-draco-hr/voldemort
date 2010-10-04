@@ -1,8 +1,10 @@
 {
   List<Versioned<byte[]>> values=target.get(key,null);
   List<Versioned<byte[]>> results=new ArrayList<Versioned<byte[]>>();
+  if (valueCompressionStrategy != null)   values=inflateValues(values);
   for (  Versioned<byte[]> v : values) {
     results.add(new Versioned<byte[]>(valueToViewSchema(key,v.getValue(),transforms),v.getVersion()));
   }
+  if (valueCompressionStrategy != null)   results=deflateValues(results);
   return results;
 }
