@@ -6,7 +6,7 @@
     StorageEngine<ByteArray,byte[]> slopEngine=getStorageEngine("slop",voldemortConfig.getSlopStoreType());
     registerEngine(slopEngine);
     storeRepository.setSlopStore(SerializingStorageEngine.wrap(slopEngine,new ByteArraySerializer(),new SlopSerializer()));
-    scheduler.schedule(new SlopPusherJob(storeRepository,metadata.getCluster(),failureDetector),new Date(),voldemortConfig.getSlopFrequencyMs());
+    scheduler.schedule(new SlopPusherJob(storeRepository,metadata.getCluster(),failureDetector,voldemortConfig.getSlopMaxWriteBytesPerSec()),new Date(),voldemortConfig.getSlopFrequencyMs());
   }
   List<StoreDefinition> storeDefs=new ArrayList<StoreDefinition>(this.metadata.getStoreDefList());
   logger.info("Initializing stores:");

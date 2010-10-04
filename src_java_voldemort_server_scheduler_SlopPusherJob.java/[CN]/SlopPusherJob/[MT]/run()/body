@@ -5,6 +5,7 @@
   ClosableIterator<Pair<ByteArray,Versioned<Slop>>> iterator=null;
   try {
     StorageEngine<ByteArray,Slop> slopStore=storeRepo.getSlopStore();
+    EventThrottler throttler=new EventThrottler(maxWriteBytesPerSec);
     iterator=slopStore.entries();
     while (iterator.hasNext()) {
       if (Thread.interrupted())       throw new InterruptedException("Task cancelled!");
@@ -19,12 +20,17 @@
           Store<ByteArray,byte[]> store=storeRepo.getNodeStore(slop.getStoreName(),node.getId());
           Long startNs=System.nanoTime();
           try {
-            if (slop.getOperation() == Operation.PUT)             store.put(slop.getKey(),new Versioned<byte[]>(slop.getValue(),versioned.getVersion()));
+            int nBytes=slop.getKey().length();
+            if (slop.getOperation() == Operation.PUT) {
+              store.put(slop.getKey(),new Versioned<byte[]>(slop.getValue(),versioned.getVersion()));
+              nBytes+=slop.getValue().length + ((VectorClock)versioned.getVersion()).sizeInBytes() + 1;
+            }
  else             if (slop.getOperation() == Operation.DELETE)             store.delete(slop.getKey(),versioned.getVersion());
  else             logger.error("Unknown slop operation: " + slop.getOperation());
             failureDetector.recordSuccess(node,deltaMs(startNs));
             slopStore.delete(slop.makeKey(),versioned.getVersion());
             slopsPushed++;
+            throttler.maybeThrottle(nBytes);
           }
  catch (          ObsoleteVersionException e) {
             slopStore.delete(slop.makeKey(),versioned.getVersion());
