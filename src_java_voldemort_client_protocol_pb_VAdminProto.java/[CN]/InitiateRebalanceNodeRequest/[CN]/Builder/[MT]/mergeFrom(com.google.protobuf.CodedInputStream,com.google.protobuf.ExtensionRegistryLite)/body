@@ -44,6 +44,25 @@ case 58:
 addUnbalancedStore(input.readString());
 break;
 }
+case 64:
+{
+addStealMasterPartitions(input.readInt32());
+break;
+}
+case 74:
+{
+voldemort.client.protocol.pb.VAdminProto.ROStoreVersionDirMap.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.ROStoreVersionDirMap.newBuilder();
+input.readMessage(subBuilder,extensionRegistry);
+addStealerRoStoreToDir(subBuilder.buildPartial());
+break;
+}
+case 82:
+{
+voldemort.client.protocol.pb.VAdminProto.ROStoreVersionDirMap.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.ROStoreVersionDirMap.newBuilder();
+input.readMessage(subBuilder,extensionRegistry);
+addDonorRoStoreToDir(subBuilder.buildPartial());
+break;
+}
 }
 }
 }

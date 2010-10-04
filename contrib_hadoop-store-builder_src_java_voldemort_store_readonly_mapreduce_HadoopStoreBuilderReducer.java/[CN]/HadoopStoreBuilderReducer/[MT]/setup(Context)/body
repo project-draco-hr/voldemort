@@ -1,0 +1,24 @@
+{
+  try {
+    this.conf=context.getConfiguration();
+    this.position=0;
+    this.numChunks=conf.getInt("num.chunks",-1);
+    this.outputDir=conf.get("final.output.dir");
+    this.taskId=conf.get("mapred.task.id");
+    this.checkSumType=CheckSum.fromString(conf.get("checksum.type"));
+    this.checkSumDigestIndex=CheckSum.getInstance(checkSumType);
+    this.checkSumDigestValue=CheckSum.getInstance(checkSumType);
+    List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new StringReader(conf.get("stores.xml")));
+    if (storeDefs.size() != 1)     throw new IllegalStateException("Expected to find only a single store, but found multiple!");
+    String storeName=storeDefs.get(0).getName();
+    this.taskIndexFileName=new Path(FileOutputFormat.getOutputPath(context),storeName + "." + this.taskId+ ".index");
+    this.taskValueFileName=new Path(FileOutputFormat.getOutputPath(context),storeName + "." + this.taskId+ ".data");
+    logger.info("Opening " + this.taskIndexFileName + " and "+ this.taskValueFileName+ " for writing.");
+    FileSystem fs=this.taskIndexFileName.getFileSystem(conf);
+    this.indexFileStream=fs.create(this.taskIndexFileName);
+    this.valueFileStream=fs.create(this.taskValueFileName);
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Failed to open Input/OutputStream",e);
+  }
+}

@@ -1,5 +1,17 @@
 {
   VectorClock clock=new VectorClock();
   if (metadataCache.containsKey(ROUTING_STRATEGY_KEY))   clock=(VectorClock)metadataCache.get(ROUTING_STRATEGY_KEY).getVersion();
-  this.metadataCache.put(ROUTING_STRATEGY_KEY,new Versioned<Object>(createRoutingStrategMap(cluster,storeDefs),clock.incremented(getNodeId(),System.currentTimeMillis())));
+  HashMap<String,RoutingStrategy> routingStrategyMap=createRoutingStrategyMap(cluster,storeDefs);
+  this.metadataCache.put(ROUTING_STRATEGY_KEY,new Versioned<Object>(routingStrategyMap,clock.incremented(getNodeId(),System.currentTimeMillis())));
+  for (  String storeName : storeNameTolisteners.keySet()) {
+    RoutingStrategy updatedRoutingStrategy=routingStrategyMap.get(storeName);
+    if (updatedRoutingStrategy != null) {
+      try {
+        storeNameTolisteners.get(storeName).updateRoutingStrategy(updatedRoutingStrategy);
+      }
+ catch (      Exception e) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(e,e);
+      }
+    }
+  }
 }

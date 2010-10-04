@@ -1,10 +1,10 @@
 {
   File versionDir=new File(dir,"version-0");
-  createStoreFiles(versionDir,ReadOnlyUtils.INDEX_ENTRY_SIZE * 5,4 * 5 * 10,2);
-  ReadOnlyStorageEngine engine=new ReadOnlyStorageEngine("test",strategy,dir,2);
+  createStoreFiles(versionDir,ReadOnlyUtils.INDEX_ENTRY_SIZE * 5,4 * 5 * 10,node,2);
+  ReadOnlyStorageEngine engine=new ReadOnlyStorageEngine("test",strategy,routingStrategy,0,dir,2);
   assertVersionsExist(dir,0);
   File newDir=TestUtils.createTempDir();
-  createStoreFiles(newDir,73,1024,2);
+  createStoreFiles(newDir,73,1024,node,2);
   try {
     engine.swapFiles(newDir.getAbsolutePath());
     fail("Swap files should have failed since parent directory is incorrect");
@@ -12,7 +12,7 @@
  catch (  VoldemortException e) {
   }
   newDir=new File(dir,"blah");
-  createStoreFiles(newDir,73,1024,2);
+  createStoreFiles(newDir,73,1024,node,2);
   try {
     engine.swapFiles(newDir.getAbsolutePath());
     fail("Swap files should have failed since name is incorrect");

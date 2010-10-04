@@ -3,4 +3,8 @@
   this.dir=TestUtils.createTempDir();
   this.serDef=new SerializerDefinition("json","'string'");
   this.lzfSerDef=new SerializerDefinition("json",ImmutableMap.of(0,"'string'"),true,new Compression("lzf",null));
+  this.storeDef=ServerTestUtils.getStoreDef("test",1,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY);
+  Cluster cluster=ServerTestUtils.getLocalCluster(1);
+  this.node=cluster.getNodeById(0);
+  this.routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
 }

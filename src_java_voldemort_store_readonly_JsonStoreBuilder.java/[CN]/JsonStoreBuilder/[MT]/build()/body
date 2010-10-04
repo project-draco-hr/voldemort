@@ -1,19 +1,30 @@
 {
-  logger.info("Building store " + storeDefinition.getName() + " for "+ cluster.getNumberOfNodes()+ " with "+ numChunks+ " chunks per node.");
+  logger.info("Building store " + storeDefinition.getName() + " for "+ cluster.getNumberOfPartitions()+ " partitions with "+ numChunksPerPartition+ " chunks per partitions.");
   int numNodes=cluster.getNumberOfNodes();
-  DataOutputStream[][] indexes=new DataOutputStream[numNodes][numChunks];
-  DataOutputStream[][] datas=new DataOutputStream[numNodes][numChunks];
-  int[][] positions=new int[numNodes][numChunks];
+  DataOutputStream[][] indexes=new DataOutputStream[numNodes][];
+  DataOutputStream[][] datas=new DataOutputStream[numNodes][];
+  int[][] positions=new int[numNodes][];
+  int[] partitionIdToChunkOffset=new int[cluster.getNumberOfPartitions()];
+  int[] partitionIdToNodeId=new int[cluster.getNumberOfPartitions()];
   for (  Node node : cluster.getNodes()) {
     int nodeId=node.getId();
+    indexes[nodeId]=new DataOutputStream[node.getNumberOfPartitions() * numChunksPerPartition];
+    datas[nodeId]=new DataOutputStream[node.getNumberOfPartitions() * numChunksPerPartition];
+    positions[nodeId]=new int[node.getNumberOfPartitions() * numChunksPerPartition];
     File nodeDir=new File(outputDir,"node-" + Integer.toString(nodeId));
     nodeDir.mkdirs();
-    for (int chunk=0; chunk < numChunks; chunk++) {
-      File indexFile=new File(nodeDir,chunk + ".index");
-      File dataFile=new File(nodeDir,chunk + ".data");
-      positions[nodeId][chunk]=0;
-      indexes[nodeId][chunk]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(indexFile),ioBufferSize));
-      datas[nodeId][chunk]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dataFile),ioBufferSize));
+    int globalChunk=0;
+    for (    Integer partition : node.getPartitionIds()) {
+      partitionIdToChunkOffset[partition]=globalChunk;
+      partitionIdToNodeId[partition]=node.getId();
+      for (int chunk=0; chunk < numChunksPerPartition; chunk++) {
+        File indexFile=new File(nodeDir,Integer.toString(partition) + "_" + Integer.toString(chunk)+ ".index");
+        File dataFile=new File(nodeDir,Integer.toString(partition) + "_" + Integer.toString(chunk)+ ".data");
+        positions[nodeId][globalChunk]=0;
+        indexes[nodeId][globalChunk]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(indexFile),ioBufferSize));
+        datas[nodeId][globalChunk]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dataFile),ioBufferSize));
+        globalChunk++;
+      }
     }
   }
   logger.info("Reading items...");
@@ -21,12 +32,13 @@
   ExternalSorter<KeyValuePair> sorter=new ExternalSorter<KeyValuePair>(new KeyValuePairSerializer(),new KeyMd5Comparator(),internalSortSize,tempDir.getAbsolutePath(),ioBufferSize,numThreads,gzipIntermediate);
   JsonObjectIterator iter=new JsonObjectIterator(reader,storeDefinition);
   for (  KeyValuePair pair : sorter.sorted(iter)) {
-    List<Node> nodes=this.routingStrategy.routeRequest(pair.getKey());
     byte[] keyMd5=pair.getKeyMd5();
-    for (int i=0; i < this.storeDefinition.getReplicationFactor(); i++) {
-      int nodeId=nodes.get(i).getId();
-      int chunk=ReadOnlyUtils.chunk(keyMd5,numChunks);
+    List<Integer> partitionIds=this.routingStrategy.getPartitionList(pair.getKey());
+    for (    Integer partitionId : partitionIds) {
+      int localChunkId=ReadOnlyUtils.chunk(keyMd5,numChunksPerPartition);
+      int chunk=localChunkId + partitionIdToChunkOffset[partitionId];
       int numBytes=pair.getValue().length;
+      int nodeId=partitionIdToNodeId[partitionId];
       datas[nodeId][chunk].writeInt(numBytes);
       datas[nodeId][chunk].write(pair.getValue());
       indexes[nodeId][chunk].write(keyMd5);
@@ -38,10 +50,10 @@
   }
   logger.info(count + " items read.");
   logger.info("Closing all store files.");
-  for (int node=0; node < numNodes; node++) {
-    for (int chunk=0; chunk < numChunks; chunk++) {
-      indexes[node][chunk].close();
-      datas[node][chunk].close();
+  for (  Node node : cluster.getNodes()) {
+    for (int chunk=0; chunk < numChunksPerPartition * node.getNumberOfPartitions(); chunk++) {
+      indexes[node.getId()][chunk].close();
+      datas[node.getId()][chunk].close();
     }
   }
 }

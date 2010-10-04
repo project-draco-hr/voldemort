@@ -4,9 +4,9 @@
   List<Integer> serverList=Arrays.asList(0,1);
   currentCluster=startServers(currentCluster,storeDefFile,serverList,null);
   targetCluster=updateCluster(targetCluster);
-  populateData(currentCluster,Arrays.asList(0));
   AdminClient adminClient=new AdminClient(getBootstrapUrl(currentCluster,0),new AdminClientConfig());
-  RebalancePartitionsInfo rebalancePartitionsInfo=new RebalancePartitionsInfo(1,0,Arrays.asList(2,3),new ArrayList<Integer>(0),Arrays.asList(testStoreName),0);
+  populateData(currentCluster,Arrays.asList(0),adminClient);
+  RebalancePartitionsInfo rebalancePartitionsInfo=new RebalancePartitionsInfo(1,0,Arrays.asList(2,3),Arrays.asList(2,3),Arrays.asList(2,3),Arrays.asList(testStoreNameRW),new HashMap<String,String>(),new HashMap<String,String>(),0);
   int requestId=adminClient.rebalanceNode(rebalancePartitionsInfo);
   logger.info("started rebalanceNode, request id = " + requestId);
   Thread.sleep(25);
@@ -33,7 +33,7 @@
       List<Integer> availablePartitions=targetCluster.getNodeById(nodeId).getPartitionIds();
       List<Integer> unavailablePartitions=getUnavailablePartitions(targetCluster,availablePartitions);
       try {
-        checkGetEntries(currentCluster.getNodeById(nodeId),targetCluster,unavailablePartitions,availablePartitions);
+        checkGetEntries(currentCluster.getNodeById(nodeId),targetCluster,unavailablePartitions,availablePartitions,false);
       }
  catch (      InvalidMetadataException e) {
         logger.warn(e);

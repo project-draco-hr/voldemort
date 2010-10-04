@@ -1,0 +1,22 @@
+{
+  for (  Node node : cluster.getNodes()) {
+    ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)getStore(node.getId(),"test-readonly-fetchfiles");
+    File newVersionDir=new File(store.getStoreDirPath(),"version-" + Long.toString(versionId));
+    Utils.mkdirs(newVersionDir);
+    generateFiles(numChunks,indexSize,dataSize,node.getPartitionIds(),newVersionDir);
+    store.swapFiles(newVersionDir.getAbsolutePath());
+    File tempDir=TestUtils.createTempDir();
+    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",node.getPartitionIds(),tempDir.getAbsolutePath());
+    assertEquals(tempDir.list().length,2 * node.getPartitionIds().size() * numChunks);
+    for (    Integer partitionId : node.getPartitionIds()) {
+      for (int chunkId=0; chunkId < numChunks; chunkId++) {
+        File indexFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(chunkId)+ ".index");
+        File dataFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(chunkId)+ ".data");
+        assertTrue(indexFile.exists());
+        assertTrue(dataFile.exists());
+        assertEquals(indexFile.length(),indexSize);
+        assertEquals(dataFile.length(),dataSize);
+      }
+    }
+  }
+}

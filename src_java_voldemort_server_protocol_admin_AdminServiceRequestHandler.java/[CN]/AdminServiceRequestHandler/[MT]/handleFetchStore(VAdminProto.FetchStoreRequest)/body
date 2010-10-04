@@ -22,15 +22,19 @@
       @Override public void operate(){
         File fetchDir=null;
         if (fileFetcher == null) {
-          logger.warn("File fetcher class has not instantiated correctly");
-          fetchDir=new File(fetchUrl);
+          logger.warn("File fetcher class has not instantiated correctly. Assuming local file");
+          if (!Utils.isReadableDir(fetchUrl)) {
+            throw new VoldemortException("Fetch url " + fetchUrl + " is not readable");
+          }
+          fetchDir=new File(store.getStoreDirPath(),"version-" + Long.toString(pushVersion));
+          Utils.move(new File(fetchUrl),fetchDir);
         }
  else {
           logger.info("Executing fetch of " + fetchUrl);
           updateStatus("0 MB copied at 0 MB/sec - 0 % complete");
           try {
             fileFetcher.setAsyncOperationStatus(status);
-            fetchDir=fileFetcher.fetch(fetchUrl,store.getStoreDirPath() + File.separator + "version-"+ pushVersion);
+            fetchDir=fileFetcher.fetch(fetchUrl,store.getStoreDirPath() + File.separator + "version-"+ Long.toString(pushVersion));
             updateStatus("Completed fetch of " + fetchUrl);
             if (fetchDir == null) {
               throw new VoldemortException("File fetcher failed for " + fetchUrl + " and store name = "+ storeName+ " due to incorrect input path/checksum error");

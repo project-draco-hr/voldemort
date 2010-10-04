@@ -1,16 +1,23 @@
 {
   adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),maxParallelStoresRebalancing * 4,maxParallelStoresRebalancing * 2);
   final List<Exception> failures=new ArrayList<Exception>();
+  final List<String> readOnlyStoresCompleted=new ArrayList<String>();
   try {
     logger.info("starting rebalancing task" + stealInfo);
     for (    final String storeName : ImmutableList.copyOf(stealInfo.getUnbalancedStoreList())) {
       executors.submit(new Runnable(){
         public void run(){
           try {
-            rebalanceStore(storeName,adminClient,stealInfo);
-            List<String> tempUnbalancedStoreList=new ArrayList<String>(stealInfo.getUnbalancedStoreList());
-            tempUnbalancedStoreList.remove(storeName);
-            stealInfo.setUnbalancedStoreList(tempUnbalancedStoreList);
+            boolean isReadOnlyStore=metadataStore.getStoreDef(storeName).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
+            rebalanceStore(storeName,adminClient,stealInfo,isReadOnlyStore);
+            if (!isReadOnlyStore) {
+              List<String> tempUnbalancedStoreList=new ArrayList<String>(stealInfo.getUnbalancedStoreList());
+              tempUnbalancedStoreList.remove(storeName);
+              stealInfo.setUnbalancedStoreList(tempUnbalancedStoreList);
+            }
+ else {
+              readOnlyStoresCompleted.add(storeName);
+            }
             rebalancer.setRebalancingState(stealInfo);
           }
  catch (          Exception e) {
@@ -22,12 +29,19 @@
 );
     }
     waitForShutdown();
-    if (stealInfo.getUnbalancedStoreList().isEmpty()) {
+    List<String> unbalancedStores=Lists.newArrayList(stealInfo.getUnbalancedStoreList());
+    if (unbalancedStores.isEmpty()) {
       logger.info("Rebalancer: rebalance " + stealInfo + " completed successfully.");
       metadataStore.cleanRebalancingState(stealInfo);
     }
  else {
-      throw new VoldemortRebalancingException("Failed to rebalance task " + stealInfo,failures);
+      unbalancedStores.removeAll(readOnlyStoresCompleted);
+      if (unbalancedStores.size() > 0) {
+        throw new VoldemortRebalancingException("Failed to rebalance task " + stealInfo,failures);
+      }
+ else {
+        logger.info("Rebalancer: rebalance " + stealInfo + " on all read-write stores completed successfully. Read-only stores left.");
+      }
     }
   }
   finally {

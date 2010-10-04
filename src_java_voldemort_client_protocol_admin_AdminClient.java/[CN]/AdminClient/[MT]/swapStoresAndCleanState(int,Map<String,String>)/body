@@ -1,0 +1,9 @@
+{
+  VAdminProto.SwapStoresAndCleanStateRequest.Builder swapStoreRequest=VAdminProto.SwapStoresAndCleanStateRequest.newBuilder().addAllRoStoreVersions(decodeROStoreVersionDirMap(storeToDir));
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setSwapStoresAndCleanState(swapStoreRequest).setType(VAdminProto.AdminRequestType.SWAP_STORES_AND_CLEAN_STATE).build();
+  VAdminProto.SwapStoresAndCleanStateResponse.Builder response=sendAndReceive(nodeId,adminRequest,VAdminProto.SwapStoresAndCleanStateResponse.newBuilder());
+  if (response.hasError()) {
+    throwException(response.getError());
+  }
+  return;
+}

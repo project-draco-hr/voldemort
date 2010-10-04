@@ -1,0 +1,8 @@
+{
+  Map<String,Long> returnMap=Maps.newHashMapWithExpectedSize(storeNames.size());
+  Map<String,String> versionDirs=getROMaxVersionDir(nodeId,storeNames);
+  for (  String storeName : versionDirs.keySet()) {
+    returnMap.put(storeName,ReadOnlyUtils.getVersionId(new File(versionDirs.get(storeName))));
+  }
+  return returnMap;
+}

@@ -1,13 +1,22 @@
 {
   StoreUtils.assertValidKey(key);
-  byte[] keyMd5=ByteUtils.md5(key.get());
-  int chunk=fileSet.getChunkForKey(keyMd5);
-  int location=searchStrategy.indexOf(fileSet.indexFileFor(chunk),keyMd5,fileSet.getIndexFileSize(chunk));
-  if (location >= 0) {
-    byte[] value=readValue(chunk,location);
-    return Collections.singletonList(Versioned.value(value));
-  }
+  try {
+    fileModificationLock.readLock().lock();
+    int chunk=fileSet.getChunkForKey(key.get());
+    if (chunk < 0) {
+      logger.warn("Routing strategy used for read-only store is inconsistent");
+      return Collections.emptyList();
+    }
+    int location=searchStrategy.indexOf(fileSet.indexFileFor(chunk),ByteUtils.md5(key.get()),fileSet.getIndexFileSize(chunk));
+    if (location >= 0) {
+      byte[] value=readValue(chunk,location);
+      return Collections.singletonList(Versioned.value(value));
+    }
  else {
-    return Collections.emptyList();
+      return Collections.emptyList();
+    }
+  }
+  finally {
+    fileModificationLock.readLock().unlock();
   }
 }

@@ -1,0 +1,14 @@
+{
+  for (  Integer partitionId : node.getPartitionIds()) {
+    for (int chunkId=0; chunkId < numChunksPerPartitions; chunkId++) {
+      File index=createFile(dir,Integer.toString(partitionId) + "_" + Integer.toString(chunkId)+ ".index");
+      File data=createFile(dir,Integer.toString(partitionId) + "_" + Integer.toString(chunkId)+ ".data");
+      FileOutputStream dataOs=new FileOutputStream(data);
+      for (int i=0; i < dataBytes; i++)       dataOs.write(i);
+      dataOs.close();
+      FileOutputStream indexOs=new FileOutputStream(index);
+      for (int i=0; i < indexBytes; i++)       indexOs.write(i);
+      indexOs.close();
+    }
+  }
+}
