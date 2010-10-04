@@ -3,7 +3,9 @@
   for (  String configClassName : voldemortConfig.getStorageConfigurations())   initStorageConfig(configClassName);
   storageConfigs.put(ViewStorageConfiguration.TYPE_NAME,new ViewStorageConfiguration(voldemortConfig,metadata.getStoreDefList(),storeRepository));
   if (voldemortConfig.isSlopEnabled()) {
-    StorageEngine<ByteArray,byte[]> slopEngine=getStorageEngine("slop",voldemortConfig.getSlopStoreType());
+    StorageConfiguration config=storageConfigs.get(voldemortConfig.getSlopStoreType());
+    if (config == null)     throw new ConfigurationException("Attempt to slop store failed");
+    StorageEngine<ByteArray,byte[]> slopEngine=config.getStore("slop");
     registerEngine(slopEngine);
     storeRepository.setSlopStore(SerializingStorageEngine.wrap(slopEngine,new ByteArraySerializer(),new SlopSerializer()));
   }
