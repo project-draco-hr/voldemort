@@ -1,0 +1,12 @@
+{
+  Set<Integer> failedNodes=new CopyOnWriteArraySet<Integer>();
+  Random rand=new Random();
+  int offset=rand.nextInt(NUM_NODES_TOTAL);
+  for (int i=0; i < NUM_NODES_FAILED; i++)   failedNodes.add((offset + i) % NUM_NODES_TOTAL);
+  for (  int node : failedNodes) {
+    ForceFailStore forceFailStore=getForceFailStore(node);
+    forceFailStore.setFail(true);
+    if (logger.isTraceEnabled())     logger.trace("Started failing requests to " + node);
+  }
+  return failedNodes;
+}

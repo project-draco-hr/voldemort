@@ -44,5 +44,11 @@
       throw new MappingException("Have not set one of the following correctly for store '" + name + "' - "+ STORE_ZONE_COUNT_READS+ ", "+ STORE_ZONE_COUNT_WRITES+ ", "+ STORE_ZONE_REPLICATION_FACTOR_ELMT);
     }
   }
-  return new StoreDefinitionBuilder().setName(name).setType(storeType).setKeySerializer(keySerializer).setValueSerializer(valueSerializer).setRoutingPolicy(routingTier).setRoutingStrategyType(routingStrategyType).setReplicationFactor(replicationFactor).setPreferredReads(preferredReads).setRequiredReads(requiredReads).setPreferredWrites(preferredWrites).setRequiredWrites(requiredWrites).setRetentionPeriodDays(retentionPolicyDays).setRetentionScanThrottleRate(retentionThrottleRate).setZoneReplicationFactor(zoneReplicationFactor).setZoneCountReads(zoneCountReads).setZoneCountWrites(zoneCountWrites).build();
+  String enableHintedHandoffStr=store.getChildText(HINTED_HANDOFF_ENABLE);
+  boolean enableHintedHandoff=(null != enableHintedHandoffStr) && Boolean.parseBoolean(enableHintedHandoffStr);
+  String hintedHandoffStrategy=null;
+  if (enableHintedHandoff)   hintedHandoffStrategy=(null != store.getChildText(HINTED_HANDOFF_STRATEGY)) ? store.getChildText(HINTED_HANDOFF_STRATEGY) : HintedHandoffStrategyType.TO_ALL_STRATEGY;
+  String hintPrefListSizeStr=store.getChildText(HINT_PREFLIST_SIZE);
+  Integer hintPrefListSize=(null != hintPrefListSizeStr) ? Integer.parseInt(hintPrefListSizeStr) : null;
+  return new StoreDefinitionBuilder().setName(name).setType(storeType).setKeySerializer(keySerializer).setValueSerializer(valueSerializer).setRoutingPolicy(routingTier).setRoutingStrategyType(routingStrategyType).setReplicationFactor(replicationFactor).setPreferredReads(preferredReads).setRequiredReads(requiredReads).setPreferredWrites(preferredWrites).setRequiredWrites(requiredWrites).setRetentionPeriodDays(retentionPolicyDays).setRetentionScanThrottleRate(retentionThrottleRate).setZoneReplicationFactor(zoneReplicationFactor).setZoneCountReads(zoneCountReads).setZoneCountWrites(zoneCountWrites).setEnableHintedHandoff(enableHintedHandoff).setHintedHandoffStrategy(hintedHandoffStrategy).setHintPrefListSize(hintPrefListSize).build();
 }

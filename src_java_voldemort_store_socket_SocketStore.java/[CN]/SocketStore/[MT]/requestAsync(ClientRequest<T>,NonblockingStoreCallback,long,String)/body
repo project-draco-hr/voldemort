@@ -1,0 +1,18 @@
+{
+  ClientRequestExecutor clientRequestExecutor=null;
+  try {
+    clientRequestExecutor=pool.checkout(destination);
+  }
+ catch (  Exception e) {
+    if (!(e instanceof UnreachableStoreException))     e=new UnreachableStoreException("Failure in " + operationName + ": "+ e.getMessage(),e);
+    try {
+      callback.requestComplete(e,0);
+    }
+ catch (    Exception ex) {
+      if (logger.isEnabledFor(Level.WARN))       logger.warn(ex,ex);
+    }
+    return;
+  }
+  NonblockingStoreCallbackClientRequest<T> clientRequest=new NonblockingStoreCallbackClientRequest<T>(delegate,clientRequestExecutor,callback);
+  clientRequestExecutor.addClientRequest(clientRequest,timeoutMs);
+}

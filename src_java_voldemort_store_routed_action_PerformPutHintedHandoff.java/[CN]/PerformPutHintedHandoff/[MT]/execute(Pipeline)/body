@@ -1,0 +1,20 @@
+{
+  Versioned<byte[]> versionedCopy=pipelineData.getVersionedCopy();
+  for (  Node failedNode : failedNodes) {
+    int failedNodeId=failedNode.getId();
+    if (versionedCopy == null) {
+      VectorClock clock=(VectorClock)versioned.getVersion();
+      versionedCopy=new Versioned<byte[]>(versioned.getValue(),clock.incremented(failedNodeId,time.getMilliseconds()));
+    }
+    Version version=versionedCopy.getVersion();
+    if (logger.isTraceEnabled())     logger.trace("Performing hinted handoff for node " + failedNode + ", store "+ pipelineData.getStoreName()+ " key "+ key+ ", version "+ version);
+    Slop slop=new Slop(pipelineData.getStoreName(),Slop.Operation.PUT,key,versionedCopy.getValue(),transforms,failedNodeId,new Date());
+    boolean persisted=hintedHandoff.sendHint(failedNode,version,slop);
+    Exception e=pipelineData.getFatalError();
+    if (e != null) {
+      if (persisted)       pipelineData.setFatalError(new UnreachableStoreException("Put operation failed on node " + failedNodeId + ", but has been persisted to slop storage for eventual replication.",e));
+ else       pipelineData.setFatalError(new InsufficientOperationalNodesException("All slop servers are unavailable from node " + failedNodeId + ".",e));
+    }
+  }
+  pipeline.addEvent(completeEvent);
+}

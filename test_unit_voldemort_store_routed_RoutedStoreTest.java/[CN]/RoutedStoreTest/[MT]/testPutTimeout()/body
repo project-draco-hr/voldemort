@@ -16,13 +16,13 @@
   routedStoreThreadPool=Executors.newFixedThreadPool(3);
   RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,timeout);
   RoutedStore routedStore=routedStoreFactory.create(new Cluster("test",nodes),definition,stores,true,failureDetector);
-  long start=System.currentTimeMillis();
+  long start=System.nanoTime();
   try {
     routedStore.put(new ByteArray("test".getBytes()),new Versioned<byte[]>(new byte[]{1}),null);
     fail("Should have thrown");
   }
  catch (  InsufficientOperationalNodesException e) {
-    long elapsed=System.currentTimeMillis() - start;
+    long elapsed=(System.nanoTime() - start) / Time.NS_PER_MS;
     assertTrue(elapsed + " < " + totalDelay,elapsed < totalDelay);
   }
 }

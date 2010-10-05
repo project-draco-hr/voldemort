@@ -24,4 +24,22 @@ catch (      Exception e) {
  catch (  Exception e) {
     if (logger.isEnabledFor(Level.ERROR))     logger.error(e.getMessage(),e);
   }
+  try {
+    Iterator<SelectionKey> i=selector.keys().iterator();
+    while (i.hasNext()) {
+      SelectionKey selectionKey=i.next();
+      ClientRequestExecutor clientRequestExecutor=(ClientRequestExecutor)selectionKey.attachment();
+      if (clientRequestExecutor != null) {
+        try {
+          clientRequestExecutor.checkTimeout(selectionKey);
+        }
+ catch (        Exception e) {
+          if (logger.isEnabledFor(Level.ERROR))           logger.error(e.getMessage(),e);
+        }
+      }
+    }
+  }
+ catch (  Exception e) {
+    if (logger.isEnabledFor(Level.ERROR))     logger.error(e.getMessage(),e);
+  }
 }

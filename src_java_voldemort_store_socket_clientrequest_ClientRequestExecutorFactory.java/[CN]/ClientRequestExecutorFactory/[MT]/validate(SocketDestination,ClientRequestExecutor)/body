@@ -1,6 +1,7 @@
 {
-  if (clientRequestExecutor.getCreateTimestamp() <= dest.getLastClosedTimestamp()) {
-    if (logger.isDebugEnabled())     logger.debug("Socket connection " + clientRequestExecutor + " was created on "+ new Date(clientRequestExecutor.getCreateTimestamp() / Time.NS_PER_MS)+ " before socket pool was closed and re-created (on "+ new Date(dest.getLastClosedTimestamp() / Time.NS_PER_MS)+ ")");
+  long lastClosedTimestamp=getLastClosedTimestamp(dest);
+  if (clientRequestExecutor.getCreateTimestamp() <= lastClosedTimestamp) {
+    if (logger.isDebugEnabled())     logger.debug("Socket connection " + clientRequestExecutor + " was created on "+ new Date(clientRequestExecutor.getCreateTimestamp() / Time.NS_PER_MS)+ " before socket pool was closed and re-created (on "+ new Date(lastClosedTimestamp / Time.NS_PER_MS)+ ")");
     return false;
   }
   boolean isValid=clientRequestExecutor.isValid();

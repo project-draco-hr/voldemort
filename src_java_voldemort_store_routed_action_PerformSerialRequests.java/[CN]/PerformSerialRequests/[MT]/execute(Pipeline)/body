@@ -24,7 +24,7 @@
     }
  else {
       pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but only "+ pipelineData.getSuccesses()+ " succeeded",pipelineData.getFailures()));
-      pipeline.addEvent(Event.ERROR);
+      pipeline.abort();
     }
   }
  else {
@@ -35,7 +35,7 @@
       }
  else {
         pipelineData.setFatalError(new InsufficientZoneResponsesException((pipelineData.getZonesRequired() + 1) + " " + pipeline.getOperation().getSimpleName()+ "s required zone, but only "+ zonesSatisfied+ " succeeded"));
-        pipeline.addEvent(Event.ERROR);
+        pipeline.abort();
       }
     }
  else {

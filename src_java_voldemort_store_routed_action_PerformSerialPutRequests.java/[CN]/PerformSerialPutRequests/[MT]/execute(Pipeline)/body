@@ -28,14 +28,14 @@
   if (pipelineData.getSuccesses() < 1) {
     List<Exception> failures=pipelineData.getFailures();
     pipelineData.setFatalError(new InsufficientOperationalNodesException("No master node succeeded!",failures.size() > 0 ? failures.get(0) : null));
-    pipeline.addEvent(Event.ERROR);
+    pipeline.abort();
     return;
   }
   currentNode++;
   if (currentNode == nodes.size()) {
     if (pipelineData.getSuccesses() < required) {
       pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but only "+ pipelineData.getSuccesses()+ " succeeded",pipelineData.getFailures()));
-      pipeline.addEvent(Event.ERROR);
+      pipeline.abort();
     }
  else {
       if (pipelineData.getZonesRequired() != null) {
@@ -45,7 +45,7 @@
         }
  else {
           pipelineData.setFatalError(new InsufficientZoneResponsesException((pipelineData.getZonesRequired() + 1) + " " + pipeline.getOperation().getSimpleName()+ "s required zone, but only "+ zonesSatisfied+ " succeeded"));
-          pipeline.addEvent(Event.ERROR);
+          pipeline.abort();
         }
       }
  else {

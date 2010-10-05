@@ -1,0 +1,36 @@
+{
+  populateStore(Sets.<Integer>newHashSet());
+  Map<ByteArray,Version> versions=Maps.newHashMap();
+  for (  ByteArray key : keyValues.keySet())   versions.put(key,store.get(key,null).get(0).getVersion());
+  Set<Integer> failedNodes=getFailedNodes();
+  Set<ByteArray> failedKeys=Sets.newHashSet();
+  for (  ByteArray key : keysToNodes.keySet()) {
+    Iterable<Integer> nodes=keysToNodes.get(key);
+    for (int i=0; i < REPLICATION_FACTOR; i++) {
+      int node=Iterables.get(nodes,i);
+      if (failedNodes.contains(node)) {
+        failedKeys.add(key);
+        break;
+      }
+    }
+  }
+  for (  ByteArray failedKey : failedKeys) {
+    try {
+      store.delete(failedKey,versions.get(failedKey));
+    }
+ catch (    Exception e) {
+      if (logger.isTraceEnabled())       logger.trace(e,e);
+    }
+  }
+  Set<ByteArray> slopKeys=makeSlopKeys(failedKeys,Slop.Operation.DELETE);
+  Set<ByteArray> keysInSlops=Sets.newHashSet();
+  for (  Store<ByteArray,Slop,byte[]> slopStore : slopStores.values()) {
+    Map<ByteArray,List<Versioned<Slop>>> res=slopStore.getAll(slopKeys,null);
+    for (    Map.Entry<ByteArray,List<Versioned<Slop>>> entry : res.entrySet()) {
+      Slop slop=entry.getValue().get(0).getValue();
+      keysInSlops.add(slop.getKey());
+      if (logger.isTraceEnabled())       logger.trace(slop);
+    }
+  }
+  for (  ByteArray failedKey : failedKeys)   assertTrue("delete operation for " + failedKey + " should be handed off",keysInSlops.contains(failedKey));
+}

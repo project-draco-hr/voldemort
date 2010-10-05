@@ -1,0 +1,43 @@
+{
+  executor.submit(new Runnable(){
+    public void run(){
+      long start=System.nanoTime();
+      final long timeoutNs=timeoutMs * Time.NS_PER_MS;
+      try {
+        Object result=request.request(innerStore);
+        if (callback != null) {
+          long diff=System.nanoTime() - start;
+          if (diff <= timeoutNs) {
+            try {
+              callback.requestComplete(result,diff / Time.NS_PER_MS);
+            }
+ catch (            Exception e) {
+              if (logger.isEnabledFor(Level.WARN))               logger.warn(e,e);
+            }
+          }
+ else {
+            UnreachableStoreException ex=new UnreachableStoreException("Failure in " + operationName + ": time out exceeded");
+            try {
+              callback.requestComplete(ex,diff);
+            }
+ catch (            Exception e) {
+              if (logger.isEnabledFor(Level.WARN))               logger.warn(e,e);
+            }
+          }
+        }
+      }
+ catch (      Exception e) {
+        if (callback != null) {
+          long diff=System.nanoTime() - start;
+          try {
+            callback.requestComplete(e,diff / Time.NS_PER_MS);
+          }
+ catch (          Exception ex) {
+            if (logger.isEnabledFor(Level.WARN))             logger.warn(ex,ex);
+          }
+        }
+      }
+    }
+  }
+);
+}
