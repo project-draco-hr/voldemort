@@ -34,7 +34,7 @@
   RoutingStrategy router=new RoutingStrategyFactory().updateRoutingStrategy(def,cluster);
   File outputDir=TestUtils.createTempDir(baseDir);
   JsonStoreBuilder storeBuilder=new JsonStoreBuilder(reader,cluster,def,router,outputDir,null,testEntries.size() / 5,1,2,10000,false);
-  storeBuilder.build();
+  storeBuilder.build(ReadOnlyStorageFormat.READONLY_V1);
   AdminStoreSwapper swapper=new AdminStoreSwapper(cluster,Executors.newFixedThreadPool(nodeList.size()),adminClient,100000);
   swapper.swapStoreData(testStoreNameRO,outputDir.getAbsolutePath(),1L);
 }

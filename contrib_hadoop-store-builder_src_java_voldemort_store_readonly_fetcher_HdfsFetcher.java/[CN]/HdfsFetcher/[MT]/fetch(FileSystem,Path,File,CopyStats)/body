@@ -17,9 +17,12 @@
           origCheckSum=new byte[CheckSum.checkSumLength(checkSumType)];
           input.read(origCheckSum);
           input.close();
-          continue;
         }
-        if (!status.getPath().getName().startsWith(".")) {
+ else         if (status.getPath().getName().contains(".metadata")) {
+          File copyLocation=new File(dest,status.getPath().getName());
+          copyFileWithCheckSum(fs,status.getPath(),copyLocation,stats,null);
+        }
+ else         if (!status.getPath().getName().startsWith(".")) {
           File copyLocation=new File(dest,status.getPath().getName());
           copyFileWithCheckSum(fs,status.getPath(),copyLocation,stats,fileCheckSumGenerator);
           if (fileCheckSumGenerator != null && checkSumGenerator != null) {

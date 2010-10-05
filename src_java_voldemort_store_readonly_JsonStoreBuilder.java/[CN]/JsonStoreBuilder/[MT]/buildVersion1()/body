@@ -1,5 +1,5 @@
 {
-  logger.info("Building store " + storeDefinition.getName() + " for "+ cluster.getNumberOfPartitions()+ " partitions with "+ numChunksPerPartition+ " chunks per partitions.");
+  logger.info("Building store " + storeDefinition.getName() + " for "+ cluster.getNumberOfPartitions()+ " partitions with "+ numChunks+ " chunks per partitions.");
   int numNodes=cluster.getNumberOfNodes();
   DataOutputStream[][] indexes=new DataOutputStream[numNodes][];
   DataOutputStream[][] datas=new DataOutputStream[numNodes][];
@@ -8,16 +8,21 @@
   int[] partitionIdToNodeId=new int[cluster.getNumberOfPartitions()];
   for (  Node node : cluster.getNodes()) {
     int nodeId=node.getId();
-    indexes[nodeId]=new DataOutputStream[node.getNumberOfPartitions() * numChunksPerPartition];
-    datas[nodeId]=new DataOutputStream[node.getNumberOfPartitions() * numChunksPerPartition];
-    positions[nodeId]=new int[node.getNumberOfPartitions() * numChunksPerPartition];
+    indexes[nodeId]=new DataOutputStream[node.getNumberOfPartitions() * numChunks];
+    datas[nodeId]=new DataOutputStream[node.getNumberOfPartitions() * numChunks];
+    positions[nodeId]=new int[node.getNumberOfPartitions() * numChunks];
     File nodeDir=new File(outputDir,"node-" + Integer.toString(nodeId));
     nodeDir.mkdirs();
+    BufferedWriter writer=new BufferedWriter(new FileWriter(new File(nodeDir,".metadata")));
+    ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
+    metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V1.getCode());
+    writer.write(metadata.toJsonString());
+    writer.close();
     int globalChunk=0;
     for (    Integer partition : node.getPartitionIds()) {
       partitionIdToChunkOffset[partition]=globalChunk;
       partitionIdToNodeId[partition]=node.getId();
-      for (int chunk=0; chunk < numChunksPerPartition; chunk++) {
+      for (int chunk=0; chunk < numChunks; chunk++) {
         File indexFile=new File(nodeDir,Integer.toString(partition) + "_" + Integer.toString(chunk)+ ".index");
         File dataFile=new File(nodeDir,Integer.toString(partition) + "_" + Integer.toString(chunk)+ ".data");
         positions[nodeId][globalChunk]=0;
@@ -35,7 +40,7 @@
     byte[] keyMd5=pair.getKeyMd5();
     List<Integer> partitionIds=this.routingStrategy.getPartitionList(pair.getKey());
     for (    Integer partitionId : partitionIds) {
-      int localChunkId=ReadOnlyUtils.chunk(keyMd5,numChunksPerPartition);
+      int localChunkId=ReadOnlyUtils.chunk(keyMd5,numChunks);
       int chunk=localChunkId + partitionIdToChunkOffset[partitionId];
       int numBytes=pair.getValue().length;
       int nodeId=partitionIdToNodeId[partitionId];
@@ -51,7 +56,7 @@
   logger.info(count + " items read.");
   logger.info("Closing all store files.");
   for (  Node node : cluster.getNodes()) {
-    for (int chunk=0; chunk < numChunksPerPartition * node.getNumberOfPartitions(); chunk++) {
+    for (int chunk=0; chunk < numChunks * node.getNumberOfPartitions(); chunk++) {
       indexes[node.getId()][chunk].close();
       datas[node.getId()][chunk].close();
     }

@@ -33,11 +33,17 @@
     logger.info("Number of reduces: " + numReduces);
     logger.info("Building store...");
     JobClient.runJob(conf);
+    ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
+    metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V1.getCode());
     for (    Node node : cluster.getNodes()) {
       Path nodePath=new Path(outputDir.toString(),"node-" + node.getId());
       if (!outputFs.exists(nodePath)) {
         outputFs.mkdirs(nodePath);
       }
+      FSDataOutputStream metadataStream=outputFs.create(new Path(nodePath,".metadata"));
+      metadataStream.write(metadata.toJsonString().getBytes());
+      metadataStream.flush();
+      metadataStream.close();
     }
     if (checkSumType != CheckSumType.NONE) {
       FileStatus[] nodes=outputFs.listStatus(outputDir);

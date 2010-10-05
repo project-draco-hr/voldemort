@@ -1,7 +1,20 @@
 {
-  List<Integer> partitionList=routingStrategy.getPartitionList(key);
-  partitionList.retainAll(partitionIds);
-  if (partitionList.size() != 1)   return -1;
-  Integer chunkId=ReadOnlyUtils.chunk(ByteUtils.md5(key),partitionToNumChunks.get(partitionList.get(0)));
-  return partitionToChunkStart.get(partitionList.get(0)) + chunkId;
+switch (storageFormat) {
+case READONLY_V0:
+{
+      return ReadOnlyUtils.chunk(key,numChunks);
+    }
+case READONLY_V1:
+{
+    List<Integer> partitionList=routingStrategy.getPartitionList(key);
+    partitionList.retainAll(partitionIds);
+    if (partitionList.size() != 1)     return -1;
+    Integer chunkId=ReadOnlyUtils.chunk(ByteUtils.md5(key),partitionToNumChunks.get(partitionList.get(0)));
+    return partitionToChunkStart.get(partitionList.get(0)) + chunkId;
+  }
+default :
+{
+  return -1;
+}
+}
 }
