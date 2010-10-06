@@ -16,7 +16,7 @@
  catch (  InterruptedException e) {
     Thread.currentThread().interrupt();
   }
-  AdminClient localAdminClient=getAdminClient(newCluster,newServer.getVoldemortConfig());
+  AdminClient localAdminClient=getAdminClient(newCluster);
   Versioned<String> versionedClusterXML=localAdminClient.getRemoteMetadata(3,MetadataStore.CLUSTER_KEY);
   Version version=versionedClusterXML.getVersion();
   ((VectorClock)version).incrementVersion(3,((VectorClock)version).getTimestamp() + 1);
