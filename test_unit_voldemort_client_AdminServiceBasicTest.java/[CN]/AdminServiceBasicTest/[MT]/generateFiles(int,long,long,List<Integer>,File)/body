@@ -1,4 +1,10 @@
 {
+  ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
+  metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V1.getCode());
+  File metadataFile=new File(versionDir,".metadata");
+  BufferedWriter writer=new BufferedWriter(new FileWriter(metadataFile));
+  writer.write(metadata.toJsonString());
+  writer.close();
   for (  Integer partitionId : partitions) {
     for (int chunkId=0; chunkId < numChunks; chunkId++) {
       File index=new File(versionDir,Integer.toString(partitionId) + "_" + Integer.toString(chunkId)+ ".index");
