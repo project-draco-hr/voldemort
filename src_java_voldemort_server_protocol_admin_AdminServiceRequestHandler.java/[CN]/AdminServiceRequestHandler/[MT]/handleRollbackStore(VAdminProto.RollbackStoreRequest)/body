@@ -3,7 +3,7 @@
   final long pushVersion=request.getPushVersion();
   VAdminProto.RollbackStoreResponse.Builder response=VAdminProto.RollbackStoreResponse.newBuilder();
   try {
-    ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)getStorageEngine(storeRepository,storeName);
+    ReadOnlyStorageEngine store=getReadOnlyStorageEngine(metadataStore,storeRepository,storeName);
     File rollbackVersionDir=new File(store.getStoreDirPath(),"version-" + pushVersion);
     store.rollback(rollbackVersionDir);
   }

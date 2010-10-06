@@ -3,7 +3,7 @@
   VAdminProto.GetROCurrentVersionDirResponse.Builder response=VAdminProto.GetROCurrentVersionDirResponse.newBuilder();
   try {
     for (    String storeName : storeNames) {
-      ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)getStorageEngine(storeRepository,storeName);
+      ReadOnlyStorageEngine store=getReadOnlyStorageEngine(metadataStore,storeRepository,storeName);
       VAdminProto.ROStoreVersionDirMap storeResponse=VAdminProto.ROStoreVersionDirMap.newBuilder().setStoreName(storeName).setStoreDir(store.getCurrentDirPath()).build();
       response.addRoStoreVersions(storeResponse);
     }

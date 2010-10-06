@@ -3,7 +3,7 @@
   VAdminProto.GetROMaxVersionDirResponse.Builder response=VAdminProto.GetROMaxVersionDirResponse.newBuilder();
   try {
     for (    String storeName : storeNames) {
-      ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)getStorageEngine(storeRepository,storeName);
+      ReadOnlyStorageEngine store=getReadOnlyStorageEngine(metadataStore,storeRepository,storeName);
       File storeDirPath=new File(store.getStoreDirPath());
       if (!storeDirPath.exists())       throw new VoldemortException("Unable to locate the directory of the read-only store " + storeName);
       File[] versionDirs=ReadOnlyUtils.getVersionDirs(storeDirPath);
