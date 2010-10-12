@@ -1,7 +1,0 @@
-{
-  Cluster cluster=new ClusterMapper().readCluster(new BufferedReader(new FileReader(clusterXmlFile)));
-  List<StoreDefinition> stores=new StoreDefinitionsMapper().readStoreList(new BufferedReader(new FileReader(storesXmlFile)));
-  if (desiredNumPartitions < minNumPartitions)   desiredNumPartitions=cluster.getNumberOfPartitions() / (cluster.getNumberOfNodes() + 1);
-  if (maxRemappedReplicas < 0)   maxRemappedReplicas=cluster.getNumberOfPartitions() / 2;
-  return new RebalanceClusterBuilder(cluster,stores,maxRemappedReplicas,minNumPartitions,desiredNumPartitions);
-}
