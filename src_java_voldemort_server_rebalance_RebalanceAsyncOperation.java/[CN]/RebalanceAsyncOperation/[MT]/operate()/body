@@ -9,14 +9,14 @@
         public void run(){
           try {
             boolean isReadOnlyStore=metadataStore.getStoreDef(storeName).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
+            if (isReadOnlyStore) {
+              readOnlyStoresCompleted.add(storeName);
+            }
             rebalanceStore(storeName,adminClient,stealInfo,isReadOnlyStore);
             if (!isReadOnlyStore) {
               List<String> tempUnbalancedStoreList=new ArrayList<String>(stealInfo.getUnbalancedStoreList());
               tempUnbalancedStoreList.remove(storeName);
               stealInfo.setUnbalancedStoreList(tempUnbalancedStoreList);
-            }
- else {
-              readOnlyStoresCompleted.add(storeName);
             }
             rebalancer.setRebalancingState(stealInfo);
           }
@@ -41,6 +41,7 @@
       }
  else {
         logger.info("Rebalancer: rebalance " + stealInfo + " on all read-write stores completed successfully. Read-only stores left.");
+        rebalancer.acquireRebalancingPermit(metadataStore.getNodeId());
       }
     }
   }

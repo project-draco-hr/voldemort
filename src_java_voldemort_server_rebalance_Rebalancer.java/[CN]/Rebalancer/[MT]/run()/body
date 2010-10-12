@@ -16,7 +16,8 @@
   }
   final ConcurrentHashMap<Integer,Map<String,String>> nodeIdsToStoreDirs=new ConcurrentHashMap<Integer,Map<String,String>>();
   final List<Exception> failures=new ArrayList<Exception>();
-  if (VoldemortState.REBALANCING_MASTER_SERVER.equals(voldemortState)) {
+  if (VoldemortState.REBALANCING_MASTER_SERVER.equals(voldemortState) && acquireRebalancingPermit(metadataStore.getNodeId())) {
+    releaseRebalancingPermit(metadataStore.getNodeId());
     for (    RebalancePartitionsInfo stealInfo : rebalancerState.getAll()) {
       if (acquireRebalancingPermit(stealInfo.getDonorId())) {
         releaseRebalancingPermit(stealInfo.getDonorId());
