@@ -6,9 +6,9 @@
     logger.info("Starting the slop store:");
     StorageConfiguration config=storageConfigs.get(voldemortConfig.getSlopStoreType());
     if (config == null)     throw new ConfigurationException("Attempt to get slop store failed");
-    StorageEngine<ByteArray,byte[],byte[]> slopEngine=config.getStore("slop");
+    SlopStorageEngine slopEngine=new SlopStorageEngine(config.getStore("slop"));
     registerEngine(slopEngine);
-    storeRepository.setSlopStore(SerializingStorageEngine.wrap(slopEngine,new ByteArraySerializer(),new SlopSerializer(),new IdentitySerializer()));
+    storeRepository.setSlopStore(slopEngine);
     logger.info("Slop store registered");
     scheduler.schedule(new SlopPusherJob(storeRepository,metadata.getCluster(),failureDetector,voldemortConfig.getSlopMaxWriteBytesPerSec()),new Date(),voldemortConfig.getSlopFrequencyMs());
   }
