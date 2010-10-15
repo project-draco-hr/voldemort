@@ -10,7 +10,7 @@
   Map<Integer,Store<ByteArray,byte[],byte[]>> clientMapping=Maps.newHashMap();
   Map<Integer,NonblockingStore> nonblockingStores=Maps.newHashMap();
   Map<Integer,Store<ByteArray,Slop,byte[]>> slopStores=null;
-  if (config.isHintedHandoffEnabled() && storeDef.isHintedHandoffEnabled())   slopStores=Maps.newHashMap();
+  if (storeDef.hasHintedHandoffStrategyType())   slopStores=Maps.newHashMap();
   for (  Node node : cluster.getNodes()) {
     Store<ByteArray,byte[],byte[]> store=getStore(storeDef.getName(),node.getHost(),getPort(node),this.requestFormatType);
     Store<ByteArray,byte[],byte[]> loggingStore=new LoggingStore(store);
