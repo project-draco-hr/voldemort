@@ -28,7 +28,9 @@
         attemptsLatch.countDown();
         blocksLatch.countDown();
         if (logger.isTraceEnabled())         logger.trace(attemptsLatch.getCount() + " attempts remaining. Will block " + " for "+ blocksLatch.getCount()+ " more ");
-        if (pipeline.isFinished() && response.getValue() instanceof Exception)         handleResponseError(response,pipeline,failureDetector);
+        if (pipeline.isFinished() && response.getValue() instanceof Exception && !(response.getValue() instanceof ObsoleteVersionException)) {
+          handleResponseError(response,pipeline,failureDetector);
+        }
       }
     }
 ;
@@ -47,7 +49,10 @@
   for (  Entry<Integer,Response<ByteArray,Object>> responseEntry : responses.entrySet()) {
     Response<ByteArray,Object> response=responseEntry.getValue();
     if (response.getValue() instanceof Exception) {
-      if (handleResponseError(response,pipeline,failureDetector))       return;
+      if (response.getValue() instanceof ObsoleteVersionException) {
+        responses.remove(responseEntry.getKey());
+      }
+ else       if (handleResponseError(response,pipeline,failureDetector))       return;
     }
  else {
       pipelineData.incrementSuccesses();
@@ -70,7 +75,10 @@
       for (      Entry<Integer,Response<ByteArray,Object>> responseEntry : responses.entrySet()) {
         Response<ByteArray,Object> response=responseEntry.getValue();
         if (response.getValue() instanceof Exception) {
-          if (handleResponseError(response,pipeline,failureDetector))           return;
+          if (response.getValue() instanceof ObsoleteVersionException) {
+            responses.remove(responseEntry.getKey());
+          }
+ else           if (handleResponseError(response,pipeline,failureDetector))           return;
         }
  else {
           pipelineData.incrementSuccesses();
