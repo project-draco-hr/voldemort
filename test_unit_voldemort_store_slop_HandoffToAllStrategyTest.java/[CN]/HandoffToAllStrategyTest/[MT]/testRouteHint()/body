@@ -1,0 +1,9 @@
+{
+  Cluster cluster=VoldemortTestConstants.getNineNodeCluster();
+  HintedHandoffStrategy handoffStrategy=new HandoffToAllStrategy(cluster,false,0);
+  for (  Node origin : cluster.getNodes()) {
+    List<Node> nodes=handoffStrategy.routeHint(origin);
+    assertTrue("hint preflist is correctly sized",nodes.size() == cluster.getNumberOfNodes() - 1);
+    assertFalse("hint preflist doesn't include self",nodes.contains(origin));
+  }
+}
