@@ -2,5 +2,10 @@
   Slop slop=slopSerializer.toObject(value.getValue());
   slopEngine.put(key,value,transforms);
   addedSinceResetTotal.incrementAndGet();
-  addedSinceResetByNode.get(slop.getNodeId()).incrementAndGet();
+  AtomicLong addedSinceReset=addedSinceResetByNode.get(slop.getNodeId());
+  if (addedSinceReset == null) {
+    addedSinceReset=new AtomicLong(0);
+    addedSinceResetByNode.putIfAbsent(slop.getNodeId(),addedSinceReset);
+  }
+  addedSinceReset.incrementAndGet();
 }
