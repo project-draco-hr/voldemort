@@ -1,0 +1,17 @@
+{
+  Map<Integer,Long> map=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
+  for (  Map.Entry<Integer,AtomicLong> entry : values.entrySet()) {
+    try {
+      Node node=cluster.getNodeById(entry.getKey());
+      int zoneId=node.getZoneId();
+      Long count=map.get(zoneId);
+      if (count == null)       count=0L;
+      count+=entry.getValue().get();
+      map.put(zoneId,count);
+    }
+ catch (    VoldemortException e) {
+      logger.warn("Can't get zone information for node id " + entry.getKey(),e);
+    }
+  }
+  return Collections.unmodifiableMap(map);
+}
