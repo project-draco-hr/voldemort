@@ -35,8 +35,14 @@
               store.put(slop.getKey(),new Versioned<byte[]>(slop.getValue(),versioned.getVersion()),slop.getTransforms());
               nBytes+=slop.getValue().length + ((VectorClock)versioned.getVersion()).sizeInBytes() + 1;
             }
- else             if (slop.getOperation() == Operation.DELETE)             store.delete(slop.getKey(),versioned.getVersion());
- else             logger.error("Unknown slop operation: " + slop.getOperation());
+ else             if (slop.getOperation() == Operation.DELETE) {
+              nBytes+=((VectorClock)versioned.getVersion()).sizeInBytes() + 1;
+              store.delete(slop.getKey(),versioned.getVersion());
+            }
+ else {
+              logger.error("Unknown slop operation: " + slop.getOperation());
+              continue;
+            }
             failureDetector.recordSuccess(node,deltaMs(startNs));
             slopStore.delete(slop.makeKey(),versioned.getVersion());
             slopsPushed++;
