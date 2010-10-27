@@ -1,0 +1,12 @@
+{
+  if (allJobs.containsKey(id) && !scheduledJobResults.containsKey(id)) {
+    ScheduledRunnable scheduledRunnable=allJobs.get(id);
+    logger.info("Adding '" + id + "' to list of scheduled jobs");
+    if (scheduledRunnable.getIntervalMs() > 0) {
+      schedule(id,scheduledRunnable.getRunnable(),scheduledRunnable.getDelayDate(),scheduledRunnable.getIntervalMs());
+    }
+ else {
+      schedule(id,scheduledRunnable.getRunnable(),scheduledRunnable.getDelayDate());
+    }
+  }
+}
