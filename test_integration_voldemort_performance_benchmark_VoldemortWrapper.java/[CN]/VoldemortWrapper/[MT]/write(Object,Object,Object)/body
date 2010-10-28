@@ -2,7 +2,7 @@
   boolean written=voldemortStore.applyUpdate(new UpdateAction<Object,Object>(){
     @Override public void update(    StoreClient<Object,Object> storeClient){
       long startNs=System.nanoTime();
-      storeClient.put(key,Versioned.value(value),transforms);
+      storeClient.put(key,value,transforms);
       long endNs=System.nanoTime();
       measurement.recordLatency(Operations.Write.getOpString(),(int)((endNs - startNs) / Time.NS_PER_MS));
     }
