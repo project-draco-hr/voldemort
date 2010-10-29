@@ -15,6 +15,7 @@
   parser.accepts("delete-store","Delete store").withRequiredArg().describedAs("store-name").ofType(String.class);
   parser.accepts("update-entries","[EXPERIMENTAL] Insert or update entries").withRequiredArg().describedAs("input-directory").ofType(String.class);
   parser.accepts("get-metadata","retreive metadata information [stores.xml | cluster.xml]").withRequiredArg().describedAs("metadata-key").ofType(String.class);
+  parser.accepts("ro-version","retrieve version information [current | max]").withRequiredArg().describedAs("version-type").ofType(String.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     parser.printHelpOn(System.out);
@@ -22,14 +23,14 @@
   }
   Set<String> missing=CmdUtils.missing(options,"url","node");
   if (missing.size() > 0) {
-    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store")))) {
+    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store") || options.has("ro-version")))) {
       System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
       parser.printHelpOn(System.err);
       System.exit(1);
     }
   }
   String url=(String)options.valueOf("url");
-  Integer nodeId=(Integer)options.valueOf("node");
+  Integer nodeId=CmdUtils.valueOf(options,"node",-1);
   Integer parallelism=CmdUtils.valueOf(options,"parallelism",5);
   AdminClient adminClient=new AdminClient(url,new AdminClientConfig());
   String ops="";
@@ -57,8 +58,11 @@
   if (options.has("get-metadata")) {
     ops+="g";
   }
+  if (options.has("ro-version")) {
+    ops+="e";
+  }
   if (ops.length() < 1) {
-    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, fetch-keys, add-stores, delete-store, update-entries, get-metadata) must be specified");
+    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-version) must be specified");
   }
   List<String> storeNames=null;
   if (options.has("stores")) {
@@ -112,6 +116,10 @@
     if (ops.contains("g")) {
       String metadataKey=(String)options.valueOf("get-metadata");
       executeGetMetadata(nodeId,adminClient,metadataKey);
+    }
+    if (ops.contains("e")) {
+      String versionType=(String)options.valueOf("ro-version");
+      executeROVersion(nodeId,adminClient,storeNames,versionType);
     }
   }
  catch (  Exception e) {
