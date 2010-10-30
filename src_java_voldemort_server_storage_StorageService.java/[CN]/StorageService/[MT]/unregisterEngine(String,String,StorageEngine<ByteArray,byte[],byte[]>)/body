@@ -1,6 +1,8 @@
 {
   String engineName=engine.getName();
   Store<ByteArray,byte[],byte[]> store=storeRepository.removeLocalStore(engineName);
+  boolean isSlop=storeType.compareTo("slop") == 0;
+  boolean isView=storeType.compareTo(ViewStorageConfiguration.TYPE_NAME) == 0;
   if (store != null) {
     if (voldemortConfig.isStatTrackingEnabled() && voldemortConfig.isJmxEnabled()) {
       MBeanServer mbeanServer=ManagementFactory.getPlatformMBeanServer();
@@ -9,12 +11,12 @@ synchronized (mbeanServer) {
         if (mbeanServer.isRegistered(name))         JmxUtils.unregisterMbean(mbeanServer,name);
       }
     }
-    if (voldemortConfig.isServerRoutingEnabled()) {
+    if (voldemortConfig.isServerRoutingEnabled() && !isSlop) {
       this.storeRepository.removeRoutedStore(engineName);
-      for (      Node node : metadata.getCluster().getNodes())       this.storeRepository.removeNodeStore(storeDef.getName(),node.getId());
+      for (      Node node : metadata.getCluster().getNodes())       this.storeRepository.removeNodeStore(storeName,node.getId());
     }
   }
   storeRepository.removeStorageEngine(engineName);
-  if (!storeDef.isView())   engine.truncate();
+  if (!isView)   engine.truncate();
   engine.close();
 }

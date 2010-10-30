@@ -1,7 +1,5 @@
 {
 synchronized (lock) {
-    BdbStorageEngine store=stores.get(storeName);
-    if (store != null)     return stores.get(storeName);
     try {
       Environment environment=getEnvironment(storeName);
       Database db=environment.openDatabase(null,storeName,databaseConfig);
@@ -11,7 +9,6 @@ synchronized (lock) {
         db.preload(preloadConfig);
       }
       BdbStorageEngine engine=new BdbStorageEngine(storeName,environment,db,voldemortConfig.getBdbCursorPreload());
-      stores.put(storeName,engine);
       return engine;
     }
  catch (    DatabaseException d) {
