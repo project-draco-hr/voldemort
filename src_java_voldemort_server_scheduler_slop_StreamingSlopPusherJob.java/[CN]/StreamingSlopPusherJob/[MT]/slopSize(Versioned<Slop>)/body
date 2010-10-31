@@ -1,0 +1,20 @@
+{
+  int nBytes=0;
+  Slop slop=slopVersioned.getValue();
+  nBytes+=slop.getKey().length();
+  nBytes+=((VectorClock)slopVersioned.getVersion()).sizeInBytes();
+switch (slop.getOperation()) {
+case PUT:
+{
+      nBytes+=slop.getValue().length;
+      break;
+    }
+case DELETE:
+{
+    break;
+  }
+default :
+logger.error("Unknown slop operation: " + slop.getOperation());
+}
+return nBytes;
+}

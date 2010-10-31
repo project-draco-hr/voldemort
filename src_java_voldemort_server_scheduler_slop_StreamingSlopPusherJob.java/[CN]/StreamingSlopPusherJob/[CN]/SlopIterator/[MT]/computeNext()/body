@@ -1,0 +1,29 @@
+{
+  try {
+    Versioned<Slop> head=null;
+    boolean shutDown=false;
+    while (!shutDown) {
+      head=slopQueue.poll();
+      if (head == null)       continue;
+      if (head.equals(END)) {
+        shutDown=true;
+      }
+ else {
+        count++;
+        if (count % BATCH_SIZE == 0) {
+          deleteOldBatch();
+        }
+        writeThrottler.maybeThrottle(writtenLast);
+        writtenLast=slopSize(head);
+        deleteBatch.add(Pair.create(head.getValue().makeKey(),head.getVersion()));
+        return head;
+      }
+    }
+  }
+ catch (  Exception e) {
+    throw new VoldemortException("Iterator failed",e);
+  }
+ finally {
+    return endOfData();
+  }
+}

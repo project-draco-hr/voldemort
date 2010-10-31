@@ -1,0 +1,55 @@
+{
+  if (!metadataStore.getServerState().equals(MetadataStore.VoldemortState.NORMAL_SERVER)) {
+    logger.error("Cannot run slop pusher job since cluster is rebalancing");
+    return;
+  }
+synchronized (lock) {
+    SlopStorageEngine slopStorageEngine=storeRepo.getSlopStore();
+    ClosableIterator<Pair<ByteArray,Versioned<Slop>>> iterator=null;
+    try {
+      StorageEngine<ByteArray,Slop,byte[]> slopStore=slopStorageEngine.asSlopStore();
+      iterator=slopStore.entries();
+      while (iterator.hasNext()) {
+        Pair<ByteArray,Versioned<Slop>> keyAndVal;
+        try {
+          keyAndVal=iterator.next();
+          Versioned<Slop> versioned=keyAndVal.getSecond();
+          int nodeId=versioned.getValue().getNodeId();
+          SynchronousQueue<Versioned<Slop>> slopQueue=slopQueues.get(nodeId);
+          if (slopQueue == null) {
+            slopQueue=new SynchronousQueue<Versioned<Slop>>();
+            slopQueues.put(nodeId,slopQueue);
+            consumerExecutor.submit(new SlopConsumer(nodeId,slopQueue)).get();
+          }
+          slopQueue.put(versioned);
+          readThrottler.maybeThrottle(nBytesRead(keyAndVal));
+        }
+ catch (        Exception e) {
+          logger.error("Exception in the entries, escaping the loop ",e);
+          break;
+        }
+      }
+    }
+ catch (    Exception e) {
+      logger.error(e,e);
+    }
+ finally {
+      for (      SynchronousQueue<Versioned<Slop>> slopQueue : slopQueues.values()) {
+        try {
+          slopQueue.put(END);
+        }
+ catch (        InterruptedException e) {
+          logger.info("Error putting poison pill");
+        }
+      }
+      consumerExecutor.shutdown();
+      try {
+        if (iterator != null)         iterator.close();
+      }
+ catch (      Exception e) {
+        logger.error("Failed to close entries.",e);
+      }
+      adminClient.stop();
+    }
+  }
+}

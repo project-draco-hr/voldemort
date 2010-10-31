@@ -1,0 +1,69 @@
+{
+  if (request == null) {
+    int size=0;
+    try {
+      size=inputStream.readInt();
+    }
+ catch (    EOFException e) {
+      if (logger.isTraceEnabled())       logger.trace("Incomplete read for message size");
+      return StreamRequestHandlerState.INCOMPLETE_READ;
+    }
+    if (size == -1) {
+      if (logger.isTraceEnabled())       logger.trace("Message size -1, completed partition update");
+      return StreamRequestHandlerState.COMPLETE;
+    }
+    if (logger.isTraceEnabled())     logger.trace("UpdatePartitionEntriesRequest message size: " + size);
+    byte[] input=new byte[size];
+    try {
+      ByteUtils.read(inputStream,input);
+    }
+ catch (    EOFException e) {
+      if (logger.isTraceEnabled())       logger.trace("Incomplete read for message");
+      return StreamRequestHandlerState.INCOMPLETE_READ;
+    }
+    VAdminProto.UpdateSlopEntriesRequest.Builder builder=VAdminProto.UpdateSlopEntriesRequest.newBuilder();
+    builder.mergeFrom(input);
+    request=builder.build();
+  }
+  StorageEngine<ByteArray,byte[],byte[]> storageEngine=AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
+  ByteArray key=ProtoUtils.decodeBytes(request.getKey());
+  VectorClock vectorClock=ProtoUtils.decodeClock(request.getVersion());
+  int size=key.length() + vectorClock.sizeInBytes() + 1;
+switch (request.getRequestType()) {
+case PUT:
+    try {
+      byte[] transforms=null;
+      if (request.hasTransform()) {
+        transforms=ProtoUtils.decodeBytes(request.getTransform()).get();
+        size+=transforms.length;
+      }
+      byte[] value=ProtoUtils.decodeBytes(request.getValue()).get();
+      size+=value.length;
+      storageEngine.put(key,Versioned.value(value,vectorClock),transforms);
+      if (logger.isTraceEnabled())       logger.trace("updateSlopEntries (Streaming put) successful");
+    }
+ catch (    ObsoleteVersionException e) {
+      if (logger.isDebugEnabled())       logger.debug("updateSlopEntries (Streaming put) threw ObsoleteVersionException, Ignoring.");
+    }
+  break;
+case DELETE:
+try {
+  storageEngine.delete(key,vectorClock);
+  if (logger.isTraceEnabled())   logger.trace("updateSlopEntries (Streaming delete) successful");
+}
+ catch (ObsoleteVersionException e) {
+  if (logger.isDebugEnabled())   logger.debug("updateSlopEntries (Streaming delete) threw ObsoleteVersionException, Ignoring.");
+}
+break;
+default :
+throw new VoldemortException("Unsupported operation ");
+}
+throttler.maybeThrottle(size);
+counter++;
+if (0 == counter % 100000) {
+long totalTime=(System.currentTimeMillis() - startTime) / 1000;
+if (logger.isDebugEnabled()) logger.debug("updateSlopEntries() updated " + counter + " entries in "+ totalTime+ " s");
+}
+request=null;
+return StreamRequestHandlerState.READING;
+}

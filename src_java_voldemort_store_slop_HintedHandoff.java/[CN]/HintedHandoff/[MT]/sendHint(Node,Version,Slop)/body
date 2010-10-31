@@ -9,7 +9,7 @@
       long startNs=System.nanoTime();
       try {
         if (logger.isTraceEnabled())         logger.trace("Attempt to write " + slop.getKey() + " for "+ failedNode+ " to node "+ node);
-        slopStore.put(slop.makeKey(),new Versioned<Slop>(slop,version),slop.getTransforms());
+        slopStore.put(slop.makeKey(),new Versioned<Slop>(slop,version),null);
         persisted=true;
         failureDetector.recordSuccess(node,(System.nanoTime() - startNs) / Time.NS_PER_MS);
         if (logger.isTraceEnabled())         logger.trace("Finished hinted handoff for " + failedNode + " wrote slop to "+ node);

@@ -1,0 +1,77 @@
+{
+  if (!metadataStore.getServerState().equals(MetadataStore.VoldemortState.NORMAL_SERVER)) {
+    logger.error("Cannot run slop pusher job since cluster is rebalancing");
+    return;
+  }
+synchronized (lock) {
+    logger.info("Started slop pusher job at " + new Date());
+    Cluster cluster=metadataStore.getCluster();
+    ClosableIterator<Pair<ByteArray,Versioned<Slop>>> iterator=null;
+    SlopStorageEngine slopStorageEngine=storeRepo.getSlopStore();
+    try {
+      StorageEngine<ByteArray,Slop,byte[]> slopStore=slopStorageEngine.asSlopStore();
+      EventThrottler throttler=new EventThrottler(maxWriteBytesPerSec);
+      iterator=slopStore.entries();
+      while (iterator.hasNext()) {
+        if (Thread.interrupted())         throw new InterruptedException("Slop pusher job cancelled");
+        try {
+          Pair<ByteArray,Versioned<Slop>> keyAndVal;
+          try {
+            keyAndVal=iterator.next();
+          }
+ catch (          Exception e) {
+            logger.error("Exception in iterator, escaping the loop ",e);
+            break;
+          }
+          Versioned<Slop> versioned=keyAndVal.getSecond();
+          Slop slop=versioned.getValue();
+          int nodeId=slop.getNodeId();
+          Node node=cluster.getNodeById(nodeId);
+          if (failureDetector.isAvailable(node)) {
+            Store<ByteArray,byte[],byte[]> store=storeRepo.getNodeStore(slop.getStoreName(),node.getId());
+            Long startNs=System.nanoTime();
+            int nBytes=0;
+            try {
+              nBytes=slop.getKey().length();
+              if (slop.getOperation() == Operation.PUT) {
+                store.put(slop.getKey(),new Versioned<byte[]>(slop.getValue(),versioned.getVersion()),slop.getTransforms());
+                nBytes+=slop.getValue().length + ((VectorClock)versioned.getVersion()).sizeInBytes() + 1;
+              }
+ else               if (slop.getOperation() == Operation.DELETE) {
+                nBytes+=((VectorClock)versioned.getVersion()).sizeInBytes() + 1;
+                store.delete(slop.getKey(),versioned.getVersion());
+              }
+ else {
+                logger.error("Unknown slop operation: " + slop.getOperation());
+                continue;
+              }
+              failureDetector.recordSuccess(node,deltaMs(startNs));
+              slopStore.delete(slop.makeKey(),versioned.getVersion());
+              throttler.maybeThrottle(nBytes);
+            }
+ catch (            ObsoleteVersionException e) {
+              throttler.maybeThrottle(nBytes);
+            }
+catch (            UnreachableStoreException e) {
+              failureDetector.recordException(node,deltaMs(startNs),e);
+            }
+          }
+        }
+ catch (        Exception e) {
+          logger.error(e,e);
+        }
+      }
+    }
+ catch (    Exception e) {
+      logger.error(e,e);
+    }
+ finally {
+      try {
+        if (iterator != null)         iterator.close();
+      }
+ catch (      Exception e) {
+        logger.error("Failed to close iterator.",e);
+      }
+    }
+  }
+}

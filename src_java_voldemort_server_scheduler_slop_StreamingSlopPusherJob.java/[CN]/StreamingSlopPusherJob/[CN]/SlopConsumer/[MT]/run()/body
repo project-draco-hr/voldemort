@@ -1,0 +1,17 @@
+{
+  try {
+    adminClient.updateSlopEntries(nodeId,new SlopIterator(slopQueue,deleteBatch));
+  }
+ catch (  UnreachableStoreException e) {
+    failureDetector.recordException(metadataStore.getCluster().getNodeById(nodeId),System.currentTimeMillis() - this.startTime,e);
+    throw e;
+  }
+catch (  Exception e) {
+    logger.error(e,e);
+  }
+ finally {
+    for (    Pair<ByteArray,Version> entry : deleteBatch)     storeRepo.getSlopStore().delete(entry.getFirst(),entry.getSecond());
+    slopQueue.clear();
+    slopQueues.remove(nodeId);
+  }
+}

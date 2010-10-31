@@ -17,7 +17,8 @@
     StorageEngine<ByteArray,Slop,byte[]> storageEngine=slopStorageEngine.asSlopStore();
     storeRepo.setSlopStore(slopStorageEngine);
     slopStores.put(nodeId,storageEngine);
-    SlopPusherJob pusher=new SlopPusherJob(storeRepo,cluster,failureDetector,10 * 10 * 1000);
+    MetadataStore metadataStore=ServerTestUtils.createMetadataStore(cluster,Lists.newArrayList(storeDef));
+    BlockingSlopPusherJob pusher=new BlockingSlopPusherJob(storeRepo,metadataStore,failureDetector,10 * 10 * 1000);
     slopPusherJobs.add(pusher);
   }
   routedStoreThreadPool=Executors.newFixedThreadPool(NUM_THREADS);
