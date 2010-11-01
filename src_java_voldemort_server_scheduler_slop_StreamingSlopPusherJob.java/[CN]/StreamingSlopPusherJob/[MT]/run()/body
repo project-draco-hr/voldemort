@@ -8,6 +8,14 @@ synchronized (lock) {
     logger.info("Started streaming slop pusher job at " + startTime);
     SlopStorageEngine slopStorageEngine=storeRepo.getSlopStore();
     ClosableIterator<Pair<ByteArray,Versioned<Slop>>> iterator=null;
+    ConcurrentHashMap<Integer,Long> attemptedByNode=new ConcurrentHashMap<Integer,Long>(cluster.getNumberOfNodes());
+    ConcurrentHashMap<Integer,Long> succeededByNode=new ConcurrentHashMap<Integer,Long>(cluster.getNumberOfNodes());
+    AtomicLong slopsPushed=new AtomicLong(0);
+    AtomicLong attemptedPushes=new AtomicLong(0);
+    for (    Node node : cluster.getNodes()) {
+      attemptedByNode.put(node.getId(),0L);
+      succeededByNode.put(node.getId(),0L);
+    }
     try {
       StorageEngine<ByteArray,Slop,byte[]> slopStore=slopStorageEngine.asSlopStore();
       iterator=slopStore.entries();
@@ -18,25 +26,35 @@ synchronized (lock) {
           Versioned<Slop> versioned=keyAndVal.getSecond();
           int nodeId=versioned.getValue().getNodeId();
           Node node=cluster.getNodeById(nodeId);
-          logger.trace("On slop = " + versioned.getValue().getNodeId() + " => "+ new String(versioned.getValue().getKey().get()));
+          attemptedPushes.incrementAndGet();
+          Long attempted=attemptedByNode.get(nodeId);
+          attemptedByNode.put(nodeId,attempted + 1L);
+          if (attemptedPushes.get() % 10000 == 0)           logger.info("Attempted pushing " + attemptedPushes + " slops");
+          logger.info("On slop = " + versioned.getValue().getNodeId() + " => "+ new String(versioned.getValue().getKey().get()));
           if (failureDetector.isAvailable(node)) {
             SynchronousQueue<Versioned<Slop>> slopQueue=slopQueues.get(nodeId);
             if (slopQueue == null) {
               slopQueue=new SynchronousQueue<Versioned<Slop>>();
               slopQueues.put(nodeId,slopQueue);
-              consumerResults.add(consumerExecutor.submit(new SlopConsumer(nodeId,slopQueue,slopStorageEngine)));
+              consumerResults.add(consumerExecutor.submit(new SlopConsumer(nodeId,slopQueue,slopStorageEngine,succeededByNode.get(nodeId),slopsPushed)));
             }
             slopQueue.offer(versioned,1,TimeUnit.SECONDS);
             readThrottler.maybeThrottle(nBytesRead(keyAndVal));
           }
  else {
-            logger.trace(node + " declared down, won't push slop");
+            logger.info(node + " declared down, won't push slop");
           }
         }
  catch (        RejectedExecutionException e) {
           throw new VoldemortException("Ran out of threads in executor",e);
         }
       }
+      logger.log(attemptedPushes.get() > 0 ? Level.INFO : Level.DEBUG,"Attempted " + attemptedPushes + " hinted handoff pushes of which "+ slopsPushed+ " succeeded.");
+      Map<Integer,Long> outstanding=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
+      for (      int nodeId : succeededByNode.keySet()) {
+        outstanding.put(nodeId,attemptedByNode.get(nodeId) - succeededByNode.get(nodeId));
+      }
+      slopStorageEngine.resetStats(outstanding);
     }
  catch (    InterruptedException e) {
     }

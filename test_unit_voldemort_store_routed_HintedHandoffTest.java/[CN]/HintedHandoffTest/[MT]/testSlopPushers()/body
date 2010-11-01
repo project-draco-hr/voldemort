@@ -1,6 +1,6 @@
 {
   Set<Integer> failedNodes=getFailedNodes();
-  Set<ByteArray> failedKeys=populateStore(failedNodes);
+  Multimap<Integer,ByteArray> failedKeys=populateStore(failedNodes);
   reviveNodes(failedNodes);
   for (int i=0; i < 5; i++) {
     for (    BlockingSlopPusherJob job : slopPusherJobs) {
@@ -9,9 +9,9 @@
       if (logger.isTraceEnabled())       logger.trace("Finished slop pusher job " + job);
     }
   }
-  for (  ByteArray key : failedKeys) {
-    List<Versioned<byte[]>> values=store.get(key,null);
-    assertTrue("slop entry should be pushed for " + key + ", preflist "+ keysToNodes.get(key),values.size() > 0);
-    assertEquals("slop entry should be correct for " + key,keyValues.get(key),new ByteArray(values.get(0).getValue()));
+  for (  Map.Entry<Integer,ByteArray> entry : failedKeys.entries()) {
+    List<Versioned<byte[]>> values=store.get(entry.getValue(),null);
+    assertTrue("slop entry should be pushed for " + entry.getValue() + ", preflist "+ keysToNodes.get(entry.getValue()),values.size() > 0);
+    assertEquals("slop entry should be correct for " + entry.getValue(),keyValues.get(entry.getValue()),new ByteArray(values.get(0).getValue()));
   }
 }

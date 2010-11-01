@@ -4,7 +4,11 @@
     do {
       if (!current.isEmpty()) {
         if (!previous.isEmpty()) {
-          for (          Pair<ByteArray,Version> entry : previous)           slopStorageEngine.delete(entry.getFirst(),entry.getSecond());
+          for (          Pair<ByteArray,Version> entry : previous) {
+            slopStorageEngine.delete(entry.getFirst(),entry.getSecond());
+          }
+          succeededGlobal.addAndGet(previous.size());
+          succeededNode+=previous.size();
           previous.clear();
         }
         previous=null;
@@ -16,8 +20,18 @@
       adminClient.updateSlopEntries(nodeId,iterator);
     }
  while (!iterator.isComplete());
-    if (!previous.isEmpty())     for (    Pair<ByteArray,Version> entry : previous)     slopStorageEngine.delete(entry.getFirst(),entry.getSecond());
-    if (!current.isEmpty())     for (    Pair<ByteArray,Version> entry : current)     slopStorageEngine.delete(entry.getFirst(),entry.getSecond());
+    if (!previous.isEmpty()) {
+      for (      Pair<ByteArray,Version> entry : previous)       slopStorageEngine.delete(entry.getFirst(),entry.getSecond());
+      succeededGlobal.addAndGet(previous.size());
+      succeededNode+=previous.size();
+      previous.clear();
+    }
+    if (!current.isEmpty()) {
+      for (      Pair<ByteArray,Version> entry : current)       slopStorageEngine.delete(entry.getFirst(),entry.getSecond());
+      succeededGlobal.addAndGet(current.size());
+      succeededNode+=current.size();
+      current.clear();
+    }
   }
  catch (  UnreachableStoreException e) {
     failureDetector.recordException(metadataStore.getCluster().getNodeById(nodeId),System.currentTimeMillis() - this.startTime,e);

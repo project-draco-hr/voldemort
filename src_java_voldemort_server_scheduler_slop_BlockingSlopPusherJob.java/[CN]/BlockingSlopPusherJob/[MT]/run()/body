@@ -7,8 +7,16 @@ synchronized (lock) {
     logger.info("Started blocking slop pusher job at " + new Date());
     Cluster cluster=metadataStore.getCluster();
     ClosableIterator<Pair<ByteArray,Versioned<Slop>>> iterator=null;
-    SlopStorageEngine slopStorageEngine=storeRepo.getSlopStore();
+    Map<Integer,Long> attemptedByNode=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
+    Map<Integer,Long> succeededByNode=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
+    long slopsPushed=0L;
+    long attemptedPushes=0L;
+    for (    Node node : cluster.getNodes()) {
+      attemptedByNode.put(node.getId(),0L);
+      succeededByNode.put(node.getId(),0L);
+    }
     try {
+      SlopStorageEngine slopStorageEngine=storeRepo.getSlopStore();
       StorageEngine<ByteArray,Slop,byte[]> slopStore=slopStorageEngine.asSlopStore();
       EventThrottler throttler=new EventThrottler(maxWriteBytesPerSec);
       iterator=slopStore.entries();
@@ -27,6 +35,10 @@ synchronized (lock) {
           Slop slop=versioned.getValue();
           int nodeId=slop.getNodeId();
           Node node=cluster.getNodeById(nodeId);
+          attemptedPushes++;
+          if (attemptedPushes % 10000 == 0)           logger.info("Attempted pushing " + attemptedPushes + " slops");
+          Long attempted=attemptedByNode.get(nodeId);
+          attemptedByNode.put(nodeId,attempted + 1L);
           if (failureDetector.isAvailable(node)) {
             Store<ByteArray,byte[],byte[]> store=storeRepo.getNodeStore(slop.getStoreName(),node.getId());
             Long startNs=System.nanoTime();
@@ -47,9 +59,16 @@ synchronized (lock) {
               }
               failureDetector.recordSuccess(node,deltaMs(startNs));
               slopStore.delete(slop.makeKey(),versioned.getVersion());
+              slopsPushed++;
+              Long succeeded=succeededByNode.get(nodeId);
+              succeededByNode.put(nodeId,succeeded + 1L);
               throttler.maybeThrottle(nBytes);
             }
  catch (            ObsoleteVersionException e) {
+              slopStore.delete(slop.makeKey(),versioned.getVersion());
+              slopsPushed++;
+              Long succeeded=succeededByNode.get(nodeId);
+              succeededByNode.put(nodeId,succeeded + 1L);
               throttler.maybeThrottle(nBytes);
             }
 catch (            UnreachableStoreException e) {
@@ -61,6 +80,12 @@ catch (            UnreachableStoreException e) {
           logger.error(e,e);
         }
       }
+      logger.log(attemptedPushes > 0 ? Level.INFO : Level.DEBUG,"Attempted " + attemptedPushes + " hinted handoff pushes of which "+ slopsPushed+ " succeeded.");
+      Map<Integer,Long> outstanding=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
+      for (      int nodeId : succeededByNode.keySet()) {
+        outstanding.put(nodeId,attemptedByNode.get(nodeId) - succeededByNode.get(nodeId));
+      }
+      slopStorageEngine.resetStats(outstanding);
     }
  catch (    Exception e) {
       logger.error(e,e);
