@@ -15,18 +15,24 @@ synchronized (lock) {
           keyAndVal=iterator.next();
           Versioned<Slop> versioned=keyAndVal.getSecond();
           int nodeId=versioned.getValue().getNodeId();
-          SynchronousQueue<Versioned<Slop>> slopQueue=slopQueues.get(nodeId);
-          if (slopQueue == null) {
-            slopQueue=new SynchronousQueue<Versioned<Slop>>();
-            slopQueues.put(nodeId,slopQueue);
-            consumerExecutor.submit(new SlopConsumer(nodeId,slopQueue)).get();
+          Node node=cluster.getNodeById(nodeId);
+          if (failureDetector.isAvailable(node)) {
+            SynchronousQueue<Versioned<Slop>> slopQueue=slopQueues.get(nodeId);
+            if (slopQueue == null) {
+              slopQueue=new SynchronousQueue<Versioned<Slop>>();
+              slopQueues.put(nodeId,slopQueue);
+              consumerExecutor.submit(new SlopConsumer(nodeId,slopQueue));
+            }
+            slopQueue.offer(versioned,1,TimeUnit.SECONDS);
+            readThrottler.maybeThrottle(nBytesRead(keyAndVal));
           }
-          slopQueue.put(versioned);
-          readThrottler.maybeThrottle(nBytesRead(keyAndVal));
+ else {
+            logger.trace(node + " declared down, won't push slop");
+          }
         }
  catch (        Exception e) {
           logger.error("Exception in the entries, escaping the loop ",e);
-          break;
+          continue;
         }
       }
     }
@@ -39,7 +45,7 @@ synchronized (lock) {
           slopQueue.put(END);
         }
  catch (        InterruptedException e) {
-          logger.info("Error putting poison pill");
+          logger.error("Error putting poison pill");
         }
       }
       consumerExecutor.shutdown();

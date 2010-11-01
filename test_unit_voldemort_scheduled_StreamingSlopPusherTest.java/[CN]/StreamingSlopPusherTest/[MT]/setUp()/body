@@ -1,0 +1,12 @@
+{
+  cluster=ServerTestUtils.getLocalCluster(NUM_SERVERS);
+  servers=new VoldemortServer[NUM_SERVERS];
+  props=new Properties();
+  metadataStore=ServerTestUtils.createMetadataStore(cluster,new StoreDefinitionsMapper().readStoreList(new File(storesXmlfile)));
+  props.put("pusher.type","streaming");
+  props.put("slop.frequency.ms","1000000");
+  configs=new VoldemortConfig[NUM_SERVERS];
+  for (int i=0; i < NUM_SERVERS; i++) {
+    configs[i]=ServerTestUtils.createServerConfig(true,i,TestUtils.createTempDir().getAbsolutePath(),null,storesXmlfile,props);
+  }
+}

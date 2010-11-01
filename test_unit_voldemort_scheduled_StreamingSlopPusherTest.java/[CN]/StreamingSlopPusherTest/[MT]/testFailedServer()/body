@@ -1,0 +1,29 @@
+{
+  startServers(0,2);
+  StorageEngine<ByteArray,Slop,byte[]> slopStoreNode0=getVoldemortServer(0).getStoreRepository().getSlopStore().asSlopStore();
+  final List<Slop> entrySet1=ServerTestUtils.createRandomSlops(1,50,"test-replication-memory","users","test-replication-persistent","test-readrepair-memory","test-consistent","test-consistent-with-pref-list");
+  final List<Slop> entrySet2=ServerTestUtils.createRandomSlops(2,50,"test-replication-memory","users","test-replication-persistent","test-readrepair-memory","test-consistent","test-consistent-with-pref-list");
+  populateSlops(0,slopStoreNode0,entrySet1,entrySet2);
+  StreamingSlopPusherJob pusher=new StreamingSlopPusherJob(getVoldemortServer(0).getStoreRepository(),getVoldemortServer(0).getMetadataStore(),new BannagePeriodFailureDetector(new FailureDetectorConfig().setNodes(cluster.getNodes()).setStoreVerifier(new ServerStoreVerifier(socketStoreFactory,metadataStore,configs[0]))),10 * 1000 * 1000,10 * 1000 * 1000);
+  pusher.run();
+  Thread.sleep(2000);
+  Iterator<Slop> entryIterator=entrySet2.listIterator();
+  while (entryIterator.hasNext()) {
+    Slop nextSlop=entryIterator.next();
+    StorageEngine<ByteArray,byte[],byte[]> store=getVoldemortServer(2).getStoreRepository().getStorageEngine(nextSlop.getStoreName());
+    if (nextSlop.getOperation().equals(Slop.Operation.PUT)) {
+      assertNotSame("entry should be present at store",0,store.get(nextSlop.getKey(),null).size());
+      assertEquals("entry value should match",new String(nextSlop.getValue()),new String(store.get(nextSlop.getKey(),null).get(0).getValue()));
+    }
+ else     if (nextSlop.getOperation().equals(Slop.Operation.DELETE)) {
+      assertEquals("entry value should match",0,store.get(nextSlop.getKey(),null).size());
+    }
+    assertEquals("slop should have gone",0,slopStoreNode0.get(nextSlop.makeKey(),null).size());
+  }
+  entryIterator=entrySet1.listIterator();
+  while (entryIterator.hasNext()) {
+    Slop nextSlop=entryIterator.next();
+    assertNotSame("slop should be there",0,slopStoreNode0.get(nextSlop.makeKey(),null).size());
+  }
+  stopServers(0,2);
+}
