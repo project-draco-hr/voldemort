@@ -10,7 +10,6 @@ synchronized (lock) {
     ClosableIterator<Pair<ByteArray,Versioned<Slop>>> iterator=null;
     ConcurrentHashMap<Integer,Long> attemptedByNode=new ConcurrentHashMap<Integer,Long>(cluster.getNumberOfNodes());
     ConcurrentHashMap<Integer,Long> succeededByNode=new ConcurrentHashMap<Integer,Long>(cluster.getNumberOfNodes());
-    AtomicLong slopsPushed=new AtomicLong(0);
     AtomicLong attemptedPushes=new AtomicLong(0);
     for (    Node node : cluster.getNodes()) {
       attemptedByNode.put(node.getId(),0L);
@@ -30,26 +29,25 @@ synchronized (lock) {
           Long attempted=attemptedByNode.get(nodeId);
           attemptedByNode.put(nodeId,attempted + 1L);
           if (attemptedPushes.get() % 10000 == 0)           logger.info("Attempted pushing " + attemptedPushes + " slops");
-          logger.info("On slop = " + versioned.getValue().getNodeId() + " => "+ new String(versioned.getValue().getKey().get()));
+          logger.trace("On slop = " + versioned.getValue().getNodeId() + " => "+ new String(versioned.getValue().getKey().get()));
           if (failureDetector.isAvailable(node)) {
             SynchronousQueue<Versioned<Slop>> slopQueue=slopQueues.get(nodeId);
             if (slopQueue == null) {
               slopQueue=new SynchronousQueue<Versioned<Slop>>();
               slopQueues.put(nodeId,slopQueue);
-              consumerResults.add(consumerExecutor.submit(new SlopConsumer(nodeId,slopQueue,slopStorageEngine,succeededByNode.get(nodeId),slopsPushed)));
+              consumerResults.add(consumerExecutor.submit(new SlopConsumer(nodeId,slopQueue,slopStorageEngine,succeededByNode.get(nodeId))));
             }
-            slopQueue.offer(versioned,1,TimeUnit.SECONDS);
+            slopQueue.offer(versioned,voldemortConfig.getClientRoutingTimeoutMs(),TimeUnit.MILLISECONDS);
             readThrottler.maybeThrottle(nBytesRead(keyAndVal));
           }
  else {
-            logger.info(node + " declared down, won't push slop");
+            logger.trace(node + " declared down, won't push slop");
           }
         }
  catch (        RejectedExecutionException e) {
           throw new VoldemortException("Ran out of threads in executor",e);
         }
       }
-      logger.log(attemptedPushes.get() > 0 ? Level.INFO : Level.DEBUG,"Attempted " + attemptedPushes + " hinted handoff pushes of which "+ slopsPushed+ " succeeded.");
       Map<Integer,Long> outstanding=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
       for (      int nodeId : succeededByNode.keySet()) {
         outstanding.put(nodeId,attemptedByNode.get(nodeId) - succeededByNode.get(nodeId));
@@ -70,7 +68,7 @@ catch (    Exception e) {
       }
       for (      SynchronousQueue<Versioned<Slop>> slopQueue : slopQueues.values()) {
         try {
-          slopQueue.offer(END,1,TimeUnit.SECONDS);
+          slopQueue.offer(END,voldemortConfig.getClientRoutingTimeoutMs(),TimeUnit.MILLISECONDS);
         }
  catch (        InterruptedException e) {
           logger.error("Error putting poison pill",e);

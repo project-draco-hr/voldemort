@@ -17,7 +17,7 @@
       scheduler.schedule("slop",new BlockingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig.getSlopMaxWriteBytesPerSec()),nextRun,voldemortConfig.getSlopFrequencyMs());
     }
  else     if (voldemortConfig.getPusherType().compareTo(StreamingSlopPusherJob.TYPE_NAME) == 0) {
-      scheduler.schedule("slop",new StreamingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig.getStreamMaxReadBytesPerSec(),voldemortConfig.getStreamMaxWriteBytesPerSec()),nextRun,voldemortConfig.getSlopFrequencyMs());
+      scheduler.schedule("slop",new StreamingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig),nextRun,voldemortConfig.getSlopFrequencyMs());
     }
  else {
       logger.error("Unsupported slop pusher job type " + voldemortConfig.getPusherType());

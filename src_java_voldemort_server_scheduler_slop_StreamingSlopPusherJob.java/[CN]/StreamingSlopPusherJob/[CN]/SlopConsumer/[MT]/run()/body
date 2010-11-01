@@ -7,7 +7,6 @@
           for (          Pair<ByteArray,Version> entry : previous) {
             slopStorageEngine.delete(entry.getFirst(),entry.getSecond());
           }
-          succeededGlobal.addAndGet(previous.size());
           succeededNode+=previous.size();
           previous.clear();
         }
@@ -22,13 +21,11 @@
  while (!iterator.isComplete());
     if (!previous.isEmpty()) {
       for (      Pair<ByteArray,Version> entry : previous)       slopStorageEngine.delete(entry.getFirst(),entry.getSecond());
-      succeededGlobal.addAndGet(previous.size());
       succeededNode+=previous.size();
       previous.clear();
     }
     if (!current.isEmpty()) {
       for (      Pair<ByteArray,Version> entry : current)       slopStorageEngine.delete(entry.getFirst(),entry.getSecond());
-      succeededGlobal.addAndGet(current.size());
       succeededNode+=current.size();
       current.clear();
     }
