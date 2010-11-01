@@ -1,23 +1,24 @@
 {
   try {
     Versioned<Slop> head=null;
-    boolean shutDown=false;
     while (!shutDown) {
       head=slopQueue.poll();
       if (head == null)       continue;
       if (head.equals(END)) {
         shutDown=true;
+        isComplete=true;
       }
  else {
         slopsDone++;
-        if (slopsDone % BATCH_SIZE == 0)         shutDown=true;
+        if (slopsDone % BATCH_SIZE == 0) {
+          shutDown=true;
+        }
         writeThrottler.maybeThrottle(writtenLast);
         writtenLast=slopSize(head);
         deleteBatch.add(Pair.create(head.getValue().makeKey(),head.getVersion()));
         return head;
       }
     }
-    for (    Pair<ByteArray,Version> entry : deleteBatch)     storageEngine.delete(entry.getFirst(),entry.getSecond());
     return endOfData();
   }
  catch (  Exception e) {
