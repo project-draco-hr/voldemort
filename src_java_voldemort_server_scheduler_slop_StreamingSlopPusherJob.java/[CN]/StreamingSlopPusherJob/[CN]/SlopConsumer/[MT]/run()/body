@@ -1,6 +1,6 @@
 {
   try {
-    SlopIterator iterator=new SlopIterator(slopQueue,deleteBatch);
+    SlopIterator iterator=new SlopIterator(slopQueue,slopStorageEngine);
     adminClient.updateSlopEntries(nodeId,iterator);
   }
  catch (  UnreachableStoreException e) {
@@ -8,7 +8,6 @@
     throw e;
   }
  finally {
-    for (    Pair<ByteArray,Version> entry : deleteBatch)     storeRepo.getSlopStore().delete(entry.getFirst(),entry.getSecond());
     slopQueue.clear();
     slopQueues.remove(nodeId);
   }

@@ -4,6 +4,8 @@
     return;
   }
 synchronized (lock) {
+    Date startTime=new Date();
+    logger.info("Started streaming slop pusher job at " + startTime);
     SlopStorageEngine slopStorageEngine=storeRepo.getSlopStore();
     ClosableIterator<Pair<ByteArray,Versioned<Slop>>> iterator=null;
     try {
@@ -16,12 +18,13 @@ synchronized (lock) {
           Versioned<Slop> versioned=keyAndVal.getSecond();
           int nodeId=versioned.getValue().getNodeId();
           Node node=cluster.getNodeById(nodeId);
+          logger.trace("On slop = " + versioned.getValue().getNodeId() + " => "+ new String(versioned.getValue().getKey().get()));
           if (failureDetector.isAvailable(node)) {
             SynchronousQueue<Versioned<Slop>> slopQueue=slopQueues.get(nodeId);
             if (slopQueue == null) {
               slopQueue=new SynchronousQueue<Versioned<Slop>>();
               slopQueues.put(nodeId,slopQueue);
-              consumerExecutor.submit(new SlopConsumer(nodeId,slopQueue));
+              consumerResults.add(consumerExecutor.submit(new SlopConsumer(nodeId,slopQueue,slopStorageEngine)));
             }
             slopQueue.offer(versioned,1,TimeUnit.SECONDS);
             readThrottler.maybeThrottle(nBytesRead(keyAndVal));
@@ -30,32 +33,42 @@ synchronized (lock) {
             logger.trace(node + " declared down, won't push slop");
           }
         }
- catch (        Exception e) {
-          logger.error("Exception in the entries, escaping the loop ",e);
-          continue;
+ catch (        RejectedExecutionException e) {
+          throw new VoldemortException("Ran out of threads in executor",e);
         }
       }
     }
- catch (    Exception e) {
+ catch (    InterruptedException e) {
+    }
+catch (    Exception e) {
       logger.error(e,e);
     }
  finally {
-      for (      SynchronousQueue<Versioned<Slop>> slopQueue : slopQueues.values()) {
-        try {
-          slopQueue.put(END);
-        }
- catch (        InterruptedException e) {
-          logger.error("Error putting poison pill");
-        }
-      }
-      consumerExecutor.shutdown();
       try {
         if (iterator != null)         iterator.close();
       }
  catch (      Exception e) {
-        logger.error("Failed to close entries.",e);
+        logger.warn("Failed to close iterator cleanly as database might be closed",e);
       }
-      adminClient.stop();
+      for (      SynchronousQueue<Versioned<Slop>> slopQueue : slopQueues.values()) {
+        try {
+          slopQueue.offer(END,1,TimeUnit.SECONDS);
+        }
+ catch (        InterruptedException e) {
+          logger.error("Error putting poison pill",e);
+        }
+      }
+      for (      Future result : consumerResults) {
+        try {
+          result.get();
+        }
+ catch (        Exception e) {
+          logger.error("Exception in consumer",e);
+        }
+      }
+      consumerResults.clear();
+      slopQueues.clear();
     }
+    logger.info("Completed streaming slop pusher job which started at " + startTime);
   }
 }

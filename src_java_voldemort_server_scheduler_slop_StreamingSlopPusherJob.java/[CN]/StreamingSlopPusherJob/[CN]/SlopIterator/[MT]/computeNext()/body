@@ -9,16 +9,15 @@
         shutDown=true;
       }
  else {
-        count++;
-        if (count % BATCH_SIZE == 0) {
-          deleteOldBatch();
-        }
+        slopsDone++;
+        if (slopsDone % BATCH_SIZE == 0)         shutDown=true;
         writeThrottler.maybeThrottle(writtenLast);
         writtenLast=slopSize(head);
         deleteBatch.add(Pair.create(head.getValue().makeKey(),head.getVersion()));
         return head;
       }
     }
+    for (    Pair<ByteArray,Version> entry : deleteBatch)     storageEngine.delete(entry.getFirst(),entry.getSecond());
     return endOfData();
   }
  catch (  Exception e) {

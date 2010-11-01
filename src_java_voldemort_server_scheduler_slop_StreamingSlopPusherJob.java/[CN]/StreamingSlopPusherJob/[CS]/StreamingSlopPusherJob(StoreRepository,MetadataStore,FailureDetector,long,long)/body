@@ -4,8 +4,16 @@
   this.failureDetector=failureDetector;
   this.cluster=metadataStore.getCluster();
   this.slopQueues=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
-  this.consumerExecutor=Executors.newFixedThreadPool(cluster.getNumberOfNodes());
+  this.consumerExecutor=Executors.newFixedThreadPool(cluster.getNumberOfNodes(),new ThreadFactory(){
+    public Thread newThread(    Runnable r){
+      Thread thread=new Thread(r);
+      thread.setName("slop-pusher");
+      return thread;
+    }
+  }
+);
   this.writeThrottler=new EventThrottler(maxWriteBytesPerSec);
   this.readThrottler=new EventThrottler(maxReadBytesPerSec);
   this.adminClient=new AdminClient(cluster,new AdminClientConfig().setMaxThreads(cluster.getNumberOfNodes()).setMaxConnectionsPerNode(1));
+  this.consumerResults=Lists.newArrayList();
 }
