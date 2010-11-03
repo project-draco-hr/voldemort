@@ -8,7 +8,7 @@
   Pipeline pipeline=new Pipeline(Operation.PUT,timeoutMs,TimeUnit.MILLISECONDS);
   pipeline.setEnableHintedHandoff(isHintedHandoffEnabled());
   HintedHandoff hintedHandoff=null;
-  if (isHintedHandoffEnabled())   hintedHandoff=new HintedHandoff(failureDetector,slopStores,handoffStrategy,pipelineData.getFailedNodes());
+  if (isHintedHandoffEnabled())   hintedHandoff=new HintedHandoff(failureDetector,slopStores,nonblockingSlopStores,handoffStrategy,pipelineData.getFailedNodes(),timeoutMs);
   pipeline.addEventAction(Event.STARTED,new ConfigureNodes<Void,PutPipelineData>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key,clientZone));
   pipeline.addEventAction(Event.CONFIGURED,new PerformSerialPutRequests(pipelineData,isHintedHandoffEnabled() ? Event.RESPONSES_RECEIVED : Event.COMPLETED,key,transforms,failureDetector,innerStores,storeDef.getRequiredWrites(),versioned,time,Event.MASTER_DETERMINED));
   pipeline.addEventAction(Event.MASTER_DETERMINED,new PerformParallelPutRequests(pipelineData,Event.RESPONSES_RECEIVED,key,transforms,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),timeoutMs,nonblockingStores,hintedHandoff));

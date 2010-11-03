@@ -8,6 +8,10 @@
     subStores.put(node.getId(),new ForceFailStore<ByteArray,byte[],byte[]>(loggingStore,e,node.getId()));
   }
   setFailureDetector(subStores);
+  routedStoreThreadPool=Executors.newFixedThreadPool(NUM_THREADS);
+  routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,1000L);
+  strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+  Map<Integer,NonblockingStore> nonblockingSlopStores=Maps.newHashMap();
   for (  Node node : cluster.getNodes()) {
     int nodeId=node.getId();
     StoreRepository storeRepo=new StoreRepository();
@@ -16,16 +20,14 @@
     SlopStorageEngine slopStorageEngine=new SlopStorageEngine(new InMemoryStorageEngine<ByteArray,byte[],byte[]>(SLOP_STORE_NAME),cluster);
     StorageEngine<ByteArray,Slop,byte[]> storageEngine=slopStorageEngine.asSlopStore();
     storeRepo.setSlopStore(slopStorageEngine);
+    nonblockingSlopStores.put(nodeId,routedStoreFactory.toNonblockingStore(slopStorageEngine));
     slopStores.put(nodeId,storageEngine);
     MetadataStore metadataStore=ServerTestUtils.createMetadataStore(cluster,Lists.newArrayList(storeDef));
     StreamingSlopPusherJob pusher=new StreamingSlopPusherJob(storeRepo,metadataStore,failureDetector,ServerTestUtils.createServerConfigWithDefs(false,nodeId,TestUtils.createTempDir().getAbsolutePath(),cluster,Lists.newArrayList(storeDef),new Properties()));
     slopPusherJobs.add(pusher);
   }
-  routedStoreThreadPool=Executors.newFixedThreadPool(NUM_THREADS);
-  routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,1000L);
-  strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
   Map<Integer,NonblockingStore> nonblockingStores=Maps.newHashMap();
   for (  Map.Entry<Integer,Store<ByteArray,byte[],byte[]>> entry : subStores.entrySet())   nonblockingStores.put(entry.getKey(),routedStoreFactory.toNonblockingStore(entry.getValue()));
-  store=routedStoreFactory.create(cluster,storeDef,subStores,nonblockingStores,slopStores,false,Zone.DEFAULT_ZONE_ID,failureDetector);
+  store=routedStoreFactory.create(cluster,storeDef,subStores,nonblockingStores,slopStores,nonblockingSlopStores,false,Zone.DEFAULT_ZONE_ID,failureDetector);
   generateData();
 }

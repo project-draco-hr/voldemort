@@ -1,0 +1,36 @@
+{
+  final ByteArray slopKey=slop.makeKey();
+  Versioned<byte[]> slopVersioned=new Versioned<byte[]>(slopSerializer.toBytes(slop),version);
+  for (  final Node node : handoffStrategy.routeHint(failedNode)) {
+    int nodeId=node.getId();
+    if (logger.isTraceEnabled())     logger.trace("Sending an async hint to " + nodeId);
+    if (!failedNodes.contains(node) && failureDetector.isAvailable(node)) {
+      NonblockingStore nonblockingStore=nonblockingSlopStores.get(nodeId);
+      Utils.notNull(nonblockingStore);
+      final long startNs=System.nanoTime();
+      if (logger.isTraceEnabled())       logger.trace("Attempt to write " + slop.getKey() + " for "+ failedNode+ " to node "+ node);
+      NonblockingStoreCallback callback=new NonblockingStoreCallback(){
+        public void requestComplete(        Object result,        long requestTime){
+          Response<ByteArray,Object> response=new Response<ByteArray,Object>(node,slopKey,result,requestTime);
+          if (response.getValue() instanceof Exception) {
+            if (response.getValue() instanceof ObsoleteVersionException) {
+            }
+ else {
+              if (!failedNodes.contains(node))               failedNodes.add(node);
+              if (response.getValue() instanceof UnreachableStoreException) {
+                UnreachableStoreException use=(UnreachableStoreException)response.getValue();
+                failureDetector.recordException(node,(System.nanoTime() - startNs) / Time.NS_PER_MS,use);
+              }
+              sendHintSync(failedNode,version,slop);
+            }
+            return;
+          }
+          failureDetector.recordSuccess(node,(System.nanoTime() - startNs) / Time.NS_PER_MS);
+        }
+      }
+;
+      nonblockingStore.submitPutRequest(slopKey,slopVersioned,null,callback,timeoutMs);
+      break;
+    }
+  }
+}

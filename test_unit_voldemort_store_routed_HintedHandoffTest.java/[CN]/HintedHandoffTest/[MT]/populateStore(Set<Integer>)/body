@@ -1,11 +1,10 @@
 {
   Multimap<Integer,ByteArray> failedKeys=ArrayListMultimap.create();
   for (  ByteArray key : keysToNodes.keySet()) {
-    Iterable<Integer> nodes=keysToNodes.get(key);
-    for (int i=0; i < REPLICATION_FACTOR; i++) {
-      int node=Iterables.get(nodes,i);
-      if (failedNodes.contains(node)) {
-        failedKeys.put(node,key);
+    List<Node> nodes=strategy.routeRequest(key.get());
+    for (    Node node : nodes) {
+      if (failedNodes.contains(node.getId())) {
+        failedKeys.put(node.getId(),key);
         break;
       }
     }
