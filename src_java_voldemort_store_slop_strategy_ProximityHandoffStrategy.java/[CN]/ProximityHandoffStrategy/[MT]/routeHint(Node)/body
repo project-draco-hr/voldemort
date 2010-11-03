@@ -1,0 +1,13 @@
+{
+  List<Node> prefList=Lists.newArrayList();
+  prefList.addAll(zoneMapping.get(origin.getZoneId()));
+  Collections.shuffle(prefList);
+  if (cluster.getNumberOfZones() > 1) {
+    for (    Integer zoneId : cluster.getZoneById(origin.getZoneId()).getProximityList()) {
+      List<Node> nodesInZone=zoneMapping.get(zoneId);
+      Collections.shuffle(nodesInZone);
+      prefList.addAll(nodesInZone);
+    }
+  }
+  return prefList;
+}

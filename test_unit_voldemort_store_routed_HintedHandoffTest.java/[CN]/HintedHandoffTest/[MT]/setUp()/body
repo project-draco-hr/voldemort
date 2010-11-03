@@ -18,7 +18,7 @@
     storeRepo.setSlopStore(slopStorageEngine);
     slopStores.put(nodeId,storageEngine);
     MetadataStore metadataStore=ServerTestUtils.createMetadataStore(cluster,Lists.newArrayList(storeDef));
-    BlockingSlopPusherJob pusher=new BlockingSlopPusherJob(storeRepo,metadataStore,failureDetector,10 * 10 * 1000);
+    StreamingSlopPusherJob pusher=new StreamingSlopPusherJob(storeRepo,metadataStore,failureDetector,ServerTestUtils.createServerConfig(false,nodeId,TestUtils.createTempDir().getAbsolutePath(),cluster,Lists.newArrayList(storeDef),new Properties()));
     slopPusherJobs.add(pusher);
   }
   routedStoreThreadPool=Executors.newFixedThreadPool(NUM_THREADS);

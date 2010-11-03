@@ -28,17 +28,14 @@
   StorageEngine<ByteArray,byte[],byte[]> storageEngine=AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
   ByteArray key=ProtoUtils.decodeBytes(request.getKey());
   VectorClock vectorClock=ProtoUtils.decodeClock(request.getVersion());
-  int size=key.length() + vectorClock.sizeInBytes() + 1;
 switch (request.getRequestType()) {
 case PUT:
     try {
       byte[] transforms=null;
       if (request.hasTransform()) {
         transforms=ProtoUtils.decodeBytes(request.getTransform()).get();
-        size+=transforms.length;
       }
       byte[] value=ProtoUtils.decodeBytes(request.getValue()).get();
-      size+=value.length;
       storageEngine.put(key,Versioned.value(value,vectorClock),transforms);
       if (logger.isTraceEnabled())       logger.trace("updateSlopEntries (Streaming put) successful");
     }
@@ -58,7 +55,6 @@ break;
 default :
 throw new VoldemortException("Unsupported operation ");
 }
-throttler.maybeThrottle(size);
 counter++;
 if (0 == counter % 100000) {
 long totalTime=(System.currentTimeMillis() - startTime) / 1000;
