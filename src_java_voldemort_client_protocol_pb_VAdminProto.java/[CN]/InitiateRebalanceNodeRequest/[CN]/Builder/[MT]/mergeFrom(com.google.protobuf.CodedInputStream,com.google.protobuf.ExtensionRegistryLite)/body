@@ -29,6 +29,16 @@ case 32:
 addPartitions(input.readInt32());
 break;
 }
+case 34:
+{
+int length=input.readRawVarint32();
+int limit=input.pushLimit(length);
+while (input.getBytesUntilLimit() > 0) {
+addPartitions(input.readInt32());
+}
+input.popLimit(limit);
+break;
+}
 case 40:
 {
 setAttempt(input.readInt32());
@@ -39,6 +49,16 @@ case 48:
 addDeletePartitions(input.readInt32());
 break;
 }
+case 50:
+{
+int length=input.readRawVarint32();
+int limit=input.pushLimit(length);
+while (input.getBytesUntilLimit() > 0) {
+addDeletePartitions(input.readInt32());
+}
+input.popLimit(limit);
+break;
+}
 case 58:
 {
 addUnbalancedStore(input.readString());
@@ -47,6 +67,16 @@ break;
 case 64:
 {
 addStealMasterPartitions(input.readInt32());
+break;
+}
+case 66:
+{
+int length=input.readRawVarint32();
+int limit=input.pushLimit(length);
+while (input.getBytesUntilLimit() > 0) {
+addStealMasterPartitions(input.readInt32());
+}
+input.popLimit(limit);
 break;
 }
 case 74:

@@ -19,11 +19,21 @@ case 8:
   addRequestIds(input.readInt32());
   break;
 }
+case 10:
+{
+int length=input.readRawVarint32();
+int limit=input.pushLimit(length);
+while (input.getBytesUntilLimit() > 0) {
+  addRequestIds(input.readInt32());
+}
+input.popLimit(limit);
+break;
+}
 case 18:
 {
 voldemort.client.protocol.pb.VProto.Error.Builder subBuilder=voldemort.client.protocol.pb.VProto.Error.newBuilder();
 if (hasError()) {
-  subBuilder.mergeFrom(getError());
+subBuilder.mergeFrom(getError());
 }
 input.readMessage(subBuilder,extensionRegistry);
 setError(subBuilder.buildPartial());

@@ -24,6 +24,16 @@ case 16:
 addPartitions(input.readInt32());
 break;
 }
+case 18:
+{
+int length=input.readRawVarint32();
+int limit=input.pushLimit(length);
+while (input.getBytesUntilLimit() > 0) {
+addPartitions(input.readInt32());
+}
+input.popLimit(limit);
+break;
+}
 case 26:
 {
 setStore(input.readString());
