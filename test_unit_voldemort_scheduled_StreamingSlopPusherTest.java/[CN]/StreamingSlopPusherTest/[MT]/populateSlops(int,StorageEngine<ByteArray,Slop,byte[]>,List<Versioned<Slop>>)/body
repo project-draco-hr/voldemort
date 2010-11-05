@@ -1,0 +1,25 @@
+{
+  int size=entrySet[0].size();
+  Iterator entryIterators[]=new Iterator[entrySet.length];
+  for (int i=0; i < entrySet.length; i++) {
+    entryIterators[i]=entrySet[i].iterator();
+  }
+  for (int i=0; i < size; i++) {
+    for (int j=0; j < entrySet.length; j++) {
+      Versioned<Slop> versioned=(Versioned<Slop>)entryIterators[j].next();
+      if (versioned.getValue().getOperation() == Slop.Operation.DELETE) {
+        try {
+          StorageEngine<ByteArray,byte[],byte[]> storageEngine=getVoldemortServer(nodeId).getStoreRepository().getStorageEngine(versioned.getValue().getStoreName());
+          storageEngine.put(versioned.getValue().getKey(),Versioned.value(versioned.getValue().getValue(),versioned.getVersion()),null);
+        }
+ catch (        ObsoleteVersionException e) {
+        }
+      }
+      try {
+        slopStore.put(versioned.getValue().makeKey(),versioned,null);
+      }
+ catch (      ObsoleteVersionException e) {
+      }
+    }
+  }
+}

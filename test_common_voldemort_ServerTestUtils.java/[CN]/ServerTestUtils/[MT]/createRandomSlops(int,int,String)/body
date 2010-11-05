@@ -1,5 +1,5 @@
 {
-  List<Slop> slops=new ArrayList<Slop>();
+  List<Versioned<Slop>> slops=new ArrayList<Versioned<Slop>>();
   for (int cnt=0; cnt < numKeys; cnt++) {
     int storeId=(int)Math.round(Math.random() * (storeNames.length - 1));
     int operation=(int)Math.round(Math.random() + 1);
@@ -9,8 +9,9 @@
     long keyInt=(long)(Math.random() * 1000000000L);
     ByteArray key=new ByteArray(ByteUtils.getBytes("" + keyInt,"UTF-8"));
     byte[] value=ByteUtils.getBytes("value-" + keyInt,"UTF-8");
-    slops.add(new Slop(storeNames[storeId],operationType,key,value,null,nodeId,new Date()));
-    slops.add(new Slop(storeNames[storeId],operationType,key,value,null,nodeId,new Date()));
+    Versioned<Slop> versioned=Versioned.value(new Slop(storeNames[storeId],operationType,key,value,null,nodeId,new Date()));
+    slops.add(versioned);
+    slops.add(versioned);
   }
   return slops;
 }

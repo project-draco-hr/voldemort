@@ -1,14 +1,15 @@
 {
   startServers(0,1);
   StorageEngine<ByteArray,Slop,byte[]> slopStoreNode0=getVoldemortServer(0).getStoreRepository().getSlopStore().asSlopStore();
-  final List<Slop> entrySet=ServerTestUtils.createRandomSlops(1,100,"test-replication-memory","users","test-replication-persistent","test-readrepair-memory","test-consistent","test-consistent-with-pref-list");
+  final List<Versioned<Slop>> entrySet=ServerTestUtils.createRandomSlops(1,100,"test-replication-memory","users","test-replication-persistent","test-readrepair-memory","test-consistent","test-consistent-with-pref-list");
   populateSlops(0,slopStoreNode0,entrySet);
   StreamingSlopPusherJob pusher=new StreamingSlopPusherJob(getVoldemortServer(0).getStoreRepository(),getVoldemortServer(0).getMetadataStore(),new BannagePeriodFailureDetector(new FailureDetectorConfig().setNodes(cluster.getNodes()).setStoreVerifier(new ServerStoreVerifier(socketStoreFactory,metadataStore,configs[0]))),configs[0]);
   pusher.run();
   Thread.sleep(2000);
-  Iterator<Slop> entryIterator=entrySet.listIterator();
+  Iterator<Versioned<Slop>> entryIterator=entrySet.listIterator();
   while (entryIterator.hasNext()) {
-    Slop nextSlop=entryIterator.next();
+    Versioned<Slop> versionedSlop=entryIterator.next();
+    Slop nextSlop=versionedSlop.getValue();
     StorageEngine<ByteArray,byte[],byte[]> store=getVoldemortServer(1).getStoreRepository().getStorageEngine(nextSlop.getStoreName());
     if (nextSlop.getOperation().equals(Slop.Operation.PUT)) {
       assertNotSame("entry should be present at store",0,store.get(nextSlop.getKey(),null).size());
