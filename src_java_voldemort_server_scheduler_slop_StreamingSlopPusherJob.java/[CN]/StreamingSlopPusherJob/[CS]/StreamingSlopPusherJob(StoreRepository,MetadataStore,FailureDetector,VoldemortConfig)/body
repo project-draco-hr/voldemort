@@ -17,4 +17,6 @@
   this.readThrottler=new EventThrottler(voldemortConfig.getSlopMaxReadBytesPerSec());
   this.adminClient=new AdminClient(cluster,new AdminClientConfig().setMaxThreads(cluster.getNumberOfNodes()).setMaxConnectionsPerNode(1));
   this.consumerResults=Lists.newArrayList();
+  this.attemptedByNode=new ConcurrentHashMap<Integer,Long>(cluster.getNumberOfNodes());
+  this.succeededByNode=new ConcurrentHashMap<Integer,Long>(cluster.getNumberOfNodes());
 }

@@ -25,5 +25,9 @@
     Slop nextSlop=entryIterator.next();
     assertNotSame("slop should be there",0,slopStoreNode0.get(nextSlop.makeKey(),null).size());
   }
+  SlopStorageEngine slopEngine=getVoldemortServer(0).getStoreRepository().getSlopStore();
+  assertEquals(slopEngine.getOutstandingTotal(),50);
+  assertEquals(slopEngine.getOutstandingByNode().get(1),new Long(50));
+  assertEquals(slopEngine.getOutstandingByNode().get(2),new Long(0));
   stopServers(0,2);
 }

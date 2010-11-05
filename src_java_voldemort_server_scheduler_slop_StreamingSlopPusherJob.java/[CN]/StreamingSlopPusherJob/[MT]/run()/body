@@ -4,12 +4,11 @@
     return;
   }
 synchronized (lock) {
+    boolean exceptionOccurred=false;
     Date startTime=new Date();
     logger.info("Started streaming slop pusher job at " + startTime);
     SlopStorageEngine slopStorageEngine=storeRepo.getSlopStore();
     ClosableIterator<Pair<ByteArray,Versioned<Slop>>> iterator=null;
-    ConcurrentHashMap<Integer,Long> attemptedByNode=new ConcurrentHashMap<Integer,Long>(cluster.getNumberOfNodes());
-    ConcurrentHashMap<Integer,Long> succeededByNode=new ConcurrentHashMap<Integer,Long>(cluster.getNumberOfNodes());
     AtomicLong attemptedPushes=new AtomicLong(0);
     for (    Node node : cluster.getNodes()) {
       attemptedByNode.put(node.getId(),0L);
@@ -35,7 +34,7 @@ synchronized (lock) {
             if (slopQueue == null) {
               slopQueue=new SynchronousQueue<Versioned<Slop>>();
               slopQueues.put(nodeId,slopQueue);
-              consumerResults.add(consumerExecutor.submit(new SlopConsumer(nodeId,slopQueue,slopStorageEngine,succeededByNode.get(nodeId))));
+              consumerResults.add(consumerExecutor.submit(new SlopConsumer(nodeId,slopQueue,slopStorageEngine)));
             }
             slopQueue.offer(versioned,voldemortConfig.getClientRoutingTimeoutMs(),TimeUnit.MILLISECONDS);
             readThrottler.maybeThrottle(nBytesRead(keyAndVal));
@@ -48,16 +47,14 @@ synchronized (lock) {
           throw new VoldemortException("Ran out of threads in executor",e);
         }
       }
-      Map<Integer,Long> outstanding=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
-      for (      int nodeId : succeededByNode.keySet()) {
-        outstanding.put(nodeId,attemptedByNode.get(nodeId) - succeededByNode.get(nodeId));
-      }
-      slopStorageEngine.resetStats(outstanding);
     }
  catch (    InterruptedException e) {
+      logger.warn("Interrupted exception",e);
+      exceptionOccurred=true;
     }
 catch (    Exception e) {
       logger.error(e,e);
+      exceptionOccurred=true;
     }
  finally {
       try {
@@ -71,7 +68,7 @@ catch (    Exception e) {
           slopQueue.offer(END,voldemortConfig.getClientRoutingTimeoutMs(),TimeUnit.MILLISECONDS);
         }
  catch (        InterruptedException e) {
-          logger.error("Error putting poison pill",e);
+          logger.warn("Error putting poison pill",e);
         }
       }
       for (      Future result : consumerResults) {
@@ -79,8 +76,16 @@ catch (    Exception e) {
           result.get();
         }
  catch (        Exception e) {
-          logger.error("Exception in consumer",e);
+          logger.warn("Exception in consumer",e);
         }
+      }
+      if (!exceptionOccurred) {
+        Map<Integer,Long> outstanding=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
+        for (        int nodeId : succeededByNode.keySet()) {
+          logger.debug("Slops pushed to node " + nodeId + " - "+ succeededByNode.get(nodeId));
+          outstanding.put(nodeId,attemptedByNode.get(nodeId) - succeededByNode.get(nodeId));
+        }
+        slopStorageEngine.resetStats(outstanding);
       }
       consumerResults.clear();
       slopQueues.clear();

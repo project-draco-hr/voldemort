@@ -36,5 +36,11 @@
     }
     assertEquals("slop should have gone",0,slopStoreNode1.get(nextSlop.makeKey(),null).size());
   }
+  SlopStorageEngine slopEngine=getVoldemortServer(0).getStoreRepository().getSlopStore();
+  assertEquals(slopEngine.getOutstandingTotal(),0);
+  assertEquals(slopEngine.getOutstandingByNode().get(1),new Long(0));
+  slopEngine=getVoldemortServer(1).getStoreRepository().getSlopStore();
+  assertEquals(slopEngine.getOutstandingTotal(),0);
+  assertEquals(slopEngine.getOutstandingByNode().get(0),new Long(0));
   stopServers(0,1);
 }
