@@ -1,0 +1,144 @@
+{
+  cluster=VoldemortTestConstants.getEightNodeClusterWithZones();
+  HashMap<Integer,Integer> zoneReplicationFactor=Maps.newHashMap();
+  zoneReplicationFactor.put(0,2);
+  zoneReplicationFactor.put(1,2);
+  long start;
+  Versioned<byte[]> versioned=new Versioned<byte[]>(new byte[]{1});
+  Store<ByteArray,byte[],byte[]> s1=getStore(cluster,1,1,0,0,8,null,Sets.newHashSet(4,5,6,7),zoneReplicationFactor,RoutingStrategyType.ZONE_STRATEGY,81,60,new VoldemortException());
+  start=System.nanoTime();
+  try {
+    s1.put(new ByteArray("test".getBytes()),versioned,null);
+  }
+  finally {
+    long elapsed=(System.nanoTime() - start) / Time.NS_PER_MS;
+    assertTrue(elapsed + " < " + 81,elapsed < 81);
+  }
+  s1.put(new ByteArray("test2".getBytes()),versioned,null);
+  start=System.nanoTime();
+  try {
+    s1.get(new ByteArray("test".getBytes()),null);
+  }
+  finally {
+    long elapsed=(System.nanoTime() - start) / Time.NS_PER_MS;
+    assertTrue(elapsed + " < " + 81,elapsed < 81);
+  }
+  start=System.nanoTime();
+  try {
+    List<Version> versions=s1.getVersions(new ByteArray("test".getBytes()));
+    for (    Version version : versions) {
+      assertEquals(version.compare(versioned.getVersion()),Occured.BEFORE);
+    }
+  }
+  finally {
+    long elapsed=(System.nanoTime() - start) / Time.NS_PER_MS;
+    assertTrue(elapsed + " < " + 81,elapsed < 81);
+  }
+  start=System.nanoTime();
+  try {
+    s1.delete(new ByteArray("test".getBytes()),versioned.getVersion());
+  }
+  finally {
+    long elapsed=(System.nanoTime() - start) / Time.NS_PER_MS;
+    assertTrue(elapsed + " < " + 81,elapsed < 81);
+  }
+  List<ByteArray> keys=Lists.newArrayList(new ByteArray("test".getBytes()),new ByteArray("test2".getBytes()));
+  Map<ByteArray,List<Versioned<byte[]>>> values=s1.getAll(keys,null);
+  for (  ByteArray key : values.keySet()) {
+    ByteUtils.compare(values.get(key).get(0).getValue(),new byte[]{1});
+  }
+  Store<ByteArray,byte[],byte[]> s2=getStore(cluster,1,1,1,1,8,null,Sets.newHashSet(4,5,6,7),zoneReplicationFactor,RoutingStrategyType.ZONE_STRATEGY,81,1000,new VoldemortException());
+  start=System.nanoTime();
+  try {
+    s2.put(new ByteArray("test".getBytes()),versioned,null);
+  }
+  finally {
+    long elapsed=(System.nanoTime() - start) / Time.NS_PER_MS;
+    assertTrue(elapsed + " > " + 81,elapsed >= 81);
+  }
+  s2.put(new ByteArray("test2".getBytes()),versioned,null);
+  try {
+    s2.get(new ByteArray("test".getBytes()),null);
+    fail("Should have shown exception");
+  }
+ catch (  InsufficientZoneResponsesException e) {
+  }
+  try {
+    s2.getVersions(new ByteArray("test".getBytes()));
+    fail("Should have shown exception");
+  }
+ catch (  InsufficientZoneResponsesException e) {
+  }
+  try {
+    s2.delete(new ByteArray("test".getBytes()),null);
+    fail("Should have shown exception");
+  }
+ catch (  InsufficientZoneResponsesException e) {
+  }
+  values=s2.getAll(keys,null);
+  for (  ByteArray key : values.keySet()) {
+    ByteUtils.compare(values.get(key).get(0).getValue(),new byte[]{1});
+  }
+  Store<ByteArray,byte[],byte[]> s3=getStore(cluster,1,1,0,0,8,Sets.newHashSet(4,5,6,7),null,zoneReplicationFactor,RoutingStrategyType.ZONE_STRATEGY,81,1000,new VoldemortException());
+  start=System.nanoTime();
+  try {
+    s3.put(new ByteArray("test".getBytes()),versioned,null);
+  }
+  finally {
+    long elapsed=(System.nanoTime() - start) / Time.NS_PER_MS;
+    assertTrue(elapsed + " < " + 81,elapsed < 81);
+  }
+  s3.put(new ByteArray("test2".getBytes()),versioned,null);
+  start=System.nanoTime();
+  try {
+    List<Version> versions=s3.getVersions(new ByteArray("test".getBytes()));
+    for (    Version version : versions) {
+      assertEquals(version.compare(versioned.getVersion()),Occured.BEFORE);
+    }
+  }
+  finally {
+    long elapsed=(System.nanoTime() - start) / Time.NS_PER_MS;
+    assertTrue(elapsed + " < " + 81,elapsed < 81);
+  }
+  start=System.nanoTime();
+  try {
+    s3.get(new ByteArray("test".getBytes()),null);
+  }
+  finally {
+    long elapsed=(System.nanoTime() - start) / Time.NS_PER_MS;
+    assertTrue(elapsed + " < " + 81,elapsed < 81);
+  }
+  start=System.nanoTime();
+  try {
+    s3.delete(new ByteArray("test".getBytes()),versioned.getVersion());
+  }
+  finally {
+    long elapsed=(System.nanoTime() - start) / Time.NS_PER_MS;
+    assertTrue(elapsed + " < " + 81,elapsed < 81);
+  }
+  Store<ByteArray,byte[],byte[]> s4=getStore(cluster,2,2,1,1,8,Sets.newHashSet(4,5,6,7),null,zoneReplicationFactor,RoutingStrategyType.ZONE_STRATEGY,81,1000,new VoldemortException());
+  try {
+    s4.put(new ByteArray("test".getBytes()),new Versioned<byte[]>(new byte[]{1}),null);
+    fail("Should have shown exception");
+  }
+ catch (  InsufficientZoneResponsesException e) {
+  }
+  try {
+    s4.getVersions(new ByteArray("test".getBytes()));
+    fail("Should have shown exception");
+  }
+ catch (  InsufficientZoneResponsesException e) {
+  }
+  try {
+    s4.get(new ByteArray("test".getBytes()),null);
+    fail("Should have shown exception");
+  }
+ catch (  InsufficientZoneResponsesException e) {
+  }
+  try {
+    s4.delete(new ByteArray("test".getBytes()),versioned.getVersion());
+    fail("Should have shown exception");
+  }
+ catch (  InsufficientZoneResponsesException e) {
+  }
+}
