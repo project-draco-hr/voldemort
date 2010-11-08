@@ -18,8 +18,11 @@
     entrySet.add(Versioned.value(new Slop(storeName,Slop.Operation.DELETE,key2,null,null,1,new Date()),vectorClock2));
   }
   Collections.shuffle(entrySet);
-  populateSlops(0,slopStoreNode0,entrySet);
+  List<Versioned<Slop>> firstSet=entrySet.subList(0,7), secondSet=entrySet.subList(7,15);
+  populateSlops(0,slopStoreNode0,firstSet);
   StreamingSlopPusherJob pusher=new StreamingSlopPusherJob(getVoldemortServer(0).getStoreRepository(),getVoldemortServer(0).getMetadataStore(),new BannagePeriodFailureDetector(new FailureDetectorConfig().setNodes(cluster.getNodes()).setStoreVerifier(new ServerStoreVerifier(socketStoreFactory,metadataStore,configs[0]))),configs[0]);
+  pusher.run();
+  populateSlops(0,slopStoreNode0,secondSet);
   pusher.run();
   Thread.sleep(2000);
   for (  String storeName : Lists.newArrayList("test-replication-memory","users","test-replication-persistent")) {
