@@ -1,0 +1,36 @@
+{
+  OptionParser parser=new OptionParser();
+  parser.accepts(CONNECTION_TIMEOUT,"Connection timeout (ms)").withRequiredArg().ofType(Integer.class);
+  parser.accepts(ROUTING_TIMEOUT,"Routing timeout (ms)").withRequiredArg().ofType(Integer.class);
+  parser.accepts(SOCKET_TIMEOUT,"Socket timeout (ms)").withRequiredArg().ofType(Integer.class);
+  parser.accepts(MAX_CONNECTIONS,"Max connections per node").withRequiredArg().ofType(Integer.class);
+  parser.accepts(MAX_CONNECTIONS_TOTAL,"Max total connections").withRequiredArg().ofType(Integer.class);
+  parser.accepts(MAX_THREADS,"Max threads").withRequiredArg().ofType(Integer.class);
+  parser.accepts(SELECTORS,"Number of NIO selectors").withRequiredArg().ofType(Integer.class);
+  parser.accepts(SOCKET_BUFFER_SIZE,"Socket buffer size").withRequiredArg().ofType(Integer.class);
+  parser.accepts(REQS,"Requests per session").withRequiredArg().ofType(Integer.class);
+  parser.accepts(CONNECTIONS,"Total connections to make").withRequiredArg().ofType(Integer.class);
+  parser.accepts("help");
+  OptionSet options=parser.parse(args);
+  List<String> rest=options.nonOptionArguments();
+  if (rest.size() < 2 || options.has("help")) {
+    parser.printHelpOn(System.err);
+    System.err.println("Usage: ClientConnectionStressTest <options> url store-name");
+    System.exit(0);
+  }
+  String url=rest.get(0);
+  String storeName=rest.get(1);
+  Integer connsTotal=CmdUtils.valueOf(options,CONNECTIONS,100);
+  Integer reqs=CmdUtils.valueOf(options,REQS,1000);
+  ClientConfig config=new ClientConfig();
+  if (options.has(CONNECTION_TIMEOUT))   config.setConnectionTimeout((Integer)options.valueOf(CONNECTION_TIMEOUT),TimeUnit.MILLISECONDS);
+  if (options.has(ROUTING_TIMEOUT))   config.setRoutingTimeout((Integer)options.valueOf(ROUTING_TIMEOUT),TimeUnit.MILLISECONDS);
+  if (options.has(SOCKET_TIMEOUT))   config.setSocketTimeout((Integer)options.valueOf(SOCKET_TIMEOUT),TimeUnit.MILLISECONDS);
+  if (options.has(MAX_CONNECTIONS))   config.setMaxConnectionsPerNode((Integer)options.valueOf(MAX_CONNECTIONS));
+  if (options.has(MAX_THREADS))   config.setMaxThreads((Integer)options.valueOf(MAX_THREADS));
+  if (options.has(SELECTORS))   config.setSelectors((Integer)options.valueOf(SELECTORS));
+  if (options.has(SOCKET_BUFFER_SIZE))   config.setSocketBufferSize((Integer)options.valueOf(SOCKET_BUFFER_SIZE));
+  config.setBootstrapUrls(url);
+  ClientConnectionStressTest test=new ClientConnectionStressTest(config,storeName,config.getMaxThreads(),connsTotal,reqs);
+  test.execute();
+}

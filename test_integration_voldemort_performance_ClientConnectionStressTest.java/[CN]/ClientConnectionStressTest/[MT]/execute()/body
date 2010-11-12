@@ -1,0 +1,22 @@
+{
+  for (int i=0; i < connsTotal; i++) {
+    final CountDownLatch latch=new CountDownLatch(connsParallel);
+    for (int j=0; j < connsParallel; j++) {
+      System.out.println("Connection " + (i + j));
+      executor.submit(new Runnable(){
+        public void run(){
+          try {
+            StoreClient<String,String> client=factory.getStoreClient(storeName);
+            for (int k=0; k < reqsPerConn; k++)             client.get(Integer.toString(k));
+          }
+  finally {
+            latch.countDown();
+          }
+        }
+      }
+);
+    }
+    latch.await();
+  }
+  executor.shutdown();
+}
