@@ -12,7 +12,15 @@
   long finishConnectTimeoutMs=System.currentTimeMillis() + connectTimeoutMs;
   while (!socketChannel.finishConnect()) {
     long diff=finishConnectTimeoutMs - System.currentTimeMillis();
-    if (diff < 0)     throw new ConnectException("Cannot connect socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " after "+ connectTimeoutMs+ " ms");
+    if (diff < 0) {
+      try {
+        socketChannel.close();
+      }
+ catch (      Exception e) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(e,e);
+      }
+      throw new ConnectException("Cannot connect socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " after "+ connectTimeoutMs+ " ms");
+    }
     if (logger.isTraceEnabled())     logger.trace("Still creating socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ ", "+ diff+ " ms. remaining to connect");
     try {
       Thread.sleep(connectTimeoutMs / 10);
@@ -32,6 +40,17 @@
   selectorManager.registrationQueue.add(clientRequestExecutor);
   selector.wakeup();
   clientRequest.await();
-  clientRequest.getResult();
+  try {
+    clientRequest.getResult();
+  }
+ catch (  Exception e) {
+    try {
+      socketChannel.close();
+    }
+ catch (    Exception ex) {
+      if (logger.isEnabledFor(Level.WARN))       logger.warn(ex,ex);
+    }
+    throw e;
+  }
   return clientRequestExecutor;
 }
