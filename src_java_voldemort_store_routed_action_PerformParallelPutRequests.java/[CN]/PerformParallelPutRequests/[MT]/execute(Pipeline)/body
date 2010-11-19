@@ -22,7 +22,7 @@
           if (response.getValue() instanceof UnreachableStoreException) {
             Slop slop=new Slop(pipelineData.getStoreName(),Slop.Operation.PUT,key,versionedCopy.getValue(),transforms,node.getId(),new Date());
             pipelineData.addFailedNode(node);
-            hintedHandoff.sendHintSync(node,versionedCopy.getVersion(),slop);
+            hintedHandoff.sendHintSerial(node,versionedCopy.getVersion(),slop);
           }
         }
         attemptsLatch.countDown();

@@ -3,7 +3,7 @@
     int failedNodeId=failedNode.getId();
     if (logger.isTraceEnabled())     logger.trace("Performing hinted handoff for node " + failedNode + ", store "+ pipelineData.getStoreName()+ "key "+ key+ ", version"+ version);
     Slop slop=new Slop(pipelineData.getStoreName(),Slop.Operation.DELETE,key,null,null,failedNodeId,new Date());
-    hintedHandoff.sendHintAsync(failedNode,version,slop);
+    hintedHandoff.sendHintParallel(failedNode,version,slop);
   }
   pipeline.addEvent(completeEvent);
 }

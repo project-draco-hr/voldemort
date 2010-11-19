@@ -1,14 +1,16 @@
 {
-  Set<Integer> nodesCovered=Sets.newHashSet();
-  while (nodesCovered.size() < NUM_NODES_TOTAL) {
-    ByteArray randomKey=new ByteArray(TestUtils.randomBytes(KEY_LENGTH));
-    byte[] randomValue=TestUtils.randomBytes(VALUE_LENGTH);
-    if (randomKey.length() > 0 && randomValue.length > 0) {
-      for (      Node node : strategy.routeRequest(randomKey.get())) {
-        keysToNodes.put(randomKey,node.getId());
-        nodesCovered.add(node.getId());
+  for (int i=0; i < 2; i++) {
+    Set<Integer> nodesCovered=Sets.newHashSet();
+    while (nodesCovered.size() < NUM_NODES_TOTAL) {
+      ByteArray randomKey=new ByteArray(TestUtils.randomBytes(KEY_LENGTH));
+      byte[] randomValue=TestUtils.randomBytes(VALUE_LENGTH);
+      if (randomKey.length() > 0 && randomValue.length > 0) {
+        for (        Node node : strategy.routeRequest(randomKey.get())) {
+          keysToNodes.put(randomKey,node.getId());
+          nodesCovered.add(node.getId());
+        }
+        keyValues.put(randomKey,new ByteArray(randomValue));
       }
-      keyValues.put(randomKey,new ByteArray(randomValue));
     }
   }
 }

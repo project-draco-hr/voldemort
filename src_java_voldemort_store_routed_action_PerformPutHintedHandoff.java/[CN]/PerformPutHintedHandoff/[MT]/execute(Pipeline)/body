@@ -9,7 +9,7 @@
     Version version=versionedCopy.getVersion();
     if (logger.isTraceEnabled())     logger.trace("Performing hinted handoff for node " + failedNode + ", store "+ pipelineData.getStoreName()+ " key "+ key+ ", version "+ version);
     Slop slop=new Slop(pipelineData.getStoreName(),Slop.Operation.PUT,key,versionedCopy.getValue(),transforms,failedNodeId,new Date());
-    hintedHandoff.sendHintAsync(failedNode,version,slop);
+    hintedHandoff.sendHintParallel(failedNode,version,slop);
   }
   pipeline.addEvent(completeEvent);
 }

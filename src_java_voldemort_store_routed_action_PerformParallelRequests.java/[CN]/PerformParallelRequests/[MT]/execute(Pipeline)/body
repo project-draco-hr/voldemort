@@ -16,7 +16,7 @@
           if (isHintedHandoffEnabled() && response.getValue() instanceof UnreachableStoreException) {
             Slop slop=new Slop(pipelineData.getStoreName(),Slop.Operation.DELETE,key,null,null,node.getId(),new Date());
             pipelineData.addFailedNode(node);
-            hintedHandoff.sendHintSync(node,version,slop);
+            hintedHandoff.sendHintSerial(node,version,slop);
           }
         }
         latch.countDown();
@@ -43,7 +43,8 @@
     }
  else {
       pipelineData.incrementSuccesses();
-      pipelineData.getResponses().add((Response<ByteArray,V>)response);
+      Response<ByteArray,V> rCast=Utils.uncheckedCast(response);
+      pipelineData.getResponses().add(rCast);
       failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
       pipelineData.getZoneResponses().add(response.getNode().getZoneId());
     }

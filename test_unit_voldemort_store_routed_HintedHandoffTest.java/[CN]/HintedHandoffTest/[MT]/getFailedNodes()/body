@@ -5,10 +5,7 @@
     int n=rand.nextInt(NUM_NODES_TOTAL);
     failedNodes.add(n);
   }
-  for (  int node : failedNodes) {
-    ForceFailStore<ByteArray,byte[],byte[]> forceFailStore=getForceFailStore(node);
-    forceFailStore.setFail(true);
-    if (logger.isTraceEnabled())     logger.trace("Started failing requests to " + node);
-  }
+  for (  int node : failedNodes)   getForceFailStore(node).setFail(true);
+  if (logger.isTraceEnabled())   logger.trace("Failing requests to " + failedNodes);
   return failedNodes;
 }

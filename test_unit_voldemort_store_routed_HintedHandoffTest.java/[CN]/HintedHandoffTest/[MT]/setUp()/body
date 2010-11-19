@@ -5,11 +5,11 @@
     VoldemortException e=new UnreachableStoreException("Node down");
     InMemoryStorageEngine<ByteArray,byte[],byte[]> storageEngine=new InMemoryStorageEngine<ByteArray,byte[],byte[]>(STORE_NAME);
     LoggingStore<ByteArray,byte[],byte[]> loggingStore=new LoggingStore<ByteArray,byte[],byte[]>(storageEngine);
-    subStores.put(node.getId(),new ForceFailStore<ByteArray,byte[],byte[]>(loggingStore,e,node.getId()));
+    subStores.put(node.getId(),new ForceFailStore<ByteArray,byte[],byte[]>(loggingStore,e));
   }
   setFailureDetector(subStores);
   routedStoreThreadPool=Executors.newFixedThreadPool(NUM_THREADS);
-  routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,1000L);
+  routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,1500L);
   strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
   Map<Integer,NonblockingStore> nonblockingSlopStores=Maps.newHashMap();
   for (  Node node : cluster.getNodes()) {
