@@ -4,11 +4,23 @@
     return;
   }
 synchronized (lock) {
-    boolean exceptionOccurred=false;
+    boolean terminatedEarly=false;
     Date startTime=new Date();
     logger.info("Started streaming slop pusher job at " + startTime);
     SlopStorageEngine slopStorageEngine=storeRepo.getSlopStore();
     ClosableIterator<Pair<ByteArray,Versioned<Slop>>> iterator=null;
+    if (adminClient == null) {
+      adminClient=new AdminClient(cluster,new AdminClientConfig().setMaxThreads(cluster.getNumberOfNodes()).setMaxConnectionsPerNode(1));
+    }
+    zoneMapping.clear();
+    for (    Node n : cluster.getNodes()) {
+      Set<Integer> nodes=zoneMapping.get(n.getZoneId());
+      if (nodes == null) {
+        nodes=Sets.newHashSet();
+        zoneMapping.put(n.getZoneId(),nodes);
+      }
+      nodes.add(n.getId());
+    }
     AtomicLong attemptedPushes=new AtomicLong(0);
     for (    Node node : cluster.getNodes()) {
       attemptedByNode.put(node.getId(),0L);
@@ -28,8 +40,9 @@ synchronized (lock) {
           Long attempted=attemptedByNode.get(nodeId);
           attemptedByNode.put(nodeId,attempted + 1L);
           if (attemptedPushes.get() % 10000 == 0)           logger.info("Attempted pushing " + attemptedPushes + " slops");
-          logger.trace("On slop = " + versioned.getValue().getNodeId() + " => "+ new String(versioned.getValue().getKey().get()));
+          if (logger.isTraceEnabled())           logger.trace("Pushing slop for " + versioned.getValue().getNodeId() + " and store  "+ versioned.getValue().getStoreName());
           if (failureDetector.isAvailable(node)) {
+            zoneMapping.get(node.getZoneId()).add(node.getId());
             SynchronousQueue<Versioned<Slop>> slopQueue=slopQueues.get(nodeId);
             if (slopQueue == null) {
               slopQueue=new SynchronousQueue<Versioned<Slop>>();
@@ -40,6 +53,11 @@ synchronized (lock) {
             readThrottler.maybeThrottle(nBytesRead(keyAndVal));
           }
  else {
+            zoneMapping.get(node.getZoneId()).remove(node.getId());
+            if (checkZonesDown()) {
+              terminatedEarly=true;
+              return;
+            }
             logger.trace(node + " declared down, won't push slop");
           }
         }
@@ -50,11 +68,11 @@ synchronized (lock) {
     }
  catch (    InterruptedException e) {
       logger.warn("Interrupted exception",e);
-      exceptionOccurred=true;
+      terminatedEarly=true;
     }
 catch (    Exception e) {
       logger.error(e,e);
-      exceptionOccurred=true;
+      terminatedEarly=true;
     }
  finally {
       try {
@@ -79,17 +97,24 @@ catch (    Exception e) {
           logger.warn("Exception in consumer",e);
         }
       }
-      if (!exceptionOccurred) {
+      if (!terminatedEarly) {
         Map<Integer,Long> outstanding=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
         for (        int nodeId : succeededByNode.keySet()) {
-          logger.debug("Slops pushed to node " + nodeId + " - "+ succeededByNode.get(nodeId));
+          logger.info("Slops to node " + nodeId + " - Succeeded - "+ succeededByNode.get(nodeId)+ " - Attempted - "+ attemptedByNode.get(nodeId));
           outstanding.put(nodeId,attemptedByNode.get(nodeId) - succeededByNode.get(nodeId));
         }
         slopStorageEngine.resetStats(outstanding);
+        logger.info("Completed streaming slop pusher job which started at " + startTime);
+      }
+ else {
+        for (        int nodeId : succeededByNode.keySet()) {
+          logger.info("Slops to node " + nodeId + " - Succeeded - "+ succeededByNode.get(nodeId)+ " - Attempted - "+ attemptedByNode.get(nodeId));
+        }
+        logger.info("Completed early streaming slop pusher job which started at " + startTime);
       }
       consumerResults.clear();
       slopQueues.clear();
+      cleanUp();
     }
-    logger.info("Completed streaming slop pusher job which started at " + startTime);
   }
 }
