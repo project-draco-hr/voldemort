@@ -1,0 +1,7 @@
+def _write_bytes(self, output, bs):
+    '\n        Internal routine that writes raw bytes.\n\n        >>> s = JsonTypeSerializer(\'"string"\')\n\n        >>> f = StringIO.StringIO()\n        >>> s._write_bytes(f, \'foo\')\n        >>> f.getvalue()\n        \'\\x00\\x03foo\'\n\n        None is serialized as -1 length byte string:\n        >>> f = StringIO.StringIO()\n        >>> s._write_bytes(f, None)\n        >>> f.getvalue()\n        \'\\xff\\xff\'\n\n        The empty string is a 0 length byte string:\n        >>> f = StringIO.StringIO()\n        >>> s._write_bytes(f, \'\')\n        >>> f.getvalue()\n        \'\\x00\\x00\'\n        '
+    if (bs is None):
+        self._write_length(output, (-1))
+        return
+    self._write_length(output, len(bs))
+    output.write(bs)

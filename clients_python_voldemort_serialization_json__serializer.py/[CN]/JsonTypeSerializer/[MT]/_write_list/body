@@ -1,0 +1,11 @@
+def _write_list(self, output, items, typedef):
+    '\n        Internal method for serializing lists.\n\n        >>> s = JsonTypeSerializer(\'"string"\')\n\n        >>> f = StringIO.StringIO()\n        >>> s._write_list(f, [1,2,3], [\'int16\'])\n        >>> f.getvalue()\n        \'\\x00\\x03\\x00\\x01\\x00\\x02\\x00\\x03\'\n\n        Empty lists are encoded as length 0:\n        >>> f = StringIO.StringIO()\n        >>> s._write_list(f, [], [\'int16\'])\n        >>> f.getvalue()\n        \'\\x00\\x00\'\n\n        None is encoded as length -1:\n        >>> f = StringIO.StringIO()\n        >>> s._write_list(f, None, [\'int16\'])\n        >>> f.getvalue()\n        \'\\xff\\xff\'\n\n        Input must be a list:\n        >>> f = StringIO.StringIO()\n        >>> s._write_list(f, 1, [\'int16\'])\n        Traceback (most recent call last):\n        ...\n        TypeError: object of type \'int\' has no len()\n\n        Typedef must be a singleton list:\n        >>> f = StringIO.StringIO()\n        >>> s._write_list(f, [1,2,3], [])\n        Traceback (most recent call last):\n        ...\n        SerializationException: Type declaration of a list must be a singleton list.\n\n        >>> f = StringIO.StringIO()\n        >>> s._write_list(f, [1,2,3], [\'int16\', \'int16\'])\n        Traceback (most recent call last):\n        ...\n        SerializationException: Type declaration of a list must be a singleton list.\n\n        >>> f = StringIO.StringIO()\n        >>> s._write_list(f, [1,2,3], \'int16\')\n        Traceback (most recent call last):\n        ...\n        SerializationException: Type declaration of a list must be a singleton list.\n\n        '
+    if ((not isinstance(typedef, list)) or (len(typedef) != 1)):
+        raise SerializationException('Type declaration of a list must be a singleton list.')
+    objtype = typedef[0]
+    if (items is None):
+        self._write_length(output, (-1))
+    else:
+        self._write_length(output, len(items))
+        for item in items:
+            self._write(output, item, objtype)

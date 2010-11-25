@@ -1,0 +1,19 @@
+def test_json_mismatches(self):
+    "\n        Sometimes the result we get out of Voldemort is a little different than what\n        went in, but it's not always a problem.\n        "
+    s = self._reinit_json_client()
+    s.put(1, self.val4)
+    resp = s.get(1)
+    self.assertEquals(len(resp), 1)
+    self.assertEquals(len(resp[0]), 2)
+    output = resp[0][0]
+    self.assertNotEquals(output, self.val4)
+    self.assertEquals(output['a'], self.val4['a'])
+    self.assertEquals(output['b'], self.val4['b'])
+    self.assertTrue(isinstance(output['c'], unicode))
+    self.assertEquals(output['c'], self.val4['c'])
+    self.assertEquals(output['d']['foo'], self.val4['d']['foo'])
+    self.assertNotEquals(output['d']['bar'], self.val4['d']['bar'])
+    td = (self.val4['d']['bar'] - output['d']['bar'])
+    self.assertEquals(td.days, 0)
+    self.assertEquals(td.seconds, 0)
+    self.assertEquals(td.microseconds, 123)

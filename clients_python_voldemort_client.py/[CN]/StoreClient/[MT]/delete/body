@@ -1,0 +1,6 @@
+def delete(self, key, version=None):
+    'Execute a delete request, deleting all keys up to and including the given version.\n           If no version is given a get(key) request will be done to find the latest version.'
+    raw_key = self.key_serializer.writes(key)
+    if (version == None):
+        version = self._fetch_version(key)
+    return self._execute_request(self._delete, [raw_key, version])

@@ -1,0 +1,11 @@
+def _write_boolean(self, output, b):
+    '\n        Internal routine that writes booleans:\n\n        >>> s = JsonTypeSerializer(\'"string"\')\n\n        True is 1:\n        >>> f = StringIO.StringIO()\n        >>> s._write_boolean(f, True)\n        >>> f.getvalue()\n        \'\\x01\'\n\n        False is 0:\n        >>> f = StringIO.StringIO()\n        >>> s._write_boolean(f, False)\n        >>> f.getvalue()\n        \'\\x00\'\n\n        None is serialized to (int8)-1:\n        >>> f = StringIO.StringIO()\n        >>> s._write_boolean(f, None)\n        >>> f.getvalue()\n        \'\\xff\'\n\n        Only booleans are accepted:\n        >>> f = StringIO.StringIO()\n        >>> s._write_boolean(f, 42)\n        Traceback (most recent call last):\n        ...\n        SerializationException: Expected bool but got: <type \'int\'>\n        '
+    if (b is None):
+        output.write('\xff')
+    else:
+        if (not isinstance(b, bool)):
+            raise SerializationException(('Expected bool but got: %s' % type(b)))
+        if b:
+            output.write('\x01')
+        else:
+            output.write('\x00')

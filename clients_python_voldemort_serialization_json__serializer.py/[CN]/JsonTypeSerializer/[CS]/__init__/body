@@ -1,0 +1,11 @@
+def __init__(self, typedef, has_version=False):
+    '\n        Constructor. The typedef is either a json string containing the schema definition or a\n        map from integer version number to schema json.\n\n        A simple json schema results in a non-versioned serializer (note that the output is\n        only the 4-byte binary value WITHOUT a version number prefix:\n\n        >>> s = JsonTypeSerializer(\'"int32"\')\n        >>> s.writes(42)\n        \'\\x00\\x00\\x00*\'\n\n        A dict typedef will always yield a versioned serializer (note that now there is a version\n        number byte appended to the output:\n\n        >>> s = JsonTypeSerializer({1: \'"int32"\'})\n        >>> s.writes(42)\n        \'\\x01\\x00\\x00\\x00*\'\n\n        Setting has_version=True will also return a versioned serializer, with an implied version 0:\n\n        >>> s = JsonTypeSerializer(\'"int32"\', has_version=True)\n        >>> s.writes(42)\n        \'\\x00\\x00\\x00\\x00*\'\n\n        '
+    self._has_version = (has_version or isinstance(typedef, dict))
+    if (not isinstance(typedef, dict)):
+        typeobj = simplejson.loads(typedef, object_pairs_hook=OrderedDict)
+        if self._has_version:
+            self._typedef = dict([(0, typeobj)])
+        else:
+            self._typedef = typeobj
+    else:
+        self._typedef = dict(((k, simplejson.loads(v, object_pairs_hook=OrderedDict)) for (k, v) in typedef.iteritems()))

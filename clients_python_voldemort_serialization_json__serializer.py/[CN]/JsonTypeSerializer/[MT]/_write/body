@@ -1,0 +1,14 @@
+def _write(self, output, obj, typedef):
+    '\n        Internal routine that serializes objects according to the passed in typedef.\n\n        >>> s = JsonTypeSerializer(\'"string"\')\n        >>> f = StringIO.StringIO()\n        >>> s._write(f, True, \'boolean\')\n        >>> f.getvalue()\n        \'\\x01\'\n\n        >>> f = StringIO.StringIO()\n        >>> s._write(f, 42, \'int8\')\n        >>> f.getvalue()\n        \'*\'\n\n        >>> f = StringIO.StringIO()\n        >>> s._write(f, 42, \'int16\')\n        >>> f.getvalue()\n        \'\\x00*\'\n\n        >>> f = StringIO.StringIO()\n        >>> s._write(f, 42, \'int32\')\n        >>> f.getvalue()\n        \'\\x00\\x00\\x00*\'\n\n        >>> f = StringIO.StringIO()\n        >>> s._write(f, 42, \'int64\')\n        >>> f.getvalue()\n        \'\\x00\\x00\\x00\\x00\\x00\\x00\\x00*\'\n\n        >>> f = StringIO.StringIO()\n        >>> s._write(f, 0.25, \'float32\')\n        >>> f.getvalue()\n        \'>\\x80\\x00\\x00\'\n\n        >>> f = StringIO.StringIO()\n        >>> s._write(f, 0.25, \'float64\')\n        >>> f.getvalue()\n        \'?\\xd0\\x00\\x00\\x00\\x00\\x00\\x00\'\n\n        >>> f = StringIO.StringIO()\n        >>> s._write(f, [1,2,3], [\'int16\'])\n        >>> f.getvalue()\n        \'\\x00\\x03\\x00\\x01\\x00\\x02\\x00\\x03\'\n\n        >>> f = StringIO.StringIO()\n        >>> s._write(f, {\'a\':1, \'b\':2}, OrderedDict(((\'a\', \'int16\'), (\'b\', \'int16\'))))\n        >>> f.getvalue()\n        \'\\x01\\x00\\x01\\x00\\x02\'\n\n        It does some typechecking on the typedef parameter:\n        >>> f = StringIO.StringIO()\n        >>> s._write(f, 42, 0)\n        Traceback (most recent call last):\n        ...\n        SerializationException: Unknown type: 0\n\n        '
+    if isinstance(typedef, dict):
+        if ((obj is not None) and (not isinstance(obj, dict))):
+            raise SerializationException(('Expected dict but got: %s' % type(obj)))
+        self._write_dict(output, obj, typedef)
+    elif isinstance(typedef, list):
+        if ((obj is not None) and (not isinstance(obj, list))):
+            raise SerializationException(('Expected list but got: %s' % type(obj)))
+        self._write_list(output, obj, typedef)
+    elif (isinstance(typedef, str) or isinstance(typedef, unicode)):
+        getattr(self, ('_write_' + typedef))(output, obj)
+    else:
+        raise SerializationException(('Unknown type: %s' % typedef))

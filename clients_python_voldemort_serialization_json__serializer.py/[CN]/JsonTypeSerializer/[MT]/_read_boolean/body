@@ -1,0 +1,9 @@
+def _read_boolean(self, input):
+    '\n        Internal routine for reading booleans:\n\n        >>> s = JsonTypeSerializer(\'"int32"\')\n        >>> s._read_boolean(StringIO.StringIO(\'\\x00\'))\n        False\n\n        >>> s._read_boolean(StringIO.StringIO(\'\\x01\'))\n        True\n\n        Negative int8s indicate "None":\n\n        >>> s._read_boolean(StringIO.StringIO(\'\\xff\')) is None\n        True\n\n        Positive int8s are treated as True, even though _write_boolean() will always write \\x01:\n\n        >>> s._read_boolean(StringIO.StringIO(\'\\x05\'))\n        True\n        '
+    b = self._read_int8(input)
+    if (b < 0):
+        return None
+    elif (b == 0):
+        return False
+    else:
+        return True

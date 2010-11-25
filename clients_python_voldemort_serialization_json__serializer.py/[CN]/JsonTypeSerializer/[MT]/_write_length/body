@@ -1,0 +1,8 @@
+def _write_length(self, output, size):
+    '\n        Internal routine that writes sequence lengths in Voldemort\'s variable length format.\n\n        >>> s = JsonTypeSerializer(\'"string"\')\n\n        Small lengths are encoded as int16s:\n        >>> f = StringIO.StringIO()\n        >>> s._write_length(f, 10)\n        >>> f.getvalue()\n        \'\\x00\\n\'\n\n        Length of -1 (magic length of null sequences) is encoded as (int16)-1:\n        >>> f = StringIO.StringIO()\n        >>> s._write_length(f, -1)\n        >>> f.getvalue()\n        \'\\xff\\xff\'\n\n        Longer lengths are encoded as int32s with the high two bits set:\n        >>> f = StringIO.StringIO()\n        >>> s._write_length(f, 1000000)\n        >>> f.getvalue()\n        \'\\xc0\\x0fB@\'\n\n        Lengths between 0x3fff0000 and 0x3fffffff are supposed to be supported but will serialize\n        to a byte string that won\'t get decoded properly:\n        >>> f = StringIO.StringIO()\n        >>> s._write_length(f, 0x3fff0001)\n        >>> bytes = f.getvalue()\n        >>> bytes\n        \'\\xff\\xff\\x00\\x01\'\n\n        >>> s._read_length(StringIO.StringIO(bytes))\n        -1\n\n        '
+    if (size < MAXES['int16']):
+        self._write_int16(output, size)
+    elif (size <= MAX_SEQ_LENGTH):
+        self._write_int32(output, (size | (-1073741824)))
+    else:
+        raise SerializationException(('Length of %d exceeds maximum allowed: %d' % (size, MAX_SEQ_LENGTH)))

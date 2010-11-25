@@ -1,0 +1,9 @@
+def write(self, output, obj):
+    '\n        Writes the serialized binary representation of an object to the file-like object output:\n\n        >>> s = JsonTypeSerializer(\'{ "a":"float32", "b":["int16"], "c":"string" }\')\n        >>> f = StringIO.StringIO()\n        >>> s.write(f, {\'a\': 0.25, \'b\':[1,2,3], \'c\':\'foo\'})\n        >>> f.getvalue()\n        \'\\x01>\\x80\\x00\\x00\\x00\\x03\\x00\\x01\\x00\\x02\\x00\\x03\\x00\\x03foo\'\n\n        The representation of a versioned serializer will have the version number byte prefix:\n        >>> s = JsonTypeSerializer(\'{ "a":"float32", "b":["int16"], "c":"string" }\', has_version=True)\n        >>> f = StringIO.StringIO()\n        >>> s.write(f, {\'a\': 0.25, \'b\':[1,2,3], \'c\':\'foo\'})\n        >>> f.getvalue()\n        \'\\x00\\x01>\\x80\\x00\\x00\\x00\\x03\\x00\\x01\\x00\\x02\\x00\\x03\\x00\\x03foo\'\n        '
+    if self._has_version:
+        latest = max(self._typedef.keys())
+        typedef = self._typedef[latest]
+        self._write_int8(output, latest)
+    else:
+        typedef = self._typedef
+    self._write(output, obj, typedef)

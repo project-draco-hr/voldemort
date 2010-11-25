@@ -1,0 +1,14 @@
+def _put(self, key, value, version):
+    req = protocol.VoldemortRequest()
+    req.should_route = True
+    req.store = self.store_name
+    req.type = protocol.PUT
+    req.put.key = key
+    req.put.versioned.value = value
+    req.put.versioned.version.MergeFrom(version)
+    self._send_request(self.connection, req.SerializeToString())
+    resp_str = self._receive_response(self.connection)
+    resp = protocol.PutResponse()
+    resp.ParseFromString(resp_str)
+    self._check_error(resp)
+    return self._increment(version)

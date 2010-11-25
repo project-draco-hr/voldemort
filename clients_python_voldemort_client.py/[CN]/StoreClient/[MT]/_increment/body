@@ -1,0 +1,12 @@
+def _increment(self, clock):
+    new_clock = protocol.VectorClock()
+    new_clock.MergeFrom(clock)
+    for entry in new_clock.entries:
+        if (entry.node_id == self.node_id):
+            entry.version += 1
+            return new_clock
+    entry = new_clock.entries.add()
+    entry.node_id = self.node_id
+    entry.version = 1
+    new_clock.timestamp = int((time.time() * 1000))
+    return new_clock

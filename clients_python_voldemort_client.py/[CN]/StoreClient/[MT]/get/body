@@ -1,0 +1,4 @@
+def get(self, key):
+    'Execute a get request. Returns a list of (value, version) pairs.'
+    raw_key = self.key_serializer.writes(key)
+    return [(self.value_serializer.reads(value), version) for (value, version) in self._execute_request(self._get, [raw_key])]

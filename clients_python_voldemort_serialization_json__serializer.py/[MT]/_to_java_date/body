@@ -1,0 +1,5 @@
+def _to_java_date(date):
+    '\n    Converts a python datetime into an int64 representing milliseconds since\n    00:00:00 1/1/1970 GMT. This is the expected input to the Java Date class.\n    Microseconds in the Python datetime representation are truncated.\n\n    >>> d = datetime.datetime(2010, 11, 24, 11, 50, 34, 237861)\n    >>> _to_java_date(d)\n    1290599434237\n\n    >>> _from_java_date(_to_java_date(d))\n    datetime.datetime(2010, 11, 24, 11, 50, 34, 237000)\n    '
+    td = (date - EPOCH)
+    ms = (((((td.days * 24) * 3600) * 1000) + (td.seconds * 1000)) + (td.microseconds / 1000))
+    return ms

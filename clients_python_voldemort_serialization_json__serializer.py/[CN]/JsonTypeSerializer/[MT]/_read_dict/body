@@ -1,0 +1,10 @@
+def _read_dict(self, input, typedef):
+    '\n        Internal routine for reading dicts:\n\n        >>> s = JsonTypeSerializer(\'"string"\')\n        >>> obj = s._read_dict(StringIO.StringIO(\'\\x01\\x00\\x01\\x00\\x02\'), OrderedDict(((\'a\',\'int16\'), (\'b\',\'int16\'))))\n        >>> obj == {\'a\': 1, \'b\': 2}\n        True\n\n        Typedef has to be a map:\n        >>> s._read_dict(StringIO.StringIO(\'\\x01\\x00\\x01\\x00\\x02\'), [\'int16\'])\n        Traceback (most recent call last):\n        ...\n        SerializationException: Wrong typedef type: expected dict but got: <type \'list\'>\n\n\n        If the serialized blob starts with (int8) -1, then the map is read as None:\n        >>> s._read_dict(StringIO.StringIO(\'\\xff\'), OrderedDict(((\'a\',\'int16\'), (\'b\',\'int16\')))) is None\n        True\n        '
+    if (self._read_int8(input) == (-1)):
+        return None
+    if (not isinstance(typedef, dict)):
+        raise SerializationException(('Wrong typedef type: expected dict but got: %s' % type(typedef)))
+    m = {}
+    for (key, entrytype) in typedef.iteritems():
+        m[key] = self._read(input, entrytype)
+    return m

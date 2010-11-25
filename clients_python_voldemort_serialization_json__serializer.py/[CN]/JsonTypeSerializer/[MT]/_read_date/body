@@ -1,0 +1,6 @@
+def _read_date(self, input):
+    '\n        Internal routine that reads a date:\n\n        >>> s = JsonTypeSerializer(\'"string"\')\n        >>> s._read_date(StringIO.StringIO(\'\\x00\\x00\\x01,~\\x90\\x84\\x82\'))\n        datetime.datetime(2010, 11, 24, 15, 46, 29, 122000)\n\n        The byte string corresponding to the smallest int64 deserializes to None:\n        >>> s._read_date(StringIO.StringIO(\'\\x80\\x00\\x00\\x00\\x00\\x00\\x00\\x00\'))\n        '
+    javaDate = self._read_int64(input)
+    if (javaDate is None):
+        return None
+    return _from_java_date(javaDate)
