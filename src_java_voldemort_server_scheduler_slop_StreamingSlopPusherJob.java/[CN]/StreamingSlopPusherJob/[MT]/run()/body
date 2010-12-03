@@ -12,14 +12,27 @@ synchronized (lock) {
     if (adminClient == null) {
       adminClient=new AdminClient(cluster,new AdminClientConfig().setMaxThreads(cluster.getNumberOfNodes()).setMaxConnectionsPerNode(1));
     }
-    zoneMapping.clear();
-    for (    Node n : cluster.getNodes()) {
-      Set<Integer> nodes=zoneMapping.get(n.getZoneId());
-      if (nodes == null) {
-        nodes=Sets.newHashSet();
-        zoneMapping.put(n.getZoneId(),nodes);
+    if (voldemortConfig.getSlopZonesDownToTerminate() > 0) {
+      zoneMapping.clear();
+      for (      Node n : cluster.getNodes()) {
+        if (failureDetector.isAvailable(n)) {
+          Set<Integer> nodes=zoneMapping.get(n.getZoneId());
+          if (nodes == null) {
+            nodes=Sets.newHashSet();
+            zoneMapping.put(n.getZoneId(),nodes);
+          }
+          nodes.add(n.getId());
+        }
       }
-      nodes.add(n.getId());
+      int zonesDown=0;
+      for (      Zone zone : cluster.getZones()) {
+        if (zoneMapping.get(zone.getId()) == null || zoneMapping.get(zone.getId()).size() == 0)         zonesDown++;
+      }
+      if (voldemortConfig.getSlopZonesDownToTerminate() <= zoneMapping.size() && zonesDown >= voldemortConfig.getSlopZonesDownToTerminate()) {
+        logger.info("Completed streaming slop pusher job at " + startTime + " early because "+ zonesDown+ " zones are down");
+        cleanUp();
+        return;
+      }
     }
     AtomicLong attemptedPushes=new AtomicLong(0);
     for (    Node node : cluster.getNodes()) {
@@ -42,7 +55,6 @@ synchronized (lock) {
           if (attemptedPushes.get() % 10000 == 0)           logger.info("Attempted pushing " + attemptedPushes + " slops");
           if (logger.isTraceEnabled())           logger.trace("Pushing slop for " + versioned.getValue().getNodeId() + " and store  "+ versioned.getValue().getStoreName());
           if (failureDetector.isAvailable(node)) {
-            zoneMapping.get(node.getZoneId()).add(node.getId());
             SynchronousQueue<Versioned<Slop>> slopQueue=slopQueues.get(nodeId);
             if (slopQueue == null) {
               slopQueue=new SynchronousQueue<Versioned<Slop>>();
@@ -53,11 +65,6 @@ synchronized (lock) {
             readThrottler.maybeThrottle(nBytesRead(keyAndVal));
           }
  else {
-            zoneMapping.get(node.getZoneId()).remove(node.getId());
-            if (checkZonesDown()) {
-              terminatedEarly=true;
-              return;
-            }
             logger.trace(node + " declared down, won't push slop");
           }
         }

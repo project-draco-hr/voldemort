@@ -1,13 +1,11 @@
 {
-  List<Node> prefList=Lists.newArrayList();
-  prefList.addAll(zoneMapping.get(origin.getZoneId()));
-  Collections.shuffle(prefList);
-  if (cluster.getNumberOfZones() > 1) {
-    for (    Integer zoneId : cluster.getZoneById(origin.getZoneId()).getProximityList()) {
-      List<Node> nodesInZone=zoneMapping.get(zoneId);
-      Collections.shuffle(nodesInZone);
-      prefList.addAll(nodesInZone);
-    }
+  List<Node> proximityList=new ArrayList<Node>();
+  Collections.shuffle(zoneMapping.get(clientZoneId));
+  proximityList.addAll(zoneMapping.get(clientZoneId));
+  for (  Integer zoneId : cluster.getZoneById(clientZoneId).getProximityList()) {
+    Collections.shuffle(zoneMapping.get(zoneId));
+    proximityList.addAll(zoneMapping.get(zoneId));
   }
-  return prefList;
+  proximityList.remove(origin);
+  return proximityList;
 }
