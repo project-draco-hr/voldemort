@@ -16,6 +16,7 @@
   parser.accepts("update-entries","[EXPERIMENTAL] Insert or update entries").withRequiredArg().describedAs("input-directory").ofType(String.class);
   parser.accepts("get-metadata","retreive metadata information [stores.xml | cluster.xml]").withRequiredArg().describedAs("metadata-key").ofType(String.class);
   parser.accepts("ro-version","retrieve version information [current | max]").withRequiredArg().describedAs("version-type").ofType(String.class);
+  parser.accepts("truncate","truncate a store").withRequiredArg().describedAs("store-name").ofType(String.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     parser.printHelpOn(System.out);
@@ -60,6 +61,9 @@
   }
   if (options.has("ro-version")) {
     ops+="e";
+  }
+  if (options.has("truncate")) {
+    ops+="t";
   }
   if (ops.length() < 1) {
     Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-version) must be specified");
@@ -120,6 +124,10 @@
     if (ops.contains("e")) {
       String versionType=(String)options.valueOf("ro-version");
       executeROVersion(nodeId,adminClient,storeNames,versionType);
+    }
+    if (ops.contains("t")) {
+      String storeName=(String)options.valueOf("truncate");
+      executeTruncateStore(nodeId,adminClient,storeName);
     }
   }
  catch (  Exception e) {
