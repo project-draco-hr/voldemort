@@ -11,6 +11,7 @@
     StorageEngine<ByteArray,Slop,byte[]> slopStorageEngine=storeRepo.getSlopStore().asSlopStore();
     for (    StoreDefinition storeDef : metadataStore.getStoreDefList()) {
       if (isWritableStore(storeDef)) {
+        logger.info("Repairing store " + storeDef.getName());
         StorageEngine<ByteArray,byte[],byte[]> engine=storeRepo.getStorageEngine(storeDef.getName());
         ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=engine.entries();
         RoutingStrategy routingStrategy=routingStrategyFactory.updateRoutingStrategy(storeDef,metadataStore.getCluster());
@@ -26,6 +27,7 @@
             }
           }
         }
+        logger.info("Completed store " + storeDef.getName());
       }
     }
   }

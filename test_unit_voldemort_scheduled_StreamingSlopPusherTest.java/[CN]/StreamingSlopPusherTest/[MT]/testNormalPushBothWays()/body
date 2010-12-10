@@ -6,7 +6,7 @@
   final List<Versioned<Slop>> entrySetNode1=ServerTestUtils.createRandomSlops(0,100,"test-replication-memory","users","test-replication-persistent");
   populateSlops(0,slopStoreNode0,entrySetNode0);
   populateSlops(1,slopStoreNode1,entrySetNode1);
-  StreamingSlopPusherJob pusher0=new StreamingSlopPusherJob(getVoldemortServer(0).getStoreRepository(),getVoldemortServer(0).getMetadataStore(),new BannagePeriodFailureDetector(new FailureDetectorConfig().setNodes(cluster.getNodes()).setStoreVerifier(new ServerStoreVerifier(socketStoreFactory,metadataStore,configs[0]))),configs[0]), pusher1=new StreamingSlopPusherJob(getVoldemortServer(1).getStoreRepository(),getVoldemortServer(1).getMetadataStore(),new BannagePeriodFailureDetector(new FailureDetectorConfig().setNodes(cluster.getNodes()).setStoreVerifier(new ServerStoreVerifier(socketStoreFactory,metadataStore,configs[1]))),configs[1]);
+  StreamingSlopPusherJob pusher0=new StreamingSlopPusherJob(getVoldemortServer(0).getStoreRepository(),getVoldemortServer(0).getMetadataStore(),new BannagePeriodFailureDetector(new FailureDetectorConfig().setNodes(cluster.getNodes()).setStoreVerifier(new ServerStoreVerifier(socketStoreFactory,metadataStore,configs[0]))),configs[0],new Semaphore(1)), pusher1=new StreamingSlopPusherJob(getVoldemortServer(1).getStoreRepository(),getVoldemortServer(1).getMetadataStore(),new BannagePeriodFailureDetector(new FailureDetectorConfig().setNodes(cluster.getNodes()).setStoreVerifier(new ServerStoreVerifier(socketStoreFactory,metadataStore,configs[1]))),configs[1],new Semaphore(1));
   pusher0.run();
   pusher1.run();
   Thread.sleep(2000);
