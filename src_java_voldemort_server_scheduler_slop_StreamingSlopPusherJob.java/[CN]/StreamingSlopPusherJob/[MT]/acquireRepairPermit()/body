@@ -1,0 +1,9 @@
+{
+  logger.info("Acquiring lock to perform streaming slop pusher job ");
+  try {
+    this.repairPermits.acquire();
+  }
+ catch (  InterruptedException e) {
+    throw new IllegalStateException("Streaming slop pusher job interrupted while waiting for permit.",e);
+  }
+}

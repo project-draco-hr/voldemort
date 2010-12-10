@@ -1,0 +1,9 @@
+{
+  logger.info("Acquiring lock to perform blocking slop pusher job ");
+  try {
+    this.repairPermits.acquire();
+  }
+ catch (  InterruptedException e) {
+    throw new IllegalStateException("Blocking slop pusher job interrupted while waiting for permit.",e);
+  }
+}

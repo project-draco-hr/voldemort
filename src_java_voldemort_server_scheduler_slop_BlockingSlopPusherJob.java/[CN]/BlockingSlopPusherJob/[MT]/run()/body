@@ -3,100 +3,100 @@
     logger.error("Cannot run slop pusher job since cluster is rebalancing");
     return;
   }
-synchronized (lock) {
-    logger.info("Started blocking slop pusher job at " + new Date());
-    Cluster cluster=metadataStore.getCluster();
-    ClosableIterator<Pair<ByteArray,Versioned<Slop>>> iterator=null;
-    Map<Integer,Long> attemptedByNode=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
-    Map<Integer,Long> succeededByNode=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
-    long slopsPushed=0L;
-    long attemptedPushes=0L;
-    for (    Node node : cluster.getNodes()) {
-      attemptedByNode.put(node.getId(),0L);
-      succeededByNode.put(node.getId(),0L);
-    }
-    try {
-      SlopStorageEngine slopStorageEngine=storeRepo.getSlopStore();
-      StorageEngine<ByteArray,Slop,byte[]> slopStore=slopStorageEngine.asSlopStore();
-      EventThrottler throttler=new EventThrottler(maxWriteBytesPerSec);
-      iterator=slopStore.entries();
-      while (iterator.hasNext()) {
-        if (Thread.interrupted())         throw new InterruptedException("Slop pusher job cancelled");
+  logger.info("Started blocking slop pusher job at " + new Date());
+  Cluster cluster=metadataStore.getCluster();
+  ClosableIterator<Pair<ByteArray,Versioned<Slop>>> iterator=null;
+  Map<Integer,Long> attemptedByNode=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
+  Map<Integer,Long> succeededByNode=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
+  long slopsPushed=0L;
+  long attemptedPushes=0L;
+  for (  Node node : cluster.getNodes()) {
+    attemptedByNode.put(node.getId(),0L);
+    succeededByNode.put(node.getId(),0L);
+  }
+  acquireRepairPermit();
+  try {
+    SlopStorageEngine slopStorageEngine=storeRepo.getSlopStore();
+    StorageEngine<ByteArray,Slop,byte[]> slopStore=slopStorageEngine.asSlopStore();
+    EventThrottler throttler=new EventThrottler(maxWriteBytesPerSec);
+    iterator=slopStore.entries();
+    while (iterator.hasNext()) {
+      if (Thread.interrupted())       throw new InterruptedException("Slop pusher job cancelled");
+      try {
+        Pair<ByteArray,Versioned<Slop>> keyAndVal;
         try {
-          Pair<ByteArray,Versioned<Slop>> keyAndVal;
-          try {
-            keyAndVal=iterator.next();
-          }
- catch (          Exception e) {
-            logger.error("Exception in iterator, escaping the loop ",e);
-            break;
-          }
-          Versioned<Slop> versioned=keyAndVal.getSecond();
-          Slop slop=versioned.getValue();
-          int nodeId=slop.getNodeId();
-          Node node=cluster.getNodeById(nodeId);
-          attemptedPushes++;
-          if (attemptedPushes % 10000 == 0)           logger.info("Attempted pushing " + attemptedPushes + " slops");
-          Long attempted=attemptedByNode.get(nodeId);
-          attemptedByNode.put(nodeId,attempted + 1L);
-          if (failureDetector.isAvailable(node)) {
-            Store<ByteArray,byte[],byte[]> store=storeRepo.getNodeStore(slop.getStoreName(),node.getId());
-            Long startNs=System.nanoTime();
-            int nBytes=0;
-            try {
-              nBytes=slop.getKey().length();
-              if (slop.getOperation() == Operation.PUT) {
-                store.put(slop.getKey(),new Versioned<byte[]>(slop.getValue(),versioned.getVersion()),slop.getTransforms());
-                nBytes+=slop.getValue().length + ((VectorClock)versioned.getVersion()).sizeInBytes() + 1;
-              }
- else               if (slop.getOperation() == Operation.DELETE) {
-                nBytes+=((VectorClock)versioned.getVersion()).sizeInBytes() + 1;
-                store.delete(slop.getKey(),versioned.getVersion());
-              }
- else {
-                logger.error("Unknown slop operation: " + slop.getOperation());
-                continue;
-              }
-              failureDetector.recordSuccess(node,deltaMs(startNs));
-              slopStore.delete(slop.makeKey(),versioned.getVersion());
-              slopsPushed++;
-              Long succeeded=succeededByNode.get(nodeId);
-              succeededByNode.put(nodeId,succeeded + 1L);
-              throttler.maybeThrottle(nBytes);
-            }
- catch (            ObsoleteVersionException e) {
-              slopStore.delete(slop.makeKey(),versioned.getVersion());
-              slopsPushed++;
-              Long succeeded=succeededByNode.get(nodeId);
-              succeededByNode.put(nodeId,succeeded + 1L);
-              throttler.maybeThrottle(nBytes);
-            }
-catch (            UnreachableStoreException e) {
-              failureDetector.recordException(node,deltaMs(startNs),e);
-            }
-          }
+          keyAndVal=iterator.next();
         }
  catch (        Exception e) {
-          logger.error(e,e);
+          logger.error("Exception in iterator, escaping the loop ",e);
+          break;
+        }
+        Versioned<Slop> versioned=keyAndVal.getSecond();
+        Slop slop=versioned.getValue();
+        int nodeId=slop.getNodeId();
+        Node node=cluster.getNodeById(nodeId);
+        attemptedPushes++;
+        if (attemptedPushes % 10000 == 0)         logger.info("Attempted pushing " + attemptedPushes + " slops");
+        Long attempted=attemptedByNode.get(nodeId);
+        attemptedByNode.put(nodeId,attempted + 1L);
+        if (failureDetector.isAvailable(node)) {
+          Store<ByteArray,byte[],byte[]> store=storeRepo.getNodeStore(slop.getStoreName(),node.getId());
+          Long startNs=System.nanoTime();
+          int nBytes=0;
+          try {
+            nBytes=slop.getKey().length();
+            if (slop.getOperation() == Operation.PUT) {
+              store.put(slop.getKey(),new Versioned<byte[]>(slop.getValue(),versioned.getVersion()),slop.getTransforms());
+              nBytes+=slop.getValue().length + ((VectorClock)versioned.getVersion()).sizeInBytes() + 1;
+            }
+ else             if (slop.getOperation() == Operation.DELETE) {
+              nBytes+=((VectorClock)versioned.getVersion()).sizeInBytes() + 1;
+              store.delete(slop.getKey(),versioned.getVersion());
+            }
+ else {
+              logger.error("Unknown slop operation: " + slop.getOperation());
+              continue;
+            }
+            failureDetector.recordSuccess(node,deltaMs(startNs));
+            slopStore.delete(slop.makeKey(),versioned.getVersion());
+            slopsPushed++;
+            Long succeeded=succeededByNode.get(nodeId);
+            succeededByNode.put(nodeId,succeeded + 1L);
+            throttler.maybeThrottle(nBytes);
+          }
+ catch (          ObsoleteVersionException e) {
+            slopStore.delete(slop.makeKey(),versioned.getVersion());
+            slopsPushed++;
+            Long succeeded=succeededByNode.get(nodeId);
+            succeededByNode.put(nodeId,succeeded + 1L);
+            throttler.maybeThrottle(nBytes);
+          }
+catch (          UnreachableStoreException e) {
+            failureDetector.recordException(node,deltaMs(startNs),e);
+          }
         }
       }
-      logger.log(attemptedPushes > 0 ? Level.INFO : Level.DEBUG,"Attempted " + attemptedPushes + " hinted handoff pushes of which "+ slopsPushed+ " succeeded.");
-      Map<Integer,Long> outstanding=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
-      for (      int nodeId : succeededByNode.keySet()) {
-        outstanding.put(nodeId,attemptedByNode.get(nodeId) - succeededByNode.get(nodeId));
+ catch (      Exception e) {
+        logger.error(e,e);
       }
-      slopStorageEngine.resetStats(outstanding);
+    }
+    logger.log(attemptedPushes > 0 ? Level.INFO : Level.DEBUG,"Attempted " + attemptedPushes + " hinted handoff pushes of which "+ slopsPushed+ " succeeded.");
+    Map<Integer,Long> outstanding=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
+    for (    int nodeId : succeededByNode.keySet()) {
+      outstanding.put(nodeId,attemptedByNode.get(nodeId) - succeededByNode.get(nodeId));
+    }
+    slopStorageEngine.resetStats(outstanding);
+  }
+ catch (  Exception e) {
+    logger.error(e,e);
+  }
+ finally {
+    try {
+      if (iterator != null)       iterator.close();
     }
  catch (    Exception e) {
-      logger.error(e,e);
+      logger.error("Failed to close iterator.",e);
     }
- finally {
-      try {
-        if (iterator != null)         iterator.close();
-      }
- catch (      Exception e) {
-        logger.error("Failed to close iterator.",e);
-      }
-    }
+    this.repairPermits.release();
   }
 }
