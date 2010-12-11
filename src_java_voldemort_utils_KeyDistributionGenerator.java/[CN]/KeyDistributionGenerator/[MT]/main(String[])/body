@@ -1,0 +1,33 @@
+{
+  OptionParser parser=new OptionParser();
+  parser.accepts("help","print help information");
+  parser.accepts("cluster-xml","[REQUIRED] cluster xml file location").withRequiredArg().describedAs("path");
+  parser.accepts("stores-xml","[REQUIRED] stores xml file location").withRequiredArg().describedAs("path");
+  parser.accepts("num-keys","Number of keys to query [Default:100000]").withRequiredArg().describedAs("number").ofType(Integer.class);
+  OptionSet options=parser.parse(args);
+  if (options.has("help")) {
+    parser.printHelpOn(System.out);
+    System.exit(0);
+  }
+  Set<String> missing=CmdUtils.missing(options,"cluster-xml","stores-xml");
+  if (missing.size() > 0) {
+    System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
+    parser.printHelpOn(System.err);
+    System.exit(1);
+  }
+  String clusterXml=(String)options.valueOf("cluster-xml");
+  String storesXml=(String)options.valueOf("stores-xml");
+  Integer numKeys=CmdUtils.valueOf(options,"num-keys",100000);
+  if (numKeys <= 0) {
+    System.err.println("Number of keys should be greater than 0");
+    System.exit(1);
+  }
+  Cluster cluster=new ClusterMapper().readCluster(new File(clusterXml));
+  List<StoreDefinition> storeDef=new StoreDefinitionsMapper().readStoreList(new File(storesXml));
+  for (  StoreDefinition def : storeDef) {
+    HashMap<Integer,Integer> storeDistribution=generateDistribution(cluster,def,numKeys);
+    System.out.println("For Store " + def.getName());
+    printDistribution(storeDistribution);
+    System.out.println("=========================");
+  }
+}
