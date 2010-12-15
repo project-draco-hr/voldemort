@@ -61,7 +61,10 @@
             slopQueues.put(nodeId,slopQueue);
             consumerResults.add(consumerExecutor.submit(new SlopConsumer(nodeId,slopQueue,slopStorageEngine)));
           }
-          slopQueue.offer(versioned,voldemortConfig.getClientRoutingTimeoutMs(),TimeUnit.MILLISECONDS);
+          boolean offered=slopQueue.offer(versioned,voldemortConfig.getClientRoutingTimeoutMs(),TimeUnit.MILLISECONDS);
+          if (!offered) {
+            if (logger.isDebugEnabled())             logger.debug("No consumer appeared for slop in " + voldemortConfig.getClientConnectionTimeoutMs() + " ms");
+          }
           readThrottler.maybeThrottle(nBytesRead(keyAndVal));
         }
  else {
@@ -90,7 +93,7 @@ catch (  Exception e) {
     }
     for (    SynchronousQueue<Versioned<Slop>> slopQueue : slopQueues.values()) {
       try {
-        slopQueue.offer(END,voldemortConfig.getClientRoutingTimeoutMs(),TimeUnit.MILLISECONDS);
+        slopQueue.put(END);
       }
  catch (      InterruptedException e) {
         logger.warn("Error putting poison pill",e);

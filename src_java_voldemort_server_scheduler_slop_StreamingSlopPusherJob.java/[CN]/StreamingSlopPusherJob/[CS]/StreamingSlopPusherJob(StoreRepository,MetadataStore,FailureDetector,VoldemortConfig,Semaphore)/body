@@ -5,7 +5,7 @@
   this.voldemortConfig=voldemortConfig;
   this.repairPermits=Utils.notNull(repairPermits);
   this.cluster=metadataStore.getCluster();
-  this.slopQueues=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
+  this.slopQueues=new ConcurrentHashMap<Integer,SynchronousQueue<Versioned<Slop>>>(cluster.getNumberOfNodes());
   this.consumerExecutor=Executors.newFixedThreadPool(cluster.getNumberOfNodes(),new ThreadFactory(){
     public Thread newThread(    Runnable r){
       Thread thread=new Thread(r);
@@ -14,7 +14,6 @@
     }
   }
 );
-  this.writeThrottler=new EventThrottler(voldemortConfig.getSlopMaxWriteBytesPerSec());
   this.readThrottler=new EventThrottler(voldemortConfig.getSlopMaxReadBytesPerSec());
   this.adminClient=null;
   this.consumerResults=Lists.newArrayList();

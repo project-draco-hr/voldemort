@@ -1,9 +1,8 @@
 {
   try {
     Versioned<Slop> head=null;
-    while (!shutDown) {
-      head=slopQueue.poll();
-      if (head == null)       continue;
+    if (!shutDown) {
+      head=slopQueue.take();
       if (head.equals(END)) {
         shutDown=true;
         isComplete=true;
