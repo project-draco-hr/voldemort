@@ -14,7 +14,7 @@
     adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,currentCluster,1,1);
     Cluster targetCluster=new ClusterMapper().readCluster(new BufferedReader(new FileReader(targetClusterFile)));
     List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new BufferedReader(new FileReader(storesFile)));
-    MigratePartitions migratePartitions=new MigratePartitions(currentCluster,targetCluster,storeDefs,adminClient,voldemortConfig);
+    MigratePartitions migratePartitions=new MigratePartitions(currentCluster,targetCluster,storeDefs,adminClient);
     migratePartitions.migrate(stealerNodeId);
   }
  catch (  Exception e) {
