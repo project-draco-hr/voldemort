@@ -1,0 +1,26 @@
+{
+  if (args.length < 4) {
+    System.err.println("Usage: java MigratePartitions \\\n" + "\t current_cluster_xml \\\n" + "\t target_cluster_xml \\\n"+ "\t stores_xml stealer_node_id \\\n");
+    System.exit(-1);
+  }
+  String currentClusterFile=args[0];
+  String targetClusterFile=args[1];
+  String storesFile=args[2];
+  int stealerNodeId=Integer.parseInt(args[3]);
+  AdminClient adminClient=null;
+  try {
+    VoldemortConfig voldemortConfig=new VoldemortConfig(new Props());
+    Cluster currentCluster=new ClusterMapper().readCluster(new BufferedReader(new FileReader(currentClusterFile)));
+    adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,currentCluster,1,1);
+    Cluster targetCluster=new ClusterMapper().readCluster(new BufferedReader(new FileReader(targetClusterFile)));
+    List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new BufferedReader(new FileReader(storesFile)));
+    MigratePartitions migratePartitions=new MigratePartitions(currentCluster,targetCluster,storeDefs,adminClient,voldemortConfig);
+    migratePartitions.migrate(stealerNodeId);
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+ finally {
+    if (adminClient != null)     adminClient.stop();
+  }
+}
