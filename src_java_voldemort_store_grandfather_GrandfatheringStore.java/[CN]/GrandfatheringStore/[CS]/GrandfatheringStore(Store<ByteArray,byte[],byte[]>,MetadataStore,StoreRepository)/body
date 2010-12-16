@@ -4,9 +4,23 @@
   this.service=Executors.newSingleThreadExecutor(new ThreadFactory(){
     public Thread newThread(    Runnable r){
       Thread thread=new Thread(r);
-      thread.setName("grandfather-thread");
+      thread.setName("grandfather-thread-" + innerStore.getName());
       return thread;
     }
   }
 );
+  SlopStorageEngine slopEngine=null;
+  try {
+    slopEngine=storeRepository.getSlopStore();
+  }
+ catch (  IllegalStateException e) {
+    throw new VoldemortException("Grandfathering cannot run without initialization of slop engine");
+  }
+  this.slopStore=slopEngine.asSlopStore();
+  try {
+    this.isReadOnly=metadata.getStoreDef(getName()).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
+  }
+ catch (  Exception e) {
+    this.isReadOnly=false;
+  }
 }

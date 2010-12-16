@@ -1,0 +1,43 @@
+{
+  RebalanceClusterPlan plan=new RebalanceClusterPlan(currentCluster,targetCluster,storeDefs,false,null);
+  HashMap<Integer,RebalanceNodePlan> rebalancingTaskQueue=plan.getRebalancingTaskQueuePerNode();
+  if (stealerNodeIds == null) {
+    stealerNodeIds=Lists.newArrayList(rebalancingTaskQueue.keySet());
+  }
+  Set<Integer> donorNodeIds=Sets.newHashSet();
+  for (  int stealerNodeId : stealerNodeIds) {
+    RebalanceNodePlan nodePlan=rebalancingTaskQueue.get(stealerNodeId);
+    if (nodePlan == null)     continue;
+    for (    RebalancePartitionsInfo info : nodePlan.getRebalanceTaskList()) {
+      donorNodeIds.add(info.getDonorId());
+    }
+  }
+  logger.info("Changing state of donor nodes " + donorNodeIds);
+  for (  int donorNodeId : donorNodeIds) {
+    Versioned<String> serverState=adminClient.getRemoteMetadata(donorNodeId,MetadataStore.SERVER_STATE_KEY);
+    if (!serverState.getValue().equals(MetadataStore.VoldemortState.NORMAL_SERVER)) {
+      logger.error("Node " + donorNodeId + " is not in normal state to perform grandfathering");
+    }
+  }
+  for (  int stealerNodeId : stealerNodeIds) {
+    RebalanceNodePlan nodePlan=rebalancingTaskQueue.get(stealerNodeId);
+    if (nodePlan == null) {
+      logger.info("No plan for stealer node id " + stealerNodeId);
+      continue;
+    }
+    List<RebalancePartitionsInfo> partitionInfo=nodePlan.getRebalanceTaskList();
+    logger.info("Working on stealer node id " + stealerNodeId);
+    for (    StoreDefinition storeDef : storeDefs) {
+      logger.info("- Working on store " + storeDef.getName());
+      HashMap<Integer,Integer> nodeIdToRequestId=Maps.newHashMap();
+      for (      RebalancePartitionsInfo r : partitionInfo) {
+        logger.info("-- Started migration for donor node id " + r.getDonorId());
+        nodeIdToRequestId.put(r.getDonorId(),adminClient.migratePartitions(r.getDonorId(),stealerNodeId,storeDef.getName(),r.getPartitionList(),null));
+      }
+      for (      int nodeId : nodeIdToRequestId.keySet()) {
+        adminClient.waitForCompletion(stealerNodeId,nodeIdToRequestId.get(nodeId),voldemortConfig.getRebalancingTimeout(),TimeUnit.SECONDS);
+        logger.info("-- Completed migration for donor node id " + nodeIdToRequestId.get(nodeId));
+      }
+    }
+  }
+}
