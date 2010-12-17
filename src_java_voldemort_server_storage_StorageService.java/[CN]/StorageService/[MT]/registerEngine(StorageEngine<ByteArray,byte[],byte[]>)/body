@@ -5,7 +5,7 @@
   boolean isSlop=store.getName().compareTo("slop") == 0;
   if (voldemortConfig.isVerboseLoggingEnabled())   store=new LoggingStore<ByteArray,byte[],byte[]>(store,cluster.getName(),SystemTime.INSTANCE);
   if (!isSlop) {
-    if (voldemortConfig.isGrandfatherEnabled())     store=new GrandfatheringStore(store,metadata,storeRepository);
+    if (voldemortConfig.isGrandfatherEnabled())     store=new GrandfatheringStore(store,metadata,storeRepository,clientThreadPool);
     if (voldemortConfig.isRedirectRoutingEnabled())     store=new RedirectingStore(store,metadata,storeRepository,failureDetector,storeFactory);
     if (voldemortConfig.isMetadataCheckingEnabled())     store=new InvalidMetadataCheckingStore(metadata.getNodeId(),store,metadata);
   }

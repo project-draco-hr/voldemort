@@ -1,0 +1,19 @@
+{
+  List<RebalancePartitionsInfo> plans=Lists.newArrayList();
+  for (  InitiateRebalanceNodeRequest nodeRequest : request.getPlanList()) {
+    plans.add(new RebalancePartitionsInfo(nodeRequest.getStealerId(),nodeRequest.getDonorId(),nodeRequest.getPartitionsList(),nodeRequest.getDeletePartitionsList(),nodeRequest.getStealMasterPartitionsList(),nodeRequest.getUnbalancedStoreList(),encodeROStoreVersionDirMap(nodeRequest.getStealerRoStoreToDirList()),encodeROStoreVersionDirMap(nodeRequest.getDonorRoStoreToDirList()),nodeRequest.getAttempt()));
+  }
+  VAdminProto.UpdateGrandfatherMetadataResponse.Builder response=VAdminProto.UpdateGrandfatherMetadataResponse.newBuilder();
+  try {
+    if (metadataStore.getServerState().equals(MetadataStore.VoldemortState.NORMAL_SERVER)) {
+      metadataStore.put(MetadataStore.GRANDFATHERING_INFO,plans);
+      metadataStore.put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.GRANDFATHERING_SERVER);
+    }
+  }
+ catch (  VoldemortException e) {
+    logger.error("handleUpdateGrandfatherMetadata failed for request(" + request.toString() + ")",e);
+  }
+  Versioned<byte[]> versioned=metadataStore.get(MetadataStore.SERVER_STATE_KEY,null).get(0);
+  response.setVersion(ProtoUtils.encodeVersioned(versioned));
+  return response.build();
+}

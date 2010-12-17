@@ -1,0 +1,19 @@
+{
+  super(innerStore);
+  this.metadata=metadata;
+  this.threadPool=threadPool;
+  SlopStorageEngine slopEngine=null;
+  try {
+    slopEngine=storeRepository.getSlopStore();
+  }
+ catch (  IllegalStateException e) {
+    throw new VoldemortException("Grandfathering cannot run without initialization of slop engine");
+  }
+  this.slopStore=slopEngine.asSlopStore();
+  try {
+    this.isReadOnly=metadata.getStoreDef(getName()).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
+  }
+ catch (  Exception e) {
+    this.isReadOnly=false;
+  }
+}

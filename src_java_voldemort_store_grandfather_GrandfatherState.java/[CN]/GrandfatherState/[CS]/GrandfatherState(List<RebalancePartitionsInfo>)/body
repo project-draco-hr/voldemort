@@ -1,0 +1,13 @@
+{
+  super(stealInfoList);
+  for (  RebalancePartitionsInfo info : stealInfoList) {
+    for (    int partition : info.getPartitionList()) {
+      Set<Integer> nodeIds=partitionToNodeIds.get(partition);
+      if (nodeIds == null) {
+        nodeIds=Sets.newHashSet();
+        partitionToNodeIds.putAll(partition,nodeIds);
+      }
+      nodeIds.add(info.getStealerId());
+    }
+  }
+}

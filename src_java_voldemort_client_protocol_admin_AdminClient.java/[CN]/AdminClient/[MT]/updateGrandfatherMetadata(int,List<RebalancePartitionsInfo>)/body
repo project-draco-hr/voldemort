@@ -1,0 +1,11 @@
+{
+  List<VAdminProto.InitiateRebalanceNodeRequest> rebalanceRequests=Lists.newArrayList();
+  for (  RebalancePartitionsInfo plan : plans) {
+    rebalanceRequests.add(VAdminProto.InitiateRebalanceNodeRequest.newBuilder().setAttempt(plan.getAttempt()).setDonorId(plan.getDonorId()).setStealerId(plan.getStealerId()).addAllPartitions(plan.getPartitionList()).addAllUnbalancedStore(plan.getUnbalancedStoreList()).addAllDeletePartitions(plan.getDeletePartitionsList()).addAllStealMasterPartitions(plan.getStealMasterPartitions()).addAllStealerRoStoreToDir(decodeROStoreVersionDirMap(plan.getStealerNodeROStoreToDir())).addAllDonorRoStoreToDir(decodeROStoreVersionDirMap(plan.getDonorNodeROStoreToDir())).build());
+  }
+  UpdateGrandfatherMetadataRequest metadataRequest=VAdminProto.UpdateGrandfatherMetadataRequest.newBuilder().addAllPlan(rebalanceRequests).build();
+  VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_GRANDFATHER_METADATA).setUpdateGrandfatherMetadata(metadataRequest).build();
+  VAdminProto.UpdateGrandfatherMetadataResponse.Builder response=sendAndReceive(donorNodeId,request,VAdminProto.UpdateGrandfatherMetadataResponse.newBuilder());
+  Versioned<byte[]> value=ProtoUtils.decodeVersioned(response.getVersion());
+  return new Versioned<String>(ByteUtils.getString(value.getValue(),"UTF-8"),value.getVersion());
+}
