@@ -1,0 +1,10 @@
+{
+  try {
+    return super.getRemoteMetadata(key,url);
+  }
+ catch (  VoldemortException e) {
+    SocketDestination destination=new SocketDestination(url.getHost(),url.getPort(),getRequestFormatType());
+    storeFactory.close(destination);
+    throw new VoldemortException(e);
+  }
+}
