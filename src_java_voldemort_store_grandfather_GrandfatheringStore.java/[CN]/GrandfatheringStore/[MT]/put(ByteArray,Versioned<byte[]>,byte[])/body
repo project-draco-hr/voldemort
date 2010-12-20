@@ -1,17 +1,19 @@
 {
   if (this.isReadOnly)   throw new UnsupportedOperationException("Put is not supported on this store, it is read-only.");
-  if (!getName().equals(MetadataStore.METADATA_STORE_NAME) && metadata.getServerState().equals(MetadataStore.VoldemortState.GRANDFATHERING_SERVER)) {
-    List<Integer> partitionIds=metadata.getRoutingStrategy(getName()).getPartitionList(key.get());
-    this.threadPool.execute(new Runnable(){
-      public void run(){
-        try {
-        }
- catch (        Exception e) {
-          logger.warn("Failed to put PUT operation on " + getName() + " to slop store",e);
+  if (metadata.getServerState().equals(MetadataStore.VoldemortState.GRANDFATHERING_SERVER)) {
+    RoutingStrategy strategy=metadata.getGrandfatherState().getRoutingStrategy(getName());
+    if (strategy != null) {
+      this.threadPool.execute(new Runnable(){
+        public void run(){
+          try {
+          }
+ catch (          Exception e) {
+            logger.warn("Failed to put PUT operation on " + getName() + " to slop store",e);
+          }
         }
       }
-    }
 );
+    }
   }
   getInnerStore().put(key,value,transform);
 }

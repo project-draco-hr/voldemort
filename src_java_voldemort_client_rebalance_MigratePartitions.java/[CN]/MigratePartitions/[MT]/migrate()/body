@@ -23,7 +23,7 @@
   try {
     for (    int donorNodeId : donorNodePlans.keySet()) {
       logger.info("Transitioning " + donorNodeId + " to grandfathering state");
-      Versioned<String> serverState=adminClient.updateGrandfatherMetadata(donorNodeId,donorNodePlans.get(donorNodeId));
+      Versioned<String> serverState=adminClient.updateGrandfatherMetadata(donorNodeId,donorNodePlans.get(donorNodeId),storeDefsString);
       if (!serverState.getValue().equals(MetadataStore.VoldemortState.GRANDFATHERING_SERVER)) {
         throw new VoldemortException("Node " + donorNodeId + " is not in normal state to perform grandfathering");
       }

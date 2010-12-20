@@ -1,9 +1,12 @@
 {
   List<RebalancePartitionsInfo> stealInfoList=Lists.newLinkedList();
   JsonReader reader=new JsonReader(new StringReader(json));
-  for (  Object o : reader.readArray()) {
-    Map<?,?> m=(Map<?,?>)o;
-    stealInfoList.add(RebalancePartitionsInfo.create(m));
+  Map<String,?> map=reader.readObject();
+  String storeDefsString=Utils.uncheckedCast(map.get("storedef"));
+  String clusterString=Utils.uncheckedCast(map.get("cluster"));
+  List<Map<String,Object>> plans=Utils.uncheckedCast(map.get("plan"));
+  for (  Map<String,Object> o : plans) {
+    stealInfoList.add(RebalancePartitionsInfo.create(o));
   }
-  return new GrandfatherState(stealInfoList);
+  return new GrandfatherState(stealInfoList,storeDefsString,clusterString);
 }

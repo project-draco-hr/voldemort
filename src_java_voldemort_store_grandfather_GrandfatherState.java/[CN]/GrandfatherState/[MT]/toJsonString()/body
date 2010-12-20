@@ -1,0 +1,13 @@
+{
+  List<Map<String,Object>> plansMap=Lists.newLinkedList();
+  for (  RebalancePartitionsInfo rebalancePartitionsInfo : stealInfoMap.values())   plansMap.add(rebalancePartitionsInfo.asMap());
+  StringWriter stringWriter=new StringWriter();
+  JsonWriter jsonWriter=new JsonWriter(stringWriter);
+  Map<String,Object> map=Maps.newHashMap();
+  map.put("storedef",new StoreDefinitionsMapper().writeStoreList(storeDefs));
+  map.put("cluster",new ClusterMapper().writeCluster(cluster));
+  map.put("plan",plansMap);
+  jsonWriter.write(map);
+  stringWriter.flush();
+  return stringWriter.toString();
+}

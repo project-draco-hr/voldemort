@@ -6,7 +6,7 @@
     logger.info("Initializing the slop store using " + voldemortConfig.getSlopStoreType());
     StorageConfiguration config=storageConfigs.get(voldemortConfig.getSlopStoreType());
     if (config == null)     throw new ConfigurationException("Attempt to get slop store failed");
-    SlopStorageEngine slopEngine=new SlopStorageEngine(config.getStore("slop"),metadata.getCluster());
+    SlopStorageEngine slopEngine=new SlopStorageEngine(config.getStore(SlopStorageEngine.SLOP_STORE_NAME),metadata.getCluster());
     registerEngine(slopEngine);
     storeRepository.setSlopStore(slopEngine);
     GregorianCalendar cal=new GregorianCalendar();

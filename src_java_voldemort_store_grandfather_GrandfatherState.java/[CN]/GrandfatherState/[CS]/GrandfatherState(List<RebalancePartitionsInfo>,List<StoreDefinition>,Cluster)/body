@@ -10,4 +10,11 @@
       nodeIds.add(info.getStealerId());
     }
   }
+  this.storeDefs=storeDefs;
+  this.cluster=cluster;
+  if (storeDefs != null && cluster != null) {
+    for (    StoreDefinition storeDef : storeDefs) {
+      this.routingMap.put(storeDef.getName(),routingFactory.updateRoutingStrategy(storeDef,cluster));
+    }
+  }
 }
