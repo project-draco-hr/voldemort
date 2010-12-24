@@ -8,7 +8,6 @@
     String storeDefsString=request.getStoresDef();
     List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new StringReader(storeDefsString));
     if (metadataStore.getServerState().equals(MetadataStore.VoldemortState.NORMAL_SERVER)) {
-      metadataStore.put(MetadataStore.GRANDFATHERING_INFO,new GrandfatherState(plans,storeDefs));
       metadataStore.put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.GRANDFATHERING_SERVER);
     }
   }
