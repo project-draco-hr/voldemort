@@ -3,6 +3,7 @@
   parser.accepts("help","print help information");
   parser.accepts("target-cluster-xml","[REQUIRED] target cluster xml file location").withRequiredArg().describedAs("path");
   parser.accepts("stores-xml","[REQUIRED] stores xml file location").withRequiredArg().describedAs("path");
+  parser.accepts("target-stores-xml","stores xml file location if changed").withRequiredArg().describedAs("path");
   parser.accepts("cluster-xml","[REQUIRED] cluster xml file location").withRequiredArg().describedAs("path");
   parser.accepts("stealer-node-ids","Comma separated node ids [ Default - all]").withRequiredArg().ofType(Integer.class).withValuesSeparatedBy(',');
   OptionSet options=parser.parse(args);
@@ -18,7 +19,16 @@
   }
   String targetClusterFile=(String)options.valueOf("target-cluster-xml");
   String currentClusterFile=(String)options.valueOf("cluster-xml");
-  String storesFile=(String)options.valueOf("stores-xml");
+  String currentStoresFile=(String)options.valueOf("stores-xml");
+  String targetStoresFile=currentStoresFile;
+  if (options.has("target-stores-xml")) {
+    targetStoresFile=(String)options.valueOf("target-stores-xml");
+  }
+  if (!Utils.isReadableFile(targetClusterFile) || !Utils.isReadableFile(currentClusterFile) || !Utils.isReadableFile(currentStoresFile)|| !Utils.isReadableFile(targetStoresFile)) {
+    System.err.println("Could not read metadata files from path provided");
+    parser.printHelpOn(System.err);
+    System.exit(1);
+  }
   List<Integer> stealerNodeIds=null;
   if (options.has("stealer-node-ids")) {
     stealerNodeIds=Utils.uncheckedCast(options.valueOf("stealer-node-ids"));
@@ -29,8 +39,9 @@
     Cluster currentCluster=new ClusterMapper().readCluster(new BufferedReader(new FileReader(currentClusterFile)));
     adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,currentCluster,1,1);
     Cluster targetCluster=new ClusterMapper().readCluster(new BufferedReader(new FileReader(targetClusterFile)));
-    List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new BufferedReader(new FileReader(storesFile)));
-    MigratePartitions migratePartitions=new MigratePartitions(currentCluster,targetCluster,storeDefs,adminClient,voldemortConfig,stealerNodeIds);
+    List<StoreDefinition> currentStoreDefs=new StoreDefinitionsMapper().readStoreList(new BufferedReader(new FileReader(currentStoresFile)));
+    List<StoreDefinition> targetStoreDefs=new StoreDefinitionsMapper().readStoreList(new BufferedReader(new FileReader(targetStoresFile)));
+    MigratePartitions migratePartitions=new MigratePartitions(currentCluster,targetCluster,currentStoreDefs,targetStoreDefs,adminClient,voldemortConfig,stealerNodeIds);
     migratePartitions.migrate();
   }
  catch (  Exception e) {

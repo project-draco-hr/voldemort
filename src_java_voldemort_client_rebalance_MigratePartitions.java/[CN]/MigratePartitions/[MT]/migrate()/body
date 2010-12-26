@@ -1,5 +1,5 @@
 {
-  RebalanceClusterPlan plan=new RebalanceClusterPlan(currentCluster,targetCluster,storeDefs,false,null);
+  RebalanceClusterPlan plan=new RebalanceClusterPlan(currentCluster,targetCluster,currentStoreDefs,targetStoreDefs,false,null);
   HashMap<Integer,RebalanceNodePlan> rebalancingTaskQueue=plan.getRebalancingTaskQueuePerNode();
   if (stealerNodeIds == null) {
     stealerNodeIds=Lists.newArrayList(rebalancingTaskQueue.keySet());
@@ -23,7 +23,7 @@
   try {
     for (    int donorNodeId : donorNodePlans.keySet()) {
       logger.info("Transitioning " + donorNodeId + " to grandfathering state");
-      Versioned<String> serverState=adminClient.updateGrandfatherMetadata(donorNodeId,donorNodePlans.get(donorNodeId),storeDefsString);
+      Versioned<String> serverState=adminClient.updateGrandfatherMetadata(donorNodeId,donorNodePlans.get(donorNodeId),targetStoreDefsString);
       if (!serverState.getValue().equals(MetadataStore.VoldemortState.GRANDFATHERING_SERVER)) {
         throw new VoldemortException("Node " + donorNodeId + " is not in normal state to perform grandfathering");
       }
@@ -38,12 +38,12 @@
       }
       List<RebalancePartitionsInfo> partitionInfo=nodePlan.getRebalanceTaskList();
       logger.info("Working on stealer node id " + stealerNodeId);
-      for (      StoreDefinition storeDef : storeDefs) {
-        logger.info("- Working on store " + storeDef.getName());
+      for (      String storeName : RebalanceUtils.getStoreNames(targetStoreDefs)) {
+        logger.info("- Working on store " + storeName);
         HashMap<Integer,Integer> nodeIdToRequestId=Maps.newHashMap();
         for (        RebalancePartitionsInfo r : partitionInfo) {
           logger.info("-- Started migration for donor node id " + r.getDonorId());
-          nodeIdToRequestId.put(r.getDonorId(),adminClient.migratePartitions(r.getDonorId(),stealerNodeId,storeDef.getName(),r.getPartitionList(),null));
+          nodeIdToRequestId.put(r.getDonorId(),adminClient.migratePartitions(r.getDonorId(),stealerNodeId,storeName,r.getPartitionList(),null));
         }
         for (        int nodeId : nodeIdToRequestId.keySet()) {
           adminClient.waitForCompletion(stealerNodeId,nodeIdToRequestId.get(nodeId),voldemortConfig.getRebalancingTimeout(),TimeUnit.SECONDS);

@@ -1,0 +1,19 @@
+{
+  StoreDefinition storeDefRepFactor1=ServerTestUtils.getStoreDef("consistent_store",1,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY);
+  RebalanceClusterPlan plan=new RebalanceClusterPlan(consistentRoutingCluster,consistentRoutingClusterModified,Lists.newArrayList(storeDefRepFactor1),false,null);
+  HashMap<Integer,RebalanceNodePlan> nodePlan=plan.getRebalancingTaskQueuePerNode();
+  Assert.assertEquals(nodePlan.size(),1);
+  Assert.assertEquals(nodePlan.get(3).getRebalanceTaskList().size(),1);
+  Assert.assertEquals(nodePlan.get(3).getRebalanceTaskList().get(0).getDonorId(),0);
+  Assert.assertEquals(nodePlan.get(3).getRebalanceTaskList().get(0).getPartitionList(),Lists.newArrayList(0));
+  StoreDefinition storeDefRepFactor2=ServerTestUtils.getStoreDef("consistent_store",2,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY);
+  plan=new RebalanceClusterPlan(consistentRoutingCluster,consistentRoutingClusterModified,Lists.newArrayList(storeDefRepFactor2),false,null);
+  nodePlan=plan.getRebalancingTaskQueuePerNode();
+  Assert.assertEquals(nodePlan.size(),2);
+  Assert.assertEquals(nodePlan.get(1).getRebalanceTaskList().size(),1);
+  Assert.assertEquals(nodePlan.get(1).getRebalanceTaskList().get(0).getDonorId(),3);
+  Assert.assertEquals(nodePlan.get(1).getRebalanceTaskList().get(0).getPartitionList(),Lists.newArrayList(7));
+  Assert.assertEquals(nodePlan.get(3).getRebalanceTaskList().size(),1);
+  Assert.assertEquals(nodePlan.get(3).getRebalanceTaskList().get(0).getDonorId(),0);
+  Assert.assertEquals(nodePlan.get(3).getRebalanceTaskList().get(0).getPartitionList(),Lists.newArrayList(0));
+}
