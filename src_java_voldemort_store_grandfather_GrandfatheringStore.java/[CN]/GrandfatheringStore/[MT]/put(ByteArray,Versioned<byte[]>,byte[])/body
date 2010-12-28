@@ -14,17 +14,17 @@
             Date date=new Date();
             Set<Integer> futureNodeIds=metadata.getGrandfatherState().findNodeIds(mappedPartitions.get(0));
             for (            int futureNodeId : futureNodeIds) {
-              Slop slop=new Slop(getName(),Operation.DELETE,key,value.getValue(),transform,futureNodeId,date);
+              Slop slop=new Slop(getName(),Operation.PUT,key,value.getValue(),transform,futureNodeId,date);
               try {
                 slopStore.put(slop.makeKey(),Versioned.value(slop,value.getVersion()),null);
               }
  catch (              Exception e) {
-                logger.warn("Failed to put DELETE operation on " + getName() + " to node "+ futureNodeId);
+                logger.warn("Failed to put PUT operation on " + getName() + " to node "+ futureNodeId);
               }
             }
           }
  catch (          Exception e) {
-            logger.warn("Failed to put DELETE operation on " + getName() + " to slop store",e);
+            logger.warn("Failed to put PUT operation on " + getName() + " to slop store",e);
           }
         }
       }

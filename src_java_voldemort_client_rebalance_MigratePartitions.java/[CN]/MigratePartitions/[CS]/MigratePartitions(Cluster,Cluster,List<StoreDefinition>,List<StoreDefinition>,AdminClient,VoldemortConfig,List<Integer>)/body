@@ -1,7 +1,7 @@
 {
-  this.adminClient=adminClient;
+  this.adminClient=Utils.notNull(adminClient);
   this.stealerNodeIds=stealerNodeIds;
-  this.voldemortConfig=voldemortConfig;
+  this.voldemortConfig=Utils.notNull(voldemortConfig);
   RebalanceClusterPlan plan=new RebalanceClusterPlan(currentCluster,targetCluster,currentStoreDefs,targetStoreDefs,false,null);
   this.stealerNodePlans=plan.getRebalancingTaskQueuePerNode();
   if (this.stealerNodeIds == null) {
@@ -22,5 +22,4 @@
     }
   }
   this.donorStates=Maps.newHashMap();
-  logger.info("Stealer nodes being worked on " + this.stealerNodeIds);
 }
