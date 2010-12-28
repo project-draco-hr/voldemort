@@ -1,44 +1,16 @@
 {
-  RebalanceClusterPlan plan=new RebalanceClusterPlan(currentCluster,targetCluster,currentStoreDefs,targetStoreDefs,false,null);
-  HashMap<Integer,RebalanceNodePlan> rebalancingTaskQueue=plan.getRebalancingTaskQueuePerNode();
-  if (stealerNodeIds == null) {
-    stealerNodeIds=Lists.newArrayList(rebalancingTaskQueue.keySet());
-  }
-  logger.info("Stealer nodes being worked on " + stealerNodeIds);
-  HashMap<Integer,List<RebalancePartitionsInfo>> donorNodePlans=Maps.newHashMap();
-  for (  int stealerNodeId : stealerNodeIds) {
-    RebalanceNodePlan nodePlan=rebalancingTaskQueue.get(stealerNodeId);
-    if (nodePlan == null)     continue;
-    for (    RebalancePartitionsInfo info : nodePlan.getRebalanceTaskList()) {
-      List<RebalancePartitionsInfo> donorPlan=donorNodePlans.get(info.getDonorId());
-      if (donorPlan == null) {
-        donorPlan=Lists.newArrayList();
-        donorNodePlans.put(info.getDonorId(),donorPlan);
-      }
-      donorPlan.add(info);
-    }
-  }
   logger.info("Changing state of donor nodes " + donorNodePlans.keySet());
-  HashMap<Integer,Versioned<String>> donorState=Maps.newHashMap();
   try {
-    for (    int donorNodeId : donorNodePlans.keySet()) {
-      logger.info("Transitioning " + donorNodeId + " to grandfathering state");
-      Versioned<String> serverState=adminClient.updateGrandfatherMetadata(donorNodeId,donorNodePlans.get(donorNodeId),targetStoreDefsString);
-      if (!serverState.getValue().equals(MetadataStore.VoldemortState.GRANDFATHERING_SERVER)) {
-        throw new VoldemortException("Node " + donorNodeId + " is not in normal state to perform grandfathering");
-      }
-      donorState.put(donorNodeId,serverState);
-      logger.info("Successfully transitioned " + donorNodeId + " to grandfathering state");
-    }
+    changeToGrandfather();
     for (    int stealerNodeId : stealerNodeIds) {
-      RebalanceNodePlan nodePlan=rebalancingTaskQueue.get(stealerNodeId);
+      RebalanceNodePlan nodePlan=stealerNodePlans.get(stealerNodeId);
       if (nodePlan == null) {
         logger.info("No plan for stealer node id " + stealerNodeId);
         continue;
       }
       List<RebalancePartitionsInfo> partitionInfo=nodePlan.getRebalanceTaskList();
       logger.info("Working on stealer node id " + stealerNodeId);
-      for (      String storeName : RebalanceUtils.getStoreNames(targetStoreDefs)) {
+      for (      String storeName : this.storeNames) {
         logger.info("- Working on store " + storeName);
         HashMap<Integer,Integer> nodeIdToRequestId=Maps.newHashMap();
         for (        RebalancePartitionsInfo r : partitionInfo) {
@@ -53,15 +25,8 @@
     }
   }
   finally {
-    for (    int donorNodeId : donorState.keySet()) {
-      logger.info("Rolling back state of " + donorNodeId + " to normal");
-      try {
-        VectorClock clock=(VectorClock)donorState.get(donorNodeId).getVersion();
-        adminClient.updateRemoteMetadata(donorNodeId,MetadataStore.SERVER_STATE_KEY,Versioned.value(MetadataStore.VoldemortState.NORMAL_SERVER.toString(),clock.incremented(donorNodeId,System.currentTimeMillis())));
-      }
- catch (      Exception e) {
-        logger.error("Rolling back state for " + donorNodeId + " failed");
-      }
+    if (donorStates != null) {
+      changeToNormal();
     }
   }
 }

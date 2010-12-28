@@ -1,11 +1,27 @@
 {
   if (isReadOnly)   throw new UnsupportedOperationException("Delete is not supported on this store, it is read-only.");
   if (metadata.getServerState().equals(MetadataStore.VoldemortState.GRANDFATHERING_SERVER)) {
-    RoutingStrategy strategy=metadata.getGrandfatherState().getRoutingStrategy(getName());
-    if (strategy != null) {
+    final List<Integer> mappedPartitions=metadata.getRoutingStrategy(getName()).getPartitionList(key.get());
+    List<Integer> currentPartitions=metadata.getCluster().getNodeById(metadata.getNodeId()).getPartitionIds();
+    mappedPartitions.removeAll(currentPartitions);
+    if (mappedPartitions.size() != 1) {
+      logger.error("Received key which mapped to multiple partitions on single node");
+    }
+ else     if (metadata.getGrandfatherState().findNodeIds(mappedPartitions.get(0)) != null) {
       this.threadPool.execute(new Runnable(){
         public void run(){
           try {
+            Date date=new Date();
+            Set<Integer> futureNodeIds=metadata.getGrandfatherState().findNodeIds(mappedPartitions.get(0));
+            for (            int futureNodeId : futureNodeIds) {
+              Slop slop=new Slop(getName(),Operation.DELETE,key,null,null,futureNodeId,date);
+              try {
+                slopStore.put(slop.makeKey(),Versioned.value(slop,version),null);
+              }
+ catch (              Exception e) {
+                logger.warn("Failed to put DELETE operation on " + getName() + " to node "+ futureNodeId);
+              }
+            }
           }
  catch (          Exception e) {
             logger.warn("Failed to put DELETE operation on " + getName() + " to slop store",e);

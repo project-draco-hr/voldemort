@@ -1,0 +1,12 @@
+{
+  for (  int donorNodeId : donorStates.keySet()) {
+    logger.info("Rolling back state of " + donorNodeId + " to normal");
+    try {
+      VectorClock clock=(VectorClock)donorStates.get(donorNodeId).getVersion();
+      adminClient.updateRemoteMetadata(donorNodeId,MetadataStore.SERVER_STATE_KEY,Versioned.value(MetadataStore.VoldemortState.NORMAL_SERVER.toString(),clock.incremented(donorNodeId,System.currentTimeMillis())));
+    }
+ catch (    Exception e) {
+      logger.error("Rolling back state for " + donorNodeId + " failed");
+    }
+  }
+}
