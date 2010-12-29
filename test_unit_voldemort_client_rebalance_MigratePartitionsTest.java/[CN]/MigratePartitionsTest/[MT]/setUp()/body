@@ -33,6 +33,7 @@
   beforeStoreDef=ServerTestUtils.getStoreDef("consistent_to_zone_store",1,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY);
   afterStoreDef=ServerTestUtils.getStoreDef("consistent_to_zone_store",2,1,1,1,0,0,zoneReplicationFactors,HintedHandoffStrategyType.PROXIMITY_STRATEGY,RoutingStrategyType.ZONE_STRATEGY);
   voldemortServer=new VoldemortServer[NUM_NODES];
+  routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(beforeStoreDef,consistentRoutingCluster);
   for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
     voldemortServer[nodeId]=startServer(nodeId,Lists.newArrayList(beforeStoreDef),consistentRoutingCluster);
   }
