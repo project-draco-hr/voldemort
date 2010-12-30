@@ -1,0 +1,9 @@
+{
+  Pair<String,Object> key=Pair.create(storeName,null);
+  StoreClient retVal=cache.get(key);
+  if (retVal == null) {
+    retVal=inner.getStoreClient(storeName);
+    cache.putIfAbsent(key,retVal);
+  }
+  return retVal;
+}
