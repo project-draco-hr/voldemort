@@ -1,12 +1,24 @@
 {
-  Versioned<String> versioned=adminClient.getRemoteMetadata(nodeId,metadataKey);
-  if (versioned == null) {
-    System.out.println("null");
+  List<Integer> nodeIds=Lists.newArrayList();
+  if (nodeId < 0) {
+    for (    Node node : adminClient.getAdminClientCluster().getNodes()) {
+      nodeIds.add(node.getId());
+    }
   }
  else {
-    System.out.println(versioned.getVersion());
-    System.out.print(": ");
-    System.out.println(versioned.getValue());
-    System.out.println();
+    nodeIds.add(nodeId);
+  }
+  for (  Integer currentNodeId : nodeIds) {
+    System.out.println(adminClient.getAdminClientCluster().getNodeById(currentNodeId).getHost() + ":" + adminClient.getAdminClientCluster().getNodeById(currentNodeId).getId());
+    Versioned<String> versioned=adminClient.getRemoteMetadata(currentNodeId,metadataKey);
+    if (versioned == null) {
+      System.out.println("null");
+    }
+ else {
+      System.out.println(versioned.getVersion());
+      System.out.print(": ");
+      System.out.println(versioned.getValue());
+      System.out.println();
+    }
   }
 }
