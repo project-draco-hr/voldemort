@@ -1,25 +1,3 @@
 {
-  this.adminClient=Utils.notNull(adminClient);
-  this.stealerNodeIds=stealerNodeIds;
-  this.voldemortConfig=Utils.notNull(voldemortConfig);
-  RebalanceClusterPlan plan=new RebalanceClusterPlan(currentCluster,targetCluster,currentStoreDefs,targetStoreDefs,false,null);
-  this.stealerNodePlans=plan.getRebalancingTaskQueuePerNode();
-  if (this.stealerNodeIds == null) {
-    this.stealerNodeIds=Lists.newArrayList(stealerNodePlans.keySet());
-  }
-  this.storeNames=RebalanceUtils.getStoreNames(targetStoreDefs);
-  this.donorNodePlans=Maps.newHashMap();
-  for (  int stealerNodeId : this.stealerNodeIds) {
-    RebalanceNodePlan nodePlan=this.stealerNodePlans.get(stealerNodeId);
-    if (nodePlan == null)     continue;
-    for (    RebalancePartitionsInfo info : nodePlan.getRebalanceTaskList()) {
-      List<RebalancePartitionsInfo> donorPlan=donorNodePlans.get(info.getDonorId());
-      if (donorPlan == null) {
-        donorPlan=Lists.newArrayList();
-        donorNodePlans.put(info.getDonorId(),donorPlan);
-      }
-      donorPlan.add(info);
-    }
-  }
-  this.donorStates=Maps.newHashMap();
+  this(currentCluster,targetCluster,currentStoreDefs,targetStoreDefs,adminClient,voldemortConfig,stealerNodeIds,false);
 }
