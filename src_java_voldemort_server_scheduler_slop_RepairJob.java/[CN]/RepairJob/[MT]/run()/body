@@ -5,7 +5,12 @@
   }
   ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=null;
   Date startTime=new Date();
+  boolean terminatedEarly=false;
   logger.info("Started repair job at " + startTime);
+  Map<String,Long> localStats=Maps.newHashMap();
+  for (  StoreDefinition storeDef : metadataStore.getStoreDefList()) {
+    localStats.put(storeDef.getName(),0L);
+  }
   acquireRepairPermit();
   try {
     RoutingStrategyFactory routingStrategyFactory=new RoutingStrategyFactory();
@@ -16,6 +21,7 @@
         StorageEngine<ByteArray,byte[],byte[]> engine=storeRepo.getStorageEngine(storeDef.getName());
         iterator=engine.entries();
         RoutingStrategy routingStrategy=routingStrategyFactory.updateRoutingStrategy(storeDef,metadataStore.getCluster());
+        long repairSlops=0L;
         while (iterator.hasNext()) {
           Pair<ByteArray,Versioned<byte[]>> keyAndVal;
           keyAndVal=iterator.next();
@@ -25,15 +31,25 @@
               Slop slop=new Slop(storeDef.getName(),Slop.Operation.PUT,keyAndVal.getFirst(),keyAndVal.getSecond().getValue(),null,node.getId(),new Date());
               Versioned<Slop> slopVersioned=new Versioned<Slop>(slop,keyAndVal.getSecond().getVersion());
               slopStorageEngine.put(slop.makeKey(),slopVersioned,null);
+              repairSlops++;
             }
           }
         }
+        iterator.close();
+        localStats.put(storeDef.getName(),repairSlops);
         logger.info("Completed store " + storeDef.getName());
       }
     }
   }
-  finally {
+ catch (  Exception e) {
+    logger.error(e,e);
+    terminatedEarly=true;
+  }
+ finally {
     if (iterator != null)     iterator.close();
+    if (!terminatedEarly) {
+      resetStats(localStats);
+    }
     this.repairPermits.release();
     logger.info("Completed repair job started at " + startTime);
   }
