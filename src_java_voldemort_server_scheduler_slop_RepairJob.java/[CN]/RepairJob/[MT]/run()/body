@@ -1,6 +1,6 @@
 {
   if (!metadataStore.getServerState().equals(MetadataStore.VoldemortState.NORMAL_SERVER)) {
-    logger.error("Cannot run repair job since cluster is rebalancing");
+    logger.error("Cannot run repair job since Voldemort server is not in normal state");
     return;
   }
   ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=null;
@@ -28,6 +28,7 @@
             }
           }
         }
+        iterator.close();
         logger.info("Completed store " + storeDef.getName());
       }
     }

@@ -2,8 +2,9 @@
   VAdminProto.DeleteStoreRequest.Builder deleteStoreRequest=VAdminProto.DeleteStoreRequest.newBuilder().setStoreName(storeName);
   VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.DELETE_STORE).setDeleteStore(deleteStoreRequest).build();
   for (  Node node : currentCluster.getNodes()) {
+    logger.info("Deleting on node " + node.getHost() + ":"+ node.getId());
     VAdminProto.DeleteStoreResponse.Builder response=sendAndReceive(node.getId(),request,VAdminProto.DeleteStoreResponse.newBuilder());
     if (response.hasError())     throwException(response.getError());
-    logger.info("Deleted on node " + node.getHost());
+    logger.info("Successfully deleted on node " + node.getHost() + ":"+ node.getId());
   }
 }
