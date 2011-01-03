@@ -13,12 +13,12 @@
     cal.add(Calendar.SECOND,(int)(voldemortConfig.getSlopFrequencyMs() / Time.MS_PER_SECOND));
     Date nextRun=cal.getTime();
     logger.info("Initializing slop pusher job type " + voldemortConfig.getPusherType() + " at "+ nextRun);
-    scheduler.schedule("slop",(voldemortConfig.getPusherType().compareTo(BlockingSlopPusherJob.TYPE_NAME) == 0) ? new BlockingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig,repairPermits) : new StreamingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig,repairPermits),nextRun,voldemortConfig.getSlopFrequencyMs());
+    scheduler.schedule("slop",(voldemortConfig.getPusherType().compareTo(BlockingSlopPusherJob.TYPE_NAME) == 0) ? new BlockingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig,scanPermits) : new StreamingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig,scanPermits),nextRun,voldemortConfig.getSlopFrequencyMs());
     if (voldemortConfig.isRepairEnabled()) {
       cal.add(Calendar.SECOND,(int)(voldemortConfig.getRepairFrequencyMs() / Time.MS_PER_SECOND));
       nextRun=cal.getTime();
       logger.info("Initializing repair job " + voldemortConfig.getPusherType() + " at "+ nextRun);
-      RepairJob job=new RepairJob(storeRepository,metadata,repairPermits);
+      RepairJob job=new RepairJob(storeRepository,metadata,scanPermits);
       JmxUtils.registerMbean(job,JmxUtils.createObjectName(job.getClass()));
       scheduler.schedule("repair",job,nextRun,voldemortConfig.getRepairFrequencyMs());
     }
