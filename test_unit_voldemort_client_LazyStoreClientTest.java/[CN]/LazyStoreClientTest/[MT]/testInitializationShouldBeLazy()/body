@@ -1,0 +1,8 @@
+{
+  StoreClientFactory spyFactory=spy(factory);
+  LazyStoreClient<String,String> spyLazyClient=spy(newLazyStoreClient(spyFactory));
+  verify(spyFactory,times(0)).getStoreClient("test");
+  for (int i=0; i < 10; i++)   spyLazyClient.get("test");
+  verify(spyFactory,times(1)).getStoreClient("test");
+  verify(spyLazyClient,times(1)).initStoreClient();
+}
