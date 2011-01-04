@@ -1,0 +1,15 @@
+{
+  HashMap<Integer,Double> offBy=Maps.newHashMap();
+  int numberOfNodes=distribution.keySet().size();
+  double distributionPerNode=100.0 / numberOfNodes;
+  for (  Integer nodeId : distribution.keySet()) {
+    offBy.put(nodeId,new Double(distributionPerNode - distribution.get(nodeId)));
+  }
+  double sum=0, squareSum=0;
+  for (  double num : offBy.values()) {
+    squareSum+=num * num;
+    sum+=num;
+  }
+  double mean=sum / distribution.size();
+  return Math.sqrt(squareSum / distribution.size() - mean * mean);
+}
