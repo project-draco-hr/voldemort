@@ -2,10 +2,10 @@
   cluster=VoldemortTestConstants.getThreeNodeCluster();
   StoreDefinition storeDef=ServerTestUtils.getStoreDef("test",3,2,1,3,2,RoutingStrategyType.CONSISTENT_STRATEGY);
   Map<Integer,Store<ByteArray,byte[],byte[]>> subStores=Maps.newHashMap();
-  StatTrackingStore<ByteArray,byte[],byte[]> statTrackingStore=null;
+  StatTrackingStore statTrackingStore=null;
   for (int i=0; i < 3; ++i) {
     int id=Iterables.get(cluster.getNodes(),i).getId();
-    statTrackingStore=new StatTrackingStore<ByteArray,byte[],byte[]>(new InMemoryStorageEngine<ByteArray,byte[],byte[]>("test"),null);
+    statTrackingStore=new StatTrackingStore(new InMemoryStorageEngine<ByteArray,byte[],byte[]>("test"),null);
     subStores.put(id,statTrackingStore);
   }
   setFailureDetector(subStores);

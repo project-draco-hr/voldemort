@@ -1,0 +1,16 @@
+{
+  RequestCounter rc=new RequestCounter(1000);
+  rc.addRequest(100 * NS_PER_MS,1,200,1);
+  rc.addRequest(50 * NS_PER_MS,0,1000,2);
+  assertEquals(1,rc.getNumEmptyResponses());
+  assertEquals(100,rc.getMaxLatencyInMs());
+  assertEquals(75d,rc.getAverageTimeInMs(),0.0f);
+  assertEquals(1000,rc.getMaxSizeInBytes());
+  assertEquals(3,rc.getGetAllAggregatedCount());
+  Thread.sleep(1500);
+  assertEquals(0,rc.getNumEmptyResponses());
+  assertEquals(0,rc.getMaxLatencyInMs());
+  assertEquals(0,rc.getAverageTimeInMs(),0.0f);
+  assertEquals(0,rc.getMaxSizeInBytes());
+  assertEquals(0,rc.getGetAllAggregatedCount());
+}

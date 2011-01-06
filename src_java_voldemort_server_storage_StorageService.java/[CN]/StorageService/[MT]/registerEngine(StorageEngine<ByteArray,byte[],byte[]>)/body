@@ -9,7 +9,7 @@
     if (voldemortConfig.isMetadataCheckingEnabled())     store=new InvalidMetadataCheckingStore(metadata.getNodeId(),store,metadata);
   }
   if (voldemortConfig.isStatTrackingEnabled()) {
-    StatTrackingStore<ByteArray,byte[],byte[]> statStore=new StatTrackingStore<ByteArray,byte[],byte[]>(store,this.storeStats);
+    StatTrackingStore statStore=new StatTrackingStore(store,this.storeStats);
     store=statStore;
     if (voldemortConfig.isJmxEnabled()) {
       MBeanServer mbeanServer=ManagementFactory.getPlatformMBeanServer();

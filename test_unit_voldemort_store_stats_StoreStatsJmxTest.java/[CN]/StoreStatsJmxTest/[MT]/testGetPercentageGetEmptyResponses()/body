@@ -1,0 +1,10 @@
+{
+  StoreStats stats=new StoreStats();
+  StoreStatsJmx jmx=new StoreStatsJmx(stats);
+  stats.recordGetTime(100,false,1000);
+  assertEquals(0,jmx.getPercentGetReturningEmptyResponse(),0.0);
+  stats.recordGetTime(200,true,1001);
+  assertEquals(0.5,jmx.getPercentGetReturningEmptyResponse(),0.0);
+  stats.recordGetTime(300,false,1002);
+  assertEquals(0.33,jmx.getPercentGetReturningEmptyResponse(),0.05);
+}
