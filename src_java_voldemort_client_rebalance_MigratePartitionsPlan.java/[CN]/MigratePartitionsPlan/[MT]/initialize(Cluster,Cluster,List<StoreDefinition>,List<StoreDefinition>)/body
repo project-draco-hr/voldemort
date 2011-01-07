@@ -1,0 +1,13 @@
+{
+  this.rebalanceTaskQueue=new ConcurrentLinkedQueue<RebalanceNodePlan>();
+  this.oldStoreDefList=oldStoreDefList;
+  this.newStoreDefList=newStoreDefList;
+  if (currentCluster.getNumberOfPartitions() != targetCluster.getNumberOfPartitions())   throw new VoldemortException("Total number of partitions should not change !!");
+  if (!RebalanceUtils.hasSameStores(oldStoreDefList,newStoreDefList))   throw new VoldemortException("Either the number of stores has changed or some stores are missing");
+  for (  Node node : targetCluster.getNodes()) {
+    List<RebalancePartitionsInfo> rebalanceNodeList=getRebalanceNodeTask(currentCluster,targetCluster,RebalanceUtils.getStoreNames(oldStoreDefList),node.getId());
+    if (rebalanceNodeList.size() > 0) {
+      rebalanceTaskQueue.offer(new RebalanceNodePlan(node.getId(),rebalanceNodeList));
+    }
+  }
+}

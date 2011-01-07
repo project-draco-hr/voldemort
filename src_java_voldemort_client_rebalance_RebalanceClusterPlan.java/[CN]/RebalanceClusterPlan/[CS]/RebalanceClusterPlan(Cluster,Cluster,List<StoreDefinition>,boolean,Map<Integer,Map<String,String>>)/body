@@ -1,3 +1,17 @@
 {
-  initialize(currentCluster,targetCluster,storeDefList,storeDefList,deleteDonorPartition,currentROStoreVersionsDirs);
+  this.rebalanceTaskQueue=new ConcurrentLinkedQueue<RebalanceNodePlan>();
+  this.storeDefList=storeDefList;
+  if (currentCluster.getNumberOfPartitions() != targetCluster.getNumberOfPartitions())   throw new VoldemortException("Total number of partitions should not change !!");
+  for (  Node node : targetCluster.getNodes()) {
+    List<RebalancePartitionsInfo> rebalanceNodeList=getRebalanceNodeTask(currentCluster,targetCluster,RebalanceUtils.getStoreNames(storeDefList),node.getId(),deleteDonorPartition);
+    if (rebalanceNodeList.size() > 0) {
+      if (currentROStoreVersionsDirs != null && currentROStoreVersionsDirs.size() > 0) {
+        for (        RebalancePartitionsInfo partitionsInfo : rebalanceNodeList) {
+          partitionsInfo.setStealerNodeROStoreToDir(currentROStoreVersionsDirs.get(partitionsInfo.getStealerId()));
+          partitionsInfo.setDonorNodeROStoreToDir(currentROStoreVersionsDirs.get(partitionsInfo.getDonorId()));
+        }
+      }
+      rebalanceTaskQueue.offer(new RebalanceNodePlan(node.getId(),rebalanceNodeList));
+    }
+  }
 }

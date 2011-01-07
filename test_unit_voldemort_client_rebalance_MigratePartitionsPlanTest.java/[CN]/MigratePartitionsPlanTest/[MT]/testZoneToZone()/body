@@ -1,0 +1,36 @@
+{
+  for (int zoneIds=0; zoneIds < NUM_ZONES; zoneIds++) {
+    zoneReplicationFactors.put(zoneIds,1);
+  }
+  StoreDefinition storeDefRepFactor1=ServerTestUtils.getStoreDef("zone_store",2,1,1,1,0,0,zoneReplicationFactors,HintedHandoffStrategyType.PROXIMITY_STRATEGY,RoutingStrategyType.ZONE_STRATEGY);
+  MigratePartitionsPlan plan=new MigratePartitionsPlan(zoneRoutingCluster,zoneRoutingClusterModified,Lists.newArrayList(storeDefRepFactor1));
+  HashMap<Integer,RebalanceNodePlan> nodePlan=plan.getRebalancingTaskQueuePerNode();
+  Assert.assertEquals(nodePlan.size(),2);
+  Assert.assertEquals(nodePlan.get(1).getRebalanceTaskList().size(),3);
+  Assert.assertEquals(nodePlan.get(1).getRebalanceTaskList().get(0).getDonorId(),0);
+  Assert.assertEquals(nodePlan.get(1).getRebalanceTaskList().get(0).getPartitionList(),Lists.newArrayList(0));
+  Assert.assertEquals(nodePlan.get(1).getRebalanceTaskList().get(1).getDonorId(),2);
+  Assert.assertEquals(nodePlan.get(1).getRebalanceTaskList().get(1).getPartitionList(),Lists.newArrayList(6));
+  Assert.assertEquals(nodePlan.get(1).getRebalanceTaskList().get(2).getDonorId(),3);
+  Assert.assertEquals(nodePlan.get(1).getRebalanceTaskList().get(2).getPartitionList(),Lists.newArrayList(7));
+  Assert.assertEquals(nodePlan.get(3).getRebalanceTaskList().size(),1);
+  Assert.assertEquals(nodePlan.get(3).getRebalanceTaskList().get(0).getDonorId(),0);
+  Assert.assertEquals(nodePlan.get(3).getRebalanceTaskList().get(0).getPartitionList(),Lists.newArrayList(0));
+  for (int zoneIds=0; zoneIds < NUM_ZONES; zoneIds++) {
+    zoneReplicationFactors.put(zoneIds,2);
+  }
+  StoreDefinition storeDefRepFactor2=ServerTestUtils.getStoreDef("zone_store",4,1,1,1,0,0,zoneReplicationFactors,HintedHandoffStrategyType.PROXIMITY_STRATEGY,RoutingStrategyType.ZONE_STRATEGY);
+  plan=new MigratePartitionsPlan(zoneRoutingCluster,zoneRoutingClusterModified,Lists.newArrayList(storeDefRepFactor2));
+  nodePlan=plan.getRebalancingTaskQueuePerNode();
+  Assert.assertEquals(nodePlan.size(),2);
+  Assert.assertEquals(nodePlan.get(0).getRebalanceTaskList().size(),3);
+  Assert.assertEquals(nodePlan.get(0).getRebalanceTaskList().get(0).getDonorId(),1);
+  Assert.assertEquals(nodePlan.get(0).getRebalanceTaskList().get(0).getPartitionList(),Lists.newArrayList(5));
+  Assert.assertEquals(nodePlan.get(0).getRebalanceTaskList().get(1).getDonorId(),2);
+  Assert.assertEquals(nodePlan.get(0).getRebalanceTaskList().get(1).getPartitionList(),Lists.newArrayList(6));
+  Assert.assertEquals(nodePlan.get(0).getRebalanceTaskList().get(2).getDonorId(),3);
+  Assert.assertEquals(nodePlan.get(0).getRebalanceTaskList().get(2).getPartitionList(),Lists.newArrayList(7));
+  Assert.assertEquals(nodePlan.get(3).getRebalanceTaskList().size(),1);
+  Assert.assertEquals(nodePlan.get(3).getRebalanceTaskList().get(0).getDonorId(),0);
+  Assert.assertEquals(nodePlan.get(3).getRebalanceTaskList().get(0).getPartitionList(),Lists.newArrayList(0));
+}
