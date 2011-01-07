@@ -1,0 +1,10 @@
+def _make_methods(typedef):
+    '\n    Creates specialized _read_* and _write_* methods for the numeric types.\n    '
+
+    def _writer(self, output, obj):
+        self._write_numeric(output, obj, str(typedef))
+
+    def _reader(self, input):
+        return self._read_numeric(input, str(typedef))
+    setattr(JsonTypeSerializer, ('_write_%s' % typedef), _writer)
+    setattr(JsonTypeSerializer, ('_read_%s' % typedef), _reader)

@@ -1,0 +1,11 @@
+def _read_bytes(self, input):
+    '\n        Internal routine for reading raw bytes strings. The length is encoded at the start\n        of the string:\n\n        >>> s = JsonTypeSerializer(\'"string"\')\n\n        >>> s._read_bytes(StringIO.StringIO(\'\\x00\\x03foo\'))\n        \'foo\'\n\n        A length of 0 is the empty string:\n        >>> s._read_bytes(StringIO.StringIO(\'\\x00\\x00\'))\n        \'\'\n\n        A negative length is None:\n        >>> s._read_bytes(StringIO.StringIO(\'\\xff\\xff\'))\n\n        We get an error if the data is too short:\n        >>> s._read_bytes(StringIO.StringIO(\'\\x00\\x0afoo\'))\n        Traceback (most recent call last):\n        ...\n        SerializationException: Unexpected end of input.\n        '
+    size = self._read_length(input)
+    if (size < 0):
+        return None
+    if (size == 0):
+        return ''
+    bytes = input.read(size)
+    if (len(bytes) != size):
+        raise SerializationException('Unexpected end of input.')
+    return bytes

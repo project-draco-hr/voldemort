@@ -9,7 +9,7 @@
   }
   int asyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,partitionList,null);
   rebalanceStatusList.add(asyncId);
-  adminClient.waitForCompletion(metadataStore.getNodeId(),asyncId,voldemortConfig.getAdminSocketTimeout(),TimeUnit.SECONDS);
+  adminClient.waitForCompletion(metadataStore.getNodeId(),asyncId,voldemortConfig.getRebalancingTimeout(),TimeUnit.SECONDS);
   rebalanceStatusList.remove((Object)asyncId);
   if (stealInfo.getDeletePartitionsList().size() > 0 && !isReadOnlyStore) {
     adminClient.deletePartitions(stealInfo.getDonorId(),storeName,stealInfo.getDeletePartitionsList(),null);

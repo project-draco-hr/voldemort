@@ -13,14 +13,12 @@
     cal.add(Calendar.SECOND,(int)(voldemortConfig.getSlopFrequencyMs() / Time.MS_PER_SECOND));
     Date nextRun=cal.getTime();
     logger.info("Initializing slop pusher job type " + voldemortConfig.getPusherType() + " at "+ nextRun);
-    if (voldemortConfig.getPusherType().compareTo(BlockingSlopPusherJob.TYPE_NAME) == 0) {
-      scheduler.schedule("slop",new BlockingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig.getSlopMaxWriteBytesPerSec()),nextRun,voldemortConfig.getSlopFrequencyMs());
-    }
- else     if (voldemortConfig.getPusherType().compareTo(StreamingSlopPusherJob.TYPE_NAME) == 0) {
-      scheduler.schedule("slop",new StreamingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig),nextRun,voldemortConfig.getSlopFrequencyMs());
-    }
- else {
-      logger.error("Unsupported slop pusher job type " + voldemortConfig.getPusherType());
+    scheduler.schedule("slop",(voldemortConfig.getPusherType().compareTo(BlockingSlopPusherJob.TYPE_NAME) == 0) ? new BlockingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig,repairPermits) : new StreamingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig,repairPermits),nextRun,voldemortConfig.getSlopFrequencyMs());
+    if (voldemortConfig.isRepairEnabled()) {
+      cal.add(Calendar.SECOND,(int)(voldemortConfig.getRepairFrequencyMs() / Time.MS_PER_SECOND));
+      nextRun=cal.getTime();
+      logger.info("Initializing repair job " + voldemortConfig.getPusherType() + " at "+ nextRun);
+      scheduler.schedule("repair",new RepairJob(storeRepository,metadata,repairPermits),nextRun,voldemortConfig.getRepairFrequencyMs());
     }
   }
   List<StoreDefinition> storeDefs=new ArrayList<StoreDefinition>(this.metadata.getStoreDefList());

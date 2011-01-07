@@ -1,0 +1,12 @@
+def _read(self, input, typedef):
+    '\n        Internal routine for reading a complex type:\n\n        >>> s = JsonTypeSerializer(\'"int32"\')\n        >>> f = StringIO.StringIO(\'\\x01>\\x80\\x00\\x00\\x00\\x03\\x00\\x01\\x00\\x02\\x00\\x03\\x00\\x03foo\')\n        >>> obj = s._read(f, OrderedDict(((\'a\',\'float32\'), (\'b\',[\'int16\']), (\'c\',\'string\'))))\n        >>> obj == {\'a\': 0.25, \'c\': u\'foo\', \'b\': [1, 2, 3]}\n        True\n        '
+    if isinstance(typedef, dict):
+        return self._read_dict(input, typedef)
+    elif isinstance(typedef, list):
+        return self._read_list(input, typedef)
+    elif (isinstance(typedef, str) or isinstance(typedef, unicode)):
+        if (typedef not in TYPES.keys()):
+            raise SerializationException(('Unknown type string: %s' % typedef))
+        return getattr(self, ('_read_%s' % typedef))(input)
+    else:
+        raise SerializationException(('Unexpected type: %s' % type(typedef)))

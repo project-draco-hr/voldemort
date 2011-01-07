@@ -1,0 +1,23 @@
+{
+  RoutingStrategyFactory factory=new RoutingStrategyFactory();
+  RoutingStrategy strategy=factory.updateRoutingStrategy(storeDef,cluster);
+  HashMap<Integer,Long> requestRouting=Maps.newHashMap();
+  Long total=new Long(0);
+  for (int i=0; i < numKeys; i++) {
+    List<Node> nodes=strategy.routeRequest(("key" + i).getBytes());
+    for (    Node node : nodes) {
+      Long count=requestRouting.get(node.getId());
+      if (count == null) {
+        count=new Long(0);
+      }
+      count++;
+      requestRouting.put(node.getId(),count);
+      total++;
+    }
+  }
+  HashMap<Integer,Integer> finalDistribution=Maps.newHashMap();
+  for (  int nodeId : requestRouting.keySet()) {
+    finalDistribution.put(nodeId,new Integer((int)((requestRouting.get(nodeId) * 100) / total)));
+  }
+  return finalDistribution;
+}

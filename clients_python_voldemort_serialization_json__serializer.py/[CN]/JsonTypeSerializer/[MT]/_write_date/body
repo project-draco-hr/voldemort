@@ -1,0 +1,8 @@
+def _write_date(self, output, d):
+    '\n        Internal routine that serializes dates.\n\n        >>> s = JsonTypeSerializer(\'"string"\')\n        >>> d = datetime.datetime(2010, 11, 24, 17, 36, 11, 410413)\n\n        >>> f = StringIO.StringIO()\n        >>> s._write_date(f, d)\n        >>> f.getvalue()\n        \'\\x00\\x00\\x01,~\\xf4\\xf4\\x92\'\n\n        None serializers to the smallest representable int64:\n        >>> f = StringIO.StringIO()\n        >>> s._write_date(f, None)\n        >>> f.getvalue()\n        \'\\x80\\x00\\x00\\x00\\x00\\x00\\x00\\x00\'\n\n        Object passed in must be a date\n        >>> f = StringIO.StringIO()\n        >>> s._write_date(f, 42)\n        Traceback (most recent call last):\n        ...\n        SerializationException: Expected datetime but got: <type \'int\'>\n\n        '
+    if (d is None):
+        self._write_int64(output, None)
+        return
+    if (not isinstance(d, datetime.datetime)):
+        raise SerializationException(('Expected datetime but got: %s' % type(d)))
+    self._write_int64(output, _to_java_date(d))

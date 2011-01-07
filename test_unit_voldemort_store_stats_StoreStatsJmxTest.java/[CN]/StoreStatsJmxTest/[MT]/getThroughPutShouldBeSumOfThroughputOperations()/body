@@ -1,0 +1,12 @@
+{
+  StoreStats stats=mock(StoreStats.class);
+  when(stats.getThroughput(eq(Tracked.GET))).thenReturn(1.0f);
+  when(stats.getThroughput(eq(Tracked.GET_ALL))).thenReturn(20.0f);
+  when(stats.getThroughput(eq(Tracked.DELETE))).thenReturn(300.0f);
+  when(stats.getThroughput(eq(Tracked.PUT))).thenReturn(4000.0f);
+  StoreStatsJmx storeStatsJmx=new StoreStatsJmx(stats);
+  assertEquals(4321.0f,storeStatsJmx.getOperationThroughput(),0.1f);
+  for (  Tracked op : EnumSet.of(Tracked.GET,Tracked.GET_ALL,Tracked.DELETE,Tracked.PUT)) {
+    verify(stats,times(1)).getThroughput(op);
+  }
+}

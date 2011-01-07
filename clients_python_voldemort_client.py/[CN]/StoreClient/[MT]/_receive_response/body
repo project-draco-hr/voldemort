@@ -1,0 +1,10 @@
+def _receive_response(self, connection):
+    size_bytes = connection.recv(4)
+    size = struct.unpack('>i', size_bytes)[0]
+    bytes_read = 0
+    data = []
+    while (size and (bytes_read < size)):
+        chunk = connection.recv((size - bytes_read))
+        bytes_read += len(chunk)
+        data.append(chunk)
+    return ''.join(data)

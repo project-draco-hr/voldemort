@@ -1,0 +1,13 @@
+{
+  this.cluster=cluster;
+  this.clientZoneId=clientZoneId;
+  zoneMapping=Maps.newHashMap();
+  for (  Node node : cluster.getNodes()) {
+    List<Node> nodes=zoneMapping.get(node.getZoneId());
+    if (nodes == null) {
+      nodes=Lists.newArrayList();
+      zoneMapping.put(node.getZoneId(),nodes);
+    }
+    nodes.add(node);
+  }
+}

@@ -3,7 +3,7 @@
   AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),4,2);
   try {
     int rebalanceAsyncId=rebalanceLocalNode(stealInfo);
-    adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,voldemortConfig.getAdminSocketTimeout(),TimeUnit.SECONDS);
+    adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,voldemortConfig.getRebalancingTimeout(),TimeUnit.SECONDS);
   }
   finally {
     adminClient.stop();

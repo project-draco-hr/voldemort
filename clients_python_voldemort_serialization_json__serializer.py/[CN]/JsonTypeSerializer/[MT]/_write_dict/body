@@ -1,0 +1,16 @@
+def _write_dict(self, output, items, typedef):
+    '\n        Internal routine that serializes dicts.\n\n        >>> s = JsonTypeSerializer(\'"string"\')\n\n        >>> f = StringIO.StringIO()\n        >>> s._write_dict(f, {\'a\':1, \'b\':2}, OrderedDict(((\'a\',\'int16\'), (\'b\',\'int32\'))))\n        >>> f.getvalue()\n        \'\\x01\\x00\\x01\\x00\\x00\\x00\\x02\'\n\n        None will serialize as (int8)-1:\n        >>> f = StringIO.StringIO()\n        >>> s._write_dict(f, None, OrderedDict(((\'a\',\'int16\'), (\'b\',\'int32\'))))\n        >>> f.getvalue()\n        \'\\xff\'\n\n        The passed in dict must have the same fields as the typedef:\n        >>> f = StringIO.StringIO()\n        >>> s._write_dict(f, {\'a\':1}, OrderedDict(((\'a\',\'int16\'), (\'b\',\'int32\'))))\n        Traceback (most recent call last):\n        ...\n        SerializationException: Size mismatch for dict: expected 2 but got 1.\n\n        >>> f = StringIO.StringIO()\n        >>> s._write_dict(f, {\'a\':1, \'b\':2, \'c\':3}, OrderedDict(((\'a\',\'int16\'), (\'b\',\'int32\'))))\n        Traceback (most recent call last):\n        ...\n        SerializationException: Size mismatch for dict: expected 2 but got 3.\n\n        >>> f = StringIO.StringIO()\n        >>> s._write_dict(f, {\'b\':2, \'c\':3}, OrderedDict(((\'a\',\'int16\'), (\'b\',\'int32\'))))\n        Traceback (most recent call last):\n        ...\n        SerializationException: Missing key: \'a\' required by type: {\'a\':\'int16\', \'b\':\'int32\'}\n\n        The object being serialized must be a dict:\n\n        >>> f = StringIO.StringIO()\n        >>> s._write_dict(f, [1,2], OrderedDict(((\'a\',\'int16\'), (\'b\',\'int32\'))))\n        Traceback (most recent call last):\n        ...\n        SerializationException: Object must be a dict but got: <type \'list\'>\n\n        The typedef must be an OrderedDict:\n        >>> f = StringIO.StringIO()\n        >>> s._write_dict(f, {\'b\':2, \'c\':3}, [\'int16\'])\n        Traceback (most recent call last):\n        ...\n        SerializationException: Typedef must be an OrderedDict but got: <type \'list\'>\n\n        We can\'t use plain dicts as the typedef, because ordering is significant and plain old dicts\n        don\'t guarantee order:\n        >>> f = StringIO.StringIO()\n        >>> s._write_dict(f, {\'b\':2, \'c\':3}, {\'a\':\'int16\', \'b\':\'int16\'})\n        Traceback (most recent call last):\n        ...\n        SerializationException: Typedef must be an OrderedDict but got: <type \'dict\'>\n        '
+    if (not isinstance(typedef, OrderedDict)):
+        raise SerializationException(('Typedef must be an OrderedDict but got: %s' % type(typedef)))
+    if (items is None):
+        self._write_int8(output, (-1))
+        return
+    if (not isinstance(items, dict)):
+        raise SerializationException(('Object must be a dict but got: %s' % type(items)))
+    if (len(items) != len(typedef)):
+        raise SerializationException(('Size mismatch for dict: expected %d but got %d.' % (len(typedef), len(items))))
+    self._write_int8(output, 1)
+    for (key, entrytype) in typedef.iteritems():
+        if (key not in items):
+            raise SerializationException(("Missing key: '%s' required by type: %s" % (key, typedef)))
+        self._write(output, items[key], entrytype)

@@ -1,0 +1,8 @@
+def _write_string(self, output, s):
+    '\n        Internal routine for serializing UTF-8 strings.\n\n        >>> s = JsonTypeSerializer(\'"string"\')\n\n        >>> f = StringIO.StringIO()\n        >>> s._write_string(f, \'foo\')\n        >>> f.getvalue()\n        \'\\x00\\x03foo\'\n\n        Unicode works, too:\n        >>> f = StringIO.StringIO()\n        >>> s._write_string(f, u\'foo\')\n        >>> f.getvalue()\n        \'\\x00\\x03foo\'\n\n        Other types will cause an error:\n        >>> f = StringIO.StringIO()\n        >>> s._write_string(f, 42)\n        Traceback (most recent call last):\n        ...\n        SerializationException: Expected string or unicode and got: <type \'int\'>\n\n        The empty string turns into a zero-length string:\n        >>> f = StringIO.StringIO()\n        >>> s._write_string(f, u\'\')\n        >>> f.getvalue()\n        \'\\x00\\x00\'\n\n        None turns into a -1 length string:\n        >>> f = StringIO.StringIO()\n        >>> s._write_string(f, None)\n        >>> f.getvalue()\n        \'\\xff\\xff\'\n        '
+    if (s is None):
+        self._write_bytes(output, None)
+    else:
+        if ((not isinstance(s, str)) and (not isinstance(s, unicode))):
+            raise SerializationException(('Expected string or unicode and got: %s' % type(s)))
+        self._write_bytes(output, s.encode('utf_8'))

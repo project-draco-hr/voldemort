@@ -4,6 +4,7 @@
     if (METADATA_KEYS.contains(key)) {
       List<Versioned<byte[]>> values=Lists.newArrayList();
       Versioned<String> value=convertObjectToString(key,metadataCache.get(key));
+      if (logger.isTraceEnabled())       logger.trace("Key " + key + " requested, returning: "+ value.getValue());
       values.add(new Versioned<byte[]>(ByteUtils.getBytes(value.getValue(),"UTF-8"),value.getVersion()));
       return values;
     }

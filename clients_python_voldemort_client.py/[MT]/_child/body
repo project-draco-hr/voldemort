@@ -1,0 +1,10 @@
+def _child(elmt, name, required=True):
+    children = [child for child in elmt.childNodes if ((child.nodeType == minidom.Node.ELEMENT_NODE) and (child.tagName == name))]
+    if (not children):
+        if required:
+            raise VoldemortException(("No child '%s' for element '%s'." % (name, elmt.nodeName)))
+        else:
+            return None
+    if (len(children) > 1):
+        raise VoldemortException(("Multiple children '%s' for element '%s'." % (name, elmt.nodeName)))
+    return children[0]

@@ -1,0 +1,8 @@
+def _read_string(self, input):
+    '\n        Internal routine for reading UTF-8 encoded strings.\n\n        >>> s = JsonTypeSerializer(\'"string"\')\n\n        >>> s._read_string(StringIO.StringIO(\'\\x00\\x03foo\'))\n        u\'foo\'\n\n        A length of 0 is the empty string:\n        >>> s._read_string(StringIO.StringIO(\'\\x00\\x00\'))\n        u\'\'\n\n        A negative length is None:\n        >>> s._read_string(StringIO.StringIO(\'\\xff\\xff\'))\n\n        We get an error if the data is too short:\n        >>> s._read_string(StringIO.StringIO(\'\\x00\\x0afoo\'))\n        Traceback (most recent call last):\n        ...\n        SerializationException: Unexpected end of input.\n        '
+    bytes = self._read_bytes(input)
+    if (bytes is None):
+        return None
+    if (not bytes):
+        return u''
+    return str.decode(bytes, 'utf_8')

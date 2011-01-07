@@ -1,0 +1,4 @@
+def get_all(self, keys):
+    'Execute get request for multiple keys given as a list or tuple.\n           Returns a dictionary of key => [(value, version), ...] pairs.'
+    raw_keys = [self.key_serializer.writes(key) for key in keys]
+    return dict(((self.key_serializer.reads(key), [(self.value_serializer.reads(value), version) for (value, version) in versioned_values]) for (key, versioned_values) in self._execute_request(self._get_all, [raw_keys]).iteritems()))

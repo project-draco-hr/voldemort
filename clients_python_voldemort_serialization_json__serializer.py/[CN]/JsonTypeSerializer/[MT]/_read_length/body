@@ -1,0 +1,9 @@
+def _read_length(self, input):
+    '\n        Internal routines that read Voldemort\'s screwy variable length encoding:\n\n        >>> s = JsonTypeSerializer(\'"string"\')\n\n        An int16 -1 value is treated as -1:\n        >>> s._read_length(StringIO.StringIO(\'\\xff\\xff\'))\n        -1\n\n        A positive int16 is treated as a short length:\n        >>> s._read_length(StringIO.StringIO(\'\\x00\\x05\'))\n        5\n\n        A negative int16 in the first two bytes is a signal that it\'s really an int32 length:\n        >>> s._read_length(StringIO.StringIO(\'\\xff\\x00\\x00\\x00\'))\n        1056964608\n\n        But any 32-bit length between 0x3fff0000-0x3fffffff will be misinterpreted as -1 (this\n        is a bug, but it\'s identical behavior to the java version):\n        >>> s._read_length(StringIO.StringIO(\'\\xff\\xff\\x00\\x05\'))\n        -1\n        '
+    firstWord = self._read_int16(input)
+    if (firstWord == (-1)):
+        return (-1)
+    if (firstWord < (-1)):
+        secondWord = self._read_int16(input)
+        return (((firstWord & 16383) << 16) + (secondWord & 65535))
+    return firstWord

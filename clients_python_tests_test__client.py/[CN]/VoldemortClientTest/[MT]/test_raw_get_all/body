@@ -1,0 +1,13 @@
+def test_raw_get_all(self):
+    '\n        Tests the get_all() method in raw mode.\n        '
+    s = self._reinit_raw_client()
+    pairs = [('a', '1'), ('b', '2'), ('c', '3')]
+    for (k, v) in pairs:
+        s.put(k, v)
+    resp = s.get_all([k for (k, v) in pairs])
+    self.assertEquals(len(resp), len(pairs))
+    for (k, v) in pairs:
+        self.assertTrue((k in resp))
+        self.assertEquals(len(resp[k]), 1)
+        self.assertEquals(len(resp[k][0]), 2)
+        self.assertEquals(resp[k][0][0], v)

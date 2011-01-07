@@ -1,9 +1,7 @@
 {
   for (  URI url : urls) {
     try {
-      Store<ByteArray,byte[],byte[]> remoteStore=getStore(MetadataStore.METADATA_STORE_NAME,url.getHost(),url.getPort(),this.requestFormatType);
-      Store<String,String,byte[]> store=SerializingStore.wrap(remoteStore,new StringSerializer("UTF-8"),new StringSerializer("UTF-8"),new IdentitySerializer());
-      List<Versioned<String>> found=store.get(key,null);
+      List<Versioned<String>> found=getRemoteMetadata(key,url);
       if (found.size() == 1)       return found.get(0).getValue();
     }
  catch (    Exception e) {

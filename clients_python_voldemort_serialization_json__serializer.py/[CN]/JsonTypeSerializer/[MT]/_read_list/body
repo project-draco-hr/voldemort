@@ -1,0 +1,11 @@
+def _read_list(self, input, typedef):
+    '\n        Internal routine for reading lists:\n\n        >>> s = JsonTypeSerializer(\'"string"\')\n        >>> s._read_list(StringIO.StringIO(\'\\x00\\x03\\x00\\x01\\x00\\x02\\x00\\x03\'), [\'int16\'])\n        [1, 2, 3]\n\n        List typedefs must be singleton lists:\n        >>> s._read_list(StringIO.StringIO(\'\\x00\\x03\\x00\\x01\\x00\\x02\\x00\\x03\'), [])\n        Traceback (most recent call last):\n        ...\n        SerializationException: Expected single element typedef, but got: 0\n\n        >>> s._read_list(StringIO.StringIO(\'\\x00\\x03\\x00\\x01\\x00\\x02\\x00\\x03\'), [\'int16\', \'int32\'])\n        Traceback (most recent call last):\n        ...\n        SerializationException: Expected single element typedef, but got: 2\n\n        >>> s._read_list(StringIO.StringIO(\'\\x00\\x03\\x00\\x01\\x00\\x02\\x00\\x03\'), \'int16\')\n        Traceback (most recent call last):\n        ...\n        SerializationException: Wrong type: expected list but got: <type \'str\'>\n\n        A length of -1 return None:\n        >>> s._read_list(StringIO.StringIO(\'\\xff\\xff\'), [\'int16\']) is None\n        True\n\n        A length of 0 is an empty list:\n        >>> s._read_list(StringIO.StringIO(\'\\x00\\x00\'), [\'int16\'])\n        []\n        '
+    if (not isinstance(typedef, list)):
+        raise SerializationException(('Wrong type: expected list but got: %s' % type(typedef)))
+    if (len(typedef) != 1):
+        raise SerializationException(('Expected single element typedef, but got: %d' % len(typedef)))
+    size = self._read_length(input)
+    if (size < 0):
+        return None
+    entryType = typedef[0]
+    return [self._read(input, entryType) for i in xrange(0, size)]

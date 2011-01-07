@@ -1,0 +1,19 @@
+from common import *
+import cStringIO as StringIO
+import datetime
+import struct
+import simplejson
+from xml.dom import minidom
+try:
+    from collections import OrderedDict
+except ImportError as e:
+    from ordered_dict import OrderedDict
+TYPES = {'int8': (int, long), 'int16': (int, long), 'int32': (int, long), 'int64': (int, long), 'float32': (float,), 'float64': (float,), 'boolean': (bool,), 'string': (str, unicode), 'bytes': (str,), 'date': (datetime.datetime,), }
+MAXES = {'int8': ((1 << 7) - 1), 'int16': ((1 << 15) - 1), 'int32': ((1 << 31) - 1), 'int64': ((1 << 63) - 1), 'float32': struct.unpack('>f', '\x7f\x7f\xff\xff')[0], 'float64': struct.unpack('>d', '\x7f\xef\xff\xff\xff\xff\xff\xff')[0], }
+MINS = {'int8': (- (1 << 7)), 'int16': (- (1 << 15)), 'int32': (- (1 << 31)), 'int64': (- (1 << 63)), 'float32': struct.unpack('>f', '\x00\x00\x00\x01')[0], 'float64': struct.unpack('>d', '\x00\x00\x00\x00\x00\x00\x00\x01')[0], }
+RANGE_FNS = {'int8': _is_valid_int, 'int16': _is_valid_int, 'int32': _is_valid_int, 'int64': _is_valid_int, 'float32': _is_valid_float, 'float64': _is_valid_float, }
+FORMATS = {'int8': '>b', 'int16': '>h', 'int32': '>i', 'int64': '>q', 'float32': '>f', 'float64': '>d', }
+MAX_SEQ_LENGTH = 1073741823
+EPOCH = datetime.datetime(1970, 1, 1, 0, 0, 0, 0)
+for typedef in MAXES.iterkeys():
+    _make_methods(typedef)

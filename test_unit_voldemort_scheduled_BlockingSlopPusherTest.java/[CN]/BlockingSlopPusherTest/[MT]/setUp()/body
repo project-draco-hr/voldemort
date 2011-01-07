@@ -6,5 +6,8 @@
   repo.addNodeStore(1,new InMemoryStorageEngine<ByteArray,byte[],byte[]>(STORE_NAME));
   repo.addNodeStore(2,new FailingStore<ByteArray,byte[],byte[]>(STORE_NAME));
   MetadataStore metadataStore=ServerTestUtils.createMetadataStore(cluster,ServerTestUtils.getStoreDefs(1));
-  pusher=new BlockingSlopPusherJob(repo,metadataStore,new NoopFailureDetector(),10 * 1000 * 1000);
+  Props props=new Props();
+  props.put("node.id",0);
+  props.put("voldemort.home","/");
+  pusher=new BlockingSlopPusherJob(repo,metadataStore,new NoopFailureDetector(),new VoldemortConfig(props),new Semaphore(1));
 }
