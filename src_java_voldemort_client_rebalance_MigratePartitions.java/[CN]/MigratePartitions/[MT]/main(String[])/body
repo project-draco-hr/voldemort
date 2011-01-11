@@ -41,8 +41,8 @@
   try {
     VoldemortConfig voldemortConfig=createTempVoldemortConfig();
     Cluster currentCluster=new ClusterMapper().readCluster(new BufferedReader(new FileReader(currentClusterFile)));
-    adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,currentCluster,1,1);
     Cluster targetCluster=new ClusterMapper().readCluster(new BufferedReader(new FileReader(targetClusterFile)));
+    adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,currentCluster,targetCluster.getNumberOfNodes(),1);
     List<StoreDefinition> currentStoreDefs=new StoreDefinitionsMapper().readStoreList(new BufferedReader(new FileReader(currentStoresFile)));
     List<StoreDefinition> targetStoreDefs=new StoreDefinitionsMapper().readStoreList(new BufferedReader(new FileReader(targetStoresFile)));
     MigratePartitions migratePartitions=new MigratePartitions(currentCluster,targetCluster,currentStoreDefs,targetStoreDefs,adminClient,voldemortConfig,stealerNodeIds,transitionToNormal,simulation);
