@@ -2,80 +2,108 @@
   OptionParser parser=new OptionParser();
   parser.accepts("help","print help information");
   parser.accepts("url","[REQUIRED] bootstrap URL").withRequiredArg().describedAs("bootstrap-url").ofType(String.class);
-  parser.accepts("first-id","[REQUIRED] node id for first node").withRequiredArg().describedAs("node-id").ofType(Integer.class);
-  parser.accepts("second-id","[REQUIRED] node id for second node").withRequiredArg().describedAs("node-id").ofType(Integer.class);
-  parser.accepts("store-name","[REQUIRED] name of the store").withRequiredArg().describedAs("store-name").ofType(String.class);
-  parser.accepts("skip-records","number of records to skip [default: 0 i.e. none]").withRequiredArg().ofType(Integer.class);
+  parser.accepts("output-dir","[REQUIRED] The output directory where we'll store the keys").withRequiredArg().describedAs("output-dir").ofType(String.class);
+  parser.accepts("op","Operation type (0 - gets keys [default], 1 - checks the keys").withRequiredArg().describedAs("op").ofType(Integer.class);
+  parser.accepts("num-keys","Number of keys per store [ Default: 100 ]").withRequiredArg().describedAs("keys").ofType(Long.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     parser.printHelpOn(System.out);
     System.exit(0);
   }
-  Set<String> missing=CmdUtils.missing(options,"url","first-id","second-id","store-name");
+  Set<String> missing=CmdUtils.missing(options,"url","output-dir");
   if (missing.size() > 0) {
     System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
     parser.printHelpOn(System.err);
     System.exit(1);
   }
   String url=(String)options.valueOf("url");
-  Integer firstId=(Integer)options.valueOf("first-id");
-  Integer secondId=(Integer)options.valueOf("second-id");
-  String storeName=(String)options.valueOf("store-name");
-  Integer skipRecords=CmdUtils.valueOf(options,"skip-records",0);
-  AdminClient client=new AdminClient(url,new AdminClientConfig());
-  List<StoreDefinition> storeDefs=client.getRemoteStoreDefList(firstId).getValue();
-  StoreDefinition storeDef=null;
-  for (  StoreDefinition def : storeDefs) {
-    if (def.getName().compareTo(storeName) == 0) {
-      storeDef=def;
-    }
+  String outputDirPath=(String)options.valueOf("output-dir");
+  int opType=CmdUtils.valueOf(options,"op",0);
+  long numKeys=CmdUtils.valueOf(options,"num-keys",100L);
+  File outputDir=new File(outputDirPath);
+  if (!outputDir.exists()) {
+    outputDir.mkdirs();
   }
-  if (storeDef == null) {
-    System.err.println("Store name mentioned not found");
+ else   if (!(outputDir.isDirectory() && outputDir.canWrite())) {
+    System.err.println("Cannot write to output directory " + outputDirPath);
     parser.printHelpOn(System.err);
     System.exit(1);
   }
-  Cluster cluster=client.getAdminClientCluster();
-  Node firstNode=cluster.getNodeById(firstId), secondNode=cluster.getNodeById(secondId);
-  RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
-  List<Integer> firstNodePartitionIds=firstNode.getPartitionIds();
-  List<Integer> secondNodePartitionIds=secondNode.getPartitionIds();
-  List<Integer> finalPartitionIds=new ArrayList<Integer>();
-  for (  Integer firstNodePartition : firstNodePartitionIds) {
-    List<Integer> replicatingPartitionIds=strategy.getReplicatingPartitionList(firstNodePartition);
-    for (    Integer replicatingPartitionId : replicatingPartitionIds) {
-      if (secondNodePartitionIds.contains(replicatingPartitionId)) {
-        finalPartitionIds.add(firstNodePartition);
-        break;
-      }
-    }
-  }
-  if (finalPartitionIds.size() == 0) {
-    System.out.println("No partition found whose replica is on the other node");
-    System.exit(0);
-  }
-  Iterator<Pair<ByteArray,Versioned<byte[]>>> iterator=client.fetchEntries(firstId,storeName,finalPartitionIds,null,false,skipRecords);
-  SocketStoreFactory storeFactory=new ClientRequestExecutorPool(10,10000,10000,64 * 1024);
-  Store<ByteArray,byte[],byte[]> secondStore=null;
+  AdminClient adminClient=null;
   try {
-    secondStore=storeFactory.create(storeName,secondNode.getHost(),secondNode.getSocketPort(),RequestFormatType.VOLDEMORT_V3,RequestRoutingType.NORMAL);
-    long totalKeyValues=0, totalCorrect=0;
-    while (iterator.hasNext()) {
-      Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
-      List<Versioned<byte[]>> otherValues=secondStore.get(entry.getFirst(),null);
-      totalKeyValues++;
-      for (      Versioned<byte[]> value : otherValues) {
-        if (ByteUtils.compare(value.getValue(),entry.getSecond().getValue()) == 0) {
-          totalCorrect++;
-          break;
-        }
+    adminClient=new AdminClient(url,new AdminClientConfig().setMaxThreads(10));
+    List<StoreDefinition> storeDefs=adminClient.getRemoteStoreDefList(0).getValue();
+    Cluster cluster=adminClient.getAdminClientCluster();
+    for (    StoreDefinition storeDef : storeDefs) {
+      File storesKeyFile=new File(outputDir,storeDef.getName());
+      if (AdminClient.restoreStoreEngineBlackList.contains(storeDef.getType())) {
+        System.out.println("Ignoring store " + storeDef.getName());
+        continue;
       }
-      if (totalKeyValues % 1000 == 0)       System.out.println("Final => Percent correct = " + (double)(totalCorrect / totalKeyValues) * 100);
+ else {
+        System.out.println("Working on store " + storeDef.getName());
+      }
+switch (opType) {
+case 0:
+default :
+        if (storesKeyFile.exists()) {
+          System.err.println("Key files for " + storeDef.getName() + " already exists");
+          continue;
+        }
+      FileOutputStream writer=null;
+    try {
+      writer=new FileOutputStream(storesKeyFile);
+      Iterator<ByteArray> keys=adminClient.fetchKeys(0,storeDef.getName(),cluster.getNodeById(0).getPartitionIds(),null,false);
+      for (long keyId=0; keyId < numKeys && keys.hasNext(); keyId++) {
+        ByteArray key=keys.next();
+        writer.write(key.length());
+        writer.write(key.get());
+      }
     }
-    if (totalKeyValues > 0)     System.out.println("Final => Percent correct = " + (double)(totalCorrect / totalKeyValues) * 100);
- else     System.out.println("Final => Percent correct = 0");
-  }
   finally {
-    if (secondStore != null)     secondStore.close();
-  }
+      if (writer != null)       writer.close();
+    }
+  break;
+case 1:
+if (!(storesKeyFile.exists() && storesKeyFile.canRead())) {
+  System.err.println("Could not find " + storeDef.getName() + " file to check");
+  continue;
+}
+FileInputStream reader=null;
+SocketStoreClientFactory socketFactory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(url));
+StoreClient storeClient=socketFactory.getStoreClient(storeDef.getName());
+DefaultSerializerFactory factory=new DefaultSerializerFactory();
+Serializer<?> keySerializer=factory.getSerializer(storeDef.getKeySerializer());
+long foundKeys=0L;
+long totalKeys=0L;
+try {
+reader=new FileInputStream(storesKeyFile);
+while (reader.available() != 0) {
+int size=reader.read();
+if (size <= 0) {
+break;
+}
+byte[] key=new byte[size];
+reader.read(key);
+Versioned<Object> value=storeClient.get(keySerializer.toObject(key));
+if (value != null) {
+foundKeys++;
+}
+totalKeys++;
+}
+System.out.println("Found = " + foundKeys + " Total = "+ totalKeys);
+if (foundKeys > 0 && totalKeys > 0) {
+System.out.println("%age found - " + (double)100 * (foundKeys / totalKeys));
+}
+}
+  finally {
+if (reader != null) reader.close();
+}
+break;
+}
+}
+}
+  finally {
+if (adminClient != null) adminClient.stop();
+}
 }
