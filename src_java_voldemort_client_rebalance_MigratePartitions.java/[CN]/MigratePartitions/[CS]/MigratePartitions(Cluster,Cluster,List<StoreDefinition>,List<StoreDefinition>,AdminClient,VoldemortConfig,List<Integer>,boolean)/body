@@ -4,7 +4,6 @@
   this.voldemortConfig=Utils.notNull(voldemortConfig);
   this.transitionToNormal=transitionToNormal;
   RebalanceClusterPlan plan=new RebalanceClusterPlan(currentCluster,targetCluster,currentStoreDefs,targetStoreDefs,false,null);
-  logger.info("Rebalance cluster plan => " + plan);
   this.stealerNodePlans=plan.getRebalancingTaskQueuePerNode();
   if (this.stealerNodeIds == null) {
     this.stealerNodeIds=Lists.newArrayList(stealerNodePlans.keySet());
@@ -25,11 +24,6 @@
   }
   this.donorStates=Maps.newHashMap();
   for (  int donorNodeId : donorNodePlans.keySet()) {
-    logger.info("Plan for donor node id " + donorNodeId + " => ");
-    List<RebalancePartitionsInfo> list=donorNodePlans.get(donorNodeId);
-    for (    RebalancePartitionsInfo stealInfo : list) {
-      logger.info(stealInfo);
-    }
-    logger.info("===============================================");
+    logger.info("Plan for donor node id " + donorNodeId + " - "+ donorNodePlans.get(donorNodeId));
   }
 }
