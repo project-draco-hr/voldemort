@@ -1,0 +1,20 @@
+{
+  VoldemortState newState=VoldemortState.valueOf(newStateString);
+  List<Integer> nodeIds=Lists.newArrayList();
+  if (nodeId < 0) {
+    for (    Node node : adminClient.getAdminClientCluster().getNodes()) {
+      nodeIds.add(node.getId());
+    }
+  }
+ else {
+    nodeIds.add(nodeId);
+  }
+  for (  Integer currentNodeId : nodeIds) {
+    System.out.println("Setting state for " + adminClient.getAdminClientCluster().getNodeById(currentNodeId).getHost() + ":"+ adminClient.getAdminClientCluster().getNodeById(currentNodeId).getId());
+    Versioned<String> currentState=adminClient.getRemoteMetadata(currentNodeId,MetadataStore.SERVER_STATE_KEY);
+    if (!newState.equals(VoldemortState.valueOf(currentState.getValue()))) {
+      VectorClock updatedVersion=((VectorClock)currentState.getVersion()).incremented(currentNodeId,System.currentTimeMillis());
+      adminClient.updateRemoteMetadata(currentNodeId,MetadataStore.SERVER_STATE_KEY,Versioned.value(newState.toString(),updatedVersion));
+    }
+  }
+}
