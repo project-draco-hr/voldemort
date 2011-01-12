@@ -1,10 +1,10 @@
 {
   Map<Integer,List<Integer>> replicationMapping=new HashMap<Integer,List<Integer>>();
   List<Integer> targetList=targetCluster.getNodeById(stealNodeId).getPartitionIds();
-  RebalanceClusterTool clusterTool=new RebalanceClusterTool(currentCluster,RebalanceUtils.getMaxReplicationStore(this.storeDefList));
-  Multimap<Integer,Pair<Integer,Integer>> replicationChanges=clusterTool.getRemappedReplicas(targetCluster);
-  for (  final Entry<Integer,Pair<Integer,Integer>> entry : replicationChanges.entries()) {
-    int newReplicationPartition=entry.getValue().getSecond();
+  RebalanceClusterTool clusterTool=new RebalanceClusterTool(currentCluster,RebalanceUtils.getMaxReplicationStore(this.oldStoreDefList));
+  Multimap<Integer,Integer> replicationChanges=clusterTool.getRemappedReplicas(targetCluster,RebalanceUtils.getMaxReplicationStore(this.newStoreDefList));
+  for (  final Entry<Integer,Integer> entry : replicationChanges.entries()) {
+    int newReplicationPartition=entry.getValue();
     if (targetList.contains(newReplicationPartition)) {
       int donorNode=currentPartitionsToNodeMap.get(entry.getKey());
       if (donorNode != stealNodeId)       createAndAdd(replicationMapping,donorNode,entry.getKey());
