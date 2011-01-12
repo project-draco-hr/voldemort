@@ -7,8 +7,8 @@
       if (storeDef.hasRetentionPeriod()) {
         ExecutorService executor=Executors.newFixedThreadPool(1);
         try {
-          if (scanPermits.availablePermits() >= 1) {
-            executor.execute(new DataCleanupJob<ByteArray,byte[],byte[]>(engine,scanPermits,storeDef.getRetentionDays() * Time.MS_PER_DAY,SystemTime.INSTANCE,new EventThrottler(entryScanThrottleRate)));
+          if (cleanupPermits.availablePermits() >= 1) {
+            executor.execute(new DataCleanupJob<ByteArray,byte[],byte[]>(engine,cleanupPermits,storeDef.getRetentionDays() * Time.MS_PER_DAY,SystemTime.INSTANCE,new EventThrottler(entryScanThrottleRate)));
           }
  else {
             logger.error("forceCleanupOldData() No permit available to run cleanJob already running multiple instance." + engine.getName());
