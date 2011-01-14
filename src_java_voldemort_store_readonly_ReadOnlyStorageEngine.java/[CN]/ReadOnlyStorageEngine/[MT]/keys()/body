@@ -1,3 +1,4 @@
 {
-  throw new UnsupportedOperationException("Iteration is not supported for " + getClass().getName());
+  if (!(fileSet.getReadOnlyStorageFormat().compareTo(ReadOnlyStorageFormat.READONLY_V2) == 0))   throw new UnsupportedOperationException("Iteration is not supported for " + getClass().getName() + " with storage format "+ fileSet.getReadOnlyStorageFormat());
+  return new ROKeyIterator(fileSet);
 }
