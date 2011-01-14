@@ -1,6 +1,10 @@
 {
-  if (!chunksFinished && currentChunk < chunkedFileSet.getNumChunks() && currentOffsetInChunk < chunkedFileSet.getDataFileSize(currentChunk)) {
-    return true;
+  if (chunksFinished)   return false;
+  while (currentChunk != chunkedFileSet.getNumChunks() - 1 && chunkedFileSet.getDataFileSize(currentChunk) == 0) {
+    currentChunk++;
   }
-  return false;
+  if (currentOffsetInChunk >= chunkedFileSet.getDataFileSize(currentChunk) && currentChunk == chunkedFileSet.getNumChunks() - 1) {
+    return false;
+  }
+  return true;
 }

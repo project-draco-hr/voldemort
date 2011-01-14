@@ -1,16 +1,20 @@
 {
-  ReadOnlyStorageEngineTestInstance testData=ReadOnlyStorageEngineTestInstance.create(strategy,dir,TEST_SIZE,2,2,serDef,serDef,storageType);
+  ReadOnlyStorageEngineTestInstance testData=ReadOnlyStorageEngineTestInstance.create(strategy,dir,TEST_SIZE,10,3,serDef,serDef,storageType);
   ListMultimap<Integer,Pair<String,String>> nodeToEntries=ArrayListMultimap.create();
   for (  Map.Entry<String,String> entry : testData.getData().entrySet()) {
     for (    Node node : testData.routeRequest(entry.getKey())) {
       nodeToEntries.put(node.getId(),Pair.create(entry.getKey(),entry.getValue()));
     }
   }
+  SerializerFactory factory=new DefaultSerializerFactory();
+  Serializer<String> serializer=(Serializer<String>)factory.getSerializer(serDef);
   for (  Map.Entry<Integer,ReadOnlyStorageEngine> storeEntry : testData.getReadOnlyStores().entrySet()) {
     List<Pair<String,String>> entries=Lists.newArrayList(nodeToEntries.get(storeEntry.getKey()));
     ClosableIterator<ByteArray> keyIterator=null;
+    ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=null;
     try {
       keyIterator=storeEntry.getValue().keys();
+      entryIterator=storeEntry.getValue().entries();
     }
  catch (    Exception e) {
       if (storageType.compareTo(ReadOnlyStorageFormat.READONLY_V2) == 0) {
@@ -23,13 +27,18 @@
     List<String> keys=Lists.newArrayList();
     Iterator<Pair<String,String>> pairIterator=entries.iterator();
     while (pairIterator.hasNext()) {
-      keys.add(new String(pairIterator.next().getFirst()));
+      keys.add(pairIterator.next().getFirst());
     }
     while (keyIterator.hasNext()) {
-      String key=new String(keyIterator.next().get());
+      String key=serializer.toObject(keyIterator.next().get());
       Assert.assertEquals(keys.contains(key),true);
       keys.remove(key);
     }
     Assert.assertEquals(keys.size(),0);
+    while (entryIterator.hasNext()) {
+      Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
+      Pair<String,String> stringEntry=Pair.create(serializer.toObject(entry.getFirst().get()),serializer.toObject(entry.getSecond().getValue()));
+      Assert.assertEquals(entries.contains(stringEntry),true);
+    }
   }
 }
