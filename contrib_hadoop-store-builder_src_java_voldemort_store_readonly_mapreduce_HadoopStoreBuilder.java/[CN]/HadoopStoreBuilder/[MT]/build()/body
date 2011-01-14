@@ -4,6 +4,7 @@
     job.getConfiguration().setInt("io.file.buffer.size",DEFAULT_BUFFER_SIZE);
     job.getConfiguration().set("cluster.xml",new ClusterMapper().writeCluster(cluster));
     job.getConfiguration().set("stores.xml",new StoreDefinitionsMapper().writeStoreList(Collections.singletonList(storeDef)));
+    job.getConfiguration().setBoolean("save.keys",saveKeys);
     job.getConfiguration().set("final.output.dir",outputDir.toString());
     job.getConfiguration().set("checksum.type",CheckSum.toString(checkSumType));
     job.setPartitionerClass(HadoopStoreBuilderPartitioner.class);
@@ -34,7 +35,8 @@
     logger.info("Building store...");
     job.waitForCompletion(true);
     ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
-    metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V1.getCode());
+    if (saveKeys)     metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode());
+ else     metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V1.getCode());
     for (    Node node : cluster.getNodes()) {
       Path nodePath=new Path(outputDir.toString(),"node-" + node.getId());
       if (!outputFs.exists(nodePath)) {
