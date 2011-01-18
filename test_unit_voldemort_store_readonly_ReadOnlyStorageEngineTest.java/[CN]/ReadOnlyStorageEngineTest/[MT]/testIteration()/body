@@ -29,16 +29,20 @@
     while (pairIterator.hasNext()) {
       keys.add(pairIterator.next().getFirst());
     }
+    int keyCount=0;
     while (keyIterator.hasNext()) {
       String key=serializer.toObject(keyIterator.next().get());
       Assert.assertEquals(keys.contains(key),true);
-      keys.remove(key);
+      keyCount++;
     }
-    Assert.assertEquals(keys.size(),0);
+    Assert.assertEquals(keyCount,entries.size());
+    int entriesCount=0;
     while (entryIterator.hasNext()) {
       Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
       Pair<String,String> stringEntry=Pair.create(serializer.toObject(entry.getFirst().get()),serializer.toObject(entry.getSecond().getValue()));
       Assert.assertEquals(entries.contains(stringEntry),true);
+      entriesCount++;
     }
+    Assert.assertEquals(entriesCount,entries.size());
   }
 }

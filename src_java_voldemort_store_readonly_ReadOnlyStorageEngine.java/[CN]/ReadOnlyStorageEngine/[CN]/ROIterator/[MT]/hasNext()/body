@@ -1,10 +1,27 @@
 {
   if (chunksFinished)   return false;
-  while (currentChunk != chunkedFileSet.getNumChunks() - 1 && chunkedFileSet.getDataFileSize(currentChunk) == 0) {
+  if (currentOffsetInChunk >= chunkedFileSet.getDataFileSize(currentChunk)) {
     currentChunk++;
+    currentOffsetInChunk=0;
+    while (currentChunk < chunkedFileSet.getNumChunks() && chunkedFileSet.getDataFileSize(currentChunk) == 0) {
+      currentChunk++;
+    }
+    if (currentChunk == chunkedFileSet.getNumChunks()) {
+      chunksFinished=true;
+      return false;
+    }
   }
-  if (currentOffsetInChunk >= chunkedFileSet.getDataFileSize(currentChunk) && currentChunk == chunkedFileSet.getNumChunks() - 1) {
-    return false;
+  if (tupleCount == 0) {
+    ByteBuffer numKeyValsBuffer=ByteBuffer.allocate(1);
+    try {
+      chunkedFileSet.dataFileFor(currentChunk).read(numKeyValsBuffer,currentOffsetInChunk);
+    }
+ catch (    IOException e) {
+      logger.error("Error while reading tuple count in iterator",e);
+      return false;
+    }
+    tupleCount=numKeyValsBuffer.get(0) & ByteUtils.MASK_11111111;
+    currentOffsetInChunk+=1;
   }
   return true;
 }
