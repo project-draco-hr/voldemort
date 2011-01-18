@@ -1,33 +1,38 @@
 {
   Iterator<BytesWritable> iterator=values.iterator();
-  BytesWritable writable=iterator.next();
-  byte[] valueBytes=writable.getBytes();
-  if (this.nodeId == -1)   this.nodeId=ByteUtils.readInt(valueBytes,0);
-  if (this.partitionId == -1)   this.partitionId=ByteUtils.readInt(valueBytes,4);
-  if (this.chunkId == -1)   this.chunkId=ReadOnlyUtils.chunk(key.getBytes(),this.numChunks);
   this.indexFileStream.write(key.getBytes(),0,key.getLength());
   this.indexFileStream.writeInt(this.position);
   if (this.checkSumDigestIndex != null) {
     this.checkSumDigestIndex.update(key.getBytes(),0,key.getLength());
     this.checkSumDigestIndex.update(this.position);
   }
-  int valueLength=writable.getLength() - 8;
-  if (saveKeys) {
-    this.valueFileStream.write(valueBytes,8,valueLength);
-    if (this.checkSumDigestValue != null) {
-      this.checkSumDigestValue.update(valueBytes,8,valueLength);
+  int numKeyValues=0;
+  ByteArrayOutputStream valueStream=new ByteArrayOutputStream();
+  while (iterator.hasNext()) {
+    BytesWritable writable=iterator.next();
+    byte[] valueBytes=writable.getBytes();
+    if (this.nodeId == -1)     this.nodeId=ByteUtils.readInt(valueBytes,0);
+    if (this.partitionId == -1)     this.partitionId=ByteUtils.readInt(valueBytes,4);
+    if (this.chunkId == -1)     this.chunkId=ReadOnlyUtils.chunk(key.getBytes(),this.numChunks);
+    int valueLength=writable.getLength() - 8;
+    if (saveKeys) {
+      valueStream.write(valueBytes,8,valueLength);
     }
-    this.position+=valueLength;
-  }
  else {
-    this.valueFileStream.writeInt(valueLength);
-    this.valueFileStream.write(valueBytes,8,valueLength);
-    if (this.checkSumDigestValue != null) {
-      this.checkSumDigestValue.update(valueLength);
-      this.checkSumDigestValue.update(valueBytes,8,valueLength);
+      valueStream.write(valueLength);
+      valueStream.write(valueBytes,8,valueLength);
     }
-    this.position+=4 + valueLength;
+    numKeyValues++;
+    if (!saveKeys && numKeyValues > 1)     throw new VoldemortException("Duplicate keys detected for md5 sum " + ByteUtils.toHexString(ByteUtils.copy(key.getBytes(),0,key.getLength())));
+  }
+  if (saveKeys) {
+    this.valueFileStream.writeByte(numKeyValues);
+    this.position+=1;
+  }
+  this.valueFileStream.write(valueStream.toByteArray());
+  this.position+=valueStream.size();
+  if (this.checkSumDigestValue != null) {
+    this.checkSumDigestValue.update(valueStream.toByteArray());
   }
   if (this.position < 0)   throw new VoldemortException("Chunk overflow exception: chunk " + chunkId + " has exceeded "+ Integer.MAX_VALUE+ " bytes.");
-  if (iterator.hasNext())   throw new VoldemortException("Duplicate keys detected for md5 sum " + ByteUtils.toHexString(ByteUtils.copy(key.getBytes(),0,key.getLength())));
 }
