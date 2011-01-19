@@ -11,7 +11,7 @@
   rebalanceClientConfig.setMaxParallelRebalancing(2);
   final RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCluster,0),rebalanceClientConfig);
   populateData(updatedCluster,Arrays.asList(0),rebalanceClient.getAdminClient());
-  final SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(getBootstrapUrl(updatedCluster,0)).setSocketTimeout(120,TimeUnit.SECONDS));
+  final SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(getBootstrapUrl(updatedCluster,0)).setEnableLazy(false).setSocketTimeout(120,TimeUnit.SECONDS));
   final StoreClient<String,String> storeClient=new DefaultStoreClient<String,String>(testStoreNameRW,null,factory,3);
   final boolean[] masterNodeResponded={false,false};
   executors.execute(new Runnable(){
