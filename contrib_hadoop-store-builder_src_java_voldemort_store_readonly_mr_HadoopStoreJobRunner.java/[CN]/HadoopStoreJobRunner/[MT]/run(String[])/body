@@ -5,7 +5,7 @@
     printUsage(parser,null);
     System.exit(0);
   }
-  Set<String> missing=CmdUtils.missing(options,"input","output","mapper","cluster","storedefinitions","storename","chunksize");
+  Set<String> missing=CmdUtils.missing(options,"input","output","mapper","cluster","storedefinitions","storename","chunksize","tmpdir");
   if (missing.size() > 0) {
     System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing) + "\n");
     printUsage(parser,null);
@@ -25,6 +25,7 @@
   Path inputPath=new Path((String)options.valueOf("input"));
   Path tempDir=new Path((String)options.valueOf("tmpdir"));
   Path outputDir=new Path((String)options.valueOf("output"));
+  boolean saveKeys=options.has("save-keys");
   List<String> addJars=new ArrayList<String>();
   ClassLoader cl=Thread.currentThread().getContextClassLoader();
   if (options.has("jar")) {
@@ -53,7 +54,7 @@
   CheckSumType checkSumType=CheckSumType.toType(CmdUtils.valueOf(options,"checksum",""));
   Class[] deps=new Class[]{ImmutableCollection.class,JDOMException.class,VoldemortConfig.class,HadoopStoreJobRunner.class,mapperClass};
   addDepJars(conf,deps,addJars);
-  HadoopStoreBuilder builder=new HadoopStoreBuilder(conf,mapperClass,inputFormatClass,cluster,storeDef,chunkSizeBytes,tempDir,outputDir,inputPath,checkSumType);
+  HadoopStoreBuilder builder=new HadoopStoreBuilder(conf,mapperClass,inputFormatClass,cluster,storeDef,chunkSizeBytes,tempDir,outputDir,inputPath,checkSumType,saveKeys);
   builder.build();
   return 0;
 }

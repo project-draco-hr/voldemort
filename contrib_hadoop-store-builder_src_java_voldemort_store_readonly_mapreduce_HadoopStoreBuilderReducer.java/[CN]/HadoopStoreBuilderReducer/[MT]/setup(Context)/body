@@ -8,6 +8,7 @@
     this.checkSumType=CheckSum.fromString(conf.get("checksum.type"));
     this.checkSumDigestIndex=CheckSum.getInstance(checkSumType);
     this.checkSumDigestValue=CheckSum.getInstance(checkSumType);
+    this.saveKeys=conf.getBoolean("save.keys",false);
     List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new StringReader(conf.get("stores.xml")));
     if (storeDefs.size() != 1)     throw new IllegalStateException("Expected to find only a single store, but found multiple!");
     String storeName=storeDefs.get(0).getName();
