@@ -1,0 +1,21 @@
+{
+  if (!hasNext())   throw new VoldemortException("Reached the end");
+  try {
+    ByteBuffer sizeBuffer=ByteBuffer.allocate(4);
+    chunkedFileSet.dataFileFor(currentChunk).read(sizeBuffer,currentOffsetInChunk);
+    int keySize=sizeBuffer.getInt(0);
+    sizeBuffer.clear();
+    chunkedFileSet.dataFileFor(currentChunk).read(sizeBuffer,currentOffsetInChunk + 4 + keySize);
+    int valueSize=sizeBuffer.getInt(0);
+    ByteBuffer keyBuffer=ByteBuffer.allocate(keySize);
+    chunkedFileSet.dataFileFor(currentChunk).read(keyBuffer,currentOffsetInChunk + 4);
+    ByteBuffer valueBuffer=ByteBuffer.allocate(valueSize);
+    chunkedFileSet.dataFileFor(currentChunk).read(valueBuffer,currentOffsetInChunk + 4 + keySize+ 4);
+    updateOffset(currentOffsetInChunk + 4 + 4+ keySize+ valueSize);
+    return Pair.create(new ByteArray(keyBuffer.array()),Versioned.value(valueBuffer.array()));
+  }
+ catch (  IOException e) {
+    logger.error(e);
+    throw new VoldemortException(e);
+  }
+}
