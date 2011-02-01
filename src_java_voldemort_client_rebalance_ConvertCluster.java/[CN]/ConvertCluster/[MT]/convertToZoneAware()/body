@@ -1,0 +1,25 @@
+{
+  List<Node> newNodes=Lists.newArrayList();
+  int origNodes=cluster.getNumberOfNodes() / 2;
+  for (int nodeId=0; nodeId < origNodes; nodeId++) {
+    List<Integer> secondPartitions=Lists.newArrayList();
+    List<Integer> firstPartitions=Lists.newArrayList();
+    List<Integer> partitions=Lists.newArrayList(cluster.getNodeById(nodeId).getPartitionIds());
+    partitions.addAll(cluster.getNodeById(origNodes + nodeId).getPartitionIds());
+    Collections.shuffle(partitions);
+    int numPartitionsPerZone=partitions.size() / 2;
+    if (numPartitionsPerZone <= 0)     throw new IllegalStateException("Invalid number of partitions");
+    for (int i=0; i < numPartitionsPerZone; i++)     firstPartitions.add(partitions.get(i));
+    for (int i=numPartitionsPerZone; i < partitions.size(); i++)     secondPartitions.add(partitions.get(i));
+    newNodes.add(new Node(cluster.getNodeById(nodeId).getId(),cluster.getNodeById(nodeId).getHost(),cluster.getNodeById(nodeId).getHttpPort(),cluster.getNodeById(nodeId).getSocketPort(),cluster.getNodeById(nodeId).getAdminPort(),cluster.getNodeById(nodeId).getZoneId(),firstPartitions));
+    newNodes.add(new Node(cluster.getNodeById(nodeId + origNodes).getId(),cluster.getNodeById(nodeId + origNodes).getHost(),cluster.getNodeById(nodeId + origNodes).getHttpPort(),cluster.getNodeById(nodeId + origNodes).getSocketPort(),cluster.getNodeById(nodeId + origNodes).getAdminPort(),cluster.getNodeById(nodeId + origNodes).getZoneId(),secondPartitions));
+  }
+  Cluster newCluster=new Cluster(cluster.getName(),newNodes,Lists.<Zone>newArrayList(cluster.getZones()));
+  RebalanceClusterPlan plan=new RebalanceClusterPlan(cluster,newCluster,storeDefs,false,null);
+  System.out.println(plan);
+  for (  StoreDefinition def : storeDefs) {
+    System.out.println("Store: " + def);
+    KeyDistributionGenerator.printDistribution((KeyDistributionGenerator.generateDistribution(newCluster,def,10000)));
+  }
+  return newCluster;
+}
