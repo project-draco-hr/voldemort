@@ -21,6 +21,27 @@
  else         if (status.getPath().getName().contains(".metadata")) {
           File copyLocation=new File(dest,status.getPath().getName());
           copyFileWithCheckSum(fs,status.getPath(),copyLocation,stats,null);
+          ReadOnlyStorageMetadata metadata;
+          try {
+            metadata=new ReadOnlyStorageMetadata(copyLocation);
+          }
+ catch (          IOException e) {
+            logger.error("Error reading metadata file ",e);
+            throw new VoldemortException(e);
+          }
+          String checkSumTypeString=(String)metadata.get(ReadOnlyStorageMetadata.CHECKSUM_TYPE);
+          if (checkSumTypeString != null) {
+            try {
+              origCheckSum=Hex.decodeHex(((String)metadata.get(ReadOnlyStorageMetadata.CHECKSUM)).toCharArray());
+            }
+ catch (            DecoderException e) {
+              logger.error("Exception reading checksum file. Ignoring checksum ",e);
+              continue;
+            }
+            checkSumType=CheckSum.fromString(checkSumTypeString);
+            checkSumGenerator=CheckSum.getInstance(checkSumType);
+            fileCheckSumGenerator=CheckSum.getInstance(checkSumType);
+          }
         }
  else         if (!status.getPath().getName().startsWith(".")) {
           File copyLocation=new File(dest,status.getPath().getName());
@@ -35,6 +56,7 @@
         return (ByteUtils.compare(newCheckSum,origCheckSum) == 0);
       }
  else {
+        logger.info("Completed reading all files. No check-sum verification required");
         return true;
       }
     }

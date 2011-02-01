@@ -24,12 +24,8 @@
   ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata(metadataFile);
   if (saveKeys)   Assert.assertEquals(metadata.get(ReadOnlyStorageMetadata.FORMAT),ReadOnlyStorageFormat.READONLY_V2.getCode());
  else   Assert.assertEquals(metadata.get(ReadOnlyStorageMetadata.FORMAT),ReadOnlyStorageFormat.READONLY_V1.getCode());
-  File checkSumFile=new File(nodeFile,"md5checkSum.txt");
-  Assert.assertTrue(checkSumFile.exists());
-  byte[] md5=new byte[16];
-  DataInputStream in=new DataInputStream(new FileInputStream(checkSumFile));
-  in.read(md5);
-  in.close();
+  Assert.assertEquals(metadata.get(ReadOnlyStorageMetadata.CHECKSUM_TYPE),CheckSum.toString(CheckSumType.MD5));
+  byte[] md5=Hex.decodeHex(((String)metadata.get(ReadOnlyStorageMetadata.CHECKSUM)).toCharArray());
   byte[] checkSumBytes=CheckSumTests.calculateCheckSum(nodeFile.listFiles(),CheckSumType.MD5);
   Assert.assertEquals(0,ByteUtils.compare(checkSumBytes,md5));
   HdfsFetcher fetcher=new HdfsFetcher();

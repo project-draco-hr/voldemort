@@ -26,6 +26,13 @@
     numKeyValues++;
     if (!saveKeys && numKeyValues > 1)     throw new VoldemortException("Duplicate keys detected for md5 sum " + ByteUtils.toHexString(ByteUtils.copy(key.getBytes(),0,key.getLength())));
   }
+  if (numKeyValues > 1) {
+    context.getCounter(CollisionCounter.NUM_COLLISIONS).increment(1);
+    long numCollisions=context.getCounter(CollisionCounter.MAX_COLLISIONS).getValue();
+    if (numKeyValues > numCollisions) {
+      context.getCounter(CollisionCounter.MAX_COLLISIONS).increment(numKeyValues - numCollisions);
+    }
+  }
   if (saveKeys) {
     byte[] numBuf=new byte[1];
     numBuf[0]=(byte)numKeyValues;
