@@ -70,10 +70,13 @@ if (!(storesKeyFile.exists() && storesKeyFile.canRead())) {
   continue;
 }
 FileInputStream reader=null;
-SocketStoreClientFactory socketFactory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(url));
-StoreClient storeClient=socketFactory.getStoreClient(storeDef.getName());
-DefaultSerializerFactory factory=new DefaultSerializerFactory();
-Serializer<?> keySerializer=factory.getSerializer(storeDef.getKeySerializer());
+SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
+RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+RequestRoutingType requestRoutingType=RequestRoutingType.getRequestRoutingType(false,false);
+HashMap<Integer,Store<ByteArray,byte[],byte[]>> socketStoresPerNode=Maps.newHashMap();
+for (Node node : cluster.getNodes()) {
+socketStoresPerNode.put(node.getId(),socketStoreFactory.create(storeDef.getName(),node.getHost(),node.getSocketPort(),RequestFormatType.VOLDEMORT_V1,requestRoutingType));
+}
 long foundKeys=0L;
 long totalKeys=0L;
 try {
@@ -85,10 +88,15 @@ break;
 }
 byte[] key=new byte[size];
 reader.read(key);
-Versioned<Object> value=storeClient.get(keySerializer.toObject(key));
-if (value != null) {
-foundKeys++;
+List<Node> responsibleNodes=strategy.routeRequest(key);
+boolean missingKey=false;
+for (Node node : responsibleNodes) {
+List<Versioned<byte[]>> value=socketStoresPerNode.get(node.getId()).get(new ByteArray(key),null);
+if (value == null || value.size() == 0) {
+missingKey=true;
 }
+}
+if (!missingKey) foundKeys++;
 totalKeys++;
 }
 System.out.println("Found = " + foundKeys + " Total = "+ totalKeys);
@@ -98,6 +106,9 @@ System.out.println("%age found - " + (double)100 * (foundKeys / totalKeys));
 }
   finally {
 if (reader != null) reader.close();
+for (Store<ByteArray,byte[],byte[]> store : socketStoresPerNode.values()) {
+store.close();
+}
 }
 break;
 }
