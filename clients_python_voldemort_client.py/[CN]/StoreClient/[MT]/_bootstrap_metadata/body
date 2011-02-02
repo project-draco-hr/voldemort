@@ -1,4 +1,4 @@
-def _bootstrap_metadata(self, bootstrap_urls):
+def _bootstrap_metadata(self, bootstrap_urls, store_name):
     random.shuffle(bootstrap_urls)
     for (host, port) in bootstrap_urls:
         logging.debug(((('Attempting to bootstrap metadata from ' + host) + ':') + str(port)))
@@ -12,8 +12,8 @@ def _bootstrap_metadata(self, bootstrap_urls):
                 nodes = Node.parse_cluster(cluster_xmls[0][0])
                 logging.debug((((((('Bootstrap from ' + host) + ':') + str(port)) + ' succeeded, found ') + str(len(nodes))) + ' nodes.'))
                 stores_xml = self._get_with_connection(connection, 'metadata', 'stores.xml', should_route=False)[0][0]
-                stores = Store.parse_stores_xml(stores_xml)
-                return (nodes, stores)
+                store = Store.parse_stores_xml(stores_xml, store_name)
+                return (nodes, store)
             except socket.error as (err_num, message):
                 logging.warn(((((('Metadata bootstrap from ' + host) + ':') + str(port)) + ' failed: ') + message))
         finally:
