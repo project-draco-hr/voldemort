@@ -1,5 +1,9 @@
 @staticmethod
-def parse_stores_xml(xml):
+def parse_stores_xml(xml, store_name):
     doc = minidom.parseString(xml)
-    stores = [Store(store_node) for store_node in doc.getElementsByTagName('store')]
-    return dict(((store.name, store) for store in stores))
+    store_nodes = doc.getElementsByTagName('store')
+    for store_node in store_nodes:
+        name = _child_text(store_node, 'name')
+        if (name == store_name):
+            return Store(store_node)
+    return None
