@@ -63,11 +63,18 @@
       }
       for (int storeNo=1; storeNo <= numStores; storeNo++) {
         for (int i=0; i < NUM_KEYS; i++) {
-          if (storeClients[storeNo - 1].get("key" + i,null) == null) {
+          Versioned<String> value=null;
+          try {
+            value=storeClients[storeNo - 1].get("key" + i,null);
+          }
+ catch (          Exception e) {
+            value=storeClients[storeNo - 1].get("key" + i,null);
+          }
+          if (value == null) {
             Assert.fail("Should not have happened for key" + i + " => "+ beforeStrategy[storeNo - 1].getPartitionList(new String("key" + i).getBytes())+ " => "+ afterStrategy[storeNo - 1].getPartitionList(new String("key" + i).getBytes()));
           }
  else {
-            Assert.assertEquals(storeClients[storeNo - 1].get("key" + i,null).getValue(),"value" + i + "_"+ 2);
+            Assert.assertEquals(value.getValue(),"value" + i + "_"+ 2);
           }
         }
       }
