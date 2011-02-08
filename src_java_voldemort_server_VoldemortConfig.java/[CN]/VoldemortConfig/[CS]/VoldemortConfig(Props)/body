@@ -21,6 +21,8 @@
   this.bdbCleanerMinFileUtilization=props.getInt("bdb.cleaner.min.file.utilization",5);
   this.bdbCleanerMinUtilization=props.getInt("bdb.cleaner.minUtilization",50);
   this.bdbCleanerThreads=props.getInt("bdb.cleaner.threads",1);
+  this.bdbCleanerLookAheadCacheSize=props.getInt("bdb.cleaner.lookahead.cache.size",8192);
+  this.bdbLockTimeoutMs=props.getLong("bdb.lock.timeout.ms",500);
   this.bdbCursorPreload=props.getBoolean("bdb.cursor.preload",false);
   this.readOnlyBackups=props.getInt("readonly.backups",1);
   this.readOnlySearchStrategy=props.getString("readonly.search.strategy",BinarySearchStrategy.class.getName());
@@ -58,6 +60,7 @@
   this.enableJmx=props.getBoolean("jmx.enable",true);
   this.enablePipelineRoutedStore=props.getBoolean("enable.pipeline.routed.store",true);
   this.enableSlop=props.getBoolean("slop.enable",true);
+  this.enableSlopPusherJob=props.getBoolean("slop.pusher.enable",true);
   this.slopMaxWriteBytesPerSec=props.getBytes("slop.write.byte.per.sec",10 * 1000 * 1000);
   this.enableVerboseLogging=props.getBoolean("enable.verbose.logging",true);
   this.enableStatTracking=props.getBoolean("enable.stat.tracking",true);
@@ -66,9 +69,9 @@
   this.enableRedirectRouting=props.getBoolean("enable.redirect.routing",true);
   this.enableGossip=props.getBoolean("enable.gossip",false);
   this.enableRebalanceService=props.getBoolean("enable.rebalancing",true);
+  this.enableGrandfather=props.getBoolean("enable.grandfather",true);
   this.enableRepair=props.getBoolean("enable.repair",false);
   this.gossipInterval=props.getInt("gossip.interval.ms",30 * 1000);
-  this.enableSlop=props.getBoolean("slop.enable",true);
   this.slopMaxWriteBytesPerSec=props.getBytes("slop.write.byte.per.sec",10 * 1000 * 1000);
   this.slopMaxReadBytesPerSec=props.getBytes("slop.read.byte.per.sec",10 * 1000 * 1000);
   this.slopStoreType=props.getString("slop.store.engine",BdbStorageConfiguration.TYPE_NAME);
@@ -78,7 +81,7 @@
   this.pusherType=props.getString("pusher.type",StreamingSlopPusherJob.TYPE_NAME);
   this.slopZonesDownToTerminate=props.getInt("slop.zones.terminate",0);
   this.schedulerThreads=props.getInt("scheduler.threads",6);
-  this.numCleanupPermits=props.getInt("num.cleanup.permits",1);
+  this.numScanPermits=props.getInt("num.scan.permits",1);
   this.storageConfigurations=props.getList("storage.configs",ImmutableList.of(BdbStorageConfiguration.class.getName(),MysqlStorageConfiguration.class.getName(),InMemoryStorageConfiguration.class.getName(),CacheStorageConfiguration.class.getName(),ReadOnlyStorageConfiguration.class.getName()));
   this.retentionCleanupFirstStartTimeInHour=props.getInt("retention.cleanup.first.start.hour",0);
   this.retentionCleanupScheduledPeriodInHour=props.getInt("retention.cleanup.period.hours",24);

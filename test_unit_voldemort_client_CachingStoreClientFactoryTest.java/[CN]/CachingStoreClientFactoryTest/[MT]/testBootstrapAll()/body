@@ -1,0 +1,20 @@
+{
+  StoreClientFactory inner=new MockStoreClientFactory(new StringSerializer(),new StringSerializer(),null);
+  final DefaultStoreClient<Object,Object> aStoreClient=spy((DefaultStoreClient<Object,Object>)inner.getStoreClient("test1"));
+  final DefaultStoreClient<Object,Object> bStoreClient=spy((DefaultStoreClient<Object,Object>)inner.getStoreClient("test2"));
+  StoreClientFactory mocked=mock(StoreClientFactory.class);
+  if (useLazy) {
+    when(mocked.<Object,Object>getStoreClient("test1")).thenReturn(createLazyStoreClient(aStoreClient));
+    when(mocked.<Object,Object>getStoreClient("test2")).thenReturn(createLazyStoreClient(bStoreClient));
+  }
+ else {
+    when(mocked.<Object,Object>getStoreClient("test1")).thenReturn(aStoreClient);
+    when(mocked.<Object,Object>getStoreClient("test2")).thenReturn(bStoreClient);
+  }
+  CachingStoreClientFactory cachingFactory=new CachingStoreClientFactory(mocked);
+  cachingFactory.getStoreClient("test1");
+  cachingFactory.getStoreClient("test2");
+  cachingFactory.bootstrapAllClients();
+  verify(aStoreClient,times(1)).bootStrap();
+  verify(bStoreClient,times(1)).bootStrap();
+}

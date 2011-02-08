@@ -1,0 +1,32 @@
+{
+  List<Node> nodes=Lists.newArrayList();
+  List<Node> zoneNodes=Lists.newArrayList();
+  int[] freePorts=ServerTestUtils.findFreePorts(3 * NUM_NODES);
+  List<Zone> zones=ServerTestUtils.getZones(NUM_ZONES);
+  for (int i=0; i < NUM_NODES; i++) {
+    nodes.add(new Node(i,"localhost",freePorts[3 * i],freePorts[3 * i + 1],freePorts[3 * i + 2],Lists.newArrayList(i,i + NUM_NODES)));
+    if (i < NUM_NODES / 2)     zoneNodes.add(new Node(i,"localhost",freePorts[3 * i],freePorts[3 * i + 1],freePorts[3 * i + 2],0,Lists.newArrayList(i,i + NUM_NODES)));
+ else     zoneNodes.add(new Node(i,"localhost",freePorts[3 * i],freePorts[3 * i + 1],freePorts[3 * i + 2],1,Lists.newArrayList(i,i + NUM_NODES)));
+  }
+  consistentRoutingCluster=new Cluster("consistent",nodes);
+  zoneRoutingCluster=new Cluster("zone1",zoneNodes,zones);
+  nodes=Lists.newArrayList(RebalanceUtils.createUpdatedCluster(consistentRoutingCluster,nodes.get(NUM_NODES - 1),nodes.get(0),Lists.newArrayList(0)).getNodes());
+  zoneNodes=Lists.newArrayList();
+  for (  Node node : nodes) {
+    if (node.getId() < NUM_NODES / 2)     zoneNodes.add(new Node(node.getId(),node.getHost(),node.getHttpPort(),node.getSocketPort(),node.getAdminPort(),0,node.getPartitionIds()));
+ else     zoneNodes.add(new Node(node.getId(),node.getHost(),node.getHttpPort(),node.getSocketPort(),node.getAdminPort(),1,node.getPartitionIds()));
+  }
+  zoneRoutingClusterModified=new Cluster("zone2",zoneNodes,zones);
+  HashMap<Integer,Integer> zoneReplicationFactors=Maps.newHashMap();
+  for (int zoneIds=0; zoneIds < NUM_ZONES; zoneIds++) {
+    zoneReplicationFactors.put(zoneIds,1);
+  }
+  beforeStoreDef=ServerTestUtils.getStoreDef("consistent_to_zone_store",1,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY);
+  afterStoreDef=ServerTestUtils.getStoreDef("consistent_to_zone_store",2,1,1,1,0,0,zoneReplicationFactors,HintedHandoffStrategyType.PROXIMITY_STRATEGY,RoutingStrategyType.ZONE_STRATEGY);
+  voldemortServer=new VoldemortServer[NUM_NODES];
+  for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
+    voldemortServer[nodeId]=startServer(nodeId,Lists.newArrayList(beforeStoreDef),consistentRoutingCluster);
+  }
+  voldemortConfig=ServerTestUtils.getVoldemortConfig();
+  adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,consistentRoutingCluster,1,1);
+}

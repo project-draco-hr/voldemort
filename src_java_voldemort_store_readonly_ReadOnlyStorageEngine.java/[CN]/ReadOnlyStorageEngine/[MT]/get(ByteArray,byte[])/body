@@ -7,9 +7,9 @@
       logger.warn("Invalid chunk id returned. Either routing strategy is inconsistent or storage format not understood");
       return Collections.emptyList();
     }
-    int location=searchStrategy.indexOf(fileSet.indexFileFor(chunk),ByteUtils.md5(key.get()),fileSet.getIndexFileSize(chunk));
+    int location=searchStrategy.indexOf(fileSet.indexFileFor(chunk),fileSet.keyToStorageFormat(key.get()),fileSet.getIndexFileSize(chunk));
     if (location >= 0) {
-      byte[] value=readValue(chunk,location);
+      byte[] value=fileSet.readValue(key.get(),chunk,location);
       return Collections.singletonList(Versioned.value(value));
     }
  else {

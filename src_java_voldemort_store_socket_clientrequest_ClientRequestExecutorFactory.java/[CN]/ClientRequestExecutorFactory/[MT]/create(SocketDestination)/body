@@ -9,27 +9,33 @@
   socketChannel.socket().setKeepAlive(this.socketKeepAlive);
   socketChannel.configureBlocking(false);
   socketChannel.connect(new InetSocketAddress(dest.getHost(),dest.getPort()));
-  long finishConnectTimeoutMs=System.currentTimeMillis() + connectTimeoutMs;
+  long startTime=System.currentTimeMillis();
+  long duration=0;
+  long currWaitTime=1;
+  long prevWaitTime=1;
   while (!socketChannel.finishConnect()) {
-    long diff=finishConnectTimeoutMs - System.currentTimeMillis();
-    if (diff < 0) {
+    duration=System.currentTimeMillis() - startTime;
+    long remaining=this.connectTimeoutMs - duration;
+    if (remaining < 0) {
       try {
         socketChannel.close();
       }
  catch (      Exception e) {
         if (logger.isEnabledFor(Level.WARN))         logger.warn(e,e);
       }
-      throw new ConnectException("Cannot connect socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " after "+ connectTimeoutMs+ " ms");
+      throw new ConnectException("Cannot connect socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " after "+ duration+ " ms");
     }
-    if (logger.isTraceEnabled())     logger.trace("Still creating socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ ", "+ diff+ " ms. remaining to connect");
+    if (logger.isTraceEnabled())     logger.trace("Still creating socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ ", "+ remaining+ " ms. remaining to connect");
     try {
-      Thread.sleep(connectTimeoutMs / 10);
+      Thread.sleep(Math.min(remaining,currWaitTime));
+      currWaitTime=Math.min(currWaitTime + prevWaitTime,50);
+      prevWaitTime=currWaitTime - prevWaitTime;
     }
  catch (    InterruptedException e) {
       if (logger.isEnabledFor(Level.WARN))       logger.warn(e,e);
     }
   }
-  if (logger.isDebugEnabled())   logger.debug("Created socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " using protocol "+ dest.getRequestFormatType().getCode());
+  if (logger.isDebugEnabled())   logger.debug("Created socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " using protocol "+ dest.getRequestFormatType().getCode()+ " after "+ duration+ " ms.");
   if (socketChannel.socket().getReceiveBufferSize() != this.socketBufferSize)   logger.debug("Requested socket receive buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getReceiveBufferSize()+ " bytes.");
   if (socketChannel.socket().getSendBufferSize() != this.socketBufferSize)   logger.debug("Requested socket send buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getSendBufferSize()+ " bytes.");
   ClientRequestSelectorManager selectorManager=selectorManagers[counter.getAndIncrement() % selectorManagers.length];

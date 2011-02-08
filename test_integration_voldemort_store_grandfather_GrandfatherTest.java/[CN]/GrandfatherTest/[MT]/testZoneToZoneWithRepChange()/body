@@ -1,0 +1,12 @@
+{
+  for (int zoneIds=0; zoneIds < NUM_ZONES; zoneIds++) {
+    zoneReplicationFactors.put(zoneIds,1);
+  }
+  StoreDefinition beforeStoreDef=ServerTestUtils.getStoreDef("test1",1,1,1,1,0,0,zoneReplicationFactors,HintedHandoffStrategyType.PROXIMITY_STRATEGY,RoutingStrategyType.ZONE_STRATEGY);
+  zoneReplicationFactors=Maps.newHashMap();
+  for (int zoneIds=0; zoneIds < NUM_ZONES; zoneIds++) {
+    zoneReplicationFactors.put(zoneIds,2);
+  }
+  StoreDefinition afterStoreDef=ServerTestUtils.getStoreDef("test1",1,1,1,1,0,0,zoneReplicationFactors,HintedHandoffStrategyType.PROXIMITY_STRATEGY,RoutingStrategyType.ZONE_STRATEGY);
+  test(zoneRoutingCluster,zoneRoutingClusterModified,Lists.newArrayList(beforeStoreDef),Lists.newArrayList(afterStoreDef));
+}

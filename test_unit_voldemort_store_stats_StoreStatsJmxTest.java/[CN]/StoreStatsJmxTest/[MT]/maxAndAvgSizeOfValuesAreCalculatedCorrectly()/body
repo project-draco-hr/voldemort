@@ -1,0 +1,24 @@
+{
+  for (  Tracked op : EnumSet.of(GET,GET_ALL,PUT)) {
+    StoreStats stats=new StoreStats();
+    StoreStatsJmx jmx=new StoreStatsJmx(stats);
+    long[] valueSizes=new long[]{100,450,200,300};
+    long sum=0l;
+    long max=valueSizes[0];
+    final long timeNS=1 * NS_PER_MS;
+    for (    long v : valueSizes) {
+      if (op == GET)       stats.recordGetTime(timeNS,false,v);
+ else       if (op == GET_ALL)       stats.recordGetAllTime(timeNS,1,1,v);
+ else       stats.recordPutTimeAndSize(timeNS,v);
+      sum+=v;
+      max=Math.max(max,v);
+    }
+    double average=sum / (double)valueSizes.length;
+    assertEquals(op == PUT ? max : 0,jmx.getMaxPutSizeInBytes());
+    assertEquals(op == PUT ? average : 0,jmx.getAveragePutSizeInBytes(),0.0);
+    assertEquals(op == GET ? max : 0,jmx.getMaxGetSizeInBytes());
+    assertEquals(op == GET ? average : 0,jmx.getAverageGetSizeInBytes(),0.0);
+    assertEquals(op == GET_ALL ? max : 0,jmx.getMaxGetAllSizeInBytes());
+    assertEquals(op == GET_ALL ? average : 0,jmx.getAverageGetAllSizeInBytes(),0.0);
+  }
+}

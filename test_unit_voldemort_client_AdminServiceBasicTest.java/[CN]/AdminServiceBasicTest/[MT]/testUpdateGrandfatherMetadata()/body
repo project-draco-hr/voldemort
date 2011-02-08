@@ -1,0 +1,28 @@
+{
+  AdminClient client=getAdminClient();
+  HashMap<String,String> roToDir=new HashMap<String,String>();
+  roToDir.put("a","b");
+  roToDir.put("c","d");
+  roToDir.put("e","f");
+  List<RebalancePartitionsInfo> rebalancePartitionsInfos=Arrays.asList(new RebalancePartitionsInfo(2,0,Arrays.asList(1,2,3,4),Arrays.asList(0,1),Arrays.asList(0,1,2),Arrays.asList("test1","test2"),roToDir,roToDir,0),new RebalancePartitionsInfo(3,1,Arrays.asList(5,6,7,8),new ArrayList<Integer>(0),new ArrayList<Integer>(0),Arrays.asList("test1","test2"),new HashMap<String,String>(),new HashMap<String,String>(),0));
+  Versioned<String> currentState=client.getRemoteMetadata(getVoldemortServer(0).getIdentityNode().getId(),MetadataStore.SERVER_STATE_KEY);
+  assertEquals(getVoldemortServer(0).getMetadataStore().getGrandfatherState(),new GrandfatherState(new ArrayList<RebalancePartitionsInfo>()));
+  Versioned<String> updatedState=client.updateGrandfatherMetadata(getVoldemortServer(0).getIdentityNode().getId(),rebalancePartitionsInfos);
+  assertEquals(updatedState.getValue(),MetadataStore.VoldemortState.GRANDFATHERING_SERVER.toString());
+  assertEquals(updatedState.getVersion().compare(currentState.getVersion()),Occured.AFTER);
+  assertEquals(getVoldemortServer(0).getMetadataStore().getServerState(),MetadataStore.VoldemortState.GRANDFATHERING_SERVER);
+  assertEquals(getVoldemortServer(0).getMetadataStore().getGrandfatherState(),new GrandfatherState(rebalancePartitionsInfos));
+  try {
+    client.updateGrandfatherMetadata(getVoldemortServer(0).getIdentityNode().getId(),new ArrayList<RebalancePartitionsInfo>());
+    Assert.fail("Should have thrown an exception");
+  }
+ catch (  Exception e) {
+  }
+  assertEquals(getVoldemortServer(0).getMetadataStore().getServerState(),MetadataStore.VoldemortState.GRANDFATHERING_SERVER);
+  assertEquals(getVoldemortServer(0).getMetadataStore().getGrandfatherState(),new GrandfatherState(rebalancePartitionsInfos));
+  VectorClock updatedVectorClock=((VectorClock)updatedState.getVersion()).incremented(getVoldemortServer(0).getIdentityNode().getId(),System.currentTimeMillis());
+  adminClient.updateRemoteMetadata(getVoldemortServer(0).getIdentityNode().getId(),MetadataStore.SERVER_STATE_KEY,Versioned.value(MetadataStore.VoldemortState.NORMAL_SERVER.toString(),updatedVectorClock));
+  assertEquals(getVoldemortServer(0).getMetadataStore().getServerState(),MetadataStore.VoldemortState.NORMAL_SERVER);
+  Versioned<String> newState=client.getRemoteMetadata(getVoldemortServer(0).getIdentityNode().getId(),MetadataStore.SERVER_STATE_KEY);
+  assertTrue(((VectorClock)newState.getVersion()).equals(updatedVectorClock));
+}

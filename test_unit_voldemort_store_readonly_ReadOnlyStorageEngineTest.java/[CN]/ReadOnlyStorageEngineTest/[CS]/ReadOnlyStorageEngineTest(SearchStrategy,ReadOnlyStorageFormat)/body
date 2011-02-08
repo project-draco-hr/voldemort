@@ -7,5 +7,16 @@
   Cluster cluster=ServerTestUtils.getLocalCluster(1);
   this.node=cluster.getNodeById(0);
   this.storageType=storageType;
-  this.routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+switch (this.storageType) {
+case READONLY_V0:
+case READONLY_V1:
+    this.indexEntrySize=20;
+  break;
+case READONLY_V2:
+this.indexEntrySize=8;
+break;
+default :
+throw new VoldemortException("Unsupported storage format type");
+}
+this.routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
 }

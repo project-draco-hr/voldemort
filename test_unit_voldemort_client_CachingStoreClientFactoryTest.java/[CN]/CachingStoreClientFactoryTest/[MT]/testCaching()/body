@@ -1,0 +1,14 @@
+{
+  StoreClientFactory inner=new MockStoreClientFactory(new StringSerializer(),new StringSerializer(),null);
+  StoreClientFactory spyFactory=spy(inner);
+  StoreClientFactory cachingFactory=new CachingStoreClientFactory(spyFactory);
+  TimeBasedInconsistencyResolver<Object> resolver=new TimeBasedInconsistencyResolver<Object>();
+  when(spyFactory.<Object,Object>getStoreClient(anyString())).thenCallRealMethod();
+  when(spyFactory.<Object,Object>getStoreClient(anyString(),eq(resolver))).thenCallRealMethod();
+  for (int i=0; i < 10; i++) {
+    assertNotNull(cachingFactory.getStoreClient("foo"));
+    assertNotNull(cachingFactory.getStoreClient("foo",resolver));
+  }
+  verify(spyFactory,times(1)).getStoreClient("foo");
+  verify(spyFactory,times(2)).getStoreClient("foo",resolver);
+}

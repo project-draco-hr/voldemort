@@ -1,0 +1,12 @@
+{
+  RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,newCluster);
+  ListMultimap<Integer,Integer> newMasterToReplicas=createMasterToReplicas(newCluster,routingStrategy);
+  Multimap<Integer,Integer> remappedReplicas=ArrayListMultimap.create();
+  for (  int partition : ArrayListMultimap.create(newMasterToReplicas).keySet()) {
+    List<Integer> oldReplicas=masterToReplicas.get(partition);
+    List<Integer> newReplicas=newMasterToReplicas.get(partition);
+    newReplicas.removeAll(oldReplicas);
+    if (newReplicas.size() > 0)     remappedReplicas.putAll(partition,newReplicas);
+  }
+  return remappedReplicas;
+}

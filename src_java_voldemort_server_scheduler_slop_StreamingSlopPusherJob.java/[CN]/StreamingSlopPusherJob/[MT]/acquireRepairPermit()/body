@@ -2,8 +2,10 @@
   logger.info("Acquiring lock to perform streaming slop pusher job ");
   try {
     this.repairPermits.acquire();
+    logger.info("Acquired lock to perform streaming slop pusher job ");
   }
  catch (  InterruptedException e) {
+    stopAdminClient();
     throw new IllegalStateException("Streaming slop pusher job interrupted while waiting for permit.",e);
   }
 }

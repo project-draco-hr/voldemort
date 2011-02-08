@@ -1,0 +1,10 @@
+{
+  RequestCounter rc=getTestRequestCounter();
+  assertEquals(0,rc.getMaxLatencyInMs());
+  for (  long duration : new long[]{22,99,33,0}) {
+    rc.addRequest(duration * NS_PER_MS);
+  }
+  assertEquals(99,rc.getMaxLatencyInMs());
+  rc.addRequest(523 * NS_PER_MS,1,0,0);
+  assertEquals(523,rc.getMaxLatencyInMs());
+}

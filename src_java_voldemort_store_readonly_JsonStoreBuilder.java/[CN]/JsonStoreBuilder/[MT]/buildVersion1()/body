@@ -1,5 +1,5 @@
 {
-  logger.info("Building store " + storeDefinition.getName() + " for "+ cluster.getNumberOfPartitions()+ " partitions with "+ numChunks+ " chunks per partitions.");
+  logger.info("Building store " + storeDefinition.getName() + " for "+ cluster.getNumberOfPartitions()+ " partitions with "+ numChunks+ " chunks per partitions and type "+ ReadOnlyStorageFormat.READONLY_V1);
   int numNodes=cluster.getNumberOfNodes();
   DataOutputStream[][] indexes=new DataOutputStream[numNodes][];
   DataOutputStream[][] datas=new DataOutputStream[numNodes][];
@@ -42,13 +42,12 @@
     for (    Integer partitionId : partitionIds) {
       int localChunkId=ReadOnlyUtils.chunk(keyMd5,numChunks);
       int chunk=localChunkId + partitionIdToChunkOffset[partitionId];
-      int numBytes=pair.getValue().length;
       int nodeId=partitionIdToNodeId[partitionId];
-      datas[nodeId][chunk].writeInt(numBytes);
+      datas[nodeId][chunk].writeInt(pair.getValue().length);
       datas[nodeId][chunk].write(pair.getValue());
       indexes[nodeId][chunk].write(keyMd5);
       indexes[nodeId][chunk].writeInt(positions[nodeId][chunk]);
-      positions[nodeId][chunk]+=numBytes + 4;
+      positions[nodeId][chunk]+=pair.getValue().length + 4;
       checkOverFlow(chunk,positions[nodeId][chunk]);
     }
     count++;

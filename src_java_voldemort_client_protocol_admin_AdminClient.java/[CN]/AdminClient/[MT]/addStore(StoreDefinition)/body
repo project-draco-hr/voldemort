@@ -3,8 +3,9 @@
   VAdminProto.AddStoreRequest.Builder addStoreRequest=VAdminProto.AddStoreRequest.newBuilder().setStoreDefinition(value);
   VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.ADD_STORE).setAddStore(addStoreRequest).build();
   for (  Node node : currentCluster.getNodes()) {
+    logger.info("Adding on node " + node.getHost() + ":"+ node.getId());
     VAdminProto.AddStoreResponse.Builder response=sendAndReceive(node.getId(),request,VAdminProto.AddStoreResponse.newBuilder());
     if (response.hasError())     throwException(response.getError());
-    logger.info("Added on node " + node.getHost());
+    logger.info("Successfully added on node " + node.getHost() + ":"+ node.getId());
   }
 }

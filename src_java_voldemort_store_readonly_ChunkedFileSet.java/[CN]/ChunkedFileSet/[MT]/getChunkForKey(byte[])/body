@@ -2,14 +2,15 @@
 switch (storageFormat) {
 case READONLY_V0:
 {
-      return ReadOnlyUtils.chunk(ByteUtils.md5(key),numChunks);
+      return ReadOnlyUtils.chunk(keyToStorageFormat(key),numChunks);
     }
 case READONLY_V1:
+case READONLY_V2:
 {
     List<Integer> partitionList=routingStrategy.getPartitionList(key);
     partitionList.retainAll(partitionIds);
     if (partitionList.size() != 1)     return -1;
-    Integer chunkId=ReadOnlyUtils.chunk(ByteUtils.md5(key),partitionToNumChunks.get(partitionList.get(0)));
+    Integer chunkId=ReadOnlyUtils.chunk(keyToStorageFormat(key),partitionToNumChunks.get(partitionList.get(0)));
     return partitionToChunkStart.get(partitionList.get(0)) + chunkId;
   }
 default :

@@ -10,7 +10,15 @@
   try {
     List<StoreDefinition> storeDefList=getRemoteStoreDefList(nodeId).getValue();
     Cluster cluster=getRemoteCluster(nodeId).getValue();
-    List<StoreDefinition> writableStores=RebalanceUtils.getWritableStores(storeDefList);
+    List<StoreDefinition> writableStores=Lists.newArrayList();
+    for (    StoreDefinition def : storeDefList) {
+      if (def.isView() || restoreStoreEngineBlackList.contains(def.getType())) {
+        logger.info("Ignoring store " + def.getName() + " for restoring");
+      }
+ else {
+        writableStores.add(def);
+      }
+    }
     for (    StoreDefinition def : writableStores) {
       restoreStoreFromReplication(nodeId,cluster,def,executors);
     }
