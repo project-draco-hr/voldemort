@@ -19,6 +19,7 @@
           input.close();
         }
  else         if (status.getPath().getName().contains(".metadata")) {
+          logger.debug("Reading .metadata");
           File copyLocation=new File(dest,status.getPath().getName());
           copyFileWithCheckSum(fs,status.getPath(),copyLocation,stats,null);
           ReadOnlyStorageMetadata metadata;
@@ -39,6 +40,7 @@
               logger.error("Exception reading checksum file. Ignoring checksum ",e);
               continue;
             }
+            logger.debug("Checksum from .metadata " + new String(Hex.encodeHex(origCheckSum)));
             checkSumType=CheckSum.fromString(checkSumTypeString);
             checkSumGenerator=CheckSum.getInstance(checkSumType);
             fileCheckSumGenerator=CheckSum.getInstance(checkSumType);
@@ -48,7 +50,9 @@
           File copyLocation=new File(dest,status.getPath().getName());
           copyFileWithCheckSum(fs,status.getPath(),copyLocation,stats,fileCheckSumGenerator);
           if (fileCheckSumGenerator != null && checkSumGenerator != null) {
-            checkSumGenerator.update(fileCheckSumGenerator.getCheckSum());
+            byte[] checkSum=fileCheckSumGenerator.getCheckSum();
+            logger.debug("Checksum for " + status.getPath() + " - "+ new String(Hex.encodeHex(checkSum)));
+            checkSumGenerator.update(checkSum);
           }
         }
       }
