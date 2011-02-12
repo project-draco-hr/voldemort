@@ -1,6 +1,7 @@
 {
   String name=store.getChildText(STORE_NAME_ELMT);
   String targetName=store.getChildText(VIEW_TARGET_ELMT);
+  String description=store.getChildText(STORE_DESCRIPTION_ELMT);
   StoreDefinition target=StoreUtils.getStoreDef(stores,targetName);
   if (target == null)   throw new MappingException("View \"" + name + "\" has target store \""+ targetName+ "\" but no such store exists");
   int requiredReads=getChildWithDefault(store,STORE_REQUIRED_READS_ELMT,target.getRequiredReads());
@@ -19,5 +20,5 @@
   RoutingTier policy=target.getRoutingPolicy();
   if (store.getChild(STORE_ROUTING_STRATEGY) != null)   policy=RoutingTier.fromDisplay(store.getChildText(STORE_ROUTING_STRATEGY));
   String viewClass=store.getChildText(VIEW_TRANS_ELMT);
-  return new StoreDefinitionBuilder().setName(name).setViewOf(targetName).setType(ViewStorageConfiguration.TYPE_NAME).setRoutingPolicy(policy).setRoutingStrategyType(target.getRoutingStrategyType()).setKeySerializer(keySerializer).setValueSerializer(valueSerializer).setTransformsSerializer(transformSerializer).setReplicationFactor(target.getReplicationFactor()).setPreferredReads(preferredReads).setRequiredReads(requiredReads).setPreferredWrites(preferredWrites).setRequiredWrites(requiredWrites).setView(viewClass).setSerializerFactory(viewSerializerFactoryName).build();
+  return new StoreDefinitionBuilder().setName(name).setViewOf(targetName).setType(ViewStorageConfiguration.TYPE_NAME).setDescription(description).setRoutingPolicy(policy).setRoutingStrategyType(target.getRoutingStrategyType()).setKeySerializer(keySerializer).setValueSerializer(valueSerializer).setTransformsSerializer(transformSerializer).setReplicationFactor(target.getReplicationFactor()).setPreferredReads(preferredReads).setRequiredReads(requiredReads).setPreferredWrites(preferredWrites).setRequiredWrites(requiredWrites).setView(viewClass).setSerializerFactory(viewSerializerFactoryName).build();
 }
