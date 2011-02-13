@@ -12,7 +12,7 @@
   parser.accepts("io-buffer-size","size of i/o buffers in bytes").withRequiredArg().ofType(Integer.class);
   parser.accepts("temp-dir","temporary directory for sorted file pieces").withRequiredArg().describedAs("temp dir");
   parser.accepts("gzip","compress intermediate chunk files");
-  parser.accepts("format","read-only store format [" + ReadOnlyStorageFormat.READONLY_V0.getCode() + ","+ ReadOnlyStorageFormat.READONLY_V1.getCode()+ " (default)]").withRequiredArg().ofType(String.class);
+  parser.accepts("format","read-only store format [" + ReadOnlyStorageFormat.READONLY_V0.getCode() + ","+ ReadOnlyStorageFormat.READONLY_V1.getCode()+ ","+ ReadOnlyStorageFormat.READONLY_V2.getCode()+ "]").withRequiredArg().ofType(String.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     parser.printHelpOn(System.out);
@@ -45,7 +45,7 @@
       if (def.getName().equals(storeName))       storeDef=def;
     }
     if (storeDef == null)     Utils.croak("No store found with name \"" + storeName + "\"");
-    if (!outputDir.exists())     Utils.croak("Directory \"" + outputDir.getAbsolutePath() + " does not exist.");
+    if (!outputDir.exists())     Utils.croak("Directory \"" + outputDir.getAbsolutePath() + "\" does not exist.");
     RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
     new JsonStoreBuilder(reader,cluster,storeDef,routingStrategy,outputDir,tempDir,sortBufferSize,numThreads,chunks,ioBufferSize,gzipIntermediate).build(storageFormat);
   }
