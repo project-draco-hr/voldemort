@@ -10,13 +10,6 @@
       CheckSum fileCheckSumGenerator=null;
       for (      FileStatus status : statuses) {
         if (status.getPath().getName().contains("checkSum.txt")) {
-          checkSumType=CheckSum.fromString(status.getPath().getName());
-          checkSumGenerator=CheckSum.getInstance(checkSumType);
-          fileCheckSumGenerator=CheckSum.getInstance(checkSumType);
-          FSDataInputStream input=fs.open(status.getPath());
-          origCheckSum=new byte[CheckSum.checkSumLength(checkSumType)];
-          input.read(origCheckSum);
-          input.close();
         }
  else         if (status.getPath().getName().contains(".metadata")) {
           logger.debug("Reading .metadata");
