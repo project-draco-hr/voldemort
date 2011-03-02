@@ -1,6 +1,9 @@
 {
   String jsonSchema="{\"name\": \"Kind\", \"type\": \"enum\", \"symbols\": [\"FOO\",\"BAR\",\"BAZ\"]}";
   AvroGenericSerializer serializer=new AvroGenericSerializer(jsonSchema);
+  byte[] bytes2=serializer.toBytes("BAR");
   byte[] bytes=serializer.toBytes("BAR");
-  assertTrue(serializer.toObject(bytes).equals("BAR"));
+  assertEquals(ByteUtils.compare(bytes,bytes2),0);
+  assertTrue(serializer.toObject(bytes2).toString().equals("BAR"));
+  assertTrue(serializer.toObject(bytes).toString().equals("BAR"));
 }

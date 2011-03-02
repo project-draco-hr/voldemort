@@ -1,16 +1,17 @@
 {
   ByteArrayOutputStream output=new ByteArrayOutputStream();
-  DataFileWriter<T> writer=null;
+  Encoder encoder=new BinaryEncoder(output);
+  SpecificDatumWriter<T> datumWriter=null;
   try {
-    DatumWriter<T> datumWriter=new SpecificDatumWriter<T>(clazz);
-    writer=new DataFileWriter<T>(datumWriter).create(SpecificData.get().getSchema(clazz),output);
-    writer.append(object);
+    datumWriter=new SpecificDatumWriter<T>(clazz);
+    datumWriter.write(object,encoder);
+    encoder.flush();
   }
  catch (  IOException e) {
     throw new SerializationException(e);
   }
  finally {
-    AvroUtils.close(writer);
+    SerializationUtils.close(output);
   }
   return output.toByteArray();
 }
