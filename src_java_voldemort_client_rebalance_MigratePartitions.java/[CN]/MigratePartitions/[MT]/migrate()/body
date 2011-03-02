@@ -4,6 +4,12 @@
     return;
   }
   logger.info("Changing state of donor nodes " + donorNodePlans.keySet());
+  int i=0;
+  for (  Map.Entry<Integer,List<RebalancePartitionsInfo>> entry : donorNodePlans.entrySet()) {
+    i+=entry.getValue().size();
+  }
+  final int total=i;
+  final AtomicInteger completed=new AtomicInteger(0);
   try {
     changeToGrandfather();
     final CountDownLatch latch=new CountDownLatch(stealerNodeIds.size());
@@ -25,11 +31,30 @@
                 logger.info("-- Started migration for donor node id " + r);
                 if (!simulation)                 nodeIdToRequestId.put(r.getDonorId(),adminClient.migratePartitions(r.getDonorId(),stealerNodeId,storeName,r.getPartitionList(),null));
               }
-              for (              int nodeId : nodeIdToRequestId.keySet()) {
-                adminClient.waitForCompletion(stealerNodeId,nodeIdToRequestId.get(nodeId),voldemortConfig.getRebalancingTimeout(),TimeUnit.SECONDS);
-                logger.info("-- Completed migration for donor node id " + nodeId);
+              Set<Integer> pending=Sets.newHashSet(nodeIdToRequestId.keySet());
+              while (!pending.isEmpty()) {
+                for (                int nodeId : nodeIdToRequestId.keySet()) {
+                  AsyncOperationStatus status=adminClient.getAsyncRequestStatus(stealerNodeId,nodeIdToRequestId.get(nodeId));
+                  logger.info("Status from node " + nodeId + " ("+ status.getDescription()+ ") - "+ status.getStatus());
+                  if (status.isComplete()) {
+                    if (pending.contains(nodeId)) {
+                      logger.info("-- Completed migration from " + nodeId + " to "+ +stealerNodeId);
+                      pending.remove(nodeId);
+                      logger.info("Finished " + completed.getAndIncrement() + " out of "+ total+ " tasks");
+                    }
+                    if (pending.isEmpty())                     break;
+                  }
+                  try {
+                    Thread.sleep(30000);
+                  }
+ catch (                  InterruptedException e) {
+                    logger.error(e,e);
+                    throw new VoldemortException(e);
+                  }
+                }
               }
             }
+            logger.info("Finished migrating to " + stealerNodeId);
             logger.info("===============================================");
           }
   finally {
