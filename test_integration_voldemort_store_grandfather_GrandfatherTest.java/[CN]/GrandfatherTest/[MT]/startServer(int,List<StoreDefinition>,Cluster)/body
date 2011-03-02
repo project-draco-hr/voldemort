@@ -2,7 +2,10 @@
   VoldemortConfig config=ServerTestUtils.createServerConfigWithDefs(false,nodeId,TestUtils.createTempDir().getAbsolutePath(),cluster,storeDef,new Properties());
   config.setGrandfather(true);
   config.setSlopFrequencyMs(10000);
+  config.setBdbLockTimeoutMs(1500);
   config.setBdbFairLatches(true);
+  config.setBdbLockNLockTables(53);
+  config.setMaxThreads(50);
   VoldemortServer server=new VoldemortServer(config);
   server.start();
   serverMap.put(nodeId,server);
