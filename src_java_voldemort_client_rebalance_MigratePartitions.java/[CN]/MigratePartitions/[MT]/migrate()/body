@@ -33,6 +33,7 @@
               Set<Pair<Integer,Integer>> pending=Sets.newHashSet();
               for (              RebalancePartitionsInfo r : partitionInfo) {
                 logger.info("-- Started migration from donorId " + r.getDonorId() + " to "+ stealerNodeId);
+                logger.info(r);
                 if (!simulation) {
                   int attemptId=adminClient.migratePartitions(r.getDonorId(),stealerNodeId,storeName,r.getPartitionList(),null);
                   nodeIdToRequestId.put(r.getDonorId(),attemptId);
@@ -44,6 +45,7 @@
                 Set<Pair<Integer,Integer>> currentPending=ImmutableSet.copyOf(pending);
                 for (                Pair<Integer,Integer> pair : currentPending) {
                   AsyncOperationStatus status=adminClient.getAsyncRequestStatus(stealerNodeId,pair.getSecond());
+                  logger.info("Status of move from " + pair.getFirst() + " to "+ stealerNodeId+ ": "+ status.getStatus());
                   if (status.hasException()) {
                     throw new VoldemortException(status.getException());
                   }
