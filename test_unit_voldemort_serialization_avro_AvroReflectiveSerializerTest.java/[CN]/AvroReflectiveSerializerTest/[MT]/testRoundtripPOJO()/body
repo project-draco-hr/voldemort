@@ -2,8 +2,11 @@
   POJO pojo=new POJO();
   pojo.setDistance(1.2);
   pojo.setPoint(1);
-  pojo.setName(new Utf8("name"));
+  pojo.setName("name");
   AvroReflectiveSerializer<POJO> serializer=new AvroReflectiveSerializer<POJO>("java=" + AvroReflectiveSerializerTest.class.getCanonicalName() + "$POJO");
   byte[] bytes=serializer.toBytes(pojo);
+  byte[] bytes2=serializer.toBytes(pojo);
+  assertEquals(ByteUtils.compare(bytes,bytes2),0);
   assertTrue("A roundtripping should be possible",serializer.toObject(bytes).equals(pojo));
+  assertTrue("A roundtripping should be possible",serializer.toObject(bytes2).equals(pojo));
 }

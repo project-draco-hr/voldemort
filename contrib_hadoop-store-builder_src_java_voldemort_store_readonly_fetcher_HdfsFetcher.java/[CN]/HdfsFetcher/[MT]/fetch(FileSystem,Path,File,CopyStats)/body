@@ -10,15 +10,9 @@
       CheckSum fileCheckSumGenerator=null;
       for (      FileStatus status : statuses) {
         if (status.getPath().getName().contains("checkSum.txt")) {
-          checkSumType=CheckSum.fromString(status.getPath().getName());
-          checkSumGenerator=CheckSum.getInstance(checkSumType);
-          fileCheckSumGenerator=CheckSum.getInstance(checkSumType);
-          FSDataInputStream input=fs.open(status.getPath());
-          origCheckSum=new byte[CheckSum.checkSumLength(checkSumType)];
-          input.read(origCheckSum);
-          input.close();
         }
  else         if (status.getPath().getName().contains(".metadata")) {
+          logger.debug("Reading .metadata");
           File copyLocation=new File(dest,status.getPath().getName());
           copyFileWithCheckSum(fs,status.getPath(),copyLocation,stats,null);
           ReadOnlyStorageMetadata metadata;
@@ -39,6 +33,7 @@
               logger.error("Exception reading checksum file. Ignoring checksum ",e);
               continue;
             }
+            logger.debug("Checksum from .metadata " + new String(Hex.encodeHex(origCheckSum)));
             checkSumType=CheckSum.fromString(checkSumTypeString);
             checkSumGenerator=CheckSum.getInstance(checkSumType);
             fileCheckSumGenerator=CheckSum.getInstance(checkSumType);
@@ -48,7 +43,9 @@
           File copyLocation=new File(dest,status.getPath().getName());
           copyFileWithCheckSum(fs,status.getPath(),copyLocation,stats,fileCheckSumGenerator);
           if (fileCheckSumGenerator != null && checkSumGenerator != null) {
-            checkSumGenerator.update(fileCheckSumGenerator.getCheckSum());
+            byte[] checkSum=fileCheckSumGenerator.getCheckSum();
+            logger.debug("Checksum for " + status.getPath() + " - "+ new String(Hex.encodeHex(checkSum)));
+            checkSumGenerator.update(checkSum);
           }
         }
       }
@@ -56,6 +53,8 @@
       if (checkSumType != CheckSumType.NONE) {
         byte[] newCheckSum=checkSumGenerator.getCheckSum();
         boolean checkSumComparison=(ByteUtils.compare(newCheckSum,origCheckSum) == 0);
+        logger.info("Checksum generated from streaming - " + new String(Hex.encodeHex(newCheckSum)));
+        logger.info("Checksum on file - " + new String(Hex.encodeHex(origCheckSum)));
         logger.info("Check-sum verification - " + checkSumComparison);
         return checkSumComparison;
       }

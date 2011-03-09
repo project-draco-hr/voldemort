@@ -6,5 +6,8 @@
   req.serverHash=new MD5();
   AvroSpecificSerializer<HandshakeRequest> serializer=new AvroSpecificSerializer<HandshakeRequest>(className);
   byte[] bytes=serializer.toBytes(req);
+  byte[] bytes2=serializer.toBytes(req);
+  assertEquals(ByteUtils.compare(bytes,bytes2),0);
   assertTrue(serializer.toObject(bytes).equals(req));
+  assertTrue(serializer.toObject(bytes2).equals(req));
 }

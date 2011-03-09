@@ -1,12 +1,15 @@
 {
   String name=store.getChildText(STORE_NAME_ELMT);
   String targetName=store.getChildText(VIEW_TARGET_ELMT);
+  String description=store.getChildText(STORE_DESCRIPTION_ELMT);
   StoreDefinition target=StoreUtils.getStoreDef(stores,targetName);
   if (target == null)   throw new MappingException("View \"" + name + "\" has target store \""+ targetName+ "\" but no such store exists");
   int requiredReads=getChildWithDefault(store,STORE_REQUIRED_READS_ELMT,target.getRequiredReads());
   int preferredReads=getChildWithDefault(store,STORE_PREFERRED_READS_ELMT,target.getRequiredReads());
   int requiredWrites=getChildWithDefault(store,STORE_REQUIRED_WRITES_ELMT,target.getRequiredReads());
   int preferredWrites=getChildWithDefault(store,STORE_PREFERRED_WRITES_ELMT,target.getRequiredReads());
+  Integer zoneCountReads=getChildWithDefault(store,STORE_ZONE_COUNT_READS,target.getZoneCountReads());
+  Integer zoneCountWrites=getChildWithDefault(store,STORE_ZONE_COUNT_WRITES,target.getZoneCountWrites());
   String viewSerializerFactoryName=null;
   if (store.getChildText(VIEW_SERIALIZER_FACTORY_ELMT) != null) {
     viewSerializerFactoryName=store.getChild(VIEW_SERIALIZER_FACTORY_ELMT).getText();
@@ -16,8 +19,13 @@
   if (store.getChild(STORE_VALUE_SERIALIZER_ELMT) != null)   valueSerializer=readSerializer(store.getChild(STORE_VALUE_SERIALIZER_ELMT));
   SerializerDefinition transformSerializer=target.getTransformsSerializer();
   if (store.getChild(STORE_TRANSFORM_SERIALIZER_ELMT) != null)   transformSerializer=readSerializer(store.getChild(STORE_TRANSFORM_SERIALIZER_ELMT));
-  RoutingTier policy=target.getRoutingPolicy();
-  if (store.getChild(STORE_ROUTING_STRATEGY) != null)   policy=RoutingTier.fromDisplay(store.getChildText(STORE_ROUTING_STRATEGY));
+  RoutingTier routingTier=null;
+  if (store.getChildText(STORE_ROUTING_TIER_ELMT) != null) {
+    routingTier=RoutingTier.fromDisplay(store.getChildText(STORE_ROUTING_TIER_ELMT));
+  }
+ else {
+    routingTier=target.getRoutingPolicy();
+  }
   String viewClass=store.getChildText(VIEW_TRANS_ELMT);
-  return new StoreDefinitionBuilder().setName(name).setViewOf(targetName).setType(ViewStorageConfiguration.TYPE_NAME).setRoutingPolicy(policy).setRoutingStrategyType(target.getRoutingStrategyType()).setKeySerializer(keySerializer).setValueSerializer(valueSerializer).setTransformsSerializer(transformSerializer).setReplicationFactor(target.getReplicationFactor()).setPreferredReads(preferredReads).setRequiredReads(requiredReads).setPreferredWrites(preferredWrites).setRequiredWrites(requiredWrites).setView(viewClass).setSerializerFactory(viewSerializerFactoryName).build();
+  return new StoreDefinitionBuilder().setName(name).setViewOf(targetName).setType(ViewStorageConfiguration.TYPE_NAME).setDescription(description).setRoutingPolicy(routingTier).setRoutingStrategyType(target.getRoutingStrategyType()).setKeySerializer(keySerializer).setValueSerializer(valueSerializer).setTransformsSerializer(transformSerializer).setReplicationFactor(target.getReplicationFactor()).setZoneReplicationFactor(target.getZoneReplicationFactor()).setPreferredReads(preferredReads).setRequiredReads(requiredReads).setPreferredWrites(preferredWrites).setRequiredWrites(requiredWrites).setZoneCountReads(zoneCountReads).setZoneCountWrites(zoneCountWrites).setView(viewClass).setSerializerFactory(viewSerializerFactoryName).build();
 }
