@@ -70,6 +70,7 @@
           }
  catch (          Exception e) {
             logger.error(e,e);
+            while (latch.getCount() > 0)             latch.countDown();
             executor.shutdownNow();
             throw new VoldemortException(e);
           }
@@ -93,7 +94,7 @@
       }
  catch (      InterruptedException e) {
         logger.error(e,e);
-        Thread.currentThread().interrupt();
+        throw new VoldemortException(e);
       }
  finally {
         if (donorStates != null && transitionToNormal) {
