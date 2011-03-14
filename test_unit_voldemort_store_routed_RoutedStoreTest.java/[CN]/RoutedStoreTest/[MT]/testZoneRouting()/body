@@ -5,7 +5,7 @@
   zoneReplicationFactor.put(1,2);
   long start;
   Versioned<byte[]> versioned=new Versioned<byte[]>(new byte[]{1});
-  Store<ByteArray,byte[],byte[]> s1=getStore(cluster,1,1,0,0,8,null,Sets.newHashSet(4,5,6,7),zoneReplicationFactor,RoutingStrategyType.ZONE_STRATEGY,81,60,new VoldemortException());
+  Store<ByteArray,byte[],byte[]> s1=getStore(cluster,1,1,0,0,8,null,Sets.newHashSet(4,5,6,7),zoneReplicationFactor,RoutingStrategyType.ZONE_STRATEGY,SLEEPY_TIME,OPERATION_TIMEOUT,new VoldemortException());
   start=System.nanoTime();
   try {
     s1.put(new ByteArray("test".getBytes()),versioned,null);
@@ -34,6 +34,7 @@
     long elapsed=(System.nanoTime() - start) / Time.NS_PER_MS;
     assertTrue(elapsed + " < " + 81,elapsed < 81);
   }
+  Thread.sleep(BANNAGE_PERIOD * 2);
   start=System.nanoTime();
   try {
     s1.delete(new ByteArray("test".getBytes()),versioned.getVersion());
@@ -42,12 +43,13 @@
     long elapsed=(System.nanoTime() - start) / Time.NS_PER_MS;
     assertTrue(elapsed + " < " + 81,elapsed < 81);
   }
+  Thread.sleep(SLEEPY_TIME);
   List<ByteArray> keys=Lists.newArrayList(new ByteArray("test".getBytes()),new ByteArray("test2".getBytes()));
   Map<ByteArray,List<Versioned<byte[]>>> values=s1.getAll(keys,null);
-  for (  ByteArray key : values.keySet()) {
-    ByteUtils.compare(values.get(key).get(0).getValue(),new byte[]{1});
-  }
-  Store<ByteArray,byte[],byte[]> s2=getStore(cluster,1,1,1,1,8,null,Sets.newHashSet(4,5,6,7),zoneReplicationFactor,RoutingStrategyType.ZONE_STRATEGY,81,1000,new VoldemortException());
+  List<Versioned<byte[]>> results=values.get(new ByteArray("test".getBytes()));
+  assertEquals("\'test\' did not get deleted.",0,results.size());
+  ByteUtils.compare(values.get(new ByteArray("test2".getBytes())).get(0).getValue(),new byte[]{1});
+  Store<ByteArray,byte[],byte[]> s2=getStore(cluster,1,1,1,1,8,null,Sets.newHashSet(4,5,6,7),zoneReplicationFactor,RoutingStrategyType.ZONE_STRATEGY,SLEEPY_TIME,1000,new VoldemortException());
   start=System.nanoTime();
   try {
     s2.put(new ByteArray("test".getBytes()),versioned,null);
@@ -71,14 +73,13 @@
   }
   try {
     s2.delete(new ByteArray("test".getBytes()),null);
-    fail("Should have shown exception");
   }
  catch (  InsufficientZoneResponsesException e) {
   }
   values=s2.getAll(keys,null);
-  for (  ByteArray key : values.keySet()) {
-    ByteUtils.compare(values.get(key).get(0).getValue(),new byte[]{1});
-  }
+  results=values.get(new ByteArray("test".getBytes()));
+  assertEquals("\'test\' did not get deleted.",0,results.size());
+  ByteUtils.compare(values.get(new ByteArray("test2".getBytes())).get(0).getValue(),new byte[]{1});
   Store<ByteArray,byte[],byte[]> s3=getStore(cluster,1,1,0,0,8,Sets.newHashSet(4,5,6,7),null,zoneReplicationFactor,RoutingStrategyType.ZONE_STRATEGY,81,1000,new VoldemortException());
   start=System.nanoTime();
   try {
