@@ -12,9 +12,6 @@
         if (logger.isTraceEnabled())         logger.trace(pipeline.getOperation().getSimpleName() + " response received (" + requestTime+ " ms.) from node "+ node.getId());
         Response<ByteArray,Object> response=new Response<ByteArray,Object>(node,key,result,requestTime);
         responses.put(node.getId(),response);
-        if (Pipeline.Operation.DELETE == pipeline.getOperation()) {
-          throw new RuntimeException("Delete is performed by get request");
-        }
         latch.countDown();
         if (pipeline.isFinished() && response.getValue() instanceof Exception)         handleResponseError(response,pipeline,failureDetector);
       }
