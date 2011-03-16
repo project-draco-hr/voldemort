@@ -2,9 +2,16 @@
   new Thread(new Runnable(){
     public void run(){
       try {
-        logger.info("Deleting file " + file);
+        try {
+          logger.info("Waiting for " + deleteBackupMs + " milliseconds before deleting "+ file.getAbsolutePath());
+          Thread.sleep(deleteBackupMs);
+        }
+ catch (        InterruptedException e) {
+          logger.warn("Did not sleep enough before deleting backups");
+        }
+        logger.info("Deleting file " + file.getAbsolutePath());
         Utils.rm(file);
-        logger.info("Delete completed successfully.");
+        logger.info("Deleting of " + file.getAbsolutePath() + " completed successfully.");
       }
  catch (      Exception e) {
         logger.error(e);
