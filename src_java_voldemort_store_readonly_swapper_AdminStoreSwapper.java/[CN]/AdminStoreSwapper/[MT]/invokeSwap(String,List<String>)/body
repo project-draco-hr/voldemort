@@ -1,16 +1,31 @@
 {
-  Exception exception=null;
+  Map<Integer,String> previousDirs=new HashMap<Integer,String>();
+  HashMap<Integer,Exception> exceptions=Maps.newHashMap();
   for (int nodeId=0; nodeId < cluster.getNumberOfNodes(); nodeId++) {
     try {
       String dir=fetchFiles.get(nodeId);
       logger.info("Attempting swap for node " + nodeId + " dir = "+ dir);
-      adminClient.swapStore(nodeId,storeName,dir);
+      previousDirs.put(nodeId,adminClient.swapStore(nodeId,storeName,dir));
       logger.info("Swap succeeded for node " + nodeId);
     }
  catch (    Exception e) {
-      exception=e;
-      logger.error("Exception thrown during swap operation on node " + nodeId + ": ",e);
+      exceptions.put(nodeId,e);
     }
   }
-  if (exception != null)   throw new VoldemortException(exception);
+  if (!exceptions.isEmpty()) {
+    for (    int successfulNodeId : previousDirs.keySet()) {
+      try {
+        logger.info("Rolling back data on successful node " + successfulNodeId);
+        adminClient.rollbackStore(successfulNodeId,storeName,ReadOnlyUtils.getVersionId(new File(previousDirs.get(successfulNodeId))));
+        logger.info("Rollback succeeded for node " + successfulNodeId);
+      }
+ catch (      Exception e) {
+        logger.error("Exception thrown during rollback ( after swap ) operation on node " + successfulNodeId + ": ",e);
+      }
+    }
+    for (    int failedNodeId : exceptions.keySet()) {
+      logger.error("Error on node " + failedNodeId + " during swap : ",exceptions.get(failedNodeId));
+    }
+    throw new VoldemortException("Exception during swaps on nodes " + Joiner.on(',').join(exceptions.keySet()) + " failed");
+  }
 }

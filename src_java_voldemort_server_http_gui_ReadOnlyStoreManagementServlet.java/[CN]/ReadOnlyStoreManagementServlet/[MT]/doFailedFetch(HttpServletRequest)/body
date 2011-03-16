@@ -1,0 +1,16 @@
+{
+  String dir=getRequired(req,"dir");
+  String storeName=getRequired(req,"store");
+  try {
+    if (!Utils.isReadableDir(dir))     throw new ServletException("Could not read folder " + dir + " correctly to delete it");
+    ReadOnlyStorageEngine store=this.getStore(storeName);
+    if (store.getCurrentVersionId() == ReadOnlyUtils.getVersionId(new File(dir))) {
+      logger.warn("Cannot delete " + dir + " for "+ storeName+ " since it is the current dir");
+      return;
+    }
+    Utils.rm(new File(dir));
+  }
+ catch (  Exception e) {
+    throw new ServletException(e);
+  }
+}
