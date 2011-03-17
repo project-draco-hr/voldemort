@@ -3,15 +3,43 @@
   try {
     byte opCode=inputStream.readByte();
     inputStream.readUTF();
-    if (protocolVersion > 0)     inputStream.readBoolean();
+    if (protocolVersion > 0) {
+      boolean routed=inputStream.readBoolean();
+      if (logger.isDebugEnabled()) {
+        logger.debug("isRouted=" + routed);
+      }
+    }
+    if (protocolVersion > 1) {
+      int routingTypeCode=inputStream.readByte();
+      if (logger.isDebugEnabled()) {
+        logger.debug("routingTypeCode=" + routingTypeCode);
+      }
+    }
 switch (opCode) {
-case VoldemortOpCode.GET_OP_CODE:
 case VoldemortOpCode.GET_VERSION_OP_CODE:
       readKey(inputStream);
     break;
+case VoldemortOpCode.GET_OP_CODE:
+  readKey(inputStream);
+if (protocolVersion > 2) {
+  boolean hasTransform=inputStream.readBoolean();
+  if (hasTransform) {
+    readTransforms(inputStream);
+  }
+}
+break;
 case VoldemortOpCode.GET_ALL_OP_CODE:
-  int numKeys=inputStream.readInt();
+int numKeys=inputStream.readInt();
 for (int i=0; i < numKeys; i++) readKey(inputStream);
+if (protocolVersion > 2) {
+boolean hasTransform=inputStream.readBoolean();
+if (hasTransform) {
+int numTrans=inputStream.readInt();
+for (int i=0; i < numTrans; i++) {
+readTransforms(inputStream);
+}
+}
+}
 break;
 case VoldemortOpCode.PUT_OP_CODE:
 {
@@ -20,6 +48,12 @@ int dataSize=inputStream.readInt();
 int newPosition=buffer.position() + dataSize;
 if (newPosition > buffer.limit() || newPosition < 0) throw new Exception("Data inconsistency on put - dataSize: " + dataSize + ", position: "+ buffer.position()+ ", limit: "+ buffer.limit());
 buffer.position(newPosition);
+if (protocolVersion > 2) {
+boolean hasTransform=inputStream.readBoolean();
+if (hasTransform) {
+readTransforms(inputStream);
+}
+}
 break;
 }
 case VoldemortOpCode.DELETE_OP_CODE:
