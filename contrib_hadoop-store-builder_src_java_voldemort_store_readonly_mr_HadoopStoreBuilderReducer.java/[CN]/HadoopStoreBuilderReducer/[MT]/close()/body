@@ -4,15 +4,25 @@
   if (this.nodeId == -1 || this.chunkId == -1 || this.partitionId == -1) {
     return;
   }
+  if (getSaveKeys() && this.replicaType == -1) {
+    throw new RuntimeException("Could not read the replica type correctly for node " + nodeId + " ( partition - "+ this.partitionId+ ", chunk - "+ this.chunkId+ " )");
+  }
+  String fileName=null;
+  if (getSaveKeys()) {
+    fileName=new String(Integer.toString(this.partitionId) + "_" + Integer.toString(this.replicaType)+ "_"+ Integer.toString(this.chunkId));
+  }
+ else {
+    fileName=new String(Integer.toString(this.partitionId) + "_" + Integer.toString(this.chunkId));
+  }
   Path nodeDir=new Path(this.outputDir,"node-" + this.nodeId);
-  Path indexFile=new Path(nodeDir,this.partitionId + "_" + this.chunkId+ ".index");
-  Path valueFile=new Path(nodeDir,this.partitionId + "_" + this.chunkId+ ".data");
+  Path indexFile=new Path(nodeDir,fileName + ".index");
+  Path valueFile=new Path(nodeDir,fileName + ".data");
   FileSystem fs=indexFile.getFileSystem(this.conf);
   fs.mkdirs(nodeDir);
   if (this.checkSumType != CheckSumType.NONE) {
     if (this.checkSumDigestIndex != null && this.checkSumDigestValue != null) {
-      Path checkSumIndexFile=new Path(nodeDir,this.partitionId + "_" + this.chunkId+ ".index.checksum");
-      Path checkSumValueFile=new Path(nodeDir,this.partitionId + "_" + this.chunkId+ ".data.checksum");
+      Path checkSumIndexFile=new Path(nodeDir,fileName + ".index.checksum");
+      Path checkSumValueFile=new Path(nodeDir,fileName + ".data.checksum");
       FSDataOutputStream output=fs.create(checkSumIndexFile);
       output.write(this.checkSumDigestIndex.getCheckSum());
       output.close();
@@ -21,7 +31,7 @@
       output.close();
     }
  else {
-      throw new VoldemortException("Failed to open CheckSum digest");
+      throw new RuntimeException("Failed to open checksum digest for node " + nodeId + " ( partition - "+ this.partitionId+ " )");
     }
   }
   logger.info("Moving " + this.taskIndexFileName + " to "+ indexFile+ ".");

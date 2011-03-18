@@ -11,19 +11,26 @@
   while (iterator.hasNext()) {
     BytesWritable writable=iterator.next();
     byte[] valueBytes=writable.get();
-    if (this.nodeId == -1)     this.nodeId=ByteUtils.readInt(valueBytes,0);
-    if (this.partitionId == -1)     this.partitionId=ByteUtils.readInt(valueBytes,4);
-    if (this.chunkId == -1)     this.chunkId=ReadOnlyUtils.chunk(key.get(),this.numChunks);
-    int valueLength=writable.getSize() - 8;
-    if (saveKeys) {
-      valueStream.write(valueBytes,8,valueLength);
+    int offsetTillNow=0;
+    if (this.nodeId == -1)     this.nodeId=ByteUtils.readInt(valueBytes,offsetTillNow);
+    offsetTillNow+=ByteUtils.SIZE_OF_INT;
+    if (this.partitionId == -1)     this.partitionId=ByteUtils.readInt(valueBytes,offsetTillNow);
+    offsetTillNow+=ByteUtils.SIZE_OF_INT;
+    if (getSaveKeys()) {
+      if (this.replicaType == -1)       this.replicaType=(int)ByteUtils.readBytes(valueBytes,offsetTillNow,ByteUtils.SIZE_OF_BYTE);
+      offsetTillNow+=ByteUtils.SIZE_OF_BYTE;
+    }
+    if (this.chunkId == -1)     this.chunkId=ReadOnlyUtils.chunk(key.get(),getNumChunks());
+    int valueLength=writable.getSize() - offsetTillNow;
+    if (getSaveKeys()) {
+      valueStream.write(valueBytes,offsetTillNow,valueLength);
     }
  else {
       valueStream.writeInt(valueLength);
-      valueStream.write(valueBytes,8,valueLength);
+      valueStream.write(valueBytes,offsetTillNow,valueLength);
     }
     numKeyValues++;
-    if (!saveKeys && numKeyValues > 1)     throw new VoldemortException("Duplicate keys detected for md5 sum " + ByteUtils.toHexString(ByteUtils.copy(key.get(),0,key.getSize())));
+    if (!getSaveKeys() && numKeyValues > 1)     throw new VoldemortException("Duplicate keys detected for md5 sum " + ByteUtils.toHexString(ByteUtils.copy(key.get(),0,key.getSize())));
   }
   if (numKeyValues > 1) {
     reporter.incrCounter(CollisionCounter.NUM_COLLISIONS,1);
@@ -32,11 +39,11 @@
       reporter.incrCounter(CollisionCounter.MAX_COLLISIONS,numKeyValues - numCollisions);
     }
   }
-  if (saveKeys) {
-    byte[] numBuf=new byte[1];
-    numBuf[0]=(byte)numKeyValues;
+  if (getSaveKeys()) {
+    byte[] numBuf=new byte[ByteUtils.SIZE_OF_BYTE];
+    ByteUtils.writeBytes(numBuf,numKeyValues,0,ByteUtils.SIZE_OF_BYTE);
     this.valueFileStream.write(numBuf);
-    this.position+=1;
+    this.position+=ByteUtils.SIZE_OF_BYTE;
     if (this.checkSumDigestValue != null) {
       this.checkSumDigestValue.update(numBuf);
     }

@@ -1,5 +1,10 @@
 {
   int partitionId=ByteUtils.readInt(value.get(),4);
   int chunkId=ReadOnlyUtils.chunk(key.get(),getNumChunks());
-  return (partitionId * getNumChunks() + chunkId) % numReduceTasks;
+  if (getSaveKeys()) {
+    return ((partitionId * getNumChunks() * getStoreDef().getReplicationFactor()) + chunkId) % numReduceTasks;
+  }
+ else {
+    return (partitionId * getNumChunks() + chunkId) % numReduceTasks;
+  }
 }

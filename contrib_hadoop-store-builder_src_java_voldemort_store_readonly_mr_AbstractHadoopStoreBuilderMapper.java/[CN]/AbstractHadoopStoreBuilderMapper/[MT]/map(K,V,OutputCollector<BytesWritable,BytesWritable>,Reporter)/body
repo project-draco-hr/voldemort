@@ -11,24 +11,34 @@
   Node[] partitionToNode=routingStrategy.getPartitionToNode();
   byte[] outputValue;
   BytesWritable outputKey;
-  if (saveKeys) {
-    outputValue=new byte[valBytes.length + keyBytes.length + 4+ 4+ 4+ 4];
-    ByteUtils.writeInt(outputValue,keyBytes.length,4 + 4);
-    System.arraycopy(keyBytes,0,outputValue,4 + 4 + 4,keyBytes.length);
-    ByteUtils.writeInt(outputValue,valBytes.length,4 + 4 + 4+ keyBytes.length);
-    System.arraycopy(valBytes,0,outputValue,4 + 4 + 4+ keyBytes.length+ 4,valBytes.length);
+  int offsetTillNow=2 * ByteUtils.SIZE_OF_INT;
+  if (getSaveKeys()) {
+    outputValue=new byte[valBytes.length + keyBytes.length + ByteUtils.SIZE_OF_BYTE+ 4 * ByteUtils.SIZE_OF_INT];
+    offsetTillNow+=ByteUtils.SIZE_OF_BYTE;
+    ByteUtils.writeInt(outputValue,keyBytes.length,offsetTillNow);
+    offsetTillNow+=ByteUtils.SIZE_OF_INT;
+    System.arraycopy(keyBytes,0,outputValue,offsetTillNow,keyBytes.length);
+    offsetTillNow+=keyBytes.length;
+    ByteUtils.writeInt(outputValue,valBytes.length,offsetTillNow);
+    offsetTillNow+=ByteUtils.SIZE_OF_INT;
+    System.arraycopy(valBytes,0,outputValue,offsetTillNow,valBytes.length);
     outputKey=new BytesWritable(ByteUtils.copy(md5er.digest(keyBytes),0,2 * ByteUtils.SIZE_OF_INT));
   }
  else {
-    outputValue=new byte[valBytes.length + 4 + 4];
-    System.arraycopy(valBytes,0,outputValue,8,valBytes.length);
+    outputValue=new byte[valBytes.length + 2 * ByteUtils.SIZE_OF_INT];
+    System.arraycopy(valBytes,0,outputValue,offsetTillNow,valBytes.length);
     outputKey=new BytesWritable(md5er.digest(keyBytes));
   }
+  int replicaType=0;
   for (  Integer partition : partitionList) {
     ByteUtils.writeInt(outputValue,partitionToNode[partition].getId(),0);
-    ByteUtils.writeInt(outputValue,partition,4);
+    ByteUtils.writeInt(outputValue,partition,ByteUtils.SIZE_OF_INT);
+    if (getSaveKeys()) {
+      ByteUtils.writeBytes(outputValue,replicaType,2 * ByteUtils.SIZE_OF_INT,ByteUtils.SIZE_OF_BYTE);
+    }
     BytesWritable outputVal=new BytesWritable(outputValue);
     output.collect(outputKey,outputVal);
+    replicaType++;
   }
   md5er.reset();
 }

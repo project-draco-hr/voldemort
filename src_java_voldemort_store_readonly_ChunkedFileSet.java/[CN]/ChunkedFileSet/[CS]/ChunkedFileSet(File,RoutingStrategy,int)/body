@@ -19,8 +19,8 @@
   this.dataFileSizes=new ArrayList<Integer>();
   this.indexFiles=new ArrayList<MappedByteBuffer>();
   this.dataFiles=new ArrayList<FileChannel>();
-  this.partitionToChunkStart=new HashMap<Integer,Integer>();
-  this.partitionToNumChunks=new HashMap<Integer,Integer>();
+  this.chunkIdToChunkStart=new HashMap<Integer,Integer>();
+  this.chunkIdToNumChunks=new HashMap<Integer,Integer>();
   this.nodeId=nodeId;
   setRoutingStrategy(routingStrategy);
 switch (storageFormat) {
@@ -28,8 +28,10 @@ case READONLY_V0:
     initVersion0();
   break;
 case READONLY_V1:
+initVersion1();
+break;
 case READONLY_V2:
-initVersion12();
+initVersion2();
 break;
 default :
 throw new VoldemortException("Invalid chunked storage format type " + storageFormat);

@@ -1,0 +1,48 @@
+{
+  int globalChunkId=0;
+  if (this.partitionIds != null) {
+    for (int partitionIdsIndex=0; partitionIdsIndex < partitionIds.size(); partitionIdsIndex++) {
+      int partitionId=partitionIds.get(partitionIdsIndex);
+      for (int replicaType=0; replicaType < routingStrategy.getNumReplicas(); replicaType++) {
+        int chunkId=0;
+        while (true) {
+          String fileName=Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId);
+          File index=new File(baseDir,fileName + ".index");
+          File data=new File(baseDir,fileName + ".data");
+          if (!index.exists() && !data.exists()) {
+            if (chunkId == 0) {
+              try {
+                new File(baseDir,fileName + ".index").createNewFile();
+                new File(baseDir,fileName + ".data").createNewFile();
+                logger.info("No index or data files found, creating empty files for partition " + partitionId + " and replica type "+ replicaType);
+              }
+ catch (              IOException e) {
+                throw new VoldemortException("Error creating empty read-only files for partition " + partitionId + " and replica type "+ replicaType,e);
+              }
+            }
+ else {
+              break;
+            }
+          }
+ else           if (index.exists() ^ data.exists()) {
+            throw new VoldemortException("One of the following does not exist: " + index.toString() + " or "+ data.toString()+ ".");
+          }
+          if (chunkId == 0) {
+            chunkIdToChunkStart.put(partitionIdsIndex * routingStrategy.getNumReplicas() + replicaType,globalChunkId);
+          }
+          long indexLength=index.length();
+          long dataLength=data.length();
+          validateFileSizes(indexLength,dataLength);
+          indexFileSizes.add((int)indexLength);
+          dataFileSizes.add((int)dataLength);
+          dataFiles.add(openChannel(data));
+          indexFiles.add(mapFile(index));
+          chunkId++;
+          globalChunkId++;
+        }
+        chunkIdToNumChunks.put(partitionIdsIndex * routingStrategy.getNumReplicas() + replicaType,chunkId);
+      }
+    }
+    if (indexFileSizes.size() == 0)     throw new VoldemortException("No chunk files found in directory " + baseDir.toString());
+  }
+}

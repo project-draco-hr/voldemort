@@ -12,18 +12,20 @@
             try {
               new File(baseDir,fileName + ".index").createNewFile();
               new File(baseDir,fileName + ".data").createNewFile();
-              logger.info("No index or data files found, creating empty files for partition " + partitionId);
+              logger.info("No index or data files found, creating empty chunk files for partition " + partitionId);
             }
  catch (            IOException e) {
-              throw new VoldemortException("Error creating empty read-only files.",e);
+              throw new VoldemortException("Error creating empty read-only files for partition " + partitionId,e);
             }
           }
  else {
             break;
           }
         }
- else         if (index.exists() ^ data.exists())         throw new VoldemortException("One of the following does not exist: " + index.toString() + " and "+ data.toString()+ ".");
-        if (chunkId == 0)         partitionToChunkStart.put(partitionId,globalChunkId);
+ else         if (index.exists() ^ data.exists()) {
+          throw new VoldemortException("One of the following does not exist: " + index.toString() + " or "+ data.toString()+ ".");
+        }
+        if (chunkId == 0)         chunkIdToChunkStart.put(partitionId,globalChunkId);
         long indexLength=index.length();
         long dataLength=data.length();
         validateFileSizes(indexLength,dataLength);
@@ -34,8 +36,8 @@
         chunkId++;
         globalChunkId++;
       }
-      partitionToNumChunks.put(partitionId,chunkId);
+      chunkIdToNumChunks.put(partitionId,chunkId);
     }
-    if (indexFileSizes.size() == 0)     throw new VoldemortException("No data chunks found in directory " + baseDir.toString());
+    if (indexFileSizes.size() == 0)     throw new VoldemortException("No chunk files found in directory " + baseDir.toString());
   }
 }

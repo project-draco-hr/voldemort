@@ -5,17 +5,37 @@ case READONLY_V0:
       return ReadOnlyUtils.chunk(keyToStorageFormat(key),numChunks);
     }
 case READONLY_V1:
+{
+    List<Integer> routingPartitionList=routingStrategy.getPartitionList(key);
+    routingPartitionList.retainAll(partitionIds);
+    if (routingPartitionList.size() != 1) {
+      return -1;
+    }
+    return chunkIdToChunkStart.get(routingPartitionList.get(0)) + ReadOnlyUtils.chunk(keyToStorageFormat(key),chunkIdToNumChunks.get(routingPartitionList.get(0)));
+  }
 case READONLY_V2:
 {
-    List<Integer> partitionList=routingStrategy.getPartitionList(key);
-    partitionList.retainAll(partitionIds);
-    if (partitionList.size() != 1)     return -1;
-    Integer chunkId=ReadOnlyUtils.chunk(keyToStorageFormat(key),partitionToNumChunks.get(partitionList.get(0)));
-    return partitionToChunkStart.get(partitionList.get(0)) + chunkId;
+  List<Integer> routingPartitionList=routingStrategy.getPartitionList(key);
+  int replicaType=-1, currentPartition=-1, partitionIdsIndex=-1;
+  for (int index=0; index < routingPartitionList.size(); index++) {
+    int partition=routingPartitionList.get(index);
+    if (partitionIds.contains(partition)) {
+      if (replicaType == -1) {
+        partitionIdsIndex=partitionIds.indexOf(partition);
+        replicaType=index;
+        currentPartition=partition;
+      }
+ else {
+        return -1;
+      }
+    }
   }
+  if (replicaType == -1 || currentPartition == -1)   return -1;
+  return chunkIdToChunkStart.get(partitionIdsIndex * routingStrategy.getNumReplicas() + replicaType) + ReadOnlyUtils.chunk(keyToStorageFormat(key),chunkIdToNumChunks.get(partitionIdsIndex * routingStrategy.getNumReplicas() + replicaType));
+}
 default :
 {
-  return -1;
+return -1;
 }
 }
 }
