@@ -46,7 +46,6 @@
     for (    Integer partitionId : partitionIds) {
       int nodeId=partitionIdToNodeId[partitionId];
       int globalChunkId=partitionIdToChunkOffset[partitionId] + (replicaType * numChunks) + localChunkId;
-      logger.info("global - " + globalChunkId + " - "+ partitionId);
       Pair<Integer,Integer> key=Pair.create(nodeId,globalChunkId);
       if (!previousElements.containsKey(key)) {
         previousElements.put(key,Pair.create(ByteUtils.copy(currentElement.getKeyMd5(),0,2 * ByteUtils.SIZE_OF_INT),generateFirstElement(currentElement)));

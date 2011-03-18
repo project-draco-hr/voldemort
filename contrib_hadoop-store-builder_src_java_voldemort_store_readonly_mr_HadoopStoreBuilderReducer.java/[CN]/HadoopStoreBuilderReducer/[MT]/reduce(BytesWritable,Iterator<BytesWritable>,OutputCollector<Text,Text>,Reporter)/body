@@ -1,9 +1,10 @@
 {
-  this.indexFileStream.write(key.get(),0,key.getSize());
-  this.indexFileStream.writeInt(this.position);
-  if (this.checkSumDigestIndex != null) {
-    this.checkSumDigestIndex.update(key.get(),0,key.getSize());
-    this.checkSumDigestIndex.update(this.position);
+  int chunkId=ReadOnlyUtils.chunk(key.get(),getNumChunks());
+  this.indexFileStream[chunkId].write(key.get(),0,key.getSize());
+  this.indexFileStream[chunkId].writeInt(this.position[chunkId]);
+  if (this.checkSumDigestIndex[chunkId] != null) {
+    this.checkSumDigestIndex[chunkId].update(key.get(),0,key.getSize());
+    this.checkSumDigestIndex[chunkId].update(this.position[chunkId]);
   }
   int numKeyValues=0;
   ByteArrayOutputStream stream=new ByteArrayOutputStream();
@@ -20,7 +21,6 @@
       if (this.replicaType == -1)       this.replicaType=(int)ByteUtils.readBytes(valueBytes,offsetTillNow,ByteUtils.SIZE_OF_BYTE);
       offsetTillNow+=ByteUtils.SIZE_OF_BYTE;
     }
-    if (this.chunkId == -1)     this.chunkId=ReadOnlyUtils.chunk(key.get(),getNumChunks());
     int valueLength=writable.getSize() - offsetTillNow;
     if (getSaveKeys()) {
       valueStream.write(valueBytes,offsetTillNow,valueLength);
@@ -42,18 +42,18 @@
   if (getSaveKeys()) {
     byte[] numBuf=new byte[ByteUtils.SIZE_OF_BYTE];
     ByteUtils.writeBytes(numBuf,numKeyValues,0,ByteUtils.SIZE_OF_BYTE);
-    this.valueFileStream.write(numBuf);
-    this.position+=ByteUtils.SIZE_OF_BYTE;
-    if (this.checkSumDigestValue != null) {
-      this.checkSumDigestValue.update(numBuf);
+    this.valueFileStream[chunkId].write(numBuf);
+    this.position[chunkId]+=ByteUtils.SIZE_OF_BYTE;
+    if (this.checkSumDigestValue[chunkId] != null) {
+      this.checkSumDigestValue[chunkId].update(numBuf);
     }
   }
   valueStream.flush();
   byte[] value=stream.toByteArray();
-  this.valueFileStream.write(value);
-  this.position+=value.length;
-  if (this.checkSumDigestValue != null) {
-    this.checkSumDigestValue.update(value);
+  this.valueFileStream[chunkId].write(value);
+  this.position[chunkId]+=value.length;
+  if (this.checkSumDigestValue[chunkId] != null) {
+    this.checkSumDigestValue[chunkId].update(value);
   }
-  if (this.position < 0)   throw new VoldemortException("Chunk overflow exception: chunk " + chunkId + " has exceeded "+ Integer.MAX_VALUE+ " bytes.");
+  if (this.position[chunkId] < 0)   throw new VoldemortException("Chunk overflow exception: chunk " + chunkId + " has exceeded "+ Integer.MAX_VALUE+ " bytes.");
 }
