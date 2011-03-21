@@ -1,0 +1,27 @@
+{
+  if (chunksFinished)   return false;
+  if (currentOffsetInChunk >= this.dataFileChunkSet.getDataFileSize(currentChunk)) {
+    currentChunk++;
+    currentOffsetInChunk=0;
+    while (currentChunk < this.dataFileChunkSet.getNumChunks() && this.dataFileChunkSet.getDataFileSize(currentChunk) == 0) {
+      currentChunk++;
+    }
+    if (currentChunk == this.dataFileChunkSet.getNumChunks()) {
+      chunksFinished=true;
+      return false;
+    }
+  }
+  if (!ignoreCollisions && tupleCount == 0) {
+    ByteBuffer numKeyValsBuffer=ByteBuffer.allocate(ByteUtils.SIZE_OF_BYTE);
+    try {
+      getCurrentChunk().read(numKeyValsBuffer,currentOffsetInChunk);
+    }
+ catch (    IOException e) {
+      logger.error("Error while reading tuple count in iterator",e);
+      return false;
+    }
+    tupleCount=numKeyValsBuffer.get(0) & ByteUtils.MASK_11111111;
+    currentOffsetInChunk+=ByteUtils.SIZE_OF_BYTE;
+  }
+  return true;
+}

@@ -1,0 +1,13 @@
+{
+  SimpleDataFileChunkSetIterator iterator=new SimpleDataFileChunkSetIterator(generateDataFileChunkSet(numChunks,10,numEntriesPerChunks,numEntriesPerCollision),false);
+  if (numChunks * numEntriesPerChunks == 0) {
+    assertEquals(iterator.hasNext(),false);
+  }
+ else {
+    for (int entry=0; entry < numChunks * numEntriesPerChunks; entry++) {
+      assertEquals(iterator.hasNext(),true);
+      ByteBuffer buffer=iterator.next();
+      assertEquals(buffer.getInt(0),entry);
+    }
+  }
+}

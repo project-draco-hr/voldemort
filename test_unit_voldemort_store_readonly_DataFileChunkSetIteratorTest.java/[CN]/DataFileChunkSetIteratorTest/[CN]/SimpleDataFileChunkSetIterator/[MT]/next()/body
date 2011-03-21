@@ -1,0 +1,23 @@
+{
+  if (!hasNext())   throw new VoldemortException("Reached the end");
+  try {
+    if (ignoreCollisions) {
+      ByteBuffer numKeysBytes=ByteBuffer.allocate(ByteUtils.SIZE_OF_BYTE);
+      getCurrentChunk().read(numKeysBytes,getCurrentOffsetInChunk());
+      int numKeys=numKeysBytes.get(0) & ByteUtils.MASK_11111111;
+      ByteBuffer values=ByteBuffer.allocate(numKeys * ByteUtils.SIZE_OF_INT);
+      getCurrentChunk().read(values,getCurrentOffsetInChunk() + ByteUtils.SIZE_OF_BYTE);
+      updateOffset(getCurrentOffsetInChunk() + ByteUtils.SIZE_OF_BYTE + (numKeys * ByteUtils.SIZE_OF_INT));
+      return values;
+    }
+ else {
+      ByteBuffer value=ByteBuffer.allocate(ByteUtils.SIZE_OF_INT);
+      getCurrentChunk().read(value,getCurrentOffsetInChunk());
+      updateOffset(getCurrentOffsetInChunk() + ByteUtils.SIZE_OF_INT);
+      return value;
+    }
+  }
+ catch (  IOException e) {
+    throw new VoldemortException(e);
+  }
+}

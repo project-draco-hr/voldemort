@@ -10,7 +10,12 @@
     int location=searchStrategy.indexOf(fileSet.indexFileFor(chunk),fileSet.keyToStorageFormat(key.get()),fileSet.getIndexFileSize(chunk));
     if (location >= 0) {
       byte[] value=fileSet.readValue(key.get(),chunk,location);
-      return Collections.singletonList(Versioned.value(value));
+      if (value.length == 0) {
+        return Collections.emptyList();
+      }
+ else {
+        return Collections.singletonList(Versioned.value(value));
+      }
     }
  else {
       return Collections.emptyList();

@@ -51,7 +51,7 @@
           logger.error("No data for node " + node.getId() + " exists in "+ previousDir);
           throw new VoldemortException("No data for node " + node.getId() + " exists in "+ previousDir);
         }
-        String jsonString=ReadOnlyUtils.readFileContents(nodePathFs,new Path(nodePath,".metadata"),1024);
+        String jsonString=HadoopStoreBuilderUtils.readFileContents(nodePathFs,new Path(nodePath,".metadata"),1024);
         ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata(jsonString);
         String readOnlyFormatString=(String)metadata.get(ReadOnlyStorageMetadata.FORMAT);
         if (readOnlyFormatString == null || readOnlyFormatString.compareTo(ReadOnlyStorageFormat.READONLY_V2.getCode()) != 0) {
@@ -60,10 +60,8 @@
         }
         int totalChunkFiles=1;
         for (        Integer partitionId : node.getPartitionIds()) {
-          FileStatus[] filesInPartition=ReadOnlyUtils.getPartitionFiles(nodePathFs,nodePath,partitionId);
-          int[] replicaCounts=ReadOnlyUtils.getReplicaCount(filesInPartition,storeDef.getReplicationFactor());
-          for (int index=0; index < replicaCounts.length; index++) {
-            totalChunkFiles+=replicaCounts[index];
+          for (int replicaType=0; replicaType < storeDef.getReplicationFactor(); replicaType++) {
+            totalChunkFiles+=HadoopStoreBuilderUtils.getChunkFiles(nodePathFs,nodePath,partitionId,replicaType).length;
           }
         }
         if (totalChunkFiles != nodePathFs.listStatus(nodePath).length) {
@@ -72,6 +70,9 @@
         }
       }
       conf.set("previous.output.dir",previousDir.toString());
+    }
+ else {
+      conf.set("previous.output.dir","");
     }
     logger.info("Number of chunks: " + numChunks + ", number of reducers: "+ numReducers+ ", save keys: "+ saveKeys);
     logger.info("Building store...");

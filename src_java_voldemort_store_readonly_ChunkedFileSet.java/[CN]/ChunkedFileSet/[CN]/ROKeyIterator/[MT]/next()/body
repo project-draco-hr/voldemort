@@ -1,0 +1,17 @@
+{
+  if (!hasNext())   throw new VoldemortException("Reached the end");
+  try {
+    ByteBuffer sizeBuffer=ByteBuffer.allocate(2 * ByteUtils.SIZE_OF_INT);
+    getCurrentChunk().read(sizeBuffer,getCurrentOffsetInChunk());
+    int keySize=sizeBuffer.getInt(0);
+    int valueSize=sizeBuffer.getInt(ByteUtils.SIZE_OF_INT);
+    ByteBuffer keyBuffer=ByteBuffer.allocate(keySize);
+    getCurrentChunk().read(keyBuffer,getCurrentOffsetInChunk() + (2 * ByteUtils.SIZE_OF_INT));
+    updateOffset(getCurrentOffsetInChunk() + (2 * ByteUtils.SIZE_OF_INT) + keySize+ valueSize);
+    return new ByteArray(keyBuffer.array());
+  }
+ catch (  IOException e) {
+    logger.error(e);
+    throw new VoldemortException(e);
+  }
+}

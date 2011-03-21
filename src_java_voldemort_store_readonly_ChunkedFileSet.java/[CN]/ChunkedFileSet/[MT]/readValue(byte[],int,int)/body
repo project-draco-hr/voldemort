@@ -5,51 +5,36 @@ switch (storageFormat) {
 case READONLY_V0:
 case READONLY_V1:
 {
-        ByteBuffer sizeBuffer=ByteBuffer.allocate(4);
+        ByteBuffer sizeBuffer=ByteBuffer.allocate(ByteUtils.SIZE_OF_INT);
         dataFile.read(sizeBuffer,valueLocation);
         int valueSize=sizeBuffer.getInt(0);
         ByteBuffer valueBuffer=ByteBuffer.allocate(valueSize);
-        dataFile.read(valueBuffer,valueLocation + 4);
+        dataFile.read(valueBuffer,valueLocation + ByteUtils.SIZE_OF_INT);
         return valueBuffer.array();
       }
 case READONLY_V2:
 {
-      ByteBuffer numKeyValsBuffer=ByteBuffer.allocate(1);
+      ByteBuffer numKeyValsBuffer=ByteBuffer.allocate(ByteUtils.SIZE_OF_BYTE);
       dataFile.read(numKeyValsBuffer,valueLocation);
       int numKeyVal=numKeyValsBuffer.get(0) & ByteUtils.MASK_11111111;
-      if (numKeyVal == 1) {
-        ByteBuffer sizeBuffer=ByteBuffer.allocate(4);
-        dataFile.read(sizeBuffer,valueLocation + 1);
+      int currentPosition=valueLocation + ByteUtils.SIZE_OF_BYTE;
+      for (int keyId=0; keyId < numKeyVal; keyId++) {
+        ByteBuffer sizeBuffer=ByteBuffer.allocate(2 * ByteUtils.SIZE_OF_INT);
+        dataFile.read(sizeBuffer,currentPosition);
         int keySize=sizeBuffer.getInt(0);
-        sizeBuffer.clear();
-        dataFile.read(sizeBuffer,valueLocation + 1 + 4+ keySize);
-        int valueSize=sizeBuffer.getInt(0);
-        ByteBuffer valueBuffer=ByteBuffer.allocate(valueSize);
-        dataFile.read(valueBuffer,valueLocation + 1 + 4+ 4+ keySize);
-        return valueBuffer.array();
-      }
- else {
-        int currentPosition=valueLocation + 1;
-        for (int keyId=0; keyId < numKeyVal; keyId++) {
-          ByteBuffer sizeBuffer=ByteBuffer.allocate(4);
-          dataFile.read(sizeBuffer,currentPosition);
-          int keySize=sizeBuffer.getInt(0);
-          sizeBuffer.clear();
-          dataFile.read(sizeBuffer,currentPosition + 4 + keySize);
-          int valueSize=sizeBuffer.getInt(0);
-          ByteBuffer keyBuffer=ByteBuffer.allocate(keySize);
-          dataFile.read(keyBuffer,currentPosition + 4);
-          if (ByteUtils.compare(keyBuffer.array(),key) == 0) {
-            ByteBuffer valueBuffer=ByteBuffer.allocate(valueSize);
-            dataFile.read(valueBuffer,currentPosition + 4 + 4+ keySize);
-            return valueBuffer.array();
-          }
- else {
-            currentPosition+=4 + 4 + keySize+ valueSize;
-          }
+        int valueSize=sizeBuffer.getInt(ByteUtils.SIZE_OF_INT);
+        ByteBuffer keyBuffer=ByteBuffer.allocate(keySize);
+        dataFile.read(keyBuffer,currentPosition + (2 * ByteUtils.SIZE_OF_INT));
+        if (ByteUtils.compare(keyBuffer.array(),key) == 0) {
+          ByteBuffer valueBuffer=ByteBuffer.allocate(valueSize);
+          dataFile.read(valueBuffer,currentPosition + (2 * ByteUtils.SIZE_OF_INT) + keySize);
+          return valueBuffer.array();
         }
-        throw new VoldemortException("Could not find key " + Arrays.toString(key));
+ else {
+          currentPosition+=(2 * ByteUtils.SIZE_OF_INT) + keySize + valueSize;
+        }
       }
+      return new byte[0];
     }
 default :
 {

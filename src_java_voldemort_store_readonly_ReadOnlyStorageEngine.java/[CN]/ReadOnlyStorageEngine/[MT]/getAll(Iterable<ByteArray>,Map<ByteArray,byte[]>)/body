@@ -12,7 +12,7 @@
     Collections.sort(keysAndValueLocations);
     for (    KeyValueLocation keyVal : keysAndValueLocations) {
       byte[] value=fileSet.readValue(keyVal.getKey().get(),keyVal.getChunk(),keyVal.getValueLocation());
-      results.put(keyVal.getKey(),Collections.singletonList(Versioned.value(value)));
+      if (value.length > 0)       results.put(keyVal.getKey(),Collections.singletonList(Versioned.value(value)));
     }
     return results;
   }
