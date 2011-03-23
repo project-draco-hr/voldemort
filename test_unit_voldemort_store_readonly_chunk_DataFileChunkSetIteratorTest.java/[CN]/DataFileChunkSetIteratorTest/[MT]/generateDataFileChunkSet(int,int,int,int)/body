@@ -1,0 +1,38 @@
+{
+  Assert.assertEquals(numberOfEntriesPerChunk % numberOfEntriesPerCollision,0);
+  List<DataFileChunk> dataFiles=Lists.newArrayList();
+  List<Integer> dataFileSizes=Lists.newArrayList();
+  File tempFolder=TestUtils.createTempDir();
+  int currentEntry=0;
+  List<Boolean> isEmpty=Lists.newArrayList();
+  for (int chunkId=0; chunkId < numberOfChunks; chunkId++) {
+    isEmpty.add(false);
+  }
+  for (int chunkId=0; chunkId < numberOfEmptyChunks; chunkId++) {
+    isEmpty.add(true);
+  }
+  Collections.shuffle(isEmpty);
+  for (int chunkId=0; chunkId < (numberOfChunks + numberOfEmptyChunks); chunkId++) {
+    boolean empty=isEmpty.get(chunkId);
+    File chunkFile=new File(tempFolder,Integer.toString(chunkId));
+    chunkFile.createNewFile();
+    if (!empty) {
+      FileOutputStream stream=new FileOutputStream(chunkFile);
+      for (int entryId=0; entryId < numberOfEntriesPerChunk / numberOfEntriesPerCollision; entryId++) {
+        ByteBuffer buffer=ByteBuffer.allocate(ByteUtils.SIZE_OF_BYTE + numberOfEntriesPerCollision * ByteUtils.SIZE_OF_INT);
+        buffer.put((byte)(numberOfEntriesPerCollision & ByteUtils.MASK_11111111));
+        for (int entryInCollision=0; entryInCollision < numberOfEntriesPerCollision; entryInCollision++) {
+          buffer.putInt(currentEntry);
+          currentEntry++;
+        }
+        stream.write(buffer.array());
+      }
+      stream.flush();
+      stream.close();
+    }
+    dataFiles.add(new LocalDataFileChunk(new FileInputStream(chunkFile).getChannel()));
+    dataFileSizes.add((int)chunkFile.length());
+  }
+  DataFileChunkSet chunkSet=new DataFileChunkSet(dataFiles,dataFileSizes);
+  return chunkSet;
+}

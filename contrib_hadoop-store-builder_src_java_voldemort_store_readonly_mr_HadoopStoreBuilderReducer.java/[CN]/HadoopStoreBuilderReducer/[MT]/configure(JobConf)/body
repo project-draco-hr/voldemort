@@ -2,28 +2,25 @@
   super.configure(job);
   try {
     this.conf=job;
+    this.position=0;
     this.outputDir=job.get("final.output.dir");
+    this.previousDir=job.get("previous.output.dir","");
+    if (this.previousDir.length() == 0) {
+      this.dataFileSuffix="data";
+    }
+ else {
+      this.dataFileSuffix="patch";
+    }
     this.taskId=job.get("mapred.task.id");
     this.checkSumType=CheckSum.fromString(job.get("checksum.type"));
-    this.checkSumDigestIndex=new CheckSum[getNumChunks()];
-    this.checkSumDigestValue=new CheckSum[getNumChunks()];
-    this.position=new int[getNumChunks()];
-    this.taskIndexFileName=new Path[getNumChunks()];
-    this.taskValueFileName=new Path[getNumChunks()];
-    this.indexFileStream=new DataOutputStream[getNumChunks()];
-    this.valueFileStream=new DataOutputStream[getNumChunks()];
-    FileSystem fs=null;
-    for (int chunkId=0; chunkId < getNumChunks(); chunkId++) {
-      this.checkSumDigestIndex[chunkId]=CheckSum.getInstance(checkSumType);
-      this.checkSumDigestValue[chunkId]=CheckSum.getInstance(checkSumType);
-      this.position[chunkId]=0;
-      this.taskIndexFileName[chunkId]=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + Integer.toString(chunkId)+ "_"+ this.taskId+ ".index");
-      this.taskValueFileName[chunkId]=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + Integer.toString(chunkId)+ "_"+ this.taskId+ ".data");
-      if (fs == null)       fs=this.taskIndexFileName[chunkId].getFileSystem(job);
-      this.indexFileStream[chunkId]=fs.create(this.taskIndexFileName[chunkId]);
-      this.valueFileStream[chunkId]=fs.create(this.taskValueFileName[chunkId]);
-      logger.info("Opening " + this.taskIndexFileName[chunkId] + " and "+ this.taskValueFileName[chunkId]+ " for writing.");
-    }
+    this.checkSumDigestIndex=CheckSum.getInstance(checkSumType);
+    this.checkSumDigestValue=CheckSum.getInstance(checkSumType);
+    this.taskIndexFileName=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + Integer.toString(chunkId)+ "_"+ this.taskId+ ".index");
+    this.taskValueFileName=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + Integer.toString(chunkId)+ "_"+ this.taskId+ "."+ dataFileSuffix);
+    if (this.fs == null)     this.fs=this.taskIndexFileName.getFileSystem(job);
+    this.indexFileStream=fs.create(this.taskIndexFileName);
+    this.valueFileStream=fs.create(this.taskValueFileName);
+    logger.info("Opening " + this.taskIndexFileName + " and "+ this.taskValueFileName+ " for writing.");
   }
  catch (  IOException e) {
     throw new RuntimeException("Failed to open Input/OutputStream",e);
