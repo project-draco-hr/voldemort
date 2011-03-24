@@ -1,0 +1,15 @@
+{
+  byte[] operation=new byte[ByteUtils.SIZE_OF_BYTE];
+  ByteUtils.writeBytes(operation,0,operationType,ByteUtils.SIZE_OF_BYTE);
+  this.valueFileStream.write(operation);
+  this.valueFileStream.write(this.position);
+  this.valueFileStream.write(currentValue.length);
+  this.valueFileStream.write(currentValue);
+  if (this.checkSumDigestValue != null) {
+    this.checkSumDigestValue.update(operation);
+    this.checkSumDigestValue.update(this.position);
+    this.checkSumDigestValue.update(currentValue.length);
+    this.checkSumDigestValue.update(currentValue);
+  }
+  this.position+=currentValue.length + ByteUtils.SIZE_OF_BYTE;
+}
