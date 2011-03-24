@@ -1,9 +1,15 @@
 {
-  if (this.previousDir.length() != 0 && getSaveKeys() && this.previousIterator != null && this.previousIterator.hasNext()) {
+  if (this.previousDir.length() != 0 && getSaveKeys() && this.previousElement != null && this.previousIterator != null) {
     do {
-      patch(this.previousIterator.next().getSecond().array(),1);
+      patch(this.previousElement.getSecond().array(),1);
+      if (this.previousIterator.hasNext()) {
+        this.previousElement=previousIterator.next();
+      }
+ else {
+        this.previousElement=null;
+      }
     }
- while (this.previousIterator.hasNext());
+ while (this.previousIterator != null);
   }
   this.indexFileStream.close();
   this.valueFileStream.close();

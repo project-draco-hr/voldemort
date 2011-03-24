@@ -48,15 +48,24 @@
   if (this.previousDir.length() != 0 && getSaveKeys()) {
     byte[] numBuf=new byte[ByteUtils.SIZE_OF_BYTE];
     ByteUtils.writeBytes(numBuf,numKeyValues,0,ByteUtils.SIZE_OF_BYTE);
-    if (!previousIterator.hasNext()) {
-      patch(ByteUtils.cat(numBuf,value),0);
-    }
+    boolean retry=false;
+    do {
+      retry=false;
+      if (previousElement == null && !previousIterator.hasNext()) {
+        patch(ByteUtils.cat(numBuf,value),0);
+      }
  else {
-      if (previousElement == null)       previousElement=previousIterator.next();
+        if (previousElement == null)         previousElement=previousIterator.next();
 switch (ByteUtils.compare(previousElement.getFirst().array(),key.get())) {
 case -1:
-        patch(previousElement.getSecond().array(),1);
-      if (previousIterator.hasNext())       previousElement=previousIterator.next();
+          patch(previousElement.getSecond().array(),1);
+        if (previousIterator.hasNext()) {
+          previousElement=previousIterator.next();
+        }
+ else {
+          previousElement=null;
+        }
+      retry=true;
     break;
 case 1:
   patch(ByteUtils.cat(numBuf,value),0);
@@ -67,11 +76,15 @@ patch(previousElement.getSecond().array(),1);
 patch(ByteUtils.cat(numBuf,value),0);
 }
 if (previousIterator.hasNext()) previousElement=previousIterator.next();
+ else previousElement=null;
 break;
 default :
 throw new VoldemortException("Comparison of key throw an exception");
 }
 }
+}
+ while (retry);
+this.position+=value.length + ByteUtils.SIZE_OF_BYTE;
 }
  else {
 if (getSaveKeys()) {
