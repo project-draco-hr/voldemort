@@ -23,6 +23,7 @@
             adminClient.fetchPartitionFiles(nodeId,storeName,partitions,destinationDir);
           }
  else {
+            long startTime=System.currentTimeMillis();
             Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=adminClient.fetchEntries(nodeId,storeName,partitions,filter,false);
             for (long i=0; running.get() && entriesIterator.hasNext(); i++) {
               Pair<ByteArray,Versioned<byte[]>> entry=entriesIterator.next();
@@ -36,7 +37,9 @@
               }
               throttler.maybeThrottle(key.length() + valueSize(value));
               if ((i % 1000) == 0) {
-                updateStatus(i + " entries processed");
+                long elapsedSecs=(System.currentTimeMillis() - startTime) / Time.MS_PER_SECOND;
+                long rate=elapsedSecs == 0 ? 0 : i / elapsedSecs;
+                updateStatus(i + " entries processed, rate " + rate+ " entries per second");
               }
             }
           }
