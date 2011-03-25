@@ -9,12 +9,13 @@
   parser.accepts("stealer-node-ids","Comma separated node ids [Default - all]").withRequiredArg().ofType(Integer.class).withValuesSeparatedBy(',');
   parser.accepts("transition-to-normal","At the end of migration do we want to transition back to normal state? [Default-false]");
   parser.accepts("simulation","Run the full process as simulation");
+  parser.accepts("checkpoint-folder","Give a folder of completed tasks [ Or if running for first time, empty folder to dump checkpoints ]. " + "If non-empty, these tasks won't be executed").withRequiredArg().describedAs("file-name");
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     parser.printHelpOn(System.out);
     System.exit(0);
   }
-  Set<String> missing=CmdUtils.missing(options,"cluster-xml","stores-xml","target-cluster-xml");
+  Set<String> missing=CmdUtils.missing(options,"cluster-xml","stores-xml","target-cluster-xml","checkpoint-folder");
   if (missing.size() > 0) {
     System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
     parser.printHelpOn(System.err);
@@ -24,6 +25,7 @@
   String currentClusterFile=(String)options.valueOf("cluster-xml");
   String currentStoresFile=(String)options.valueOf("stores-xml");
   String targetStoresFile=currentStoresFile;
+  final String checkpointFolder=(String)options.valueOf("checkpoint-folder");
   int parallelism=CmdUtils.valueOf(options,"parallelism",2);
   boolean transitionToNormal=options.has("transition-to-normal");
   boolean simulation=options.has("simulation");
@@ -47,7 +49,7 @@
     adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,currentCluster,targetCluster.getNumberOfNodes(),1);
     List<StoreDefinition> currentStoreDefs=new StoreDefinitionsMapper().readStoreList(new BufferedReader(new FileReader(currentStoresFile)));
     List<StoreDefinition> targetStoreDefs=new StoreDefinitionsMapper().readStoreList(new BufferedReader(new FileReader(targetStoresFile)));
-    MigratePartitions migratePartitions=new MigratePartitions(currentCluster,targetCluster,currentStoreDefs,targetStoreDefs,adminClient,voldemortConfig,stealerNodeIds,parallelism,transitionToNormal,simulation);
+    final MigratePartitions migratePartitions=new MigratePartitions(currentCluster,targetCluster,currentStoreDefs,targetStoreDefs,adminClient,voldemortConfig,stealerNodeIds,parallelism,transitionToNormal,simulation,checkpointFolder);
     migratePartitions.migrate();
   }
  catch (  Exception e) {
