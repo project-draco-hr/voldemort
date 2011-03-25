@@ -1,0 +1,72 @@
+{
+  HadoopStoreBuilder builder=new HadoopStoreBuilder(new Configuration(),TextStoreMapper.class,TextInputFormat.class,cluster,def,64 * 1024,new Path(tempDir.getAbsolutePath()),new Path(outputDir.getAbsolutePath()),new Path(inputFile.getAbsolutePath()),CheckSumType.MD5,false,new Path(previousDir.getAbsolutePath()));
+  try {
+    builder.build();
+    fail("Should have thrown an exception since save keys is false");
+  }
+ catch (  Exception e) {
+  }
+  builder=new HadoopStoreBuilder(new Configuration(),TextStoreMapper.class,TextInputFormat.class,cluster,def,64 * 1024,new Path(tempDir.getAbsolutePath()),new Path(outputDir.getAbsolutePath()),new Path(inputFile.getAbsolutePath()),CheckSumType.MD5,true,new Path(previousDir.getAbsolutePath()));
+  try {
+    builder.build();
+    fail("Should have thrown an exception because all nodes are missing");
+  }
+ catch (  Exception e) {
+  }
+  for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
+    Utils.mkdirs(new File(previousDir,"node-" + Integer.toString(nodeId)));
+  }
+  try {
+    builder.build();
+    fail("Should have thrown an exception because metadata is missing");
+  }
+ catch (  Exception e) {
+  }
+  for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
+    Utils.mkdirs(new File(previousDir,"node-" + Integer.toString(nodeId)));
+    FileUtils.touch(new File(previousDir + "/node-" + Integer.toString(nodeId),".metadata"));
+  }
+  try {
+    builder.build();
+    fail("Should have thrown an exception because metadata data is empty");
+  }
+ catch (  Exception e) {
+  }
+  ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
+  metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V0.getCode());
+  for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
+    FileUtils.writeStringToFile(new File(previousDir + "/node-" + Integer.toString(nodeId),".metadata"),metadata.toJsonString());
+  }
+  try {
+    builder.build();
+    fail("Should have thrown an exception because metadata data contains wrong version");
+  }
+ catch (  Exception e) {
+  }
+  metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode());
+  for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
+    FileUtils.writeStringToFile(new File(previousDir + "/node-" + Integer.toString(nodeId),".metadata"),metadata.toJsonString());
+  }
+  try {
+    builder.build();
+    assertTrue(outputDir.exists());
+  }
+ catch (  Exception e) {
+    fail("Should not throw exception because it falls back to normal data generation");
+  }
+  Utils.rm(outputDir);
+  for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
+    for (    int partitionId : cluster.getNodeById(nodeId).getPartitionIds()) {
+      for (int replicaType=0; replicaType < def.getReplicationFactor(); replicaType++) {
+        FileUtils.touch(new File(previousDir + "/node-" + Integer.toString(nodeId),Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_0.data"));
+      }
+    }
+    FileUtils.touch(new File(previousDir + "/node-" + Integer.toString(nodeId),"300_0_0.data"));
+  }
+  try {
+    builder.build();
+    fail("Should throw exceptions because of extra file");
+  }
+ catch (  Exception e) {
+  }
+}

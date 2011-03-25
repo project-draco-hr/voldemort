@@ -8,12 +8,6 @@
   pipeline.setEnableHintedHandoff(isHintedHandoffEnabled());
   HintedHandoff hintedHandoff=null;
   if (isHintedHandoffEnabled())   hintedHandoff=new HintedHandoff(failureDetector,slopStores,nonblockingSlopStores,handoffStrategy,pipelineData.getFailedNodes(),timeoutMs);
-  StoreRequest<Boolean> blockingDelete=new StoreRequest<Boolean>(){
-    public Boolean request(    Store<ByteArray,byte[],byte[]> store){
-      return store.delete(key,version);
-    }
-  }
-;
   pipeline.addEventAction(Event.STARTED,new ConfigureNodes<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key,clientZone));
   pipeline.addEventAction(Event.CONFIGURED,new PerformParallelDeleteRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,isHintedHandoffEnabled() ? Event.RESPONSES_RECEIVED : Event.COMPLETED,key,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),timeoutMs,nonblockingStores,hintedHandoff,version));
   if (isHintedHandoffEnabled()) {

@@ -21,7 +21,7 @@
       if (this.replicaType == -1)       this.replicaType=(int)ByteUtils.readBytes(valueBytes,offsetTillNow,ByteUtils.SIZE_OF_BYTE);
       offsetTillNow+=ByteUtils.SIZE_OF_BYTE;
       if (this.previousDir.length() != 0 && previousIterator == null) {
-        DataFileChunkSet dataFileChunkSet=HadoopStoreBuilderUtils.getDataFileChunkSet(this.fs,HadoopStoreBuilderUtils.getDataChunkFiles(this.fs,new Path(previousDir),this.partitionId,this.replicaType,this.chunkId));
+        DataFileChunkSet dataFileChunkSet=HadoopStoreBuilderUtils.getDataFileChunkSet(this.fs,HadoopStoreBuilderUtils.getDataChunkFiles(this.fs,new Path(previousDir,"node-" + Integer.toString(nodeId)),this.partitionId,this.replicaType,this.chunkId));
         previousIterator=new ROCollidedEntriesIterator(dataFileChunkSet);
       }
     }
@@ -51,11 +51,13 @@
     boolean retry=false;
     do {
       retry=false;
-      if (previousElement == null && !previousIterator.hasNext()) {
+      if (previousElement == null && previousIterator.hasNext()) {
+        previousElement=previousIterator.next();
+      }
+ else       if (previousElement == null && !previousIterator.hasNext()) {
         patch(ByteUtils.cat(numBuf,value),0);
       }
  else {
-        if (previousElement == null)         previousElement=previousIterator.next();
 switch (ByteUtils.compare(previousElement.getFirst().array(),key.get())) {
 case -1:
           patch(previousElement.getSecond().array(),1);
@@ -75,8 +77,12 @@ if (ByteUtils.compare(previousElement.getSecond().array(),ByteUtils.cat(numBuf,v
 patch(previousElement.getSecond().array(),1);
 patch(ByteUtils.cat(numBuf,value),0);
 }
-if (previousIterator.hasNext()) previousElement=previousIterator.next();
- else previousElement=null;
+if (previousIterator.hasNext()) {
+previousElement=previousIterator.next();
+}
+ else {
+previousElement=null;
+}
 break;
 default :
 throw new VoldemortException("Comparison of key throw an exception");

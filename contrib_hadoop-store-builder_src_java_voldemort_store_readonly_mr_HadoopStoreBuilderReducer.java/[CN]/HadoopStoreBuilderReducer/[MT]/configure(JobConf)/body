@@ -15,8 +15,8 @@
     this.checkSumType=CheckSum.fromString(job.get("checksum.type"));
     this.checkSumDigestIndex=CheckSum.getInstance(checkSumType);
     this.checkSumDigestValue=CheckSum.getInstance(checkSumType);
-    this.taskIndexFileName=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + Integer.toString(chunkId)+ "_"+ this.taskId+ ".index");
-    this.taskValueFileName=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + Integer.toString(chunkId)+ "_"+ this.taskId+ "."+ dataFileSuffix);
+    this.taskIndexFileName=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + this.taskId+ ".index");
+    this.taskValueFileName=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + this.taskId+ "."+ dataFileSuffix);
     if (this.fs == null)     this.fs=this.taskIndexFileName.getFileSystem(job);
     this.indexFileStream=fs.create(this.taskIndexFileName);
     this.valueFileStream=fs.create(this.taskValueFileName);

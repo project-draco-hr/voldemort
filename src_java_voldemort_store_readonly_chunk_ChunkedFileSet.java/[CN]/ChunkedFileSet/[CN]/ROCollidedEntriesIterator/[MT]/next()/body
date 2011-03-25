@@ -13,7 +13,7 @@
       int valueLength=keyValueLength.getInt(ByteUtils.SIZE_OF_INT);
       if (keyBuffer.hasRemaining()) {
         ByteBuffer tempKeyBuffer=ByteBuffer.allocate(keyLength);
-        getCurrentChunk().read(keyBuffer,getCurrentOffsetInChunk() + keyLength + valueLength);
+        getCurrentChunk().read(tempKeyBuffer,getCurrentOffsetInChunk() + keyLength + valueLength);
         keyBuffer.put(ByteUtils.copy(md5er.digest(tempKeyBuffer.array()),0,2 * ByteUtils.SIZE_OF_INT));
       }
       offsetMoved+=(2 * ByteUtils.SIZE_OF_INT) + keyLength + valueLength;
