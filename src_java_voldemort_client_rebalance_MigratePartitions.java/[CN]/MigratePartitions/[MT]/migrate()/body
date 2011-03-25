@@ -86,20 +86,20 @@
  catch (  Exception e) {
     logger.error(e,e);
     executor.shutdownNow();
+    throw new VoldemortException(e);
   }
  finally {
+    if (donorStates != null && transitionToNormal) {
+      changeToNormal();
+    }
     if (!(executor.isShutdown() || executor.isTerminated())) {
       try {
         latch.await();
       }
  catch (      InterruptedException e) {
         logger.error(e,e);
-        throw new VoldemortException(e);
       }
  finally {
-        if (donorStates != null && transitionToNormal) {
-          changeToNormal();
-        }
         executor.shutdown();
       }
     }
