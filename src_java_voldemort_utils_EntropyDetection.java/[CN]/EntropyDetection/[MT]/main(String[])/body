@@ -82,10 +82,9 @@ if (!(storesKeyFile.exists() && storesKeyFile.canRead())) {
 FileInputStream reader=null;
 SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
 RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
-RequestRoutingType requestRoutingType=RequestRoutingType.getRequestRoutingType(false,false);
 HashMap<Integer,Store<ByteArray,byte[],byte[]>> socketStoresPerNode=Maps.newHashMap();
 for (Node node : cluster.getNodes()) {
-socketStoresPerNode.put(node.getId(),socketStoreFactory.create(storeDef.getName(),node.getHost(),node.getSocketPort(),RequestFormatType.VOLDEMORT_V1,requestRoutingType));
+socketStoresPerNode.put(node.getId(),socketStoreFactory.create(storeDef.getName(),node.getHost(),node.getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS,RequestRoutingType.IGNORE_CHECKS));
 }
 long foundKeys=0L;
 long totalKeys=0L;
