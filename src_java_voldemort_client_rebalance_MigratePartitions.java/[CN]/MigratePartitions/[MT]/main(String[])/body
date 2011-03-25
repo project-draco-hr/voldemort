@@ -1,6 +1,7 @@
 {
   OptionParser parser=new OptionParser();
   parser.accepts("help","print help information");
+  parser.accepts("parallelism","Parallelism [Default 2]").withRequiredArg().describedAs("parallelism").ofType(Integer.class);
   parser.accepts("target-cluster-xml","[REQUIRED] target cluster xml file location").withRequiredArg().describedAs("path");
   parser.accepts("stores-xml","[REQUIRED] stores xml file location").withRequiredArg().describedAs("path");
   parser.accepts("target-stores-xml","stores xml file location if changed").withRequiredArg().describedAs("path");
@@ -23,6 +24,7 @@
   String currentClusterFile=(String)options.valueOf("cluster-xml");
   String currentStoresFile=(String)options.valueOf("stores-xml");
   String targetStoresFile=currentStoresFile;
+  int parallelism=CmdUtils.valueOf(options,"parallelism",2);
   boolean transitionToNormal=options.has("transition-to-normal");
   boolean simulation=options.has("simulation");
   if (options.has("target-stores-xml")) {
@@ -45,7 +47,7 @@
     adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,currentCluster,targetCluster.getNumberOfNodes(),1);
     List<StoreDefinition> currentStoreDefs=new StoreDefinitionsMapper().readStoreList(new BufferedReader(new FileReader(currentStoresFile)));
     List<StoreDefinition> targetStoreDefs=new StoreDefinitionsMapper().readStoreList(new BufferedReader(new FileReader(targetStoresFile)));
-    MigratePartitions migratePartitions=new MigratePartitions(currentCluster,targetCluster,currentStoreDefs,targetStoreDefs,adminClient,voldemortConfig,stealerNodeIds,transitionToNormal,simulation);
+    MigratePartitions migratePartitions=new MigratePartitions(currentCluster,targetCluster,currentStoreDefs,targetStoreDefs,adminClient,voldemortConfig,stealerNodeIds,parallelism,transitionToNormal,simulation);
     migratePartitions.migrate();
   }
  catch (  Exception e) {

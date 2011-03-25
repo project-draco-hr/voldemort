@@ -3,6 +3,8 @@
   this.stealerNodeIds=stealerNodeIds;
   this.voldemortConfig=Utils.notNull(voldemortConfig);
   this.transitionToNormal=transitionToNormal;
+  this.parallelism=parallelism;
+  this.executor=Executors.newFixedThreadPool(parallelism,new DaemonThreadFactory("migrate"));
   MigratePartitionsPlan plan=new MigratePartitionsPlan(currentCluster,targetCluster,currentStoreDefs,targetStoreDefs);
   logger.info("Rebalance cluster plan => " + plan);
   this.stealerNodePlans=plan.getRebalancingTaskQueuePerNode();
