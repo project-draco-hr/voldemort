@@ -10,6 +10,8 @@
     }
     if (size == -1) {
       if (logger.isTraceEnabled())       logger.trace("Message size -1, completed partition update");
+      handle.setFinished(true);
+      stats.closeHandle(handle);
       return StreamRequestHandlerState.COMPLETE;
     }
     if (logger.isTraceEnabled())     logger.trace("UpdatePartitionEntriesRequest message size: " + size);
@@ -39,6 +41,7 @@
     throttler.maybeThrottle(key.length() + AdminServiceRequestHandler.valueSize(value));
   }
   counter++;
+  handle.incrementEntriesScanned();
   if (0 == counter % 100000) {
     long totalTime=(System.currentTimeMillis() - startTime) / 1000;
     if (logger.isDebugEnabled())     logger.debug("updateEntries() updated " + counter + " entries for store:"+ storageEngine.getName()+ " in "+ totalTime+ " s");

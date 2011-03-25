@@ -6,6 +6,7 @@
       throttler.maybeThrottle(key.length());
       if (filter.accept(key,value)) {
         fetched++;
+        handle.incrementEntriesScanned();
         VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
         VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(key)).setVersioned(ProtoUtils.encodeVersioned(value)).build();
         response.setPartitionEntry(partitionEntry);
@@ -21,5 +22,9 @@
     if (logger.isDebugEnabled())     logger.debug("fetchEntries() scanned " + counter + " entries, fetched "+ fetched+ " entries for store:"+ storageEngine.getName()+ " partition:"+ partitionList+ " in "+ totalTime+ " s");
   }
   if (keyIterator.hasNext())   return StreamRequestHandlerState.WRITING;
- else   return StreamRequestHandlerState.COMPLETE;
+ else {
+    handle.setFinished(true);
+    stats.closeHandle(handle);
+    return StreamRequestHandlerState.COMPLETE;
+  }
 }

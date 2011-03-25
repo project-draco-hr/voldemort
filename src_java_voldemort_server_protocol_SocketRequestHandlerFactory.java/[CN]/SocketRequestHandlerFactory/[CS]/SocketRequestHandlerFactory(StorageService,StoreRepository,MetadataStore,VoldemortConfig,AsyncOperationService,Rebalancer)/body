@@ -5,4 +5,6 @@
   this.voldemortConfig=voldemortConfig;
   this.asyncService=asyncService;
   this.rebalancer=rebalancer;
+  this.stats=new StreamStats();
+  if (voldemortConfig.isJmxEnabled())   JmxUtils.registerMbean("admin-streaming",new StreamStatsJmx(stats));
 }
