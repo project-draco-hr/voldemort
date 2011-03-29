@@ -1,6 +1,8 @@
 {
   if (!keyIterator.hasNext())   return StreamRequestHandlerState.COMPLETE;
+  long startNs=System.nanoTime();
   ByteArray key=keyIterator.next();
+  stats.recordDiskTime(handle,System.nanoTime() - startNs);
   throttler.maybeThrottle(key.length());
   if (validPartition(key.get()) && filter.accept(key,null) && counter % skipRecords == 0) {
     VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
@@ -8,7 +10,9 @@
     fetched++;
     handle.incrementEntriesScanned();
     Message message=response.build();
+    startNs=System.nanoTime();
     ProtoUtils.writeMessage(outputStream,message);
+    stats.recordNetworkTime(handle,System.nanoTime() - startNs);
   }
   counter++;
   if (0 == counter % 100000) {

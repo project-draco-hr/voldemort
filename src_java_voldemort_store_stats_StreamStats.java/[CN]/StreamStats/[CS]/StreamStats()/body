@@ -1,4 +1,10 @@
 {
   this.handles=new ConcurrentHashMap<Long,Handle>();
   this.handleIdGenerator=new AtomicLong(0L);
+  this.networkCounter=new ConcurrentHashMap<Operation,RequestCounter>();
+  this.diskCounter=new ConcurrentHashMap<Operation,RequestCounter>();
+  for (  Operation operation : Operation.values()) {
+    networkCounter.put(operation,new RequestCounter(300000));
+    diskCounter.put(operation,new RequestCounter(30000));
+  }
 }

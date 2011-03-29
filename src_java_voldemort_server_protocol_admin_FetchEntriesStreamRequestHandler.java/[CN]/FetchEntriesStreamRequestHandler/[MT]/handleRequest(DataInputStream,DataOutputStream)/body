@@ -1,8 +1,13 @@
 {
   if (!keyIterator.hasNext())   return StreamRequestHandlerState.COMPLETE;
+  long startNs=System.nanoTime();
   ByteArray key=keyIterator.next();
+  stats.recordDiskTime(handle,System.nanoTime() - startNs);
   if (validPartition(key.get()) && counter % skipRecords == 0) {
-    for (    Versioned<byte[]> value : storageEngine.get(key,null)) {
+    startNs=System.nanoTime();
+    List<Versioned<byte[]>> values=storageEngine.get(key,null);
+    stats.recordDiskTime(handle,System.nanoTime() - startNs);
+    for (    Versioned<byte[]> value : values) {
       throttler.maybeThrottle(key.length());
       if (filter.accept(key,value)) {
         fetched++;
@@ -11,7 +16,9 @@
         VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(key)).setVersioned(ProtoUtils.encodeVersioned(value)).build();
         response.setPartitionEntry(partitionEntry);
         Message message=response.build();
+        startNs=System.nanoTime();
         ProtoUtils.writeMessage(outputStream,message);
+        stats.recordNetworkTime(handle,System.nanoTime() - startNs);
         throttler.maybeThrottle(AdminServiceRequestHandler.valueSize(value));
       }
     }
