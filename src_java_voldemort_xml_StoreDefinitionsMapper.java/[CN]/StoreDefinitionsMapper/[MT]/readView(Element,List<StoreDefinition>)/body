@@ -2,6 +2,11 @@
   String name=store.getChildText(STORE_NAME_ELMT);
   String targetName=store.getChildText(VIEW_TARGET_ELMT);
   String description=store.getChildText(STORE_DESCRIPTION_ELMT);
+  String ownerText=store.getChildText(STORE_OWNERS_ELMT);
+  List<String> owners=Lists.newArrayList();
+  if (ownerText != null) {
+    for (    String owner : Utils.COMMA_SEP.split(ownerText.trim()))     if (owner.trim().length() > 0)     owners.add(owner);
+  }
   StoreDefinition target=StoreUtils.getStoreDef(stores,targetName);
   if (target == null)   throw new MappingException("View \"" + name + "\" has target store \""+ targetName+ "\" but no such store exists");
   int requiredReads=getChildWithDefault(store,STORE_REQUIRED_READS_ELMT,target.getRequiredReads());
@@ -27,5 +32,5 @@
     routingTier=target.getRoutingPolicy();
   }
   String viewClass=store.getChildText(VIEW_TRANS_ELMT);
-  return new StoreDefinitionBuilder().setName(name).setViewOf(targetName).setType(ViewStorageConfiguration.TYPE_NAME).setDescription(description).setRoutingPolicy(routingTier).setRoutingStrategyType(target.getRoutingStrategyType()).setKeySerializer(keySerializer).setValueSerializer(valueSerializer).setTransformsSerializer(transformSerializer).setReplicationFactor(target.getReplicationFactor()).setZoneReplicationFactor(target.getZoneReplicationFactor()).setPreferredReads(preferredReads).setRequiredReads(requiredReads).setPreferredWrites(preferredWrites).setRequiredWrites(requiredWrites).setZoneCountReads(zoneCountReads).setZoneCountWrites(zoneCountWrites).setView(viewClass).setSerializerFactory(viewSerializerFactoryName).build();
+  return new StoreDefinitionBuilder().setName(name).setViewOf(targetName).setType(ViewStorageConfiguration.TYPE_NAME).setDescription(description).setOwners(owners).setRoutingPolicy(routingTier).setRoutingStrategyType(target.getRoutingStrategyType()).setKeySerializer(keySerializer).setValueSerializer(valueSerializer).setTransformsSerializer(transformSerializer).setReplicationFactor(target.getReplicationFactor()).setZoneReplicationFactor(target.getZoneReplicationFactor()).setPreferredReads(preferredReads).setRequiredReads(requiredReads).setPreferredWrites(preferredWrites).setRequiredWrites(requiredWrites).setZoneCountReads(zoneCountReads).setZoneCountWrites(zoneCountWrites).setView(viewClass).setSerializerFactory(viewSerializerFactoryName).build();
 }

@@ -2,6 +2,11 @@
   String name=store.getChildText(STORE_NAME_ELMT);
   String storeType=store.getChildText(STORE_PERSISTENCE_ELMT);
   String description=store.getChildText(STORE_DESCRIPTION_ELMT);
+  String ownerText=store.getChildText(STORE_OWNERS_ELMT);
+  List<String> owners=Lists.newArrayList();
+  if (ownerText != null) {
+    for (    String owner : Utils.COMMA_SEP.split(ownerText.trim()))     if (owner.trim().length() > 0)     owners.add(owner);
+  }
   int replicationFactor=Integer.parseInt(store.getChildText(STORE_REPLICATION_FACTOR_ELMT));
   HashMap<Integer,Integer> zoneReplicationFactor=null;
   Element zoneReplicationFactorNode=store.getChild(STORE_ZONE_REPLICATION_FACTOR_ELMT);
@@ -49,5 +54,5 @@
   if (store.getChildText(HINTED_HANDOFF_STRATEGY) != null)   hintedHandoffStrategy=HintedHandoffStrategyType.fromDisplay(store.getChildText(HINTED_HANDOFF_STRATEGY));
   String hintPrefListSizeStr=store.getChildText(HINT_PREFLIST_SIZE);
   Integer hintPrefListSize=(null != hintPrefListSizeStr) ? Integer.parseInt(hintPrefListSizeStr) : null;
-  return new StoreDefinitionBuilder().setName(name).setType(storeType).setDescription(description).setKeySerializer(keySerializer).setValueSerializer(valueSerializer).setRoutingPolicy(routingTier).setRoutingStrategyType(routingStrategyType).setReplicationFactor(replicationFactor).setPreferredReads(preferredReads).setRequiredReads(requiredReads).setPreferredWrites(preferredWrites).setRequiredWrites(requiredWrites).setRetentionPeriodDays(retentionPolicyDays).setRetentionScanThrottleRate(retentionThrottleRate).setZoneReplicationFactor(zoneReplicationFactor).setZoneCountReads(zoneCountReads).setZoneCountWrites(zoneCountWrites).setHintedHandoffStrategy(hintedHandoffStrategy).setHintPrefListSize(hintPrefListSize).build();
+  return new StoreDefinitionBuilder().setName(name).setType(storeType).setDescription(description).setOwners(owners).setKeySerializer(keySerializer).setValueSerializer(valueSerializer).setRoutingPolicy(routingTier).setRoutingStrategyType(routingStrategyType).setReplicationFactor(replicationFactor).setPreferredReads(preferredReads).setRequiredReads(requiredReads).setPreferredWrites(preferredWrites).setRequiredWrites(requiredWrites).setRetentionPeriodDays(retentionPolicyDays).setRetentionScanThrottleRate(retentionThrottleRate).setZoneReplicationFactor(zoneReplicationFactor).setZoneCountReads(zoneCountReads).setZoneCountWrites(zoneCountWrites).setHintedHandoffStrategy(hintedHandoffStrategy).setHintPrefListSize(hintPrefListSize).build();
 }
