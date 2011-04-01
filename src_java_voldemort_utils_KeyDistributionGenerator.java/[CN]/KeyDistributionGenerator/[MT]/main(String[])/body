@@ -23,12 +23,16 @@
     System.exit(1);
   }
   Cluster cluster=new ClusterMapper().readCluster(new File(clusterXml));
-  List<StoreDefinition> storeDef=new StoreDefinitionsMapper().readStoreList(new File(storesXml));
-  for (  StoreDefinition def : storeDef) {
+  List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new File(storesXml));
+  for (  StoreDefinition def : storeDefs) {
     HashMap<Integer,Double> storeDistribution=generateDistribution(cluster,def,numKeys);
     System.out.println("For Store " + def.getName());
     printDistribution(storeDistribution);
     System.out.println("Std dev - " + getStdDeviation(storeDistribution));
     System.out.println("=========================");
   }
+  HashMap<Integer,Double> overallDistribution=generateOverallDistribution(cluster,storeDefs,numKeys);
+  System.out.println("Overall distribution ");
+  printDistribution(overallDistribution);
+  System.out.println("Std dev - " + getStdDeviation(overallDistribution));
 }
