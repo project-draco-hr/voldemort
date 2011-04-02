@@ -1,16 +1,4 @@
 {
-  if (this.previousDir.length() != 0 && getSaveKeys() && this.previousElement != null && this.previousIterator != null) {
-    do {
-      patch(this.previousElement.getSecond().array(),1);
-      if (this.previousIterator.hasNext()) {
-        this.previousElement=previousIterator.next();
-      }
- else {
-        this.previousElement=null;
-      }
-    }
- while (this.previousElement != null);
-  }
   this.indexFileStream.close();
   this.valueFileStream.close();
   if (this.nodeId == -1 || this.chunkId == -1 || this.partitionId == -1) {
@@ -32,7 +20,7 @@
   if (this.checkSumType != CheckSumType.NONE) {
     if (this.checkSumDigestIndex != null && this.checkSumDigestValue != null) {
       Path checkSumIndexFile=new Path(nodeDir,fileNamePrefix + ".index.checksum");
-      Path checkSumValueFile=new Path(nodeDir,fileNamePrefix + "." + dataFileSuffix+ ".checksum");
+      Path checkSumValueFile=new Path(nodeDir,fileNamePrefix + ".data.checksum");
       FSDataOutputStream output=outputFs.create(checkSumIndexFile);
       output.write(this.checkSumDigestIndex.getCheckSum());
       output.close();
@@ -45,7 +33,7 @@
     }
   }
   Path indexFile=new Path(nodeDir,fileNamePrefix + ".index");
-  Path valueFile=new Path(nodeDir,fileNamePrefix + "." + dataFileSuffix);
+  Path valueFile=new Path(nodeDir,fileNamePrefix + ".data");
   logger.info("Moving " + this.taskIndexFileName + " to "+ indexFile);
   outputFs.rename(taskIndexFileName,indexFile);
   logger.info("Moving " + this.taskValueFileName + " to "+ valueFile);

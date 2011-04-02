@@ -4,19 +4,12 @@
     this.conf=job;
     this.position=0;
     this.outputDir=job.get("final.output.dir");
-    this.previousDir=job.get("previous.output.dir","");
-    if (this.previousDir.length() == 0) {
-      this.dataFileSuffix="data";
-    }
- else {
-      this.dataFileSuffix="patch";
-    }
     this.taskId=job.get("mapred.task.id");
     this.checkSumType=CheckSum.fromString(job.get("checksum.type"));
     this.checkSumDigestIndex=CheckSum.getInstance(checkSumType);
     this.checkSumDigestValue=CheckSum.getInstance(checkSumType);
     this.taskIndexFileName=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + this.taskId+ ".index");
-    this.taskValueFileName=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + this.taskId+ "."+ dataFileSuffix);
+    this.taskValueFileName=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + this.taskId+ ".data");
     if (this.fs == null)     this.fs=this.taskIndexFileName.getFileSystem(job);
     this.indexFileStream=fs.create(this.taskIndexFileName);
     this.valueFileStream=fs.create(this.taskValueFileName);

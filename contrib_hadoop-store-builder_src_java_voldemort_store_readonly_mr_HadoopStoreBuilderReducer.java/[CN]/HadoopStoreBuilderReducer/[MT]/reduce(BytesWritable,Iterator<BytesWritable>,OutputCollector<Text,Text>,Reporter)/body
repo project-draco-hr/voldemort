@@ -20,10 +20,6 @@
     if (getSaveKeys()) {
       if (this.replicaType == -1)       this.replicaType=(int)ByteUtils.readBytes(valueBytes,offsetTillNow,ByteUtils.SIZE_OF_BYTE);
       offsetTillNow+=ByteUtils.SIZE_OF_BYTE;
-      if (this.previousDir.length() != 0 && previousIterator == null) {
-        DataFileChunkSet dataFileChunkSet=HadoopStoreBuilderUtils.getDataFileChunkSet(this.fs,HadoopStoreBuilderUtils.getDataChunkFiles(this.fs,new Path(previousDir,"node-" + Integer.toString(nodeId)),this.partitionId,this.replicaType,this.chunkId));
-        previousIterator=new ROCollidedEntriesIterator(dataFileChunkSet);
-      }
     }
     int valueLength=writable.getSize() - offsetTillNow;
     if (getSaveKeys()) {
@@ -45,68 +41,19 @@
   }
   valueStream.flush();
   byte[] value=stream.toByteArray();
-  if (this.previousDir.length() != 0 && getSaveKeys()) {
+  if (getSaveKeys()) {
     byte[] numBuf=new byte[ByteUtils.SIZE_OF_BYTE];
     ByteUtils.writeBytes(numBuf,numKeyValues,0,ByteUtils.SIZE_OF_BYTE);
-    boolean retry=false;
-    do {
-      retry=false;
-      if (previousElement == null && previousIterator.hasNext()) {
-        previousElement=previousIterator.next();
-      }
- else       if (previousElement == null && !previousIterator.hasNext()) {
-        patch(ByteUtils.cat(numBuf,value),0);
-      }
- else {
-switch (ByteUtils.compare(previousElement.getFirst().array(),key.get())) {
-case -1:
-          patch(previousElement.getSecond().array(),1);
-        if (previousIterator.hasNext()) {
-          previousElement=previousIterator.next();
-        }
- else {
-          previousElement=null;
-        }
-      retry=true;
-    break;
-case 1:
-  patch(ByteUtils.cat(numBuf,value),0);
-break;
-case 0:
-if (ByteUtils.compare(previousElement.getSecond().array(),ByteUtils.cat(numBuf,value)) != 0) {
-patch(previousElement.getSecond().array(),1);
-patch(ByteUtils.cat(numBuf,value),0);
-}
-if (previousIterator.hasNext()) {
-previousElement=previousIterator.next();
-}
- else {
-previousElement=null;
-}
-break;
-default :
-throw new VoldemortException("Comparison of key throw an exception");
-}
-}
-}
- while (retry);
-this.position+=value.length + ByteUtils.SIZE_OF_BYTE;
-}
- else {
-if (getSaveKeys()) {
-byte[] numBuf=new byte[ByteUtils.SIZE_OF_BYTE];
-ByteUtils.writeBytes(numBuf,numKeyValues,0,ByteUtils.SIZE_OF_BYTE);
-this.valueFileStream.write(numBuf);
-this.position+=ByteUtils.SIZE_OF_BYTE;
-if (this.checkSumDigestValue != null) {
-this.checkSumDigestValue.update(numBuf);
-}
-}
-this.valueFileStream.write(value);
-this.position+=value.length;
-if (this.checkSumDigestValue != null) {
-this.checkSumDigestValue.update(value);
-}
-}
-if (this.position < 0) throw new VoldemortException("Chunk overflow exception: chunk " + chunkId + " has exceeded "+ Integer.MAX_VALUE+ " bytes.");
+    this.valueFileStream.write(numBuf);
+    this.position+=ByteUtils.SIZE_OF_BYTE;
+    if (this.checkSumDigestValue != null) {
+      this.checkSumDigestValue.update(numBuf);
+    }
+  }
+  this.valueFileStream.write(value);
+  this.position+=value.length;
+  if (this.checkSumDigestValue != null) {
+    this.checkSumDigestValue.update(value);
+  }
+  if (this.position < 0)   throw new VoldemortException("Chunk overflow exception: chunk " + chunkId + " has exceeded "+ Integer.MAX_VALUE+ " bytes.");
 }

@@ -53,12 +53,8 @@
   }
   CheckSumType checkSumType=CheckSumType.toType(CmdUtils.valueOf(options,"checksum",""));
   Class[] deps=new Class[]{ImmutableCollection.class,JDOMException.class,VoldemortConfig.class,HadoopStoreJobRunner.class,mapperClass};
-  Path previousDir=null;
-  if (options.has("previous")) {
-    previousDir=new Path((String)options.valueOf("previous"));
-  }
   addDepJars(conf,deps,addJars);
-  HadoopStoreBuilder builder=new HadoopStoreBuilder(conf,mapperClass,inputFormatClass,cluster,storeDef,chunkSizeBytes,tempDir,outputDir,inputPath,checkSumType,saveKeys,previousDir);
+  HadoopStoreBuilder builder=new HadoopStoreBuilder(conf,mapperClass,inputFormatClass,cluster,storeDef,chunkSizeBytes,tempDir,outputDir,inputPath,checkSumType,saveKeys);
   builder.build();
   return 0;
 }
