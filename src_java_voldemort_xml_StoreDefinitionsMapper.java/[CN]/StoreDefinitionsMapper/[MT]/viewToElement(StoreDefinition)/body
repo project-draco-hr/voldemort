@@ -3,6 +3,10 @@
   store.addContent(new Element(STORE_NAME_ELMT).setText(storeDefinition.getName()));
   store.addContent(new Element(VIEW_TARGET_ELMT).setText(storeDefinition.getViewTargetStoreName()));
   if (storeDefinition.getDescription() != null)   store.addContent(new Element(STORE_DESCRIPTION_ELMT).setText(storeDefinition.getDescription()));
+  if (storeDefinition.getOwners() != null && storeDefinition.getOwners().size() > 0) {
+    String ownersText=StringUtils.join(storeDefinition.getOwners().toArray(),", ");
+    store.addContent(new Element(STORE_OWNERS_ELMT).setText(ownersText));
+  }
   if (storeDefinition.getValueTransformation() == null)   throw new MappingException("View " + storeDefinition.getName() + " has no defined transformation class.");
   store.addContent(new Element(VIEW_TRANS_ELMT).setText(storeDefinition.getValueTransformation()));
   store.addContent(new Element(STORE_ROUTING_TIER_ELMT).setText(storeDefinition.getRoutingPolicy().toDisplay()));

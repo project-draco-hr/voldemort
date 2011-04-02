@@ -1,0 +1,39 @@
+{
+  HashMap<StoreDefinition,Integer> uniqueStoreDefs=Maps.newHashMap();
+  for (  StoreDefinition storeDef : storeDefs) {
+    if (uniqueStoreDefs.isEmpty()) {
+      uniqueStoreDefs.put(storeDef,1);
+    }
+ else {
+      StoreDefinition sameStore=null;
+      for (      StoreDefinition uniqueStoreDef : uniqueStoreDefs.keySet()) {
+        if (uniqueStoreDef.getReplicationFactor() == storeDef.getReplicationFactor() && uniqueStoreDef.getRoutingStrategyType().compareTo(storeDef.getRoutingStrategyType()) == 0) {
+          if (uniqueStoreDef.getRoutingStrategyType().compareTo(RoutingStrategyType.ZONE_STRATEGY) == 0) {
+            boolean zonesSame=true;
+            for (            int zoneId : uniqueStoreDef.getZoneReplicationFactor().keySet()) {
+              if (storeDef.getZoneReplicationFactor().get(zoneId) == null || storeDef.getZoneReplicationFactor().get(zoneId) != uniqueStoreDef.getZoneReplicationFactor().get(zoneId)) {
+                zonesSame=false;
+                break;
+              }
+            }
+            if (zonesSame) {
+              sameStore=uniqueStoreDef;
+            }
+          }
+ else {
+            sameStore=uniqueStoreDef;
+          }
+          if (sameStore != null) {
+            int currentCount=uniqueStoreDefs.get(sameStore);
+            uniqueStoreDefs.put(sameStore,currentCount + 1);
+            break;
+          }
+        }
+      }
+      if (sameStore == null) {
+        uniqueStoreDefs.put(storeDef,1);
+      }
+    }
+  }
+  return uniqueStoreDefs;
+}
