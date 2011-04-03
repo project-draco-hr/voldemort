@@ -1,0 +1,28 @@
+{
+  this.request=request;
+  this.errorCodeMapper=errorCodeMapper;
+  partitionList=request.getPartitionsList();
+  this.stats=stats;
+  this.handle=stats.makeHandle(operation,partitionList);
+  storageEngine=AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
+  routingStrategy=metadataStore.getRoutingStrategy(storageEngine.getName());
+  throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
+  if (request.hasFilter()) {
+    filter=AdminServiceRequestHandler.getFilterFromRequest(request.getFilter(),voldemortConfig,networkClassLoader);
+  }
+ else {
+    if (request.hasFetchMasterEntries() && request.getFetchMasterEntries()) {
+      filter=new MasterOnlyVoldemortFilter(routingStrategy,request.getPartitionsList());
+    }
+ else {
+      filter=new DefaultVoldemortFilter();
+    }
+  }
+  keyIterator=storageEngine.keys();
+  startTime=System.currentTimeMillis();
+  counter=0;
+  skipRecords=1;
+  if (request.hasSkipRecords() && request.getSkipRecords() >= 0) {
+    skipRecords=request.getSkipRecords() + 1;
+  }
+}
