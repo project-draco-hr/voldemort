@@ -2,7 +2,7 @@
 switch (storageFormat) {
 case READONLY_V0:
 {
-      return ReadOnlyUtils.chunk(keyToStorageFormat(key),numChunks);
+      return ReadOnlyUtils.chunk(ByteUtils.md5(key),numChunks);
     }
 case READONLY_V1:
 {
@@ -11,7 +11,7 @@ case READONLY_V1:
     if (routingPartitionList.size() != 1) {
       return -1;
     }
-    return chunkIdToChunkStart.get(routingPartitionList.get(0)) + ReadOnlyUtils.chunk(keyToStorageFormat(key),chunkIdToNumChunks.get(routingPartitionList.get(0)));
+    return chunkIdToChunkStart.get(routingPartitionList.get(0)) + ReadOnlyUtils.chunk(ByteUtils.md5(key),chunkIdToNumChunks.get(routingPartitionList.get(0)));
   }
 case READONLY_V2:
 {
@@ -31,7 +31,7 @@ case READONLY_V2:
     }
   }
   if (replicaType == -1 || currentPartition == -1)   return -1;
-  return chunkIdToChunkStart.get(partitionIdsIndex * routingStrategy.getNumReplicas() + replicaType) + ReadOnlyUtils.chunk(keyToStorageFormat(key),chunkIdToNumChunks.get(partitionIdsIndex * routingStrategy.getNumReplicas() + replicaType));
+  return chunkIdToChunkStart.get(partitionIdsIndex * routingStrategy.getNumReplicas() + replicaType) + ReadOnlyUtils.chunk(ByteUtils.md5(key),chunkIdToNumChunks.get(partitionIdsIndex * routingStrategy.getNumReplicas() + replicaType));
 }
 default :
 {
