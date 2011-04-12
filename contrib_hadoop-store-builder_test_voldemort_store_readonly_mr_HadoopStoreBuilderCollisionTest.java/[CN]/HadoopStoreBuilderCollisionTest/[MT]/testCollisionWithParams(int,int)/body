@@ -1,11 +1,15 @@
 {
   assertEquals(totalElements % maxCollisions,0);
   Map<String,String> values=new HashMap<String,String>();
+  List<String> valuesLeft=Lists.newArrayList();
   File testDir=TestUtils.createTempDir();
   File tempDir=new File(testDir,"temp");
   File outputDir=new File(testDir,"output");
   File storeDir=TestUtils.createTempDir(testDir);
-  for (int i=0; i < totalElements; i++)   values.put(Integer.toString(i),Integer.toBinaryString(i));
+  for (int i=0; i < totalElements; i++) {
+    values.put(Integer.toString(i),Integer.toString(i));
+    valuesLeft.add(Integer.toString(i));
+  }
   String storeName="test";
   SerializerDefinition serDef=new SerializerDefinition("string");
   Cluster cluster=ServerTestUtils.getLocalCluster(1);
@@ -34,26 +38,30 @@
   fetcher.fetch(nodeFile.getAbsolutePath(),versionDir.getAbsolutePath());
   ReadOnlyStorageEngine engine=new ReadOnlyStorageEngine(storeName,new CustomBinarySearchStrategy(),new RoutingStrategyFactory().updateRoutingStrategy(def,cluster),0,storeDir,1);
   Store<Object,Object,Object> store=SerializingStore.wrap(engine,serializer,serializer,serializer);
-  int numKeys=0;
   for (  Map.Entry<String,String> entry : values.entrySet()) {
     List<Versioned<Object>> found=store.get(entry.getKey(),null);
     Assert.assertEquals("Incorrect number of results",1,found.size());
     Assert.assertEquals(entry.getValue(),found.get(0).getValue());
-    numKeys++;
   }
+  List<String> valuesLeft2=Lists.newArrayList(valuesLeft);
   ClosableIterator<ByteArray> keyIterator=engine.keys();
   int numElements=0;
   while (keyIterator.hasNext()) {
-    Assert.assertTrue(values.containsKey(serializer.toObject(keyIterator.next().get())));
+    Object object=serializer.toObject(keyIterator.next().get());
+    assertEquals(valuesLeft.remove(object),true);
+    Assert.assertTrue(values.containsKey(object));
     numElements++;
   }
   Assert.assertEquals(numElements,values.size());
+  Assert.assertEquals(valuesLeft.size(),0);
   ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=engine.entries();
   numElements=0;
   while (entryIterator.hasNext()) {
     Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
+    assertEquals(valuesLeft2.remove(serializer.toObject(entry.getFirst().get())),true);
     Assert.assertEquals(values.get(serializer.toObject(entry.getFirst().get())),serializer.toObject(entry.getSecond().getValue()));
     numElements++;
   }
   Assert.assertEquals(numElements,values.size());
+  Assert.assertEquals(valuesLeft2.size(),0);
 }
