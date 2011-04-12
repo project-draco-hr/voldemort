@@ -53,11 +53,11 @@
  else {
         Pair<byte[],byte[]> previousElement=previousElements.get(key);
         if (ByteUtils.compare(previousElement.getFirst(),currentElement.getKeyMd5(),0,2 * ByteUtils.SIZE_OF_INT) == 0) {
-          int numKeys=(int)ByteUtils.readBytes(previousElement.getSecond(),0,1);
+          short numKeys=ByteUtils.readShort(previousElement.getSecond(),0);
           ByteArrayOutputStream stream=new ByteArrayOutputStream();
           DataOutputStream valueStream=new DataOutputStream(stream);
-          valueStream.writeByte(numKeys + 1);
-          valueStream.write(ByteUtils.copy(previousElement.getSecond(),1,previousElement.getSecond().length));
+          valueStream.writeShort(numKeys + 1);
+          valueStream.write(ByteUtils.copy(previousElement.getSecond(),ByteUtils.SIZE_OF_SHORT,previousElement.getSecond().length));
           valueStream.writeInt(currentElement.getKey().length);
           valueStream.writeInt(currentElement.getValue().length);
           valueStream.write(currentElement.getKey());

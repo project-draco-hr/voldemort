@@ -14,16 +14,22 @@ case READONLY_V1:
       }
 case READONLY_V2:
 {
-      ByteBuffer numKeyValsBuffer=ByteBuffer.allocate(ByteUtils.SIZE_OF_BYTE);
-      dataFile.read(numKeyValsBuffer,valueLocation);
-      int numKeyVal=numKeyValsBuffer.get(0) & ByteUtils.MASK_11111111;
-      valueLocation+=ByteUtils.SIZE_OF_BYTE;
-      for (int keyId=0; keyId < numKeyVal; keyId++) {
-        ByteBuffer sizeBuffer=ByteBuffer.allocate(2 * ByteUtils.SIZE_OF_INT);
-        dataFile.read(sizeBuffer,valueLocation);
-        valueLocation+=(2 * ByteUtils.SIZE_OF_INT);
-        int keySize=sizeBuffer.getInt(0);
-        int valueSize=sizeBuffer.getInt(ByteUtils.SIZE_OF_INT);
+      ByteBuffer sizeBuffer=ByteBuffer.allocate(ByteUtils.SIZE_OF_SHORT + (2 * ByteUtils.SIZE_OF_INT));
+      dataFile.read(sizeBuffer,valueLocation);
+      short numKeyValues=sizeBuffer.getShort(0);
+      valueLocation+=ByteUtils.SIZE_OF_SHORT;
+      int keySize=sizeBuffer.getInt(ByteUtils.SIZE_OF_SHORT);
+      valueLocation+=ByteUtils.SIZE_OF_INT;
+      int valueSize=sizeBuffer.getInt(ByteUtils.SIZE_OF_SHORT + ByteUtils.SIZE_OF_INT);
+      valueLocation+=ByteUtils.SIZE_OF_INT;
+      do {
+        if (keySize == -1 && valueSize == -1) {
+          sizeBuffer.clear();
+          dataFile.read(sizeBuffer,valueLocation);
+          keySize=sizeBuffer.getInt(0);
+          valueSize=sizeBuffer.getInt(ByteUtils.SIZE_OF_INT);
+          valueLocation+=(2 * ByteUtils.SIZE_OF_INT);
+        }
         ByteBuffer buffer=ByteBuffer.allocate(keySize);
         dataFile.read(buffer,valueLocation);
         valueLocation+=keySize;
@@ -33,7 +39,9 @@ case READONLY_V2:
           return buffer.array();
         }
         valueLocation+=valueSize;
+        keySize=valueSize=-1;
       }
+ while (--numKeyValues > 0);
       return new byte[0];
     }
 default :

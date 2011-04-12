@@ -2,12 +2,12 @@
   if (!hasNext())   throw new VoldemortException("Reached the end");
   try {
     if (coalesceCollided) {
-      ByteBuffer numKeysBytes=ByteBuffer.allocate(ByteUtils.SIZE_OF_BYTE);
+      ByteBuffer numKeysBytes=ByteBuffer.allocate(ByteUtils.SIZE_OF_SHORT);
       getCurrentChunk().read(numKeysBytes,getCurrentOffsetInChunk());
-      int numKeys=numKeysBytes.get(0) & ByteUtils.MASK_11111111;
+      short numKeys=numKeysBytes.getShort(0);
       ByteBuffer values=ByteBuffer.allocate(numKeys * ByteUtils.SIZE_OF_INT);
-      getCurrentChunk().read(values,getCurrentOffsetInChunk() + ByteUtils.SIZE_OF_BYTE);
-      updateOffset(getCurrentOffsetInChunk() + ByteUtils.SIZE_OF_BYTE + (numKeys * ByteUtils.SIZE_OF_INT));
+      getCurrentChunk().read(values,getCurrentOffsetInChunk() + ByteUtils.SIZE_OF_SHORT);
+      updateOffset(getCurrentOffsetInChunk() + ByteUtils.SIZE_OF_SHORT + (numKeys * ByteUtils.SIZE_OF_INT));
       return values;
     }
  else {

@@ -5,7 +5,7 @@
     this.checkSumDigestIndex.update(key.get(),0,key.getSize());
     this.checkSumDigestIndex.update(this.position);
   }
-  int numKeyValues=0;
+  short numTuples=0;
   ByteArrayOutputStream stream=new ByteArrayOutputStream();
   DataOutputStream valueStream=new DataOutputStream(stream);
   while (iterator.hasNext()) {
@@ -29,25 +29,26 @@
       valueStream.writeInt(valueLength);
       valueStream.write(valueBytes,offsetTillNow,valueLength);
     }
-    numKeyValues++;
-    if (!getSaveKeys() && numKeyValues > 1)     throw new VoldemortException("Duplicate keys detected for md5 sum " + ByteUtils.toHexString(ByteUtils.copy(key.get(),0,key.getSize())));
+    numTuples++;
+    if (!getSaveKeys() && numTuples > 1)     throw new VoldemortException("Duplicate keys detected for md5 sum " + ByteUtils.toHexString(ByteUtils.copy(key.get(),0,key.getSize())));
   }
-  if (numKeyValues > 1) {
+  if (numTuples < 0) {
+    throw new VoldemortException("Found too many collisions: chunk " + chunkId + " has exceeded "+ Short.MAX_VALUE+ " collisions.");
+  }
+ else   if (numTuples > 1) {
     reporter.incrCounter(CollisionCounter.NUM_COLLISIONS,1);
     long numCollisions=reporter.getCounter(CollisionCounter.MAX_COLLISIONS).getCounter();
-    if (numKeyValues > numCollisions) {
-      reporter.incrCounter(CollisionCounter.MAX_COLLISIONS,numKeyValues - numCollisions);
+    if (numTuples > numCollisions) {
+      reporter.incrCounter(CollisionCounter.MAX_COLLISIONS,numTuples - numCollisions);
     }
   }
   valueStream.flush();
   byte[] value=stream.toByteArray();
   if (getSaveKeys()) {
-    byte[] numBuf=new byte[ByteUtils.SIZE_OF_BYTE];
-    ByteUtils.writeBytes(numBuf,numKeyValues,0,ByteUtils.SIZE_OF_BYTE);
-    this.valueFileStream.write(numBuf);
-    this.position+=ByteUtils.SIZE_OF_BYTE;
+    this.valueFileStream.writeShort(numTuples);
+    this.position+=ByteUtils.SIZE_OF_SHORT;
     if (this.checkSumDigestValue != null) {
-      this.checkSumDigestValue.update(numBuf);
+      this.checkSumDigestValue.update(numTuples);
     }
   }
   this.valueFileStream.write(value);

@@ -2,10 +2,10 @@
   if (!hasNext())   throw new VoldemortException("Reached the end");
   try {
     ByteBuffer keyBuffer=ByteBuffer.allocate(2 * ByteUtils.SIZE_OF_INT);
-    ByteBuffer numKeyValsBuffer=ByteBuffer.allocate(ByteUtils.SIZE_OF_BYTE);
+    ByteBuffer numKeyValsBuffer=ByteBuffer.allocate(ByteUtils.SIZE_OF_SHORT);
     getCurrentChunk().read(numKeyValsBuffer,getCurrentOffsetInChunk());
-    int tupleCount=numKeyValsBuffer.get(0) & ByteUtils.MASK_11111111;
-    int offsetMoved=ByteUtils.SIZE_OF_BYTE;
+    short tupleCount=numKeyValsBuffer.getShort(0);
+    int offsetMoved=ByteUtils.SIZE_OF_SHORT;
     ByteBuffer keyValueLength=ByteBuffer.allocate(2 * ByteUtils.SIZE_OF_INT);
     for (int tupleId=0; tupleId < tupleCount; tupleId++) {
       getCurrentChunk().read(keyValueLength,getCurrentOffsetInChunk() + offsetMoved);
