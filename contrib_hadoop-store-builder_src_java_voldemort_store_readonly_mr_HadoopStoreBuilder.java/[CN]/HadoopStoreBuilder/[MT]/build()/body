@@ -41,7 +41,12 @@
     conf.setNumReduceTasks(numReducers);
     logger.info("Number of chunks: " + numChunks + ", number of reducers: "+ numReducers+ ", save keys: "+ saveKeys);
     logger.info("Building store...");
-    JobClient.runJob(conf);
+    RunningJob job=JobClient.runJob(conf);
+    Counters counters=job.getCounters();
+    if (saveKeys) {
+      logger.info("Number of collisions in the job - " + counters.getCounter(HadoopStoreBuilderReducer.CollisionCounter.NUM_COLLISIONS));
+      logger.info("Maximum number of collisions for one entry - " + counters.getCounter(HadoopStoreBuilderReducer.CollisionCounter.MAX_COLLISIONS));
+    }
     CheckSum checkSumGenerator=CheckSum.getInstance(this.checkSumType);
     if (!this.checkSumType.equals(CheckSumType.NONE) && checkSumGenerator == null) {
       throw new VoldemortException("Could not generate checksum digest for type " + this.checkSumType);
