@@ -16,21 +16,20 @@ case READONLY_V1:
 case READONLY_V2:
 {
   List<Integer> routingPartitionList=routingStrategy.getPartitionList(key);
-  int replicaType=-1, currentPartition=-1, partitionIdsIndex=-1;
-  for (int index=0; index < routingPartitionList.size(); index++) {
-    int partition=routingPartitionList.get(index);
-    if (partitionIds.contains(partition)) {
+  int replicaType=-1, partitionIdsIndex=-1;
+  for (int index=0; index < partitionIds.size(); index++) {
+    int partition=partitionIds.get(index);
+    if (routingPartitionList.contains(partition)) {
       if (replicaType == -1) {
-        partitionIdsIndex=partitionIds.indexOf(partition);
-        replicaType=index;
-        currentPartition=partition;
+        partitionIdsIndex=index;
+        replicaType=routingPartitionList.indexOf(partition);
       }
  else {
         return -1;
       }
     }
   }
-  if (replicaType == -1 || currentPartition == -1)   return -1;
+  if (replicaType == -1)   return -1;
   return chunkIdToChunkStart.get(partitionIdsIndex * routingStrategy.getNumReplicas() + replicaType) + ReadOnlyUtils.chunk(ByteUtils.md5(key),chunkIdToNumChunks.get(partitionIdsIndex * routingStrategy.getNumReplicas() + replicaType));
 }
 default :
