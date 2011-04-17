@@ -45,7 +45,7 @@
   for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
     versionToNode.put(nodeId,adminClient.getROCurrentVersion(nodeId,Lists.newArrayList(STORE_NAME)).get(STORE_NAME));
   }
-  servers[0].getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.GRANDFATHERING_SERVER);
+  servers[0].getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
   try {
     swapper.swapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 4);
     fail("Should have thrown exception during swapping");
