@@ -1,3 +1,5 @@
 {
-  if (!rebalancePermits.remove(nodeId))   throw new VoldemortException(new IllegalStateException("Invalid state, must hold a " + "permit to release"));
+  boolean removed=rebalancePermits.remove(nodeId);
+  logger.info("releaseRebalancingPermit for nodeId: " + nodeId + ", returned: "+ removed);
+  if (!removed)   throw new VoldemortException(new IllegalStateException("Invalid state, must hold a " + "permit to release"));
 }

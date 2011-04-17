@@ -1,0 +1,20 @@
+{
+  StringBuilder sb=new StringBuilder();
+  for (  Map.Entry<Integer,Set<Integer>> entry : nodeItToAllPartitions.entrySet()) {
+    final Integer nodeId=entry.getKey();
+    final Set<Integer> primariesAndReplicas=entry.getValue();
+    final List<Integer> primaries=cluster.getNodeById(nodeId).getPartitionIds();
+    Set<Integer> onlyPrimaries=new TreeSet<Integer>();
+    Set<Integer> onlyReplicas=new TreeSet<Integer>();
+    for (    Integer allPartition : primariesAndReplicas) {
+      if (primaries.contains(allPartition)) {
+        onlyPrimaries.add(allPartition);
+      }
+ else {
+        onlyReplicas.add(allPartition);
+      }
+    }
+    sb.append(nodeId + " - " + onlyPrimaries+ " + "+ onlyReplicas).append(NL);
+  }
+  return sb.toString();
+}

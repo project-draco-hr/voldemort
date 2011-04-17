@@ -18,23 +18,24 @@
   final List<Exception> failures=new ArrayList<Exception>();
   if (VoldemortState.REBALANCING_MASTER_SERVER.equals(voldemortState) && acquireRebalancingPermit(metadataStore.getNodeId())) {
     releaseRebalancingPermit(metadataStore.getNodeId());
-    for (    RebalancePartitionsInfo stealInfo : rebalancerState.getAll()) {
+    for (    final RebalancePartitionsInfoLiveCycle stealInfoLiveCycle : rebalancerState.getAll()) {
+      final RebalancePartitionsInfo stealInfo=stealInfoLiveCycle.getRebalancePartitionsInfo();
       if (acquireRebalancingPermit(stealInfo.getDonorId())) {
         releaseRebalancingPermit(stealInfo.getDonorId());
         try {
           logger.warn("Rebalance server found incomplete rebalancing attempt, restarting rebalancing task " + stealInfo);
           if (stealInfo.getAttempt() < voldemortConfig.getMaxRebalancingAttempt()) {
-            attemptRebalance(stealInfo);
+            attemptRebalance(stealInfoLiveCycle);
             nodeIdsToStoreDirs.put(stealInfo.getDonorId(),stealInfo.getDonorNodeROStoreToDir());
             nodeIdsToStoreDirs.put(stealInfo.getStealerId(),stealInfo.getStealerNodeROStoreToDir());
           }
  else {
-            logger.warn("Rebalancing for rebalancing task " + stealInfo + " failed multiple times, Aborting more trials.");
+            logger.warn("Rebalancing for rebalancing task " + stealInfo + " failed multiple times (max. attemps:"+ voldemortConfig.getMaxRebalancingAttempt()+ "), Aborting more trials.");
             metadataStore.cleanRebalancingState(stealInfo);
           }
         }
  catch (        Exception e) {
-          logger.error("RebalanceService rebalancing attempt " + stealInfo + " failed with exception",e);
+          logger.error("RebalanceService rebalancing attempt " + stealInfo + " failed with exception - "+ e.getMessage(),e);
           failures.add(e);
         }
       }
@@ -65,7 +66,7 @@
         RebalanceUtils.executorShutDown(swapExecutors,voldemortConfig.getRebalancingTimeout());
       }
  catch (      Exception e) {
-        logger.error("Interrupted swapping executor ",e);
+        logger.error("Interrupted swapping executor - " + e.getMessage(),e);
         return;
       }
     }

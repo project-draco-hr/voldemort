@@ -1,0 +1,27 @@
+{
+  final Map<Node,Set<Integer>> stealerToStolenPrimaryPartitions=new HashMap<Node,Set<Integer>>();
+  for (  Node stealerNode : targetCluster.getNodes()) {
+    stealerToStolenPrimaryPartitions.put(stealerNode,getStolenPrimaries(currentCluster,targetCluster,stealerNode));
+  }
+  for (  Node stealerNode : targetCluster.getNodes()) {
+    Set<Integer> stolenPrimaryPartitions=stealerToStolenPrimaryPartitions.get(stealerNode);
+    if (stolenPrimaryPartitions == null || stolenPrimaryPartitions.isEmpty())     continue;
+    Node stealerNodeUpdated=RebalanceUtils.removePartitionToNode(stealerNode,stolenPrimaryPartitions);
+    for (    Integer donatedPrimaryPartition : stolenPrimaryPartitions) {
+      Cluster targetTransition=createTransitionTargetCluster(currentCluster,stealerNodeUpdated,donatedPrimaryPartition);
+      stealerNodeUpdated=targetTransition.getNodeById(stealerNodeUpdated.getId());
+      final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(currentCluster,targetTransition,storesList,rebalanceConfig.isDeleteAfterRebalancingEnabled(),currentROStoreVersionsDirs);
+      final OrderedClusterTransition orderedClusterTransition=new OrderedClusterTransition(currentCluster,targetTransition,rebalanceClusterPlan);
+      if (rebalanceConfig.isShowPlanEnabled()) {
+        System.out.print(orderedClusterTransition);
+        if (logger.isDebugEnabled()) {
+          logger.debug(orderedClusterTransition);
+        }
+      }
+ else {
+        rebalance(orderedClusterTransition,currentROStoreVersionsDirs,readOnlyStores);
+      }
+      currentCluster=targetTransition;
+    }
+  }
+}

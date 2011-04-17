@@ -1,5 +1,17 @@
 {
   testEntries=ServerTestUtils.createRandomKeyValueString(NUM_KEYS);
   socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
-  storeDefs=new StoreDefinitionsMapper().readStoreList(new File(storeDefFile));
+  storeDefs=new StoreDefinitionsMapper().readStoreList(new StringReader(VoldemortTestConstants.getTwoStoresDefinitionsXml()));
+  try {
+    String twoStoresDefinitionsXml=VoldemortTestConstants.getTwoStoresDefinitionsXml();
+    File file=File.createTempFile("two-stores-",".xml");
+    FileWriter fw=new FileWriter(file);
+    fw.write(twoStoresDefinitionsXml);
+    fw.flush();
+    fw.close();
+    storeDefFile=file.getAbsolutePath();
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
 }

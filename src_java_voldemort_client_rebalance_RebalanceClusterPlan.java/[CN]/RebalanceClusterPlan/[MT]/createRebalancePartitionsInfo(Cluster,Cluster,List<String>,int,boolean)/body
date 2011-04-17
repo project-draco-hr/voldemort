@@ -1,0 +1,25 @@
+{
+  final List<RebalancePartitionsInfo> result=new ArrayList<RebalancePartitionsInfo>();
+  final Set<Integer> haveToStealPrimaries=getStealPrimaries(currentCluster,targetCluster,stealerId);
+  final Set<Integer> haveToStealReplicas=getStealReplicas(currentCluster,targetCluster,stealerId);
+  final Set<Integer> haveToDeletingPartitions=getRemainToBeDeletedPartitions(stealerId);
+  if (haveToStealPrimaries.size() == 0 && haveToStealReplicas.size() == 0 && haveToDeletingPartitions.size() == 0) {
+    return result;
+  }
+  for (  Node donorNode : currentCluster.getNodes()) {
+    if (donorNode.getId() == stealerId)     continue;
+    if (hasAllPartitionTreated(haveToStealPrimaries) && hasAllPartitionTreated(haveToStealReplicas) && hasAllPartitionTreated(haveToDeletingPartitions)) {
+      break;
+    }
+    final Set<Integer> trackStealPartitions=new HashSet<Integer>();
+    final Set<Integer> trackDeletePartitions=new HashSet<Integer>();
+    final Set<Integer> trackStealMasterPartitions=new HashSet<Integer>();
+    donatePrimary(donorNode,haveToStealPrimaries,trackStealMasterPartitions,trackStealPartitions);
+    donateReplicas(donorNode,haveToStealReplicas,trackStealPartitions);
+    deleteDonatedPartitions(donorNode,trackDeletePartitions,enabledDeletePartition,stealerId);
+    if (trackStealPartitions.size() > 0 || trackDeletePartitions.size() > 0) {
+      result.add(new RebalancePartitionsInfo(stealerId,donorNode.getId(),new ArrayList<Integer>(trackStealPartitions),new ArrayList<Integer>(trackDeletePartitions),new ArrayList<Integer>(trackStealMasterPartitions),storeNames,new HashMap<String,String>(),new HashMap<String,String>(),0));
+    }
+  }
+  return result;
+}

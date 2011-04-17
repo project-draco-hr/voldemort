@@ -1,0 +1,20 @@
+{
+  final Collection<Node> nodes=cluster.getNodes();
+  final StoreDefinition maxReplicationStore=RebalanceUtils.getMaxReplicationStore(this.storeDefList);
+  final RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(maxReplicationStore,cluster);
+  final Map<Integer,Set<Integer>> nodeIdToAllPartitions=new HashMap<Integer,Set<Integer>>();
+  final Map<Integer,Integer> partitionToNodeIdMap=getPartitionToNode(nodes);
+  for (  Node node : nodes) {
+    nodeIdToAllPartitions.put(node.getId(),new TreeSet<Integer>());
+  }
+  for (  Node node : nodes) {
+    for (    Integer primary : node.getPartitionIds()) {
+      List<Integer> replicaPartitionList=routingStrategy.getReplicatingPartitionList(primary);
+      for (      Integer replicaPartition : replicaPartitionList) {
+        Integer replicaNodeId=partitionToNodeIdMap.get(replicaPartition);
+        nodeIdToAllPartitions.get(replicaNodeId).add(primary);
+      }
+    }
+  }
+  return nodeIdToAllPartitions;
+}

@@ -1,8 +1,9 @@
 {
-  logger.debug("Current Cluster configuration:" + currentCluster);
-  logger.debug("Target Cluster configuration:" + targetCluster);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Current Cluster configuration:" + currentCluster);
+    logger.debug("Target Cluster configuration:" + targetCluster);
+  }
   adminClient.setAdminClientCluster(currentCluster);
-  Cluster oldCluster=currentCluster;
   List<StoreDefinition> storesList=RebalanceUtils.getStoreNameList(currentCluster,adminClient);
   currentCluster=getClusterWithNewNodes(currentCluster,targetCluster);
   adminClient.setAdminClientCluster(currentCluster);
@@ -18,115 +19,5 @@
       currentROStoreVersionsDirs.put(node.getId(),adminClient.getROCurrentVersionDir(node.getId(),readOnlyStores));
     }
   }
-  final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(oldCluster,targetCluster,storesList,rebalanceConfig.isDeleteAfterRebalancingEnabled(),currentROStoreVersionsDirs);
-  logger.info(rebalanceClusterPlan);
-  if (rebalanceClusterPlan.getRebalancingTaskQueue().isEmpty()) {
-    return;
-  }
-  Node firstNode=currentCluster.getNodes().iterator().next();
-  VectorClock latestClock=(VectorClock)RebalanceUtils.getLatestCluster(new ArrayList<Integer>(),adminClient).getVersion();
-  RebalanceUtils.propagateCluster(adminClient,currentCluster,latestClock.incremented(firstNode.getId(),System.currentTimeMillis()),new ArrayList<Integer>());
-  ExecutorService executor=RebalanceUtils.createExecutors(rebalanceConfig.getMaxParallelRebalancing());
-  final List<Exception> failures=new ArrayList<Exception>();
-  final Set<Integer> nodeIds=Collections.synchronizedSet(new HashSet<Integer>());
-  for (int nThreads=0; nThreads < this.rebalanceConfig.getMaxParallelRebalancing(); nThreads++) {
-    executor.execute(new Runnable(){
-      public void run(){
-        while (!rebalanceClusterPlan.getRebalancingTaskQueue().isEmpty()) {
-          RebalanceNodePlan rebalanceTask=rebalanceClusterPlan.getRebalancingTaskQueue().poll();
-          if (null != rebalanceTask) {
-            final int stealerNodeId=rebalanceTask.getStealerNode();
-            nodeIds.add(stealerNodeId);
-            final SetMultimap<Integer,RebalancePartitionsInfo> rebalanceSubTaskMap=divideRebalanceNodePlan(rebalanceTask);
-            final Set<Integer> parallelDonors=rebalanceSubTaskMap.keySet();
-            ExecutorService parallelDonorExecutor=RebalanceUtils.createExecutors(rebalanceConfig.getMaxParallelDonors());
-            for (            final int donorNodeId : parallelDonors) {
-              nodeIds.add(donorNodeId);
-              parallelDonorExecutor.execute(new Runnable(){
-                public void run(){
-                  Set<RebalancePartitionsInfo> tasksForDonor=rebalanceSubTaskMap.get(donorNodeId);
-                  for (                  RebalancePartitionsInfo stealInfo : tasksForDonor) {
-                    logger.info("Starting rebalancing for stealerNode: " + stealerNodeId + " with rebalanceInfo: "+ stealInfo);
-                    try {
-                      int rebalanceAsyncId=startNodeRebalancing(stealInfo);
-                      try {
-                        commitClusterChanges(adminClient.getAdminClientCluster().getNodeById(stealerNodeId),stealInfo);
-                      }
- catch (                      Exception e) {
-                        if (-1 != rebalanceAsyncId) {
-                          adminClient.stopAsyncRequest(stealInfo.getStealerId(),rebalanceAsyncId);
-                        }
-                        throw e;
-                      }
-                      adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,rebalanceConfig.getRebalancingClientTimeoutSeconds(),TimeUnit.SECONDS);
-                      logger.info("Succesfully finished rebalance attempt: " + stealInfo);
-                    }
- catch (                    UnreachableStoreException e) {
-                      logger.error("StealerNode " + stealerNodeId + " is unreachable, please make sure it is up and running.",e);
-                      failures.add(e);
-                    }
-catch (                    VoldemortRebalancingException e) {
-                      logger.error(e);
-                      for (                      Exception cause : e.getCauses()) {
-                        logger.error(cause);
-                      }
-                      failures.add(e);
-                    }
-catch (                    Exception e) {
-                      logger.error("Rebalancing task failed with exception",e);
-                      failures.add(e);
-                    }
-                  }
-                }
-              }
-);
-            }
-            try {
-              RebalanceUtils.executorShutDown(parallelDonorExecutor,rebalanceConfig.getRebalancingClientTimeoutSeconds());
-            }
- catch (            Exception e) {
-              logger.error("Interrupted",e);
-              failures.add(e);
-            }
-          }
-        }
-        logger.info("Thread run() finished:\n");
-      }
-    }
-);
-  }
-  try {
-    RebalanceUtils.executorShutDown(executor,rebalanceConfig.getRebalancingClientTimeoutSeconds());
-  }
- catch (  Exception e) {
-    logger.error("Interrupted rebalance executor ",e);
-    return;
-  }
-  if (failures.size() == 0 && readOnlyStores.size() > 0) {
-    logger.info("Swapping stores " + readOnlyStores + " on "+ nodeIds);
-    ExecutorService swapExecutors=RebalanceUtils.createExecutors(targetCluster.getNumberOfNodes());
-    for (    final Integer nodeId : nodeIds) {
-      swapExecutors.submit(new Runnable(){
-        public void run(){
-          Map<String,String> storeDirs=currentROStoreVersionsDirs.get(nodeId);
-          try {
-            logger.info("Swapping read-only stores on node " + nodeId);
-            adminClient.swapStoresAndCleanState(nodeId,storeDirs);
-            logger.info("Successfully swapped on node " + nodeId);
-          }
- catch (          Exception e) {
-            logger.error("Failed swapping on node " + nodeId,e);
-          }
-        }
-      }
-);
-    }
-    try {
-      RebalanceUtils.executorShutDown(swapExecutors,rebalanceConfig.getRebalancingClientTimeoutSeconds());
-    }
- catch (    Exception e) {
-      logger.error("Interrupted swapping executor ",e);
-      return;
-    }
-  }
+  rebalancePerClusterTransition(currentCluster,targetCluster,storesList,currentROStoreVersionsDirs,readOnlyStores);
 }

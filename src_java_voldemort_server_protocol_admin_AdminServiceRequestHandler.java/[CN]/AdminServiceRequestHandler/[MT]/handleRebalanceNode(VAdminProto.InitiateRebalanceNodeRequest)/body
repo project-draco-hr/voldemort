@@ -3,7 +3,8 @@
   try {
     if (!voldemortConfig.isEnableRebalanceService())     throw new VoldemortException("Rebalance service is not enabled for node:" + metadataStore.getNodeId());
     RebalancePartitionsInfo rebalanceStealInfo=new RebalancePartitionsInfo(request.getStealerId(),request.getDonorId(),request.getPartitionsList(),request.getDeletePartitionsList(),request.getStealMasterPartitionsList(),request.getUnbalancedStoreList(),encodeROStoreVersionDirMap(request.getStealerRoStoreToDirList()),encodeROStoreVersionDirMap(request.getDonorRoStoreToDirList()),request.getAttempt());
-    int requestId=rebalancer.rebalanceLocalNode(rebalanceStealInfo);
+    RebalancePartitionsInfoLiveCycle rebalancePartitionsInfoLiveCycle=new RebalancePartitionsInfoLiveCycle(rebalanceStealInfo,RebalancePartitionsInfoLifeCycleStatus.NEW);
+    int requestId=rebalancer.rebalanceLocalNode(rebalancePartitionsInfoLiveCycle);
     response.setRequestId(requestId).setDescription(rebalanceStealInfo.toString()).setStatus("started").setComplete(false);
   }
  catch (  VoldemortException e) {

@@ -1,0 +1,16 @@
+{
+  System.out.println("testRebalanceAllReplicasBeingMigrated() running...");
+  List<StoreDefinition> storeDef=new StoreDefinitionsMapper().readStoreList(new StringReader(VoldemortTestConstants.getSingleStore322Xml()));
+  currentCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{0,4},{2,3},{1,5},{}});
+  targetCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{4},{2,3},{1,5},{0}});
+  OrderedClusterTransition orderedClusterTransition=createOrderedClusterTransition(currentCluster,targetCluster,storeDef);
+  List<RebalanceNodePlan> orderedRebalanceNodePlanList=orderedClusterTransition.getOrderedRebalanceNodePlanList();
+  assertEquals("There should have exactly 1 rebalancing node",1,orderedRebalanceNodePlanList.size());
+{
+    RebalanceNodePlan rebalanceNodePlan=orderedRebalanceNodePlanList.get(0);
+    assertEquals("Stealer 3 should have 2 entry",2,rebalanceNodePlan.getRebalanceTaskList().size());
+    RebalancePartitionsInfo a=new RebalancePartitionsInfo(3,0,Arrays.asList(0,5),Arrays.asList(0,5),Arrays.asList(0),RebalanceUtils.getStoreNames(storeDef),new HashMap<String,String>(),new HashMap<String,String>(),0);
+    RebalancePartitionsInfo b=new RebalancePartitionsInfo(3,1,Arrays.asList(4),Arrays.asList(4),empty,RebalanceUtils.getStoreNames(storeDef),new HashMap<String,String>(),new HashMap<String,String>(),0);
+    checkAllRebalanceInfoPresent(rebalanceNodePlan,Arrays.asList(a,b));
+  }
+}

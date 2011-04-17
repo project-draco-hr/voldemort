@@ -1,0 +1,9 @@
+{
+  ExecutorService exec=RebalanceUtils.createExecutors(numThreads);
+  for (  RebalancePartitionsInfo pinfo : rebalancePartitionsInfoList) {
+    RebalanceTask myRebalanceTask=new RebalanceTask(pinfo,participatingNodesId,gate);
+    taskList.add(myRebalanceTask);
+    exec.execute(myRebalanceTask);
+  }
+  return exec;
+}

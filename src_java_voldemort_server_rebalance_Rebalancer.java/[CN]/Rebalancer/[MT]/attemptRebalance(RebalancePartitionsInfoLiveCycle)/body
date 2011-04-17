@@ -1,0 +1,13 @@
+{
+  final RebalancePartitionsInfo rebalancePartitionsInfo=stealInfoLiveCycle.getRebalancePartitionsInfo();
+  rebalancePartitionsInfo.setAttempt(rebalancePartitionsInfo.getAttempt() + 1);
+  AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),4,2);
+  try {
+    int rebalanceAsyncId=rebalanceLocalNode(stealInfoLiveCycle);
+    adminClient.waitForCompletion(rebalancePartitionsInfo.getStealerId(),rebalanceAsyncId,voldemortConfig.getRebalancingTimeout(),TimeUnit.SECONDS);
+  }
+  finally {
+    adminClient.stop();
+    adminClient=null;
+  }
+}

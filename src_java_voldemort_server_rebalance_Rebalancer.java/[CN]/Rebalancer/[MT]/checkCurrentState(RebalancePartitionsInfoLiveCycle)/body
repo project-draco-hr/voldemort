@@ -1,0 +1,25 @@
+{
+  metadataStore.readLock.lock();
+  if (logger.isDebugEnabled()) {
+    logger.debug("Checking current state: " + metadataStore.getServerState().name() + " - "+ stealInfoLiveCycle);
+  }
+  try {
+    if (metadataStore.getServerState().equals(VoldemortState.REBALANCING_MASTER_SERVER)) {
+      RebalancerState rebalancerState=metadataStore.getRebalancerState();
+      final RebalancePartitionsInfo stealInfo=stealInfoLiveCycle.getRebalancePartitionsInfo();
+      final int donorId=stealInfo.getDonorId();
+      final RebalancePartitionsInfoLiveCycle previousLiveCycle=rebalancerState.find(donorId);
+      if (previousLiveCycle != null && RebalancePartitionsInfoLifeCycleStatus.RUNNING.equals(previousLiveCycle.getStatus())) {
+        throw new VoldemortException("Server " + metadataStore.getNodeId() + " is already rebalancing from: "+ stealInfoLiveCycle+ " rejecting rebalance request:"+ stealInfo);
+      }
+ else {
+        if (logger.isInfoEnabled()) {
+          logger.info("Found previous " + previousLiveCycle + " - about to be executed.");
+        }
+      }
+    }
+  }
+  finally {
+    metadataStore.readLock.unlock();
+  }
+}

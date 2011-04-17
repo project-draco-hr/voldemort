@@ -1,0 +1,10 @@
+{
+  System.out.println("testClusterTransitionDeletingLastNode() running...");
+  List<StoreDefinition> storeDef=new StoreDefinitionsMapper().readStoreList(new StringReader(VoldemortTestConstants.getSingleStore322Xml()));
+  currentCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{0,4},{1,5},{2,6},{3,7}});
+  targetCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{3,0,4},{1,5},{2,6},{7}});
+  clusterTransitionDeletingLastNodePartition3(currentCluster,targetCluster,storeDef);
+  currentCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{3,0,4},{1,5},{2,6},{7}});
+  targetCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{3,0,4},{7,1,5},{2,6},{}});
+  clusterTransitionDeletingLastNodePartition7(currentCluster,targetCluster,storeDef);
+}

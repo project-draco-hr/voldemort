@@ -1,0 +1,16 @@
+{
+  List<RebalancePartitionsInfo> listPrimaries=new ArrayList<RebalancePartitionsInfo>();
+  List<RebalancePartitionsInfo> listReplicas=new ArrayList<RebalancePartitionsInfo>();
+  List<RebalancePartitionsInfo> pinfos=rebalanceNodePlan.getRebalanceTaskList();
+  for (  RebalancePartitionsInfo pinfo : pinfos) {
+    List<Integer> stealMasterPartitions=pinfo.getStealMasterPartitions();
+    if (stealMasterPartitions != null && !stealMasterPartitions.isEmpty()) {
+      listPrimaries.add(pinfo);
+    }
+ else {
+      listReplicas.add(pinfo);
+    }
+  }
+  listPrimaries.addAll(listReplicas);
+  return listPrimaries;
+}

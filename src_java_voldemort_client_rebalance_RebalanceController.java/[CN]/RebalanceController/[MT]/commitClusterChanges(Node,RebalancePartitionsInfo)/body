@@ -14,6 +14,7 @@ synchronized (adminClient) {
       updatedCluster=currentCluster;
       latestClock.incrementVersion(stealerNode.getId(),System.currentTimeMillis());
       RebalanceUtils.propagateCluster(adminClient,updatedCluster,latestClock,new ArrayList<Integer>());
+      logger.error("Exception during comming changes in the cluster.xml - " + e.getMessage(),e);
       throw e;
     }
     adminClient.setAdminClientCluster(updatedCluster);

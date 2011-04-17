@@ -1,9 +1,15 @@
 {
+  this.currentCluster=currentCluster;
+  this.targetCluster=targetCluster;
   this.rebalanceTaskQueue=new ConcurrentLinkedQueue<RebalanceNodePlan>();
-  this.storeDefList=storeDefList;
+  this.storeDefList=Collections.unmodifiableList(storeDefList);
   if (currentCluster.getNumberOfPartitions() != targetCluster.getNumberOfPartitions())   throw new VoldemortException("Total number of partitions should not change !!");
+  this.clusterNodeIdToAllPartitions=Collections.unmodifiableMap(createNodeIdToAllPartitions(currentCluster));
+  this.targetNodeIdToAllPartitions=Collections.unmodifiableMap(createNodeIdToAllPartitions(targetCluster));
+  this.targetNodeIdToAllDeletedPartitions=Collections.unmodifiableMap(createTargetNodeItToAllDeletePartitions());
+  this.targetNodeIdToAllDonatedPartitions=Collections.unmodifiableMap(createTargetNodeItToAllDonatedPartitions());
   for (  Node node : targetCluster.getNodes()) {
-    List<RebalancePartitionsInfo> rebalanceNodeList=getRebalanceNodeTask(currentCluster,targetCluster,RebalanceUtils.getStoreNames(storeDefList),node.getId(),deleteDonorPartition);
+    List<RebalancePartitionsInfo> rebalanceNodeList=createRebalancePartitionsInfo(currentCluster,targetCluster,RebalanceUtils.getStoreNames(storeDefList),node.getId(),enabledDeletePartition);
     if (rebalanceNodeList.size() > 0) {
       if (currentROStoreVersionsDirs != null && currentROStoreVersionsDirs.size() > 0) {
         for (        RebalancePartitionsInfo partitionsInfo : rebalanceNodeList) {

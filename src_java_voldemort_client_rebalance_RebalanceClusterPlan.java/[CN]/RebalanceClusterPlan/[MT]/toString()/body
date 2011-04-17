@@ -1,14 +1,9 @@
 {
   if (rebalanceTaskQueue.isEmpty()) {
-    return "Cluster is already balanced, No rebalancing needed";
+    return "Rebalance task queue is empty, No rebalancing needed";
   }
   StringBuilder builder=new StringBuilder();
-  builder.append("Cluster Rebalancing Plan:\n");
-  for (  RebalanceNodePlan nodePlan : rebalanceTaskQueue) {
-    builder.append("StealerNode:" + nodePlan.getStealerNode() + "\n");
-    for (    RebalancePartitionsInfo stealInfo : nodePlan.getRebalanceTaskList()) {
-      builder.append("\t" + stealInfo + "\n");
-    }
-  }
+  builder.append("Cluster Rebalancing Plan:").append(NL);
+  builder.append(toString(getRebalancingTaskQueue()));
   return builder.toString();
 }

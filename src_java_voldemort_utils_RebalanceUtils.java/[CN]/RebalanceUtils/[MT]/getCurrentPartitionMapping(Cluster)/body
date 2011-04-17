@@ -1,7 +1,11 @@
 {
-  Map<Integer,Integer> partitionToNode=new HashMap<Integer,Integer>();
+  Map<Integer,Integer> partitionToNode=new LinkedHashMap<Integer,Integer>();
   for (  Node n : currentCluster.getNodes()) {
     for (    Integer partition : n.getPartitionIds()) {
+      Integer previousRegisteredNodeId=partitionToNode.get(partition);
+      if (previousRegisteredNodeId != null) {
+        throw new IllegalArgumentException("Partition id " + partition + " found on two nodes : "+ n.getId()+ " and "+ previousRegisteredNodeId);
+      }
       partitionToNode.put(partition,n.getId());
     }
   }

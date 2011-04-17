@@ -1,4 +1,7 @@
 {
-  stealInfoMap=Maps.newHashMapWithExpectedSize(stealInfoList.size());
-  for (  RebalancePartitionsInfo rebalancePartitionsInfo : stealInfoList)   stealInfoMap.put(rebalancePartitionsInfo.getDonorId(),rebalancePartitionsInfo);
+  stealInfoMap=new ConcurrentHashMap<Integer,RebalancePartitionsInfoLiveCycle>(stealInfoList.size());
+  for (  RebalancePartitionsInfo rebalancePartitionsInfo : stealInfoList) {
+    RebalancePartitionsInfoLiveCycle pinfoLiveCycle=new RebalancePartitionsInfoLiveCycle(rebalancePartitionsInfo,RebalancePartitionsInfoLifeCycleStatus.NEW);
+    stealInfoMap.put(rebalancePartitionsInfo.getDonorId(),pinfoLiveCycle);
+  }
 }
