@@ -3,10 +3,10 @@
     logger.debug("Current Cluster configuration:" + currentCluster);
     logger.debug("Target Cluster configuration:" + targetCluster);
   }
+  currentCluster=RebalanceUtils.getClusterWithNewNodes(currentCluster,targetCluster);
   adminClient.setAdminClientCluster(currentCluster);
+  validateClusterState(currentCluster);
   List<StoreDefinition> storesList=RebalanceUtils.getStoreNameList(currentCluster,adminClient);
-  currentCluster=getClusterWithNewNodes(currentCluster,targetCluster);
-  adminClient.setAdminClientCluster(currentCluster);
   final Map<Integer,Map<String,String>> currentROStoreVersionsDirs=Maps.newHashMapWithExpectedSize(storesList.size());
   List<String> readOnlyStores=Lists.newArrayList();
   for (  StoreDefinition store : storesList) {

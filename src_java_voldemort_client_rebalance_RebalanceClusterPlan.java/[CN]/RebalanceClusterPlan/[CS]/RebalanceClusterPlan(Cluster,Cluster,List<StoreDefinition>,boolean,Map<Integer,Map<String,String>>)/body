@@ -3,7 +3,7 @@
   this.targetCluster=targetCluster;
   this.rebalanceTaskQueue=new ConcurrentLinkedQueue<RebalanceNodePlan>();
   this.storeDefList=Collections.unmodifiableList(storeDefList);
-  if (currentCluster.getNumberOfPartitions() != targetCluster.getNumberOfPartitions())   throw new VoldemortException("Total number of partitions should not change !!");
+  if (currentCluster.getNumberOfPartitions() != targetCluster.getNumberOfPartitions())   throw new VoldemortException("Total number of partitions should be equal [ Current cluster (" + currentCluster.getNumberOfPartitions() + ") not equal to Target cluster ("+ targetCluster.getNumberOfPartitions()+ ") ]");
   this.clusterNodeIdToAllPartitions=Collections.unmodifiableMap(createNodeIdToAllPartitions(currentCluster));
   this.targetNodeIdToAllPartitions=Collections.unmodifiableMap(createNodeIdToAllPartitions(targetCluster));
   this.targetNodeIdToAllDeletedPartitions=Collections.unmodifiableMap(createTargetNodeItToAllDeletePartitions());

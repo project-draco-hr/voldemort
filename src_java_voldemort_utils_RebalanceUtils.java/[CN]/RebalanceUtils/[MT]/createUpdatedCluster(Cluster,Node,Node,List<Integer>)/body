@@ -4,19 +4,18 @@
   for (  int p : cluster.getNodeById(stealerNode.getId()).getPartitionIds()) {
     if (!stealerPartitionList.contains(p))     stealerPartitionList.add(p);
   }
-  for (  int p : partitionList) {
-    removePartition(donorPartitionList,p);
-    if (!stealerPartitionList.contains(p))     stealerPartitionList.add(p);
+  for (  int partition : partitionList) {
+    for (int i=0; i < donorPartitionList.size(); i++) {
+      if (partition == donorPartitionList.get(i)) {
+        donorPartitionList.remove(i);
+      }
+    }
+    if (!stealerPartitionList.contains(partition))     stealerPartitionList.add(partition);
   }
   Collections.sort(stealerPartitionList);
   Collections.sort(donorPartitionList);
-  logger.debug("stealerNode: " + stealerNode);
-  logger.debug("donorNode: " + donorNode);
-  logger.debug("stealerPartitionList: " + stealerPartitionList);
-  logger.debug("donorPartitionList: " + donorPartitionList);
   stealerNode=updateNode(stealerNode,stealerPartitionList);
   donorNode=updateNode(donorNode,donorPartitionList);
   Cluster updatedCluster=updateCluster(cluster,Arrays.asList(stealerNode,donorNode));
-  logger.debug("currentCluster: " + cluster + " updatedCluster:"+ updatedCluster);
   return updatedCluster;
 }

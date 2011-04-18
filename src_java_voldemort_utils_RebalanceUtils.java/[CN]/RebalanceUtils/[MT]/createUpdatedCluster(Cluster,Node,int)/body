@@ -1,5 +1,5 @@
 {
-  Node donorNode=getNodeByPartition(currentCluster,donatedPartition);
+  Node donorNode=RebalanceUtils.getNodeByPartitionId(currentCluster,donatedPartition);
   final List<Node> nodes=new ArrayList<Node>(currentCluster.getNodes());
   nodes.remove(donorNode);
   nodes.remove(stealerNode);
@@ -8,5 +8,5 @@
   nodes.add(donorNode);
   nodes.add(stealerNode);
   Collections.sort(nodes);
-  return new Cluster(currentCluster.getName(),nodes);
+  return new Cluster(currentCluster.getName(),nodes,Lists.newArrayList(currentCluster.getZones()));
 }
