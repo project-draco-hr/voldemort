@@ -7,7 +7,7 @@ case READONLY_V0:
 case READONLY_V1:
 {
     List<Integer> routingPartitionList=routingStrategy.getPartitionList(key);
-    routingPartitionList.retainAll(partitionIds);
+    routingPartitionList.retainAll(nodePartitionIds);
     if (routingPartitionList.size() != 1) {
       return -1;
     }
@@ -16,21 +16,19 @@ case READONLY_V1:
 case READONLY_V2:
 {
   List<Integer> routingPartitionList=routingStrategy.getPartitionList(key);
-  int replicaType=-1, partitionIdsIndex=-1;
-  for (int index=0; index < partitionIds.size(); index++) {
-    int partition=partitionIds.get(index);
-    if (routingPartitionList.contains(partition)) {
-      if (replicaType == -1) {
-        partitionIdsIndex=index;
-        replicaType=routingPartitionList.indexOf(partition);
+  String bucket=null;
+  for (int replicaType=0; replicaType < routingPartitionList.size(); replicaType++) {
+    if (nodePartitionIds.contains(routingPartitionList.get(replicaType))) {
+      if (bucket == null) {
+        bucket=new String(Integer.toString(routingPartitionList.get(0)) + "_" + Integer.toString(replicaType));
       }
  else {
         return -1;
       }
     }
   }
-  if (replicaType == -1)   return -1;
-  return chunkIdToChunkStart.get(partitionIdsIndex * routingStrategy.getNumReplicas() + replicaType) + ReadOnlyUtils.chunk(ByteUtils.md5(key),chunkIdToNumChunks.get(partitionIdsIndex * routingStrategy.getNumReplicas() + replicaType));
+  if (bucket == null)   return -1;
+  return chunkIdToChunkStart.get(bucket) + ReadOnlyUtils.chunk(ByteUtils.md5(key),chunkIdToNumChunks.get(bucket));
 }
 default :
 {
