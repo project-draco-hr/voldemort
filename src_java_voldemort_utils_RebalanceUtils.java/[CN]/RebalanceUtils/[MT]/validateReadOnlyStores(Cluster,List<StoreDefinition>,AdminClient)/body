@@ -1,0 +1,16 @@
+{
+  List<StoreDefinition> readOnlyStores=getReadOnlyStores(storeDefs);
+  if (readOnlyStores.size() == 0) {
+    return;
+  }
+  List<String> storeNames=RebalanceUtils.getStoreNames(readOnlyStores);
+  for (  Node node : cluster.getNodes()) {
+    if (node.getNumberOfPartitions() != 0) {
+      for (      Entry<String,String> storeToStorageFormat : adminClient.getROStorageFormat(node.getId(),storeNames).entrySet()) {
+        if (storeToStorageFormat.getValue().compareTo(ReadOnlyStorageFormat.READONLY_V2.getCode()) != 0) {
+          throw new VoldemortRebalancingException("Cannot rebalance since node " + node.getId() + " has store "+ storeToStorageFormat.getKey()+ " not using format "+ ReadOnlyStorageFormat.READONLY_V2);
+        }
+      }
+    }
+  }
+}

@@ -1,23 +1,5 @@
 {
-  if (logger.isDebugEnabled()) {
-    logger.debug("Current Cluster configuration:" + currentCluster);
-    logger.debug("Target Cluster configuration:" + targetCluster);
-  }
-  currentCluster=RebalanceUtils.getClusterWithNewNodes(currentCluster,targetCluster);
-  adminClient.setAdminClientCluster(currentCluster);
-  validateClusterState(currentCluster);
-  List<StoreDefinition> storesList=RebalanceUtils.getStoreNameList(currentCluster,adminClient);
-  final Map<Integer,Map<String,String>> currentROStoreVersionsDirs=Maps.newHashMapWithExpectedSize(storesList.size());
-  List<String> readOnlyStores=Lists.newArrayList();
-  for (  StoreDefinition store : storesList) {
-    if (store.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0) {
-      readOnlyStores.add(store.getName());
-    }
-  }
-  if (readOnlyStores.size() > 0) {
-    for (    Node node : currentCluster.getNodes()) {
-      currentROStoreVersionsDirs.put(node.getId(),adminClient.getROCurrentVersionDir(node.getId(),readOnlyStores));
-    }
-  }
-  rebalancePerClusterTransition(currentCluster,targetCluster,storesList,currentROStoreVersionsDirs,readOnlyStores);
+  adminClient.setAdminClientCluster(targetCluster);
+  List<StoreDefinition> storeDefs=RebalanceUtils.getStoreDefinition(targetCluster,adminClient);
+  rebalance(currentCluster,targetCluster,storeDefs);
 }

@@ -1,6 +1,6 @@
 {
   StringBuilder sb=new StringBuilder();
-  for (  Map.Entry<Integer,Set<Integer>> entry : nodeItToAllPartitions.entrySet()) {
+  for (  Map.Entry<Integer,Set<Integer>> entry : nodeIdToAllPartitions.entrySet()) {
     final Integer nodeId=entry.getKey();
     final Set<Integer> primariesAndReplicas=entry.getValue();
     final List<Integer> primaries=cluster.getNodeById(nodeId).getPartitionIds();
@@ -14,7 +14,7 @@
         onlyReplicas.add(allPartition);
       }
     }
-    sb.append(nodeId + " - " + onlyPrimaries+ " + "+ onlyReplicas).append(NL);
+    sb.append(nodeId + " - " + onlyPrimaries+ " + "+ onlyReplicas).append(Utils.NEWLINE);
   }
   return sb.toString();
 }

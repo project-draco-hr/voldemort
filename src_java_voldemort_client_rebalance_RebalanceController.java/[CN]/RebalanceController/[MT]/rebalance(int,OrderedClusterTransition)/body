@@ -1,0 +1,17 @@
+{
+  try {
+    final Cluster transitionCluster=orderedClusterTransition.getTargetCluster();
+    final List<RebalanceNodePlan> orderedRebalanceNodePlanList=orderedClusterTransition.getOrderedRebalanceNodePlanList();
+    if (orderedRebalanceNodePlanList.isEmpty()) {
+      printLog(stealerNodeId,"Skipping rebalance-task-id:" + orderedClusterTransition.getId() + " is empty");
+      return;
+    }
+    printLog(stealerNodeId,"Starting rebalance-task-id: " + orderedClusterTransition);
+    rebalance(stealerNodeId,transitionCluster,orderedRebalanceNodePlanList);
+    printLog(stealerNodeId,"Successfully terminated rebalance-task-id: " + orderedClusterTransition.getId());
+  }
+ catch (  Exception e) {
+    logger.error("Error in rebalance-task: " + orderedClusterTransition + " - "+ e.getMessage(),e);
+    throw new VoldemortException("Rebalance failed on rebalance-task ID#" + orderedClusterTransition.getId(),e);
+  }
+}

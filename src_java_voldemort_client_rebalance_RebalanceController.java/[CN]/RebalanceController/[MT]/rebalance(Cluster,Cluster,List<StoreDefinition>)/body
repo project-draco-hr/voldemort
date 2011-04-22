@@ -1,0 +1,15 @@
+{
+  logger.info("Current Cluster configuration:" + currentCluster);
+  logger.info("Target Cluster configuration:" + targetCluster);
+  currentCluster=RebalanceUtils.getClusterWithNewNodes(currentCluster,targetCluster);
+  adminClient.setAdminClientCluster(currentCluster);
+  storeDefs=RebalanceUtils.getWritableStores(storeDefs);
+  if (!rebalanceConfig.isShowPlanEnabled()) {
+    RebalanceUtils.validateClusterState(currentCluster,adminClient);
+    RebalanceUtils.validateReadOnlyStores(currentCluster,storeDefs,adminClient);
+    List<Integer> nodeIds=RebalanceUtils.getNodeIds(Lists.newArrayList(currentCluster.getNodes()));
+    VectorClock latestClock=(VectorClock)RebalanceUtils.getLatestCluster(nodeIds,adminClient).getVersion();
+    RebalanceUtils.propagateCluster(adminClient,currentCluster,latestClock.incremented(0,System.currentTimeMillis()),nodeIds);
+  }
+  rebalancePerClusterTransition(currentCluster,targetCluster,storeDefs);
+}

@@ -1,29 +1,29 @@
 {
   final int donorId=donorNode.getId();
-  final Set<Integer> donorAllParitions=clusterNodeIdToAllPartitions.get(donorId);
+  final Set<Integer> donorAllPartitions=nodeIdToAllPartitions.get(donorId);
   final Iterator<Integer> iter=haveToStealReplicas.iterator();
   while (iter.hasNext()) {
-    Integer stealingReplica=iter.next();
-    boolean isSomebodyDeleting=false;
-    for (    Node somebody : targetCluster.getNodes()) {
-      if (somebody.getId() == donorId)       continue;
-      Set<Integer> somebodyDeletedPartitions=targetNodeIdToAllDeletedPartitions.get(somebody.getId());
-      Set<Integer> alreadyDeletedPartitions=alreadyDeletedNodeIdToPartions.get(somebody.getId());
-      if (alreadyDeletedPartitions != null && !alreadyDeletedPartitions.isEmpty())       somebodyDeletedPartitions.removeAll(alreadyDeletedPartitions);
-      if (somebodyDeletedPartitions.contains(stealingReplica)) {
-        isSomebodyDeleting=true;
+    int replicaPartitionToSteal=iter.next();
+    boolean deletedInFuture=false;
+    for (    Node targetNode : targetCluster.getNodes()) {
+      if (targetNode.getId() == donorId)       continue;
+      Set<Integer> allDeletedPartitions=targetNodeIdToAllDeletedPartitions.get(targetNode.getId());
+      Set<Integer> alreadyDeletedPartitions=alreadyDeletedNodeIdToPartions.get(targetNode.getId());
+      if (alreadyDeletedPartitions != null && !alreadyDeletedPartitions.isEmpty())       allDeletedPartitions.removeAll(alreadyDeletedPartitions);
+      if (allDeletedPartitions.contains(replicaPartitionToSteal)) {
+        deletedInFuture=true;
       }
     }
-    if (isSomebodyDeleting)     continue;
-    Set<Integer> donorDonatedPartitions=targetNodeIdToAllDonatedPartitions.get(donorId);
-    if (donorDonatedPartitions != null && donorDonatedPartitions.contains(stealingReplica))     continue;
+    if (deletedInFuture)     continue;
+    Set<Integer> donorDonatedPartitions=targetNodeIdToAllStolenPartitions.get(donorId);
+    if (donorDonatedPartitions != null && donorDonatedPartitions.contains(replicaPartitionToSteal))     continue;
     Set<Integer> deletedPartitions=alreadyDeletedNodeIdToPartions.get(donorId);
     boolean isDeletedPartition=false;
-    if (deletedPartitions != null && deletedPartitions.contains(stealingReplica)) {
+    if (deletedPartitions != null && deletedPartitions.contains(replicaPartitionToSteal)) {
       isDeletedPartition=true;
     }
-    if (donorAllParitions.contains(stealingReplica) && !isDeletedPartition) {
-      trackStealPartitions.add(stealingReplica);
+    if (donorAllPartitions.contains(replicaPartitionToSteal) && !isDeletedPartition) {
+      trackStealPartitions.add(replicaPartitionToSteal);
       iter.remove();
     }
   }

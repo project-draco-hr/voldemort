@@ -4,13 +4,13 @@
     if (targetNodeIdToAllDeletedPartitions.get(donorId) != null && targetNodeIdToAllDeletedPartitions.get(donorId).size() > 0) {
       Set<Integer> delPartitions=new TreeSet<Integer>(targetNodeIdToAllDeletedPartitions.get(donorId));
       final Cluster sortedTargetCluster=sortCluster(targetCluster);
-      for (      Node somebody : sortedTargetCluster.getNodes()) {
-        if (somebody.getId() == donorId || somebody.getId() <= stealerId)         continue;
-        Set<Integer> somebodyWillReceivePartitions=targetNodeIdToAllDonatedPartitions.get(somebody.getId());
+      for (      Node targetNode : sortedTargetCluster.getNodes()) {
+        if (targetNode.getId() == donorId || targetNode.getId() <= stealerId)         continue;
+        Set<Integer> stolenPartitions=targetNodeIdToAllStolenPartitions.get(targetNode.getId());
         Iterator<Integer> iterator=delPartitions.iterator();
         while (iterator.hasNext()) {
           Integer delPartition=iterator.next();
-          if (somebodyWillReceivePartitions != null && somebodyWillReceivePartitions.contains(delPartition)) {
+          if (stolenPartitions != null && stolenPartitions.contains(delPartition)) {
             iterator.remove();
           }
         }
@@ -20,7 +20,16 @@
         delPartitions.removeAll(alreadyDeletedPartitions);
       }
       trackDeletePartitions.addAll(delPartitions);
-      addDeletedPartition(alreadyDeletedNodeIdToPartions,donorId,delPartitions);
+      for (      int delPartition : delPartitions) {
+        if (alreadyDeletedNodeIdToPartions.containsKey(donorId)) {
+          alreadyDeletedNodeIdToPartions.get(donorId).add(delPartition);
+        }
+ else {
+          Set<Integer> set=new TreeSet<Integer>();
+          set.add(delPartition);
+          alreadyDeletedNodeIdToPartions.put(donorId,set);
+        }
+      }
     }
   }
 }

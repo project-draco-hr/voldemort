@@ -1,0 +1,26 @@
+{
+  final Map<Node,Set<Integer>> stealerToStolenPrimaryPartitions=new HashMap<Node,Set<Integer>>();
+  for (  Node stealerNode : targetCluster.getNodes()) {
+    stealerToStolenPrimaryPartitions.put(stealerNode,RebalanceUtils.getStolenPrimaries(currentCluster,targetCluster,stealerNode.getId()));
+  }
+  for (  Node stealerNode : targetCluster.getNodes()) {
+    Set<Integer> stolenPrimaryPartitions=stealerToStolenPrimaryPartitions.get(stealerNode);
+    if (stolenPrimaryPartitions == null || stolenPrimaryPartitions.isEmpty()) {
+      printLog(stealerNode.getId(),"No partitions to steal");
+      continue;
+    }
+    printLog(stealerNode.getId(),"Number of primary partitions being moved = " + stolenPrimaryPartitions.size() + " - "+ stolenPrimaryPartitions);
+    Node stealerNodeUpdated=currentCluster.getNodeById(stealerNode.getId());
+    for (    Integer donatedPrimaryPartition : stolenPrimaryPartitions) {
+      Cluster transitionCluster=RebalanceUtils.createUpdatedCluster(currentCluster,stealerNodeUpdated,donatedPrimaryPartition);
+      stealerNodeUpdated=transitionCluster.getNodeById(stealerNodeUpdated.getId());
+      final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(currentCluster,transitionCluster,storeDefs,rebalanceConfig.isDeleteAfterRebalancingEnabled());
+      final OrderedClusterTransition orderedClusterTransition=new OrderedClusterTransition(currentCluster,transitionCluster,rebalanceClusterPlan);
+      printLog(stealerNode.getId(),orderedClusterTransition.toString());
+      if (!rebalanceConfig.isShowPlanEnabled()) {
+        rebalance(stealerNode.getId(),orderedClusterTransition);
+      }
+      currentCluster=transitionCluster;
+    }
+  }
+}
