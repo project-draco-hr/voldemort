@@ -1,0 +1,26 @@
+{
+  try {
+    final List<RebalanceNodePlan> rebalanceNodePlanList=orderedClusterTransition.getOrderedRebalanceNodePlanList();
+    if (rebalanceNodePlanList.isEmpty()) {
+      RebalanceUtils.printLog(stealerNodeId,logger,"Skipping rebalance-task-id:" + orderedClusterTransition.getId() + " is empty");
+      return;
+    }
+    RebalanceUtils.printLog(stealerNodeId,logger,"Starting rebalance-task-id: " + orderedClusterTransition);
+    final List<RebalancePartitionsInfo> rebalancePartitionPlanList=getPartitionPlans(rebalanceNodePlanList);
+    List<StoreDefinition> readOnlyStoreDefs=RebalanceUtils.filterStores(orderedClusterTransition.getStoreDefs(),true);
+    List<StoreDefinition> readWriteStoreDefs=RebalanceUtils.filterStores(orderedClusterTransition.getStoreDefs(),false);
+    boolean hasReadOnlyStores=readOnlyStoreDefs != null && readOnlyStoreDefs.size() > 0;
+    boolean hasReadWriteStores=readWriteStoreDefs != null && readWriteStoreDefs.size() > 0;
+    if (hasReadOnlyStores) {
+      rebalancePerTaskTransition(stealerNodeId,rebalancePartitionPlanList,readOnlyStoreDefs,true);
+    }
+    if (hasReadWriteStores) {
+      rebalancePerTaskTransition(stealerNodeId,rebalancePartitionPlanList,readWriteStoreDefs,false);
+    }
+    RebalanceUtils.printLog(stealerNodeId,logger,"Successfully terminated rebalance-task-id: " + orderedClusterTransition.getId());
+  }
+ catch (  Exception e) {
+    logger.error("Error in rebalance-task: " + orderedClusterTransition + " - "+ e.getMessage(),e);
+    throw new VoldemortException("Rebalance failed on rebalance-task-id: " + orderedClusterTransition.getId(),e);
+  }
+}

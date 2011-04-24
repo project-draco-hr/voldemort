@@ -14,19 +14,34 @@ default :
     }
     break;
   }
-case 16:
+case 8:
 {
   setStealerId(input.readInt32());
   break;
 }
-case 24:
+case 16:
 {
 setDonorId(input.readInt32());
 break;
 }
+case 24:
+{
+addStealMasterPartitions(input.readInt32());
+break;
+}
+case 26:
+{
+int length=input.readRawVarint32();
+int limit=input.pushLimit(length);
+while (input.getBytesUntilLimit() > 0) {
+addStealMasterPartitions(input.readInt32());
+}
+input.popLimit(limit);
+break;
+}
 case 32:
 {
-addPartitions(input.readInt32());
+addStealReplicaPartitions(input.readInt32());
 break;
 }
 case 34:
@@ -34,63 +49,39 @@ case 34:
 int length=input.readRawVarint32();
 int limit=input.pushLimit(length);
 while (input.getBytesUntilLimit() > 0) {
-addPartitions(input.readInt32());
+addStealReplicaPartitions(input.readInt32());
 }
 input.popLimit(limit);
 break;
 }
 case 40:
 {
-setAttempt(input.readInt32());
+addDeletePartitions(input.readInt32());
 break;
 }
-case 48:
+case 42:
 {
+int length=input.readRawVarint32();
+int limit=input.pushLimit(length);
+while (input.getBytesUntilLimit() > 0) {
 addDeletePartitions(input.readInt32());
+}
+input.popLimit(limit);
 break;
 }
 case 50:
 {
-int length=input.readRawVarint32();
-int limit=input.pushLimit(length);
-while (input.getBytesUntilLimit() > 0) {
-addDeletePartitions(input.readInt32());
-}
-input.popLimit(limit);
+addUnbalancedStores(input.readString());
 break;
 }
-case 58:
+case 56:
 {
-addUnbalancedStore(input.readString());
+setAttempt(input.readInt32());
 break;
 }
 case 64:
 {
-addStealMasterPartitions(input.readInt32());
-break;
-}
-case 66:
-{
-int length=input.readRawVarint32();
-int limit=input.pushLimit(length);
-while (input.getBytesUntilLimit() > 0) {
-addStealMasterPartitions(input.readInt32());
-}
-input.popLimit(limit);
-break;
-}
-case 74:
-{
-voldemort.client.protocol.pb.VAdminProto.ROStoreVersionDirMap.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.ROStoreVersionDirMap.newBuilder();
-input.readMessage(subBuilder,extensionRegistry);
-addStealerRoStoreToDir(subBuilder.buildPartial());
-break;
-}
-case 82:
-{
-voldemort.client.protocol.pb.VAdminProto.ROStoreVersionDirMap.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.ROStoreVersionDirMap.newBuilder();
-input.readMessage(subBuilder,extensionRegistry);
-addDonorRoStoreToDir(subBuilder.buildPartial());
+setIsReadOnly(input.readBool());
 break;
 }
 }

@@ -1,0 +1,21 @@
+{
+  ExecutorService service=RebalanceUtils.createExecutors(rebalanceConfig.getMaxParallelRebalancing());
+  try {
+    final List<RebalanceTask> tasks=new ArrayList<RebalanceTask>();
+    List<Exception> failures=new ArrayList<Exception>();
+    executeTasks(service,rebalancePartitionPlanList,storeDefs,tasks,isReadOnly);
+    RebalanceUtils.printLog(stealerNodeId,logger,"All rebalance tasks were submitted (shutting down in " + rebalanceConfig.getRebalancingClientTimeoutSeconds() + " sec)");
+    RebalanceUtils.executorShutDown(service,rebalanceConfig.getRebalancingClientTimeoutSeconds());
+    RebalanceUtils.printLog(stealerNodeId,logger,"Finished waiting for executors");
+    failures=addFailures(failures,tasks);
+    if (failures.size() > 0) {
+      throw new VoldemortRebalancingException("Rebalance task terminated unsuccessfully",failures);
+    }
+  }
+  finally {
+    if (!service.isShutdown()) {
+      logger.error("Could not shutdown service cleanly for node " + stealerNodeId + " with "+ (isReadOnly ? "read-only" : "read-write")+ " stores");
+      service.shutdownNow();
+    }
+  }
+}

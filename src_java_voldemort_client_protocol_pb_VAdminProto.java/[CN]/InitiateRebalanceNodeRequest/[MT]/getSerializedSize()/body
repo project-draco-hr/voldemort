@@ -3,21 +3,26 @@
   if (size != -1)   return size;
   size=0;
   if (hasStealerId()) {
-    size+=com.google.protobuf.CodedOutputStream.computeInt32Size(2,getStealerId());
+    size+=com.google.protobuf.CodedOutputStream.computeInt32Size(1,getStealerId());
   }
   if (hasDonorId()) {
-    size+=com.google.protobuf.CodedOutputStream.computeInt32Size(3,getDonorId());
+    size+=com.google.protobuf.CodedOutputStream.computeInt32Size(2,getDonorId());
   }
 {
     int dataSize=0;
-    for (    int element : getPartitionsList()) {
+    for (    int element : getStealMasterPartitionsList()) {
       dataSize+=com.google.protobuf.CodedOutputStream.computeInt32SizeNoTag(element);
     }
     size+=dataSize;
-    size+=1 * getPartitionsList().size();
+    size+=1 * getStealMasterPartitionsList().size();
   }
-  if (hasAttempt()) {
-    size+=com.google.protobuf.CodedOutputStream.computeInt32Size(5,getAttempt());
+{
+    int dataSize=0;
+    for (    int element : getStealReplicaPartitionsList()) {
+      dataSize+=com.google.protobuf.CodedOutputStream.computeInt32SizeNoTag(element);
+    }
+    size+=dataSize;
+    size+=1 * getStealReplicaPartitionsList().size();
   }
 {
     int dataSize=0;
@@ -29,25 +34,17 @@
   }
 {
     int dataSize=0;
-    for (    java.lang.String element : getUnbalancedStoreList()) {
+    for (    java.lang.String element : getUnbalancedStoresList()) {
       dataSize+=com.google.protobuf.CodedOutputStream.computeStringSizeNoTag(element);
     }
     size+=dataSize;
-    size+=1 * getUnbalancedStoreList().size();
+    size+=1 * getUnbalancedStoresList().size();
   }
-{
-    int dataSize=0;
-    for (    int element : getStealMasterPartitionsList()) {
-      dataSize+=com.google.protobuf.CodedOutputStream.computeInt32SizeNoTag(element);
-    }
-    size+=dataSize;
-    size+=1 * getStealMasterPartitionsList().size();
+  if (hasAttempt()) {
+    size+=com.google.protobuf.CodedOutputStream.computeInt32Size(7,getAttempt());
   }
-  for (  voldemort.client.protocol.pb.VAdminProto.ROStoreVersionDirMap element : getStealerRoStoreToDirList()) {
-    size+=com.google.protobuf.CodedOutputStream.computeMessageSize(9,element);
-  }
-  for (  voldemort.client.protocol.pb.VAdminProto.ROStoreVersionDirMap element : getDonorRoStoreToDirList()) {
-    size+=com.google.protobuf.CodedOutputStream.computeMessageSize(10,element);
+  if (hasIsReadOnly()) {
+    size+=com.google.protobuf.CodedOutputStream.computeBoolSize(8,getIsReadOnly());
   }
   size+=getUnknownFields().getSerializedSize();
   memoizedSerializedSize=size;

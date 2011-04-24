@@ -1,23 +1,19 @@
 {
   int nTries=0;
   AlreadyRebalancingException exception=null;
-  while (nTries < MAX_TRIES) {
+  while (nTries < config.getMaxTriesRebalancing()) {
     nTries++;
     try {
-      if (logger.isDebugEnabled()) {
-        logger.debug("rebalancing node for: " + rebalanceSubTask);
-      }
-      int asyncOperationId=adminClient.rebalanceNode(rebalanceSubTask);
-      if (logger.isDebugEnabled()) {
-        logger.debug("asyncOperationId: " + asyncOperationId + "for : "+ rebalanceSubTask);
-      }
+      logger.debug("Rebalancing node for plan: " + stealInfo);
+      int asyncOperationId=adminClient.rebalanceNode(stealInfo,isReadOnly);
+      logger.debug("Async operation id: " + asyncOperationId + " for plan: "+ stealInfo);
       return asyncOperationId;
     }
  catch (    AlreadyRebalancingException e) {
-      logger.info("Node " + rebalanceSubTask.getStealerId() + " is currently rebalancing will wait till it finish.");
-      adminClient.waitForCompletion(rebalanceSubTask.getStealerId(),MetadataStore.SERVER_STATE_KEY,VoldemortState.NORMAL_SERVER.toString(),rebalanceConfig.getRebalancingClientTimeoutSeconds(),TimeUnit.SECONDS);
+      RebalanceUtils.printLog(stealInfo.getStealerId(),logger,"Node is currently rebalancing. Waiting till completion");
+      adminClient.waitForCompletion(stealInfo.getStealerId(),MetadataStore.SERVER_STATE_KEY,VoldemortState.NORMAL_SERVER.toString(),config.getRebalancingClientTimeoutSeconds(),TimeUnit.SECONDS);
       exception=e;
     }
   }
-  throw new VoldemortException("Failed to start rebalancing at node " + rebalanceSubTask.getStealerId() + " with rebalanceInfo:"+ rebalanceSubTask,exception);
+  throw new VoldemortException("Failed to start rebalancing with plan: " + stealInfo,exception);
 }

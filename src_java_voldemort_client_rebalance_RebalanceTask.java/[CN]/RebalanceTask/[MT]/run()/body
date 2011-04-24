@@ -1,51 +1,21 @@
 {
-  boolean countDownSuccessful=false;
   int rebalanceAsyncId=INVALID_REBALANCE_ID;
   final int stealerNodeId=stealInfo.getStealerId();
-  participatingNodesId.add(stealerNodeId);
-  participatingNodesId.add(stealInfo.getDonorId());
   try {
     rebalanceAsyncId=startNodeRebalancing(stealInfo);
-    if (logger.isInfoEnabled()) {
-      logger.info("Commiting cluster changes, Async ID: " + rebalanceAsyncId + ", rebalancing for stealerNode: "+ stealerNodeId+ " with rebalanceInfo: "+ stealInfo);
-    }
-    try {
-      commitClusterChanges(adminClient.getAdminClientCluster().getNodeById(stealerNodeId),stealInfo);
-    }
- catch (    Exception e) {
-      if (INVALID_REBALANCE_ID != rebalanceAsyncId) {
-        adminClient.stopAsyncRequest(stealInfo.getStealerId(),rebalanceAsyncId);
-        logger.error("Commiting the cluster has failed. Async ID:" + rebalanceAsyncId);
-      }
-      throw new VoldemortRebalancingException("Impossible to commit cluster for rebalanceAsyncId: " + rebalanceAsyncId);
-    }
-    if (gate != null) {
-      gate.countDown();
-      countDownSuccessful=true;
-    }
-    if (logger.isInfoEnabled()) {
-      logger.info("Waitting ForCompletion for rebalanceAsyncId:" + rebalanceAsyncId);
-    }
-    adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,rebalanceConfig.getRebalancingClientTimeoutSeconds(),TimeUnit.SECONDS);
-    if (logger.isInfoEnabled()) {
-      logger.info("Succesfully finished rebalance for rebalanceAsyncId:" + rebalanceAsyncId);
-    }
+    adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,config.getRebalancingClientTimeoutSeconds(),TimeUnit.SECONDS);
+    RebalanceUtils.printLog(stealInfo.getStealerId(),logger,"Succesfully finished rebalance for async operation id: " + rebalanceAsyncId);
   }
  catch (  UnreachableStoreException e) {
     exceptions.add(e);
-    logger.error("StealerNode " + stealerNodeId + " is unreachable, please make sure it is up and running. - "+ e.getMessage(),e);
+    logger.error("StealerNode " + stealerNodeId + " is unreachable, please make sure it is up and running - "+ e.getMessage(),e);
   }
 catch (  VoldemortRebalancingException e) {
     exceptions.add(e);
-    logger.error("Rebalance failed - " + e.getMessage(),e);
+    logger.error("Rebalance failed: " + e.getMessage(),e);
   }
 catch (  Exception e) {
     exceptions.add(e);
-    logger.error("Rebalance failed - " + e.getMessage(),e);
-  }
- finally {
-    if (gate != null && !countDownSuccessful) {
-      gate.countDown();
-    }
+    logger.error("Rebalance failed: " + e.getMessage(),e);
   }
 }
