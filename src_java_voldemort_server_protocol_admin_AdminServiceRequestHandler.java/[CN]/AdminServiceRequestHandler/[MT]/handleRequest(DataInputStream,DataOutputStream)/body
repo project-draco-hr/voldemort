@@ -53,24 +53,15 @@ break;
 case ROLLBACK_STORE:
 ProtoUtils.writeMessage(outputStream,handleRollbackStore(request.getRollbackStore()));
 break;
-case GET_RO_MAX_VERSION_DIR:
-ProtoUtils.writeMessage(outputStream,handleGetROMaxVersionDir(request.getGetRoMaxVersionDir()));
-break;
-case GET_RO_CURRENT_VERSION_DIR:
-ProtoUtils.writeMessage(outputStream,handleGetROCurrentVersionDir(request.getGetRoCurrentVersionDir()));
+case GET_RO_METADATA:
+ProtoUtils.writeMessage(outputStream,handleGetROMetadata(request.getGetRoMetadata()));
 break;
 case FETCH_PARTITION_FILES:
 return handleFetchPartitionFiles(request.getFetchPartitionFiles());
-case SWAP_STORES_AND_CLEAN_STATE:
-ProtoUtils.writeMessage(outputStream,handleSwapStoresAndCleanState(request.getSwapStoresAndCleanState()));
-break;
 case UPDATE_SLOP_ENTRIES:
 return handleUpdateSlopEntries(request.getUpdateSlopEntries());
 case FAILED_FETCH_STORE:
 ProtoUtils.writeMessage(outputStream,handleFailedFetch(request.getFailedFetchStore()));
-break;
-case GET_RO_STORAGE_FORMAT:
-ProtoUtils.writeMessage(outputStream,handleGetROStorageFormat(request.getGetRoStorageFormat()));
 break;
 default :
 throw new VoldemortException("Unkown operation " + request.getType());

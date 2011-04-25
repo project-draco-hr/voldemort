@@ -1,5 +1,6 @@
 {
   try {
+    final Cluster transitionCluster=orderedClusterTransition.getTargetCluster();
     final List<RebalanceNodePlan> rebalanceNodePlanList=orderedClusterTransition.getOrderedRebalanceNodePlanList();
     if (rebalanceNodePlanList.isEmpty()) {
       RebalanceUtils.printLog(stealerNodeId,logger,"Skipping rebalance-task-id:" + orderedClusterTransition.getId() + " is empty");
@@ -11,11 +12,17 @@
     List<StoreDefinition> readWriteStoreDefs=RebalanceUtils.filterStores(orderedClusterTransition.getStoreDefs(),false);
     boolean hasReadOnlyStores=readOnlyStoreDefs != null && readOnlyStoreDefs.size() > 0;
     boolean hasReadWriteStores=readWriteStoreDefs != null && readWriteStoreDefs.size() > 0;
+    boolean finishedReadOnlyPhase=false;
+    Set<Integer> completedNodeIds=Sets.newHashSet();
+    rebalanceStateChange(transitionCluster,rebalancePartitionPlanList,completedNodeIds,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     if (hasReadOnlyStores) {
-      rebalancePerTaskTransition(stealerNodeId,rebalancePartitionPlanList,readOnlyStoreDefs,true);
+      rebalancePerTaskTransition(stealerNodeId,rebalancePartitionPlanList,readOnlyStoreDefs);
     }
+    finishedReadOnlyPhase=true;
+    completedNodeIds=Sets.newHashSet();
+    rebalanceStateChange(transitionCluster,rebalancePartitionPlanList,completedNodeIds,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     if (hasReadWriteStores) {
-      rebalancePerTaskTransition(stealerNodeId,rebalancePartitionPlanList,readWriteStoreDefs,false);
+      rebalancePerTaskTransition(stealerNodeId,rebalancePartitionPlanList,readWriteStoreDefs);
     }
     RebalanceUtils.printLog(stealerNodeId,logger,"Successfully terminated rebalance-task-id: " + orderedClusterTransition.getId());
   }

@@ -1,0 +1,33 @@
+{
+  final List<String> storeNames=request.getStoreNameList();
+  VAdminProto.GetROMetadataResponse.Builder response=VAdminProto.GetROMetadataResponse.newBuilder();
+  try {
+    for (    String storeName : storeNames) {
+      ReadOnlyStorageEngine store=getReadOnlyStorageEngine(metadataStore,storeRepository,storeName);
+      VAdminProto.ROMetadataMap.Builder storeResponseBuilder=VAdminProto.ROMetadataMap.newBuilder().setStoreName(storeName);
+switch (request.getType()) {
+case CURRENT_VERSION_DIR:
+        storeResponseBuilder.setValue(store.getCurrentDirPath());
+      break;
+case MAX_VERSION_DIR:
+    File storeDirPath=new File(store.getStoreDirPath());
+  if (!storeDirPath.exists())   throw new VoldemortException("Unable to locate the directory of the read-only store " + storeName);
+File[] versionDirs=ReadOnlyUtils.getVersionDirs(storeDirPath);
+File[] kthDir=ReadOnlyUtils.findKthVersionedDir(versionDirs,versionDirs.length - 1,versionDirs.length - 1);
+storeResponseBuilder.setValue(kthDir[0].getAbsolutePath());
+break;
+case STORAGE_FORMAT:
+storeResponseBuilder.setValue(store.getReadOnlyStorageFormat().getCode());
+break;
+default :
+throw new VoldemortException("Metadata type not supported");
+}
+response.addRoStoreMetadata(storeResponseBuilder.build());
+}
+}
+ catch (VoldemortException e) {
+response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+logger.error("handleGetROMetadata failed for request(" + request.toString() + ")",e);
+}
+return response.build();
+}

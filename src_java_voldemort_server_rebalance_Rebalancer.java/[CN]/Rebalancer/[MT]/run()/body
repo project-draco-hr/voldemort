@@ -26,8 +26,6 @@
           logger.warn("Rebalance server found incomplete rebalancing attempt, restarting rebalancing task " + stealInfo);
           if (stealInfo.getAttempt() < voldemortConfig.getMaxRebalancingAttempt()) {
             attemptRebalance(stealInfoLiveCycle);
-            nodeIdsToStoreDirs.put(stealInfo.getDonorId(),stealInfo.getDonorNodeROStoreToDir());
-            nodeIdsToStoreDirs.put(stealInfo.getStealerId(),stealInfo.getStealerNodeROStoreToDir());
           }
  else {
             logger.warn("Rebalancing for rebalancing task " + stealInfo + " failed multiple times (max. attemps:"+ voldemortConfig.getMaxRebalancingAttempt()+ "), Aborting more trials.");
@@ -49,7 +47,6 @@
             AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),4,2);
             try {
               logger.info("Swapping read-only stores on node " + nodeId);
-              adminClient.swapStoresAndCleanState(nodeId,storeDirs);
               logger.info("Successfully swapped on node " + nodeId);
             }
  catch (            Exception e) {

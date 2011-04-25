@@ -1,8 +1,12 @@
 {
   final Map<Node,Set<Integer>> stealerToStolenPrimaryPartitions=new HashMap<Node,Set<Integer>>();
+  int numTasks=0;
   for (  Node stealerNode : targetCluster.getNodes()) {
-    stealerToStolenPrimaryPartitions.put(stealerNode,RebalanceUtils.getStolenPrimaries(currentCluster,targetCluster,stealerNode.getId()));
+    Set<Integer> stolenPrimaries=RebalanceUtils.getStolenPrimaries(currentCluster,targetCluster,stealerNode.getId());
+    numTasks+=stolenPrimaries.size();
+    stealerToStolenPrimaryPartitions.put(stealerNode,stolenPrimaries);
   }
+  int taskId=0;
   for (  Node stealerNode : targetCluster.getNodes()) {
     Set<Integer> stolenPrimaryPartitions=stealerToStolenPrimaryPartitions.get(stealerNode);
     if (stolenPrimaryPartitions == null || stolenPrimaryPartitions.isEmpty()) {
@@ -21,6 +25,8 @@
         rebalancePerPartitionTransition(stealerNode.getId(),orderedClusterTransition);
       }
       currentCluster=transitionCluster;
+      taskId++;
+      RebalanceUtils.printLog(stealerNode.getId(),logger,"Completed tasks = " + taskId + ". Percent done = "+ decimalFormatter.format(taskId * 100.0 / numTasks));
     }
   }
 }

@@ -1,14 +1,3 @@
 {
-  VAdminProto.GetROStorageFormatRequest.Builder getROStorageFormatRequest=VAdminProto.GetROStorageFormatRequest.newBuilder().addAllStoreName(storeNames);
-  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setGetRoStorageFormat(getROStorageFormatRequest).setType(VAdminProto.AdminRequestType.GET_RO_STORAGE_FORMAT).build();
-  VAdminProto.GetROStorageFormatResponse.Builder response=sendAndReceive(nodeId,adminRequest,VAdminProto.GetROStorageFormatResponse.newBuilder());
-  if (response.hasError()) {
-    throwException(response.getError());
-  }
-  Map<String,String> storageFormatMap=encodeROStorageFormatMap(response.getRoStorageFormatList());
-  if (storageFormatMap.size() != storeNames.size()) {
-    storeNames.removeAll(storageFormatMap.keySet());
-    throw new VoldemortException("Did not retrieve max version id for " + storeNames);
-  }
-  return storageFormatMap;
+  return getROMetadata(nodeId,storeNames,ROMetadataType.STORAGE_FORMAT);
 }

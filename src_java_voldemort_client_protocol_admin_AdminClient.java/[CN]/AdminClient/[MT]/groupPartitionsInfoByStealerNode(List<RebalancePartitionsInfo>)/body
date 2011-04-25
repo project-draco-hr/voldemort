@@ -1,0 +1,12 @@
+{
+  HashMap<Integer,List<RebalancePartitionsInfo>> stealerNodeToPlan=Maps.newHashMap();
+  for (  RebalancePartitionsInfo partitionInfo : rebalancePartitionPlanList) {
+    List<RebalancePartitionsInfo> partitionInfos=stealerNodeToPlan.get(partitionInfo.getStealerId());
+    if (partitionInfos == null) {
+      partitionInfos=Lists.newArrayList();
+      stealerNodeToPlan.put(partitionInfo.getStealerId(),partitionInfos);
+    }
+    partitionInfos.add(partitionInfo);
+  }
+  return stealerNodeToPlan;
+}

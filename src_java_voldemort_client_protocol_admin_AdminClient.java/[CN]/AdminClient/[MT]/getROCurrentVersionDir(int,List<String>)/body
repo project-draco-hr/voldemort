@@ -1,14 +1,3 @@
 {
-  VAdminProto.GetROCurrentVersionDirRequest.Builder getROCurrentVersionDirRequest=VAdminProto.GetROCurrentVersionDirRequest.newBuilder().addAllStoreName(storeNames);
-  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setGetRoCurrentVersionDir(getROCurrentVersionDirRequest).setType(VAdminProto.AdminRequestType.GET_RO_CURRENT_VERSION_DIR).build();
-  VAdminProto.GetROCurrentVersionDirResponse.Builder response=sendAndReceive(nodeId,adminRequest,VAdminProto.GetROCurrentVersionDirResponse.newBuilder());
-  if (response.hasError()) {
-    throwException(response.getError());
-  }
-  Map<String,String> storeToVersionDir=encodeROStoreVersionDirMap(response.getRoStoreVersionsList());
-  if (storeToVersionDir.size() != storeNames.size()) {
-    storeNames.removeAll(storeToVersionDir.keySet());
-    throw new VoldemortException("Did not retrieve current version id for " + storeNames);
-  }
-  return storeToVersionDir;
+  return getROMetadata(nodeId,storeNames,ROMetadataType.CURRENT_VERSION_DIR);
 }

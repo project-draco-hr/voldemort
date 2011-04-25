@@ -1,14 +1,3 @@
 {
-  VAdminProto.GetROMaxVersionDirRequest.Builder getROMaxVersionDirRequest=VAdminProto.GetROMaxVersionDirRequest.newBuilder().addAllStoreName(storeNames);
-  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setGetRoMaxVersionDir(getROMaxVersionDirRequest).setType(VAdminProto.AdminRequestType.GET_RO_MAX_VERSION_DIR).build();
-  VAdminProto.GetROMaxVersionDirResponse.Builder response=sendAndReceive(nodeId,adminRequest,VAdminProto.GetROMaxVersionDirResponse.newBuilder());
-  if (response.hasError()) {
-    throwException(response.getError());
-  }
-  Map<String,String> storeToVersionDir=encodeROStoreVersionDirMap(response.getRoStoreVersionsList());
-  if (storeToVersionDir.size() != storeNames.size()) {
-    storeNames.removeAll(storeToVersionDir.keySet());
-    throw new VoldemortException("Did not retrieve max version id for " + storeNames);
-  }
-  return storeToVersionDir;
+  return getROMetadata(nodeId,storeNames,ROMetadataType.MAX_VERSION_DIR);
 }

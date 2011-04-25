@@ -1,0 +1,20 @@
+{
+  if (!changeClusterMetadata && !isStealerNode) {
+    return;
+  }
+  VAdminProto.RebalanceStateChangeRequest.Builder getRebalanceStateChangeRequestBuilder=VAdminProto.RebalanceStateChangeRequest.newBuilder();
+  if (rebalancePartitionPlanList != null) {
+    List<RebalancePartitionInfoMap> map=Lists.newArrayList();
+    for (    RebalancePartitionsInfo stealInfo : rebalancePartitionPlanList) {
+      RebalancePartitionInfoMap infoMap=RebalancePartitionInfoMap.newBuilder().setStealerId(stealInfo.getStealerId()).setDonorId(stealInfo.getDonorId()).addAllStealMasterPartitions(stealInfo.getStealMasterPartitions()).addAllStealReplicaPartitions(stealInfo.getStealReplicaPartitions()).addAllDeletePartitions(stealInfo.getDeletePartitionsList()).addAllUnbalancedStores(stealInfo.getUnbalancedStoreList()).setAttempt(stealInfo.getAttempt()).build();
+      map.add(infoMap);
+    }
+    getRebalanceStateChangeRequestBuilder.addAllRebalancePartitionInfoList(map);
+  }
+  VAdminProto.RebalanceStateChangeRequest getRebalanceStateChangeRequest=getRebalanceStateChangeRequestBuilder.setSwapRo(swapRO).setChangeClusterMetadata(changeClusterMetadata).setChangeRebalanceState(changeRebalanceState).setClusterString(clusterMapper.writeCluster(transitionCluster)).build();
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setRebalanceStateChange(getRebalanceStateChangeRequest).setType(VAdminProto.AdminRequestType.REBALANCE_STATE_CHANGE).build();
+  VAdminProto.RebalanceStateChangeResponse.Builder response=sendAndReceive(nodeId,adminRequest,VAdminProto.RebalanceStateChangeResponse.newBuilder());
+  if (response.hasError()) {
+    throwException(response.getError());
+  }
+}
