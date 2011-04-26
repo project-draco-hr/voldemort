@@ -1,0 +1,19 @@
+{
+  HashMap<Integer,List<RebalancePartitionsInfo>> stealerNodeToPlan=groupPartitionsInfoByStealerNode(rebalancePartitionPlanList);
+  Set<Integer> completedNodeIds=Sets.newHashSet();
+  int nodeId=0;
+  try {
+    while (nodeId < transitionCluster.getNumberOfNodes()) {
+      individualStateChange(nodeId,transitionCluster,stealerNodeToPlan.get(nodeId),swapRO,changeClusterMetadata,changeRebalanceState,stealerNodeToPlan.containsKey(nodeId),false);
+      completedNodeIds.add(nodeId);
+      nodeId++;
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Got exceptions from node " + nodeId + " while changing state");
+    for (    int completedNodeId : completedNodeIds) {
+      individualStateChange(completedNodeId,existingCluster,stealerNodeToPlan.get(completedNodeId),swapRO,changeClusterMetadata,changeRebalanceState,stealerNodeToPlan.containsKey(completedNodeId),true);
+    }
+    throw new VoldemortRebalancingException("Got exceptions from node " + nodeId + " while changing state");
+  }
+}

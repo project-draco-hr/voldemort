@@ -1,0 +1,34 @@
+{
+  ExecutorService service=RebalanceUtils.createExecutors(rebalanceConfig.getMaxParallelRebalancing());
+  final List<RebalanceTask> allTasks=Lists.newArrayList();
+  final List<RebalanceTask> successfulTasks=Lists.newArrayList();
+  final List<RebalanceTask> failedTasks=Lists.newArrayList();
+  try {
+    executeTasks(service,rebalancePartitionPlanList,allTasks);
+    RebalanceUtils.printLog(globalStealerNodeId,logger,"All rebalance tasks were submitted (shutting down in " + rebalanceConfig.getRebalancingClientTimeoutSeconds() + " sec)");
+    RebalanceUtils.executorShutDown(service,rebalanceConfig.getRebalancingClientTimeoutSeconds());
+    RebalanceUtils.printLog(globalStealerNodeId,logger,"Finished waiting for executors");
+    List<Exception> failures=filterTasks(allTasks,successfulTasks,failedTasks);
+    if (failedTasks.size() > 0) {
+      throw new VoldemortRebalancingException("Rebalance task terminated unsuccessfully",failures);
+    }
+  }
+ catch (  VoldemortRebalancingException e) {
+    logger.error("Failure while migrating partitions");
+    for (    RebalanceTask task : successfulTasks) {
+      try {
+        adminClient.individualStateChange(task.getRebalancePartitionsInfo().getStealerId(),currentCluster,Lists.newArrayList(task.getRebalancePartitionsInfo()),hasReadWriteStores && hasReadOnlyStores && finishedReadOnlyStores,hasReadWriteStores && finishedReadOnlyStores,(hasReadOnlyStores && hasReadWriteStores && finishedReadOnlyStores) || (hasReadOnlyStores && hasReadWriteStores && !finishedReadOnlyStores) || (hasReadOnlyStores && !hasReadWriteStores && !finishedReadOnlyStores)|| (!hasReadOnlyStores && hasReadWriteStores && finishedReadOnlyStores),true,true);
+      }
+ catch (      Exception exception) {
+        RebalanceUtils.printErrorLog(globalStealerNodeId,logger,"Problem while reverting back successful tasks " + task.getRebalancePartitionsInfo(),exception);
+      }
+    }
+    throw e;
+  }
+ finally {
+    if (!service.isShutdown()) {
+      RebalanceUtils.printErrorLog(globalStealerNodeId,logger,"Could not shutdown service cleanly for node " + globalStealerNodeId,null);
+      service.shutdownNow();
+    }
+  }
+}

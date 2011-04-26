@@ -7,15 +7,11 @@
     RebalanceUtils.printLog(stealInfo.getStealerId(),logger,"Succesfully finished rebalance for async operation id: " + rebalanceAsyncId);
   }
  catch (  UnreachableStoreException e) {
-    exceptions.add(e);
+    exception=e;
     logger.error("StealerNode " + stealerNodeId + " is unreachable, please make sure it is up and running - "+ e.getMessage(),e);
   }
-catch (  VoldemortRebalancingException e) {
-    exceptions.add(e);
-    logger.error("Rebalance failed: " + e.getMessage(),e);
-  }
 catch (  Exception e) {
-    exceptions.add(e);
+    exception=e;
     logger.error("Rebalance failed: " + e.getMessage(),e);
   }
 }

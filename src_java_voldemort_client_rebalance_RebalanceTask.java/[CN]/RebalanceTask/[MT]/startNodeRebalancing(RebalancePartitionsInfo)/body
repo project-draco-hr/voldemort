@@ -1,6 +1,6 @@
 {
   int nTries=0;
-  AlreadyRebalancingException exception=null;
+  AlreadyRebalancingException rebalanceException=null;
   while (nTries < config.getMaxTriesRebalancing()) {
     nTries++;
     try {
@@ -12,8 +12,8 @@
  catch (    AlreadyRebalancingException e) {
       RebalanceUtils.printLog(stealInfo.getStealerId(),logger,"Node is currently rebalancing. Waiting till completion");
       adminClient.waitForCompletion(stealInfo.getStealerId(),MetadataStore.SERVER_STATE_KEY,VoldemortState.NORMAL_SERVER.toString(),config.getRebalancingClientTimeoutSeconds(),TimeUnit.SECONDS);
-      exception=e;
+      rebalanceException=e;
     }
   }
-  throw new VoldemortException("Failed to start rebalancing with plan: " + stealInfo,exception);
+  throw new VoldemortException("Failed to start rebalancing with plan: " + stealInfo,rebalanceException);
 }
