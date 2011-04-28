@@ -14,8 +14,7 @@
   if (storeDef.hasHintedHandoffStrategyType())   slopStores=Maps.newHashMap();
   for (  Node node : cluster.getNodes()) {
     Store<ByteArray,byte[],byte[]> store=getStore(storeDef.getName(),node.getHost(),getPort(node),this.requestFormatType);
-    Store<ByteArray,byte[],byte[]> loggingStore=new LoggingStore(store);
-    clientMapping.put(node.getId(),loggingStore);
+    clientMapping.put(node.getId(),store);
     NonblockingStore nonblockingStore=routedStoreFactory.toNonblockingStore(store);
     nonblockingStores.put(node.getId(),nonblockingStore);
     if (slopStores != null) {
@@ -26,6 +25,7 @@
     }
   }
   Store<ByteArray,byte[],byte[]> store=routedStoreFactory.create(cluster,storeDef,clientMapping,nonblockingStores,slopStores,nonblockingSlopStores,repairReads,clientZoneId,getFailureDetector());
+  store=new LoggingStore(store);
   if (isJmxEnabled) {
     StatTrackingStore statStore=new StatTrackingStore(store,this.stats);
     store=statStore;
