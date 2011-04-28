@@ -3,8 +3,8 @@
   rebalancePartitionsInfo.setAttempt(rebalancePartitionsInfo.getAttempt() + 1);
   AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),4,2);
   try {
-    int rebalanceAsyncId=rebalanceLocalNode(stealInfoLiveCycle);
-    adminClient.waitForCompletion(rebalancePartitionsInfo.getStealerId(),rebalanceAsyncId,voldemortConfig.getRebalancingTimeout(),TimeUnit.SECONDS);
+    int rebalanceAsyncId=rebalanceNode(stealInfoLiveCycle);
+    adminClient.waitForCompletion(rebalancePartitionsInfo.getStealerId(),rebalanceAsyncId,voldemortConfig.getRebalancingTimeoutSec(),TimeUnit.SECONDS);
   }
   finally {
     adminClient.stop();

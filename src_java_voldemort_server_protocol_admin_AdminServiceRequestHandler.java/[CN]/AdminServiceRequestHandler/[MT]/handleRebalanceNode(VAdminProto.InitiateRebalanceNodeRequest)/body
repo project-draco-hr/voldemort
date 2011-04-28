@@ -2,11 +2,9 @@
   VAdminProto.AsyncOperationStatusResponse.Builder response=VAdminProto.AsyncOperationStatusResponse.newBuilder();
   try {
     if (!voldemortConfig.isEnableRebalanceService())     throw new VoldemortException("Rebalance service is not enabled for node: " + metadataStore.getNodeId());
-    VAdminProto.RebalancePartitionInfoMap rebalancePartitionInfoMap=request.getRebalancePartitionInfo();
-    RebalancePartitionsInfo rebalanceStealInfo=new RebalancePartitionsInfo(rebalancePartitionInfoMap.getStealerId(),rebalancePartitionInfoMap.getDonorId(),rebalancePartitionInfoMap.getStealMasterPartitionsList(),rebalancePartitionInfoMap.getStealReplicaPartitionsList(),rebalancePartitionInfoMap.getDeletePartitionsList(),rebalancePartitionInfoMap.getUnbalancedStoresList(),rebalancePartitionInfoMap.getAttempt());
-    RebalancePartitionsInfoLiveCycle rebalancePartitionsInfoLiveCycle=new RebalancePartitionsInfoLiveCycle(rebalanceStealInfo,RebalancePartitionsInfoLifeCycleStatus.NEW);
-    int requestId=rebalancer.rebalanceLocalNode(rebalancePartitionsInfoLiveCycle);
-    response.setRequestId(requestId).setDescription(rebalanceStealInfo.toString()).setStatus("Started").setComplete(false);
+    RebalancePartitionsInfo rebalanceStealInfo=decodeRebalancePartitionInfoMap(request.getRebalancePartitionInfo());
+    int requestId=rebalancer.rebalanceNode(rebalanceStealInfo);
+    response.setRequestId(requestId).setDescription(rebalanceStealInfo.toString()).setStatus("Started rebalancing").setComplete(false);
   }
  catch (  VoldemortException e) {
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));

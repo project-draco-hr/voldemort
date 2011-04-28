@@ -1,0 +1,53 @@
+{
+  RebalanceChangeStatus changeClusterMetadataStatus=swapRO ? RebalanceChangeStatus.STARTED : RebalanceChangeStatus.NOT_REQUIRED;
+  RebalanceChangeStatus swapROStatus=swapRO ? RebalanceChangeStatus.STARTED : RebalanceChangeStatus.NOT_REQUIRED;
+  RebalanceChangeStatus changeRebalanceStateStatus=swapRO ? RebalanceChangeStatus.STARTED : RebalanceChangeStatus.NOT_REQUIRED;
+  Cluster currentCluster=metadataStore.getCluster();
+  try {
+    if (changeClusterMetadataStatus == RebalanceChangeStatus.STARTED) {
+      changeCluster(cluster);
+      changeClusterMetadataStatus=RebalanceChangeStatus.COMPLETED;
+    }
+    if (swapROStatus == RebalanceChangeStatus.STARTED) {
+      swapROStatus=RebalanceChangeStatus.COMPLETED;
+    }
+    if (changeRebalanceStateStatus == RebalanceChangeStatus.STARTED) {
+      if (!rollback) {
+        for (        RebalancePartitionsInfo info : rebalancePartitionsInfo) {
+          addRebalancingState(info);
+        }
+      }
+ else {
+        for (        RebalancePartitionsInfo info : rebalancePartitionsInfo) {
+          deleteRebalancingState(info);
+        }
+      }
+      changeRebalanceStateStatus=RebalanceChangeStatus.COMPLETED;
+    }
+  }
+ catch (  VoldemortException e) {
+    if (changeClusterMetadataStatus == RebalanceChangeStatus.COMPLETED) {
+      try {
+        changeCluster(currentCluster);
+      }
+ catch (      Exception exception) {
+        logger.error("Error while rolling back cluster metadata ");
+      }
+    }
+    if (swapROStatus == RebalanceChangeStatus.COMPLETED) {
+      try {
+      }
+ catch (      Exception exception) {
+        logger.error("Error while rolling back cluster metadata ");
+      }
+    }
+    if (changeRebalanceStateStatus == RebalanceChangeStatus.COMPLETED) {
+      try {
+      }
+ catch (      Exception exception) {
+        logger.error("Error while rolling back cluster metadata ");
+      }
+    }
+    throw e;
+  }
+}

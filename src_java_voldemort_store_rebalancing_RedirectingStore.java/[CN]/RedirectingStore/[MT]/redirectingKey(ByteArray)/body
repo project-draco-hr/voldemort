@@ -1,7 +1,3 @@
 {
-  if (!getName().equals(MetadataStore.METADATA_STORE_NAME) && StoreState.REBALANCING.equals(metadata.getStoreState(getName()))) {
-    List<Integer> partitionIds=metadata.getRoutingStrategy(getName()).getPartitionList(key.get());
-    return getRebalancePartitionsInfo(partitionIds);
-  }
-  return null;
+  return metadata.getRebalancerState().find(getName(),metadata.getRoutingStrategy(getName()).getPartitionList(key.get()));
 }

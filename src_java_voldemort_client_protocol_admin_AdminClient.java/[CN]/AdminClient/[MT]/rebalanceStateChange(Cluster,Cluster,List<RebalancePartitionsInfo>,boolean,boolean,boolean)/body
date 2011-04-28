@@ -10,9 +10,14 @@
     }
   }
  catch (  Exception e) {
-    logger.error("Got exceptions from node " + nodeId + " while changing state");
+    logger.error("Got exceptions from node " + nodeId + " while changing state",e);
     for (    int completedNodeId : completedNodeIds) {
-      individualStateChange(completedNodeId,existingCluster,stealerNodeToPlan.get(completedNodeId),swapRO,changeClusterMetadata,changeRebalanceState,stealerNodeToPlan.containsKey(completedNodeId),true);
+      try {
+        individualStateChange(completedNodeId,existingCluster,stealerNodeToPlan.get(completedNodeId),swapRO,changeClusterMetadata,changeRebalanceState,stealerNodeToPlan.containsKey(completedNodeId),true);
+      }
+ catch (      Exception exception) {
+        logger.error("Error while reverting back state change for completed node " + completedNodeIds,exception);
+      }
     }
     throw new VoldemortRebalancingException("Got exceptions from node " + nodeId + " while changing state");
   }

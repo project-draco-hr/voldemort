@@ -1,7 +1,8 @@
 {
-  for (  int p : partitionIds) {
-    for (    RebalancePartitionsInfoLiveCycle info : getAll()) {
-      if (info.getRebalancePartitionsInfo().getUnbalancedStoreList().contains(store) && info.getRebalancePartitionsInfo().getPartitions().contains(p))       return info;
+  for (  RebalancePartitionsInfo info : getAll()) {
+    if (info.getUnbalancedStoreList().contains(store)) {
+      List<Integer> unbalancedPartitions=Lists.newArrayList(info.getPartitions());
+      if (unbalancedPartitions.removeAll(partitionIds))       return info;
     }
   }
   return null;
