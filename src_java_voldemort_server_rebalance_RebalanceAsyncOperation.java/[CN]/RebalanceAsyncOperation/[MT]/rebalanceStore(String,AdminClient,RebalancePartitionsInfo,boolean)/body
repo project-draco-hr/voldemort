@@ -13,7 +13,7 @@
   if (logger.isDebugEnabled()) {
     logger.debug("waitForCompletion: stealer:" + metadataStore.getNodeId() + ", asyncId:"+ asyncId);
   }
-  adminClient.waitForCompletion(metadataStore.getNodeId(),asyncId,voldemortConfig.getRebalancingTimeout(),TimeUnit.SECONDS);
+  adminClient.waitForCompletion(metadataStore.getNodeId(),asyncId,voldemortConfig.getRebalancingTimeoutSec(),TimeUnit.SECONDS);
   rebalanceStatusList.remove((Object)asyncId);
   if (stealInfo.getDeletePartitionsList().size() > 0 && !isReadOnlyStore) {
     adminClient.deletePartitions(stealInfo.getDonorId(),storeName,stealInfo.getDeletePartitionsList(),null);

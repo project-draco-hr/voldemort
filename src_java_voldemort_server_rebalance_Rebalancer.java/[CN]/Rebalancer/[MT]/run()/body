@@ -14,22 +14,21 @@
  finally {
     metadataStore.readLock.unlock();
   }
-  final ConcurrentHashMap<Integer,Map<String,String>> nodeIdsToStoreDirs=new ConcurrentHashMap<Integer,Map<String,String>>();
   final List<Exception> failures=new ArrayList<Exception>();
-  if (VoldemortState.REBALANCING_MASTER_SERVER.equals(voldemortState) && acquireRebalancingPermit(metadataStore.getNodeId())) {
-    releaseRebalancingPermit(metadataStore.getNodeId());
-    for (    final RebalancePartitionsInfoLiveCycle stealInfoLiveCycle : rebalancerState.getAll()) {
-      final RebalancePartitionsInfo stealInfo=stealInfoLiveCycle.getRebalancePartitionsInfo();
-      if (acquireRebalancingPermit(stealInfo.getDonorId())) {
-        releaseRebalancingPermit(stealInfo.getDonorId());
+  AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),4,2);
+  if (VoldemortState.REBALANCING_MASTER_SERVER.equals(voldemortState)) {
+    for (    RebalancePartitionsInfo stealInfo : rebalancerState.getAll()) {
+      if (stealInfo.getUnbalancedStoreList().size() > 0) {
         try {
           logger.warn("Rebalance server found incomplete rebalancing attempt, restarting rebalancing task " + stealInfo);
           if (stealInfo.getAttempt() < voldemortConfig.getMaxRebalancingAttempt()) {
-            attemptRebalance(stealInfoLiveCycle);
+            stealInfo.setAttempt(stealInfo.getAttempt() + 1);
+            int rebalanceAsyncId=rebalanceNode(stealInfo);
+            adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,voldemortConfig.getRebalancingTimeoutSec(),TimeUnit.SECONDS);
           }
  else {
             logger.warn("Rebalancing for rebalancing task " + stealInfo + " failed multiple times (max. attemps:"+ voldemortConfig.getMaxRebalancingAttempt()+ "), Aborting more trials.");
-            metadataStore.cleanRebalancingState(stealInfo);
+            metadataStore.deleteRebalancingState(stealInfo);
           }
         }
  catch (        Exception e) {
@@ -37,34 +36,8 @@
           failures.add(e);
         }
       }
-    }
-    if (failures.size() == 0 && nodeIdsToStoreDirs.size() > 0) {
-      ExecutorService swapExecutors=RebalanceUtils.createExecutors(nodeIdsToStoreDirs.size());
-      for (      final Integer nodeId : nodeIdsToStoreDirs.keySet()) {
-        swapExecutors.submit(new Runnable(){
-          public void run(){
-            Map<String,String> storeDirs=nodeIdsToStoreDirs.get(nodeId);
-            AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),4,2);
-            try {
-              logger.info("Swapping read-only stores on node " + nodeId);
-              logger.info("Successfully swapped on node " + nodeId);
-            }
- catch (            Exception e) {
-              logger.error("Failed swapping on node " + nodeId,e);
-            }
- finally {
-              adminClient.stop();
-            }
-          }
-        }
-);
-      }
-      try {
-        RebalanceUtils.executorShutDown(swapExecutors,(int)voldemortConfig.getRebalancingTimeoutSec());
-      }
- catch (      Exception e) {
-        logger.error("Interrupted swapping executor - " + e.getMessage(),e);
-        return;
+ else {
+        metadataStore.deleteRebalancingState(stealInfo);
       }
     }
   }
