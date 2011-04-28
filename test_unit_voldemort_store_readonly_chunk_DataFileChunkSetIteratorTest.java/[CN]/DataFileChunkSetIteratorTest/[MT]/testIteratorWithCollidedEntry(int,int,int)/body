@@ -1,0 +1,17 @@
+{
+  SimpleDataFileChunkSetIterator iterator=new SimpleDataFileChunkSetIterator(generateDataFileChunkSet(numChunks,10,numEntriesPerChunks,numEntriesPerCollision),true);
+  if (numChunks * numEntriesPerChunks == 0) {
+    assertEquals(iterator.hasNext(),false);
+  }
+ else {
+    int entry=0;
+    for (int collidedEntry=0; collidedEntry < numChunks * (numEntriesPerChunks / numEntriesPerCollision); collidedEntry++) {
+      assertEquals(iterator.hasNext(),true);
+      ByteBuffer buffer=iterator.next();
+      assertEquals(buffer.array().length,numEntriesPerCollision * ByteUtils.SIZE_OF_INT);
+      for (int index=0; index < numEntriesPerCollision; index++) {
+        assertEquals(buffer.getInt(ByteUtils.SIZE_OF_INT * index),entry++);
+      }
+    }
+  }
+}

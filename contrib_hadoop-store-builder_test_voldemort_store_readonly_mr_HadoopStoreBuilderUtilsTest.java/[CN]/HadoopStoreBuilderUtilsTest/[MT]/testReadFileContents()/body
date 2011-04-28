@@ -1,0 +1,16 @@
+{
+  Path testPath=new Path(TestUtils.createTempDir().getAbsolutePath(),"tempFile");
+  FileSystem fs=testPath.getFileSystem(new Configuration());
+  fs.create(testPath);
+  String emptyString=HadoopStoreBuilderUtils.readFileContents(fs,testPath,1024);
+  Assert.assertEquals(emptyString.length(),0);
+  byte[] randomBytes=writeRandomData(testPath,10);
+  Assert.assertEquals(HadoopStoreBuilderUtils.readFileContents(fs,testPath,1024),new String(randomBytes));
+  fs.delete(testPath,true);
+  fs.create(testPath);
+  ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
+  metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode());
+  new FileOutputStream(testPath.toString()).write(metadata.toJsonString().getBytes());
+  ReadOnlyStorageMetadata readMetadata=new ReadOnlyStorageMetadata(HadoopStoreBuilderUtils.readFileContents(fs,testPath,1024));
+  Assert.assertEquals(readMetadata.get(ReadOnlyStorageMetadata.FORMAT),ReadOnlyStorageFormat.READONLY_V2.getCode());
+}

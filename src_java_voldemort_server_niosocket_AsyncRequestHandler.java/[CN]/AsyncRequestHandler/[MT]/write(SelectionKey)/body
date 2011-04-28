@@ -1,7 +1,14 @@
 {
   if (outputStream.getBuffer().hasRemaining()) {
-    int count=socketChannel.write(outputStream.getBuffer());
-    if (logger.isTraceEnabled())     logger.trace("Wrote " + count + " bytes, remaining: "+ outputStream.getBuffer().remaining()+ " for "+ socketChannel.socket());
+    try {
+      int count=socketChannel.write(outputStream.getBuffer());
+      if (logger.isTraceEnabled())       logger.trace("Wrote " + count + " bytes, remaining: "+ outputStream.getBuffer().remaining()+ " for "+ socketChannel.socket());
+    }
+ catch (    IOException e) {
+      streamRequestHandler.close(new DataOutputStream(outputStream));
+      streamRequestHandler=null;
+      throw e;
+    }
   }
  else {
     if (logger.isTraceEnabled())     logger.trace("Wrote no bytes for " + socketChannel.socket());

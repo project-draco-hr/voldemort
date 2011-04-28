@@ -5,44 +5,52 @@
     this.checkSumDigestIndex.update(key.get(),0,key.getSize());
     this.checkSumDigestIndex.update(this.position);
   }
-  int numKeyValues=0;
+  short numTuples=0;
   ByteArrayOutputStream stream=new ByteArrayOutputStream();
   DataOutputStream valueStream=new DataOutputStream(stream);
   while (iterator.hasNext()) {
     BytesWritable writable=iterator.next();
     byte[] valueBytes=writable.get();
-    if (this.nodeId == -1)     this.nodeId=ByteUtils.readInt(valueBytes,0);
-    if (this.partitionId == -1)     this.partitionId=ByteUtils.readInt(valueBytes,4);
-    if (this.chunkId == -1)     this.chunkId=ReadOnlyUtils.chunk(key.get(),this.numChunks);
-    int valueLength=writable.getSize() - 8;
-    if (saveKeys) {
-      valueStream.write(valueBytes,8,valueLength);
+    int offsetTillNow=0;
+    if (this.nodeId == -1)     this.nodeId=ByteUtils.readInt(valueBytes,offsetTillNow);
+    offsetTillNow+=ByteUtils.SIZE_OF_INT;
+    if (this.partitionId == -1)     this.partitionId=ByteUtils.readInt(valueBytes,offsetTillNow);
+    offsetTillNow+=ByteUtils.SIZE_OF_INT;
+    if (this.chunkId == -1)     this.chunkId=ReadOnlyUtils.chunk(key.get(),getNumChunks());
+    if (getSaveKeys()) {
+      if (this.replicaType == -1)       this.replicaType=(int)ByteUtils.readBytes(valueBytes,offsetTillNow,ByteUtils.SIZE_OF_BYTE);
+      offsetTillNow+=ByteUtils.SIZE_OF_BYTE;
+    }
+    int valueLength=writable.getSize() - offsetTillNow;
+    if (getSaveKeys()) {
+      valueStream.write(valueBytes,offsetTillNow,valueLength);
     }
  else {
       valueStream.writeInt(valueLength);
-      valueStream.write(valueBytes,8,valueLength);
+      valueStream.write(valueBytes,offsetTillNow,valueLength);
     }
-    numKeyValues++;
-    if (!saveKeys && numKeyValues > 1)     throw new VoldemortException("Duplicate keys detected for md5 sum " + ByteUtils.toHexString(ByteUtils.copy(key.get(),0,key.getSize())));
+    numTuples++;
+    if (!getSaveKeys() && numTuples > 1)     throw new VoldemortException("Duplicate keys detected for md5 sum " + ByteUtils.toHexString(ByteUtils.copy(key.get(),0,key.getSize())));
   }
-  if (numKeyValues > 1) {
+  if (numTuples < 0) {
+    throw new VoldemortException("Found too many collisions: chunk " + chunkId + " has exceeded "+ Short.MAX_VALUE+ " collisions.");
+  }
+ else   if (numTuples > 1) {
     reporter.incrCounter(CollisionCounter.NUM_COLLISIONS,1);
     long numCollisions=reporter.getCounter(CollisionCounter.MAX_COLLISIONS).getCounter();
-    if (numKeyValues > numCollisions) {
-      reporter.incrCounter(CollisionCounter.MAX_COLLISIONS,numKeyValues - numCollisions);
-    }
-  }
-  if (saveKeys) {
-    byte[] numBuf=new byte[1];
-    numBuf[0]=(byte)numKeyValues;
-    this.valueFileStream.write(numBuf);
-    this.position+=1;
-    if (this.checkSumDigestValue != null) {
-      this.checkSumDigestValue.update(numBuf);
+    if (numTuples > numCollisions) {
+      reporter.incrCounter(CollisionCounter.MAX_COLLISIONS,numTuples - numCollisions);
     }
   }
   valueStream.flush();
   byte[] value=stream.toByteArray();
+  if (getSaveKeys()) {
+    this.valueFileStream.writeShort(numTuples);
+    this.position+=ByteUtils.SIZE_OF_SHORT;
+    if (this.checkSumDigestValue != null) {
+      this.checkSumDigestValue.update(numTuples);
+    }
+  }
   this.valueFileStream.write(value);
   this.position+=value.length;
   if (this.checkSumDigestValue != null) {

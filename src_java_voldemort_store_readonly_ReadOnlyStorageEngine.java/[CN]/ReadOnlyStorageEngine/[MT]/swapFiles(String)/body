@@ -3,7 +3,7 @@
   File newVersionDir=new File(newStoreDirectory);
   if (!newVersionDir.exists())   throw new VoldemortException("File " + newVersionDir.getAbsolutePath() + " does not exist.");
   if (!(newVersionDir.getParentFile().compareTo(storeDir.getAbsoluteFile()) == 0 && ReadOnlyUtils.checkVersionDirName(newVersionDir)))   throw new VoldemortException("Invalid version folder name '" + newVersionDir + "'. Either parent directory is incorrect or format(version-n) is incorrect");
-  File previousVersionDir=getCurrentVersion();
+  File previousVersionDir=ReadOnlyUtils.getCurrentVersion(storeDir);
   if (previousVersionDir == null)   throw new VoldemortException("Could not find any latest directory to swap with in store '" + getName() + "'");
   long newVersionId=ReadOnlyUtils.getVersionId(newVersionDir);
   long previousVersionId=ReadOnlyUtils.getVersionId(previousVersionDir);

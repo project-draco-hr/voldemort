@@ -1,0 +1,19 @@
+{
+  final String storeDir=request.getStoreDir();
+  final String storeName=request.getStoreName();
+  VAdminProto.FailedFetchStoreResponse.Builder response=VAdminProto.FailedFetchStoreResponse.newBuilder();
+  try {
+    if (!Utils.isReadableDir(storeDir))     throw new VoldemortException("Could not read folder " + storeDir + " correctly to delete it");
+    final ReadOnlyStorageEngine store=getReadOnlyStorageEngine(metadataStore,storeRepository,storeName);
+    if (store.getCurrentVersionId() == ReadOnlyUtils.getVersionId(new File(storeDir))) {
+      logger.warn("Cannot delete " + storeDir + " for "+ storeName+ " since it is the current dir");
+      return response.build();
+    }
+    Utils.rm(new File(storeDir));
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleFailedFetch failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

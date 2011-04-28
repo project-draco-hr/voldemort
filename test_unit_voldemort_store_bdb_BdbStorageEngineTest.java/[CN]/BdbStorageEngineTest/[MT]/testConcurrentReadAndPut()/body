@@ -1,0 +1,35 @@
+{
+  ExecutorService executor=Executors.newFixedThreadPool(10);
+  final CountDownLatch latch=new CountDownLatch(10);
+  final AtomicBoolean returnedEmpty=new AtomicBoolean(false);
+  final byte[] keyBytes="foo".getBytes();
+  final byte[] valueBytes="bar".getBytes();
+  store.put(new ByteArray(keyBytes),new Versioned<byte[]>(valueBytes),null);
+  for (int i=0; i < 10; i++) {
+    executor.submit(new Runnable(){
+      public void run(){
+        try {
+          for (int j=0; j < 1000 && !returnedEmpty.get(); j++) {
+            List<Versioned<byte[]>> vals=store.get(new ByteArray(keyBytes),null);
+            if (vals.size() == 0 && j > 1)             returnedEmpty.set(true);
+ else {
+              VectorClock v=(VectorClock)vals.get(0).getVersion();
+              v.incrementVersion(0,System.currentTimeMillis());
+              try {
+                store.put(new ByteArray(keyBytes),new Versioned<byte[]>(valueBytes,v),null);
+              }
+ catch (              ObsoleteVersionException e) {
+              }
+            }
+          }
+        }
+  finally {
+          latch.countDown();
+        }
+      }
+    }
+);
+  }
+  latch.await();
+  assertFalse("Should not have seen any empty results",returnedEmpty.get());
+}
