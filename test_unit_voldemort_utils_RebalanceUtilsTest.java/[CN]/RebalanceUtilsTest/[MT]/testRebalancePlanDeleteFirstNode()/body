@@ -1,0 +1,22 @@
+{
+  currentCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{0,4},{1,5},{2,6},{3,7}});
+  targetCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{4},{0,1,5},{2,6},{3,7}});
+  List<RebalanceNodePlan> orderedRebalanceNodePlanList=createOrderedClusterTransition(currentCluster,targetCluster,storeDefList2).getOrderedRebalanceNodePlanList();
+  assertEquals("There should have exactly 3 rebalancing node",3,orderedRebalanceNodePlanList.size());
+  assertEquals("Stealer 1 should have 1 entry",1,orderedRebalanceNodePlanList.get(0).getRebalanceTaskList().size());
+  checkAllRebalanceInfoPresent(orderedRebalanceNodePlanList.get(0),Arrays.asList(new RebalancePartitionsInfo(1,0,Arrays.asList(0),Arrays.asList(6),Arrays.asList(0),RebalanceUtils.getStoreNames(storeDefList2),0)));
+  assertEquals("Stealer 2 should have 1 entry",1,orderedRebalanceNodePlanList.get(1).getRebalanceTaskList().size());
+  checkAllRebalanceInfoPresent(orderedRebalanceNodePlanList.get(1),Arrays.asList(new RebalancePartitionsInfo(2,0,empty,Arrays.asList(7),empty,RebalanceUtils.getStoreNames(storeDefList2),0)));
+  assertEquals("Stealer 3 should have 1 entry",1,orderedRebalanceNodePlanList.get(2).getRebalanceTaskList().size());
+  checkAllRebalanceInfoPresent(orderedRebalanceNodePlanList.get(2),Arrays.asList(new RebalancePartitionsInfo(3,0,empty,Arrays.asList(0),empty,RebalanceUtils.getStoreNames(storeDefList2),0)));
+  currentCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{4},{0,1,5},{2,6},{3,7}});
+  targetCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{},{0,1,5},{4,2,6},{3,7}});
+  orderedRebalanceNodePlanList=createOrderedClusterTransition(currentCluster,targetCluster,storeDefList2).getOrderedRebalanceNodePlanList();
+  assertEquals("There should have exactly 3 rebalancing node",3,orderedRebalanceNodePlanList.size());
+  assertEquals("Stealer 2 should have 1 entry",1,orderedRebalanceNodePlanList.get(0).getRebalanceTaskList().size());
+  checkAllRebalanceInfoPresent(orderedRebalanceNodePlanList.get(0),Arrays.asList(new RebalancePartitionsInfo(2,0,Arrays.asList(4),Arrays.asList(3),Arrays.asList(4),RebalanceUtils.getStoreNames(storeDefList2),0)));
+  assertEquals("Stealer 1 should have 1 entry",1,orderedRebalanceNodePlanList.get(1).getRebalanceTaskList().size());
+  checkAllRebalanceInfoPresent(orderedRebalanceNodePlanList.get(1),Arrays.asList(new RebalancePartitionsInfo(1,0,empty,Arrays.asList(2),empty,RebalanceUtils.getStoreNames(storeDefList2),0)));
+  assertEquals("Stealer 3 should have 1 entry",1,orderedRebalanceNodePlanList.get(2).getRebalanceTaskList().size());
+  checkAllRebalanceInfoPresent(orderedRebalanceNodePlanList.get(2),Arrays.asList(new RebalancePartitionsInfo(3,0,empty,Arrays.asList(4),empty,RebalanceUtils.getStoreNames(storeDefList2),0)));
+}

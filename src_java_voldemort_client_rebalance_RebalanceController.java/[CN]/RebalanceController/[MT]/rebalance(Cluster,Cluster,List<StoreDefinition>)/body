@@ -1,15 +1,14 @@
 {
   logger.info("Current cluster : " + currentCluster);
   logger.info("Final target cluster : " + targetCluster);
-  currentCluster=RebalanceUtils.getClusterWithNewNodes(currentCluster,targetCluster);
-  adminClient.setAdminClientCluster(currentCluster);
   storeDefs=RebalanceUtils.validateRebalanceStore(storeDefs);
+  Cluster newCurrentCluster=RebalanceUtils.getClusterWithNewNodes(currentCluster,targetCluster);
+  adminClient.setAdminClientCluster(newCurrentCluster);
   if (!rebalanceConfig.isShowPlanEnabled()) {
-    RebalanceUtils.validateClusterState(currentCluster,adminClient);
-    RebalanceUtils.validateReadOnlyStores(currentCluster,storeDefs,adminClient);
-    List<Integer> nodeIds=RebalanceUtils.getNodeIds(Lists.newArrayList(currentCluster.getNodes()));
-    VectorClock latestClock=(VectorClock)RebalanceUtils.getLatestCluster(nodeIds,adminClient).getVersion();
-    RebalanceUtils.propagateCluster(adminClient,currentCluster,latestClock.incremented(0,System.currentTimeMillis()),nodeIds);
+    RebalanceUtils.validateClusterState(newCurrentCluster,adminClient);
+    RebalanceUtils.validateReadOnlyStores(newCurrentCluster,storeDefs,adminClient);
+    logger.info("Propagating new cluster " + newCurrentCluster + " to all nodes");
+    RebalanceUtils.propagateCluster(adminClient,newCurrentCluster);
   }
-  rebalancePerClusterTransition(currentCluster,targetCluster,storeDefs);
+  rebalancePerClusterTransition(newCurrentCluster,targetCluster,storeDefs);
 }
