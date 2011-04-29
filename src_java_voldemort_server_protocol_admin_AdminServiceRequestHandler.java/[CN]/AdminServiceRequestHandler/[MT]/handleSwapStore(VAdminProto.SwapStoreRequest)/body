@@ -3,7 +3,7 @@
   final String storeName=request.getStoreName();
   VAdminProto.SwapStoreResponse.Builder response=VAdminProto.SwapStoreResponse.newBuilder();
   if (!metadataStore.getServerState().equals(MetadataStore.VoldemortState.NORMAL_SERVER)) {
-    response.setError(ProtoUtils.encodeError(errorCodeMapper,new VoldemortException("Voldemort server not in normal state")));
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,new VoldemortException("Voldemort server " + metadataStore.getNodeId() + " not in normal state while swapping store "+ storeName+ " with directory "+ dir)));
     return response.build();
   }
   try {

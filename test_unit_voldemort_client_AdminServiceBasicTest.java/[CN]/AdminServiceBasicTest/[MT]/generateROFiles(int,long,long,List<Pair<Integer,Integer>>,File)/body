@@ -1,14 +1,14 @@
 {
   ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
-  metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V1.getCode());
+  metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode());
   File metadataFile=new File(versionDir,".metadata");
   BufferedWriter writer=new BufferedWriter(new FileWriter(metadataFile));
   writer.write(metadata.toJsonString());
   writer.close();
-  for (  Integer partitionId : partitions) {
+  for (  Pair<Integer,Integer> bucket : buckets) {
     for (int chunkId=0; chunkId < numChunks; chunkId++) {
-      File index=new File(versionDir,Integer.toString(partitionId) + "_" + Integer.toString(chunkId)+ ".index");
-      File data=new File(versionDir,Integer.toString(partitionId) + "_" + Integer.toString(chunkId)+ ".data");
+      File index=new File(versionDir,Integer.toString(bucket.getFirst()) + "_" + Integer.toString(bucket.getSecond())+ "_"+ Integer.toString(chunkId)+ ".index");
+      File data=new File(versionDir,Integer.toString(bucket.getFirst()) + "_" + Integer.toString(bucket.getSecond())+ "_"+ Integer.toString(chunkId)+ ".data");
       FileOutputStream dataOs=new FileOutputStream(data);
       for (int i=0; i < dataSize; i++)       dataOs.write(i);
       dataOs.close();
