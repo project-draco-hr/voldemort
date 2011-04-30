@@ -1,8 +1,8 @@
 {
   final List<RebalancePartitionsInfo> result=new ArrayList<RebalancePartitionsInfo>();
-  final Set<Integer> haveToStealPrimaries=RebalanceUtils.getStolenPrimaries(currentCluster,targetCluster,stealerId);
-  final Set<Integer> haveToStealReplicas=RebalanceUtils.getStolenReplicas(currentCluster,targetCluster,storeDefs,stealerId);
-  final Set<Integer> haveToDeletePartitions=getDeletedPartitions(stealerId);
+  final Set<Pair<Integer,Integer>> haveToStealPrimaries=RebalanceUtils.getStolenPrimaryPartitionTuples(currentCluster,targetCluster,stealerId);
+  final Set<Pair<Integer,Integer>> haveToStealReplicas=RebalanceUtils.getStolenReplicaPartitionTuples(currentCluster,targetCluster,storeDefs,stealerId);
+  final Set<Pair<Integer,Integer>> haveToDeletePartitions=getDeletedPartitions(stealerId);
   if (haveToStealPrimaries.size() == 0 && haveToStealReplicas.size() == 0 && haveToDeletePartitions.size() == 0) {
     return result;
   }
@@ -11,14 +11,14 @@
     if (haveFinishedPartitions(haveToStealPrimaries) && haveFinishedPartitions(haveToStealReplicas) && haveFinishedPartitions(haveToDeletePartitions)) {
       break;
     }
-    final Set<Integer> trackStealMasterPartitions=new HashSet<Integer>();
-    final Set<Integer> trackStealReplicaPartitions=new HashSet<Integer>();
-    final Set<Integer> trackDeletePartitions=new HashSet<Integer>();
-    donatePrimary(donorNode,haveToStealPrimaries,trackStealMasterPartitions);
-    donateReplicas(donorNode,haveToStealReplicas,trackStealReplicaPartitions);
-    deleteDonatedPartitions(donorNode,trackDeletePartitions,enableDeletePartition,stealerId);
-    if (trackStealMasterPartitions.size() > 0 || trackStealReplicaPartitions.size() > 0 || trackDeletePartitions.size() > 0) {
-      result.add(new RebalancePartitionsInfo(stealerId,donorNode.getId(),new ArrayList<Integer>(trackStealMasterPartitions),new ArrayList<Integer>(trackStealReplicaPartitions),new ArrayList<Integer>(trackDeletePartitions),storeNames,0));
+    final Set<Pair<Integer,Integer>> trackStealMasterPartitionsTuples=new HashSet<Pair<Integer,Integer>>();
+    final Set<Pair<Integer,Integer>> trackStealReplicaPartitionsTuples=new HashSet<Pair<Integer,Integer>>();
+    final Set<Pair<Integer,Integer>> trackDeletePartitionsTuples=new HashSet<Pair<Integer,Integer>>();
+    donatePrimary(donorNode,haveToStealPrimaries,trackStealMasterPartitionsTuples);
+    donateReplicas(donorNode,haveToStealReplicas,trackStealReplicaPartitionsTuples);
+    deleteDonatedPartitions(donorNode,trackDeletePartitionsTuples,enableDeletePartition,stealerId);
+    if (trackStealMasterPartitionsTuples.size() > 0 || trackStealReplicaPartitionsTuples.size() > 0 || trackDeletePartitionsTuples.size() > 0) {
+      result.add(new RebalancePartitionsInfo(stealerId,donorNode.getId(),new ArrayList<Integer>(getPartitions(trackStealMasterPartitionsTuples)),new ArrayList<Integer>(getPartitions(trackStealReplicaPartitionsTuples)),new ArrayList<Integer>(getPartitions(trackDeletePartitionsTuples)),storeNames,0));
     }
   }
   return result;

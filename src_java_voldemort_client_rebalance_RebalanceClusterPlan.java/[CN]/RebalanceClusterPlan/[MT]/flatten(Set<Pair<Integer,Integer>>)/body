@@ -1,0 +1,14 @@
+{
+  TreeMap<Integer,Set<Integer>> flattenedTuples=Maps.newTreeMap();
+  for (  Pair<Integer,Integer> pair : partitionTuples) {
+    if (flattenedTuples.containsKey(pair.getFirst())) {
+      flattenedTuples.get(pair.getFirst()).add(pair.getSecond());
+    }
+ else {
+      Set<Integer> newPartitions=Sets.newHashSet();
+      newPartitions.add(pair.getSecond());
+      flattenedTuples.put(pair.getFirst(),newPartitions);
+    }
+  }
+  return flattenedTuples;
+}

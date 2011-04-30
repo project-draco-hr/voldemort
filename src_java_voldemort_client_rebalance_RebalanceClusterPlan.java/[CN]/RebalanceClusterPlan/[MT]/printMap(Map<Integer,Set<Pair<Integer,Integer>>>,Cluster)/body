@@ -1,0 +1,19 @@
+{
+  StringBuilder sb=new StringBuilder();
+  for (  Map.Entry<Integer,Set<Pair<Integer,Integer>>> entry : nodeIdToAllPartitions.entrySet()) {
+    final Integer nodeId=entry.getKey();
+    final Set<Pair<Integer,Integer>> allPartitions=entry.getValue();
+    final TreeMap<Integer,Set<Integer>> replicaTypeToPartitions=flatten(allPartitions);
+    sb.append(nodeId);
+    if (replicaTypeToPartitions.size() > 0) {
+      for (      Entry<Integer,Set<Integer>> partitions : replicaTypeToPartitions.entrySet()) {
+        sb.append(" - " + partitions.getValue());
+      }
+    }
+ else {
+      sb.append(" - empty");
+    }
+    sb.append(Utils.NEWLINE);
+  }
+  return sb.toString();
+}

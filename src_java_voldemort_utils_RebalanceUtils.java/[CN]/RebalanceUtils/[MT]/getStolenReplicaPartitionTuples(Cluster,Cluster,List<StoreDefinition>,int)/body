@@ -1,0 +1,7 @@
+{
+  Map<Integer,Set<Pair<Integer,Integer>>> nodeIdToReplicas=getNodeIdToAllPartitions(cluster,storeDefs,false);
+  Map<Integer,Set<Pair<Integer,Integer>>> targetNodeIdToReplicas=getNodeIdToAllPartitions(target,storeDefs,false);
+  Set<Pair<Integer,Integer>> clusterStealerReplicas=nodeIdToReplicas.get(stealerId);
+  Set<Pair<Integer,Integer>> targetStealerReplicas=targetNodeIdToReplicas.get(stealerId);
+  return RebalanceUtils.getAddedInTarget(clusterStealerReplicas,targetStealerReplicas);
+}

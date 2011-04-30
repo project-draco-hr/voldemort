@@ -1,19 +1,24 @@
 {
   final StoreDefinition maxReplicationStore=RebalanceUtils.getMaxReplicationStore(storeDefs);
   final RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(maxReplicationStore,cluster);
-  final Map<Integer,Set<Integer>> nodeIdToReplicas=new HashMap<Integer,Set<Integer>>();
+  final Map<Integer,Set<Pair<Integer,Integer>>> nodeIdToReplicas=new HashMap<Integer,Set<Pair<Integer,Integer>>>();
   final Map<Integer,Integer> partitionToNodeIdMap=getCurrentPartitionMapping(cluster);
   for (  Node node : cluster.getNodes()) {
-    nodeIdToReplicas.put(node.getId(),new TreeSet<Integer>());
+    nodeIdToReplicas.put(node.getId(),new HashSet<Pair<Integer,Integer>>());
   }
   for (  Node node : cluster.getNodes()) {
     for (    Integer primary : node.getPartitionIds()) {
       List<Integer> replicaPartitionList=routingStrategy.getReplicatingPartitionList(primary);
       if (replicaPartitionList.size() != maxReplicationStore.getReplicationFactor())       throw new VoldemortException("Number of replicas returned (" + replicaPartitionList.size() + ") is less than the required replication factor ("+ maxReplicationStore.getReplicationFactor()+ ")");
-      if (!includePrimary)       replicaPartitionList.remove(primary);
+      int replicaType=0;
+      if (!includePrimary) {
+        replicaPartitionList.remove(primary);
+        replicaType=1;
+      }
       for (      Integer replicaPartition : replicaPartitionList) {
         Integer replicaNodeId=partitionToNodeIdMap.get(replicaPartition);
-        nodeIdToReplicas.get(replicaNodeId).add(primary);
+        nodeIdToReplicas.get(replicaNodeId).add(Pair.create(replicaType,primary));
+        replicaType++;
       }
     }
   }

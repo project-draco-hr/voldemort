@@ -1,4 +1,8 @@
 {
   ImmutableMap.Builder<String,Object> builder=new ImmutableMap.Builder<String,Object>();
-  return builder.put("stealerId",stealerId).put("donorId",donorId).put("stealMasterPartitions",stealMasterPartitions).put("stealReplicaPartitions",stealReplicaPartitions).put("deletePartitionsList",deletePartitionsList).put("unbalancedStoreList",unbalancedStoreList).put("attempt",attempt).build();
+  builder.put("stealerId",stealerId).put("donorId",donorId).put("deletePartitionsList",deletePartitionsList).put("unbalancedStoreList",unbalancedStoreList).put("attempt",attempt).put("numReplicas",replicaToPartitionList.size());
+  for (  Entry<Integer,List<Integer>> entry : replicaToPartitionList.entrySet()) {
+    builder.put("replicaToPartitionList" + Integer.toString(entry.getKey()),entry.getValue());
+  }
+  return builder.build();
 }

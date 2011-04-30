@@ -1,10 +1,14 @@
 {
   int stealerId=(Integer)map.get("stealerId");
   int donorId=(Integer)map.get("donorId");
-  List<Integer> stealMasterPartitions=Utils.uncheckedCast(map.get("stealMasterPartitions"));
-  List<Integer> stealReplicaPartitions=Utils.uncheckedCast(map.get("stealReplicaPartitions"));
   List<Integer> deletePartitionsList=Utils.uncheckedCast(map.get("deletePartitionsList"));
   List<String> unbalancedStoreList=Utils.uncheckedCast(map.get("unbalancedStoreList"));
   int attempt=(Integer)map.get("attempt");
-  return new RebalancePartitionsInfo(stealerId,donorId,stealMasterPartitions,stealReplicaPartitions,deletePartitionsList,unbalancedStoreList,attempt);
+  int numReplicas=(Integer)map.get("numReplicas");
+  HashMap<Integer,List<Integer>> partitionMap=Maps.newHashMap();
+  for (int replicaNo=0; replicaNo < numReplicas; replicaNo++) {
+    List<Integer> partitionList=Utils.uncheckedCast(map.get("replicaToPartitionList" + Integer.toString(replicaNo)));
+    partitionMap.put(replicaNo,partitionList);
+  }
+  return new RebalancePartitionsInfo(stealerId,donorId,partitionMap,deletePartitionsList,unbalancedStoreList,attempt);
 }

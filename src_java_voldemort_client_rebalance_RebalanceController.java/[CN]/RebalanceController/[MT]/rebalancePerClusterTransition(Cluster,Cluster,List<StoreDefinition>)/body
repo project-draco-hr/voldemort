@@ -1,14 +1,14 @@
 {
-  final Map<Node,Set<Integer>> stealerToStolenPrimaryPartitions=new HashMap<Node,Set<Integer>>();
+  final Map<Node,List<Integer>> stealerToStolenPrimaryPartitions=new HashMap<Node,List<Integer>>();
   int numTasks=0;
   for (  Node stealerNode : targetCluster.getNodes()) {
-    Set<Integer> stolenPrimaries=RebalanceUtils.getStolenPrimaries(currentCluster,targetCluster,stealerNode.getId());
-    numTasks+=stolenPrimaries.size();
-    stealerToStolenPrimaryPartitions.put(stealerNode,stolenPrimaries);
+    List<Integer> stolenPrimaryPartitions=RebalanceUtils.getStolenPrimaryPartitions(currentCluster,targetCluster,stealerNode.getId());
+    numTasks+=stolenPrimaryPartitions.size();
+    stealerToStolenPrimaryPartitions.put(stealerNode,stolenPrimaryPartitions);
   }
   int taskId=0;
   for (  Node stealerNode : targetCluster.getNodes()) {
-    Set<Integer> stolenPrimaryPartitions=stealerToStolenPrimaryPartitions.get(stealerNode);
+    List<Integer> stolenPrimaryPartitions=stealerToStolenPrimaryPartitions.get(stealerNode);
     if (stolenPrimaryPartitions == null || stolenPrimaryPartitions.isEmpty()) {
       RebalanceUtils.printLog(stealerNode.getId(),logger,"No partitions to steal");
       continue;

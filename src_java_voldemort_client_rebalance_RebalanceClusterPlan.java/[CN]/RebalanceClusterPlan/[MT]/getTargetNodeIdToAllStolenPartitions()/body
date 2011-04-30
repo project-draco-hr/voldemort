@@ -1,8 +1,8 @@
 {
-  final Map<Integer,Set<Integer>> map=new TreeMap<Integer,Set<Integer>>();
+  final Map<Integer,Set<Pair<Integer,Integer>>> map=new TreeMap<Integer,Set<Pair<Integer,Integer>>>();
   for (  int stealNodeId : targetNodeIdToAllPartitions.keySet()) {
-    Set<Integer> donatedPartitions=RebalanceUtils.getStolenPrimaries(currentCluster,targetCluster,stealNodeId);
-    donatedPartitions.addAll(RebalanceUtils.getStolenReplicas(currentCluster,targetCluster,storeDefs,stealNodeId));
+    Set<Pair<Integer,Integer>> donatedPartitions=RebalanceUtils.getStolenPrimaryPartitionTuples(currentCluster,targetCluster,stealNodeId);
+    donatedPartitions.addAll(RebalanceUtils.getStolenReplicaPartitionTuples(currentCluster,targetCluster,storeDefs,stealNodeId));
     map.put(stealNodeId,donatedPartitions);
   }
   return map;

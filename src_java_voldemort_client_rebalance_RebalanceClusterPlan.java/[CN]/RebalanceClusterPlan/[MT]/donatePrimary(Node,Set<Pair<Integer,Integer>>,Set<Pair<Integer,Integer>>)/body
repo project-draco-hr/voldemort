@@ -1,0 +1,11 @@
+{
+  final List<Integer> donorPrimaryPartitionIds=Collections.unmodifiableList(donorNode.getPartitionIds());
+  final Iterator<Pair<Integer,Integer>> iter=haveToStealPrimaries.iterator();
+  while (iter.hasNext()) {
+    Pair<Integer,Integer> primaryPartitionTupleToSteal=iter.next();
+    if (donorPrimaryPartitionIds.contains(primaryPartitionTupleToSteal.getSecond())) {
+      trackStealMasterPartitions.add(primaryPartitionTupleToSteal);
+      iter.remove();
+    }
+  }
+}

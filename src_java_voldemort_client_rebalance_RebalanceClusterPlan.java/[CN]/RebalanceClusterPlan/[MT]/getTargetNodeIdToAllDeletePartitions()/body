@@ -1,9 +1,9 @@
 {
-  final Map<Integer,Set<Integer>> map=new TreeMap<Integer,Set<Integer>>();
+  final Map<Integer,Set<Pair<Integer,Integer>>> map=new TreeMap<Integer,Set<Pair<Integer,Integer>>>();
   for (  Integer targetNodeId : targetNodeIdToAllPartitions.keySet()) {
-    Set<Integer> clusterAllPartitions=nodeIdToAllPartitions.get(targetNodeId);
-    Set<Integer> targetAllPartitions=targetNodeIdToAllPartitions.get(targetNodeId);
-    Set<Integer> deletedPartitions=RebalanceUtils.getDeletedInTarget(clusterAllPartitions,targetAllPartitions);
+    Set<Pair<Integer,Integer>> clusterAllPartitions=nodeIdToAllPartitions.get(targetNodeId);
+    Set<Pair<Integer,Integer>> targetAllPartitions=targetNodeIdToAllPartitions.get(targetNodeId);
+    Set<Pair<Integer,Integer>> deletedPartitions=RebalanceUtils.getDeletedInTarget(clusterAllPartitions,targetAllPartitions);
     map.put(targetNodeId,deletedPartitions);
   }
   return map;
