@@ -1,0 +1,16 @@
+{
+  for (  RebalancePartitionsInfo rebalanceInfo : rebalanceInfoList) {
+    boolean match=false;
+    for (    RebalancePartitionsInfo nodeRebalanceInfo : nodePlan.getRebalanceTaskList()) {
+      if (rebalanceInfo.getDonorId() == nodeRebalanceInfo.getDonorId()) {
+        assertEquals("partitions should match",true,Utils.compareList(rebalanceInfo.getPartitions(),nodeRebalanceInfo.getPartitions()));
+        assertEquals("store list should match",true,Utils.compareList(rebalanceInfo.getUnbalancedStoreList(),nodeRebalanceInfo.getUnbalancedStoreList()));
+        for (        Entry<Integer,List<Integer>> entry : rebalanceInfo.getReplicaToPartitionList().entrySet()) {
+          assertEquals("partition moved should match for " + entry.getKey() + " replica type",true,Utils.compareList(entry.getValue(),nodeRebalanceInfo.getReplicaToPartitionList().get(entry.getKey())));
+        }
+        match=true;
+      }
+    }
+    assertNotSame("rebalancePartition Info " + rebalanceInfo + " should be present in the nodePlan "+ nodePlan.getRebalanceTaskList(),false,match);
+  }
+}

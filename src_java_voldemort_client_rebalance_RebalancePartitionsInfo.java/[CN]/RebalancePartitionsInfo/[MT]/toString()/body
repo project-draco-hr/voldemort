@@ -1,3 +1,10 @@
 {
-  return "RebalancingStealInfo(" + getStealerId() + " <--- "+ getDonorId()+ " master partitions :"+ getStealMasterPartitions()+ " replica partitions :"+ getStealReplicaPartitions()+ " deleted partition :"+ getDeletePartitionsList()+ " stores:"+ getUnbalancedStoreList()+ ")";
+  StringBuffer sb=new StringBuffer();
+  sb.append("RebalancingStealInfo(" + getStealerId() + " <--- "+ getDonorId()+ ", partitions moved ");
+  for (int replicaNum=0; replicaNum <= maxReplica; replicaNum++) {
+    if (replicaToPartitionList.containsKey(replicaNum))     sb.append(" - " + replicaToPartitionList.get(replicaNum));
+ else     sb.append(" - []");
+  }
+  sb.append(", stores: " + getUnbalancedStoreList() + ", delete - "+ deletePartitions+ ")");
+  return sb.toString();
 }

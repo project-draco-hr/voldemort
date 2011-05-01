@@ -8,29 +8,8 @@
   if (hasDonorId()) {
     size+=com.google.protobuf.CodedOutputStream.computeInt32Size(2,getDonorId());
   }
-{
-    int dataSize=0;
-    for (    int element : getStealMasterPartitionsList()) {
-      dataSize+=com.google.protobuf.CodedOutputStream.computeInt32SizeNoTag(element);
-    }
-    size+=dataSize;
-    size+=1 * getStealMasterPartitionsList().size();
-  }
-{
-    int dataSize=0;
-    for (    int element : getStealReplicaPartitionsList()) {
-      dataSize+=com.google.protobuf.CodedOutputStream.computeInt32SizeNoTag(element);
-    }
-    size+=dataSize;
-    size+=1 * getStealReplicaPartitionsList().size();
-  }
-{
-    int dataSize=0;
-    for (    int element : getDeletePartitionsList()) {
-      dataSize+=com.google.protobuf.CodedOutputStream.computeInt32SizeNoTag(element);
-    }
-    size+=dataSize;
-    size+=1 * getDeletePartitionsList().size();
+  for (  voldemort.client.protocol.pb.VAdminProto.PartitionTuple element : getReplicaToPartitionList()) {
+    size+=com.google.protobuf.CodedOutputStream.computeMessageSize(3,element);
   }
 {
     int dataSize=0;
@@ -40,8 +19,14 @@
     size+=dataSize;
     size+=1 * getUnbalancedStoresList().size();
   }
+  if (hasInitialCluster()) {
+    size+=com.google.protobuf.CodedOutputStream.computeStringSize(5,getInitialCluster());
+  }
   if (hasAttempt()) {
-    size+=com.google.protobuf.CodedOutputStream.computeInt32Size(7,getAttempt());
+    size+=com.google.protobuf.CodedOutputStream.computeInt32Size(6,getAttempt());
+  }
+  if (hasDeletePartitions()) {
+    size+=com.google.protobuf.CodedOutputStream.computeBoolSize(7,getDeletePartitions());
   }
   size+=getUnknownFields().getSerializedSize();
   memoizedSerializedSize=size;

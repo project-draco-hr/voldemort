@@ -6,20 +6,20 @@
   if (hasDonorId()) {
     output.writeInt32(2,getDonorId());
   }
-  for (  int element : getStealMasterPartitionsList()) {
-    output.writeInt32(3,element);
-  }
-  for (  int element : getStealReplicaPartitionsList()) {
-    output.writeInt32(4,element);
-  }
-  for (  int element : getDeletePartitionsList()) {
-    output.writeInt32(5,element);
+  for (  voldemort.client.protocol.pb.VAdminProto.PartitionTuple element : getReplicaToPartitionList()) {
+    output.writeMessage(3,element);
   }
   for (  java.lang.String element : getUnbalancedStoresList()) {
-    output.writeString(6,element);
+    output.writeString(4,element);
+  }
+  if (hasInitialCluster()) {
+    output.writeString(5,getInitialCluster());
   }
   if (hasAttempt()) {
-    output.writeInt32(7,getAttempt());
+    output.writeInt32(6,getAttempt());
+  }
+  if (hasDeletePartitions()) {
+    output.writeBool(7,getDeletePartitions());
   }
   getUnknownFields().writeTo(output);
 }

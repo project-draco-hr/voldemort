@@ -24,59 +24,31 @@ case 16:
 setDonorId(input.readInt32());
 break;
 }
-case 24:
-{
-addStealMasterPartitions(input.readInt32());
-break;
-}
 case 26:
 {
-int length=input.readRawVarint32();
-int limit=input.pushLimit(length);
-while (input.getBytesUntilLimit() > 0) {
-addStealMasterPartitions(input.readInt32());
-}
-input.popLimit(limit);
-break;
-}
-case 32:
-{
-addStealReplicaPartitions(input.readInt32());
+voldemort.client.protocol.pb.VAdminProto.PartitionTuple.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.PartitionTuple.newBuilder();
+input.readMessage(subBuilder,extensionRegistry);
+addReplicaToPartition(subBuilder.buildPartial());
 break;
 }
 case 34:
 {
-int length=input.readRawVarint32();
-int limit=input.pushLimit(length);
-while (input.getBytesUntilLimit() > 0) {
-addStealReplicaPartitions(input.readInt32());
-}
-input.popLimit(limit);
-break;
-}
-case 40:
-{
-addDeletePartitions(input.readInt32());
+addUnbalancedStores(input.readString());
 break;
 }
 case 42:
 {
-int length=input.readRawVarint32();
-int limit=input.pushLimit(length);
-while (input.getBytesUntilLimit() > 0) {
-addDeletePartitions(input.readInt32());
-}
-input.popLimit(limit);
+setInitialCluster(input.readString());
 break;
 }
-case 50:
+case 48:
 {
-addUnbalancedStores(input.readString());
+setAttempt(input.readInt32());
 break;
 }
 case 56:
 {
-setAttempt(input.readInt32());
+setDeletePartitions(input.readBool());
 break;
 }
 }

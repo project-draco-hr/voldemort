@@ -1,8 +1,0 @@
-{
-  currentCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{3,6,9,12,15},{1,4,7,10,13,16},{2,5,8,11,14,17},{0}});
-  targetCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{0,3,6,9,12,15},{1,4,7,10,13,16},{2,5,8,11,14,17},{}});
-  List<RebalanceNodePlan> orderedRebalanceNodePlanList=createOrderedClusterTransition(currentCluster,targetCluster,storeDefList2).getOrderedRebalanceNodePlanList();
-  assertEquals("There should have exactly 1 rebalancing node",1,orderedRebalanceNodePlanList.size());
-  assertEquals("Stealer 3 should have 1 entry",1,orderedRebalanceNodePlanList.get(0).getRebalanceTaskList().size());
-  checkAllRebalanceInfoPresent(orderedRebalanceNodePlanList.get(0),Arrays.asList(new RebalancePartitionsInfo(0,3,Arrays.asList(0),Arrays.asList(16,17),Arrays.asList(0,16,17),RebalanceUtils.getStoreNames(storeDefList2),0)));
-}

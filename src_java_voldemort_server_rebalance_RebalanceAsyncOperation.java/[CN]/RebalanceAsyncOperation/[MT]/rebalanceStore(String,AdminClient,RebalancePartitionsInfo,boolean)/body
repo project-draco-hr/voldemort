@@ -1,16 +1,16 @@
 {
   logger.info("Starting partitions migration for store:" + storeName);
   updateStatus("Started partition migration for store " + storeName + " and steal info - "+ stealInfo);
-  int asyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getPartitions(),null);
+  int asyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getReplicaToPartitionList(),stealInfo.getInitialCluster());
   rebalanceStatusList.add(asyncId);
   if (logger.isDebugEnabled()) {
     logger.debug("Waiting for completion for " + storeName + " and steal info - "+ stealInfo+ " with async id - "+ asyncId);
   }
   adminClient.waitForCompletion(metadataStore.getNodeId(),asyncId,voldemortConfig.getRebalancingTimeoutSec(),TimeUnit.SECONDS);
   rebalanceStatusList.remove((Object)asyncId);
-  if (stealInfo.getDeletePartitionsList().size() > 0 && !isReadOnlyStore) {
+  if (stealInfo.getDeletePartitions() && !isReadOnlyStore) {
     logger.info("Deleting partitions for store " + storeName + " and steal info - "+ stealInfo);
-    adminClient.deletePartitions(stealInfo.getDonorId(),storeName,stealInfo.getDeletePartitionsList(),null);
+    adminClient.deletePartitions(stealInfo.getDonorId(),storeName,stealInfo.getReplicaToPartitionList(),stealInfo.getInitialCluster(),null);
     logger.info("Deleting partitions for store " + storeName + " and steal info - "+ stealInfo);
   }
   logger.info("Completed partition migration for store " + storeName + " and steal info - "+ stealInfo);

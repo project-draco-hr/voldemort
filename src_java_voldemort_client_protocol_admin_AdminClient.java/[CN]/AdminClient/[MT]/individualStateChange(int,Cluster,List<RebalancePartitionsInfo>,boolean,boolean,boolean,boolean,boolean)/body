@@ -6,7 +6,7 @@
   if (rebalancePartitionPlanList != null) {
     List<RebalancePartitionInfoMap> map=Lists.newArrayList();
     for (    RebalancePartitionsInfo stealInfo : rebalancePartitionPlanList) {
-      RebalancePartitionInfoMap infoMap=RebalancePartitionInfoMap.newBuilder().setStealerId(stealInfo.getStealerId()).setDonorId(stealInfo.getDonorId()).addAllStealMasterPartitions(stealInfo.getStealMasterPartitions()).addAllStealReplicaPartitions(stealInfo.getStealReplicaPartitions()).addAllDeletePartitions(stealInfo.getDeletePartitionsList()).addAllUnbalancedStores(stealInfo.getUnbalancedStoreList()).setAttempt(stealInfo.getAttempt()).build();
+      RebalancePartitionInfoMap infoMap=ProtoUtils.encodeRebalancePartitionInfoMap(stealInfo);
       map.add(infoMap);
     }
     getRebalanceStateChangeRequestBuilder.addAllRebalancePartitionInfoList(map);
