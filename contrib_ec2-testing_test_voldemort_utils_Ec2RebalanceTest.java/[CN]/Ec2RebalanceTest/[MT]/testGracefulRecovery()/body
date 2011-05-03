@@ -6,7 +6,9 @@
   targetCluster=updateCluster(targetCluster);
   AdminClient adminClient=new AdminClient(getBootstrapUrl(currentCluster,0),new AdminClientConfig());
   populateData(currentCluster,Arrays.asList(0),adminClient);
-  RebalancePartitionsInfo rebalancePartitionsInfo=new RebalancePartitionsInfo(1,0,Arrays.asList(2,3),Arrays.asList(2,3),Arrays.asList(2,3),Arrays.asList(testStoreNameRW),0);
+  HashMap<Integer,List<Integer>> toMoveMap=Maps.newHashMap();
+  toMoveMap.put(0,Lists.newArrayList(2,3));
+  RebalancePartitionsInfo rebalancePartitionsInfo=new RebalancePartitionsInfo(1,0,toMoveMap,Arrays.asList(testStoreNameRW),currentCluster,false,0);
   int requestId=adminClient.rebalanceNode(rebalancePartitionsInfo);
   logger.info("started rebalanceNode, request id = " + requestId);
   Thread.sleep(25);

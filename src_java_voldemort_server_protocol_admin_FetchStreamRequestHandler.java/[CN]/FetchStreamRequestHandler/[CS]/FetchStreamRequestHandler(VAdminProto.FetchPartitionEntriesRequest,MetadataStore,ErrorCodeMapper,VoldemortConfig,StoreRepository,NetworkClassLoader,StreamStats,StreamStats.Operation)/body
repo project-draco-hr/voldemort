@@ -1,15 +1,17 @@
 {
+  this.nodeId=metadataStore.getNodeId();
   this.request=request;
   this.errorCodeMapper=errorCodeMapper;
   this.replicaToPartitionList=ProtoUtils.decodePartitionTuple(request.getReplicaToPartitionList());
   this.stats=stats;
   this.handle=stats.makeHandle(operation,replicaToPartitionList);
   this.storageEngine=AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
+  this.storeDef=metadataStore.getStoreDef(request.getStore());
   if (request.hasInitialCluster()) {
-    routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(metadataStore.getStoreDef(request.getStore()),new ClusterMapper().readCluster(new StringReader(request.getInitialCluster())));
+    this.initialCluster=new ClusterMapper().readCluster(new StringReader(request.getInitialCluster()));
   }
  else {
-    routingStrategy=metadataStore.getRoutingStrategy(storageEngine.getName());
+    this.initialCluster=metadataStore.getCluster();
   }
   this.throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
   if (request.hasFilter()) {

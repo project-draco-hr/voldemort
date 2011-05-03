@@ -6,13 +6,6 @@
     final HashMap<Integer,List<Integer>> replicaToPartitionList=ProtoUtils.decodePartitionTuple(request.getReplicaToPartitionList());
     StorageEngine<ByteArray,byte[],byte[]> storageEngine=getStorageEngine(storeRepository,storeName);
     VoldemortFilter filter=(request.hasFilter()) ? getFilterFromRequest(request.getFilter(),voldemortConfig,networkClassLoader) : new DefaultVoldemortFilter();
-    RoutingStrategy routingStrategy;
-    if (request.hasInitialCluster()) {
-      routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(metadataStore.getStoreDef(storeName),new ClusterMapper().readCluster(new StringReader(request.getInitialCluster())));
-    }
- else {
-      routingStrategy=metadataStore.getRoutingStrategy(storageEngine.getName());
-    }
     EventThrottler throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
     iterator=storageEngine.entries();
     int deleteSuccess=0;
@@ -21,7 +14,7 @@
       ByteArray key=entry.getFirst();
       Versioned<byte[]> value=entry.getSecond();
       throttler.maybeThrottle(key.length() + valueSize(value));
-      if (RebalanceUtils.checkKeyBelongsToPartition(key.get(),replicaToPartitionList,routingStrategy) && filter.accept(key,value)) {
+      if (RebalanceUtils.checkKeyBelongsToPartition(metadataStore.getNodeId(),key.get(),replicaToPartitionList,request.hasInitialCluster() ? new ClusterMapper().readCluster(new StringReader(request.getInitialCluster())) : metadataStore.getCluster(),metadataStore.getStoreDef(storeName)) && filter.accept(key,value)) {
         if (storageEngine.delete(key,value.getVersion()))         deleteSuccess++;
       }
     }

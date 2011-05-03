@@ -1,0 +1,15 @@
+{
+  List<Integer> keyPartitions=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster).getPartitionList(key);
+  List<Integer> nodePartitions=cluster.getNodeById(nodeId).getPartitionIds();
+  for (int replicaNum=0; replicaNum < keyPartitions.size(); replicaNum++) {
+    if (nodePartitions.contains(keyPartitions.get(replicaNum))) {
+      List<Integer> partitionsToMove=replicaToPartitionList.get(replicaNum);
+      if (partitionsToMove != null && partitionsToMove.size() > 0) {
+        if (partitionsToMove.contains(keyPartitions.get(0))) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
