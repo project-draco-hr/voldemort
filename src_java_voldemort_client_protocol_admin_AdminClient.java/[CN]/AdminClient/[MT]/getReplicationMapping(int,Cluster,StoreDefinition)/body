@@ -1,0 +1,30 @@
+{
+  Map<Integer,Integer> partitionToNodeId=RebalanceUtils.getCurrentPartitionMapping(cluster);
+  Map<Integer,HashMap<Integer,List<Integer>>> returnMap=Maps.newHashMap();
+  RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+  for (  int partitionId : cluster.getNodeById(restoringNode).getPartitionIds()) {
+    List<Integer> replicatingPartitions=strategy.getReplicatingPartitionList(partitionId);
+    if (replicatingPartitions.size() <= 1) {
+      throw new VoldemortException("Store " + storeDef.getName() + " cannot be restored from replica because replication factor = 1");
+    }
+    int nodeId=partitionToNodeId.get(replicatingPartitions.get(1));
+    HashMap<Integer,List<Integer>> partitionTuples=null;
+    if (returnMap.containsKey(nodeId)) {
+      partitionTuples=returnMap.get(nodeId);
+    }
+ else {
+      partitionTuples=Maps.newHashMap();
+      returnMap.put(nodeId,partitionTuples);
+    }
+    List<Integer> partitions=null;
+    if (partitionTuples.containsKey(1)) {
+      partitions=partitionTuples.get(1);
+    }
+ else {
+      partitions=Lists.newArrayList();
+      partitionTuples.put(1,partitions);
+    }
+    partitions.add(partitionId);
+  }
+  return returnMap;
+}

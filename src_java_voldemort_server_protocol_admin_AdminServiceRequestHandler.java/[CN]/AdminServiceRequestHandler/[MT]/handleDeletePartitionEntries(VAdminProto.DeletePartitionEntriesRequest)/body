@@ -21,7 +21,7 @@
       ByteArray key=entry.getFirst();
       Versioned<byte[]> value=entry.getSecond();
       throttler.maybeThrottle(key.length() + valueSize(value));
-      if (checkKeyBelongsToDeletePartition(key.get(),partitions,routingStrategy) && filter.accept(key,value)) {
+      if (RebalanceUtils.checkKeyBelongsToPartition(key.get(),replicaToPartitionList,routingStrategy) && filter.accept(key,value)) {
         if (storageEngine.delete(key,value.getVersion()))         deleteSuccess++;
       }
     }

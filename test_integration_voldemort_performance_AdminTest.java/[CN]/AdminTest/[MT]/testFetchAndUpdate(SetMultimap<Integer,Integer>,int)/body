@@ -2,7 +2,9 @@
   for (  final Integer node : from.keySet()) {
     timeFunction(new Timed(){
       public void apply(){
-        adminClient.migratePartitions(node,to,storeName,new ArrayList<Integer>(from.get(node)),null);
+        HashMap<Integer,List<Integer>> replicaToPartitionList=Maps.newHashMap();
+        replicaToPartitionList.put(0,Lists.newArrayList(from.get(node)));
+        adminClient.migratePartitions(node,to,storeName,replicaToPartitionList,null,null);
       }
     }
 ,1);

@@ -19,19 +19,29 @@ case 8:
   setNodeId(input.readInt32());
   break;
 }
-case 18:
+case 26:
 {
 setStore(input.readString());
 break;
 }
-case 26:
+case 34:
+{
+voldemort.client.protocol.pb.VAdminProto.VoldemortFilter.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.VoldemortFilter.newBuilder();
+if (hasFilter()) {
+subBuilder.mergeFrom(getFilter());
+}
+input.readMessage(subBuilder,extensionRegistry);
+setFilter(subBuilder.buildPartial());
+break;
+}
+case 42:
 {
 voldemort.client.protocol.pb.VAdminProto.PartitionTuple.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.PartitionTuple.newBuilder();
 input.readMessage(subBuilder,extensionRegistry);
 addReplicaToPartition(subBuilder.buildPartial());
 break;
 }
-case 34:
+case 50:
 {
 setInitialCluster(input.readString());
 break;

@@ -1,15 +1,16 @@
 {
-  List<Integer> partitionIds=request.getPartitionsList();
-  for (  Entry<Object,Integer> entry : storageEngine.getChunkedFileSet().getChunkIdToNumChunks().entrySet()) {
-    Pair<Integer,Integer> bucket=(Pair<Integer,Integer>)entry.getKey();
-    if (partitionIds.contains(bucket.getFirst())) {
-      for (int chunkId=0; chunkId < entry.getValue(); chunkId++) {
-        String fileName=Integer.toString(bucket.getFirst()) + "_" + Integer.toString(bucket.getSecond())+ "_"+ Integer.toString(chunkId);
+  HashMap<Object,Integer> bucketToNumChunks=storageEngine.getChunkedFileSet().getChunkIdToNumChunks();
+  for (  Entry<Integer,List<Integer>> entry : replicaToPartitionList.entrySet()) {
+    int replicaType=entry.getKey();
+    for (    int partitionId : entry.getValue()) {
+      if (!bucketToNumChunks.containsKey(Pair.create(partitionId,replicaType))) {
+        throw new VoldemortException("Bucket [ partition = " + partitionId + ", replica = "+ replicaType+ " ] does not exist for store "+ request.getStore());
+      }
+      int numChunks=bucketToNumChunks.get(Pair.create(partitionId,replicaType));
+      for (int chunkId=0; chunkId < numChunks; chunkId++) {
+        String fileName=Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId);
         File index=new File(this.storeDir,fileName + ".index");
         File data=new File(this.storeDir,fileName + ".data");
-        if (!index.exists() && !data.exists()) {
-          throw new VoldemortException("Could not find any data for partition " + bucket.getFirst() + ", replica-type "+ bucket.getSecond()+ ", chunk "+ chunkId);
-        }
         logger.info("Streaming " + data.getAbsolutePath());
         streamFile(data,outputStream);
         logger.info("Completed streaming " + data.getAbsolutePath());

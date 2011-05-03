@@ -1,8 +1,11 @@
 {
   String testStoreName="test-recovery-data";
-  HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(TEST_STREAM_KEYS_SIZE);
+  StoreDefinition def=RebalanceUtils.getStoreDefinitionWithName(storeDefs,testStoreName);
+  RoutingStrategy rStrategy=new RoutingStrategyFactory().updateRoutingStrategy(def,cluster);
+  HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(5);
   Store<ByteArray,byte[],byte[]> store=getStore(0,testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
+    System.out.println("SERVER ENTRY - " + ByteUtils.toHexString(entry.getKey().get()) + " - "+ rStrategy.getPartitionList(entry.getKey().get()));
     store.put(entry.getKey(),new Versioned<byte[]>(entry.getValue()),null);
   }
   store=getStore(1,testStoreName);

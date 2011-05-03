@@ -1,61 +1,83 @@
 {
+  Map<Integer,Set<Pair<Integer,Integer>>> buckets=RebalanceUtils.getNodeIdToAllPartitions(cluster,Lists.newArrayList(RebalanceUtils.getStoreDefinitionWithName(storeDefs,"test-readonly-fetchfiles")),true);
   for (  Node node : cluster.getNodes()) {
     ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)getStore(node.getId(),"test-readonly-fetchfiles");
-    List<Pair<Integer,Integer>> buckets=getBuckets(node.getId(),"test-readonly-fetchfiles");
-    List<Pair<Integer,Integer>> primaryBuckets=filterBuckets(buckets,cluster.getNodeById(node.getId()).getPartitionIds(),true);
-    List<Pair<Integer,Integer>> replicaBuckets=filterBuckets(buckets,cluster.getNodeById(node.getId()).getPartitionIds(),false);
-    List<Integer> replicaPartitions=Lists.newArrayList();
-    for (    Pair<Integer,Integer> replicaBucket : replicaBuckets) {
-      replicaPartitions.add(replicaBucket.getFirst());
+    Set<Pair<Integer,Integer>> nodeBucketsSet=buckets.get(node.getId());
+    HashMap<Integer,List<Integer>> nodeBuckets=RebalanceUtils.flatten(nodeBucketsSet);
+    HashMap<Integer,List<Integer>> primaryNodeBuckets=Maps.newHashMap();
+    primaryNodeBuckets.put(0,nodeBuckets.get(0));
+    int primaryPartitions=nodeBuckets.get(0).size();
+    HashMap<Integer,List<Integer>> replicaNodeBuckets=Maps.newHashMap(nodeBuckets);
+    replicaNodeBuckets.remove(0);
+    int replicaPartitions=0;
+    for (    List<Integer> partitions : replicaNodeBuckets.values()) {
+      replicaPartitions+=partitions.size();
     }
-    List<Integer> allPartitions=Lists.newArrayList(replicaPartitions);
-    allPartitions.addAll(node.getPartitionIds());
     File newVersionDir=new File(store.getStoreDirPath(),"version-" + Long.toString(versionId));
     Utils.mkdirs(newVersionDir);
-    generateROFiles(numChunks,indexSize,dataSize,buckets,newVersionDir);
+    generateROFiles(numChunks,indexSize,dataSize,nodeBuckets,newVersionDir);
     store.swapFiles(newVersionDir.getAbsolutePath());
     HashMap<Object,Integer> chunkIdToNumChunks=store.getChunkedFileSet().getChunkIdToNumChunks();
     for (    Object bucket : chunkIdToNumChunks.keySet()) {
-      Pair<Integer,Integer> pairBucket=(Pair<Integer,Integer>)bucket;
-      assertTrue(buckets.contains(pairBucket));
+      Pair<Integer,Integer> partitionToReplicaBucket=(Pair<Integer,Integer>)bucket;
+      Pair<Integer,Integer> replicaToPartitionBucket=Pair.create(partitionToReplicaBucket.getSecond(),partitionToReplicaBucket.getFirst());
+      assertTrue(nodeBucketsSet.contains(replicaToPartitionBucket));
     }
     File tempDir=TestUtils.createTempDir();
-    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",node.getPartitionIds(),tempDir.getAbsolutePath());
-    assertEquals(tempDir.list().length,2 * node.getPartitionIds().size() * numChunks);
-    for (    Pair<Integer,Integer> bucket : primaryBuckets) {
-      for (int chunkId=0; chunkId < numChunks; chunkId++) {
-        File indexFile=new File(tempDir,Integer.toString(bucket.getFirst()) + "_" + Integer.toString(bucket.getSecond())+ "_"+ Integer.toString(chunkId)+ ".index");
-        File dataFile=new File(tempDir,Integer.toString(bucket.getFirst()) + "_" + Integer.toString(bucket.getSecond())+ "_"+ Integer.toString(chunkId)+ ".data");
-        assertTrue(indexFile.exists());
-        assertTrue(dataFile.exists());
-        assertEquals(indexFile.length(),indexSize);
-        assertEquals(dataFile.length(),dataSize);
+    HashMap<Integer,List<Integer>> dumbMap=Maps.newHashMap();
+    dumbMap.put(100,Lists.newArrayList(0));
+    try {
+      getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",dumbMap,tempDir.getAbsolutePath());
+      fail("Should throw exception since partition map passed is bad");
+    }
+ catch (    VoldemortException e) {
+    }
+    tempDir=TestUtils.createTempDir();
+    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",primaryNodeBuckets,tempDir.getAbsolutePath());
+    assertEquals(tempDir.list().length,2 * primaryPartitions * numChunks);
+    for (    Entry<Integer,List<Integer>> entry : primaryNodeBuckets.entrySet()) {
+      int replicaType=entry.getKey();
+      for (      int partitionId : entry.getValue()) {
+        for (int chunkId=0; chunkId < numChunks; chunkId++) {
+          File indexFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId)+ ".index");
+          File dataFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId)+ ".data");
+          assertTrue(indexFile.exists());
+          assertTrue(dataFile.exists());
+          assertEquals(indexFile.length(),indexSize);
+          assertEquals(dataFile.length(),dataSize);
+        }
       }
     }
     tempDir=TestUtils.createTempDir();
-    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",replicaPartitions,tempDir.getAbsolutePath());
-    assertEquals(tempDir.list().length,2 * replicaPartitions.size() * numChunks);
-    for (    Pair<Integer,Integer> bucket : replicaBuckets) {
-      for (int chunkId=0; chunkId < numChunks; chunkId++) {
-        File indexFile=new File(tempDir,Integer.toString(bucket.getFirst()) + "_" + Integer.toString(bucket.getSecond())+ "_"+ Integer.toString(chunkId)+ ".index");
-        File dataFile=new File(tempDir,Integer.toString(bucket.getFirst()) + "_" + Integer.toString(bucket.getSecond())+ "_"+ Integer.toString(chunkId)+ ".data");
-        assertTrue(indexFile.exists());
-        assertTrue(dataFile.exists());
-        assertEquals(indexFile.length(),indexSize);
-        assertEquals(dataFile.length(),dataSize);
+    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",replicaNodeBuckets,tempDir.getAbsolutePath());
+    assertEquals(tempDir.list().length,2 * replicaPartitions * numChunks);
+    for (    Entry<Integer,List<Integer>> entry : replicaNodeBuckets.entrySet()) {
+      int replicaType=entry.getKey();
+      for (      int partitionId : entry.getValue()) {
+        for (int chunkId=0; chunkId < numChunks; chunkId++) {
+          File indexFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId)+ ".index");
+          File dataFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId)+ ".data");
+          assertTrue(indexFile.exists());
+          assertTrue(dataFile.exists());
+          assertEquals(indexFile.length(),indexSize);
+          assertEquals(dataFile.length(),dataSize);
+        }
       }
     }
     tempDir=TestUtils.createTempDir();
-    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",allPartitions,tempDir.getAbsolutePath());
-    assertEquals(tempDir.list().length,2 * allPartitions.size() * numChunks);
-    for (    Pair<Integer,Integer> bucket : buckets) {
-      for (int chunkId=0; chunkId < numChunks; chunkId++) {
-        File indexFile=new File(tempDir,Integer.toString(bucket.getFirst()) + "_" + Integer.toString(bucket.getSecond())+ "_"+ Integer.toString(chunkId)+ ".index");
-        File dataFile=new File(tempDir,Integer.toString(bucket.getFirst()) + "_" + Integer.toString(bucket.getSecond())+ "_"+ Integer.toString(chunkId)+ ".data");
-        assertTrue(indexFile.exists());
-        assertTrue(dataFile.exists());
-        assertEquals(indexFile.length(),indexSize);
-        assertEquals(dataFile.length(),dataSize);
+    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",nodeBuckets,tempDir.getAbsolutePath());
+    assertEquals(tempDir.list().length,2 * (primaryPartitions + replicaPartitions) * numChunks);
+    for (    Entry<Integer,List<Integer>> entry : nodeBuckets.entrySet()) {
+      int replicaType=entry.getKey();
+      for (      int partitionId : entry.getValue()) {
+        for (int chunkId=0; chunkId < numChunks; chunkId++) {
+          File indexFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId)+ ".index");
+          File dataFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId)+ ".data");
+          assertTrue(indexFile.exists());
+          assertTrue(dataFile.exists());
+          assertEquals(indexFile.length(),indexSize);
+          assertEquals(dataFile.length(),dataSize);
+        }
       }
     }
   }
