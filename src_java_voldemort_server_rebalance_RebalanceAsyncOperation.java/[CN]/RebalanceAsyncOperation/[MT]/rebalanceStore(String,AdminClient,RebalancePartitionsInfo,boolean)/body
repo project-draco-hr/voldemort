@@ -8,9 +8,9 @@
   }
   adminClient.waitForCompletion(metadataStore.getNodeId(),asyncId,voldemortConfig.getRebalancingTimeoutSec(),TimeUnit.SECONDS);
   rebalanceStatusList.remove((Object)asyncId);
-  if (stealInfo.getDeletePartitions() && !isReadOnlyStore) {
+  if (stealInfo.getReplicaToDeletePartitionList().size() > 0 && !isReadOnlyStore) {
     logger.info("Deleting partitions for store " + storeName + " and steal info - "+ stealInfo);
-    adminClient.deletePartitions(stealInfo.getDonorId(),storeName,stealInfo.getReplicaToPartitionList(),stealInfo.getInitialCluster(),null);
+    adminClient.deletePartitions(stealInfo.getDonorId(),storeName,stealInfo.getReplicaToDeletePartitionList(),stealInfo.getInitialCluster(),null);
     logger.info("Deleting partitions for store " + storeName + " and steal info - "+ stealInfo);
   }
   logger.info("Completed partition migration for store " + storeName + " and steal info - "+ stealInfo);

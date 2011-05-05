@@ -3,7 +3,7 @@
   for (  Node node : cluster.getNodes()) {
     ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)getStore(node.getId(),"test-readonly-fetchfiles");
     Set<Pair<Integer,Integer>> nodeBucketsSet=buckets.get(node.getId());
-    HashMap<Integer,List<Integer>> nodeBuckets=RebalanceUtils.flatten(nodeBucketsSet);
+    HashMap<Integer,List<Integer>> nodeBuckets=RebalanceUtils.flattenPartitionTuples(nodeBucketsSet);
     HashMap<Integer,List<Integer>> primaryNodeBuckets=Maps.newHashMap();
     primaryNodeBuckets.put(0,nodeBuckets.get(0));
     int primaryPartitions=nodeBuckets.get(0).size();

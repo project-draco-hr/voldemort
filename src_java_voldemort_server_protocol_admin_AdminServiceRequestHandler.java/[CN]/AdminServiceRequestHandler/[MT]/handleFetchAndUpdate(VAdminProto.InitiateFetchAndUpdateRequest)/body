@@ -28,6 +28,7 @@
             for (long i=0; running.get() && entriesIterator.hasNext(); i++) {
               Pair<ByteArray,Versioned<byte[]>> entry=entriesIterator.next();
               ByteArray key=entry.getFirst();
+              System.out.println("FetchAndUpdate (Migrate partitions) - " + ByteUtils.toHexString(key.get()) + " - "+ metadataStore.getNodeId());
               Versioned<byte[]> value=entry.getSecond();
               try {
                 storageEngine.put(key,value,null);

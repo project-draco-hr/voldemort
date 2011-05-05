@@ -18,8 +18,8 @@
   if (hasInitialCluster()) {
     output.writeString(9,getInitialCluster());
   }
-  if (hasDeletePartitions()) {
-    output.writeBool(10,getDeletePartitions());
+  for (  voldemort.client.protocol.pb.VAdminProto.PartitionTuple element : getReplicaToDeletePartitionList()) {
+    output.writeMessage(10,element);
   }
   getUnknownFields().writeTo(output);
 }

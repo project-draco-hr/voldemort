@@ -1,8 +1,13 @@
 {
   ImmutableMap.Builder<String,Object> builder=new ImmutableMap.Builder<String,Object>();
-  builder.put("stealerId",stealerId).put("donorId",donorId).put("unbalancedStoreList",unbalancedStoreList).put("attempt",attempt).put("deletePartitions",deletePartitions);
+  builder.put("stealerId",stealerId).put("donorId",donorId).put("unbalancedStoreList",unbalancedStoreList).put("attempt",attempt);
   int maxReplicas=0;
   for (  int replicaNum : replicaToPartitionList.keySet()) {
+    if (replicaNum > maxReplicas) {
+      maxReplicas=replicaNum;
+    }
+  }
+  for (  int replicaNum : replicaToDeletePartitionList.keySet()) {
     if (replicaNum > maxReplicas) {
       maxReplicas=replicaNum;
     }
@@ -15,6 +20,12 @@
     }
  else {
       builder.put("replicaToPartitionList" + Integer.toString(replicaNum),Lists.newArrayList());
+    }
+    if (replicaToDeletePartitionList.containsKey(replicaNum)) {
+      builder.put("replicaToDeletePartitionList" + Integer.toString(replicaNum),replicaToDeletePartitionList.get(replicaNum));
+    }
+ else {
+      builder.put("replicaToDeletePartitionList" + Integer.toString(replicaNum),Lists.newArrayList());
     }
   }
   return builder.build();

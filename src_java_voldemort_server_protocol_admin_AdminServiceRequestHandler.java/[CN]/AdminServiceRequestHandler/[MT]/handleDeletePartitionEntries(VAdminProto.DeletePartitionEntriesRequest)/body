@@ -15,6 +15,7 @@
       Versioned<byte[]> value=entry.getSecond();
       throttler.maybeThrottle(key.length() + valueSize(value));
       if (RebalanceUtils.checkKeyBelongsToPartition(metadataStore.getNodeId(),key.get(),replicaToPartitionList,request.hasInitialCluster() ? new ClusterMapper().readCluster(new StringReader(request.getInitialCluster())) : metadataStore.getCluster(),metadataStore.getStoreDef(storeName)) && filter.accept(key,value)) {
+        System.out.println("Delete partitions - " + ByteUtils.toHexString(key.get()) + " - "+ metadataStore.getNodeId());
         if (storageEngine.delete(key,value.getVersion()))         deleteSuccess++;
       }
     }

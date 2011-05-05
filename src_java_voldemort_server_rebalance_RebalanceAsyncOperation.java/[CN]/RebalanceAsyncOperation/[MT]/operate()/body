@@ -7,11 +7,12 @@
         public void run(){
           try {
             boolean isReadOnlyStore=metadataStore.getStoreDef(storeName).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
-            logger.info("Working on store " + storeName + ", stealInfo: "+ stealInfo);
+            logger.info("Working on store " + storeName + ", stealInfo "+ stealInfo);
             rebalanceStore(storeName,adminClient,stealInfo,isReadOnlyStore);
             List<String> tempUnbalancedStoreList=new ArrayList<String>(stealInfo.getUnbalancedStoreList());
             tempUnbalancedStoreList.remove(storeName);
             stealInfo.setUnbalancedStoreList(tempUnbalancedStoreList);
+            logger.info("Completed working on store " + storeName + ", stealInfo "+ stealInfo);
           }
  catch (          Exception e) {
             logger.error("Error while rebalancing " + stealInfo + " for store "+ storeName+ " - "+ e.getMessage(),e);

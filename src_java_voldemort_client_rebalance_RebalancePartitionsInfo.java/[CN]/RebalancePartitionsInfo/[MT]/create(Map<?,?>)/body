@@ -4,12 +4,14 @@
   List<String> unbalancedStoreList=Utils.uncheckedCast(map.get("unbalancedStoreList"));
   int attempt=(Integer)map.get("attempt");
   int maxReplicas=(Integer)map.get("maxReplicas");
-  boolean deletePartitions=(Boolean)map.get("deletePartitions");
   Cluster initialCluster=new ClusterMapper().readCluster(new StringReader((String)map.get("initialCluster")));
-  HashMap<Integer,List<Integer>> partitionMap=Maps.newHashMap();
+  HashMap<Integer,List<Integer>> replicaToPartitionList=Maps.newHashMap();
+  HashMap<Integer,List<Integer>> replicaToDeletePartitionList=Maps.newHashMap();
   for (int replicaNo=0; replicaNo <= maxReplicas; replicaNo++) {
     List<Integer> partitionList=Utils.uncheckedCast(map.get("replicaToPartitionList" + Integer.toString(replicaNo)));
-    if (partitionList.size() > 0)     partitionMap.put(replicaNo,partitionList);
+    if (partitionList.size() > 0)     replicaToPartitionList.put(replicaNo,partitionList);
+    List<Integer> deletePartitionList=Utils.uncheckedCast(map.get("replicaToDeletePartitionList" + Integer.toString(replicaNo)));
+    if (deletePartitionList.size() > 0)     replicaToDeletePartitionList.put(replicaNo,deletePartitionList);
   }
-  return new RebalancePartitionsInfo(stealerId,donorId,partitionMap,unbalancedStoreList,initialCluster,deletePartitions,attempt);
+  return new RebalancePartitionsInfo(stealerId,donorId,replicaToPartitionList,replicaToDeletePartitionList,unbalancedStoreList,initialCluster,attempt);
 }

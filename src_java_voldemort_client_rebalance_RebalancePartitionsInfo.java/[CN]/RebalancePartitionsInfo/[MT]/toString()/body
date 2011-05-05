@@ -1,10 +1,15 @@
 {
   StringBuffer sb=new StringBuffer();
-  sb.append("RebalancingStealInfo(" + getStealerId() + " <--- "+ getDonorId()+ ", partitions moved ");
+  sb.append("RebalancePartitionsInfo(" + getStealerId() + " <--- "+ getDonorId()+ ", partitions moved ");
   for (int replicaNum=0; replicaNum <= maxReplica; replicaNum++) {
     if (replicaToPartitionList.containsKey(replicaNum))     sb.append(" - " + replicaToPartitionList.get(replicaNum));
  else     sb.append(" - []");
   }
-  sb.append(", stores: " + getUnbalancedStoreList() + ", delete - "+ deletePartitions+ ")");
+  sb.append(", partitions deleted ");
+  for (int replicaNum=0; replicaNum <= maxReplica; replicaNum++) {
+    if (replicaToDeletePartitionList.containsKey(replicaNum))     sb.append(" - " + replicaToDeletePartitionList.get(replicaNum));
+ else     sb.append(" - []");
+  }
+  sb.append(", stores: " + getUnbalancedStoreList() + ")");
   return sb.toString();
 }

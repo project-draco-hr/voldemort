@@ -46,9 +46,11 @@ case 74:
 setInitialCluster(input.readString());
 break;
 }
-case 80:
+case 82:
 {
-setDeletePartitions(input.readBool());
+voldemort.client.protocol.pb.VAdminProto.PartitionTuple.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.PartitionTuple.newBuilder();
+input.readMessage(subBuilder,extensionRegistry);
+addReplicaToDeletePartition(subBuilder.buildPartial());
 break;
 }
 }
