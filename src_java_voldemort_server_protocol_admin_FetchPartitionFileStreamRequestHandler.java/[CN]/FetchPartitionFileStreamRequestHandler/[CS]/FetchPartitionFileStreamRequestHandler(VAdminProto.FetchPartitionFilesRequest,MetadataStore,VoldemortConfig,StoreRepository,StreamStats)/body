@@ -1,10 +1,17 @@
 {
   this.request=request;
-  boolean isReadOnly=metadataStore.getStoreDef(request.getStore()).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
+  StoreDefinition storeDef=metadataStore.getStoreDef(request.getStore());
+  boolean isReadOnly=storeDef.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
   if (!isReadOnly) {
     throw new VoldemortException("Should be fetching partition files only for read-only stores");
   }
-  this.replicaToPartitionList=ProtoUtils.decodePartitionTuple(request.getReplicaToPartitionList());
+  HashMap<Integer,List<Integer>> localReplicaToPartitionList=ProtoUtils.decodePartitionTuple(request.getReplicaToPartitionList());
+  this.replicaToPartitionList=Maps.newHashMap();
+  for (int replicaType=0; replicaType < storeDef.getReplicationFactor(); replicaType++) {
+    if (localReplicaToPartitionList.containsKey(replicaType)) {
+      this.replicaToPartitionList.put(replicaType,localReplicaToPartitionList.get(replicaType));
+    }
+  }
   this.storageEngine=AdminServiceRequestHandler.getReadOnlyStorageEngine(metadataStore,storeRepository,request.getStore());
   this.blockSize=voldemortConfig.getAllProps().getLong("partition.buffer.size.bytes",voldemortConfig.getAdminSocketBufferSize());
   this.storeDir=new File(storageEngine.getCurrentDirPath());

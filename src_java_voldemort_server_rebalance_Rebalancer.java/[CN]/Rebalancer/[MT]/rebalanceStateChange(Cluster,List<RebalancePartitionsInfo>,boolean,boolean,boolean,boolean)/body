@@ -3,12 +3,14 @@
   RebalanceChangeStatus swapROStatus=swapRO ? RebalanceChangeStatus.STARTED : RebalanceChangeStatus.NOT_REQUIRED;
   RebalanceChangeStatus changeRebalanceStateStatus=swapRO ? RebalanceChangeStatus.STARTED : RebalanceChangeStatus.NOT_REQUIRED;
   Cluster currentCluster=metadataStore.getCluster();
+  AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,currentCluster,1,1);
   try {
     if (changeClusterMetadataStatus == RebalanceChangeStatus.STARTED) {
       changeCluster(cluster);
       changeClusterMetadataStatus=RebalanceChangeStatus.COMPLETED;
     }
     if (swapROStatus == RebalanceChangeStatus.STARTED) {
+      swapROStores(rebalancePartitionsInfo);
       swapROStatus=RebalanceChangeStatus.COMPLETED;
     }
     if (changeRebalanceStateStatus == RebalanceChangeStatus.STARTED) {
@@ -36,18 +38,25 @@
     }
     if (swapROStatus == RebalanceChangeStatus.COMPLETED) {
       try {
+        swapROStores(rebalancePartitionsInfo);
       }
  catch (      Exception exception) {
-        logger.error("Error while rolling back cluster metadata ");
+        logger.error("Error while swapping back to old state ");
       }
     }
     if (changeRebalanceStateStatus == RebalanceChangeStatus.COMPLETED) {
       try {
       }
  catch (      Exception exception) {
-        logger.error("Error while rolling back cluster metadata ");
+        logger.error("Error while changing back rebalance state");
       }
     }
     throw e;
+  }
+ finally {
+    if (adminClient != null) {
+      adminClient.stop();
+      adminClient=null;
+    }
   }
 }

@@ -1,0 +1,10 @@
+{
+  Map<Integer,Set<Pair<Integer,Integer>>> nodeIdToAllPartitions=RebalanceUtils.getNodeIdToAllPartitions(cluster,Lists.newArrayList(storeDef),true);
+  for (  Entry<Integer,Set<Pair<Integer,Integer>>> entry : nodeIdToAllPartitions.entrySet()) {
+    HashMap<Integer,List<Integer>> tuples=RebalanceUtils.flattenPartitionTuples(entry.getValue());
+    File tempDir=new File(((ReadOnlyStorageEngine)getStore(entry.getKey(),storeDef.getName())).getStoreDirPath(),"version-1");
+    Utils.mkdirs(tempDir);
+    generateROFiles(numChunks,1200,1000,tuples,tempDir);
+    adminClient.swapStore(entry.getKey(),storeDef.getName(),tempDir.getAbsolutePath());
+  }
+}

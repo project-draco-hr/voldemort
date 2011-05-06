@@ -1,18 +1,18 @@
 {
-  logger.info("Starting partitions migration for store:" + storeName);
-  updateStatus("Started partition migration for store " + storeName + " and steal info - "+ stealInfo);
+  logger.info(getHeader(stealInfo) + "Starting partitions migration for store " + storeName);
+  updateStatus(getHeader(stealInfo) + "Started partition migration for store " + storeName);
   int asyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getReplicaToPartitionList(),null,stealInfo.getInitialCluster());
   rebalanceStatusList.add(asyncId);
   if (logger.isDebugEnabled()) {
-    logger.debug("Waiting for completion for " + storeName + " and steal info - "+ stealInfo+ " with async id - "+ asyncId);
+    logger.debug(getHeader(stealInfo) + "Waiting for completion for " + storeName+ " with async id "+ asyncId);
   }
   adminClient.waitForCompletion(metadataStore.getNodeId(),asyncId,voldemortConfig.getRebalancingTimeoutSec(),TimeUnit.SECONDS);
   rebalanceStatusList.remove((Object)asyncId);
   if (stealInfo.getReplicaToDeletePartitionList().size() > 0 && !isReadOnlyStore) {
-    logger.info("Deleting partitions for store " + storeName + " and steal info - "+ stealInfo);
+    logger.info(getHeader(stealInfo) + "Deleting partitions for store " + storeName);
     adminClient.deletePartitions(stealInfo.getDonorId(),storeName,stealInfo.getReplicaToDeletePartitionList(),stealInfo.getInitialCluster(),null);
-    logger.info("Deleting partitions for store " + storeName + " and steal info - "+ stealInfo);
+    logger.info(getHeader(stealInfo) + "Deleted partitions for store " + storeName);
   }
-  logger.info("Completed partition migration for store " + storeName + " and steal info - "+ stealInfo);
-  updateStatus("Completed partition migration for store " + storeName + " and steal info - "+ stealInfo);
+  logger.info(getHeader(stealInfo) + "Completed partition migration for store " + storeName);
+  updateStatus(getHeader(stealInfo) + "Completed partition migration for store " + storeName);
 }

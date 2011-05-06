@@ -1,0 +1,10 @@
+{
+  for (  RebalancePartitionsInfo info : getAll()) {
+    if (info.getUnbalancedStoreList().contains(store)) {
+      if (RebalanceUtils.checkKeyBelongsToPartition(keyPartitions,nodePartitions,info.getReplicaToPartitionList())) {
+        return info;
+      }
+    }
+  }
+  return null;
+}

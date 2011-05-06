@@ -1,0 +1,13 @@
+{
+  cluster=ServerTestUtils.getLocalCluster(3,new int[][]{{0,1,2,3},{4,5,6,7},{}});
+  servers=new VoldemortServer[3];
+  storeDef1=ServerTestUtils.getStoreDef("test",1,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY);
+  storeDef2=ServerTestUtils.getStoreDef("test2",2,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY);
+  targetCluster=RebalanceUtils.createUpdatedCluster(cluster,cluster.getNodeById(2),cluster.getNodeById(0),Lists.newArrayList(0));
+  File tempStoreXml=new File(TestUtils.createTempDir(),"stores.xml");
+  FileUtils.writeStringToFile(tempStoreXml,new StoreDefinitionsMapper().writeStoreList(Lists.newArrayList(storeDef1,storeDef2)));
+  for (int nodeId=0; nodeId < 3; nodeId++) {
+    servers[nodeId]=ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(useNio,nodeId,TestUtils.createTempDir().getAbsolutePath(),null,tempStoreXml.getAbsolutePath(),new Properties()),cluster);
+  }
+  adminClient=ServerTestUtils.getAdminClient(cluster);
+}
