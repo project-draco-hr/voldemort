@@ -1,15 +1,20 @@
 {
-  for (  StoreDefinition storeDef : metadataStore.getStoreDefList()) {
-    if (storeDef.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0) {
-      if (useSwappedStoreNames && !swappedStoreNames.contains(storeDef.getName())) {
-        continue;
+  try {
+    for (    StoreDefinition storeDef : metadataStore.getStoreDefList()) {
+      if (storeDef.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0) {
+        if (useSwappedStoreNames && !swappedStoreNames.contains(storeDef.getName())) {
+          continue;
+        }
+        ReadOnlyStorageEngine engine=(ReadOnlyStorageEngine)storeRepository.getStorageEngine(storeDef.getName());
+        if (engine == null) {
+          throw new VoldemortException("Could not find storage engine for " + storeDef.getName() + " to swap ");
+        }
+        engine.swapFiles(engine.getCurrentDirPath());
+        if (!useSwappedStoreNames)         swappedStoreNames.add(storeDef.getName());
       }
-      ReadOnlyStorageEngine engine=(ReadOnlyStorageEngine)storeRepository.getStorageEngine(storeDef.getName());
-      if (engine == null) {
-        throw new VoldemortException("Could not find storage engine for " + storeDef.getName() + " to swap ");
-      }
-      engine.swapFiles(engine.getCurrentDirPath());
-      if (!useSwappedStoreNames)       swappedStoreNames.add(storeDef.getName());
     }
+  }
+ catch (  Exception e) {
+    throw new VoldemortException(e);
   }
 }

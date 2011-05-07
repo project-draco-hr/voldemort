@@ -12,17 +12,22 @@
       swapROStores(swappedStoreNames,false);
     }
     if (changeRebalanceState) {
-      if (!rollback) {
-        for (        RebalancePartitionsInfo info : rebalancePartitionsInfo) {
-          metadataStore.addRebalancingState(info);
-          completedRebalancePartitionsInfo.add(info);
+      try {
+        if (!rollback) {
+          for (          RebalancePartitionsInfo info : rebalancePartitionsInfo) {
+            metadataStore.addRebalancingState(info);
+            completedRebalancePartitionsInfo.add(info);
+          }
+        }
+ else {
+          for (          RebalancePartitionsInfo info : rebalancePartitionsInfo) {
+            metadataStore.deleteRebalancingState(info);
+            completedRebalancePartitionsInfo.add(info);
+          }
         }
       }
- else {
-        for (        RebalancePartitionsInfo info : rebalancePartitionsInfo) {
-          metadataStore.deleteRebalancingState(info);
-          completedRebalancePartitionsInfo.add(info);
-        }
+ catch (      Exception e) {
+        throw new VoldemortException(e);
       }
     }
   }

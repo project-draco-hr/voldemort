@@ -1,10 +1,15 @@
 {
-  metadataStore.writeLock.lock();
   try {
-    logger.info("Switching metadata to " + cluster);
-    metadataStore.put(MetadataStore.CLUSTER_KEY,cluster);
-  }
+    metadataStore.writeLock.lock();
+    try {
+      logger.info("Switching metadata to " + cluster);
+      metadataStore.put(MetadataStore.CLUSTER_KEY,cluster);
+    }
   finally {
-    metadataStore.writeLock.unlock();
+      metadataStore.writeLock.unlock();
+    }
+  }
+ catch (  Exception e) {
+    throw new VoldemortException(e);
   }
 }

@@ -1,0 +1,14 @@
+{
+  StringBuilder builder=new StringBuilder();
+  HashMap<Integer,Double> distribution=generateOverallDistribution(cluster,storeDefs,1000);
+  builder.append("Cluster('");
+  builder.append(cluster.getName());
+  builder.append("', [ ");
+  for (  Node n : cluster.getNodes()) {
+    builder.append(n.toString());
+    builder.append(" (" + formatter.format(distribution.get(n.getId())) + ")");
+    builder.append(", ");
+  }
+  builder.append("])");
+  return builder.toString();
+}
