@@ -7,10 +7,6 @@
       return response.build();
     }
     RebalancePartitionsInfo rebalanceStealInfo=ProtoUtils.decodeRebalancePartitionInfoMap(request.getRebalancePartitionInfo());
-    if (!metadataStore.getRebalancerState().getAll().contains(rebalanceStealInfo)) {
-      response.setError(ProtoUtils.encodeError(errorCodeMapper,new VoldemortException("Could not find plan " + rebalanceStealInfo + " in the server state on "+ metadataStore.getNodeId())));
-      return response.build();
-    }
     int requestId=rebalancer.rebalanceNode(rebalanceStealInfo);
     response.setRequestId(requestId).setDescription(rebalanceStealInfo.toString()).setStatus("Started rebalancing").setComplete(false);
   }

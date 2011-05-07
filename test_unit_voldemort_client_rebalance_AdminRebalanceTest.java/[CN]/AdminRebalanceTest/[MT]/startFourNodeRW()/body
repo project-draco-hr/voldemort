@@ -9,5 +9,7 @@
   for (int nodeId=0; nodeId < 4; nodeId++) {
     servers[nodeId]=ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(useNio,nodeId,TestUtils.createTempDir().getAbsolutePath(),null,tempStoreXml.getAbsolutePath(),new Properties()),cluster);
   }
+  RebalanceClusterPlan plan=new RebalanceClusterPlan(cluster,targetCluster,Lists.newArrayList(storeDef1,storeDef2),true);
+  plans=RebalanceUtils.flattenNodePlans(Lists.newArrayList(plan.getRebalancingTaskQueue()));
   adminClient=ServerTestUtils.getAdminClient(cluster);
 }

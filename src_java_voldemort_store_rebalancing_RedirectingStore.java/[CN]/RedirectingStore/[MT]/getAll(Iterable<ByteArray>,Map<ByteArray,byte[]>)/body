@@ -1,17 +1,13 @@
 {
-  int maxLength=Iterables.size(keys);
-  List<ByteArray> redirectingKeys=Lists.newArrayListWithExpectedSize(maxLength);
-  List<RebalancePartitionsInfo> rebalancePartitionsInfos=Lists.newArrayListWithExpectedSize(maxLength);
+  Map<ByteArray,RebalancePartitionsInfo> rebalancePartitionsInfoPerKey=Maps.newHashMapWithExpectedSize(Iterables.size(keys));
   for (  ByteArray key : keys) {
-    RebalancePartitionsInfo info;
-    info=redirectingKey(key);
+    RebalancePartitionsInfo info=redirectingKey(key);
     if (info != null) {
-      redirectingKeys.add(key);
-      rebalancePartitionsInfos.add(info);
+      rebalancePartitionsInfoPerKey.put(key,info);
     }
   }
-  if (!redirectingKeys.isEmpty()) {
-    proxyGetAllAndLocalPut(redirectingKeys,rebalancePartitionsInfos,transforms);
+  if (!rebalancePartitionsInfoPerKey.isEmpty()) {
+    proxyGetAllAndLocalPut(rebalancePartitionsInfoPerKey,transforms);
   }
   return getInnerStore().getAll(keys,transforms);
 }

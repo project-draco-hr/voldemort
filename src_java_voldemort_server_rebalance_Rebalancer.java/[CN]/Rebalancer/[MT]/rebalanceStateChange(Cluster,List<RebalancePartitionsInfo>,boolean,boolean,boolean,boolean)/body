@@ -1,62 +1,71 @@
 {
-  RebalanceChangeStatus changeClusterMetadataStatus=swapRO ? RebalanceChangeStatus.STARTED : RebalanceChangeStatus.NOT_REQUIRED;
-  RebalanceChangeStatus swapROStatus=swapRO ? RebalanceChangeStatus.STARTED : RebalanceChangeStatus.NOT_REQUIRED;
-  RebalanceChangeStatus changeRebalanceStateStatus=swapRO ? RebalanceChangeStatus.STARTED : RebalanceChangeStatus.NOT_REQUIRED;
   Cluster currentCluster=metadataStore.getCluster();
-  AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,currentCluster,1,1);
+  List<RebalancePartitionsInfo> completedRebalancePartitionsInfo=Lists.newArrayList();
+  List<String> swappedStoreNames=Lists.newArrayList();
+  boolean completedClusterChange=false;
   try {
-    if (changeClusterMetadataStatus == RebalanceChangeStatus.STARTED) {
+    if (changeClusterMetadata) {
       changeCluster(cluster);
-      changeClusterMetadataStatus=RebalanceChangeStatus.COMPLETED;
+      completedClusterChange=true;
     }
-    if (swapROStatus == RebalanceChangeStatus.STARTED) {
-      swapROStores(rebalancePartitionsInfo);
-      swapROStatus=RebalanceChangeStatus.COMPLETED;
+    if (swapRO) {
+      swapROStores(swappedStoreNames,false);
     }
-    if (changeRebalanceStateStatus == RebalanceChangeStatus.STARTED) {
+    if (changeRebalanceState) {
       if (!rollback) {
         for (        RebalancePartitionsInfo info : rebalancePartitionsInfo) {
           metadataStore.addRebalancingState(info);
+          completedRebalancePartitionsInfo.add(info);
         }
       }
  else {
         for (        RebalancePartitionsInfo info : rebalancePartitionsInfo) {
           metadataStore.deleteRebalancingState(info);
+          completedRebalancePartitionsInfo.add(info);
         }
       }
-      changeRebalanceStateStatus=RebalanceChangeStatus.COMPLETED;
     }
   }
  catch (  VoldemortException e) {
-    if (changeClusterMetadataStatus == RebalanceChangeStatus.COMPLETED) {
+    logger.error("Got exception while changing state, now rolling back changes",e);
+    if (completedClusterChange) {
       try {
         changeCluster(currentCluster);
       }
  catch (      Exception exception) {
-        logger.error("Error while rolling back cluster metadata ");
+        logger.error("Error while rolling back cluster metadata ",exception);
       }
     }
-    if (swapROStatus == RebalanceChangeStatus.COMPLETED) {
+    if (swappedStoreNames.size() > 0) {
       try {
-        swapROStores(rebalancePartitionsInfo);
+        swapROStores(swappedStoreNames,true);
       }
  catch (      Exception exception) {
-        logger.error("Error while swapping back to old state ");
+        logger.error("Error while swapping back to old state ",exception);
       }
     }
-    if (changeRebalanceStateStatus == RebalanceChangeStatus.COMPLETED) {
-      try {
+    if (completedRebalancePartitionsInfo.size() > 0) {
+      if (!rollback) {
+        for (        RebalancePartitionsInfo info : completedRebalancePartitionsInfo) {
+          try {
+            metadataStore.deleteRebalancingState(info);
+          }
+ catch (          Exception exception) {
+            logger.error("Error while deleting back rebalance info during error rollback " + info,exception);
+          }
+        }
       }
- catch (      Exception exception) {
-        logger.error("Error while changing back rebalance state");
+ else {
+        for (        RebalancePartitionsInfo info : completedRebalancePartitionsInfo) {
+          try {
+            metadataStore.addRebalancingState(info);
+          }
+ catch (          Exception exception) {
+            logger.error("Error while adding back rebalance info during error rollback " + info,exception);
+          }
+        }
       }
     }
     throw e;
-  }
- finally {
-    if (adminClient != null) {
-      adminClient.stop();
-      adminClient=null;
-    }
   }
 }

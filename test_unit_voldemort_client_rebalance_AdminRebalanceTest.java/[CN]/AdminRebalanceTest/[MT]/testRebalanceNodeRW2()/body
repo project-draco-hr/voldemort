@@ -1,6 +1,6 @@
 {
   try {
-    startUp2();
+    startFourNodeRW();
     HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(TEST_SIZE);
     SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(Lists.newArrayList("tcp://" + cluster.getNodeById(0).getHost() + ":"+ cluster.getNodeById(0).getSocketPort())));
     StoreClient<Object,Object> storeClient1=factory.getStoreClient("test"), storeClient2=factory.getStoreClient("test2");
@@ -25,8 +25,6 @@
         tertiaryEntriesMoved.put(entry.getKey(),entry.getValue());
       }
     }
-    RebalanceClusterPlan plan=new RebalanceClusterPlan(cluster,targetCluster,Lists.newArrayList(storeDef1,storeDef2),true);
-    List<RebalancePartitionsInfo> plans=RebalanceUtils.flattenNodePlans(Lists.newArrayList(plan.getRebalancingTaskQueue()));
     for (    RebalancePartitionsInfo partitionPlan : plans) {
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(partitionPlan)));
@@ -78,6 +76,7 @@
       assertEquals(storeTest0.get(entry.getKey(),null).size(),0);
     }
     for (    VoldemortServer server : servers) {
+      assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
       assertEquals(server.getMetadataStore().getServerState(),MetadataStore.VoldemortState.NORMAL_SERVER);
     }
   }

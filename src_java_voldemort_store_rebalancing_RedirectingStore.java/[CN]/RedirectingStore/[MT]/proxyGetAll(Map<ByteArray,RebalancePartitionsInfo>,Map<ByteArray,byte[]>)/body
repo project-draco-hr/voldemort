@@ -1,22 +1,17 @@
 {
-  Multimap<Integer,ByteArray> scatterMap=HashMultimap.create(stealInfoList.size(),keys.size());
+  Multimap<Integer,ByteArray> donorNodeToKeys=HashMultimap.create();
   int numKeys=0;
-  for (  ByteArray key : keys) {
+  for (  Map.Entry<ByteArray,RebalancePartitionsInfo> entry : rebalancePartitionsInfoPerKey.entrySet()) {
     numKeys++;
-    for (    RebalancePartitionsInfo stealInfo : stealInfoList) {
-      byte[] keyBytes=key.get();
-      for (      int p : metadata.getRoutingStrategy(getName()).getPartitionList(keyBytes)) {
-        if (stealInfo.getPartitions().contains(p))         scatterMap.put(stealInfo.getDonorId(),key);
-      }
-    }
+    donorNodeToKeys.put(entry.getValue().getDonorId(),entry.getKey());
   }
   Map<ByteArray,List<Versioned<byte[]>>> gatherMap=Maps.newHashMapWithExpectedSize(numKeys);
-  for (  int donorNodeId : scatterMap.keySet()) {
+  for (  int donorNodeId : donorNodeToKeys.keySet()) {
     Node donorNode=metadata.getCluster().getNodeById(donorNodeId);
     checkNodeAvailable(donorNode);
     long startNs=System.nanoTime();
     try {
-      Map<ByteArray,List<Versioned<byte[]>>> resultsForNode=getRedirectingSocketStore(getName(),donorNodeId).getAll(scatterMap.get(donorNodeId),transforms);
+      Map<ByteArray,List<Versioned<byte[]>>> resultsForNode=getRedirectingSocketStore(getName(),donorNodeId).getAll(donorNodeToKeys.get(donorNodeId),transforms);
       recordSuccess(donorNode,startNs);
       for (      Map.Entry<ByteArray,List<Versioned<byte[]>>> entry : resultsForNode.entrySet()) {
         gatherMap.put(entry.getKey(),entry.getValue());

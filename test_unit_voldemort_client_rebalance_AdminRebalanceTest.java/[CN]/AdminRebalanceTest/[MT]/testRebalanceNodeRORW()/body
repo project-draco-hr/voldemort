@@ -1,6 +1,6 @@
 {
   try {
-    startFourNodeRO();
+    startFourNodeRORW();
     int numChunks=5;
     for (    StoreDefinition storeDef : Lists.newArrayList(storeDef1,storeDef2)) {
       buildStore(storeDef,numChunks);
@@ -21,37 +21,37 @@
       e.printStackTrace();
       fail("Should not throw any exceptions");
     }
-    for (    StoreDefinition storeDef : Lists.newArrayList(storeDef1,storeDef2)) {
-      String storeName=storeDef.getName();
-      for (      RebalancePartitionsInfo currentPlan : plans) {
-        File currentDir=new File(((ReadOnlyStorageEngine)getStore(currentPlan.getStealerId(),storeName)).getCurrentDirPath());
-        for (        Entry<Integer,List<Integer>> entry : currentPlan.getReplicaToPartitionList().entrySet()) {
-          if (entry.getKey() < storeDef.getReplicationFactor()) {
-            for (            int partitionId : entry.getValue()) {
-              for (int chunkId=0; chunkId < numChunks; chunkId++) {
-                assertTrue(new File(currentDir,partitionId + "_" + entry.getKey()+ "_"+ chunkId+ ".data").exists());
-                assertTrue(new File(currentDir,partitionId + "_" + entry.getKey()+ "_"+ chunkId+ ".index").exists());
-              }
-            }
-          }
-        }
+    servers[3].getMetadataStore().getRebalancerState().update(new RebalancePartitionsInfo(3,0,new HashMap<Integer,List<Integer>>(),new HashMap<Integer,List<Integer>>(),new ArrayList<String>(),cluster,0));
+    try {
+      adminClient.rebalanceStateChange(cluster,targetCluster,plans,true,true,true);
+      fail("Should have thrown an exception since we added state before hand");
+    }
+ catch (    VoldemortRebalancingException e) {
+    }
+    for (    VoldemortServer server : servers) {
+      if (server.getMetadataStore().getNodeId() != 3) {
+        assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
+        assertEquals(server.getMetadataStore().getServerState(),MetadataStore.VoldemortState.NORMAL_SERVER);
       }
+      assertEquals(server.getMetadataStore().getCluster(),cluster);
+    }
+    checkRO(cluster);
+    cleanUpAllState();
+    System.out.println("=======================================");
+    servers[2].getMetadataStore().put(MetadataStore.STORES_KEY,Lists.newArrayList(storeDef1,storeDef2,new StoreDefinitionBuilder().setName("test3").setType(ReadOnlyStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.SERVER).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).build()));
+    try {
+      adminClient.rebalanceStateChange(cluster,targetCluster,plans,true,true,true);
+      fail("Should have thrown an exception since we added state before hand");
+    }
+ catch (    VoldemortRebalancingException e) {
     }
     for (    VoldemortServer server : servers) {
       assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
       assertEquals(server.getMetadataStore().getServerState(),MetadataStore.VoldemortState.NORMAL_SERVER);
+      assertEquals(server.getMetadataStore().getCluster(),cluster);
     }
-    servers[2].getMetadataStore().put(MetadataStore.STORES_KEY,Lists.newArrayList(storeDef1,storeDef2,new StoreDefinitionBuilder().setName("test3").setType(ReadOnlyStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.SERVER).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).build()));
-    try {
-      adminClient.rebalanceStateChange(cluster,targetCluster,plans,true,true,false);
-      fail("Should have thrown an exception since one node doesn't have the store");
-    }
- catch (    VoldemortException e) {
-    }
-    servers[2].getMetadataStore().put(MetadataStore.STORES_KEY,Lists.newArrayList(storeDef1,storeDef2));
     checkRO(cluster);
-    adminClient.rebalanceStateChange(cluster,targetCluster,plans,true,true,false);
-    checkRO(targetCluster);
+    cleanUpAllState();
   }
   finally {
     shutDown();

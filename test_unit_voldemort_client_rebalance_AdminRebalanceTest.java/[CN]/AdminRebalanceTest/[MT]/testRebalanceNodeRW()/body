@@ -1,6 +1,6 @@
 {
   try {
-    startUp1();
+    startThreeNodeRW();
     HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(TEST_SIZE);
     SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(Lists.newArrayList("tcp://" + cluster.getNodeById(0).getHost() + ":"+ cluster.getNodeById(0).getSocketPort())));
     StoreClient<Object,Object> storeClient1=factory.getStoreClient("test"), storeClient2=factory.getStoreClient("test2");
@@ -20,8 +20,6 @@
         secondaryEntriesMoved.put(entry.getKey(),entry.getValue());
       }
     }
-    RebalanceClusterPlan plan=new RebalanceClusterPlan(cluster,targetCluster,Lists.newArrayList(storeDef1,storeDef2),true);
-    List<RebalancePartitionsInfo> plans=RebalanceUtils.flattenNodePlans(Lists.newArrayList(plan.getRebalancingTaskQueue()));
     try {
       adminClient.rebalanceNode(plans.get(0));
       fail("Should have thrown an exception since not in rebalancing state");
@@ -39,6 +37,14 @@
  catch (    VoldemortException e) {
       e.printStackTrace();
     }
+    getServer(plans.get(0).getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(new RebalancePartitionsInfo(100,plans.get(0).getDonorId(),plans.get(0).getReplicaToPartitionList(),plans.get(0).getReplicaToDeletePartitionList(),plans.get(0).getUnbalancedStoreList(),plans.get(0).getInitialCluster(),0))));
+    try {
+      adminClient.rebalanceNode(plans.get(0));
+      fail("Should have thrown an exception since the two plans eventhough have the same donor are different");
+    }
+ catch (    VoldemortException e) {
+      e.printStackTrace();
+    }
     for (    RebalancePartitionsInfo partitionPlan : plans) {
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(partitionPlan)));
     }
@@ -48,6 +54,12 @@
     try {
       for (      RebalancePartitionsInfo currentPlan : plans) {
         int asyncId=adminClient.rebalanceNode(currentPlan);
+        try {
+          adminClient.rebalanceNode(currentPlan);
+          fail("Should have thrown an exception since it is already rebalancing");
+        }
+ catch (        AlreadyRebalancingException e) {
+        }
         assertNotSame("Got a valid rebalanceAsyncId",-1,asyncId);
         getAdminClient().waitForCompletion(currentPlan.getStealerId(),asyncId,300,TimeUnit.SECONDS);
         assertFalse(getServer(currentPlan.getStealerId()).getMetadataStore().getRebalancerState().getAll().contains(currentPlan));
@@ -74,6 +86,7 @@
       assertEquals(storeTest0.get(entry.getKey(),null).size(),0);
     }
     for (    VoldemortServer server : servers) {
+      assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
       assertEquals(server.getMetadataStore().getServerState(),MetadataStore.VoldemortState.NORMAL_SERVER);
     }
   }
