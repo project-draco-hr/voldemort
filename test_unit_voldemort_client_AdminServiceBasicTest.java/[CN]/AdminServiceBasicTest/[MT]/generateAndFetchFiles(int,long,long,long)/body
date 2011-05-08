@@ -27,13 +27,13 @@
     HashMap<Integer,List<Integer>> dumbMap=Maps.newHashMap();
     dumbMap.put(0,Lists.newArrayList(100));
     try {
-      getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",dumbMap,tempDir.getAbsolutePath());
+      getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",dumbMap,tempDir.getAbsolutePath(),null);
       fail("Should throw exception since partition map passed is bad");
     }
  catch (    VoldemortException e) {
     }
     tempDir=TestUtils.createTempDir();
-    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",primaryNodeBuckets,tempDir.getAbsolutePath());
+    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",primaryNodeBuckets,tempDir.getAbsolutePath(),null);
     assertEquals(tempDir.list().length,2 * primaryPartitions * numChunks);
     for (    Entry<Integer,List<Integer>> entry : primaryNodeBuckets.entrySet()) {
       int replicaType=entry.getKey();
@@ -49,7 +49,7 @@
       }
     }
     tempDir=TestUtils.createTempDir();
-    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",replicaNodeBuckets,tempDir.getAbsolutePath());
+    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",replicaNodeBuckets,tempDir.getAbsolutePath(),null);
     assertEquals(tempDir.list().length,2 * replicaPartitions * numChunks);
     for (    Entry<Integer,List<Integer>> entry : replicaNodeBuckets.entrySet()) {
       int replicaType=entry.getKey();
@@ -65,7 +65,7 @@
       }
     }
     tempDir=TestUtils.createTempDir();
-    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",nodeBuckets,tempDir.getAbsolutePath());
+    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",nodeBuckets,tempDir.getAbsolutePath(),null);
     assertEquals(tempDir.list().length,2 * (primaryPartitions + replicaPartitions) * numChunks);
     for (    Entry<Integer,List<Integer>> entry : nodeBuckets.entrySet()) {
       int replicaType=entry.getKey();

@@ -28,6 +28,12 @@
       byte[] input=new byte[size];
       ByteUtils.read(inputStream,input);
       VAdminProto.FileEntry fileEntry=VAdminProto.FileEntry.newBuilder().mergeFrom(input).build();
+      if (notAcceptedBuckets != null) {
+        Pair<Integer,Integer> partitionReplicaTuple=ReadOnlyUtils.getPartitionReplicaTuple(fileEntry.getFileName());
+        if (notAcceptedBuckets.contains(partitionReplicaTuple)) {
+          throw new VoldemortException("Cannot copy file " + fileEntry.getFileName() + " since it is one of the mmap-ed files");
+        }
+      }
       logger.info("Receiving file " + fileEntry.getFileName());
       FileChannel fileChannel=new FileOutputStream(new File(destinationDirPath,fileEntry.getFileName())).getChannel();
       ReadableByteChannel channelIn=Channels.newChannel(inputStream);

@@ -46,7 +46,7 @@
       e.printStackTrace();
     }
     for (    RebalancePartitionsInfo partitionPlan : plans) {
-      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(partitionPlan)));
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalancePartitionsInfo.create(partitionPlan.toJsonString()))));
     }
     for (    VoldemortServer server : servers) {
       server.getMetadataStore().put(MetadataStore.CLUSTER_KEY,targetCluster);

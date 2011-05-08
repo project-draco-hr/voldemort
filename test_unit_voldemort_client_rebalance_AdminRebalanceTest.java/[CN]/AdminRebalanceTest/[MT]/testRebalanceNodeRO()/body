@@ -7,7 +7,7 @@
     }
     for (    RebalancePartitionsInfo partitionPlan : plans) {
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
-      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(partitionPlan)));
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalancePartitionsInfo.create(partitionPlan.toJsonString()))));
     }
     try {
       for (      RebalancePartitionsInfo currentPlan : plans) {
@@ -52,6 +52,17 @@
     checkRO(cluster);
     adminClient.rebalanceStateChange(cluster,targetCluster,plans,true,true,false);
     checkRO(targetCluster);
+    for (    RebalancePartitionsInfo partitionPlan : plans) {
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalancePartitionsInfo.create(partitionPlan.toJsonString()))));
+    }
+    try {
+      int asyncId=adminClient.rebalanceNode(plans.get(0));
+      getAdminClient().waitForCompletion(plans.get(0).getStealerId(),asyncId,300,TimeUnit.SECONDS);
+      fail("Should throw an exception");
+    }
+ catch (    Exception e) {
+    }
   }
   finally {
     shutDown();
