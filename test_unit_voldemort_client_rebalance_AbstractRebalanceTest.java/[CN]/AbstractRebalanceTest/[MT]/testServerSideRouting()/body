@@ -1,18 +1,20 @@
 {
-  Cluster localCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{0,1,2,3},{}});
-  Cluster localTargetCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{},{0,1,2,3}});
+  final Cluster currentCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{0,1,2,3,4,5,6},{7,8}});
+  final Cluster targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,currentCluster.getNodeById(1),currentCluster.getNodeById(0),Lists.newArrayList(2,3));
   final List<Integer> serverList=Arrays.asList(0,1);
-  final Cluster updatedCluster=startServers(localCluster,storeDefFile,serverList,null);
-  final Cluster targetCluster=updateCluster(localTargetCluster);
+  final Cluster updatedCurrentCluster=startServers(currentCluster,storeDefFileWithReplication,serverList,null);
+  final Cluster updatedTargetCluster=updateCluster(targetCluster);
   ExecutorService executors=Executors.newFixedThreadPool(2);
   final AtomicBoolean rebalancingToken=new AtomicBoolean(false);
   final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
   RebalanceClientConfig rebalanceClientConfig=new RebalanceClientConfig();
   rebalanceClientConfig.setMaxParallelRebalancing(2);
-  final RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCluster,0),rebalanceClientConfig);
-  populateData(updatedCluster,Arrays.asList(0),rebalanceClient.getAdminClient());
-  Node node=updatedCluster.getNodeById(0);
-  final Store<ByteArray,byte[],byte[]> serverSideRoutingStore=getSocketStore(testStoreNameRW,node.getHost(),node.getSocketPort(),true);
+  final RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCurrentCluster,0),rebalanceClientConfig);
+  populateData(updatedCurrentCluster,roStoreDefWithReplication,rebalanceClient.getAdminClient(),true);
+  populateData(updatedCurrentCluster,rwStoreDefWithReplication,rebalanceClient.getAdminClient(),false);
+  Node node=updatedCurrentCluster.getNodeById(1);
+  final Store<ByteArray,byte[],byte[]> serverSideRoutingStoreRW=getSocketStore(testStoreNameRW,node.getHost(),node.getSocketPort(),true);
+  final Store<ByteArray,byte[],byte[]> serverSideRoutingStoreRO=getSocketStore(testStoreNameRO,node.getHost(),node.getSocketPort(),true);
   final CountDownLatch latch=new CountDownLatch(1);
   executors.execute(new Runnable(){
     public void run(){
@@ -23,7 +25,10 @@
           int index=(int)(Math.random() * keys.size());
           try {
             nRequests++;
-            List<Versioned<byte[]>> values=serverSideRoutingStore.get(new ByteArray(ByteUtils.getBytes(keys.get(index),"UTF-8")),null);
+            List<Versioned<byte[]>> values=serverSideRoutingStoreRW.get(new ByteArray(ByteUtils.getBytes(keys.get(index),"UTF-8")),null);
+            assertEquals("serverSideRoutingStore should return value.",1,values.size());
+            assertEquals("Value returned should be good",new Versioned<String>(testEntries.get(keys.get(index))),new Versioned<String>(ByteUtils.getString(values.get(0).getValue(),"UTF-8"),values.get(0).getVersion()));
+            values=serverSideRoutingStoreRO.get(new ByteArray(ByteUtils.getBytes(keys.get(index),"UTF-8")),null);
             assertEquals("serverSideRoutingStore should return value.",1,values.size());
             assertEquals("Value returned should be good",new Versioned<String>(testEntries.get(keys.get(index))),new Versioned<String>(ByteUtils.getString(values.get(0).getValue(),"UTF-8"),values.get(0).getVersion()));
           }
@@ -45,7 +50,7 @@ catch (          Exception e) {
     public void run(){
       try {
         Thread.sleep(500);
-        rebalanceAndCheck(updatedCluster,targetCluster,rebalanceClient,Arrays.asList(1));
+        rebalanceAndCheck(updatedCurrentCluster,updatedTargetCluster,storeDefWithReplication,rebalanceClient,Arrays.asList(0,1));
         Thread.sleep(500);
         rebalancingToken.set(true);
         checkConsistentMetadata(targetCluster,serverList);
