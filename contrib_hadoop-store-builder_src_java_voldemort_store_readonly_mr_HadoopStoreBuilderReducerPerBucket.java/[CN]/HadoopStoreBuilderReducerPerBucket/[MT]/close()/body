@@ -1,0 +1,46 @@
+{
+  for (int chunkId=0; chunkId < getNumChunks(); chunkId++) {
+    this.indexFileStream[chunkId].close();
+    this.valueFileStream[chunkId].close();
+  }
+  if (this.nodeId == -1 || this.partitionId == -1) {
+    return;
+  }
+  if (getSaveKeys() && this.replicaType == -1) {
+    throw new RuntimeException("Could not read the replica type correctly for node " + nodeId + " ( partition - "+ this.partitionId+ " )");
+  }
+  String fileNamePrefix=null;
+  if (getSaveKeys()) {
+    fileNamePrefix=new String(Integer.toString(this.partitionId) + "_" + Integer.toString(this.replicaType)+ "_");
+  }
+ else {
+    fileNamePrefix=new String(Integer.toString(this.partitionId) + "_");
+  }
+  Path nodeDir=new Path(this.outputDir,"node-" + this.nodeId);
+  FileSystem outputFs=nodeDir.getFileSystem(this.conf);
+  outputFs.mkdirs(nodeDir);
+  for (int chunkId=0; chunkId < getNumChunks(); chunkId++) {
+    String chunkFileName=fileNamePrefix + Integer.toString(chunkId);
+    if (this.checkSumType != CheckSumType.NONE) {
+      if (this.checkSumDigestIndex[chunkId] != null && this.checkSumDigestValue[chunkId] != null) {
+        Path checkSumIndexFile=new Path(nodeDir,chunkFileName + ".index.checksum");
+        Path checkSumValueFile=new Path(nodeDir,chunkFileName + ".data.checksum");
+        FSDataOutputStream output=fs.create(checkSumIndexFile);
+        output.write(this.checkSumDigestIndex[chunkId].getCheckSum());
+        output.close();
+        output=fs.create(checkSumValueFile);
+        output.write(this.checkSumDigestValue[chunkId].getCheckSum());
+        output.close();
+      }
+ else {
+        throw new RuntimeException("Failed to open checksum digest for node " + nodeId + " ( partition - "+ this.partitionId+ ", chunk - "+ chunkId+ " )");
+      }
+    }
+    Path indexFile=new Path(nodeDir,chunkFileName + ".index");
+    Path valueFile=new Path(nodeDir,chunkFileName + ".data");
+    logger.info("Moving " + this.taskIndexFileName[chunkId] + " to "+ indexFile);
+    fs.rename(taskIndexFileName[chunkId],indexFile);
+    logger.info("Moving " + this.taskValueFileName[chunkId] + " to "+ valueFile);
+    fs.rename(this.taskValueFileName[chunkId],valueFile);
+  }
+}
