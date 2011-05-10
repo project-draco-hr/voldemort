@@ -9,7 +9,6 @@
       ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(entry.getKey(),"UTF-8"));
       List<Integer> preferenceNodes=RebalanceUtils.getNodeIds(routing.routeRequest(keyBytes.get()));
       for (      int nodeId : preferenceNodes) {
-        System.out.println("KEY -  " + ByteUtils.toHexString(keyBytes.get()) + " - "+ nodeId+ " - "+ routing.getPartitionList(keyBytes.get()));
         try {
           storeMap.get(nodeId).put(keyBytes,new Versioned<byte[]>(ByteUtils.getBytes(entry.getValue(),"UTF-8")),null);
         }

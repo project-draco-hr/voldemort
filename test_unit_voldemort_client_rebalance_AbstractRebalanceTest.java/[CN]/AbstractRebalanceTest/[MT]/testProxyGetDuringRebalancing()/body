@@ -15,7 +15,6 @@
   final SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(getBootstrapUrl(updatedCurrentCluster,0)).setEnableLazy(false).setSocketTimeout(120,TimeUnit.SECONDS));
   final StoreClient<String,String> storeClientRW=new DefaultStoreClient<String,String>(testStoreNameRW,null,factory,3);
   final StoreClient<String,String> storeClientRO=new DefaultStoreClient<String,String>(testStoreNameRO,null,factory,3);
-  final boolean[] masterNodeResponded={false,false};
   executors.execute(new Runnable(){
     public void run(){
       try {
@@ -28,8 +27,6 @@
             Versioned<String> value=storeClientRW.get(keys.get(index));
             assertNotSame("StoreClient get() should not return null.",null,value);
             assertEquals("Value returned should be good",new Versioned<String>(testEntries.get(keys.get(index))),value);
-            int masterNode=storeClientRW.getResponsibleNodes(keys.get(index)).get(0).getId();
-            masterNodeResponded[masterNode]=true;
             value=storeClientRO.get(keys.get(index));
             assertNotSame("StoreClient get() should not return null.",null,value);
             assertEquals("Value returned should be good",new Versioned<String>(testEntries.get(keys.get(index))),value);
@@ -74,7 +71,6 @@
 );
   executors.shutdown();
   executors.awaitTermination(300,TimeUnit.SECONDS);
-  assertEquals("Client should see values returned master at both (0,1):(" + masterNodeResponded[0] + ","+ masterNodeResponded[1]+ ")",true,masterNodeResponded[0] && masterNodeResponded[1]);
   if (exceptions.size() > 0) {
     for (    Exception e : exceptions) {
       e.printStackTrace();

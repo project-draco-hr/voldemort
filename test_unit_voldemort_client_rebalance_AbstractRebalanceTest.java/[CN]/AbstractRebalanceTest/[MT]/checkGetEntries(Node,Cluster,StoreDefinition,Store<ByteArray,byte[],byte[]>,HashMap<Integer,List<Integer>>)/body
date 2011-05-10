@@ -3,9 +3,7 @@
   for (  Entry<String,String> entry : testEntries.entrySet()) {
     ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(entry.getKey(),"UTF-8"));
     List<Integer> partitions=routing.getPartitionList(keyBytes.get());
-    System.out.print("Key " + ByteUtils.toHexString(keyBytes.get()));
     if (RebalanceUtils.checkKeyBelongsToPartition(partitions,node.getPartitionIds(),flattenedPresentTuples)) {
-      System.out.println(" - present ");
       List<Versioned<byte[]>> values=store.get(keyBytes,null);
       assertEquals("Expecting exactly one version",1,values.size());
       Versioned<byte[]> value=values.get(0);
