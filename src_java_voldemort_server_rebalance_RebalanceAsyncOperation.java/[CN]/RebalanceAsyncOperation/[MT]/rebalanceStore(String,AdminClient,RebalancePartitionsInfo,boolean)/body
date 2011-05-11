@@ -1,18 +1,22 @@
 {
-  logger.info(getHeader(stealInfo) + "Starting partitions migration for store " + storeName);
-  updateStatus(getHeader(stealInfo) + "Started partition migration for store " + storeName);
+  logger.info(getHeader(stealInfo) + "Starting partitions migration for store " + storeName+ " from donor node "+ stealInfo.getDonorId());
+  updateStatus(getHeader(stealInfo) + "Started partition migration for store " + storeName+ " from donor node "+ stealInfo.getDonorId());
   int asyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getReplicaToPartitionList(),null,stealInfo.getInitialCluster());
   rebalanceStatusList.add(asyncId);
   if (logger.isDebugEnabled()) {
     logger.debug(getHeader(stealInfo) + "Waiting for completion for " + storeName+ " with async id "+ asyncId);
   }
-  adminClient.waitForCompletion(metadataStore.getNodeId(),asyncId,voldemortConfig.getRebalancingTimeoutSec(),TimeUnit.SECONDS);
+  adminClient.waitForCompletion(metadataStore.getNodeId(),asyncId,voldemortConfig.getRebalancingTimeoutSec(),TimeUnit.SECONDS,getStatus());
   rebalanceStatusList.remove((Object)asyncId);
+  logger.info(getHeader(stealInfo) + "Completed partition migration for store " + storeName+ " from donor node "+ stealInfo.getDonorId());
+  updateStatus(getHeader(stealInfo) + "Completed partition migration for store " + storeName+ " from donor node "+ stealInfo.getDonorId());
   if (stealInfo.getReplicaToDeletePartitionList().size() > 0 && !isReadOnlyStore) {
-    logger.info(getHeader(stealInfo) + "Deleting partitions for store " + storeName);
+    logger.info(getHeader(stealInfo) + "Deleting partitions for store " + storeName+ " on donor node "+ stealInfo.getDonorId());
+    updateStatus(getHeader(stealInfo) + "Deleting partitions for store " + storeName+ " on donor node "+ stealInfo.getDonorId());
     adminClient.deletePartitions(stealInfo.getDonorId(),storeName,stealInfo.getReplicaToDeletePartitionList(),stealInfo.getInitialCluster(),null);
-    logger.info(getHeader(stealInfo) + "Deleted partitions for store " + storeName);
+    logger.info(getHeader(stealInfo) + "Deleted partitions for store " + storeName+ " on donor node "+ stealInfo.getDonorId());
+    updateStatus(getHeader(stealInfo) + "Deleted partitions for store " + storeName+ " on donor node "+ stealInfo.getDonorId());
   }
-  logger.info(getHeader(stealInfo) + "Completed partition migration for store " + storeName);
-  updateStatus(getHeader(stealInfo) + "Completed partition migration for store " + storeName);
+  logger.info(getHeader(stealInfo) + "Finished all migration for store " + storeName);
+  updateStatus(getHeader(stealInfo) + "Finished all migration for store " + storeName);
 }

@@ -26,6 +26,7 @@
     List<String> unbalancedStores=Lists.newArrayList(stealInfo.getUnbalancedStoreList());
     if (unbalancedStores.isEmpty()) {
       logger.info(getHeader(stealInfo) + "Rebalance of " + stealInfo+ " completed successfully.");
+      updateStatus(getHeader(stealInfo) + "Rebalance of " + stealInfo+ " completed successfully.");
       metadataStore.deleteRebalancingState(stealInfo);
     }
  else {
@@ -33,9 +34,7 @@
     }
   }
   finally {
-    if (logger.isInfoEnabled()) {
-      logger.info(getHeader(stealInfo) + "Releasing permit for donor node " + stealInfo.getDonorId());
-    }
+    logger.info(getHeader(stealInfo) + "Releasing permit for donor node " + stealInfo.getDonorId());
     rebalancer.releaseRebalancingPermit(stealInfo.getDonorId());
     adminClient.stop();
     adminClient=null;
