@@ -11,7 +11,7 @@
   parser.accepts("fetch-entries","Fetch full entries").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("outdir","Output directory").withRequiredArg().describedAs("output-directory").ofType(String.class);
   parser.accepts("stores","Store names").withRequiredArg().describedAs("store-names").withValuesSeparatedBy(',').ofType(String.class);
-  parser.accepts("add-stores","Add stores in this stores.xml").withRequiredArg().describedAs("stores.xml").ofType(String.class);
+  parser.accepts("add-stores","Add stores in this stores.xml").withRequiredArg().describedAs("stores.xml containing just the new stores").ofType(String.class);
   parser.accepts("delete-store","Delete store").withRequiredArg().describedAs("store-name").ofType(String.class);
   parser.accepts("update-entries","[EXPERIMENTAL] Insert or update entries").withRequiredArg().describedAs("input-directory").ofType(String.class);
   parser.accepts("get-metadata","retreive metadata information [ " + MetadataStore.CLUSTER_KEY + " | "+ MetadataStore.STORES_KEY+ " | "+ MetadataStore.SERVER_STATE_KEY+ " ]").withRequiredArg().describedAs("metadata-key").ofType(String.class);
@@ -20,6 +20,7 @@
   parser.accepts("truncate","truncate a store").withRequiredArg().describedAs("store-name").ofType(String.class);
   parser.accepts("set-metadata","Forceful setting of metadata [ " + MetadataStore.CLUSTER_KEY + " | "+ MetadataStore.STORES_KEY+ " | "+ MetadataStore.SERVER_STATE_KEY+ " ]").withRequiredArg().describedAs("metadata-key").ofType(String.class);
   parser.accepts("set-metadata-value","The value for the set-metadata [ " + MetadataStore.CLUSTER_KEY + " | "+ MetadataStore.STORES_KEY+ " ] - xml file location, [ "+ MetadataStore.SERVER_STATE_KEY+ " ] - "+ MetadataStore.VoldemortState.NORMAL_SERVER+ ","+ MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER).withRequiredArg().describedAs("metadata-value").ofType(String.class);
+  parser.accepts("key-distribution","Prints the current key distribution of the cluster");
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     parser.printHelpOn(System.out);
@@ -27,7 +28,7 @@
   }
   Set<String> missing=CmdUtils.missing(options,"url","node");
   if (missing.size() > 0) {
-    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store") || options.has("ro-version")|| options.has("set-metadata")|| options.has("get-metadata")|| options.has("check-metadata")))) {
+    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store") || options.has("ro-version")|| options.has("set-metadata")|| options.has("get-metadata")|| options.has("check-metadata")|| options.has("key-distribution")))) {
       System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
       parser.printHelpOn(System.err);
       System.exit(1);
@@ -74,8 +75,11 @@
   if (options.has("check-metadata")) {
     ops+="c";
   }
+  if (options.has("key-distribution")) {
+    ops+="y";
+  }
   if (ops.length() < 1) {
-    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-version, set-metadata, check-metadata) must be specified");
+    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-version, set-metadata, check-metadata, key-distribution) must be specified");
   }
   List<String> storeNames=null;
   if (options.has("stores")) {
@@ -169,6 +173,9 @@
           throw new VoldemortException("Incorrect metadata key");
         }
       }
+    }
+    if (ops.contains("y")) {
+      executeKeyDistribution(adminClient);
     }
   }
  catch (  Exception e) {
