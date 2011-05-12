@@ -10,9 +10,18 @@
   }
   for (  Integer currentNodeId : nodeIds) {
     System.out.println(adminClient.getAdminClientCluster().getNodeById(currentNodeId).getHost() + ":" + adminClient.getAdminClientCluster().getNodeById(currentNodeId).getId());
-    Versioned<String> versioned=adminClient.getRemoteMetadata(currentNodeId,metadataKey);
+    Versioned<String> versioned=null;
+    try {
+      versioned=adminClient.getRemoteMetadata(currentNodeId,metadataKey);
+    }
+ catch (    Exception e) {
+      System.out.println("Error in retrieving " + e.getMessage());
+      System.out.println();
+      continue;
+    }
     if (versioned == null) {
       System.out.println("null");
+      System.out.println();
     }
  else {
       System.out.println(versioned.getVersion());

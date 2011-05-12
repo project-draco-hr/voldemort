@@ -169,6 +169,12 @@
           List<StoreDefinition> storeDefs=mapper.readStoreList(new File(metadataValue));
           executeSetMetadata(nodeId,adminClient,MetadataStore.STORES_KEY,mapper.writeStoreList(storeDefs));
         }
+ else         if (metadataKey.compareTo(MetadataStore.REBALANCING_STEAL_INFO) == 0) {
+          if (!Utils.isReadableFile(metadataValue))           throw new VoldemortException("Rebalancing steal info file path incorrect");
+          String rebalancingStealInfoJsonString=FileUtils.readFileToString(new File(metadataValue));
+          RebalancerState state=RebalancerState.create(rebalancingStealInfoJsonString);
+          executeSetMetadata(nodeId,adminClient,MetadataStore.REBALANCING_STEAL_INFO,state.toJsonString());
+        }
  else {
           throw new VoldemortException("Incorrect metadata key");
         }
