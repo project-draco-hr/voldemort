@@ -7,8 +7,9 @@
  else {
     writer=new BufferedWriter(new OutputStreamWriter(System.out));
   }
-  if (storeDefinition.getKeySerializer().hasCompression()) {
-    keysCompressionStrategy=new CompressionStrategyFactory().get(storeDefinition.getKeySerializer().getCompression());
+  SerializerDefinition serializerDef=storeDefinition.getKeySerializer();
+  if (null != serializerDef && serializerDef.hasCompression()) {
+    keysCompressionStrategy=new CompressionStrategyFactory().get(serializerDef.getCompression());
   }
   SerializerFactory serializerFactory=new DefaultSerializerFactory();
   StringWriter stringWriter=new StringWriter();
