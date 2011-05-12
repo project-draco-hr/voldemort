@@ -21,11 +21,13 @@
           if (isReadOnlyStore) {
             ReadOnlyStorageEngine readOnlyStorageEngine=((ReadOnlyStorageEngine)storageEngine);
             String destinationDir=readOnlyStorageEngine.getCurrentDirPath();
-            updateStatus("Initated fetching of files for RO store " + storeName + " from node "+ nodeId);
+            logger.info("Fetching files for RO store " + storeName + " from node "+ nodeId);
+            updateStatus("Fetching files for RO store " + storeName + " from node "+ nodeId);
             adminClient.fetchPartitionFiles(nodeId,storeName,replicaToPartitionList,destinationDir,readOnlyStorageEngine.getChunkedFileSet().getChunkIdToNumChunks().keySet());
           }
  else {
-            updateStatus("Initated fetching of entries for RW store " + storeName + " from node "+ nodeId);
+            logger.info("Fetching entries for RW store " + storeName + " from node "+ nodeId);
+            updateStatus("Fetching entries for RW store " + storeName + " from node "+ nodeId);
             Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=adminClient.fetchEntries(nodeId,storeName,replicaToPartitionList,filter,false,initialCluster,0);
             for (long i=0; running.get() && entriesIterator.hasNext(); i++) {
               Pair<ByteArray,Versioned<byte[]>> entry=entriesIterator.next();
@@ -39,7 +41,7 @@
               }
               throttler.maybeThrottle(key.length() + valueSize(value));
               if ((i % 1000) == 0) {
-                updateStatus(i + " entries copied from " + nodeId+ " for store "+ storeName);
+                updateStatus(i + " entries copied from node " + nodeId+ " for store "+ storeName);
               }
             }
           }
