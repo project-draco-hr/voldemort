@@ -1,10 +1,15 @@
 {
   BufferedWriter writer=null;
+  CompressionStrategy keysCompressionStrategy=null;
   if (outputFile != null) {
     writer=new BufferedWriter(new FileWriter(outputFile));
   }
  else {
     writer=new BufferedWriter(new OutputStreamWriter(System.out));
+  }
+  SerializerDefinition serializerDef=storeDefinition.getKeySerializer();
+  if (null != serializerDef && serializerDef.hasCompression()) {
+    keysCompressionStrategy=new CompressionStrategyFactory().get(serializerDef.getCompression());
   }
   SerializerFactory serializerFactory=new DefaultSerializerFactory();
   StringWriter stringWriter=new StringWriter();
@@ -13,7 +18,7 @@
   try {
     while (keyIterator.hasNext()) {
       byte[] keyBytes=keyIterator.next().get();
-      Object keyObject=serializer.toObject(keyBytes);
+      Object keyObject=serializer.toObject((null == keysCompressionStrategy) ? keyBytes : keysCompressionStrategy.inflate(keyBytes));
       generator.writeObject(keyObject);
       StringBuffer buf=stringWriter.getBuffer();
       if (buf.charAt(0) == ' ') {
