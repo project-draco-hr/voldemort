@@ -1,5 +1,7 @@
 {
   BufferedWriter writer=null;
+  CompressionStrategy keyCompressionStrategy=null;
+  CompressionStrategy valueCompressionStrategy=null;
   if (outputFile != null) {
     writer=new BufferedWriter(new FileWriter(outputFile));
   }
@@ -9,6 +11,14 @@
   SerializerFactory serializerFactory=new DefaultSerializerFactory();
   StringWriter stringWriter=new StringWriter();
   JsonGenerator generator=new JsonFactory(new ObjectMapper()).createJsonGenerator(stringWriter);
+  SerializerDefinition keySerializerDef=storeDefinition.getKeySerializer();
+  if (null != keySerializerDef && keySerializerDef.hasCompression()) {
+    keyCompressionStrategy=new CompressionStrategyFactory().get(keySerializerDef.getCompression());
+  }
+  SerializerDefinition valueSerializerDef=storeDefinition.getValueSerializer();
+  if (null != valueSerializerDef && valueSerializerDef.hasCompression()) {
+    valueCompressionStrategy=new CompressionStrategyFactory().get(valueSerializerDef.getCompression());
+  }
   @SuppressWarnings("unchecked") Serializer<Object> keySerializer=(Serializer<Object>)serializerFactory.getSerializer(storeDefinition.getKeySerializer());
   @SuppressWarnings("unchecked") Serializer<Object> valueSerializer=(Serializer<Object>)serializerFactory.getSerializer(storeDefinition.getValueSerializer());
   try {
@@ -17,8 +27,8 @@
       byte[] keyBytes=kvPair.getFirst().get();
       VectorClock version=(VectorClock)kvPair.getSecond().getVersion();
       byte[] valueBytes=kvPair.getSecond().getValue();
-      Object keyObject=keySerializer.toObject(keyBytes);
-      Object valueObject=valueSerializer.toObject(valueBytes);
+      Object keyObject=keySerializer.toObject((null == keyCompressionStrategy) ? keyBytes : keyCompressionStrategy.inflate(keyBytes));
+      Object valueObject=valueSerializer.toObject((null == valueCompressionStrategy) ? valueBytes : valueCompressionStrategy.inflate(valueBytes));
       generator.writeObject(keyObject);
       stringWriter.write(' ');
       stringWriter.write(version.toString());
