@@ -34,9 +34,9 @@
     tempFs.delete(tempDir,true);
     long size=sizeOfPath(tempFs,inputPath);
     logger.info("Data size = " + size + ", replication factor = "+ storeDef.getReplicationFactor()+ ", numNodes = "+ cluster.getNumberOfNodes()+ ", chunk size = "+ chunkSizeBytes);
-    int numChunks, numReducers;
+    int numReducers;
     if (saveKeys) {
-      numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfPartitions() / storeDef.getReplicationFactor() / chunkSizeBytes),1);
+      if (this.numChunks == -1)       this.numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfPartitions() / storeDef.getReplicationFactor() / chunkSizeBytes),1);
       if (reducerPerBucket) {
         numReducers=cluster.getNumberOfPartitions() * storeDef.getReplicationFactor();
       }
@@ -45,7 +45,7 @@
       }
     }
  else {
-      numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfPartitions() / chunkSizeBytes),1);
+      if (this.numChunks == -1)       this.numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfPartitions() / chunkSizeBytes),1);
       if (reducerPerBucket) {
         numReducers=cluster.getNumberOfPartitions();
       }

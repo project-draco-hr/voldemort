@@ -26,6 +26,7 @@
   Path tempDir=new Path((String)options.valueOf("tmpdir"));
   Path outputDir=new Path((String)options.valueOf("output"));
   boolean saveKeys=options.has("save-keys");
+  boolean reducerPerBucket=options.has("reducer-per-bucket");
   List<String> addJars=new ArrayList<String>();
   ClassLoader cl=Thread.currentThread().getContextClassLoader();
   if (options.has("jar")) {
@@ -54,7 +55,7 @@
   CheckSumType checkSumType=CheckSumType.toType(CmdUtils.valueOf(options,"checksum",""));
   Class[] deps=new Class[]{ImmutableCollection.class,JDOMException.class,VoldemortConfig.class,HadoopStoreJobRunner.class,mapperClass};
   addDepJars(conf,deps,addJars);
-  HadoopStoreBuilder builder=new HadoopStoreBuilder(conf,mapperClass,inputFormatClass,cluster,storeDef,chunkSizeBytes,tempDir,outputDir,inputPath,checkSumType,saveKeys,false);
+  HadoopStoreBuilder builder=new HadoopStoreBuilder(conf,mapperClass,inputFormatClass,cluster,storeDef,chunkSizeBytes,tempDir,outputDir,inputPath,checkSumType,saveKeys,reducerPerBucket);
   builder.build();
   return 0;
 }
