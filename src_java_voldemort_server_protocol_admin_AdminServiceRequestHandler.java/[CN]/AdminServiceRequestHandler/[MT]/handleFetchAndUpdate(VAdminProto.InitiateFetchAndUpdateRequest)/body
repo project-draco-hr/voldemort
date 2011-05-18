@@ -21,12 +21,12 @@
           if (isReadOnlyStore) {
             ReadOnlyStorageEngine readOnlyStorageEngine=((ReadOnlyStorageEngine)storageEngine);
             String destinationDir=readOnlyStorageEngine.getCurrentDirPath();
-            logger.info("Fetching files for RO store " + storeName + " from node "+ nodeId);
+            logger.info("Fetching files for RO store " + storeName + " from node "+ nodeId+ " ( "+ replicaToPartitionList+ " )");
             updateStatus("Fetching files for RO store " + storeName + " from node "+ nodeId);
             adminClient.fetchPartitionFiles(nodeId,storeName,replicaToPartitionList,destinationDir,readOnlyStorageEngine.getChunkedFileSet().getChunkIdToNumChunks().keySet());
           }
  else {
-            logger.info("Fetching entries for RW store " + storeName + " from node "+ nodeId);
+            logger.info("Fetching entries for RW store " + storeName + " from node "+ nodeId+ " ( "+ replicaToPartitionList+ " )");
             updateStatus("Fetching entries for RW store " + storeName + " from node "+ nodeId);
             Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=adminClient.fetchEntries(nodeId,storeName,replicaToPartitionList,filter,false,initialCluster,0);
             for (long i=0; running.get() && entriesIterator.hasNext(); i++) {

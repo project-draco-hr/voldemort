@@ -37,7 +37,7 @@
  catch (    VoldemortException e) {
       e.printStackTrace();
     }
-    getServer(plans.get(0).getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(new RebalancePartitionsInfo(100,plans.get(0).getDonorId(),plans.get(0).getReplicaToPartitionList(),plans.get(0).getReplicaToDeletePartitionList(),plans.get(0).getUnbalancedStoreList(),plans.get(0).getInitialCluster(),0))));
+    getServer(plans.get(0).getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(new RebalancePartitionsInfo(100,plans.get(0).getDonorId(),plans.get(0).getStoreToReplicaToAddPartitionList(),plans.get(0).getStoreToReplicaToDeletePartitionList(),plans.get(0).getInitialCluster(),0))));
     try {
       adminClient.rebalanceNode(plans.get(0));
       fail("Should have thrown an exception since the two plans eventhough have the same donor are different");
@@ -72,13 +72,15 @@
     Store<ByteArray,byte[],byte[]> storeTest0=getStore(0,"test2");
     Store<ByteArray,byte[],byte[]> storeTest1=getStore(1,"test2");
     Store<ByteArray,byte[],byte[]> storeTest2=getStore(2,"test2");
-    Store<ByteArray,byte[],byte[]> storeTest10=getStore(0,"test");
+    Store<ByteArray,byte[],byte[]> storeTest00=getStore(0,"test");
+    Store<ByteArray,byte[],byte[]> storeTest20=getStore(2,"test");
     for (    Entry<ByteArray,byte[]> entry : primaryEntriesMoved.entrySet()) {
       assertSame("entry should be present at store",1,storeTest0.get(entry.getKey(),null).size());
       assertEquals("entry value should match",new String(entry.getValue()),new String(storeTest0.get(entry.getKey(),null).get(0).getValue()));
       assertEquals(storeTest1.get(entry.getKey(),null).size(),0);
-      assertSame("entry should be present in store test2 ",1,storeTest10.get(entry.getKey(),null).size());
-      assertEquals("entry value should match",new String(entry.getValue()),new String(storeTest10.get(entry.getKey(),null).get(0).getValue()));
+      assertSame("entry should be present in store test2 ",1,storeTest20.get(entry.getKey(),null).size());
+      assertEquals("entry value should match",new String(entry.getValue()),new String(storeTest20.get(entry.getKey(),null).get(0).getValue()));
+      assertEquals(storeTest00.get(entry.getKey(),null).size(),0);
     }
     for (    Entry<ByteArray,byte[]> entry : secondaryEntriesMoved.entrySet()) {
       assertSame("entry should be present at store",1,storeTest2.get(entry.getKey(),null).size());

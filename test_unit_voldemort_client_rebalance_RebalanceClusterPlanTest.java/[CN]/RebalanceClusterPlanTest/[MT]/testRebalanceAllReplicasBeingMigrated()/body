@@ -8,5 +8,9 @@
   partitionsToMove1.put(0,Lists.newArrayList(0));
   partitionsToMove1.put(1,Lists.newArrayList(5));
   partitionsToMove2.put(2,Lists.newArrayList(4));
-  checkAllRebalanceInfoPresent(orderedRebalanceNodePlanList.get(0),Arrays.asList(new RebalancePartitionsInfo(3,0,partitionsToMove1,partitionsToMove1,RebalanceUtils.getStoreNames(storeDefList2),currentCluster,0),new RebalancePartitionsInfo(3,1,partitionsToMove2,partitionsToMove2,RebalanceUtils.getStoreNames(storeDefList2),currentCluster,0)));
+  HashMap<String,HashMap<Integer,List<Integer>>> storeToPartitionsToMove1=Maps.newHashMap();
+  storeToPartitionsToMove1.put("test",partitionsToMove1);
+  HashMap<String,HashMap<Integer,List<Integer>>> storeToPartitionsToMove2=Maps.newHashMap();
+  storeToPartitionsToMove2.put("test",partitionsToMove2);
+  checkAllRebalanceInfoPresent(orderedRebalanceNodePlanList.get(0),Arrays.asList(new RebalancePartitionsInfo(3,0,storeToPartitionsToMove1,storeToPartitionsToMove1,currentCluster,0),new RebalancePartitionsInfo(3,1,storeToPartitionsToMove2,storeToPartitionsToMove2,currentCluster,0)));
 }

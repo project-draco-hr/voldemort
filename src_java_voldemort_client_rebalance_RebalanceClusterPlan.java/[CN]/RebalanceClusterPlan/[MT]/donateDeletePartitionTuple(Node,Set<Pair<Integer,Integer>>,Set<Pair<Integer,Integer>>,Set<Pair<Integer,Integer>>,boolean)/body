@@ -1,0 +1,10 @@
+{
+  if (enableDeletePartition && trackStealPartitionsTuples.size() > 0) {
+    List<Integer> partitionsStolenByDonor=RebalanceUtils.getPartitionsFromTuples(donorPartitionTuples);
+    for (    Pair<Integer,Integer> tuple : trackStealPartitionsTuples) {
+      if (!partitionsStolenByDonor.contains(tuple.getSecond())) {
+        trackDeletePartitionsTuples.add(tuple);
+      }
+    }
+  }
+}

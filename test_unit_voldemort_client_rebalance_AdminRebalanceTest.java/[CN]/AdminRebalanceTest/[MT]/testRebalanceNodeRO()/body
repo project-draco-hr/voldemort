@@ -3,7 +3,7 @@
     startFourNodeRO();
     int numChunks=5;
     for (    StoreDefinition storeDef : Lists.newArrayList(storeDef1,storeDef2)) {
-      buildStore(storeDef,numChunks);
+      buildROStore(storeDef,numChunks);
     }
     for (    RebalancePartitionsInfo partitionPlan : plans) {
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
@@ -25,12 +25,14 @@
       String storeName=storeDef.getName();
       for (      RebalancePartitionsInfo currentPlan : plans) {
         File currentDir=new File(((ReadOnlyStorageEngine)getStore(currentPlan.getStealerId(),storeName)).getCurrentDirPath());
-        for (        Entry<Integer,List<Integer>> entry : currentPlan.getReplicaToPartitionList().entrySet()) {
-          if (entry.getKey() < storeDef.getReplicationFactor()) {
-            for (            int partitionId : entry.getValue()) {
-              for (int chunkId=0; chunkId < numChunks; chunkId++) {
-                assertTrue(new File(currentDir,partitionId + "_" + entry.getKey()+ "_"+ chunkId+ ".data").exists());
-                assertTrue(new File(currentDir,partitionId + "_" + entry.getKey()+ "_"+ chunkId+ ".index").exists());
+        if (currentPlan.getUnbalancedStoreList().contains(storeDef.getName())) {
+          for (          Entry<Integer,List<Integer>> entry : currentPlan.getReplicaToAddPartitionList(storeName).entrySet()) {
+            if (entry.getKey() < storeDef.getReplicationFactor()) {
+              for (              int partitionId : entry.getValue()) {
+                for (int chunkId=0; chunkId < numChunks; chunkId++) {
+                  assertTrue(new File(currentDir,partitionId + "_" + entry.getKey()+ "_"+ chunkId+ ".data").exists());
+                  assertTrue(new File(currentDir,partitionId + "_" + entry.getKey()+ "_"+ chunkId+ ".index").exists());
+                }
               }
             }
           }

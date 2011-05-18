@@ -1,3 +1,9 @@
 {
-  return replicaToPartitionList.get(0);
+  Iterator<HashMap<Integer,List<Integer>>> iter=storeToReplicaToAddPartitionList.values().iterator();
+  List<Integer> primaryPartitionsBeingMoved=Lists.newArrayList();
+  while (iter.hasNext()) {
+    HashMap<Integer,List<Integer>> partitionTuples=iter.next();
+    if (partitionTuples.containsKey(0))     primaryPartitionsBeingMoved.addAll(partitionTuples.get(0));
+  }
+  return primaryPartitionsBeingMoved;
 }

@@ -9,9 +9,7 @@
             boolean isReadOnlyStore=metadataStore.getStoreDef(storeName).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
             logger.info(getHeader(stealInfo) + "Working on store " + storeName);
             rebalanceStore(storeName,adminClient,stealInfo,isReadOnlyStore);
-            List<String> tempUnbalancedStoreList=new ArrayList<String>(stealInfo.getUnbalancedStoreList());
-            tempUnbalancedStoreList.remove(storeName);
-            stealInfo.setUnbalancedStoreList(tempUnbalancedStoreList);
+            stealInfo.removeStore(storeName);
             logger.info(getHeader(stealInfo) + "Completed working on store " + storeName);
           }
  catch (          Exception e) {

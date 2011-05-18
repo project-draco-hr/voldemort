@@ -3,10 +3,11 @@
     boolean match=false;
     for (    RebalancePartitionsInfo nodeRebalanceInfo : nodePlan.getRebalanceTaskList()) {
       if (rebalanceInfo.getDonorId() == nodeRebalanceInfo.getDonorId()) {
-        assertEquals("partitions should match",true,Utils.compareList(rebalanceInfo.getPartitions(),nodeRebalanceInfo.getPartitions()));
-        assertEquals("store list should match",true,Utils.compareList(rebalanceInfo.getUnbalancedStoreList(),nodeRebalanceInfo.getUnbalancedStoreList()));
-        for (        Entry<Integer,List<Integer>> entry : rebalanceInfo.getReplicaToPartitionList().entrySet()) {
-          assertEquals("partition moved should match for " + entry.getKey() + " replica type",true,Utils.compareList(entry.getValue(),nodeRebalanceInfo.getReplicaToPartitionList().get(entry.getKey())));
+        assertEquals("Store lists should match",rebalanceInfo.getUnbalancedStoreList(),nodeRebalanceInfo.getUnbalancedStoreList());
+        assertEquals("Clusters to be same",rebalanceInfo.getInitialCluster(),nodeRebalanceInfo.getInitialCluster());
+        for (        String storeName : rebalanceInfo.getUnbalancedStoreList()) {
+          assertEquals("add partition mapping for store " + storeName + " should be same ",rebalanceInfo.getReplicaToAddPartitionList(storeName),nodeRebalanceInfo.getReplicaToAddPartitionList(storeName));
+          assertEquals("delete partition mapping for store " + storeName + " should be same ",rebalanceInfo.getReplicaToDeletePartitionList(storeName),nodeRebalanceInfo.getReplicaToDeletePartitionList(storeName));
         }
         match=true;
       }

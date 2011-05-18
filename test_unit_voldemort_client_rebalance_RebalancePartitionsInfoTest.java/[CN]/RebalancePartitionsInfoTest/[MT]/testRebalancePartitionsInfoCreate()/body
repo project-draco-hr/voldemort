@@ -1,19 +1,27 @@
 {
-  RebalancePartitionsInfo info=new RebalancePartitionsInfo(0,1,new HashMap<Integer,List<Integer>>(),new HashMap<Integer,List<Integer>>(),Lists.newArrayList("test"),ServerTestUtils.getLocalCluster(1),0);
+  RebalancePartitionsInfo info=new RebalancePartitionsInfo(0,1,new HashMap<String,HashMap<Integer,List<Integer>>>(),new HashMap<String,HashMap<Integer,List<Integer>>>(),ServerTestUtils.getLocalCluster(1),0);
   String jsonString=info.toJsonString();
   RebalancePartitionsInfo info2=RebalancePartitionsInfo.create(jsonString);
   assertEquals(info,info2);
   HashMap<Integer,List<Integer>> testMap=new HashMap<Integer,List<Integer>>();
   testMap.put(1,Lists.newArrayList(1));
-  info=new RebalancePartitionsInfo(0,1,testMap,testMap,Lists.newArrayList("test"),ServerTestUtils.getLocalCluster(1),0);
+  HashMap<String,HashMap<Integer,List<Integer>>> storeTestMap1=Maps.newHashMap();
+  HashMap<String,HashMap<Integer,List<Integer>>> storeTestMap2=Maps.newHashMap();
+  info=new RebalancePartitionsInfo(0,1,storeTestMap1,storeTestMap2,ServerTestUtils.getLocalCluster(1),0);
   jsonString=info.toJsonString();
   info2=RebalancePartitionsInfo.create(jsonString);
   assertEquals(info,info2);
-  assertEquals(info.getReplicaToPartitionList(),info2.getReplicaToPartitionList());
+  storeTestMap1.put("test1",testMap);
+  storeTestMap2.put("test2",testMap);
+  try {
+    info=new RebalancePartitionsInfo(0,1,storeTestMap1,storeTestMap2,ServerTestUtils.getLocalCluster(1),0);
+    fail("Should have thrown an exception");
+  }
+ catch (  Exception e) {
+  }
   testMap.put(3,Lists.newArrayList(1,3,5));
-  info=new RebalancePartitionsInfo(0,1,testMap,new HashMap<Integer,List<Integer>>(),Lists.newArrayList("test","test2"),ServerTestUtils.getLocalCluster(1),0);
+  info=new RebalancePartitionsInfo(0,1,storeTestMap1,storeTestMap1,ServerTestUtils.getLocalCluster(1),0);
   jsonString=info.toJsonString();
   info2=RebalancePartitionsInfo.create(jsonString);
   assertEquals(info,info2);
-  assertEquals(info.getReplicaToPartitionList(),info2.getReplicaToPartitionList());
 }

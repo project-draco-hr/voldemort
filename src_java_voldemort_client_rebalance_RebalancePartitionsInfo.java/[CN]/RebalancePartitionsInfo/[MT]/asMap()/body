@@ -1,31 +1,22 @@
 {
   ImmutableMap.Builder<String,Object> builder=new ImmutableMap.Builder<String,Object>();
-  builder.put("stealerId",stealerId).put("donorId",donorId).put("unbalancedStoreList",unbalancedStoreList).put("attempt",attempt);
-  int maxReplicas=0;
-  for (  int replicaNum : replicaToPartitionList.keySet()) {
-    if (replicaNum > maxReplicas) {
-      maxReplicas=replicaNum;
-    }
-  }
-  for (  int replicaNum : replicaToDeletePartitionList.keySet()) {
-    if (replicaNum > maxReplicas) {
-      maxReplicas=replicaNum;
-    }
-  }
-  builder.put("maxReplicas",maxReplicas);
-  builder.put("initialCluster",new ClusterMapper().writeCluster(initialCluster));
-  for (int replicaNum=0; replicaNum <= maxReplicas; replicaNum++) {
-    if (replicaToPartitionList.containsKey(replicaNum)) {
-      builder.put("replicaToPartitionList" + Integer.toString(replicaNum),replicaToPartitionList.get(replicaNum));
-    }
+  builder.put("stealerId",stealerId).put("donorId",donorId).put("unbalancedStores",Lists.newArrayList(storeToReplicaToAddPartitionList.keySet())).put("attempt",attempt).put("maxReplicas",maxReplica).put("initialCluster",new ClusterMapper().writeCluster(initialCluster));
+  for (  String unbalancedStore : storeToReplicaToAddPartitionList.keySet()) {
+    HashMap<Integer,List<Integer>> replicaToAddPartition=storeToReplicaToAddPartitionList.get(unbalancedStore);
+    HashMap<Integer,List<Integer>> replicaToDeletePartition=storeToReplicaToDeletePartitionList.get(unbalancedStore);
+    for (int replicaNum=0; replicaNum <= maxReplica; replicaNum++) {
+      if (replicaToAddPartition != null && replicaToAddPartition.containsKey(replicaNum)) {
+        builder.put(unbalancedStore + "replicaToAddPartitionList" + Integer.toString(replicaNum),replicaToAddPartition.get(replicaNum));
+      }
  else {
-      builder.put("replicaToPartitionList" + Integer.toString(replicaNum),Lists.newArrayList());
-    }
-    if (replicaToDeletePartitionList.containsKey(replicaNum)) {
-      builder.put("replicaToDeletePartitionList" + Integer.toString(replicaNum),replicaToDeletePartitionList.get(replicaNum));
-    }
+        builder.put(unbalancedStore + "replicaToAddPartitionList" + Integer.toString(replicaNum),Lists.newArrayList());
+      }
+      if (replicaToDeletePartition != null && replicaToDeletePartition.containsKey(replicaNum)) {
+        builder.put(unbalancedStore + "replicaToDeletePartitionList" + Integer.toString(replicaNum),replicaToDeletePartition.get(replicaNum));
+      }
  else {
-      builder.put("replicaToDeletePartitionList" + Integer.toString(replicaNum),Lists.newArrayList());
+        builder.put(unbalancedStore + "replicaToDeletePartitionList" + Integer.toString(replicaNum),Lists.newArrayList());
+      }
     }
   }
   return builder.build();

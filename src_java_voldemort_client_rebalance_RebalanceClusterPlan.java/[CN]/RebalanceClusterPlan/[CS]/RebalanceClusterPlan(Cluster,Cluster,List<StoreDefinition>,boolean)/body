@@ -1,14 +1,11 @@
 {
-  this.currentCluster=currentCluster;
-  this.targetCluster=targetCluster;
   this.rebalanceTaskQueue=new ConcurrentLinkedQueue<RebalanceNodePlan>();
+  this.currentAllStoresNodeIdToAllPartitionTuples=Maps.newHashMap();
+  this.targetAllStoresNodeIdToAllPartitionTuples=Maps.newHashMap();
   if (currentCluster.getNumberOfPartitions() != targetCluster.getNumberOfPartitions())   throw new VoldemortException("Total number of partitions should be equal [ Current cluster (" + currentCluster.getNumberOfPartitions() + ") not equal to Target cluster ("+ targetCluster.getNumberOfPartitions()+ ") ]");
   if (currentCluster.getNumberOfNodes() != targetCluster.getNumberOfNodes())   throw new VoldemortException("Total number of nodes should be equal [ Current cluster (" + currentCluster.getNumberOfNodes() + ") not equal to Target cluster ("+ targetCluster.getNumberOfNodes()+ ") ]");
-  this.currentNodeIdToAllPartitionTuples=Collections.unmodifiableMap(RebalanceUtils.getNodeIdToAllPartitions(currentCluster,storeDefs,true));
-  this.targetNodeIdToAllPartitionTuples=Collections.unmodifiableMap(RebalanceUtils.getNodeIdToAllPartitions(targetCluster,storeDefs,true));
-  this.stealerNodeIdToStolenPartitionTuples=Collections.unmodifiableMap(RebalanceUtils.getStolenPartitionTuples(currentCluster,targetCluster,storeDefs));
   for (  Node node : targetCluster.getNodes()) {
-    List<RebalancePartitionsInfo> rebalanceNodeList=getRebalancePartitionsInfo(currentCluster,targetCluster,RebalanceUtils.getStoreNames(storeDefs),node.getId(),enabledDeletePartition);
+    List<RebalancePartitionsInfo> rebalanceNodeList=getRebalancePartitionsInfo(currentCluster,targetCluster,storeDefs,node.getId(),enabledDeletePartition);
     if (rebalanceNodeList.size() > 0) {
       rebalanceTaskQueue.offer(new RebalanceNodePlan(node.getId(),rebalanceNodeList));
     }
