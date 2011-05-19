@@ -1,3 +1,14 @@
 {
-  return getROMetadata(nodeId,storeNames,ROMetadataType.STORAGE_FORMAT);
+  VAdminProto.GetROStorageFormatRequest.Builder getRORequest=VAdminProto.GetROStorageFormatRequest.newBuilder().addAllStoreName(storeNames);
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setGetRoStorageFormat(getRORequest).setType(VAdminProto.AdminRequestType.GET_RO_STORAGE_FORMAT).build();
+  VAdminProto.GetROStorageFormatResponse.Builder response=sendAndReceive(nodeId,adminRequest,VAdminProto.GetROStorageFormatResponse.newBuilder());
+  if (response.hasError()) {
+    throwException(response.getError());
+  }
+  Map<String,String> storeToValues=ProtoUtils.encodeROMap(response.getRoStoreVersionsList());
+  if (storeToValues.size() != storeNames.size()) {
+    storeNames.removeAll(storeToValues.keySet());
+    throw new VoldemortException("Did not retrieve values for " + storeNames);
+  }
+  return storeToValues;
 }
