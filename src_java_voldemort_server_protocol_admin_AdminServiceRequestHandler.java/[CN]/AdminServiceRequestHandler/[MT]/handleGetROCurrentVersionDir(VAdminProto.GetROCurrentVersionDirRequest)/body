@@ -1,0 +1,16 @@
+{
+  final List<String> storeNames=request.getStoreNameList();
+  VAdminProto.GetROCurrentVersionDirResponse.Builder response=VAdminProto.GetROCurrentVersionDirResponse.newBuilder();
+  try {
+    for (    String storeName : storeNames) {
+      ReadOnlyStorageEngine store=getReadOnlyStorageEngine(metadataStore,storeRepository,storeName);
+      VAdminProto.ROStoreVersionDirMap storeResponse=VAdminProto.ROStoreVersionDirMap.newBuilder().setStoreName(storeName).setStoreDir(store.getCurrentDirPath()).build();
+      response.addRoStoreVersions(storeResponse);
+    }
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleGetROCurrentVersion failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

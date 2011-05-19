@@ -1,11 +1,11 @@
 {
   if (null == dataFile && null == indexFile) {
     String fileName=currentPair.getSecond().toString() + "_" + currentPair.getFirst().toString()+ "_"+ Integer.toString(currentChunkId);
-    dataFile=new File(this.storeDir,fileName + ".data");
-    indexFile=new File(this.storeDir,fileName + ".index");
-    validateFiles();
+    this.dataFile=new File(this.storeDir,fileName + ".data");
+    this.indexFile=new File(this.storeDir,fileName + ".index");
+    validateFiles(currentPair);
     if (isPartitionFinished()) {
-      fetchStatus=FetchStatus.next_partition;
+      fetchStatus=FetchStatus.NEXT_PARTITION;
       return;
     }
     this.chunkedFileWriter=new ChunkedFileWriter(dataFile,outputStream);
@@ -18,9 +18,9 @@
     this.chunkedFileWriter=new ChunkedFileWriter(indexFile,outputStream);
     logger.info("Streaming " + indexFile.getAbsolutePath());
     this.chunkedFileWriter.writeHeader();
-    fetchStatus=FetchStatus.send_index_file;
+    fetchStatus=FetchStatus.SEND_INDEX_FILE;
   }
  else {
-    fetchStatus=FetchStatus.send_data_file;
+    fetchStatus=FetchStatus.SEND_DATA_FILE;
   }
 }
