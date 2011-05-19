@@ -1,0 +1,13 @@
+{
+  if (0 == chunkedFileWriter.streamFile()) {
+    logger.info("Completed streaming " + indexFile.getAbsolutePath());
+    this.chunkedFileWriter.close();
+    currentChunkId++;
+    dataFile=indexFile=null;
+    handle.incrementEntriesScanned();
+    fetchStatus=FetchStatus.send_data_file;
+  }
+ else {
+    fetchStatus=FetchStatus.send_index_file;
+  }
+}
