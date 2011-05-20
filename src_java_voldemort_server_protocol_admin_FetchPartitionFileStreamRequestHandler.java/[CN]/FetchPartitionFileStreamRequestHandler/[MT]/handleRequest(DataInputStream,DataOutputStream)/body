@@ -1,26 +1,17 @@
 {
-  HashMap<Object,Integer> bucketToNumChunks=storageEngine.getChunkedFileSet().getChunkIdToNumChunks();
-  for (  Entry<Integer,List<Integer>> entry : replicaToPartitionList.entrySet()) {
-    int replicaType=entry.getKey();
-    for (    int partitionId : entry.getValue()) {
-      if (!bucketToNumChunks.containsKey(Pair.create(partitionId,replicaType))) {
-        throw new VoldemortException("Bucket [ partition = " + partitionId + ", replica = "+ replicaType+ " ] does not exist for store "+ request.getStore());
-      }
-      int numChunks=bucketToNumChunks.get(Pair.create(partitionId,replicaType));
-      for (int chunkId=0; chunkId < numChunks; chunkId++) {
-        String fileName=Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId);
-        File index=new File(this.storeDir,fileName + ".index");
-        File data=new File(this.storeDir,fileName + ".data");
-        logger.info("Streaming " + data.getAbsolutePath());
-        streamFile(data,outputStream);
-        logger.info("Completed streaming " + data.getAbsolutePath());
-        logger.info("Streaming " + index.getAbsolutePath());
-        streamFile(index,outputStream);
-        logger.info("Completed streaming " + index.getAbsolutePath());
-        handle.incrementEntriesScanned();
-      }
-    }
-  }
-  stats.closeHandle(handle);
-  return StreamRequestHandlerState.COMPLETE;
+  StreamRequestHandlerState handlerState=StreamRequestHandlerState.WRITING;
+switch (fetchStatus) {
+case NEXT_PARTITION:
+    handlerState=handleNextPartition();
+  break;
+case SEND_DATA_FILE:
+handleSendDataFile(outputStream);
+break;
+case SEND_INDEX_FILE:
+handleSendIndexFile();
+break;
+default :
+throw new VoldemortException("Invalid fetch status: " + fetchStatus);
+}
+return handlerState;
 }

@@ -1,0 +1,26 @@
+{
+  if (null == dataFile && null == indexFile) {
+    String fileName=currentPair.getSecond().toString() + "_" + currentPair.getFirst().toString()+ "_"+ Integer.toString(currentChunkId);
+    this.dataFile=new File(this.storeDir,fileName + ".data");
+    this.indexFile=new File(this.storeDir,fileName + ".index");
+    validateFiles(currentPair);
+    if (isPartitionFinished()) {
+      fetchStatus=FetchStatus.NEXT_PARTITION;
+      return;
+    }
+    this.chunkedFileWriter=new ChunkedFileWriter(dataFile,outputStream);
+    logger.info("Streaming " + dataFile.getAbsolutePath());
+    this.chunkedFileWriter.writeHeader();
+  }
+  if (0 == chunkedFileWriter.streamFile()) {
+    logger.info("Completed streaming " + dataFile.getAbsolutePath());
+    this.chunkedFileWriter.close();
+    this.chunkedFileWriter=new ChunkedFileWriter(indexFile,outputStream);
+    logger.info("Streaming " + indexFile.getAbsolutePath());
+    this.chunkedFileWriter.writeHeader();
+    fetchStatus=FetchStatus.SEND_INDEX_FILE;
+  }
+ else {
+    fetchStatus=FetchStatus.SEND_DATA_FILE;
+  }
+}
