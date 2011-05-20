@@ -5,7 +5,12 @@
     currentChunkId++;
     dataFile=indexFile=null;
     handle.incrementEntriesScanned();
-    fetchStatus=FetchStatus.SEND_DATA_FILE;
+    if (currentChunkId >= numChunks) {
+      fetchStatus=FetchStatus.NEXT_PARTITION;
+    }
+ else {
+      fetchStatus=FetchStatus.SEND_DATA_FILE;
+    }
   }
  else {
     fetchStatus=FetchStatus.SEND_INDEX_FILE;
