@@ -25,10 +25,10 @@
       if (this.checkSumDigestIndex[chunkId] != null && this.checkSumDigestValue[chunkId] != null) {
         Path checkSumIndexFile=new Path(nodeDir,chunkFileName + ".index.checksum");
         Path checkSumValueFile=new Path(nodeDir,chunkFileName + ".data.checksum");
-        FSDataOutputStream output=fs.create(checkSumIndexFile);
+        FSDataOutputStream output=outputFs.create(checkSumIndexFile);
         output.write(this.checkSumDigestIndex[chunkId].getCheckSum());
         output.close();
-        output=fs.create(checkSumValueFile);
+        output=outputFs.create(checkSumValueFile);
         output.write(this.checkSumDigestValue[chunkId].getCheckSum());
         output.close();
       }

@@ -25,13 +25,15 @@
     }
   }
   if (!exceptions.isEmpty()) {
-    for (    int successfulNodeId : results.keySet()) {
-      try {
-        logger.info("Deleting fetched data from node " + successfulNodeId);
-        adminClient.failedFetchStore(successfulNodeId,storeName,results.get(successfulNodeId));
-      }
- catch (      Exception e) {
-        logger.error("Exception thrown during delete operation on node " + successfulNodeId + " : ",e);
+    if (deleteFailedFetch) {
+      for (      int successfulNodeId : results.keySet()) {
+        try {
+          logger.info("Deleting fetched data from node " + successfulNodeId);
+          adminClient.failedFetchStore(successfulNodeId,storeName,results.get(successfulNodeId));
+        }
+ catch (        Exception e) {
+          logger.error("Exception thrown during delete operation on node " + successfulNodeId + " : ",e);
+        }
       }
     }
     for (    int failedNodeId : exceptions.keySet()) {

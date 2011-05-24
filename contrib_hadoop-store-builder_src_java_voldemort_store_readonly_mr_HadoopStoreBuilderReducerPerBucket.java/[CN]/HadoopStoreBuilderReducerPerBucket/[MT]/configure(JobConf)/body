@@ -12,14 +12,13 @@
     this.taskValueFileName=new Path[getNumChunks()];
     this.indexFileStream=new DataOutputStream[getNumChunks()];
     this.valueFileStream=new DataOutputStream[getNumChunks()];
-    FileSystem fs=null;
     for (int chunkId=0; chunkId < getNumChunks(); chunkId++) {
       this.checkSumDigestIndex[chunkId]=CheckSum.getInstance(checkSumType);
       this.checkSumDigestValue[chunkId]=CheckSum.getInstance(checkSumType);
       this.position[chunkId]=0;
       this.taskIndexFileName[chunkId]=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + Integer.toString(chunkId)+ "_"+ this.taskId+ ".index");
       this.taskValueFileName[chunkId]=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + Integer.toString(chunkId)+ "_"+ this.taskId+ ".data");
-      if (fs == null)       fs=this.taskIndexFileName[chunkId].getFileSystem(job);
+      if (this.fs == null)       this.fs=this.taskIndexFileName[chunkId].getFileSystem(job);
       this.indexFileStream[chunkId]=fs.create(this.taskIndexFileName[chunkId]);
       this.valueFileStream[chunkId]=fs.create(this.taskValueFileName[chunkId]);
       logger.info("Opening " + this.taskIndexFileName[chunkId] + " and "+ this.taskValueFileName[chunkId]+ " for writing.");
