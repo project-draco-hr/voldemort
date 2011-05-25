@@ -36,7 +36,12 @@
     logger.info("Data size = " + size + ", replication factor = "+ storeDef.getReplicationFactor()+ ", numNodes = "+ cluster.getNumberOfNodes()+ ", chunk size = "+ chunkSizeBytes);
     int numReducers;
     if (saveKeys) {
-      if (this.numChunks == -1)       this.numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfPartitions() / storeDef.getReplicationFactor() / chunkSizeBytes),1);
+      if (this.numChunks == -1) {
+        this.numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfPartitions() / storeDef.getReplicationFactor() / chunkSizeBytes),1);
+      }
+ else {
+        logger.info("Overriding chunk size byte and taking num chunks (" + this.numChunks + ") directly");
+      }
       if (reducerPerBucket) {
         numReducers=cluster.getNumberOfPartitions() * storeDef.getReplicationFactor();
       }
@@ -45,7 +50,12 @@
       }
     }
  else {
-      if (this.numChunks == -1)       this.numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfPartitions() / chunkSizeBytes),1);
+      if (this.numChunks == -1) {
+        this.numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfPartitions() / chunkSizeBytes),1);
+      }
+ else {
+        logger.info("Overriding chunk size byte and taking num chunks (" + this.numChunks + ") directly");
+      }
       if (reducerPerBucket) {
         numReducers=cluster.getNumberOfPartitions();
       }
