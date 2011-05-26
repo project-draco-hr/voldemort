@@ -8,6 +8,12 @@
   DataOutputStream outputStream=sands.getOutputStream();
   final DataInputStream inputStream=sands.getInputStream();
   try {
+    File metadataFile=new File(destinationDirPath,".metadata");
+    if (!metadataFile.exists()) {
+      ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
+      metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode());
+      FileUtils.writeStringToFile(metadataFile,metadata.toJsonString());
+    }
     VAdminProto.FetchPartitionFilesRequest fetchPartitionFileRequest=VAdminProto.FetchPartitionFilesRequest.newBuilder().addAllReplicaToPartition(ProtoUtils.encodePartitionTuple(replicaToPartitionList)).setStore(storeName).build();
     VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setFetchPartitionFiles(fetchPartitionFileRequest).setType(VAdminProto.AdminRequestType.FETCH_PARTITION_FILES).build();
     ProtoUtils.writeMessage(outputStream,request);

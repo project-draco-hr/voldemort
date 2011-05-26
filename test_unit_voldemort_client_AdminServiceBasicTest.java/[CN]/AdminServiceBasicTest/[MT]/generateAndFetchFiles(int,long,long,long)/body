@@ -34,7 +34,7 @@
     }
     tempDir=TestUtils.createTempDir();
     getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",primaryNodeBuckets,tempDir.getAbsolutePath(),null);
-    assertEquals(tempDir.list().length,2 * primaryPartitions * numChunks);
+    assertEquals(tempDir.list().length,2 * primaryPartitions * numChunks + 1);
     for (    Entry<Integer,List<Integer>> entry : primaryNodeBuckets.entrySet()) {
       int replicaType=entry.getKey();
       for (      int partitionId : entry.getValue()) {
@@ -48,9 +48,11 @@
         }
       }
     }
+    File metadataFile=new File(tempDir,".metadata");
+    assertEquals(metadataFile.exists(),true);
     tempDir=TestUtils.createTempDir();
     getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",replicaNodeBuckets,tempDir.getAbsolutePath(),null);
-    assertEquals(tempDir.list().length,2 * replicaPartitions * numChunks);
+    assertEquals(tempDir.list().length,2 * replicaPartitions * numChunks + 1);
     for (    Entry<Integer,List<Integer>> entry : replicaNodeBuckets.entrySet()) {
       int replicaType=entry.getKey();
       for (      int partitionId : entry.getValue()) {
@@ -64,9 +66,11 @@
         }
       }
     }
+    metadataFile=new File(tempDir,".metadata");
+    assertEquals(metadataFile.exists(),true);
     tempDir=TestUtils.createTempDir();
     getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",nodeBuckets,tempDir.getAbsolutePath(),null);
-    assertEquals(tempDir.list().length,2 * (primaryPartitions + replicaPartitions) * numChunks);
+    assertEquals(tempDir.list().length,2 * (primaryPartitions + replicaPartitions) * numChunks + 1);
     for (    Entry<Integer,List<Integer>> entry : nodeBuckets.entrySet()) {
       int replicaType=entry.getKey();
       for (      int partitionId : entry.getValue()) {
@@ -80,5 +84,7 @@
         }
       }
     }
+    metadataFile=new File(tempDir,".metadata");
+    assertEquals(metadataFile.exists(),true);
   }
 }
