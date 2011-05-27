@@ -2,14 +2,16 @@
   try {
     metadataStore.writeLock.lock();
     try {
-      logger.info("Switching metadata to " + cluster);
-      metadataStore.put(MetadataStore.CLUSTER_KEY,cluster);
+      VectorClock updatedVectorClock=((VectorClock)metadataStore.get(MetadataStore.CLUSTER_KEY,null).get(0).getVersion()).incremented(0,System.currentTimeMillis());
+      logger.info("Switching metadata to " + cluster + " [ "+ updatedVectorClock+ " ]");
+      metadataStore.put(MetadataStore.CLUSTER_KEY,Versioned.value((Object)cluster,updatedVectorClock));
     }
   finally {
       metadataStore.writeLock.unlock();
     }
   }
  catch (  Exception e) {
+    logger.info("Error while changing cluster to " + cluster);
     throw new VoldemortException(e);
   }
 }

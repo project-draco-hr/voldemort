@@ -9,12 +9,14 @@
         if (engine == null) {
           throw new VoldemortException("Could not find storage engine for " + storeDef.getName() + " to swap ");
         }
+        logger.info("Swapping RO store " + storeDef.getName());
         engine.swapFiles(engine.getCurrentDirPath());
         if (!useSwappedStoreNames)         swappedStoreNames.add(storeDef.getName());
       }
     }
   }
  catch (  Exception e) {
+    logger.error("Error while swapping RO store");
     throw new VoldemortException(e);
   }
 }
