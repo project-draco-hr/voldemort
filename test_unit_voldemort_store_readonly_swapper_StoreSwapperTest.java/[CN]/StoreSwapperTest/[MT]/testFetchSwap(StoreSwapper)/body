@@ -13,27 +13,32 @@
     }
   }
   temporaryDir=createTempROFolder();
-  Utils.mkdirs(new File(baseDirs[0],"version-" + Long.toString(currentVersion + 3)));
+  Utils.mkdirs(new File(baseDirs[1],"version-" + Long.toString(currentVersion + 3)));
   try {
     swapper.swapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 3);
     fail("Should throw a VoldemortException during pushing to node 0");
   }
  catch (  VoldemortException e) {
   }
-  for (int nodeId=1; nodeId < NUM_NODES; nodeId++) {
-    File[] versionDirs=ReadOnlyUtils.getVersionDirs(baseDirs[nodeId]);
-    for (    File versionDir : versionDirs) {
-      assertTrue(ReadOnlyUtils.getVersionId(versionDir) != (currentVersion + 3));
+  for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
+    if (nodeId != 1) {
+      File[] versionDirs=ReadOnlyUtils.getVersionDirs(baseDirs[nodeId]);
+      for (      File versionDir : versionDirs) {
+        assertTrue(ReadOnlyUtils.getVersionId(versionDir) != (currentVersion + 3));
+      }
     }
   }
   temporaryDir=createTempROFolder();
-  List<String> toSwap=Lists.newArrayList(new File(baseDirs[0],"version-" + Long.toString(currentVersion + 3)).getAbsolutePath());
-  for (int nodeId=1; nodeId < NUM_NODES; nodeId++) {
-    File newVersion=new File(baseDirs[nodeId],"version-" + Long.toString(currentVersion + 2));
-    Utils.mkdirs(newVersion);
-    toSwap.add(newVersion.getAbsolutePath());
+  TreeMap<Integer,String> toSwap=Maps.newTreeMap();
+  for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
+    if (nodeId != 1) {
+      File newVersion=new File(baseDirs[nodeId],"version-" + Long.toString(currentVersion + 2));
+      Utils.mkdirs(newVersion);
+      toSwap.put(nodeId,newVersion.getAbsolutePath());
+    }
   }
-  swapper.invokeSwap(STORE_NAME,toSwap);
+  toSwap.put(1,new File(baseDirs[1],"version-" + Long.toString(currentVersion + 3)).getAbsolutePath());
+  swapper.invokeSwap(STORE_NAME,Lists.newArrayList(toSwap.values()));
   try {
     swapper.swapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 2);
     fail("Should throw a VoldemortException during pushing to node 0, 1");
@@ -45,7 +50,7 @@
   for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
     versionToNode.put(nodeId,adminClient.getROCurrentVersion(nodeId,Lists.newArrayList(STORE_NAME)).get(STORE_NAME));
   }
-  servers[0].getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
+  servers[1].getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
   try {
     swapper.swapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 4);
     fail("Should have thrown exception during swapping");
@@ -58,7 +63,7 @@
     assertEquals(currentNodeVersion,(long)versionToNode.get(nodeId));
   }
   temporaryDir=createTempROFolder();
-  servers[0].getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.NORMAL_SERVER);
+  servers[1].getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.NORMAL_SERVER);
   swapper.swapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 5);
   for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
     long currentNodeVersion=adminClient.getROCurrentVersion(nodeId,Lists.newArrayList(STORE_NAME)).get(STORE_NAME);
