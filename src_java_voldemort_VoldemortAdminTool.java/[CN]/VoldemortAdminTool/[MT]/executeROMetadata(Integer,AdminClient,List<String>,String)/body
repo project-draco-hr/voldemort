@@ -8,33 +8,36 @@
       }
     }
   }
+  List<Integer> nodeIds=Lists.newArrayList();
   if (nodeId < 0) {
-    if (type.compareTo("max") != 0) {
-      System.err.println("Unsupported operation, only max allowed for all nodes");
-      return;
+    for (    Node node : adminClient.getAdminClientCluster().getNodes()) {
+      nodeIds.add(node.getId());
     }
-    storeToValue=adminClient.getROMaxVersion(storeNames);
   }
  else {
+    nodeIds.add(nodeId);
+  }
+  for (  int currentNodeId : nodeIds) {
+    System.out.println(adminClient.getAdminClientCluster().getNodeById(currentNodeId).getHost() + ":" + adminClient.getAdminClientCluster().getNodeById(currentNodeId).getId());
     if (type.compareTo("max") == 0) {
-      storeToValue=adminClient.getROMaxVersion(nodeId,storeNames);
+      storeToValue=adminClient.getROMaxVersion(currentNodeId,storeNames);
     }
  else     if (type.compareTo("current") == 0) {
-      storeToValue=adminClient.getROCurrentVersion(nodeId,storeNames);
+      storeToValue=adminClient.getROCurrentVersion(currentNodeId,storeNames);
     }
  else     if (type.compareTo("storage-format") == 0) {
-      Map<String,String> storeToStorageFormat=adminClient.getROStorageFormat(nodeId,storeNames);
+      Map<String,String> storeToStorageFormat=adminClient.getROStorageFormat(currentNodeId,storeNames);
       for (      String storeName : storeToStorageFormat.keySet()) {
         System.out.println(storeName + ":" + storeToStorageFormat.get(storeName));
       }
-      return;
+      continue;
     }
  else {
-      System.err.println("Unsupported operation, only max, current or storage-format allowed for individual nodes");
+      System.err.println("Unsupported operation, only max, current or storage-format allowed");
       return;
     }
-  }
-  for (  String storeName : storeToValue.keySet()) {
-    System.out.println(storeName + ":" + storeToValue.get(storeName));
+    for (    String storeName : storeToValue.keySet()) {
+      System.out.println(storeName + ":" + storeToValue.get(storeName));
+    }
   }
 }

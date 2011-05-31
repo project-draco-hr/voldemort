@@ -10,6 +10,7 @@
     parser.accepts("url","Url to bootstrap from ").withRequiredArg().describedAs("url");
     parser.accepts("parallelism","number of rebalances to run in parallel (Default:" + RebalanceClientConfig.MAX_PARALLEL_REBALANCING + ")").withRequiredArg().ofType(Integer.class).describedAs("parallelism");
     parser.accepts("tries","maximum number of tries for every rebalance (Default:" + RebalanceClientConfig.MAX_TRIES + ")").withRequiredArg().ofType(Integer.class).describedAs("num-tries");
+    parser.accepts("optimize","Optimize the target cluster which has new nodes with empty partitions");
     parser.accepts("no-delete","Do not delete after rebalancing (Valid only for RW Stores)");
     parser.accepts("show-plan","Shows the rebalancing plan only without executing the rebalance.");
     OptionSet options=parser.parse(args);
@@ -49,6 +50,11 @@
       String currentStoresXML=(String)options.valueOf("current-stores");
       Cluster currentCluster=new ClusterMapper().readCluster(new File(currentClusterXML));
       List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new File(currentStoresXML));
+      boolean optimize=options.has("optimize");
+      if (optimize) {
+        System.out.println(new ClusterMapper().writeCluster(RebalanceUtils.generateMinCluster(currentCluster,targetCluster)));
+        return;
+      }
       rebalanceController=new RebalanceController(currentCluster,config);
       rebalanceController.rebalance(currentCluster,targetCluster,storeDefs);
     }

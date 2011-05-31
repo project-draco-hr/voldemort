@@ -19,17 +19,7 @@
     }
   }
   for (  String storeName : storeNames) {
-    Iterator<Pair<ByteArray,Versioned<byte[]>>> iterator;
-    if (useAscii) {
-      StoreDefinition storeDefinition=storeDefinitionMap.get(storeName);
-      if (storeDefinition == null) {
-        throw new IllegalArgumentException("No definition found for " + storeName);
-      }
-      iterator=readEntriesAscii(inputDir,storeName);
-    }
- else {
-      iterator=readEntriesBinary(inputDir,storeName);
-    }
+    Iterator<Pair<ByteArray,Versioned<byte[]>>> iterator=readEntriesBinary(inputDir,storeName);
     adminClient.updateEntries(nodeId,storeName,iterator,null);
   }
 }
