@@ -1,0 +1,13 @@
+{
+  this.rebalanceTaskQueue=new ConcurrentLinkedQueue<RebalanceNodePlan>();
+  this.currentAllStoresNodeIdToAllPartitionTuples=Maps.newHashMap();
+  this.targetAllStoresNodeIdToAllPartitionTuples=Maps.newHashMap();
+  if (currentCluster.getNumberOfPartitions() != targetCluster.getNumberOfPartitions())   throw new VoldemortException("Total number of partitions should be equal [ Current cluster (" + currentCluster.getNumberOfPartitions() + ") not equal to Target cluster ("+ targetCluster.getNumberOfPartitions()+ ") ]");
+  if (currentCluster.getNumberOfNodes() != targetCluster.getNumberOfNodes())   throw new VoldemortException("Total number of nodes should be equal [ Current cluster (" + currentCluster.getNumberOfNodes() + ") not equal to Target cluster ("+ targetCluster.getNumberOfNodes()+ ") ]");
+  for (  Node node : targetCluster.getNodes()) {
+    List<RebalancePartitionsInfo> rebalanceNodeList=getRebalancePartitionsInfo(currentCluster,targetCluster,storeDefs,node.getId(),enabledDeletePartition);
+    if (rebalanceNodeList.size() > 0) {
+      rebalanceTaskQueue.offer(new RebalanceNodePlan(node.getId(),rebalanceNodeList));
+    }
+  }
+}

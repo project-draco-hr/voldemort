@@ -5,16 +5,14 @@
   if (hasStore()) {
     size+=com.google.protobuf.CodedOutputStream.computeStringSize(1,getStore());
   }
-{
-    int dataSize=0;
-    for (    int element : getPartitionsList()) {
-      dataSize+=com.google.protobuf.CodedOutputStream.computeInt32SizeNoTag(element);
-    }
-    size+=dataSize;
-    size+=1 * getPartitionsList().size();
+  for (  voldemort.client.protocol.pb.VAdminProto.PartitionTuple element : getReplicaToPartitionList()) {
+    size+=com.google.protobuf.CodedOutputStream.computeMessageSize(2,element);
   }
   if (hasFilter()) {
     size+=com.google.protobuf.CodedOutputStream.computeMessageSize(3,getFilter());
+  }
+  if (hasInitialCluster()) {
+    size+=com.google.protobuf.CodedOutputStream.computeStringSize(4,getInitialCluster());
   }
   size+=getUnknownFields().getSerializedSize();
   memoizedSerializedSize=size;

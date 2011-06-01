@@ -16,15 +16,22 @@
     stores=Lists.newArrayList();
     stores.addAll(storeDefinitionMap.keySet());
   }
+  StoreDefinition storeDefinition=null;
   for (  String store : stores) {
-    System.out.println("Fetching entries in partitions " + Joiner.on(", ").join(partitionIdList) + " of "+ store);
+    storeDefinition=storeDefinitionMap.get(store);
+    if (null == storeDefinition) {
+      System.out.println("No store found under the name \'" + store + "\'");
+      continue;
+    }
+ else {
+      System.out.println("Fetching entries in partitions " + Joiner.on(", ").join(partitionIdList) + " of "+ store);
+    }
     Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=adminClient.fetchEntries(nodeId,store,partitionIdList,null,false);
     File outputFile=null;
     if (directory != null) {
       outputFile=new File(directory,store + ".entries");
     }
     if (useAscii) {
-      StoreDefinition storeDefinition=storeDefinitionMap.get(store);
       writeEntriesAscii(entriesIterator,outputFile,storeDefinition);
     }
  else {

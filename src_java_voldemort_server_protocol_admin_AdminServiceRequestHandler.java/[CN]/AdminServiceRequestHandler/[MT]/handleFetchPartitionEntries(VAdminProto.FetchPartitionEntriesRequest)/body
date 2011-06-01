@@ -1,13 +1,7 @@
 {
   boolean fetchValues=request.hasFetchValues() && request.getFetchValues();
   if (fetchValues) {
-    boolean fetchMasterValues=request.hasFetchMasterEntries() && request.getFetchMasterEntries();
-    if (fetchMasterValues) {
-      return new FetchMasterEntriesStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader,stats);
-    }
- else {
-      return new FetchEntriesStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader,stats);
-    }
+    return new FetchEntriesStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader,stats);
   }
  else   return new FetchKeysStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader,stats);
 }

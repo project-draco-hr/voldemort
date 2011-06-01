@@ -14,24 +14,16 @@ default :
     }
     break;
   }
-case 8:
-{
-  addPartitions(input.readInt32());
-  break;
-}
 case 10:
 {
-int length=input.readRawVarint32();
-int limit=input.pushLimit(length);
-while (input.getBytesUntilLimit() > 0) {
-  addPartitions(input.readInt32());
-}
-input.popLimit(limit);
-break;
+  setStore(input.readString());
+  break;
 }
 case 18:
 {
-setStore(input.readString());
+voldemort.client.protocol.pb.VAdminProto.PartitionTuple.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.PartitionTuple.newBuilder();
+input.readMessage(subBuilder,extensionRegistry);
+addReplicaToPartition(subBuilder.buildPartial());
 break;
 }
 }

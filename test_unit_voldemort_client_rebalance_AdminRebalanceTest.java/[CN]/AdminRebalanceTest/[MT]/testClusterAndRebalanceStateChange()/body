@@ -1,0 +1,50 @@
+{
+  try {
+    startFourNodeRW();
+    adminClient.rebalanceStateChange(cluster,targetCluster,plans,false,true,true,true,true);
+    List<Integer> nodesChecked=Lists.newArrayList();
+    for (    RebalancePartitionsInfo plan : plans) {
+      nodesChecked.add(plan.getStealerId());
+      assertEquals(servers[plan.getStealerId()].getMetadataStore().getRebalancerState(),new RebalancerState(Lists.newArrayList(plan)));
+      assertEquals(servers[plan.getStealerId()].getMetadataStore().getCluster(),targetCluster);
+    }
+    List<Integer> allNodes=Lists.newArrayList(RebalanceUtils.getNodeIds(Lists.newArrayList(cluster.getNodes())));
+    allNodes.removeAll(nodesChecked);
+    for (    int nodeId : allNodes) {
+      assertEquals(servers[nodeId].getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
+      assertEquals(servers[nodeId].getMetadataStore().getCluster(),targetCluster);
+    }
+    cleanUpAllState();
+    servers[3].getMetadataStore().getRebalancerState().update(new RebalancePartitionsInfo(3,0,new HashMap<String,HashMap<Integer,List<Integer>>>(),new HashMap<String,HashMap<Integer,List<Integer>>>(),cluster,0));
+    try {
+      adminClient.rebalanceStateChange(cluster,targetCluster,plans,false,true,true,true,true);
+      fail("Should have thrown an exception since we added state before hand");
+    }
+ catch (    VoldemortRebalancingException e) {
+    }
+    for (    VoldemortServer server : servers) {
+      if (server.getMetadataStore().getNodeId() != 3) {
+        assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
+      }
+      assertEquals(server.getMetadataStore().getCluster(),cluster);
+    }
+    cleanUpAllState();
+    ServerTestUtils.stopVoldemortServer(servers[3]);
+    servers[3]=null;
+    try {
+      adminClient.rebalanceStateChange(cluster,targetCluster,plans,false,true,true,true,true);
+      fail("Should have thrown an exception since we added state before hand");
+    }
+ catch (    VoldemortRebalancingException e) {
+    }
+    for (    VoldemortServer server : servers) {
+      if (server != null) {
+        assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
+        assertEquals(server.getMetadataStore().getCluster(),cluster);
+      }
+    }
+  }
+  finally {
+    shutDown();
+  }
+}

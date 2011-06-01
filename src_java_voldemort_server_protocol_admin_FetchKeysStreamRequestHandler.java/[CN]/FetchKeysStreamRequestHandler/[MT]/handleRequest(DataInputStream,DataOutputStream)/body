@@ -4,7 +4,7 @@
   ByteArray key=keyIterator.next();
   stats.recordDiskTime(handle,System.nanoTime() - startNs);
   throttler.maybeThrottle(key.length());
-  if (validPartition(key.get()) && filter.accept(key,null) && counter % skipRecords == 0) {
+  if (RebalanceUtils.checkKeyBelongsToPartition(nodeId,key.get(),replicaToPartitionList,initialCluster,storeDef) && filter.accept(key,null) && counter % skipRecords == 0) {
     VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
     response.setKey(ProtoUtils.encodeBytes(key));
     fetched++;
@@ -17,7 +17,7 @@
   counter++;
   if (0 == counter % 100000) {
     long totalTime=(System.currentTimeMillis() - startTime) / 1000;
-    if (logger.isDebugEnabled())     logger.debug("fetchKeys() scanned " + counter + " keys, fetched "+ fetched+ " keys for store:"+ storageEngine.getName()+ " partition:"+ partitionList+ " in "+ totalTime+ " s");
+    if (logger.isDebugEnabled())     logger.debug("fetchKeys() scanned " + counter + " keys, fetched "+ fetched+ " keys for store:"+ storageEngine.getName()+ " replicaToPartitionList:"+ replicaToPartitionList+ " in "+ totalTime+ " s");
   }
   if (keyIterator.hasNext())   return StreamRequestHandlerState.WRITING;
  else {

@@ -3,17 +3,20 @@
   assertNotSame("Store '" + testStoreName + "' should not be null",null,store);
   Set<Pair<ByteArray,Versioned<byte[]>>> entrySet=createEntries();
   VoldemortFilter filter=new VoldemortFilterImpl();
+  RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(getStoreDef(),getCluster());
   for (  Pair<ByteArray,Versioned<byte[]>> pair : entrySet) {
-    store.put(pair.getFirst(),pair.getSecond(),null);
+    if (RebalanceUtils.getNodeIds(strategy.routeRequest(pair.getFirst().get())).contains(0))     store.put(pair.getFirst(),pair.getSecond(),null);
   }
-  getAdminClient().deletePartitions(0,testStoreName,Arrays.asList(new Integer[]{0,1,2,3}),filter);
+  getAdminClient().deletePartitions(0,testStoreName,Lists.newArrayList(0,1),filter);
   for (  Pair<ByteArray,Versioned<byte[]>> entry : entrySet) {
-    if (filter.accept(entry.getFirst(),entry.getSecond())) {
-      assertEquals("All entries should be deleted except the filtered ones.",0,store.get(entry.getFirst(),null).size());
-    }
+    if (RebalanceUtils.getNodeIds(strategy.routeRequest(entry.getFirst().get())).contains(0)) {
+      if (filter.accept(entry.getFirst(),entry.getSecond())) {
+        assertEquals("All entries should be deleted except the filtered ones.",0,store.get(entry.getFirst(),null).size());
+      }
  else {
-      assertNotSame("filtered entry should be still present.",0,store.get(entry.getFirst(),null).size());
-      assertEquals("values should match",new String(entry.getSecond().getValue()),new String(store.get(entry.getFirst(),null).get(0).getValue()));
+        assertNotSame("filtered entry should be still present.",0,store.get(entry.getFirst(),null).size());
+        assertEquals("values should match",new String(entry.getSecond().getValue()),new String(store.get(entry.getFirst(),null).get(0).getValue()));
+      }
     }
   }
 }

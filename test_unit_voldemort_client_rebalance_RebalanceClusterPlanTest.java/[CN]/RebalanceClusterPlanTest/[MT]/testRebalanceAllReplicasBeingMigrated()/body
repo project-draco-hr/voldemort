@@ -1,0 +1,16 @@
+{
+  currentCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{0,4},{2,3},{1,5},{}});
+  targetCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{4},{2,3},{1,5},{0}});
+  List<RebalanceNodePlan> orderedRebalanceNodePlanList=createOrderedClusterTransition(currentCluster,targetCluster,storeDefList2).getOrderedRebalanceNodePlanList();
+  assertEquals("There should have exactly 3 rebalancing node",1,orderedRebalanceNodePlanList.size());
+  assertEquals("Stealer 3 should have 2 entry",2,orderedRebalanceNodePlanList.get(0).getRebalanceTaskList().size());
+  HashMap<Integer,List<Integer>> partitionsToMove1=Maps.newHashMap(), partitionsToMove2=Maps.newHashMap();
+  partitionsToMove1.put(0,Lists.newArrayList(0));
+  partitionsToMove1.put(1,Lists.newArrayList(5));
+  partitionsToMove2.put(2,Lists.newArrayList(4));
+  HashMap<String,HashMap<Integer,List<Integer>>> storeToPartitionsToMove1=Maps.newHashMap();
+  storeToPartitionsToMove1.put("test",partitionsToMove1);
+  HashMap<String,HashMap<Integer,List<Integer>>> storeToPartitionsToMove2=Maps.newHashMap();
+  storeToPartitionsToMove2.put("test",partitionsToMove2);
+  checkAllRebalanceInfoPresent(orderedRebalanceNodePlanList.get(0),Arrays.asList(new RebalancePartitionsInfo(3,0,storeToPartitionsToMove1,storeToPartitionsToMove1,currentCluster,0),new RebalancePartitionsInfo(3,1,storeToPartitionsToMove2,storeToPartitionsToMove2,currentCluster,0)));
+}

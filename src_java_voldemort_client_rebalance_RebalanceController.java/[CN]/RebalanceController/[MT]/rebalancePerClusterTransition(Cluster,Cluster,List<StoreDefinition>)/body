@@ -1,0 +1,31 @@
+{
+  final Map<Node,List<Integer>> stealerToStolenPrimaryPartitions=new HashMap<Node,List<Integer>>();
+  int numTasks=0;
+  for (  Node stealerNode : targetCluster.getNodes()) {
+    List<Integer> stolenPrimaryPartitions=RebalanceUtils.getStolenPrimaryPartitions(currentCluster,targetCluster,stealerNode.getId());
+    numTasks+=stolenPrimaryPartitions.size();
+    stealerToStolenPrimaryPartitions.put(stealerNode,stolenPrimaryPartitions);
+  }
+  int taskId=0;
+  for (  Node stealerNode : targetCluster.getNodes()) {
+    List<Integer> stolenPrimaryPartitions=stealerToStolenPrimaryPartitions.get(stealerNode);
+    if (stolenPrimaryPartitions == null || stolenPrimaryPartitions.isEmpty()) {
+      RebalanceUtils.printLog(stealerNode.getId(),logger,"No primary partitions to steal");
+      continue;
+    }
+    RebalanceUtils.printLog(stealerNode.getId(),logger,"All primary partitions to steal = " + stolenPrimaryPartitions);
+    Node stealerNodeUpdated=currentCluster.getNodeById(stealerNode.getId());
+    for (    Integer donatedPrimaryPartition : stolenPrimaryPartitions) {
+      RebalanceUtils.printLog(stealerNode.getId(),logger,"Working on moving primary partition " + donatedPrimaryPartition);
+      Cluster transitionCluster=RebalanceUtils.createUpdatedCluster(currentCluster,stealerNodeUpdated,donatedPrimaryPartition);
+      stealerNodeUpdated=transitionCluster.getNodeById(stealerNodeUpdated.getId());
+      final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(currentCluster,transitionCluster,storeDefs,rebalanceConfig.isDeleteAfterRebalancingEnabled());
+      final OrderedClusterTransition orderedClusterTransition=new OrderedClusterTransition(currentCluster,transitionCluster,storeDefs,rebalanceClusterPlan);
+      RebalanceUtils.printLog(stealerNode.getId(),logger,orderedClusterTransition.toString());
+      rebalancePerPartitionTransition(stealerNode.getId(),orderedClusterTransition);
+      currentCluster=transitionCluster;
+      taskId++;
+      RebalanceUtils.printLog(stealerNode.getId(),logger,"Completed tasks = " + taskId + ". Percent done = "+ decimalFormatter.format(taskId * 100.0 / numTasks));
+    }
+  }
+}

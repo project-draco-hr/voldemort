@@ -19,19 +19,11 @@ case 10:
   setStore(input.readString());
   break;
 }
-case 16:
-{
-addPartitions(input.readInt32());
-break;
-}
 case 18:
 {
-int length=input.readRawVarint32();
-int limit=input.pushLimit(length);
-while (input.getBytesUntilLimit() > 0) {
-addPartitions(input.readInt32());
-}
-input.popLimit(limit);
+voldemort.client.protocol.pb.VAdminProto.PartitionTuple.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.PartitionTuple.newBuilder();
+input.readMessage(subBuilder,extensionRegistry);
+addReplicaToPartition(subBuilder.buildPartial());
 break;
 }
 case 26:
@@ -42,6 +34,11 @@ subBuilder.mergeFrom(getFilter());
 }
 input.readMessage(subBuilder,extensionRegistry);
 setFilter(subBuilder.buildPartial());
+break;
+}
+case 34:
+{
+setInitialCluster(input.readString());
 break;
 }
 }

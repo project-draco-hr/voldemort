@@ -1,11 +1,11 @@
 {
-  try {
-    server0.stop();
-    FileUtils.deleteDirectory(new File(server0.getVoldemortConfig().getVoldemortHome()));
-    server1.stop();
-    FileUtils.deleteDirectory(new File(server1.getVoldemortConfig().getVoldemortHome()));
-  }
- catch (  Exception e) {
+  for (  VoldemortServer server : servers) {
+    if (server != null)     try {
+      ServerTestUtils.stopVoldemortServer(server);
+    }
+ catch (    IOException e) {
+      e.printStackTrace();
+    }
   }
   storeFactory.close();
 }

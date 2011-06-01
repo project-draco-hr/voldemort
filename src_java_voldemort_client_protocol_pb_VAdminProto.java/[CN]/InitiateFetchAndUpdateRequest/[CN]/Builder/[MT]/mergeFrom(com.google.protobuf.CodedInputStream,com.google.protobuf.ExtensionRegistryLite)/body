@@ -19,27 +19,12 @@ case 8:
   setNodeId(input.readInt32());
   break;
 }
-case 16:
-{
-addPartitions(input.readInt32());
-break;
-}
 case 18:
-{
-int length=input.readRawVarint32();
-int limit=input.pushLimit(length);
-while (input.getBytesUntilLimit() > 0) {
-addPartitions(input.readInt32());
-}
-input.popLimit(limit);
-break;
-}
-case 26:
 {
 setStore(input.readString());
 break;
 }
-case 34:
+case 26:
 {
 voldemort.client.protocol.pb.VAdminProto.VoldemortFilter.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.VoldemortFilter.newBuilder();
 if (hasFilter()) {
@@ -49,9 +34,16 @@ input.readMessage(subBuilder,extensionRegistry);
 setFilter(subBuilder.buildPartial());
 break;
 }
-case 40:
+case 34:
 {
-setIsReadonly(input.readBool());
+voldemort.client.protocol.pb.VAdminProto.PartitionTuple.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.PartitionTuple.newBuilder();
+input.readMessage(subBuilder,extensionRegistry);
+addReplicaToPartition(subBuilder.buildPartial());
+break;
+}
+case 42:
+{
+setInitialCluster(input.readString());
 break;
 }
 }

@@ -1,28 +1,30 @@
 {
+  this.nodeId=metadataStore.getNodeId();
   this.request=request;
   this.errorCodeMapper=errorCodeMapper;
-  partitionList=request.getPartitionsList();
+  this.replicaToPartitionList=ProtoUtils.decodePartitionTuple(request.getReplicaToPartitionList());
   this.stats=stats;
-  this.handle=stats.makeHandle(operation,partitionList);
-  storageEngine=AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
-  routingStrategy=metadataStore.getRoutingStrategy(storageEngine.getName());
-  throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
+  this.handle=stats.makeHandle(operation,replicaToPartitionList);
+  this.storageEngine=AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
+  this.storeDef=metadataStore.getStoreDef(request.getStore());
+  if (request.hasInitialCluster()) {
+    this.initialCluster=new ClusterMapper().readCluster(new StringReader(request.getInitialCluster()));
+  }
+ else {
+    this.initialCluster=metadataStore.getCluster();
+  }
+  this.throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
   if (request.hasFilter()) {
-    filter=AdminServiceRequestHandler.getFilterFromRequest(request.getFilter(),voldemortConfig,networkClassLoader);
+    this.filter=AdminServiceRequestHandler.getFilterFromRequest(request.getFilter(),voldemortConfig,networkClassLoader);
   }
  else {
-    if (request.hasFetchMasterEntries() && request.getFetchMasterEntries()) {
-      filter=new MasterOnlyVoldemortFilter(routingStrategy,request.getPartitionsList());
-    }
- else {
-      filter=new DefaultVoldemortFilter();
-    }
+    this.filter=new DefaultVoldemortFilter();
   }
-  keyIterator=storageEngine.keys();
-  startTime=System.currentTimeMillis();
-  counter=0;
-  skipRecords=1;
+  this.keyIterator=storageEngine.keys();
+  this.startTime=System.currentTimeMillis();
+  this.counter=0;
+  this.skipRecords=1;
   if (request.hasSkipRecords() && request.getSkipRecords() >= 0) {
-    skipRecords=request.getSkipRecords() + 1;
+    this.skipRecords=request.getSkipRecords() + 1;
   }
 }

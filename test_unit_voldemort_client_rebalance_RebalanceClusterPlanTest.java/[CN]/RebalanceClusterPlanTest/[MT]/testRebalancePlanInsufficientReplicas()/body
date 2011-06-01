@@ -1,0 +1,10 @@
+{
+  currentCluster=ServerTestUtils.getLocalCluster(3,new int[][]{{0},{1},{2}});
+  targetCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{1},{0},{2}});
+  try {
+    new RebalanceClusterPlan(currentCluster,targetCluster,storeDefList,true);
+    fail("Should have thrown an exception since the migration should result in decrease in replication factor");
+  }
+ catch (  VoldemortException e) {
+  }
+}

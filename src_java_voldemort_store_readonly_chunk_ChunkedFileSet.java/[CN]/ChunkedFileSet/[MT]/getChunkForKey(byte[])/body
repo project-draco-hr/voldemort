@@ -16,11 +16,11 @@ case READONLY_V1:
 case READONLY_V2:
 {
   List<Integer> routingPartitionList=routingStrategy.getPartitionList(key);
-  String bucket=null;
+  Pair<Integer,Integer> bucket=null;
   for (int replicaType=0; replicaType < routingPartitionList.size(); replicaType++) {
     if (nodePartitionIds.contains(routingPartitionList.get(replicaType))) {
       if (bucket == null) {
-        bucket=new String(Integer.toString(routingPartitionList.get(0)) + "_" + Integer.toString(replicaType));
+        bucket=Pair.create(routingPartitionList.get(0),replicaType);
       }
  else {
         return -1;

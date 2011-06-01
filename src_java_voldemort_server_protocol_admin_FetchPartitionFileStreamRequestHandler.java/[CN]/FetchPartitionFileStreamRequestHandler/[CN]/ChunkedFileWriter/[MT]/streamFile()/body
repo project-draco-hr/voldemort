@@ -1,0 +1,12 @@
+{
+  long bytesRemaining=dataChannel.size() - currentPos;
+  if (0 < bytesRemaining) {
+    long bytesToWrite=Math.min(bytesRemaining,blockSize);
+    long bytesWritten=dataChannel.transferTo(currentPos,bytesToWrite,outChannel);
+    currentPos+=bytesWritten;
+    logger.debug(bytesWritten + " bytes written");
+    throttler.maybeThrottle((int)bytesWritten);
+  }
+  bytesRemaining=dataChannel.size() - currentPos;
+  return bytesRemaining;
+}

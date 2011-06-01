@@ -1,0 +1,19 @@
+{
+  Cluster cluster=ServerTestUtils.getLocalCluster(2,10,1);
+  List<Node> nodes=Lists.newArrayList();
+  for (int nodeId=0; nodeId < 4; nodeId++) {
+    List<Integer> partitionIds=Lists.newArrayList();
+    for (int partitionId=nodeId * 5; partitionId < (nodeId + 1) * 5; partitionId++) {
+      partitionIds.add(partitionId);
+    }
+    Node node=new Node(nodeId,"b",0,1,2,0,partitionIds);
+    nodes.add(node);
+  }
+  Cluster newCluster=new Cluster(cluster.getName(),nodes,Lists.newArrayList(cluster.getZones()));
+  Cluster generatedCluster=RebalanceUtils.getClusterWithNewNodes(cluster,newCluster);
+  assertEquals(generatedCluster.getNumberOfNodes(),4);
+  assertEquals(Utils.compareList(generatedCluster.getNodeById(0).getPartitionIds(),cluster.getNodeById(0).getPartitionIds()),true);
+  assertEquals(Utils.compareList(generatedCluster.getNodeById(1).getPartitionIds(),cluster.getNodeById(1).getPartitionIds()),true);
+  assertEquals(generatedCluster.getNodeById(2).getPartitionIds().size(),0);
+  assertEquals(generatedCluster.getNodeById(3).getPartitionIds().size(),0);
+}

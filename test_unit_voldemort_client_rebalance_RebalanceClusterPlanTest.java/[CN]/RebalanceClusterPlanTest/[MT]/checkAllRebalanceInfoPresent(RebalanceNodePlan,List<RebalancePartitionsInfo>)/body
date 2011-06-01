@@ -1,0 +1,17 @@
+{
+  for (  RebalancePartitionsInfo rebalanceInfo : rebalanceInfoList) {
+    boolean match=false;
+    for (    RebalancePartitionsInfo nodeRebalanceInfo : nodePlan.getRebalanceTaskList()) {
+      if (rebalanceInfo.getDonorId() == nodeRebalanceInfo.getDonorId()) {
+        assertEquals("Store lists should match",rebalanceInfo.getUnbalancedStoreList(),nodeRebalanceInfo.getUnbalancedStoreList());
+        assertEquals("Clusters to be same",rebalanceInfo.getInitialCluster(),nodeRebalanceInfo.getInitialCluster());
+        for (        String storeName : rebalanceInfo.getUnbalancedStoreList()) {
+          assertEquals("add partition mapping for store " + storeName + " should be same ",rebalanceInfo.getReplicaToAddPartitionList(storeName),nodeRebalanceInfo.getReplicaToAddPartitionList(storeName));
+          assertEquals("delete partition mapping for store " + storeName + " should be same ",rebalanceInfo.getReplicaToDeletePartitionList(storeName),nodeRebalanceInfo.getReplicaToDeletePartitionList(storeName));
+        }
+        match=true;
+      }
+    }
+    assertNotSame("rebalancePartition Info " + rebalanceInfo + " should be present in the nodePlan "+ nodePlan.getRebalanceTaskList(),false,match);
+  }
+}

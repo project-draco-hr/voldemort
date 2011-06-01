@@ -1,4 +1,5 @@
 {
-  Versioned<Cluster> currentVersionedCluster=RebalanceUtils.getLatestCluster(new ArrayList<Integer>(),adminClient);
-  rebalance(currentVersionedCluster.getValue(),targetCluster);
+  Versioned<Cluster> currentVersionedCluster=RebalanceUtils.getLatestCluster(RebalanceUtils.getNodeIds(Lists.newArrayList(adminClient.getAdminClientCluster().getNodes())),adminClient);
+  Cluster currentCluster=currentVersionedCluster.getValue();
+  rebalance(currentCluster,targetCluster);
 }

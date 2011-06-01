@@ -1,0 +1,76 @@
+{
+  Cluster currentCluster=metadataStore.getCluster();
+  List<RebalancePartitionsInfo> completedRebalancePartitionsInfo=Lists.newArrayList();
+  List<String> swappedStoreNames=Lists.newArrayList();
+  boolean completedClusterChange=false;
+  try {
+    if (changeClusterMetadata) {
+      changeCluster(cluster);
+      completedClusterChange=true;
+    }
+    if (swapRO) {
+      swapROStores(swappedStoreNames,false);
+    }
+    if (changeRebalanceState) {
+      try {
+        if (!rollback) {
+          for (          RebalancePartitionsInfo info : rebalancePartitionsInfo) {
+            metadataStore.addRebalancingState(info);
+            completedRebalancePartitionsInfo.add(info);
+          }
+        }
+ else {
+          for (          RebalancePartitionsInfo info : rebalancePartitionsInfo) {
+            metadataStore.deleteRebalancingState(info);
+            completedRebalancePartitionsInfo.add(info);
+          }
+        }
+      }
+ catch (      Exception e) {
+        throw new VoldemortException(e);
+      }
+    }
+  }
+ catch (  VoldemortException e) {
+    logger.error("Got exception while changing state, now rolling back changes",e);
+    if (completedClusterChange) {
+      try {
+        changeCluster(currentCluster);
+      }
+ catch (      Exception exception) {
+        logger.error("Error while rolling back cluster metadata to " + currentCluster,exception);
+      }
+    }
+    if (swappedStoreNames.size() > 0) {
+      try {
+        swapROStores(swappedStoreNames,true);
+      }
+ catch (      Exception exception) {
+        logger.error("Error while swapping back to old state ",exception);
+      }
+    }
+    if (completedRebalancePartitionsInfo.size() > 0) {
+      if (!rollback) {
+        for (        RebalancePartitionsInfo info : completedRebalancePartitionsInfo) {
+          try {
+            metadataStore.deleteRebalancingState(info);
+          }
+ catch (          Exception exception) {
+            logger.error("Error while deleting back rebalance info during error rollback " + info,exception);
+          }
+        }
+      }
+ else {
+        for (        RebalancePartitionsInfo info : completedRebalancePartitionsInfo) {
+          try {
+            metadataStore.addRebalancingState(info);
+          }
+ catch (          Exception exception) {
+            logger.error("Error while adding back rebalance info during error rollback " + info,exception);
+          }
+        }
+      }
+    }
+    throw e;
+  }
+}

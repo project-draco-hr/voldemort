@@ -1,0 +1,43 @@
+{
+  Map<String,Long> storeToValue=Maps.newHashMap();
+  if (storeNames == null) {
+    storeNames=Lists.newArrayList();
+    for (    StoreDefinition storeDef : adminClient.getRemoteStoreDefList(nodeId > 0 ? nodeId : 0).getValue()) {
+      if (storeDef.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0) {
+        storeNames.add(storeDef.getName());
+      }
+    }
+  }
+  List<Integer> nodeIds=Lists.newArrayList();
+  if (nodeId < 0) {
+    for (    Node node : adminClient.getAdminClientCluster().getNodes()) {
+      nodeIds.add(node.getId());
+    }
+  }
+ else {
+    nodeIds.add(nodeId);
+  }
+  for (  int currentNodeId : nodeIds) {
+    System.out.println(adminClient.getAdminClientCluster().getNodeById(currentNodeId).getHost() + ":" + adminClient.getAdminClientCluster().getNodeById(currentNodeId).getId());
+    if (type.compareTo("max") == 0) {
+      storeToValue=adminClient.getROMaxVersion(currentNodeId,storeNames);
+    }
+ else     if (type.compareTo("current") == 0) {
+      storeToValue=adminClient.getROCurrentVersion(currentNodeId,storeNames);
+    }
+ else     if (type.compareTo("storage-format") == 0) {
+      Map<String,String> storeToStorageFormat=adminClient.getROStorageFormat(currentNodeId,storeNames);
+      for (      String storeName : storeToStorageFormat.keySet()) {
+        System.out.println(storeName + ":" + storeToStorageFormat.get(storeName));
+      }
+      continue;
+    }
+ else {
+      System.err.println("Unsupported operation, only max, current or storage-format allowed");
+      return;
+    }
+    for (    String storeName : storeToValue.keySet()) {
+      System.out.println(storeName + ":" + storeToValue.get(storeName));
+    }
+  }
+}

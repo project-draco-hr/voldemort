@@ -1,0 +1,8 @@
+{
+  if (!isFormatCorrect(fileName,ReadOnlyStorageFormat.READONLY_V2)) {
+    throw new VoldemortException("Filename " + fileName + " does not comply with the format for storage format "+ ReadOnlyStorageFormat.READONLY_V2);
+  }
+  int firstUnderScore=fileName.indexOf('_');
+  int secondUnderScore=fileName.indexOf('_',firstUnderScore + 1);
+  return Pair.create(Integer.parseInt(fileName.substring(0,firstUnderScore)),Integer.parseInt(fileName.substring(firstUnderScore + 1,secondUnderScore)));
+}

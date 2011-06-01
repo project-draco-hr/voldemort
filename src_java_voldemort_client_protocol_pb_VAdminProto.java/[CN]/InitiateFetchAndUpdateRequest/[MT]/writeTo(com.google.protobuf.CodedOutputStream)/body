@@ -3,17 +3,17 @@
   if (hasNodeId()) {
     output.writeInt32(1,getNodeId());
   }
-  for (  int element : getPartitionsList()) {
-    output.writeInt32(2,element);
-  }
   if (hasStore()) {
-    output.writeString(3,getStore());
+    output.writeString(2,getStore());
   }
   if (hasFilter()) {
-    output.writeMessage(4,getFilter());
+    output.writeMessage(3,getFilter());
   }
-  if (hasIsReadonly()) {
-    output.writeBool(5,getIsReadonly());
+  for (  voldemort.client.protocol.pb.VAdminProto.PartitionTuple element : getReplicaToPartitionList()) {
+    output.writeMessage(4,element);
+  }
+  if (hasInitialCluster()) {
+    output.writeString(5,getInitialCluster());
   }
   getUnknownFields().writeTo(output);
 }

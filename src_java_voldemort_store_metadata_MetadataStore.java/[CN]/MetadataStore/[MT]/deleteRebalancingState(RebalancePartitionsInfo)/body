@@ -1,0 +1,18 @@
+{
+  writeLock.lock();
+  try {
+    RebalancerState rebalancerState=getRebalancerState();
+    if (!rebalancerState.remove(stealInfo))     throw new IllegalArgumentException("Couldn't find " + stealInfo + " in "+ rebalancerState+ " while deleting");
+    if (rebalancerState.isEmpty()) {
+      logger.debug("Cleaning all rebalancing state");
+      cleanAllRebalancingState();
+    }
+ else {
+      put(REBALANCING_STEAL_INFO,rebalancerState);
+      initCache(REBALANCING_STEAL_INFO);
+    }
+  }
+  finally {
+    writeLock.unlock();
+  }
+}

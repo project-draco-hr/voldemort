@@ -22,25 +22,27 @@
     }
   }
   if (!exceptions.isEmpty()) {
-    for (    int successfulNodeId : previousDirs.keySet()) {
-      try {
-        String url=cluster.getNodeById(successfulNodeId).getHttpUrl() + "/" + readOnlyMgmtPath;
-        PostMethod post=new PostMethod(url);
-        post.addParameter("operation","rollback");
-        post.addParameter("store",storeName);
-        post.addParameter("pushVersion",Long.toString(ReadOnlyUtils.getVersionId(new File(previousDirs.get(successfulNodeId)))));
-        logger.info("Rolling back data on successful node " + successfulNodeId);
-        int responseCode=httpClient.executeMethod(post);
-        String response=post.getStatusText();
-        if (responseCode == 200) {
-          logger.info("Rollback succeeded for node " + successfulNodeId);
-        }
+    if (rollbackFailedSwap) {
+      for (      int successfulNodeId : previousDirs.keySet()) {
+        try {
+          String url=cluster.getNodeById(successfulNodeId).getHttpUrl() + "/" + readOnlyMgmtPath;
+          PostMethod post=new PostMethod(url);
+          post.addParameter("operation","rollback");
+          post.addParameter("store",storeName);
+          post.addParameter("pushVersion",Long.toString(ReadOnlyUtils.getVersionId(new File(previousDirs.get(successfulNodeId)))));
+          logger.info("Rolling back data on successful node " + successfulNodeId);
+          int responseCode=httpClient.executeMethod(post);
+          String response=post.getStatusText();
+          if (responseCode == 200) {
+            logger.info("Rollback succeeded for node " + successfulNodeId);
+          }
  else {
-          throw new VoldemortException(response);
+            throw new VoldemortException(response);
+          }
         }
-      }
- catch (      Exception e) {
-        logger.error("Exception thrown during rollback ( after swap ) operation on node " + successfulNodeId + " : ",e);
+ catch (        Exception e) {
+          logger.error("Exception thrown during rollback ( after swap ) operation on node " + successfulNodeId + " : ",e);
+        }
       }
     }
     for (    int failedNodeId : exceptions.keySet()) {

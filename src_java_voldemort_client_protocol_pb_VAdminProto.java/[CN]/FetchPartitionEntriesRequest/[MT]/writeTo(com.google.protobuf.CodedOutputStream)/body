@@ -1,7 +1,7 @@
 {
   getSerializedSize();
-  for (  int element : getPartitionsList()) {
-    output.writeInt32(1,element);
+  for (  voldemort.client.protocol.pb.VAdminProto.PartitionTuple element : getReplicaToPartitionList()) {
+    output.writeMessage(1,element);
   }
   if (hasStore()) {
     output.writeString(2,getStore());
@@ -12,11 +12,11 @@
   if (hasFetchValues()) {
     output.writeBool(4,getFetchValues());
   }
-  if (hasFetchMasterEntries()) {
-    output.writeBool(5,getFetchMasterEntries());
-  }
   if (hasSkipRecords()) {
-    output.writeInt64(6,getSkipRecords());
+    output.writeInt64(5,getSkipRecords());
+  }
+  if (hasInitialCluster()) {
+    output.writeString(6,getInitialCluster());
   }
   getUnknownFields().writeTo(output);
 }

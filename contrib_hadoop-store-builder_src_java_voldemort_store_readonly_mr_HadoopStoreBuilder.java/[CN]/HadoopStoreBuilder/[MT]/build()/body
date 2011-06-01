@@ -5,11 +5,17 @@
     conf.set("cluster.xml",new ClusterMapper().writeCluster(cluster));
     conf.set("stores.xml",new StoreDefinitionsMapper().writeStoreList(Collections.singletonList(storeDef)));
     conf.setBoolean("save.keys",saveKeys);
+    conf.setBoolean("reducer.per.bucket",reducerPerBucket);
     conf.setPartitionerClass(HadoopStoreBuilderPartitioner.class);
     conf.setMapperClass(mapperClass);
     conf.setMapOutputKeyClass(BytesWritable.class);
     conf.setMapOutputValueClass(BytesWritable.class);
-    conf.setReducerClass(HadoopStoreBuilderReducer.class);
+    if (reducerPerBucket) {
+      conf.setReducerClass(HadoopStoreBuilderReducerPerBucket.class);
+    }
+ else {
+      conf.setReducerClass(HadoopStoreBuilderReducer.class);
+    }
     conf.setInputFormat(inputFormatClass);
     conf.setOutputFormat(SequenceFileOutputFormat.class);
     conf.setOutputKeyClass(BytesWritable.class);
@@ -28,24 +34,50 @@
     tempFs.delete(tempDir,true);
     long size=sizeOfPath(tempFs,inputPath);
     logger.info("Data size = " + size + ", replication factor = "+ storeDef.getReplicationFactor()+ ", numNodes = "+ cluster.getNumberOfNodes()+ ", chunk size = "+ chunkSizeBytes);
-    int numChunks, numReducers;
+    int numReducers;
     if (saveKeys) {
-      numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfPartitions() / storeDef.getReplicationFactor() / chunkSizeBytes),1);
-      numReducers=cluster.getNumberOfPartitions() * storeDef.getReplicationFactor() * numChunks;
+      if (this.numChunks == -1) {
+        this.numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfPartitions() / storeDef.getReplicationFactor() / chunkSizeBytes),1);
+      }
+ else {
+        logger.info("Overriding chunk size byte and taking num chunks (" + this.numChunks + ") directly");
+      }
+      if (reducerPerBucket) {
+        numReducers=cluster.getNumberOfPartitions() * storeDef.getReplicationFactor();
+      }
+ else {
+        numReducers=cluster.getNumberOfPartitions() * storeDef.getReplicationFactor() * numChunks;
+      }
     }
  else {
-      numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfPartitions() / chunkSizeBytes),1);
-      numReducers=cluster.getNumberOfPartitions() * numChunks;
+      if (this.numChunks == -1) {
+        this.numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfPartitions() / chunkSizeBytes),1);
+      }
+ else {
+        logger.info("Overriding chunk size byte and taking num chunks (" + this.numChunks + ") directly");
+      }
+      if (reducerPerBucket) {
+        numReducers=cluster.getNumberOfPartitions();
+      }
+ else {
+        numReducers=cluster.getNumberOfPartitions() * numChunks;
+      }
     }
     conf.setInt("num.chunks",numChunks);
     conf.setNumReduceTasks(numReducers);
-    logger.info("Number of chunks: " + numChunks + ", number of reducers: "+ numReducers+ ", save keys: "+ saveKeys);
+    logger.info("Number of chunks: " + numChunks + ", number of reducers: "+ numReducers+ ", save keys: "+ saveKeys+ ", reducerPerBucket: "+ reducerPerBucket);
     logger.info("Building store...");
     RunningJob job=JobClient.runJob(conf);
     Counters counters=job.getCounters();
     if (saveKeys) {
-      logger.info("Number of collisions in the job - " + counters.getCounter(HadoopStoreBuilderReducer.CollisionCounter.NUM_COLLISIONS));
-      logger.info("Maximum number of collisions for one entry - " + counters.getCounter(HadoopStoreBuilderReducer.CollisionCounter.MAX_COLLISIONS));
+      if (reducerPerBucket) {
+        logger.info("Number of collisions in the job - " + counters.getCounter(HadoopStoreBuilderReducerPerBucket.CollisionCounter.NUM_COLLISIONS));
+        logger.info("Maximum number of collisions for one entry - " + counters.getCounter(HadoopStoreBuilderReducerPerBucket.CollisionCounter.MAX_COLLISIONS));
+      }
+ else {
+        logger.info("Number of collisions in the job - " + counters.getCounter(HadoopStoreBuilderReducer.CollisionCounter.NUM_COLLISIONS));
+        logger.info("Maximum number of collisions for one entry - " + counters.getCounter(HadoopStoreBuilderReducer.CollisionCounter.MAX_COLLISIONS));
+      }
     }
     CheckSum checkSumGenerator=CheckSum.getInstance(this.checkSumType);
     if (!this.checkSumType.equals(CheckSumType.NONE) && checkSumGenerator == null) {

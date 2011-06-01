@@ -1,0 +1,26 @@
+{
+  Multimap<Integer,ByteArray> donorNodeToKeys=HashMultimap.create();
+  int numKeys=0;
+  for (  Map.Entry<ByteArray,RebalancePartitionsInfo> entry : rebalancePartitionsInfoPerKey.entrySet()) {
+    numKeys++;
+    donorNodeToKeys.put(entry.getValue().getDonorId(),entry.getKey());
+  }
+  Map<ByteArray,List<Versioned<byte[]>>> gatherMap=Maps.newHashMapWithExpectedSize(numKeys);
+  for (  int donorNodeId : donorNodeToKeys.keySet()) {
+    Node donorNode=metadata.getCluster().getNodeById(donorNodeId);
+    checkNodeAvailable(donorNode);
+    long startNs=System.nanoTime();
+    try {
+      Map<ByteArray,List<Versioned<byte[]>>> resultsForNode=getRedirectingSocketStore(getName(),donorNodeId).getAll(donorNodeToKeys.get(donorNodeId),transforms);
+      recordSuccess(donorNode,startNs);
+      for (      Map.Entry<ByteArray,List<Versioned<byte[]>>> entry : resultsForNode.entrySet()) {
+        gatherMap.put(entry.getKey(),entry.getValue());
+      }
+    }
+ catch (    UnreachableStoreException e) {
+      recordException(donorNode,startNs,e);
+      throw new ProxyUnreachableException("Failed to reach proxy node " + donorNode,e);
+    }
+  }
+  return gatherMap;
+}

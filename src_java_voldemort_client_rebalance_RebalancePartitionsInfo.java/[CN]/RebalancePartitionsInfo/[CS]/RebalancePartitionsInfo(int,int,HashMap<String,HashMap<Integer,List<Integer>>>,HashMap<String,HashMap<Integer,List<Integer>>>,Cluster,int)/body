@@ -1,0 +1,14 @@
+{
+  this.stealerId=stealerNodeId;
+  this.donorId=donorId;
+  this.storeToReplicaToAddPartitionList=storeToReplicaToAddPartitionList;
+  this.storeToReplicaToDeletePartitionList=storeToReplicaToDeletePartitionList;
+  if (!storeToReplicaToAddPartitionList.keySet().containsAll(storeToReplicaToDeletePartitionList.keySet())) {
+    throw new VoldemortException("Some stores are marked for deletion but are not in the addition list");
+  }
+  this.attempt=attempt;
+  this.maxReplica=0;
+  findMaxReplicaType(storeToReplicaToAddPartitionList);
+  findMaxReplicaType(storeToReplicaToDeletePartitionList);
+  this.initialCluster=Utils.notNull(initialCluster);
+}

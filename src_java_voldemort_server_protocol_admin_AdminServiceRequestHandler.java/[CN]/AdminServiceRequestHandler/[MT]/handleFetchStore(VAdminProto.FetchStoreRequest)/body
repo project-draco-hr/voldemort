@@ -8,13 +8,13 @@
     final long pushVersion;
     if (request.hasPushVersion()) {
       pushVersion=request.getPushVersion();
-      if (pushVersion <= store.getCurrentVersionId())       throw new VoldemortException("Version of push specified (" + pushVersion + ") should be greater than current version "+ store.getCurrentVersionId());
+      if (pushVersion <= store.getCurrentVersionId())       throw new VoldemortException("Version of push specified (" + pushVersion + ") should be greater than current version "+ store.getCurrentVersionId()+ " for store "+ storeName+ " on node "+ metadataStore.getNodeId());
     }
  else {
       long maxVersion;
       File[] storeDirList=ReadOnlyUtils.getVersionDirs(new File(store.getStoreDirPath()));
       if (storeDirList == null || storeDirList.length == 0) {
-        throw new VoldemortException("Push version required since no version folders exist");
+        throw new VoldemortException("Push version required since no version folders exist for store " + storeName + " on node "+ metadataStore.getNodeId());
       }
  else {
         maxVersion=ReadOnlyUtils.getVersionId(ReadOnlyUtils.findKthVersionedDir(storeDirList,storeDirList.length - 1,storeDirList.length - 1)[0]);

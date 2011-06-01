@@ -1,22 +1,90 @@
 {
+  Map<Integer,Set<Pair<Integer,Integer>>> buckets=RebalanceUtils.getNodeIdToAllPartitions(cluster,RebalanceUtils.getStoreDefinitionWithName(storeDefs,"test-readonly-fetchfiles"),true);
   for (  Node node : cluster.getNodes()) {
     ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)getStore(node.getId(),"test-readonly-fetchfiles");
+    Set<Pair<Integer,Integer>> nodeBucketsSet=buckets.get(node.getId());
+    HashMap<Integer,List<Integer>> nodeBuckets=RebalanceUtils.flattenPartitionTuples(nodeBucketsSet);
+    HashMap<Integer,List<Integer>> primaryNodeBuckets=Maps.newHashMap();
+    primaryNodeBuckets.put(0,nodeBuckets.get(0));
+    int primaryPartitions=nodeBuckets.get(0).size();
+    HashMap<Integer,List<Integer>> replicaNodeBuckets=Maps.newHashMap(nodeBuckets);
+    replicaNodeBuckets.remove(0);
+    int replicaPartitions=0;
+    for (    List<Integer> partitions : replicaNodeBuckets.values()) {
+      replicaPartitions+=partitions.size();
+    }
     File newVersionDir=new File(store.getStoreDirPath(),"version-" + Long.toString(versionId));
     Utils.mkdirs(newVersionDir);
-    generateFiles(numChunks,indexSize,dataSize,node.getPartitionIds(),newVersionDir);
+    generateROFiles(numChunks,indexSize,dataSize,nodeBuckets,newVersionDir);
     store.swapFiles(newVersionDir.getAbsolutePath());
+    HashMap<Object,Integer> chunkIdToNumChunks=store.getChunkedFileSet().getChunkIdToNumChunks();
+    for (    Object bucket : chunkIdToNumChunks.keySet()) {
+      Pair<Integer,Integer> partitionToReplicaBucket=(Pair<Integer,Integer>)bucket;
+      Pair<Integer,Integer> replicaToPartitionBucket=Pair.create(partitionToReplicaBucket.getSecond(),partitionToReplicaBucket.getFirst());
+      assertTrue(nodeBucketsSet.contains(replicaToPartitionBucket));
+    }
     File tempDir=TestUtils.createTempDir();
-    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",node.getPartitionIds(),tempDir.getAbsolutePath());
-    assertEquals(tempDir.list().length,2 * node.getPartitionIds().size() * numChunks);
-    for (    Integer partitionId : node.getPartitionIds()) {
-      for (int chunkId=0; chunkId < numChunks; chunkId++) {
-        File indexFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(chunkId)+ ".index");
-        File dataFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(chunkId)+ ".data");
-        assertTrue(indexFile.exists());
-        assertTrue(dataFile.exists());
-        assertEquals(indexFile.length(),indexSize);
-        assertEquals(dataFile.length(),dataSize);
+    HashMap<Integer,List<Integer>> dumbMap=Maps.newHashMap();
+    dumbMap.put(0,Lists.newArrayList(100));
+    try {
+      getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",dumbMap,tempDir.getAbsolutePath(),null);
+      fail("Should throw exception since partition map passed is bad");
+    }
+ catch (    VoldemortException e) {
+    }
+    tempDir=TestUtils.createTempDir();
+    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",primaryNodeBuckets,tempDir.getAbsolutePath(),null);
+    assertEquals(tempDir.list().length,2 * primaryPartitions * numChunks + 1);
+    for (    Entry<Integer,List<Integer>> entry : primaryNodeBuckets.entrySet()) {
+      int replicaType=entry.getKey();
+      for (      int partitionId : entry.getValue()) {
+        for (int chunkId=0; chunkId < numChunks; chunkId++) {
+          File indexFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId)+ ".index");
+          File dataFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId)+ ".data");
+          assertTrue(indexFile.exists());
+          assertTrue(dataFile.exists());
+          assertEquals(indexFile.length(),indexSize);
+          assertEquals(dataFile.length(),dataSize);
+        }
       }
     }
+    File metadataFile=new File(tempDir,".metadata");
+    assertEquals(metadataFile.exists(),true);
+    tempDir=TestUtils.createTempDir();
+    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",replicaNodeBuckets,tempDir.getAbsolutePath(),null);
+    assertEquals(tempDir.list().length,2 * replicaPartitions * numChunks + 1);
+    for (    Entry<Integer,List<Integer>> entry : replicaNodeBuckets.entrySet()) {
+      int replicaType=entry.getKey();
+      for (      int partitionId : entry.getValue()) {
+        for (int chunkId=0; chunkId < numChunks; chunkId++) {
+          File indexFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId)+ ".index");
+          File dataFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId)+ ".data");
+          assertTrue(indexFile.exists());
+          assertTrue(dataFile.exists());
+          assertEquals(indexFile.length(),indexSize);
+          assertEquals(dataFile.length(),dataSize);
+        }
+      }
+    }
+    metadataFile=new File(tempDir,".metadata");
+    assertEquals(metadataFile.exists(),true);
+    tempDir=TestUtils.createTempDir();
+    getAdminClient().fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",nodeBuckets,tempDir.getAbsolutePath(),null);
+    assertEquals(tempDir.list().length,2 * (primaryPartitions + replicaPartitions) * numChunks + 1);
+    for (    Entry<Integer,List<Integer>> entry : nodeBuckets.entrySet()) {
+      int replicaType=entry.getKey();
+      for (      int partitionId : entry.getValue()) {
+        for (int chunkId=0; chunkId < numChunks; chunkId++) {
+          File indexFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId)+ ".index");
+          File dataFile=new File(tempDir,Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId)+ ".data");
+          assertTrue(indexFile.exists());
+          assertTrue(dataFile.exists());
+          assertEquals(indexFile.length(),indexSize);
+          assertEquals(dataFile.length(),dataSize);
+        }
+      }
+    }
+    metadataFile=new File(tempDir,".metadata");
+    assertEquals(metadataFile.exists(),true);
   }
 }

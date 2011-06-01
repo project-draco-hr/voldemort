@@ -1,0 +1,29 @@
+{
+  HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(TEST_STREAM_KEYS_SIZE);
+  List<Integer> primaryMoved=Arrays.asList(0,2);
+  List<Integer> secondaryMoved=Arrays.asList(1,4);
+  Cluster targetCluster=RebalanceUtils.createUpdatedCluster(cluster,cluster.getNodeById(1),cluster.getNodeById(0),primaryMoved);
+  HashMap<Integer,List<Integer>> replicaToPartitions=Maps.newHashMap();
+  replicaToPartitions.put(0,primaryMoved);
+  replicaToPartitions.put(1,secondaryMoved);
+  HashMap<ByteArray,byte[]> keysMoved=Maps.newHashMap();
+  RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(RebalanceUtils.getStoreDefinitionWithName(storeDefs,"test-recovery-data"),cluster);
+  Store<ByteArray,byte[],byte[]> store0=getStore(0,"test-recovery-data");
+  Store<ByteArray,byte[],byte[]> store1=getStore(1,"test-recovery-data");
+  for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
+    store0.put(entry.getKey(),new Versioned<byte[]>(entry.getValue()),null);
+    List<Integer> partitions=strategy.getPartitionList(entry.getKey().get());
+    if (primaryMoved.contains(partitions.get(0)) || (secondaryMoved.contains(partitions.get(0)) && cluster.getNodeById(0).getPartitionIds().contains(partitions.get(1)))) {
+      keysMoved.put(entry.getKey(),entry.getValue());
+    }
+  }
+  for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet())   assertEquals("server1 should be empty at start.",0,store1.get(entry.getKey(),null).size());
+  getServer(0).getMetadataStore().put(MetadataStore.CLUSTER_KEY,targetCluster);
+  AdminClient client=getAdminClient();
+  int id=client.migratePartitions(0,1,"test-recovery-data",replicaToPartitions,null,cluster);
+  client.waitForCompletion(1,id,120,TimeUnit.SECONDS);
+  for (  Entry<ByteArray,byte[]> entry : keysMoved.entrySet()) {
+    assertEquals("server1 store should contain fetchAndupdated partitions.",1,store1.get(entry.getKey(),null).size());
+    assertEquals("entry value should match",new String(entry.getValue()),new String(store1.get(entry.getKey(),null).get(0).getValue()));
+  }
+}

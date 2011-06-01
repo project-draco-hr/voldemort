@@ -1,0 +1,22 @@
+{
+  getSerializedSize();
+  if (hasStealerId()) {
+    output.writeInt32(1,getStealerId());
+  }
+  if (hasDonorId()) {
+    output.writeInt32(2,getDonorId());
+  }
+  if (hasAttempt()) {
+    output.writeInt32(3,getAttempt());
+  }
+  for (  voldemort.client.protocol.pb.VAdminProto.PerStorePartitionTuple element : getReplicaToAddPartitionList()) {
+    output.writeMessage(4,element);
+  }
+  for (  voldemort.client.protocol.pb.VAdminProto.PerStorePartitionTuple element : getReplicaToDeletePartitionList()) {
+    output.writeMessage(5,element);
+  }
+  if (hasInitialCluster()) {
+    output.writeString(6,getInitialCluster());
+  }
+  getUnknownFields().writeTo(output);
+}

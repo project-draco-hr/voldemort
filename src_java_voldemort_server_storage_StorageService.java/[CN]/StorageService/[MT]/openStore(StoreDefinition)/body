@@ -1,8 +1,9 @@
 {
   logger.info("Opening store '" + storeDef.getName() + "' ("+ storeDef.getType()+ ").");
   StorageConfiguration config=storageConfigs.get(storeDef.getType());
-  if (config == null)   throw new ConfigurationException("Attempt to open store " + storeDef.getName() + " but "+ storeDef.getType()+ " storage engine of type "+ storeDef.getType()+ " has not been enabled.");
-  if (storeDef.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0) {
+  if (config == null)   throw new ConfigurationException("Attempt to open store " + storeDef.getName() + " but "+ storeDef.getType()+ " storage engine has not been enabled.");
+  boolean isReadOnly=storeDef.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
+  if (isReadOnly) {
     final RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,metadata.getCluster());
     ((ReadOnlyStorageConfiguration)config).setRoutingStrategy(routingStrategy);
   }
@@ -16,7 +17,7 @@
 );
   }
   try {
-    registerEngine(engine);
+    registerEngine(engine,isReadOnly);
     if (voldemortConfig.isServerRoutingEnabled())     registerNodeStores(storeDef,metadata.getCluster(),voldemortConfig.getNodeId());
     if (storeDef.hasRetentionPeriod())     scheduleCleanupJob(storeDef,engine);
   }
