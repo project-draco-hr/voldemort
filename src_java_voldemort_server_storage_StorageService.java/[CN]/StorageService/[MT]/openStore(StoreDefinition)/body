@@ -17,12 +17,12 @@
 );
   }
   try {
-    registerEngine(engine,isReadOnly);
+    registerEngine(engine,isReadOnly,storeDef.getType());
     if (voldemortConfig.isServerRoutingEnabled())     registerNodeStores(storeDef,metadata.getCluster(),voldemortConfig.getNodeId());
     if (storeDef.hasRetentionPeriod())     scheduleCleanupJob(storeDef,engine);
   }
  catch (  Exception e) {
-    unregisterEngine(storeDef.getName(),storeDef.getType(),engine);
+    unregisterEngine(engine,isReadOnly,storeDef.getType());
     throw new VoldemortException(e);
   }
 }

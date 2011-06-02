@@ -1,5 +1,5 @@
 {
-  registerEngine(metadata,false);
+  registerEngine(metadata,false,"metadata");
   for (  String configClassName : voldemortConfig.getStorageConfigurations())   initStorageConfig(configClassName);
   storageConfigs.put(ViewStorageConfiguration.TYPE_NAME,new ViewStorageConfiguration(voldemortConfig,metadata.getStoreDefList(),storeRepository));
   if (voldemortConfig.isSlopEnabled()) {
@@ -7,7 +7,7 @@
     StorageConfiguration config=storageConfigs.get(voldemortConfig.getSlopStoreType());
     if (config == null)     throw new ConfigurationException("Attempt to open store " + SlopStorageEngine.SLOP_STORE_NAME + " but "+ voldemortConfig.getSlopStoreType()+ " storage engine has not been enabled.");
     SlopStorageEngine slopEngine=new SlopStorageEngine(config.getStore(SlopStorageEngine.SLOP_STORE_NAME),metadata.getCluster());
-    registerEngine(slopEngine,false);
+    registerEngine(slopEngine,false,"slop");
     storeRepository.setSlopStore(slopEngine);
     if (voldemortConfig.isSlopPusherJobEnabled()) {
       GregorianCalendar cal=new GregorianCalendar();
