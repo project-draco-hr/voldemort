@@ -7,6 +7,8 @@
     stealerToStolenPrimaryPartitions.put(stealerNode,stolenPrimaryPartitions);
   }
   int taskId=0;
+  int totalCrossZoneMoves=0;
+  int totalMoves=0;
   for (  Node stealerNode : targetCluster.getNodes()) {
     List<Integer> stolenPrimaryPartitions=stealerToStolenPrimaryPartitions.get(stealerNode);
     if (stolenPrimaryPartitions == null || stolenPrimaryPartitions.isEmpty()) {
@@ -20,6 +22,8 @@
       Cluster transitionCluster=RebalanceUtils.createUpdatedCluster(currentCluster,stealerNodeUpdated,donatedPrimaryPartition);
       stealerNodeUpdated=transitionCluster.getNodeById(stealerNodeUpdated.getId());
       final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(currentCluster,transitionCluster,storeDefs,rebalanceConfig.isDeleteAfterRebalancingEnabled());
+      totalCrossZoneMoves+=RebalanceUtils.getCrossZoneMoves(transitionCluster,rebalanceClusterPlan);
+      totalMoves+=RebalanceUtils.getTotalMoves(rebalanceClusterPlan);
       final OrderedClusterTransition orderedClusterTransition=new OrderedClusterTransition(currentCluster,transitionCluster,storeDefs,rebalanceClusterPlan);
       RebalanceUtils.printLog(stealerNode.getId(),logger,orderedClusterTransition.toString());
       rebalancePerPartitionTransition(stealerNode.getId(),orderedClusterTransition);
@@ -28,4 +32,6 @@
       RebalanceUtils.printLog(stealerNode.getId(),logger,"Completed tasks = " + taskId + ". Percent done = "+ decimalFormatter.format(taskId * 100.0 / numTasks));
     }
   }
+  logger.info("Total number of cross zone moves - " + totalCrossZoneMoves);
+  logger.info("Total number of moves - " + totalMoves);
 }
