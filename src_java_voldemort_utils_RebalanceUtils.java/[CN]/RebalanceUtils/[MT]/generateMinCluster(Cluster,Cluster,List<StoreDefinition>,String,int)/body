@@ -1,0 +1,33 @@
+{
+  HashMap<StoreDefinition,Integer> uniqueStores=KeyDistributionGenerator.getUniqueStoreDefinitionsWithCounts(storeDefs);
+  Cluster minCluster=targetCluster;
+  int minMoves=Integer.MAX_VALUE;
+  double minStdDev=Double.MAX_VALUE;
+  for (int numTries=0; numTries < tries; numTries++) {
+    Pair<Cluster,Integer> minClusterMove=RebalanceUtils.generateMinCluster(currentCluster,targetCluster,storeDefs);
+    double currentStdDev=KeyDistributionGenerator.getStdDeviation(KeyDistributionGenerator.generateOverallDistributionWithUniqueStores(minClusterMove.getFirst(),uniqueStores,10000));
+    if (currentStdDev < minStdDev && minClusterMove.getSecond() < minMoves) {
+      minMoves=minClusterMove.getSecond();
+      minStdDev=currentStdDev;
+      minCluster=minClusterMove.getFirst();
+    }
+    if (numTries % 10 == 0) {
+      System.out.println("Optimization number " + numTries + "] "+ minMoves+ " moves, "+ minStdDev+ " std dev");
+    }
+  }
+  System.out.println("Current distribution");
+  System.out.println("--------------------");
+  System.out.println(KeyDistributionGenerator.printOverallDistribution(currentCluster,storeDefs));
+  System.out.println("Target distribution");
+  System.out.println("--------------------");
+  System.out.println(KeyDistributionGenerator.printOverallDistribution(minCluster,storeDefs));
+  System.out.println(new ClusterMapper().writeCluster(minCluster));
+  if (outputDir != null) {
+    try {
+      FileUtils.writeStringToFile(new File(outputDir,RebalanceUtils.finalClusterFileName),new ClusterMapper().writeCluster(minCluster));
+    }
+ catch (    Exception e) {
+    }
+  }
+  return;
+}

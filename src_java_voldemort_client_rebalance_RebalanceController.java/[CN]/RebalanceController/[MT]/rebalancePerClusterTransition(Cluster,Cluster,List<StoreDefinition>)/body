@@ -26,6 +26,7 @@
       totalMoves+=RebalanceUtils.getTotalMoves(rebalanceClusterPlan);
       final OrderedClusterTransition orderedClusterTransition=new OrderedClusterTransition(currentCluster,transitionCluster,storeDefs,rebalanceClusterPlan);
       RebalanceUtils.printLog(stealerNode.getId(),logger,orderedClusterTransition.toString());
+      if (rebalanceConfig.hasOutputDirectory())       RebalanceUtils.dumpCluster(currentCluster,transitionCluster,new File(rebalanceConfig.getOutputDirectory()));
       rebalancePerPartitionTransition(stealerNode.getId(),orderedClusterTransition);
       currentCluster=transitionCluster;
       taskId++;

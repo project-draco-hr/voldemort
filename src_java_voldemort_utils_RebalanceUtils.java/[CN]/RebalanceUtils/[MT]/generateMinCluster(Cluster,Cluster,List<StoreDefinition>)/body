@@ -41,8 +41,9 @@
     }
   }
   Cluster returnCluster=updateCluster(targetCluster,allNodes);
+  int totalPrimaryPartitionsMoved=0;
   if (currentNumNodes == targetNumNodes) {
-    return returnCluster;
+    return Pair.create(returnCluster,totalPrimaryPartitionsMoved);
   }
   for (  int newNodeId : newNodeIds) {
     Node newNode=targetCluster.getNodeById(newNodeId);
@@ -61,7 +62,7 @@
         continue;
       }
       List<Integer> donorPartitions=Lists.newArrayList(returnCluster.getNodeById(donorNodeId).getPartitionIds());
-      Collections.shuffle(donorPartitions);
+      Collections.shuffle(donorPartitions,new Random(System.currentTimeMillis()));
       int partitionsDonated=0;
       for (      int donorPartition : donorPartitions) {
         if (partitionsDonated == partitionsToDonate)         break;
@@ -69,10 +70,11 @@
         if (RebalanceUtils.getCrossZoneMoves(intermediateCluster,new RebalanceClusterPlan(returnCluster,intermediateCluster,storeDefs,true)) == 0) {
           returnCluster=intermediateCluster;
           partitionsDonated++;
+          totalPrimaryPartitionsMoved++;
         }
       }
       partitionsToSteal-=partitionsDonated;
     }
   }
-  return returnCluster;
+  return Pair.create(returnCluster,totalPrimaryPartitionsMoved);
 }
