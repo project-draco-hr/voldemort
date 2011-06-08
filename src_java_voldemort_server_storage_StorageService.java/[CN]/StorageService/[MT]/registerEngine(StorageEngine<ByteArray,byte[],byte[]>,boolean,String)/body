@@ -18,7 +18,7 @@ synchronized (mbeanServer) {
         }
       }
     }
-    if (voldemortConfig.isMetadataCheckingEnabled())     store=new InvalidMetadataCheckingStore(metadata.getNodeId(),store,metadata);
+    if (voldemortConfig.isMetadataCheckingEnabled() && !isMetadata)     store=new InvalidMetadataCheckingStore(metadata.getNodeId(),store,metadata);
   }
   if (voldemortConfig.isStatTrackingEnabled()) {
     StatTrackingStore statStore=new StatTrackingStore(store,this.storeStats);

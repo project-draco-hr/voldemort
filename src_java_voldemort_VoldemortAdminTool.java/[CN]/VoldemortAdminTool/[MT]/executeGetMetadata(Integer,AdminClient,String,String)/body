@@ -1,4 +1,11 @@
 {
+  File directory=null;
+  if (outputDir != null) {
+    directory=new File(outputDir);
+    if (!(directory.exists() || directory.mkdir())) {
+      Utils.croak("Can't find or create directory " + outputDir);
+    }
+  }
   List<Integer> nodeIds=Lists.newArrayList();
   if (nodeId < 0) {
     for (    Node node : adminClient.getAdminClientCluster().getNodes()) {
@@ -20,14 +27,24 @@
       continue;
     }
     if (versioned == null) {
-      System.out.println("null");
-      System.out.println();
+      if (directory == null) {
+        System.out.println("null");
+        System.out.println();
+      }
+ else {
+        FileUtils.writeStringToFile(new File(directory,"cluster.xml_" + currentNodeId),"");
+      }
     }
  else {
-      System.out.println(versioned.getVersion());
-      System.out.print(": ");
-      System.out.println(versioned.getValue());
-      System.out.println();
+      if (directory == null) {
+        System.out.println(versioned.getVersion());
+        System.out.print(": ");
+        System.out.println(versioned.getValue());
+        System.out.println();
+      }
+ else {
+        FileUtils.writeStringToFile(new File(directory,"cluster.xml_" + currentNodeId),versioned.getValue());
+      }
     }
   }
 }
