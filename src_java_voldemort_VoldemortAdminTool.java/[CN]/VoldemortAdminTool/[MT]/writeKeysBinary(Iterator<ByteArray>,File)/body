@@ -1,7 +1,9 @@
 {
   DataOutputStream dos=null;
+  FileOutputStream outputStream=null;
   if (outputFile != null) {
-    dos=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)));
+    outputStream=new FileOutputStream(outputFile);
+    dos=new DataOutputStream(new BufferedOutputStream(outputStream));
   }
  else {
     dos=new DataOutputStream(new BufferedOutputStream(System.out));
@@ -14,6 +16,9 @@
     }
   }
   finally {
+    if (outputStream != null) {
+      outputStream.close();
+    }
     dos.close();
   }
 }
