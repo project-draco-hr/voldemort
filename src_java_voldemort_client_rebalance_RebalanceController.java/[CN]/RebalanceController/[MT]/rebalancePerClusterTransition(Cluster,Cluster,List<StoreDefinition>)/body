@@ -1,14 +1,32 @@
 {
   final Map<Node,List<Integer>> stealerToStolenPrimaryPartitions=new HashMap<Node,List<Integer>>();
   int numTasks=0;
+  int numCrossZoneMoves=0;
+  int numPrimaryPartitionMoves=0;
+  ClusterMapper mapper=new ClusterMapper();
+  Cluster currentClusterClone=mapper.readCluster(new StringReader(mapper.writeCluster(currentCluster)));
   for (  Node stealerNode : targetCluster.getNodes()) {
-    List<Integer> stolenPrimaryPartitions=RebalanceUtils.getStolenPrimaryPartitions(currentCluster,targetCluster,stealerNode.getId());
-    numTasks+=stolenPrimaryPartitions.size();
-    stealerToStolenPrimaryPartitions.put(stealerNode,stolenPrimaryPartitions);
+    List<Integer> stolenPrimaryPartitions=RebalanceUtils.getStolenPrimaryPartitions(currentClusterClone,targetCluster,stealerNode.getId());
+    if (stolenPrimaryPartitions != null && stolenPrimaryPartitions.size() > 0) {
+      stealerToStolenPrimaryPartitions.put(stealerNode,stolenPrimaryPartitions);
+      numPrimaryPartitionMoves+=stolenPrimaryPartitions.size();
+      Node stealerNodeUpdated=currentClusterClone.getNodeById(stealerNode.getId());
+      for (      Integer donatedPrimaryPartition : stolenPrimaryPartitions) {
+        Cluster transitionCluster=RebalanceUtils.createUpdatedCluster(currentClusterClone,stealerNodeUpdated,donatedPrimaryPartition);
+        stealerNodeUpdated=transitionCluster.getNodeById(stealerNodeUpdated.getId());
+        final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(currentClusterClone,transitionCluster,storeDefs,rebalanceConfig.isDeleteAfterRebalancingEnabled());
+        numCrossZoneMoves+=RebalanceUtils.getCrossZoneMoves(transitionCluster,rebalanceClusterPlan);
+        numTasks+=RebalanceUtils.getTotalMoves(rebalanceClusterPlan);
+        currentClusterClone=transitionCluster;
+      }
+    }
   }
-  int taskId=0;
-  int totalCrossZoneMoves=0;
-  int totalMoves=0;
+  logger.info("Total number of primary partition moves - " + numPrimaryPartitionMoves);
+  logger.info("Total number of cross zone moves - " + numCrossZoneMoves);
+  logger.info("Total number of tasks - " + numTasks);
+  int tasksCompleted=0;
+  int primaryPartitionId=0;
+  double totalTimeMs=0.0;
   for (  Node stealerNode : targetCluster.getNodes()) {
     List<Integer> stolenPrimaryPartitions=stealerToStolenPrimaryPartitions.get(stealerNode);
     if (stolenPrimaryPartitions == null || stolenPrimaryPartitions.isEmpty()) {
@@ -22,17 +40,19 @@
       Cluster transitionCluster=RebalanceUtils.createUpdatedCluster(currentCluster,stealerNodeUpdated,donatedPrimaryPartition);
       stealerNodeUpdated=transitionCluster.getNodeById(stealerNodeUpdated.getId());
       final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(currentCluster,transitionCluster,storeDefs,rebalanceConfig.isDeleteAfterRebalancingEnabled());
-      totalCrossZoneMoves+=RebalanceUtils.getCrossZoneMoves(transitionCluster,rebalanceClusterPlan);
-      totalMoves+=RebalanceUtils.getTotalMoves(rebalanceClusterPlan);
       final OrderedClusterTransition orderedClusterTransition=new OrderedClusterTransition(currentCluster,transitionCluster,storeDefs,rebalanceClusterPlan);
       RebalanceUtils.printLog(stealerNode.getId(),logger,orderedClusterTransition.toString());
       if (rebalanceConfig.hasOutputDirectory())       RebalanceUtils.dumpCluster(currentCluster,transitionCluster,new File(rebalanceConfig.getOutputDirectory()));
+      long startTimeMs=System.currentTimeMillis();
       rebalancePerPartitionTransition(stealerNode.getId(),orderedClusterTransition);
+      totalTimeMs+=(System.currentTimeMillis() - startTimeMs);
       currentCluster=transitionCluster;
-      taskId++;
-      RebalanceUtils.printLog(stealerNode.getId(),logger,"Completed tasks = " + taskId + ". Percent done = "+ decimalFormatter.format(taskId * 100.0 / numTasks));
+      tasksCompleted+=RebalanceUtils.getTotalMoves(rebalanceClusterPlan);
+      primaryPartitionId+=1;
+      double estimatedTimeMs=(totalTimeMs / tasksCompleted) * (numTasks - tasksCompleted);
+      RebalanceUtils.printLog(stealerNode.getId(),logger,"Completed tasks - " + tasksCompleted + ". Percent done - "+ decimalFormatter.format(tasksCompleted * 100.0 / numTasks));
+      RebalanceUtils.printLog(stealerNode.getId(),logger,"Primary partitions left to move - " + (numPrimaryPartitionMoves - primaryPartitionId));
+      RebalanceUtils.printLog(stealerNode.getId(),logger,"Estimated time left for completion - " + estimatedTimeMs + " ms ( "+ estimatedTimeMs / Time.MS_PER_HOUR + " hours )");
     }
   }
-  logger.info("Total number of cross zone moves - " + totalCrossZoneMoves);
-  logger.info("Total number of moves - " + totalMoves);
 }
