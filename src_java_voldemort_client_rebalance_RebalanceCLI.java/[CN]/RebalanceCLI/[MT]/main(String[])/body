@@ -15,6 +15,7 @@
     parser.accepts("output-dir","Specify the output directory for (1) dumping metadata" + "(b) dumping entropy keys").withRequiredArg().ofType(String.class).describedAs("path");
     parser.accepts("no-delete","Do not delete after rebalancing (Valid only for RW Stores) ");
     parser.accepts("show-plan","Shows the rebalancing plan only without executing the rebalance");
+    parser.accepts("keys","The number of keys to use for entropy calculation [ Default : " + Entropy.DEFAULT_NUM_KEYS + " ]").withRequiredArg().ofType(Long.class).describedAs("num-keys");
     OptionSet options=parser.parse(args);
     if (options.has("help")) {
       printHelp(System.out,parser);
@@ -62,7 +63,8 @@
           System.exit(ERROR_EXIT_CODE);
         }
         boolean entropy=(Boolean)options.valueOf("entropy");
-        Entropy generator=new Entropy(0,parallelism,10000);
+        long numKeys=CmdUtils.valueOf(options,"keys",Entropy.DEFAULT_NUM_KEYS);
+        Entropy generator=new Entropy(-1,parallelism,numKeys);
         generator.generateEntropy(currentCluster,storeDefs,new File(config.getOutputDirectory()),entropy);
         return;
       }

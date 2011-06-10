@@ -16,6 +16,12 @@
     stores=Lists.newArrayList();
     stores.addAll(storeDefinitionMap.keySet());
   }
+  if (partitionIdList == null) {
+    partitionIdList=Lists.newArrayList();
+    for (    Node node : adminClient.getAdminClientCluster().getNodes()) {
+      partitionIdList.addAll(node.getPartitionIds());
+    }
+  }
   StoreDefinition storeDefinition=null;
   for (  String store : stores) {
     storeDefinition=storeDefinitionMap.get(store);

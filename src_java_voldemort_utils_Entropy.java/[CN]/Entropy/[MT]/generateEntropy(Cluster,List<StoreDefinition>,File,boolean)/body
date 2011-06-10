@@ -26,11 +26,25 @@
         FileOutputStream writer=null;
         try {
           writer=new FileOutputStream(storesKeyFile);
-          Iterator<ByteArray> keys=adminClient.fetchKeys(nodeId,storeDef.getName(),cluster.getNodeById(0).getPartitionIds(),null,false);
-          for (long keyId=0; keyId < numKeys && keys.hasNext(); keyId++) {
-            ByteArray key=keys.next();
-            writer.write(key.length());
-            writer.write(key.get());
+          Iterator<ByteArray> keys=null;
+          if (nodeId == -1) {
+            int numKeysPerNode=(int)Math.floor(numKeys / cluster.getNumberOfNodes());
+            for (            Node node : cluster.getNodes()) {
+              keys=adminClient.fetchKeys(node.getId(),storeDef.getName(),cluster.getNodeById(node.getId()).getPartitionIds(),null,false);
+              for (long keyId=0; keyId < numKeysPerNode && keys.hasNext(); keyId++) {
+                ByteArray key=keys.next();
+                writer.write(key.length());
+                writer.write(key.get());
+              }
+            }
+          }
+ else {
+            keys=adminClient.fetchKeys(nodeId,storeDef.getName(),cluster.getNodeById(nodeId).getPartitionIds(),null,false);
+            for (long keyId=0; keyId < numKeys && keys.hasNext(); keyId++) {
+              ByteArray key=keys.next();
+              writer.write(key.length());
+              writer.write(key.get());
+            }
           }
         }
   finally {
