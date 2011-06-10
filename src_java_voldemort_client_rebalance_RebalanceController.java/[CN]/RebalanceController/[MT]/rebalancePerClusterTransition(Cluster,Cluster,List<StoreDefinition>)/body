@@ -6,10 +6,10 @@
   ClusterMapper mapper=new ClusterMapper();
   Cluster currentClusterClone=mapper.readCluster(new StringReader(mapper.writeCluster(currentCluster)));
   for (  Node stealerNode : targetCluster.getNodes()) {
-    List<Integer> stolenPrimaryPartitions=RebalanceUtils.getStolenPrimaryPartitions(currentClusterClone,targetCluster,stealerNode.getId());
-    if (stolenPrimaryPartitions != null && stolenPrimaryPartitions.size() > 0) {
-      stealerToStolenPrimaryPartitions.put(stealerNode,stolenPrimaryPartitions);
-      numPrimaryPartitionMoves+=stolenPrimaryPartitions.size();
+    List<Integer> stolenPrimaryPartitions=RebalanceUtils.getStolenPrimaryPartitions(currentCluster,targetCluster,stealerNode.getId());
+    numPrimaryPartitionMoves+=stolenPrimaryPartitions.size();
+    stealerToStolenPrimaryPartitions.put(stealerNode,stolenPrimaryPartitions);
+    if (stolenPrimaryPartitions.size() > 0) {
       Node stealerNodeUpdated=currentClusterClone.getNodeById(stealerNode.getId());
       for (      Integer donatedPrimaryPartition : stolenPrimaryPartitions) {
         Cluster transitionCluster=RebalanceUtils.createUpdatedCluster(currentClusterClone,stealerNodeUpdated,donatedPrimaryPartition);
