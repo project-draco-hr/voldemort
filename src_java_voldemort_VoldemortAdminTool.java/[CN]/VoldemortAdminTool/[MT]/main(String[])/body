@@ -6,8 +6,8 @@
   parser.accepts("delete-partitions","Delete partitions").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("restore","Restore from replication [ Optional parallelism param - Default - 5 ]").withOptionalArg().describedAs("parallelism").ofType(Integer.class);
   parser.accepts("ascii","Fetch keys as ASCII");
-  parser.accepts("fetch-keys","Fetch keys").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
-  parser.accepts("fetch-entries","Fetch full entries").withRequiredArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
+  parser.accepts("fetch-keys","Fetch keys").withOptionalArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
+  parser.accepts("fetch-entries","Fetch full entries").withOptionalArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("outdir","Output directory").withRequiredArg().describedAs("output-directory").ofType(String.class);
   parser.accepts("stores","Store names").withRequiredArg().describedAs("store-names").withValuesSeparatedBy(',').ofType(String.class);
   parser.accepts("add-stores","Add stores in this stores.xml").withRequiredArg().describedAs("stores.xml containing just the new stores").ofType(String.class);
@@ -112,12 +112,15 @@
     if (ops.contains("k")) {
       boolean useAscii=options.has("ascii");
       System.out.println("Starting fetch keys");
-      List<Integer> partitionIdList=(List<Integer>)options.valuesOf("fetch-keys");
+      List<Integer> partitionIdList=null;
+      if (options.hasArgument("fetch-keys"))       partitionIdList=(List<Integer>)options.valuesOf("fetch-keys");
       executeFetchKeys(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
     }
     if (ops.contains("v")) {
       boolean useAscii=options.has("ascii");
-      List<Integer> partitionIdList=(List<Integer>)options.valuesOf("fetch-entries");
+      System.out.println("Starting fetch entries");
+      List<Integer> partitionIdList=null;
+      if (options.hasArgument("fetch-entries"))       partitionIdList=(List<Integer>)options.valuesOf("fetch-entries");
       executeFetchEntries(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
     }
     if (ops.contains("a")) {
@@ -130,7 +133,7 @@
     }
     if (ops.contains("s")) {
       String storeName=(String)options.valueOf("delete-store");
-      executeDeleteStore(adminClient,storeName);
+      executeDeleteStore(adminClient,storeName,nodeId);
     }
     if (ops.contains("g")) {
       String metadataKey=(String)options.valueOf("get-metadata");
