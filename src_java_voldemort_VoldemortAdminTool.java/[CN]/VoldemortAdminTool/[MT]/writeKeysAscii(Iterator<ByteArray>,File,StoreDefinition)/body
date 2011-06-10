@@ -1,8 +1,10 @@
 {
   BufferedWriter writer=null;
   CompressionStrategy keysCompressionStrategy=null;
+  FileWriter fileWriter=null;
   if (outputFile != null) {
-    writer=new BufferedWriter(new FileWriter(outputFile));
+    fileWriter=new FileWriter(outputFile);
+    writer=new BufferedWriter(fileWriter);
   }
  else {
     writer=new BufferedWriter(new OutputStreamWriter(System.out));
@@ -30,6 +32,9 @@
     writer.write('\n');
   }
   finally {
+    if (fileWriter != null) {
+      fileWriter.close();
+    }
     writer.close();
   }
 }

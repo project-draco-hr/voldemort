@@ -1,9 +1,5 @@
 {
-  VAdminProto.VoldemortAdminRequest request=createAddStoreRequest(def);
   for (  Node node : currentCluster.getNodes()) {
-    logger.info("Adding on node " + node.getHost() + ":"+ node.getId());
-    VAdminProto.AddStoreResponse.Builder response=sendAndReceive(node.getId(),request,VAdminProto.AddStoreResponse.newBuilder());
-    if (response.hasError())     throwException(response.getError());
-    logger.info("Successfully added on node " + node.getHost() + ":"+ node.getId());
+    addStore(def,node.getId());
   }
 }
