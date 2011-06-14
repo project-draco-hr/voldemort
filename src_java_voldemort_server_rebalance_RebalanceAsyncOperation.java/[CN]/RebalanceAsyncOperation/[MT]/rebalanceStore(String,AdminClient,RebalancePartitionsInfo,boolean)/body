@@ -1,7 +1,7 @@
 {
   logger.info(getHeader(stealInfo) + "Starting partitions migration for store " + storeName+ " from donor node "+ stealInfo.getDonorId());
   updateStatus(getHeader(stealInfo) + "Started partition migration for store " + storeName+ " from donor node "+ stealInfo.getDonorId());
-  int asyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getReplicaToAddPartitionList(storeName),null,stealInfo.getInitialCluster());
+  int asyncId=adminClient.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getReplicaToAddPartitionList(storeName),null,stealInfo.getInitialCluster(),true);
   rebalanceStatusList.add(asyncId);
   if (logger.isDebugEnabled()) {
     logger.debug(getHeader(stealInfo) + "Waiting for completion for " + storeName+ " with async id "+ asyncId);
