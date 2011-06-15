@@ -11,6 +11,7 @@
   if (initialCluster != null) {
     initiateFetchAndUpdateRequest.setInitialCluster(new ClusterMapper().writeCluster(initialCluster));
   }
+  initiateFetchAndUpdateRequest.setOptimize(optimize);
   VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setInitiateFetchAndUpdate(initiateFetchAndUpdateRequest).setType(VAdminProto.AdminRequestType.INITIATE_FETCH_AND_UPDATE).build();
   VAdminProto.AsyncOperationStatusResponse.Builder response=sendAndReceive(stealerNodeId,adminRequest,VAdminProto.AsyncOperationStatusResponse.newBuilder());
   if (response.hasError()) {
