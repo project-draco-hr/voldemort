@@ -1,0 +1,24 @@
+{
+  List<FileStatus> fileList=Lists.newArrayList();
+  for (  FileStatus file : files) {
+    if (!ReadOnlyUtils.isFormatCorrect(file.getPath().getName(),ReadOnlyStorageFormat.READONLY_V2)) {
+      throw new VoldemortException("Incorrect data file name format for " + file.getPath().getName() + ". Unsupported by "+ ReadOnlyStorageFormat.READONLY_V2);
+    }
+    fileList.add(file);
+  }
+  Collections.sort(fileList,new Comparator<FileStatus>(){
+    public int compare(    FileStatus f1,    FileStatus f2){
+      int chunkId1=ReadOnlyUtils.getChunkId(f1.getPath().getName());
+      int chunkId2=ReadOnlyUtils.getChunkId(f2.getPath().getName());
+      return chunkId1 - chunkId2;
+    }
+  }
+);
+  List<DataFileChunk> dataFiles=Lists.newArrayList();
+  List<Integer> dataFileSizes=Lists.newArrayList();
+  for (  FileStatus file : fileList) {
+    dataFiles.add(new HdfsDataFileChunk(fs,file));
+    dataFileSizes.add((int)file.getLen());
+  }
+  return new DataFileChunkSet(dataFiles,dataFileSizes);
+}

@@ -2,7 +2,8 @@
   logger.info("Rolling back store '" + getName() + "'");
   fileModificationLock.writeLock().lock();
   try {
-    if (rollbackToDir == null || !rollbackToDir.exists())     throw new VoldemortException("Version directory specified to rollback to does not exist or is null");
+    if (rollbackToDir == null)     throw new VoldemortException("Version directory specified to rollback is null");
+    if (!rollbackToDir.exists())     throw new VoldemortException("Version directory " + rollbackToDir.getAbsolutePath() + " specified to rollback does not exist");
     long versionId=ReadOnlyUtils.getVersionId(rollbackToDir);
     if (versionId == -1)     throw new VoldemortException("Cannot parse version id");
     File[] backUpDirs=ReadOnlyUtils.getVersionDirs(storeDir,versionId,Long.MAX_VALUE);

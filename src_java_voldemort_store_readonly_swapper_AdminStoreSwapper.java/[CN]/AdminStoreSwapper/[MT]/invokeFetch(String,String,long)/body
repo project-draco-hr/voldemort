@@ -6,25 +6,40 @@
         String storeDir=basePath + "/node-" + node.getId();
         logger.info("Invoking fetch for node " + node.getId() + " for "+ storeDir);
         String response=adminClient.fetchStore(node.getId(),storeName,storeDir,pushVersion,timeoutMs);
-        if (response == null)         throw new VoldemortException("Swap request on node " + node.getId() + " ("+ node.getHost()+ ") failed");
+        if (response == null)         throw new VoldemortException("Fetch request on node " + node.getId() + " ("+ node.getHost()+ ") failed");
         logger.info("Fetch succeeded on node " + node.getId());
         return response.trim();
       }
     }
 ));
   }
-  List<String> results=new ArrayList<String>();
+  TreeMap<Integer,String> results=Maps.newTreeMap();
+  HashMap<Integer,Exception> exceptions=Maps.newHashMap();
   for (int nodeId=0; nodeId < cluster.getNumberOfNodes(); nodeId++) {
     Future<String> val=fetchDirs.get(nodeId);
     try {
-      results.add(val.get());
+      results.put(nodeId,val.get());
     }
- catch (    ExecutionException e) {
-      throw new VoldemortException(e.getCause());
-    }
-catch (    InterruptedException e) {
-      throw new VoldemortException(e);
+ catch (    Exception e) {
+      exceptions.put(nodeId,new VoldemortException(e));
     }
   }
-  return results;
+  if (!exceptions.isEmpty()) {
+    if (deleteFailedFetch) {
+      for (      int successfulNodeId : results.keySet()) {
+        try {
+          logger.info("Deleting fetched data from node " + successfulNodeId);
+          adminClient.failedFetchStore(successfulNodeId,storeName,results.get(successfulNodeId));
+        }
+ catch (        Exception e) {
+          logger.error("Exception thrown during delete operation on node " + successfulNodeId + " : ",e);
+        }
+      }
+    }
+    for (    int failedNodeId : exceptions.keySet()) {
+      logger.error("Error on node " + failedNodeId + " during push : ",exceptions.get(failedNodeId));
+    }
+    throw new VoldemortException("Exception during pushes to nodes " + Joiner.on(",").join(exceptions.keySet()) + " failed");
+  }
+  return Lists.newArrayList(results.values());
 }

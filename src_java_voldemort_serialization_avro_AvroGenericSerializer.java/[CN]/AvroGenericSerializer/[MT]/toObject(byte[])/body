@@ -1,15 +1,11 @@
 {
-  ByteArrayInputStream input=new ByteArrayInputStream(bytes);
-  DataFileStream<Object> reader=null;
+  Decoder decoder=DecoderFactory.defaultFactory().createBinaryDecoder(bytes,null);
+  GenericDatumReader<Object> reader=null;
   try {
-    DatumReader<Object> datumReader=new GenericDatumReader<Object>(typeDef);
-    reader=new DataFileStream<Object>(input,datumReader);
-    return reader.next();
+    reader=new GenericDatumReader<Object>(typeDef);
+    return reader.read(null,decoder);
   }
  catch (  IOException e) {
     throw new SerializationException(e);
-  }
- finally {
-    AvroUtils.close(reader);
   }
 }

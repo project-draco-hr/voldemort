@@ -1,4 +1,15 @@
 {
-  System.out.println("Truncating " + storeName + " on node "+ nodeId);
-  adminClient.truncate(nodeId,storeName);
+  List<Integer> nodeIds=Lists.newArrayList();
+  if (nodeId < 0) {
+    for (    Node node : adminClient.getAdminClientCluster().getNodes()) {
+      nodeIds.add(node.getId());
+    }
+  }
+ else {
+    nodeIds.add(nodeId);
+  }
+  for (  Integer currentNodeId : nodeIds) {
+    System.out.println("Truncating " + storeName + " on node "+ currentNodeId);
+    adminClient.truncate(currentNodeId,storeName);
+  }
 }

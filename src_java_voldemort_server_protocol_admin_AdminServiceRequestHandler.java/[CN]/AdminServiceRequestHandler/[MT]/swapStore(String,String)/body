@@ -1,5 +1,7 @@
 {
   ReadOnlyStorageEngine store=getReadOnlyStorageEngine(metadataStore,storeRepository,storeName);
   if (!Utils.isReadableDir(directory))   throw new VoldemortException("Store directory '" + directory + "' is not a readable directory.");
+  String currentDirPath=store.getCurrentDirPath();
   store.swapFiles(directory);
+  return currentDirPath;
 }

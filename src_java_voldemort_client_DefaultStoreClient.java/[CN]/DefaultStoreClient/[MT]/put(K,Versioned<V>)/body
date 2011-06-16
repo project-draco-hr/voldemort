@@ -2,9 +2,10 @@
   for (int attempts=0; attempts < this.metadataRefreshAttempts; attempts++) {
     try {
       store.put(key,versioned,null);
-      return;
+      return versioned.getVersion();
     }
  catch (    InvalidMetadataException e) {
+      logger.info("Received invalid metadata exception during put [  " + e.getMessage() + " ] on store '"+ storeName+ "'. Rebootstrapping");
       bootStrap();
     }
   }

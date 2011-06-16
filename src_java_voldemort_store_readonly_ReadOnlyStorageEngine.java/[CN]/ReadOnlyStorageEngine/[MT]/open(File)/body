@@ -3,7 +3,7 @@
   try {
     if (isOpen)     throw new IllegalStateException("Attempt to open already open store.");
     if (versionDir == null) {
-      versionDir=getCurrentVersion();
+      versionDir=ReadOnlyUtils.getCurrentVersion(storeDir);
       if (versionDir == null)       versionDir=new File(storeDir,"version-0");
     }
     long versionId=ReadOnlyUtils.getVersionId(versionDir);
@@ -15,7 +15,8 @@
     logger.info("Creating symbolic link for '" + getName() + "' using directory "+ versionDir.getAbsolutePath());
     Utils.symlink(versionDir.getAbsolutePath(),storeDir.getAbsolutePath() + File.separator + "latest");
     this.fileSet=new ChunkedFileSet(versionDir,routingStrategy,nodeId);
-    isOpen=true;
+    this.lastSwapped=System.currentTimeMillis();
+    this.isOpen=true;
   }
   finally {
     fileModificationLock.writeLock().unlock();

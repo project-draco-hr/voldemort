@@ -1,0 +1,13 @@
+{
+  for (  Node node : cluster.getNodes()) {
+    Versioned<String> versioned=adminClient.getRemoteMetadata(node.getId(),MetadataStore.SERVER_STATE_KEY);
+    if (!VoldemortState.NORMAL_SERVER.name().equals(versioned.getValue())) {
+      throw new VoldemortRebalancingException("Cannot rebalance since node " + node.getId() + " ("+ node.getHost()+ ") is not in normal state, but in "+ versioned.getValue());
+    }
+ else {
+      if (logger.isInfoEnabled()) {
+        logger.info("Node " + node.getId() + " ("+ node.getHost()+ ") is ready for rebalance.");
+      }
+    }
+  }
+}

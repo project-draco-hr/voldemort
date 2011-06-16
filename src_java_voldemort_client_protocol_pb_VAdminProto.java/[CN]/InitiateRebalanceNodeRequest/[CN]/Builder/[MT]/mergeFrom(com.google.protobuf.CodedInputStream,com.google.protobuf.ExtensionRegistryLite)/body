@@ -14,84 +14,15 @@ default :
     }
     break;
   }
-case 16:
+case 10:
 {
-  setStealerId(input.readInt32());
+  voldemort.client.protocol.pb.VAdminProto.RebalancePartitionInfoMap.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.RebalancePartitionInfoMap.newBuilder();
+  if (hasRebalancePartitionInfo()) {
+    subBuilder.mergeFrom(getRebalancePartitionInfo());
+  }
+  input.readMessage(subBuilder,extensionRegistry);
+  setRebalancePartitionInfo(subBuilder.buildPartial());
   break;
-}
-case 24:
-{
-setDonorId(input.readInt32());
-break;
-}
-case 32:
-{
-addPartitions(input.readInt32());
-break;
-}
-case 34:
-{
-int length=input.readRawVarint32();
-int limit=input.pushLimit(length);
-while (input.getBytesUntilLimit() > 0) {
-addPartitions(input.readInt32());
-}
-input.popLimit(limit);
-break;
-}
-case 40:
-{
-setAttempt(input.readInt32());
-break;
-}
-case 48:
-{
-addDeletePartitions(input.readInt32());
-break;
-}
-case 50:
-{
-int length=input.readRawVarint32();
-int limit=input.pushLimit(length);
-while (input.getBytesUntilLimit() > 0) {
-addDeletePartitions(input.readInt32());
-}
-input.popLimit(limit);
-break;
-}
-case 58:
-{
-addUnbalancedStore(input.readString());
-break;
-}
-case 64:
-{
-addStealMasterPartitions(input.readInt32());
-break;
-}
-case 66:
-{
-int length=input.readRawVarint32();
-int limit=input.pushLimit(length);
-while (input.getBytesUntilLimit() > 0) {
-addStealMasterPartitions(input.readInt32());
-}
-input.popLimit(limit);
-break;
-}
-case 74:
-{
-voldemort.client.protocol.pb.VAdminProto.ROStoreVersionDirMap.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.ROStoreVersionDirMap.newBuilder();
-input.readMessage(subBuilder,extensionRegistry);
-addStealerRoStoreToDir(subBuilder.buildPartial());
-break;
-}
-case 82:
-{
-voldemort.client.protocol.pb.VAdminProto.ROStoreVersionDirMap.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.ROStoreVersionDirMap.newBuilder();
-input.readMessage(subBuilder,extensionRegistry);
-addDonorRoStoreToDir(subBuilder.buildPartial());
-break;
 }
 }
 }

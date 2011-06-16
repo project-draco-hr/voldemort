@@ -71,7 +71,6 @@
     Random randomizer=new Random();
     insertKeySequence=new CounterGenerator(randomizer.nextInt(Integer.MAX_VALUE));
   }
-  this.insertKeyProvider=getKeyProvider(keyTypeClass,insertKeySequence,0);
   IntegerGenerator keyGenerator=null;
   if (recordSelection.compareTo(Benchmark.UNIFORM_RECORD_SELECTION) == 0) {
     int keySpace=(recordCount > 0) ? recordCount : Integer.MAX_VALUE;
@@ -85,7 +84,7 @@
     keyGenerator=new SkewedLatestGenerator(insertKeySequence);
   }
  else   if (recordSelection.compareTo(Benchmark.FILE_RECORD_SELECTION) == 0) {
-    keyGenerator=new FileIntegerGenerator(insertStart,keysFromFile);
+    keyGenerator=new FileIntegerGenerator(0,keysFromFile);
   }
   this.keyProvider=getKeyProvider(keyTypeClass,keyGenerator,cachedPercent);
 }

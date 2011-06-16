@@ -1,0 +1,30 @@
+{
+  Set<Object> metadataValues=Sets.newHashSet();
+  for (  Node node : adminClient.getAdminClientCluster().getNodes()) {
+    System.out.println(node.getHost() + ":" + node.getId());
+    Versioned<String> versioned=adminClient.getRemoteMetadata(node.getId(),metadataKey);
+    if (versioned == null || versioned.getValue() == null) {
+      throw new VoldemortException("Value returned from node " + node.getId() + " was null");
+    }
+ else {
+      if (metadataKey.compareTo(MetadataStore.CLUSTER_KEY) == 0) {
+        metadataValues.add(new ClusterMapper().readCluster(new StringReader(versioned.getValue())));
+      }
+ else       if (metadataKey.compareTo(MetadataStore.STORES_KEY) == 0) {
+        metadataValues.add(new StoreDefinitionsMapper().readStoreList(new StringReader(versioned.getValue())));
+      }
+ else       if (metadataKey.compareTo(MetadataStore.SERVER_STATE_KEY) == 0) {
+        metadataValues.add(VoldemortState.valueOf(versioned.getValue()));
+      }
+ else {
+        throw new VoldemortException("Incorrect metadata key");
+      }
+    }
+  }
+  if (metadataValues.size() == 1) {
+    System.out.println("true");
+  }
+ else {
+    System.out.println("false");
+  }
+}

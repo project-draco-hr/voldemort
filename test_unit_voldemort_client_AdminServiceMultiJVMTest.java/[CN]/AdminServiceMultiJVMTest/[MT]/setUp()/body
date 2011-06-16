@@ -1,6 +1,8 @@
 {
   cluster=ServerTestUtils.getLocalCluster(2);
   voldemortHome=ServerJVMTestUtils.createAndInitializeVoldemortHome(useNio,0,storesXmlfile,cluster);
+  List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new File(storesXmlfile));
+  storeDef=RebalanceUtils.getStoreDefinitionWithName(storeDefs,testStoreName);
   pid=ServerJVMTestUtils.startServerJVM(socketStoreFactory,cluster.getNodeById(0),voldemortHome);
   adminClient=ServerTestUtils.getAdminClient(cluster);
 }

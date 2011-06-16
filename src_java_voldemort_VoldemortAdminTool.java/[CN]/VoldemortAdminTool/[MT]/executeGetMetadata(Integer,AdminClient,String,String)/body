@@ -1,0 +1,50 @@
+{
+  File directory=null;
+  if (outputDir != null) {
+    directory=new File(outputDir);
+    if (!(directory.exists() || directory.mkdir())) {
+      Utils.croak("Can't find or create directory " + outputDir);
+    }
+  }
+  List<Integer> nodeIds=Lists.newArrayList();
+  if (nodeId < 0) {
+    for (    Node node : adminClient.getAdminClientCluster().getNodes()) {
+      nodeIds.add(node.getId());
+    }
+  }
+ else {
+    nodeIds.add(nodeId);
+  }
+  for (  Integer currentNodeId : nodeIds) {
+    System.out.println(adminClient.getAdminClientCluster().getNodeById(currentNodeId).getHost() + ":" + adminClient.getAdminClientCluster().getNodeById(currentNodeId).getId());
+    Versioned<String> versioned=null;
+    try {
+      versioned=adminClient.getRemoteMetadata(currentNodeId,metadataKey);
+    }
+ catch (    Exception e) {
+      System.out.println("Error in retrieving " + e.getMessage());
+      System.out.println();
+      continue;
+    }
+    if (versioned == null) {
+      if (directory == null) {
+        System.out.println("null");
+        System.out.println();
+      }
+ else {
+        FileUtils.writeStringToFile(new File(directory,"cluster.xml_" + currentNodeId),"");
+      }
+    }
+ else {
+      if (directory == null) {
+        System.out.println(versioned.getVersion());
+        System.out.print(": ");
+        System.out.println(versioned.getValue());
+        System.out.println();
+      }
+ else {
+        FileUtils.writeStringToFile(new File(directory,"cluster.xml_" + currentNodeId),versioned.getValue());
+      }
+    }
+  }
+}

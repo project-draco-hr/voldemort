@@ -13,7 +13,12 @@
         Response<Iterable<ByteArray>,Object> response=new Response<Iterable<ByteArray>,Object>(node,keys,result,requestTime);
         responses.put(node.getId(),response);
         latch.countDown();
-        if (pipeline.isFinished() && response.getValue() instanceof Exception)         handleResponseError(response,pipeline,failureDetector);
+        if (pipeline.isFinished() && response.getValue() instanceof Exception)         if (response.getValue() instanceof InvalidMetadataException) {
+          logger.warn("Received invalid metadata problem after a successful " + pipeline.getOperation().getSimpleName() + " call on node "+ node.getId()+ ", store '"+ pipelineData.getStoreName()+ "'");
+        }
+ else {
+          handleResponseError(response,pipeline,failureDetector);
+        }
       }
     }
 ;

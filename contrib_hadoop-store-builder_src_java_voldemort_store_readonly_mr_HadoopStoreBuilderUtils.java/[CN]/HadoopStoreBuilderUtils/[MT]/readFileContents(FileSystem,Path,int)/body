@@ -1,0 +1,17 @@
+{
+  if (bufferSize <= 0)   return new String();
+  FSDataInputStream input=fs.open(path);
+  byte[] buffer=new byte[bufferSize];
+  ByteArrayOutputStream stream=new ByteArrayOutputStream();
+  while (true) {
+    int read=input.read(buffer);
+    if (read < 0) {
+      break;
+    }
+ else {
+      buffer=ByteUtils.copy(buffer,0,read);
+    }
+    stream.write(buffer);
+  }
+  return new String(stream.toByteArray());
+}

@@ -1,0 +1,12 @@
+{
+  StringBuilder builder=new StringBuilder();
+  for (  StoreDefinition def : storeDefs) {
+    HashMap<Integer,Double> storeDistribution=generateDistribution(cluster,def,1000);
+    builder.append("\nFor Store '" + def.getName() + "' \n");
+    for (    int nodeId : storeDistribution.keySet()) {
+      builder.append("Node " + nodeId + " - "+ formatter.format(storeDistribution.get(nodeId))+ " \n");
+    }
+    builder.append("Std dev - " + getStdDeviation(storeDistribution) + "\n");
+  }
+  return builder.toString();
+}

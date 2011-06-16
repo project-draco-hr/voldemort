@@ -1,0 +1,91 @@
+{
+  try {
+    startFourNodeRW();
+    HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(TEST_SIZE);
+    SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(Lists.newArrayList("tcp://" + cluster.getNodeById(0).getHost() + ":"+ cluster.getNodeById(0).getSocketPort())));
+    StoreClient<Object,Object> storeClient1=factory.getStoreClient("test"), storeClient2=factory.getStoreClient("test2");
+    List<Integer> primaryPartitionsMoved=Lists.newArrayList(0);
+    List<Integer> secondaryPartitionsMoved=Lists.newArrayList(8,9,10,11);
+    List<Integer> tertiaryPartitionsMoved=Lists.newArrayList(4,5,6,7);
+    HashMap<ByteArray,byte[]> primaryEntriesMoved=Maps.newHashMap();
+    HashMap<ByteArray,byte[]> secondaryEntriesMoved=Maps.newHashMap();
+    HashMap<ByteArray,byte[]> tertiaryEntriesMoved=Maps.newHashMap();
+    RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef2,cluster);
+    for (    Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
+      storeClient1.put(new String(entry.getKey().get()),new String(entry.getValue()));
+      storeClient2.put(new String(entry.getKey().get()),new String(entry.getValue()));
+      List<Integer> pList=strategy.getPartitionList(entry.getKey().get());
+      if (primaryPartitionsMoved.contains(pList.get(0))) {
+        primaryEntriesMoved.put(entry.getKey(),entry.getValue());
+      }
+ else       if (secondaryPartitionsMoved.contains(pList.get(0))) {
+        secondaryEntriesMoved.put(entry.getKey(),entry.getValue());
+      }
+ else       if (tertiaryPartitionsMoved.contains(pList.get(0))) {
+        tertiaryEntriesMoved.put(entry.getKey(),entry.getValue());
+      }
+    }
+    for (    RebalancePartitionsInfo partitionPlan : plans) {
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalancePartitionsInfo.create(partitionPlan.toJsonString()))));
+    }
+    for (    VoldemortServer server : servers) {
+      server.getMetadataStore().put(MetadataStore.CLUSTER_KEY,targetCluster);
+    }
+    try {
+      for (      RebalancePartitionsInfo currentPlan : plans) {
+        int asyncId=adminClient.rebalanceNode(currentPlan);
+        assertNotSame("Got a valid rebalanceAsyncId",-1,asyncId);
+        getAdminClient().waitForCompletion(currentPlan.getStealerId(),asyncId,300,TimeUnit.SECONDS);
+        assertFalse(getServer(currentPlan.getStealerId()).getMetadataStore().getRebalancerState().getAll().contains(currentPlan));
+      }
+    }
+ catch (    Exception e) {
+      e.printStackTrace();
+      fail("Should not throw any exceptions");
+    }
+    Store<ByteArray,byte[],byte[]> storeTest0=getStore(0,"test2");
+    Store<ByteArray,byte[],byte[]> storeTest1=getStore(1,"test2");
+    Store<ByteArray,byte[],byte[]> storeTest2=getStore(2,"test2");
+    Store<ByteArray,byte[],byte[]> storeTest3=getStore(3,"test2");
+    Store<ByteArray,byte[],byte[]> storeTest00=getStore(0,"test");
+    Store<ByteArray,byte[],byte[]> storeTest10=getStore(1,"test");
+    Store<ByteArray,byte[],byte[]> storeTest30=getStore(3,"test");
+    for (    Entry<ByteArray,byte[]> entry : primaryEntriesMoved.entrySet()) {
+      assertSame("entry should be present at store",1,storeTest0.get(entry.getKey(),null).size());
+      assertEquals("entry value should match",new String(entry.getValue()),new String(storeTest0.get(entry.getKey(),null).get(0).getValue()));
+      assertSame("entry should be present at store",1,storeTest1.get(entry.getKey(),null).size());
+      assertEquals("entry value should match",new String(entry.getValue()),new String(storeTest1.get(entry.getKey(),null).get(0).getValue()));
+      assertSame("entry should be present at store",1,storeTest3.get(entry.getKey(),null).size());
+      assertEquals("entry value should match",new String(entry.getValue()),new String(storeTest3.get(entry.getKey(),null).get(0).getValue()));
+      assertEquals(storeTest2.get(entry.getKey(),null).size(),0);
+      assertSame("entry should be present at store",1,storeTest00.get(entry.getKey(),null).size());
+      assertEquals("entry value should match",new String(entry.getValue()),new String(storeTest00.get(entry.getKey(),null).get(0).getValue()));
+      assertSame("entry should be present at store",1,storeTest30.get(entry.getKey(),null).size());
+      assertEquals("entry value should match",new String(entry.getValue()),new String(storeTest30.get(entry.getKey(),null).get(0).getValue()));
+      assertEquals(storeTest10.get(entry.getKey(),null).size(),0);
+    }
+    for (    Entry<ByteArray,byte[]> entry : secondaryEntriesMoved.entrySet()) {
+      assertSame("entry should be present at store",1,storeTest0.get(entry.getKey(),null).size());
+      assertEquals("entry value should match",new String(entry.getValue()),new String(storeTest0.get(entry.getKey(),null).get(0).getValue()));
+      assertSame("entry should be present at store",1,storeTest3.get(entry.getKey(),null).size());
+      assertEquals("entry value should match",new String(entry.getValue()),new String(storeTest3.get(entry.getKey(),null).get(0).getValue()));
+      assertEquals(storeTest1.get(entry.getKey(),null).size(),0);
+      assertSame("entry should be present at store",1,storeTest30.get(entry.getKey(),null).size());
+      assertEquals("entry value should match",new String(entry.getValue()),new String(storeTest30.get(entry.getKey(),null).get(0).getValue()));
+      assertEquals(storeTest00.get(entry.getKey(),null).size(),0);
+    }
+    for (    Entry<ByteArray,byte[]> entry : tertiaryEntriesMoved.entrySet()) {
+      assertSame("entry should be present at store",1,storeTest3.get(entry.getKey(),null).size());
+      assertEquals("entry value should match",new String(entry.getValue()),new String(storeTest3.get(entry.getKey(),null).get(0).getValue()));
+      assertEquals(storeTest0.get(entry.getKey(),null).size(),0);
+    }
+    for (    VoldemortServer server : servers) {
+      assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
+      assertEquals(server.getMetadataStore().getServerState(),MetadataStore.VoldemortState.NORMAL_SERVER);
+    }
+  }
+  finally {
+    shutDown();
+  }
+}

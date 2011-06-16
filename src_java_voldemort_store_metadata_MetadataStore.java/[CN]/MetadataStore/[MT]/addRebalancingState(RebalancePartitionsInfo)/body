@@ -1,0 +1,18 @@
+{
+  writeLock.lock();
+  try {
+    if (ByteUtils.getString(get(SERVER_STATE_KEY,null).get(0).getValue(),"UTF-8").compareTo(VoldemortState.NORMAL_SERVER.toString()) == 0) {
+      put(SERVER_STATE_KEY,VoldemortState.REBALANCING_MASTER_SERVER);
+      initCache(SERVER_STATE_KEY);
+    }
+    RebalancerState rebalancerState=getRebalancerState();
+    if (!rebalancerState.update(stealInfo)) {
+      throw new VoldemortException("Could not add steal information " + stealInfo + " since a plan for the same donor node "+ stealInfo.getDonorId()+ " ( "+ rebalancerState.find(stealInfo.getDonorId())+ " ) already exists");
+    }
+    put(MetadataStore.REBALANCING_STEAL_INFO,rebalancerState);
+    initCache(REBALANCING_STEAL_INFO);
+  }
+  finally {
+    writeLock.unlock();
+  }
+}

@@ -1,0 +1,25 @@
+{
+  this.request=request;
+  StoreDefinition storeDef=metadataStore.getStoreDef(request.getStore());
+  boolean isReadOnly=storeDef.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
+  if (!isReadOnly) {
+    throw new VoldemortException("Should be fetching partition files only for read-only stores");
+  }
+  HashMap<Integer,List<Integer>> replicaToPartitionList=ProtoUtils.decodePartitionTuple(request.getReplicaToPartitionList());
+  this.replicaToPartitionTuples=RebalanceUtils.flattenPartitionTuples(replicaToPartitionList);
+  ReadOnlyStorageEngine storageEngine=AdminServiceRequestHandler.getReadOnlyStorageEngine(metadataStore,storeRepository,request.getStore());
+  this.bucketToNumChunks=storageEngine.getChunkedFileSet().getChunkIdToNumChunks();
+  this.blockSize=voldemortConfig.getAllProps().getLong("partition.buffer.size.bytes",voldemortConfig.getAdminSocketBufferSize());
+  this.storeDir=new File(storageEngine.getCurrentDirPath());
+  this.throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
+  this.stats=stats;
+  this.handle=stats.makeHandle(StreamStats.Operation.FETCH_FILE,replicaToPartitionList);
+  this.partitionIterator=Collections.unmodifiableSet(replicaToPartitionTuples).iterator();
+  this.fetchStatus=FetchStatus.NEXT_PARTITION;
+  this.currentChunkId=0;
+  this.indexFile=null;
+  this.dataFile=null;
+  this.chunkedFileWriter=null;
+  this.numChunks=0;
+  this.nioEnabled=voldemortConfig.getUseNioConnector();
+}

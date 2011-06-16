@@ -15,6 +15,8 @@
   parser.accepts("working-dir","The directory in which to store temporary data").withRequiredArg().describedAs("dir");
   parser.accepts("gzip","Compress the intermediate temp files used in building the store");
   parser.accepts("request-file","file get request ids from").withRequiredArg();
+  parser.accepts("version","Version of read-only store [" + ReadOnlyStorageFormat.READONLY_V0 + ","+ ReadOnlyStorageFormat.READONLY_V1+ ","+ ReadOnlyStorageFormat.READONLY_V2+ " (default)]").withRequiredArg().describedAs("version");
+  parser.accepts("test-gz","Path to gzip containing data. Works with --build only").withRequiredArg().describedAs("path");
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     parser.printHelpOn(System.out);
@@ -31,6 +33,7 @@
   final SearchStrategy searcher=(SearchStrategy)ReflectUtils.callConstructor(ReflectUtils.loadClass(searcherClass));
   final File workingDir=new File(CmdUtils.valueOf(options,"working-dir",System.getProperty("java.io.tmpdir")));
   String storeDir=(String)options.valueOf("store-dir");
+  ReadOnlyStorageFormat format=ReadOnlyStorageFormat.fromCode(CmdUtils.valueOf(options,"version",ReadOnlyStorageFormat.READONLY_V2.toString()));
   Cluster cluster=null;
   int nodeId=0;
   SerializerDefinition sdef=new SerializerDefinition("json","'string'");
@@ -41,22 +44,28 @@
     int numChunks=1;
     if (options.has("num-chunks"))     numChunks=(Integer)options.valueOf("num-chunks");
     int valueSize=(Integer)options.valueOf("value-size");
-    File temp=File.createTempFile("json-data",".txt.gz",workingDir);
-    temp.deleteOnExit();
-    System.out.println("Generating test data in " + temp);
-    OutputStream outputStream=new GZIPOutputStream(new FileOutputStream(temp));
-    Writer writer=new BufferedWriter(new OutputStreamWriter(outputStream),10 * 1024 * 1024);
-    String value=TestUtils.randomLetters(valueSize);
-    for (int i=0; i < numValues; i++) {
-      writer.write("\"");
-      writer.write(Integer.toString(i));
-      writer.write("\" \"");
-      writer.write(value);
-      writer.write("\"");
-      writer.write("\n");
+    File temp=null;
+    if (options.has("test-gz")) {
+      temp=new File((String)options.valueOf("test-gz"));
     }
-    writer.close();
-    writer=null;
+ else {
+      temp=File.createTempFile("json-data",".txt.gz",workingDir);
+      temp.deleteOnExit();
+      System.out.println("Generating test data in " + temp);
+      OutputStream outputStream=new GZIPOutputStream(new FileOutputStream(temp));
+      Writer writer=new BufferedWriter(new OutputStreamWriter(outputStream),10 * 1024 * 1024);
+      String value=TestUtils.randomLetters(valueSize);
+      for (int i=0; i < numValues; i++) {
+        writer.write("\"");
+        writer.write(Integer.toString(i));
+        writer.write("\" \"");
+        writer.write(value);
+        writer.write("\"");
+        writer.write("\n");
+      }
+      writer.close();
+      writer=null;
+    }
     System.out.println("Building store.");
     InputStream inputStream=new GZIPInputStream(new FileInputStream(temp));
     Reader r=new BufferedReader(new InputStreamReader(inputStream),1 * 1024 * 1024);
@@ -65,7 +74,7 @@
     cluster=ServerTestUtils.getLocalCluster(1);
     nodeId=0;
     JsonStoreBuilder builder=new JsonStoreBuilder(new JsonReader(r),cluster,storeDef,new ConsistentRoutingStrategy(cluster.getNodes(),1),output,tempDir,internalSortSize,2,numChunks,64 * 1024,gzipIntermediate);
-    builder.build(ReadOnlyStorageFormat.READONLY_V1);
+    builder.build(format);
     File dir=new File(storeDir);
     Utils.rm(dir);
     dir.mkdirs();

@@ -21,7 +21,6 @@ case READONLY_V0:
     }
   break;
 case READONLY_V1:
-case READONLY_V2:
 {
   for (  Integer partitionId : node.getPartitionIds()) {
     for (int chunkId=0; chunkId < numChunks; chunkId++) {
@@ -35,6 +34,22 @@ case READONLY_V2:
       indexOs.close();
     }
   }
+}
+break;
+case READONLY_V2:
+{
+for (Integer partitionId : node.getPartitionIds()) {
+for (int chunkId=0; chunkId < numChunks; chunkId++) {
+  File index=createFile(dir,Integer.toString(partitionId) + "_0_" + Integer.toString(chunkId)+ ".index");
+  File data=createFile(dir,Integer.toString(partitionId) + "_0_" + Integer.toString(chunkId)+ ".data");
+  FileOutputStream dataOs=new FileOutputStream(data);
+  for (int i=0; i < dataBytes; i++)   dataOs.write(i);
+  dataOs.close();
+  FileOutputStream indexOs=new FileOutputStream(index);
+  for (int i=0; i < indexBytes; i++)   indexOs.write(i);
+  indexOs.close();
+}
+}
 }
 break;
 default :

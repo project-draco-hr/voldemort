@@ -1,4 +1,5 @@
 {
+  long startNs=System.nanoTime();
   if (request == null) {
     int size=0;
     try {
@@ -6,10 +7,13 @@
     }
  catch (    EOFException e) {
       if (logger.isTraceEnabled())       logger.trace("Incomplete read for message size");
+      stats.recordNetworkTime(handle,System.nanoTime() - startNs);
       return StreamRequestHandlerState.INCOMPLETE_READ;
     }
     if (size == -1) {
       if (logger.isTraceEnabled())       logger.trace("Message size -1, completed partition update");
+      stats.recordNetworkTime(handle,System.nanoTime() - startNs);
+      stats.closeHandle(handle);
       return StreamRequestHandlerState.COMPLETE;
     }
     if (logger.isTraceEnabled())     logger.trace("UpdatePartitionEntriesRequest message size: " + size);
@@ -21,6 +25,9 @@
       if (logger.isTraceEnabled())       logger.trace("Incomplete read for message");
       return StreamRequestHandlerState.INCOMPLETE_READ;
     }
+ finally {
+      stats.recordNetworkTime(handle,System.nanoTime() - startNs);
+    }
     VAdminProto.UpdatePartitionEntriesRequest.Builder builder=VAdminProto.UpdatePartitionEntriesRequest.newBuilder();
     builder.mergeFrom(input);
     request=builder.build();
@@ -29,6 +36,7 @@
   ByteArray key=ProtoUtils.decodeBytes(partitionEntry.getKey());
   Versioned<byte[]> value=ProtoUtils.decodeVersioned(partitionEntry.getVersioned());
   if (filter.accept(key,value)) {
+    startNs=System.nanoTime();
     try {
       storageEngine.put(key,value,null);
       if (logger.isTraceEnabled())       logger.trace("updateEntries (Streaming put) successful");
@@ -36,12 +44,16 @@
  catch (    ObsoleteVersionException e) {
       if (logger.isDebugEnabled())       logger.debug("updateEntries (Streaming put) threw ObsoleteVersionException, Ignoring.");
     }
+ finally {
+      stats.recordDiskTime(handle,System.nanoTime() - startNs);
+    }
     throttler.maybeThrottle(key.length() + AdminServiceRequestHandler.valueSize(value));
   }
   counter++;
+  handle.incrementEntriesScanned();
   if (0 == counter % 100000) {
     long totalTime=(System.currentTimeMillis() - startTime) / 1000;
-    if (logger.isDebugEnabled())     logger.debug("updateEntries() updated " + counter + " entries for store:"+ storageEngine.getName()+ " in "+ totalTime+ " s");
+    logger.info("Update entries updated " + counter + " entries for store '"+ storageEngine.getName()+ "' in "+ totalTime+ " s");
   }
   request=null;
   return StreamRequestHandlerState.READING;

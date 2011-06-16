@@ -59,15 +59,18 @@ break;
 case GET_RO_CURRENT_VERSION_DIR:
 ProtoUtils.writeMessage(outputStream,handleGetROCurrentVersionDir(request.getGetRoCurrentVersionDir()));
 break;
+case GET_RO_STORAGE_FORMAT:
+ProtoUtils.writeMessage(outputStream,handleGetROStorageFormat(request.getGetRoStorageFormat()));
+break;
 case FETCH_PARTITION_FILES:
 return handleFetchPartitionFiles(request.getFetchPartitionFiles());
-case SWAP_STORES_AND_CLEAN_STATE:
-ProtoUtils.writeMessage(outputStream,handleSwapStoresAndCleanState(request.getSwapStoresAndCleanState()));
-break;
 case UPDATE_SLOP_ENTRIES:
 return handleUpdateSlopEntries(request.getUpdateSlopEntries());
-case UPDATE_GRANDFATHER_METADATA:
-ProtoUtils.writeMessage(outputStream,handleUpdateGrandfatherMetadata(request.getUpdateGrandfatherMetadata()));
+case FAILED_FETCH_STORE:
+ProtoUtils.writeMessage(outputStream,handleFailedFetch(request.getFailedFetchStore()));
+break;
+case REBALANCE_STATE_CHANGE:
+ProtoUtils.writeMessage(outputStream,handleRebalanceStateChange(request.getRebalanceStateChange()));
 break;
 default :
 throw new VoldemortException("Unkown operation " + request.getType());

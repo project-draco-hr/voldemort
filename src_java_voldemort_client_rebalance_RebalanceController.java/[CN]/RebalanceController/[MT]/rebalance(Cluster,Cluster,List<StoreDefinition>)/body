@@ -1,0 +1,14 @@
+{
+  logger.info("Current cluster : " + currentCluster);
+  logger.info("Final target cluster : " + targetCluster);
+  storeDefs=RebalanceUtils.validateRebalanceStore(storeDefs);
+  Cluster newCurrentCluster=RebalanceUtils.getClusterWithNewNodes(currentCluster,targetCluster);
+  adminClient.setAdminClientCluster(newCurrentCluster);
+  if (!rebalanceConfig.isShowPlanEnabled()) {
+    RebalanceUtils.validateClusterState(newCurrentCluster,adminClient);
+    RebalanceUtils.validateReadOnlyStores(newCurrentCluster,storeDefs,adminClient);
+    logger.info("Propagating new cluster " + newCurrentCluster + " to all nodes");
+    RebalanceUtils.propagateCluster(adminClient,newCurrentCluster);
+  }
+  rebalancePerClusterTransition(newCurrentCluster,targetCluster,storeDefs);
+}

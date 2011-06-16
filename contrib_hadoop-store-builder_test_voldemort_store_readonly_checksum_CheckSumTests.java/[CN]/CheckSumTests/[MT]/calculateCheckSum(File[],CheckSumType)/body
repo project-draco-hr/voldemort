@@ -8,8 +8,8 @@
       if (fs1.isDirectory())       return fs2.isDirectory() ? 0 : -1;
       if (fs2.isDirectory())       return fs1.isDirectory() ? 0 : 1;
       String f1=fs1.getName(), f2=fs2.getName();
-      if (f1.endsWith("checkSum.txt"))       return -1;
-      if (f2.endsWith("checkSum.txt"))       return 1;
+      if (f1.endsWith("metadata"))       return -1;
+      if (f2.endsWith("metadata"))       return 1;
       if ((f1.endsWith(".index") && f2.endsWith(".index")) || (f1.endsWith(".data") && f2.endsWith(".data"))) {
         return f1.compareToIgnoreCase(f2);
       }
@@ -23,7 +23,7 @@
   }
 );
   for (  File file : files) {
-    if (file.isFile() && !file.getName().startsWith(".") && !file.getName().contains("checkSum.txt")) {
+    if (file.isFile() && !file.getName().startsWith(".") && !file.getName().contains("checkSum.txt")&& !file.getName().contains("metadata")) {
       DataInputStream is;
       try {
         is=new DataInputStream(new FileInputStream(file));

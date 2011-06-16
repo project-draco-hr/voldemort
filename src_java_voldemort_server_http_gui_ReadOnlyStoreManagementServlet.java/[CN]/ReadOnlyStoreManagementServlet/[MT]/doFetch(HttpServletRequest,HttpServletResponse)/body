@@ -24,9 +24,10 @@
   if (fileFetcher == null) {
     logger.warn("File fetcher class has not instantiated correctly. Assuming local file");
     if (!Utils.isReadableDir(fetchUrl)) {
-      throw new VoldemortException("Fetch url " + fetchUrl + " is not readable");
+      throw new ServletException("Fetch url " + fetchUrl + " is not readable");
     }
     fetchDir=new File(store.getStoreDirPath(),"version-" + Long.toString(pushVersion));
+    if (fetchDir.exists())     throw new ServletException("Version directory " + fetchDir.getAbsolutePath() + " already exists");
     Utils.move(new File(fetchUrl),fetchDir);
   }
  else {

@@ -1,0 +1,22 @@
+{
+  List<RebalanceNodePlan> first=new ArrayList<RebalanceNodePlan>();
+  List<RebalanceNodePlan> second=new ArrayList<RebalanceNodePlan>();
+  for (  RebalanceNodePlan plan : rebalanceNodePlans) {
+    boolean found=false;
+    for (    RebalancePartitionsInfo partitionInfo : plan.getRebalanceTaskList()) {
+      List<Integer> stealMasterPartitions=partitionInfo.getStealMasterPartitions();
+      if (stealMasterPartitions != null && !stealMasterPartitions.isEmpty()) {
+        found=true;
+        break;
+      }
+    }
+    if (found) {
+      first.add(plan);
+    }
+ else {
+      second.add(plan);
+    }
+  }
+  first.addAll(second);
+  return first;
+}

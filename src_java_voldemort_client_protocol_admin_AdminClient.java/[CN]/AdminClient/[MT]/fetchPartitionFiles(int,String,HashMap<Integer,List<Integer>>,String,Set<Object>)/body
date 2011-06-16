@@ -1,0 +1,59 @@
+{
+  if (!Utils.isReadableDir(destinationDirPath)) {
+    throw new VoldemortException("The destination path (" + destinationDirPath + ") to store "+ storeName+ " does not exist");
+  }
+  Node node=this.getAdminClientCluster().getNodeById(nodeId);
+  final SocketDestination destination=new SocketDestination(node.getHost(),node.getAdminPort(),RequestFormatType.ADMIN_PROTOCOL_BUFFERS);
+  final SocketAndStreams sands=pool.checkout(destination);
+  DataOutputStream outputStream=sands.getOutputStream();
+  final DataInputStream inputStream=sands.getInputStream();
+  try {
+    File metadataFile=new File(destinationDirPath,".metadata");
+    if (!metadataFile.exists()) {
+      ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
+      metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode());
+      FileUtils.writeStringToFile(metadataFile,metadata.toJsonString());
+    }
+    VAdminProto.FetchPartitionFilesRequest fetchPartitionFileRequest=VAdminProto.FetchPartitionFilesRequest.newBuilder().addAllReplicaToPartition(ProtoUtils.encodePartitionTuple(replicaToPartitionList)).setStore(storeName).build();
+    VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setFetchPartitionFiles(fetchPartitionFileRequest).setType(VAdminProto.AdminRequestType.FETCH_PARTITION_FILES).build();
+    ProtoUtils.writeMessage(outputStream,request);
+    outputStream.flush();
+    while (true) {
+      int size=0;
+      try {
+        size=inputStream.readInt();
+      }
+ catch (      IOException e) {
+        logger.error("Received IOException while fetching files",e);
+        throw e;
+      }
+      if (size == -1) {
+        close(sands.getSocket());
+        break;
+      }
+      byte[] input=new byte[size];
+      ByteUtils.read(inputStream,input);
+      VAdminProto.FileEntry fileEntry=VAdminProto.FileEntry.newBuilder().mergeFrom(input).build();
+      if (notAcceptedBuckets != null) {
+        Pair<Integer,Integer> partitionReplicaTuple=ReadOnlyUtils.getPartitionReplicaTuple(fileEntry.getFileName());
+        if (notAcceptedBuckets.contains(partitionReplicaTuple)) {
+          throw new VoldemortException("Cannot copy file " + fileEntry.getFileName() + " since it is one of the mmap-ed files");
+        }
+      }
+      logger.info("Receiving file " + fileEntry.getFileName());
+      FileChannel fileChannel=new FileOutputStream(new File(destinationDirPath,fileEntry.getFileName())).getChannel();
+      ReadableByteChannel channelIn=Channels.newChannel(inputStream);
+      fileChannel.transferFrom(channelIn,0,fileEntry.getFileSizeBytes());
+      fileChannel.force(true);
+      fileChannel.close();
+      logger.info("Completed file " + fileEntry.getFileName());
+    }
+  }
+ catch (  IOException e) {
+    close(sands.getSocket());
+    throw new VoldemortException(e);
+  }
+ finally {
+    pool.checkin(destination,sands);
+  }
+}

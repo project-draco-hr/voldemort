@@ -3,14 +3,16 @@
   assertNotSame("Store '" + testStoreName + "' should not be null",null,store);
   VoldemortFilter filter=new VoldemortFilterImpl();
   int shouldFilterCount=0;
+  RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(getStoreDef(),getCluster());
   for (  Pair<ByteArray,Versioned<byte[]>> pair : createEntries()) {
-    store.put(pair.getFirst(),pair.getSecond(),null);
-    if (!filter.accept(pair.getFirst(),pair.getSecond())) {
-      shouldFilterCount++;
+    if (RebalanceUtils.getNodeIds(strategy.routeRequest(pair.getFirst().get())).contains(0)) {
+      store.put(pair.getFirst(),pair.getSecond(),null);
+      if (!filter.accept(pair.getFirst(),pair.getSecond())) {
+        shouldFilterCount++;
+      }
     }
   }
-  assertNotSame("should be filtered key count shoud not be 0.",0,shouldFilterCount);
-  Iterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=getAdminClient().fetchEntries(0,testStoreName,Arrays.asList(new Integer[]{0}),filter,false);
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=getAdminClient().fetchEntries(0,testStoreName,getCluster().getNodeById(0).getPartitionIds(),filter,false);
   while (entryIterator.hasNext()) {
     Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
     if (!filter.accept(entry.getFirst(),entry.getSecond())) {

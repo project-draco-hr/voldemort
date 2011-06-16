@@ -10,34 +10,60 @@
       CheckSum fileCheckSumGenerator=null;
       for (      FileStatus status : statuses) {
         if (status.getPath().getName().contains("checkSum.txt")) {
-          checkSumType=CheckSum.fromString(status.getPath().getName());
-          checkSumGenerator=CheckSum.getInstance(checkSumType);
-          fileCheckSumGenerator=CheckSum.getInstance(checkSumType);
-          FSDataInputStream input=fs.open(status.getPath());
-          origCheckSum=new byte[CheckSum.checkSumLength(checkSumType)];
-          input.read(origCheckSum);
-          input.close();
         }
  else         if (status.getPath().getName().contains(".metadata")) {
+          logger.debug("Reading .metadata");
           File copyLocation=new File(dest,status.getPath().getName());
           copyFileWithCheckSum(fs,status.getPath(),copyLocation,stats,null);
+          ReadOnlyStorageMetadata metadata;
+          try {
+            metadata=new ReadOnlyStorageMetadata(copyLocation);
+          }
+ catch (          IOException e) {
+            logger.error("Error reading metadata file ",e);
+            throw new VoldemortException(e);
+          }
+          String checkSumTypeString=(String)metadata.get(ReadOnlyStorageMetadata.CHECKSUM_TYPE);
+          String checkSumString=(String)metadata.get(ReadOnlyStorageMetadata.CHECKSUM);
+          if (checkSumTypeString != null && checkSumString != null) {
+            try {
+              origCheckSum=Hex.decodeHex(checkSumString.toCharArray());
+            }
+ catch (            DecoderException e) {
+              logger.error("Exception reading checksum file. Ignoring checksum ",e);
+              continue;
+            }
+            logger.debug("Checksum from .metadata " + new String(Hex.encodeHex(origCheckSum)));
+            checkSumType=CheckSum.fromString(checkSumTypeString);
+            checkSumGenerator=CheckSum.getInstance(checkSumType);
+            fileCheckSumGenerator=CheckSum.getInstance(checkSumType);
+          }
         }
  else         if (!status.getPath().getName().startsWith(".")) {
           File copyLocation=new File(dest,status.getPath().getName());
           copyFileWithCheckSum(fs,status.getPath(),copyLocation,stats,fileCheckSumGenerator);
           if (fileCheckSumGenerator != null && checkSumGenerator != null) {
-            checkSumGenerator.update(fileCheckSumGenerator.getCheckSum());
+            byte[] checkSum=fileCheckSumGenerator.getCheckSum();
+            logger.debug("Checksum for " + status.getPath() + " - "+ new String(Hex.encodeHex(checkSum)));
+            checkSumGenerator.update(checkSum);
           }
         }
       }
+      logger.info("Completed reading all files from " + source.toString() + " to "+ dest.getAbsolutePath());
       if (checkSumType != CheckSumType.NONE) {
         byte[] newCheckSum=checkSumGenerator.getCheckSum();
-        return (ByteUtils.compare(newCheckSum,origCheckSum) == 0);
+        boolean checkSumComparison=(ByteUtils.compare(newCheckSum,origCheckSum) == 0);
+        logger.info("Checksum generated from streaming - " + new String(Hex.encodeHex(newCheckSum)));
+        logger.info("Checksum on file - " + new String(Hex.encodeHex(origCheckSum)));
+        logger.info("Check-sum verification - " + checkSumComparison);
+        return checkSumComparison;
       }
  else {
+        logger.info("No check-sum verification required");
         return true;
       }
     }
   }
+  logger.error("Source " + source.toString() + " should be a directory");
   return false;
 }

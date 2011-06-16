@@ -1,0 +1,17 @@
+{
+  int rebalanceAsyncId=INVALID_REBALANCE_ID;
+  final int stealerNodeId=stealInfo.getStealerId();
+  try {
+    rebalanceAsyncId=startNodeRebalancing(stealInfo);
+    adminClient.waitForCompletion(stealInfo.getStealerId(),rebalanceAsyncId,config.getRebalancingClientTimeoutSeconds(),TimeUnit.SECONDS);
+    RebalanceUtils.printLog(stealInfo.getStealerId(),logger,"Succesfully finished rebalance for async operation id " + rebalanceAsyncId);
+  }
+ catch (  UnreachableStoreException e) {
+    exception=e;
+    logger.error("StealerNode " + stealerNodeId + " is unreachable, please make sure it is up and running - "+ e.getMessage(),e);
+  }
+catch (  Exception e) {
+    exception=e;
+    logger.error("Rebalance failed: " + e.getMessage(),e);
+  }
+}

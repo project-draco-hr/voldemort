@@ -1,0 +1,20 @@
+{
+  VAdminProto.RebalanceStateChangeResponse.Builder response=VAdminProto.RebalanceStateChangeResponse.newBuilder();
+  try {
+    List<RebalancePartitionsInfo> rebalancePartitionsInfo=Lists.newArrayList();
+    for (    RebalancePartitionInfoMap map : request.getRebalancePartitionInfoListList()) {
+      rebalancePartitionsInfo.add(ProtoUtils.decodeRebalancePartitionInfoMap(map));
+    }
+    Cluster cluster=new ClusterMapper().readCluster(new StringReader(request.getClusterString()));
+    boolean swapRO=request.getSwapRo();
+    boolean changeClusterMetadata=request.getChangeClusterMetadata();
+    boolean changeRebalanceState=request.getChangeRebalanceState();
+    boolean rollback=request.getRollback();
+    rebalancer.rebalanceStateChange(cluster,rebalancePartitionsInfo,swapRO,changeClusterMetadata,changeRebalanceState,rollback);
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleRebalanceStateChange failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

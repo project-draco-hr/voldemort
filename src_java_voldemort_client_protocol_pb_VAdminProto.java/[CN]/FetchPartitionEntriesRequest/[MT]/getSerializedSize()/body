@@ -2,13 +2,8 @@
   int size=memoizedSerializedSize;
   if (size != -1)   return size;
   size=0;
-{
-    int dataSize=0;
-    for (    int element : getPartitionsList()) {
-      dataSize+=com.google.protobuf.CodedOutputStream.computeInt32SizeNoTag(element);
-    }
-    size+=dataSize;
-    size+=1 * getPartitionsList().size();
+  for (  voldemort.client.protocol.pb.VAdminProto.PartitionTuple element : getReplicaToPartitionList()) {
+    size+=com.google.protobuf.CodedOutputStream.computeMessageSize(1,element);
   }
   if (hasStore()) {
     size+=com.google.protobuf.CodedOutputStream.computeStringSize(2,getStore());
@@ -19,11 +14,11 @@
   if (hasFetchValues()) {
     size+=com.google.protobuf.CodedOutputStream.computeBoolSize(4,getFetchValues());
   }
-  if (hasFetchMasterEntries()) {
-    size+=com.google.protobuf.CodedOutputStream.computeBoolSize(5,getFetchMasterEntries());
-  }
   if (hasSkipRecords()) {
-    size+=com.google.protobuf.CodedOutputStream.computeInt64Size(6,getSkipRecords());
+    size+=com.google.protobuf.CodedOutputStream.computeInt64Size(5,getSkipRecords());
+  }
+  if (hasInitialCluster()) {
+    size+=com.google.protobuf.CodedOutputStream.computeStringSize(6,getInitialCluster());
   }
   size+=getUnknownFields().getSerializedSize();
   memoizedSerializedSize=size;

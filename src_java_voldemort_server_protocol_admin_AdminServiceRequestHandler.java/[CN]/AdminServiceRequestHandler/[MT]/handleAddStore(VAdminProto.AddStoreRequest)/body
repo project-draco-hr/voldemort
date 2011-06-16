@@ -9,6 +9,7 @@
     StoreDefinition def=mapper.readStore(new StringReader(request.getStoreDefinition()));
 synchronized (lock) {
       if (!storeRepository.hasLocalStore(def.getName())) {
+        logger.info("Adding new store '" + def.getName() + "'");
         storageService.openStore(def);
         List<StoreDefinition> currentStoreDefs;
         List<Versioned<byte[]>> v=metadataStore.get(MetadataStore.STORES_KEY,null);
@@ -26,8 +27,10 @@ synchronized (lock) {
  catch (        Exception e) {
           throw new VoldemortException(e);
         }
+        logger.info("Successfully added new store '" + def.getName() + "'");
       }
  else {
+        logger.error("Failure to add a store with the same name '" + def.getName() + "'");
         throw new StoreOperationFailureException(String.format("Store '%s' already exists on this server",def.getName()));
       }
     }

@@ -1,17 +1,3 @@
 {
-  VAdminProto.InitiateFetchAndUpdateRequest.Builder initiateFetchAndUpdateRequest=VAdminProto.InitiateFetchAndUpdateRequest.newBuilder().setNodeId(donorNodeId).addAllPartitions(stealPartitionList).setStore(storeName);
-  try {
-    if (filter != null) {
-      initiateFetchAndUpdateRequest.setFilter(encodeFilter(filter));
-    }
-  }
- catch (  IOException e) {
-    throw new VoldemortException(e);
-  }
-  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setInitiateFetchAndUpdate(initiateFetchAndUpdateRequest).setType(VAdminProto.AdminRequestType.INITIATE_FETCH_AND_UPDATE).build();
-  VAdminProto.AsyncOperationStatusResponse.Builder response=sendAndReceive(stealerNodeId,adminRequest,VAdminProto.AsyncOperationStatusResponse.newBuilder());
-  if (response.hasError()) {
-    throwException(response.getError());
-  }
-  return response.getRequestId();
+  return migratePartitions(donorNodeId,stealerNodeId,storeName,getReplicaToPartitionMap(donorNodeId,storeName,stealPartitionList),filter,null,false);
 }

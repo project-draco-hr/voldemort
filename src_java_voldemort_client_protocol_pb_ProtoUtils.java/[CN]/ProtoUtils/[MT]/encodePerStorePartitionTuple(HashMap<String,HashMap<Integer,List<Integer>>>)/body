@@ -1,0 +1,10 @@
+{
+  List<PerStorePartitionTuple> perStorePartitionTuples=Lists.newArrayList();
+  for (  Entry<String,HashMap<Integer,List<Integer>>> entry : storeToReplicaToPartitionList.entrySet()) {
+    PerStorePartitionTuple.Builder tupleBuilder=PerStorePartitionTuple.newBuilder();
+    tupleBuilder.setStoreName(entry.getKey());
+    tupleBuilder.addAllReplicaToPartition(encodePartitionTuple(entry.getValue()));
+    perStorePartitionTuples.add(tupleBuilder.build());
+  }
+  return perStorePartitionTuples;
+}

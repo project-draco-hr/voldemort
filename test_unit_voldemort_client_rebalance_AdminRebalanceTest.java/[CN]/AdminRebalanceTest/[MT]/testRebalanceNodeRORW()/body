@@ -1,0 +1,76 @@
+{
+  try {
+    startFourNodeRORW();
+    int numChunks=5;
+    for (    StoreDefinition storeDef : Lists.newArrayList(storeDef1,storeDef2)) {
+      buildROStore(storeDef,numChunks);
+    }
+    for (    RebalancePartitionsInfo partitionPlan : plans) {
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalancePartitionsInfo.create(partitionPlan.toJsonString()))));
+    }
+    try {
+      for (      RebalancePartitionsInfo currentPlan : plans) {
+        int asyncId=adminClient.rebalanceNode(currentPlan);
+        assertNotSame("Got a valid rebalanceAsyncId",-1,asyncId);
+        getAdminClient().waitForCompletion(currentPlan.getStealerId(),asyncId,300,TimeUnit.SECONDS);
+        assertFalse(getServer(currentPlan.getStealerId()).getMetadataStore().getRebalancerState().getAll().contains(currentPlan));
+      }
+    }
+ catch (    Exception e) {
+      e.printStackTrace();
+      fail("Should not throw any exceptions");
+    }
+    servers[3].getMetadataStore().getRebalancerState().update(new RebalancePartitionsInfo(3,0,new HashMap<String,HashMap<Integer,List<Integer>>>(),new HashMap<String,HashMap<Integer,List<Integer>>>(),cluster,0));
+    try {
+      adminClient.rebalanceStateChange(cluster,targetCluster,plans,true,true,true,true,true);
+      fail("Should have thrown an exception since we added state before hand");
+    }
+ catch (    VoldemortRebalancingException e) {
+    }
+    for (    VoldemortServer server : servers) {
+      if (server.getMetadataStore().getNodeId() != 3) {
+        assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
+        assertEquals(server.getMetadataStore().getServerState(),MetadataStore.VoldemortState.NORMAL_SERVER);
+      }
+      assertEquals(server.getMetadataStore().getCluster(),cluster);
+    }
+    checkRO(cluster);
+    cleanUpAllState();
+    servers[2].getMetadataStore().put(MetadataStore.STORES_KEY,Lists.newArrayList(storeDef1,storeDef2,storeDef3,storeDef4,new StoreDefinitionBuilder().setName("test5").setType(ReadOnlyStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.SERVER).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).build()));
+    try {
+      adminClient.rebalanceStateChange(cluster,targetCluster,plans,true,true,true,true,true);
+      fail("Should have thrown an exception since we added state before hand");
+    }
+ catch (    VoldemortRebalancingException e) {
+    }
+    Thread.sleep(1000);
+    for (    VoldemortServer server : servers) {
+      assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
+      assertEquals(server.getMetadataStore().getServerState(),MetadataStore.VoldemortState.NORMAL_SERVER);
+      assertEquals(server.getMetadataStore().getCluster(),cluster);
+    }
+    checkRO(cluster);
+    cleanUpAllState();
+    servers[2].getMetadataStore().put(MetadataStore.STORES_KEY,Lists.newArrayList(storeDef1,storeDef2,storeDef3,storeDef4));
+    adminClient.rebalanceStateChange(cluster,targetCluster,plans,true,true,true,true,true);
+    List<Integer> nodesChecked=Lists.newArrayList();
+    for (    RebalancePartitionsInfo plan : plans) {
+      nodesChecked.add(plan.getStealerId());
+      assertEquals(servers[plan.getStealerId()].getMetadataStore().getRebalancerState(),new RebalancerState(Lists.newArrayList(plan)));
+      assertEquals(servers[plan.getStealerId()].getMetadataStore().getServerState(),MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
+      assertEquals(servers[plan.getStealerId()].getMetadataStore().getCluster(),targetCluster);
+    }
+    List<Integer> allNodes=Lists.newArrayList(RebalanceUtils.getNodeIds(Lists.newArrayList(cluster.getNodes())));
+    allNodes.removeAll(nodesChecked);
+    for (    int nodeId : allNodes) {
+      assertEquals(servers[nodeId].getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
+      assertEquals(servers[nodeId].getMetadataStore().getServerState(),MetadataStore.VoldemortState.NORMAL_SERVER);
+      assertEquals(servers[nodeId].getMetadataStore().getCluster(),targetCluster);
+    }
+    checkRO(targetCluster);
+  }
+  finally {
+    shutDown();
+  }
+}

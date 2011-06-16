@@ -1,6 +1,39 @@
 {
-  Cluster cluster=ServerTestUtils.getLocalCluster(2,new int[][]{{},{0,1}});
-  targetCluster=RebalanceUtils.createUpdatedCluster(cluster,cluster.getNodeById(0),cluster.getNodeById(1),Arrays.asList(1));
-  server0=startServer(0,storesXmlfile,cluster);
-  server1=startServer(1,storesXmlfile,cluster);
+  currentCluster=ServerTestUtils.getLocalCluster(3,new int[][]{{0,1},{2,3},{}});
+  targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,currentCluster.getNodeById(2),currentCluster.getNodeById(0),Arrays.asList(0));
+  this.primaryPartitionsMoved=Lists.newArrayList(0);
+  this.secondaryPartitionsMoved=Lists.newArrayList(2,3);
+  this.storeDef=new StoreDefinitionBuilder().setName("test").setType(InMemoryStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.SERVER).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).build();
+  File tempStoreXml=new File(TestUtils.createTempDir(),"stores.xml");
+  FileUtils.writeStringToFile(tempStoreXml,new StoreDefinitionsMapper().writeStoreList(Lists.newArrayList(storeDef)));
+  this.servers=new VoldemortServer[3];
+  for (int nodeId=0; nodeId < 3; nodeId++) {
+    this.servers[nodeId]=startServer(nodeId,tempStoreXml.getAbsolutePath(),currentCluster);
+  }
+  HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(100);
+  SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(Lists.newArrayList("tcp://" + currentCluster.getNodeById(0).getHost() + ":"+ currentCluster.getNodeById(0).getSocketPort())));
+  StoreClient<Object,Object> storeClient=factory.getStoreClient("test");
+  this.primaryEntriesMoved=Maps.newHashMap();
+  this.secondaryEntriesMoved=Maps.newHashMap();
+  RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,currentCluster);
+  for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
+    storeClient.put(new String(entry.getKey().get()),new String(entry.getValue()));
+    List<Integer> pList=strategy.getPartitionList(entry.getKey().get());
+    if (primaryPartitionsMoved.contains(pList.get(0))) {
+      primaryEntriesMoved.put(entry.getKey(),entry.getValue());
+    }
+ else     if (secondaryPartitionsMoved.contains(pList.get(0))) {
+      secondaryEntriesMoved.put(entry.getKey(),entry.getValue());
+    }
+  }
+  Thread.sleep(500);
+  RebalanceClusterPlan plan=new RebalanceClusterPlan(currentCluster,targetCluster,Lists.newArrayList(storeDef),true);
+  List<RebalancePartitionsInfo> plans=RebalanceUtils.flattenNodePlans(Lists.newArrayList(plan.getRebalancingTaskQueue()));
+  for (  RebalancePartitionsInfo partitionPlan : plans) {
+    servers[partitionPlan.getStealerId()].getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
+    servers[partitionPlan.getStealerId()].getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(partitionPlan)));
+  }
+  for (  VoldemortServer server : servers) {
+    server.getMetadataStore().put(MetadataStore.CLUSTER_KEY,targetCluster);
+  }
 }

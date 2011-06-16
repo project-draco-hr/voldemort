@@ -2,6 +2,8 @@
   cluster=ServerTestUtils.getLocalCluster(2);
   VoldemortConfig config=ServerTestUtils.createServerConfig(useNio,0,TestUtils.createTempDir().getAbsolutePath(),null,storesXmlfile,new Properties());
   config.setEnableNetworkClassLoader(true);
+  List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new File(storesXmlfile));
+  storeDef=RebalanceUtils.getStoreDefinitionWithName(storeDefs,testStoreName);
   server=new VoldemortServer(config,cluster);
   server.start();
   adminClient=ServerTestUtils.getAdminClient(cluster);

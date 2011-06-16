@@ -1,13 +1,13 @@
 {
-  registerEngine(metadata);
+  registerEngine(metadata,false,"metadata");
   for (  String configClassName : voldemortConfig.getStorageConfigurations())   initStorageConfig(configClassName);
   storageConfigs.put(ViewStorageConfiguration.TYPE_NAME,new ViewStorageConfiguration(voldemortConfig,metadata.getStoreDefList(),storeRepository));
   if (voldemortConfig.isSlopEnabled()) {
     logger.info("Initializing the slop store using " + voldemortConfig.getSlopStoreType());
     StorageConfiguration config=storageConfigs.get(voldemortConfig.getSlopStoreType());
-    if (config == null)     throw new ConfigurationException("Attempt to get slop store failed");
+    if (config == null)     throw new ConfigurationException("Attempt to open store " + SlopStorageEngine.SLOP_STORE_NAME + " but "+ voldemortConfig.getSlopStoreType()+ " storage engine has not been enabled.");
     SlopStorageEngine slopEngine=new SlopStorageEngine(config.getStore(SlopStorageEngine.SLOP_STORE_NAME),metadata.getCluster());
-    registerEngine(slopEngine);
+    registerEngine(slopEngine,false,"slop");
     storeRepository.setSlopStore(slopEngine);
     if (voldemortConfig.isSlopPusherJobEnabled()) {
       GregorianCalendar cal=new GregorianCalendar();
@@ -16,12 +16,12 @@
       logger.info("Initializing slop pusher job type " + voldemortConfig.getPusherType() + " at "+ nextRun);
       scheduler.schedule("slop",(voldemortConfig.getPusherType().compareTo(BlockingSlopPusherJob.TYPE_NAME) == 0) ? new BlockingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig,scanPermits) : new StreamingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig,scanPermits),nextRun,voldemortConfig.getSlopFrequencyMs());
       if (voldemortConfig.isRepairEnabled()) {
-        cal.add(Calendar.SECOND,(int)(voldemortConfig.getRepairFrequencyMs() / Time.MS_PER_SECOND));
+        cal.add(Calendar.SECOND,(int)(voldemortConfig.getRepairStartMs() / Time.MS_PER_SECOND));
         nextRun=cal.getTime();
         logger.info("Initializing repair job " + voldemortConfig.getPusherType() + " at "+ nextRun);
         RepairJob job=new RepairJob(storeRepository,metadata,scanPermits);
         JmxUtils.registerMbean(job,JmxUtils.createObjectName(job.getClass()));
-        scheduler.schedule("repair",job,nextRun,voldemortConfig.getRepairFrequencyMs());
+        scheduler.schedule("repair",job,nextRun);
       }
     }
   }

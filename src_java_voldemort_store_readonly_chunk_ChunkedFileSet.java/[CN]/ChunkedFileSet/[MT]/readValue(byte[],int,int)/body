@@ -1,0 +1,52 @@
+{
+  FileChannel dataFile=dataFileFor(chunk);
+  try {
+switch (storageFormat) {
+case READONLY_V0:
+case READONLY_V1:
+{
+        ByteBuffer sizeBuffer=ByteBuffer.allocate(ByteUtils.SIZE_OF_INT);
+        dataFile.read(sizeBuffer,valueLocation);
+        int valueSize=sizeBuffer.getInt(0);
+        ByteBuffer valueBuffer=ByteBuffer.allocate(valueSize);
+        dataFile.read(valueBuffer,valueLocation + ByteUtils.SIZE_OF_INT);
+        return valueBuffer.array();
+      }
+case READONLY_V2:
+{
+      int headerSize=ByteUtils.SIZE_OF_SHORT + (2 * ByteUtils.SIZE_OF_INT);
+      ByteBuffer sizeBuffer=ByteBuffer.allocate(headerSize);
+      dataFile.read(sizeBuffer,valueLocation);
+      valueLocation+=headerSize;
+      short numKeyValues=sizeBuffer.getShort(0);
+      int keySize=sizeBuffer.getInt(ByteUtils.SIZE_OF_SHORT);
+      int valueSize=sizeBuffer.getInt(ByteUtils.SIZE_OF_SHORT + ByteUtils.SIZE_OF_INT);
+      do {
+        if (keySize == -1 && valueSize == -1) {
+          sizeBuffer.clear();
+          dataFile.read(sizeBuffer,valueLocation);
+          keySize=sizeBuffer.getInt(0);
+          valueSize=sizeBuffer.getInt(ByteUtils.SIZE_OF_INT);
+          valueLocation+=(2 * ByteUtils.SIZE_OF_INT);
+        }
+        ByteBuffer buffer=ByteBuffer.allocate(keySize + valueSize);
+        dataFile.read(buffer,valueLocation);
+        if (ByteUtils.compare(key,buffer.array(),0,keySize) == 0) {
+          return ByteUtils.copy(buffer.array(),keySize,keySize + valueSize);
+        }
+        valueLocation+=(keySize + valueSize);
+        keySize=valueSize=-1;
+      }
+ while (--numKeyValues > 0);
+      return new byte[0];
+    }
+default :
+{
+    throw new VoldemortException("Storage format not supported ");
+  }
+}
+}
+ catch (IOException e) {
+throw new VoldemortException(e);
+}
+}

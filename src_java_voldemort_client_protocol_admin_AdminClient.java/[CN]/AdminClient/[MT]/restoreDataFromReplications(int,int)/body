@@ -12,21 +12,27 @@
     Cluster cluster=getRemoteCluster(nodeId).getValue();
     List<StoreDefinition> writableStores=Lists.newArrayList();
     for (    StoreDefinition def : storeDefList) {
-      if (def.isView() || restoreStoreEngineBlackList.contains(def.getType())) {
-        logger.info("Ignoring store " + def.getName() + " for restoring");
+      if (def.isView()) {
+        logger.info("Ignoring store " + def.getName() + " since it is a view");
+      }
+ else       if (restoreStoreEngineBlackList.contains(def.getType())) {
+        logger.info("Ignoring store " + def.getName() + " since we don't support restoring for "+ def.getType()+ " storage engine");
+      }
+ else       if (def.getReplicationFactor() == 1) {
+        logger.info("Ignoring store " + def.getName() + " since replication factor is set to 1");
       }
  else {
         writableStores.add(def);
       }
     }
     for (    StoreDefinition def : writableStores) {
-      restoreStoreFromReplication(nodeId,cluster,def,executors);
+      if (def.getName().compareTo("test-recovery-data") == 0)       restoreStoreFromReplication(nodeId,cluster,def,executors);
     }
   }
   finally {
     executors.shutdown();
     try {
-      executors.awaitTermination(adminClientConfig.getRestoreDataTimeout(),TimeUnit.SECONDS);
+      executors.awaitTermination(adminClientConfig.getRestoreDataTimeoutSec(),TimeUnit.SECONDS);
     }
  catch (    InterruptedException e) {
       logger.error("Interrupted while waiting restore operation to finish.");

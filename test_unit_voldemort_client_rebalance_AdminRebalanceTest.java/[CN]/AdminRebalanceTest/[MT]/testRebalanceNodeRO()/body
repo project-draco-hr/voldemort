@@ -1,0 +1,72 @@
+{
+  try {
+    startFourNodeRO();
+    int numChunks=5;
+    for (    StoreDefinition storeDef : Lists.newArrayList(storeDef1,storeDef2)) {
+      buildROStore(storeDef,numChunks);
+    }
+    for (    RebalancePartitionsInfo partitionPlan : plans) {
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalancePartitionsInfo.create(partitionPlan.toJsonString()))));
+    }
+    try {
+      for (      RebalancePartitionsInfo currentPlan : plans) {
+        int asyncId=adminClient.rebalanceNode(currentPlan);
+        assertNotSame("Got a valid rebalanceAsyncId",-1,asyncId);
+        getAdminClient().waitForCompletion(currentPlan.getStealerId(),asyncId,300,TimeUnit.SECONDS);
+        assertFalse(getServer(currentPlan.getStealerId()).getMetadataStore().getRebalancerState().getAll().contains(currentPlan));
+      }
+    }
+ catch (    Exception e) {
+      e.printStackTrace();
+      fail("Should not throw any exceptions");
+    }
+    for (    StoreDefinition storeDef : Lists.newArrayList(storeDef1,storeDef2)) {
+      String storeName=storeDef.getName();
+      for (      RebalancePartitionsInfo currentPlan : plans) {
+        File currentDir=new File(((ReadOnlyStorageEngine)getStore(currentPlan.getStealerId(),storeName)).getCurrentDirPath());
+        if (currentPlan.getUnbalancedStoreList().contains(storeDef.getName())) {
+          for (          Entry<Integer,List<Integer>> entry : currentPlan.getReplicaToAddPartitionList(storeName).entrySet()) {
+            if (entry.getKey() < storeDef.getReplicationFactor()) {
+              for (              int partitionId : entry.getValue()) {
+                for (int chunkId=0; chunkId < numChunks; chunkId++) {
+                  assertTrue(new File(currentDir,partitionId + "_" + entry.getKey()+ "_"+ chunkId+ ".data").exists());
+                  assertTrue(new File(currentDir,partitionId + "_" + entry.getKey()+ "_"+ chunkId+ ".index").exists());
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    for (    VoldemortServer server : servers) {
+      assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
+      assertEquals(server.getMetadataStore().getServerState(),MetadataStore.VoldemortState.NORMAL_SERVER);
+    }
+    servers[2].getMetadataStore().put(MetadataStore.STORES_KEY,Lists.newArrayList(storeDef1,storeDef2,new StoreDefinitionBuilder().setName("test3").setType(ReadOnlyStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.SERVER).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).build()));
+    try {
+      adminClient.rebalanceStateChange(cluster,targetCluster,plans,true,true,false,true,true);
+      fail("Should have thrown an exception since one node doesn't have the store");
+    }
+ catch (    VoldemortException e) {
+    }
+    servers[2].getMetadataStore().put(MetadataStore.STORES_KEY,Lists.newArrayList(storeDef1,storeDef2));
+    checkRO(cluster);
+    adminClient.rebalanceStateChange(cluster,targetCluster,plans,true,true,false,true,true);
+    checkRO(targetCluster);
+    for (    RebalancePartitionsInfo partitionPlan : plans) {
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalancePartitionsInfo.create(partitionPlan.toJsonString()))));
+    }
+    try {
+      int asyncId=adminClient.rebalanceNode(plans.get(0));
+      getAdminClient().waitForCompletion(plans.get(0).getStealerId(),asyncId,300,TimeUnit.SECONDS);
+      fail("Should throw an exception");
+    }
+ catch (    Exception e) {
+    }
+  }
+  finally {
+    shutDown();
+  }
+}

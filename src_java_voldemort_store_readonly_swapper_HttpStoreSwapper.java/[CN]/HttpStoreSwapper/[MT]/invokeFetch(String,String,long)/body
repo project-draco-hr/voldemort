@@ -13,25 +13,52 @@
         logger.info("Invoking fetch for node " + node.getId() + " for "+ storeDir);
         int responseCode=httpClient.executeMethod(post);
         String response=post.getResponseBodyAsString(30000);
-        if (responseCode != 200)         throw new VoldemortException("Swap request on node " + node.getId() + " ("+ url+ ") failed: "+ post.getStatusText());
+        if (responseCode != 200)         throw new VoldemortException("Fetch request on node " + node.getId() + " ("+ url+ ") failed: "+ post.getStatusText());
         logger.info("Fetch succeeded on node " + node.getId());
         return response.trim();
       }
     }
 ));
   }
-  List<String> results=new ArrayList<String>();
+  TreeMap<Integer,String> results=Maps.newTreeMap();
+  HashMap<Integer,Exception> exceptions=Maps.newHashMap();
   for (int nodeId=0; nodeId < cluster.getNumberOfNodes(); nodeId++) {
     Future<String> val=fetchDirs.get(nodeId);
     try {
-      results.add(val.get());
+      results.put(nodeId,val.get());
     }
- catch (    ExecutionException e) {
-      throw new VoldemortException(e.getCause());
-    }
-catch (    InterruptedException e) {
-      throw new VoldemortException(e);
+ catch (    Exception e) {
+      exceptions.put(nodeId,new VoldemortException(e));
     }
   }
-  return results;
+  if (!exceptions.isEmpty()) {
+    if (deleteFailedFetch) {
+      for (      int successfulNodeId : results.keySet()) {
+        try {
+          String url=cluster.getNodeById(successfulNodeId).getHttpUrl() + "/" + readOnlyMgmtPath;
+          PostMethod post=new PostMethod(url);
+          post.addParameter("operation","failed-fetch");
+          post.addParameter("dir",results.get(successfulNodeId));
+          post.addParameter("store",storeName);
+          logger.info("Deleting fetched data from node " + successfulNodeId);
+          int responseCode=httpClient.executeMethod(post);
+          String response=post.getStatusText();
+          if (responseCode == 200) {
+            logger.info("Deleted successfully on node " + successfulNodeId);
+          }
+ else {
+            throw new VoldemortException(response);
+          }
+        }
+ catch (        Exception e) {
+          logger.error("Exception thrown during delete operation on node " + successfulNodeId + " : ",e);
+        }
+      }
+    }
+    for (    int failedNodeId : exceptions.keySet()) {
+      logger.error("Error on node " + failedNodeId + " during push : ",exceptions.get(failedNodeId));
+    }
+    throw new VoldemortException("Exception during pushes to nodes " + Joiner.on(",").join(exceptions.keySet()) + " failed");
+  }
+  return Lists.newArrayList(results.values());
 }
