@@ -1,0 +1,38 @@
+{
+  if (asyncKey.compareTo("get") == 0) {
+    List<Integer> nodeIds=Lists.newArrayList();
+    if (nodeId < 0) {
+      for (      Node node : adminClient.getAdminClientCluster().getNodes()) {
+        nodeIds.add(node.getId());
+      }
+    }
+ else {
+      nodeIds.add(nodeId);
+    }
+    for (    int currentNodeId : nodeIds) {
+      System.out.println("Printing async jobs from node " + currentNodeId);
+      List<Integer> asyncIds=adminClient.getAsyncRequestList(currentNodeId);
+      for (      int asyncId : asyncIds) {
+        System.out.println("Async Job Id : " + asyncId);
+        System.out.println("Async Job Status : " + adminClient.getAsyncRequestStatus(currentNodeId,currentNodeId));
+        System.out.println();
+      }
+    }
+  }
+ else   if (asyncKey.compareTo("stop") == 0) {
+    if (nodeId < 0) {
+      throw new VoldemortException("Cannot stop job ids without node id");
+    }
+    if (asyncIdsToStop == null || asyncIdsToStop.size() == 0) {
+      throw new VoldemortException("Async ids cannot be null / zero");
+    }
+    for (    int asyncId : asyncIdsToStop) {
+      System.out.println("Stopping async id " + asyncId);
+      adminClient.stopAsyncRequest(nodeId,asyncId);
+      System.out.println("Stopped async id " + asyncId);
+    }
+  }
+ else {
+    throw new VoldemortException("Unsupported async operation type " + asyncKey);
+  }
+}
