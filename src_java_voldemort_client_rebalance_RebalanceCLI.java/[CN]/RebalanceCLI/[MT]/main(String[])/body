@@ -13,7 +13,7 @@
     parser.accepts("generate","Optimize the target cluster which has new nodes with empty partitions");
     parser.accepts("entropy","True - if we want to run the entropy calculator. False - if we want to store keys").withRequiredArg().ofType(Boolean.class);
     parser.accepts("output-dir","Specify the output directory for (1) dumping metadata" + "(b) dumping entropy keys").withRequiredArg().ofType(String.class).describedAs("path");
-    parser.accepts("no-delete","Do not delete after rebalancing (Valid only for RW Stores) ");
+    parser.accepts("delete","Delete after rebalancing (Valid only for RW Stores) [ Default : false ] ");
     parser.accepts("show-plan","Shows the rebalancing plan only without executing the rebalance");
     parser.accepts("keys","The number of keys to use for entropy calculation [ Default : " + Entropy.DEFAULT_NUM_KEYS + " ]").withRequiredArg().ofType(Long.class).describedAs("num-keys");
     parser.accepts("timeout","Time-out in seconds for rebalancing of a single task ( stealer - donor tuple ) [ Default : " + RebalanceClientConfig.REBALANCING_CLIENT_TIMEOUT_SEC + " ]").withRequiredArg().ofType(Long.class).describedAs("sec");
@@ -22,7 +22,7 @@
       printHelp(System.out,parser);
       System.exit(HELP_EXIT_CODE);
     }
-    boolean deleteAfterRebalancing=!options.has("no-delete");
+    boolean deleteAfterRebalancing=options.has("delete");
     int parallelism=CmdUtils.valueOf(options,"parallelism",RebalanceClientConfig.MAX_PARALLEL_REBALANCING);
     int maxTriesRebalancing=CmdUtils.valueOf(options,"tries",RebalanceClientConfig.MAX_TRIES);
     boolean enabledShowPlan=options.has("show-plan");
