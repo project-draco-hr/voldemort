@@ -9,7 +9,9 @@
       logger.warn("Cannot delete " + storeDir + " for "+ storeName+ " since it is the current dir");
       return response.build();
     }
+    logger.info("Deleting data from failed fetch for RO store '" + storeName + "' and directory '"+ storeDir+ "'");
     Utils.rm(new File(storeDir));
+    logger.info("Successfully deleted data from failed fetch for RO store '" + storeName + "' and directory '"+ storeDir+ "'");
   }
  catch (  VoldemortException e) {
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));

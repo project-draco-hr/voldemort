@@ -18,7 +18,7 @@
     VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setFetchPartitionFiles(fetchPartitionFileRequest).setType(VAdminProto.AdminRequestType.FETCH_PARTITION_FILES).build();
     ProtoUtils.writeMessage(outputStream,request);
     outputStream.flush();
-    while (true) {
+    while (true && running.get()) {
       int size=0;
       try {
         size=inputStream.readInt();
