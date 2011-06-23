@@ -2,7 +2,10 @@
   VAdminProto.AsyncOperationListResponse.Builder response=VAdminProto.AsyncOperationListResponse.newBuilder();
   boolean showComplete=request.getShowComplete();
   try {
-    response.addAllRequestIds(asyncService.getAsyncOperationList(showComplete));
+    logger.info("Retrieving list of async operations " + ((showComplete) ? " [ including completed ids ]" : ""));
+    List<Integer> asyncIds=asyncService.getAsyncOperationList(showComplete);
+    logger.info("Retrieved list of async operations - " + asyncIds);
+    response.addAllRequestIds(asyncIds);
   }
  catch (  VoldemortException e) {
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));

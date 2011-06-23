@@ -15,9 +15,10 @@
       private final AtomicBoolean running=new AtomicBoolean(true);
       @Override public void stop(){
         running.set(false);
+        logger.info("Stopping fetch and update for store " + storeName + " from node "+ nodeId+ "( "+ replicaToPartitionList+ " )");
       }
       @Override public void operate(){
-        AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),4,2);
+        AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),voldemortConfig.getClientMaxConnectionsPerNode());
         try {
           StorageEngine<ByteArray,byte[],byte[]> storageEngine=getStorageEngine(storeRepository,storeName);
           EventThrottler throttler=new EventThrottler(voldemortConfig.getStreamMaxWriteBytesPerSec());
@@ -26,7 +27,7 @@
             String destinationDir=readOnlyStorageEngine.getCurrentDirPath();
             logger.info("Fetching files for RO store '" + storeName + "' from node "+ nodeId+ " ( "+ replicaToPartitionList+ " )");
             updateStatus("Fetching files for RO store '" + storeName + "' from node "+ nodeId+ " ( "+ replicaToPartitionList+ " )");
-            adminClient.fetchPartitionFiles(nodeId,storeName,replicaToPartitionList,destinationDir,readOnlyStorageEngine.getChunkedFileSet().getChunkIdToNumChunks().keySet());
+            adminClient.fetchPartitionFiles(nodeId,storeName,replicaToPartitionList,destinationDir,readOnlyStorageEngine.getChunkedFileSet().getChunkIdToNumChunks().keySet(),running);
           }
  else {
             logger.info("Fetching entries for RW store '" + storeName + "' from node "+ nodeId+ " ( "+ replicaToPartitionList+ " )");
@@ -71,7 +72,12 @@
                 }
                 numTuples++;
               }
-              logger.info("Completed fetching " + numTuples + " entries from node "+ nodeId+ " for store '"+ storeName+ "'");
+              if (running.get()) {
+                logger.info("Completed fetching " + numTuples + " entries from node "+ nodeId+ " for store '"+ storeName+ "'");
+              }
+ else {
+                logger.info("Fetch and update stopped after fetching " + numTuples + " entries for node "+ nodeId+ " for store '"+ storeName+ "'");
+              }
             }
  else {
               logger.info("No entries to fetch from node " + nodeId + " for store '"+ storeName+ "'");
