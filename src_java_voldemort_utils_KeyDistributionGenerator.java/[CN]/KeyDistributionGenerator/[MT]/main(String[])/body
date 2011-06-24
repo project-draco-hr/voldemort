@@ -3,7 +3,7 @@
   parser.accepts("help","print help information");
   parser.accepts("cluster-xml","[REQUIRED] cluster xml file location").withRequiredArg().describedAs("path");
   parser.accepts("stores-xml","[REQUIRED] stores xml file location").withRequiredArg().describedAs("path");
-  parser.accepts("num-keys","Number of keys to query [Default:100000]").withRequiredArg().describedAs("number").ofType(Integer.class);
+  parser.accepts("num-keys","Number of keys to query [Default : " + DEFAULT_NUM_KEYS + "]").withRequiredArg().describedAs("number").ofType(Integer.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     parser.printHelpOn(System.out);
@@ -17,21 +17,22 @@
   }
   String clusterXml=(String)options.valueOf("cluster-xml");
   String storesXml=(String)options.valueOf("stores-xml");
-  Integer numKeys=CmdUtils.valueOf(options,"num-keys",100000);
+  Integer numKeys=CmdUtils.valueOf(options,"num-keys",DEFAULT_NUM_KEYS);
   if (numKeys <= 0) {
     System.err.println("Number of keys should be greater than 0");
     System.exit(1);
   }
   Cluster cluster=new ClusterMapper().readCluster(new File(clusterXml));
   List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new File(storesXml));
+  List<ByteArray> keys=generateKeys(numKeys);
   for (  StoreDefinition def : storeDefs) {
-    HashMap<Integer,Double> storeDistribution=generateDistribution(cluster,def,numKeys);
+    HashMap<Integer,Double> storeDistribution=generateDistribution(cluster,def,keys);
     System.out.println("For Store " + def.getName());
     printDistribution(storeDistribution);
     System.out.println("Std dev - " + getStdDeviation(storeDistribution));
     System.out.println("=========================");
   }
-  HashMap<Integer,Double> overallDistribution=generateOverallDistribution(cluster,storeDefs,numKeys);
+  HashMap<Integer,Double> overallDistribution=generateOverallDistribution(cluster,storeDefs,keys);
   System.out.println("Overall distribution ");
   printDistribution(overallDistribution);
   System.out.println("Std dev - " + getStdDeviation(overallDistribution));

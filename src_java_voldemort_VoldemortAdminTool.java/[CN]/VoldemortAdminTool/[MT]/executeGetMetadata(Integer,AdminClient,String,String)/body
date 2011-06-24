@@ -15,35 +15,47 @@
  else {
     nodeIds.add(nodeId);
   }
+  List<String> metadataKeys=Lists.newArrayList();
+  if (metadataKey.compareTo(ALL_METADATA) == 0) {
+    for (    Object key : MetadataStore.METADATA_KEYS) {
+      metadataKeys.add((String)key);
+    }
+  }
+ else {
+    metadataKeys.add(metadataKey);
+  }
   for (  Integer currentNodeId : nodeIds) {
     System.out.println(adminClient.getAdminClientCluster().getNodeById(currentNodeId).getHost() + ":" + adminClient.getAdminClientCluster().getNodeById(currentNodeId).getId());
-    Versioned<String> versioned=null;
-    try {
-      versioned=adminClient.getRemoteMetadata(currentNodeId,metadataKey);
-    }
- catch (    Exception e) {
-      System.out.println("Error in retrieving " + e.getMessage());
-      System.out.println();
-      continue;
-    }
-    if (versioned == null) {
-      if (directory == null) {
-        System.out.println("null");
+    for (    String key : metadataKeys) {
+      System.out.println("Key - " + key);
+      Versioned<String> versioned=null;
+      try {
+        versioned=adminClient.getRemoteMetadata(currentNodeId,key);
+      }
+ catch (      Exception e) {
+        System.out.println("Error in retrieving " + e.getMessage());
         System.out.println();
+        continue;
+      }
+      if (versioned == null) {
+        if (directory == null) {
+          System.out.println("null");
+          System.out.println();
+        }
+ else {
+          FileUtils.writeStringToFile(new File(directory,key + "_" + currentNodeId),"");
+        }
       }
  else {
-        FileUtils.writeStringToFile(new File(directory,metadataKey + "." + currentNodeId),"");
-      }
-    }
+        if (directory == null) {
+          System.out.println(versioned.getVersion());
+          System.out.print(": ");
+          System.out.println(versioned.getValue());
+          System.out.println();
+        }
  else {
-      if (directory == null) {
-        System.out.println(versioned.getVersion());
-        System.out.print(": ");
-        System.out.println(versioned.getValue());
-        System.out.println();
-      }
- else {
-        FileUtils.writeStringToFile(new File(directory,metadataKey + "." + currentNodeId),versioned.getValue());
+          FileUtils.writeStringToFile(new File(directory,key + "_" + currentNodeId),versioned.getValue());
+        }
       }
     }
   }

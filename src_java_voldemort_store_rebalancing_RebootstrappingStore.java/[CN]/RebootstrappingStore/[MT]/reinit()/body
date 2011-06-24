@@ -1,5 +1,5 @@
 {
-  AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadata.getCluster(),4,2);
+  AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadata.getCluster(),voldemortConfig.getClientMaxConnectionsPerNode());
   try {
     Versioned<Cluster> latestCluster=RebalanceUtils.getLatestCluster(new ArrayList<Integer>(),adminClient);
     metadata.put(MetadataStore.CLUSTER_KEY,latestCluster.getValue());

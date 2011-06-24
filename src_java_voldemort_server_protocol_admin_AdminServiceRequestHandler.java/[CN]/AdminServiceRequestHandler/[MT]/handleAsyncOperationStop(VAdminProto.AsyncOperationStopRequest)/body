@@ -2,7 +2,9 @@
   VAdminProto.AsyncOperationStopResponse.Builder response=VAdminProto.AsyncOperationStopResponse.newBuilder();
   int requestId=request.getRequestId();
   try {
+    logger.info("Stopping async id " + requestId);
     asyncService.stopOperation(requestId);
+    logger.info("Successfully stopped async id " + requestId);
   }
  catch (  VoldemortException e) {
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));

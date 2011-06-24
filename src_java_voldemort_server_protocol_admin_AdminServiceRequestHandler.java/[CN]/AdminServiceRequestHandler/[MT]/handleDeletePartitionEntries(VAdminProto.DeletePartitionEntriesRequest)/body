@@ -22,7 +22,7 @@
       if (RebalanceUtils.checkKeyBelongsToPartition(metadataStore.getNodeId(),key.get(),replicaToPartitionList,request.hasInitialCluster() ? new ClusterMapper().readCluster(new StringReader(request.getInitialCluster())) : metadataStore.getCluster(),metadataStore.getStoreDef(storeName)) && filter.accept(key,value)) {
         if (storageEngine.delete(key,value.getVersion())) {
           deleteSuccess++;
-          if ((deleteSuccess % 1000) == 0) {
+          if ((deleteSuccess % 10000) == 0) {
             logger.info(deleteSuccess + " entries deleted from node " + metadataStore.getNodeId()+ " for store "+ storeName);
           }
         }

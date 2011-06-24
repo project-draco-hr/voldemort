@@ -3,7 +3,9 @@
   try {
     String storeName=request.getStore();
     StorageEngine<ByteArray,byte[],byte[]> storageEngine=getStorageEngine(storeRepository,storeName);
+    logger.info("Truncating data for store '" + storeName + "'");
     storageEngine.truncate();
+    logger.info("Successfully truncated data for store '" + storeName + "'");
   }
  catch (  VoldemortException e) {
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));

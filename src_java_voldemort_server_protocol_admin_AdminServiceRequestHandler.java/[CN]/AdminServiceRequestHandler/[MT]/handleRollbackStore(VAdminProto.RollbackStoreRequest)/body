@@ -5,7 +5,9 @@
   try {
     ReadOnlyStorageEngine store=getReadOnlyStorageEngine(metadataStore,storeRepository,storeName);
     File rollbackVersionDir=new File(store.getStoreDirPath(),"version-" + pushVersion);
+    logger.info("Rolling back data for RO store '" + storeName + "' to version directory '"+ rollbackVersionDir+ "'");
     store.rollback(rollbackVersionDir);
+    logger.info("Successfully rolled back data for RO store '" + storeName + "' to version directory '"+ rollbackVersionDir+ "'");
   }
  catch (  VoldemortException e) {
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));

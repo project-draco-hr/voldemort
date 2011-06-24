@@ -1,7 +1,7 @@
 {
   AdminClient adminClient=null;
   try {
-    adminClient=new AdminClient(cluster,new AdminClientConfig().setAdminConnectionTimeoutSec(60 * 60 * 2).setAdminSocketTimeoutSec(60 * 60 * 2).setMaxThreads(numThreads));
+    adminClient=new AdminClient(cluster,new AdminClientConfig().setMaxConnectionsPerNode(storeDefs.size()));
     if (opType) {
       System.out.println("Running entropy calculator");
     }
@@ -18,6 +18,7 @@
  else {
         System.out.println("Working on store " + storeDef.getName());
       }
+      RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
       if (!opType) {
         if (storesKeyFile.exists()) {
           System.err.println("Key files for " + storeDef.getName() + " already exists");
@@ -33,8 +34,10 @@
               keys=adminClient.fetchKeys(node.getId(),storeDef.getName(),cluster.getNodeById(node.getId()).getPartitionIds(),null,false);
               for (long keyId=0; keyId < numKeysPerNode && keys.hasNext(); keyId++) {
                 ByteArray key=keys.next();
-                writer.write(key.length());
-                writer.write(key.get());
+                if (RebalanceUtils.getNodeIds(strategy.routeRequest(key.get())).contains(node.getId())) {
+                  writer.write(key.length());
+                  writer.write(key.get());
+                }
               }
             }
           }
@@ -42,8 +45,10 @@
             keys=adminClient.fetchKeys(nodeId,storeDef.getName(),cluster.getNodeById(nodeId).getPartitionIds(),null,false);
             for (long keyId=0; keyId < numKeys && keys.hasNext(); keyId++) {
               ByteArray key=keys.next();
-              writer.write(key.length());
-              writer.write(key.get());
+              if (RebalanceUtils.getNodeIds(strategy.routeRequest(key.get())).contains(nodeId)) {
+                writer.write(key.length());
+                writer.write(key.get());
+              }
             }
           }
         }
@@ -58,7 +63,6 @@
         }
         FileInputStream reader=null;
         SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
-        RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
         HashMap<Integer,Store<ByteArray,byte[],byte[]>> socketStoresPerNode=Maps.newHashMap();
         for (        Node node : cluster.getNodes()) {
           socketStoresPerNode.put(node.getId(),socketStoreFactory.create(storeDef.getName(),node.getHost(),node.getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS,RequestRoutingType.IGNORE_CHECKS));

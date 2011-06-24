@@ -13,7 +13,7 @@
   parser.accepts("add-stores","Add stores in this stores.xml").withRequiredArg().describedAs("stores.xml containing just the new stores").ofType(String.class);
   parser.accepts("delete-store","Delete store").withRequiredArg().describedAs("store-name").ofType(String.class);
   parser.accepts("update-entries","Insert or update entries").withRequiredArg().describedAs("input-directory").ofType(String.class);
-  parser.accepts("get-metadata","retreive metadata information [ " + MetadataStore.CLUSTER_KEY + " | "+ MetadataStore.STORES_KEY+ " | "+ MetadataStore.SERVER_STATE_KEY+ " | "+ MetadataStore.REBALANCING_STEAL_INFO+ " ]").withRequiredArg().describedAs("metadata-key").ofType(String.class);
+  parser.accepts("get-metadata","retreive metadata information " + MetadataStore.METADATA_KEYS).withOptionalArg().describedAs("metadata-key").ofType(String.class);
   parser.accepts("check-metadata","retreive metadata information from all nodes and checks if they are consistent across [ " + MetadataStore.CLUSTER_KEY + " | "+ MetadataStore.STORES_KEY+ " | "+ MetadataStore.SERVER_STATE_KEY+ " ]").withRequiredArg().describedAs("metadata-key").ofType(String.class);
   parser.accepts("ro-metadata","retrieve version information [current | max | storage-format]").withRequiredArg().describedAs("type").ofType(String.class);
   parser.accepts("truncate","truncate a store").withRequiredArg().describedAs("store-name").ofType(String.class);
@@ -21,6 +21,8 @@
   parser.accepts("set-metadata-value","The value for the set-metadata [ " + MetadataStore.CLUSTER_KEY + " | "+ MetadataStore.STORES_KEY+ ", "+ MetadataStore.REBALANCING_STEAL_INFO+ " ] - xml file location, [ "+ MetadataStore.SERVER_STATE_KEY+ " ] - "+ MetadataStore.VoldemortState.NORMAL_SERVER+ ","+ MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER).withRequiredArg().describedAs("metadata-value").ofType(String.class);
   parser.accepts("key-distribution","Prints the current key distribution of the cluster");
   parser.accepts("clear-rebalancing-metadata","Remove the metadata related to rebalancing");
+  parser.accepts("async","a) Get a list of async job ids [get] b) Stop async job ids [stop] ").withRequiredArg().describedAs("op-type").ofType(String.class);
+  parser.accepts("async-id","Comma separated list of async ids to stop").withOptionalArg().describedAs("job-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     printHelp(System.out,parser);
@@ -28,7 +30,7 @@
   }
   Set<String> missing=CmdUtils.missing(options,"url","node");
   if (missing.size() > 0) {
-    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store") || options.has("ro-metadata")|| options.has("set-metadata")|| options.has("get-metadata")|| options.has("check-metadata")|| options.has("key-distribution")) || options.has("truncate") || options.has("clear-rebalancing-metadata"))) {
+    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store") || options.has("ro-metadata")|| options.has("set-metadata")|| options.has("get-metadata")|| options.has("check-metadata")|| options.has("key-distribution")) || options.has("truncate") || options.has("clear-rebalancing-metadata") || options.has("async"))) {
       System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
       printHelp(System.err,parser);
       System.exit(1);
@@ -81,8 +83,11 @@
   if (options.has("clear-rebalancing-metadata")) {
     ops+="i";
   }
+  if (options.has("async")) {
+    ops+="b";
+  }
   if (ops.length() < 1) {
-    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, set-metadata, check-metadata, key-distribution, clear-rebalancing-metadata) must be specified");
+    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, key-distribution, clear-rebalancing-metadata, async) "+ "must be specified");
   }
   List<String> storeNames=null;
   if (options.has("stores")) {
@@ -136,10 +141,10 @@
       executeDeleteStore(adminClient,storeName,nodeId);
     }
     if (ops.contains("g")) {
-      if (options.has("outdir")) {
-        outputDir=(String)options.valueOf("outdir");
+      String metadataKey=ALL_METADATA;
+      if (options.hasArgument("get-metadata")) {
+        metadataKey=(String)options.valueOf("get-metadata");
       }
-      String metadataKey=(String)options.valueOf("get-metadata");
       executeGetMetadata(nodeId,adminClient,metadataKey,outputDir);
     }
     if (ops.contains("e")) {
@@ -193,6 +198,12 @@
     }
     if (ops.contains("i")) {
       executeClearRebalancing(nodeId,adminClient);
+    }
+    if (ops.contains("b")) {
+      String asyncKey=(String)options.valueOf("async");
+      List<Integer> asyncIds=null;
+      if (options.hasArgument("async-id"))       asyncIds=(List<Integer>)options.valuesOf("async-id");
+      executeAsync(nodeId,adminClient,asyncKey,asyncIds);
     }
   }
  catch (  Exception e) {
