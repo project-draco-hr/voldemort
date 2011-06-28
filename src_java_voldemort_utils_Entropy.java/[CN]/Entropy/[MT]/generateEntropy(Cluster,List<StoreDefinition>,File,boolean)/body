@@ -34,7 +34,7 @@
               keys=adminClient.fetchKeys(node.getId(),storeDef.getName(),cluster.getNodeById(node.getId()).getPartitionIds(),null,false);
               for (long keyId=0; keyId < numKeysPerNode && keys.hasNext(); keyId++) {
                 ByteArray key=keys.next();
-                if (RebalanceUtils.getNodeIds(strategy.routeRequest(key.get())).contains(node.getId())) {
+                if (RebalanceUtils.getNodeIds(strategy.routeRequest(key.get()).subList(0,1)).contains(node.getId())) {
                   writer.write(key.length());
                   writer.write(key.get());
                 }
@@ -45,7 +45,7 @@
             keys=adminClient.fetchKeys(nodeId,storeDef.getName(),cluster.getNodeById(nodeId).getPartitionIds(),null,false);
             for (long keyId=0; keyId < numKeys && keys.hasNext(); keyId++) {
               ByteArray key=keys.next();
-              if (RebalanceUtils.getNodeIds(strategy.routeRequest(key.get())).contains(nodeId)) {
+              if (RebalanceUtils.getNodeIds(strategy.routeRequest(key.get()).subList(0,1)).contains(nodeId)) {
                 writer.write(key.length());
                 writer.write(key.get());
               }
