@@ -1,16 +1,22 @@
 {
   adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),voldemortConfig.getMaxParallelStoresRebalancing());
   final List<Exception> failures=new ArrayList<Exception>();
+  final ConcurrentLinkedQueue<String> storesRebalancing=new ConcurrentLinkedQueue<String>();
+  final AtomicInteger completedStoresCount=new AtomicInteger(0);
+  final int totalStoresCount=stealInfo.getUnbalancedStoreList().size();
   try {
     for (    final String storeName : ImmutableList.copyOf(stealInfo.getUnbalancedStoreList())) {
       executors.submit(new Runnable(){
         public void run(){
           try {
             boolean isReadOnlyStore=metadataStore.getStoreDef(storeName).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
-            logger.info(getHeader(stealInfo) + "Working on store " + storeName);
+            storesRebalancing.add(storeName);
+            updateStatus(getHeader(stealInfo) + "Completed working on " + completedStoresCount.get()+ " out of "+ totalStoresCount+ " stores. Still rebalancing "+ storesRebalancing);
             rebalanceStore(storeName,adminClient,stealInfo,isReadOnlyStore);
             stealInfo.removeStore(storeName);
-            logger.info(getHeader(stealInfo) + "Completed working on store " + storeName);
+            storesRebalancing.remove(storeName);
+            completedStoresCount.getAndIncrement();
+            updateStatus(getHeader(stealInfo) + "Completed working on " + completedStoresCount.get()+ " out of "+ totalStoresCount+ " stores. Still rebalancing "+ storesRebalancing);
           }
  catch (          Exception e) {
             logger.error(getHeader(stealInfo) + "Error while rebalancing for store " + storeName+ " - "+ e.getMessage(),e);
@@ -23,12 +29,12 @@
     waitForShutdown();
     List<String> unbalancedStores=Lists.newArrayList(stealInfo.getUnbalancedStoreList());
     if (unbalancedStores.isEmpty()) {
-      logger.info(getHeader(stealInfo) + "Rebalance of " + stealInfo+ " completed successfully.");
-      updateStatus(getHeader(stealInfo) + "Rebalance of " + stealInfo+ " completed successfully.");
+      logger.info(getHeader(stealInfo) + "Rebalance of " + stealInfo+ " completed successfully for all "+ totalStoresCount+ " stores");
+      updateStatus(getHeader(stealInfo) + "Rebalance of " + stealInfo+ " completed successfully for all "+ totalStoresCount+ " stores");
       metadataStore.deleteRebalancingState(stealInfo);
     }
  else {
-      throw new VoldemortRebalancingException(getHeader(stealInfo) + "Failed to rebalance task " + stealInfo,failures);
+      throw new VoldemortRebalancingException(getHeader(stealInfo) + "Failed to rebalance task " + stealInfo+ ". Could only complete "+ completedStoresCount.get()+ " out of "+ totalStoresCount+ " stores",failures);
     }
   }
   finally {

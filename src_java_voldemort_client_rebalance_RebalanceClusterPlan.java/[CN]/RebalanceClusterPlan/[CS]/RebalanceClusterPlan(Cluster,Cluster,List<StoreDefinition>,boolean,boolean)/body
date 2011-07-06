@@ -1,0 +1,21 @@
+{
+  this.rebalanceTaskQueue=new ConcurrentLinkedQueue<RebalanceNodePlan>();
+  this.currentAllStoresNodeIdToAllPartitionTuples=Maps.newHashMap();
+  this.targetAllStoresNodeIdToAllPartitionTuples=Maps.newHashMap();
+  if (currentCluster.getNumberOfPartitions() != targetCluster.getNumberOfPartitions())   throw new VoldemortException("Total number of partitions should be equal [ Current cluster (" + currentCluster.getNumberOfPartitions() + ") not equal to Target cluster ("+ targetCluster.getNumberOfPartitions()+ ") ]");
+  if (currentCluster.getNumberOfNodes() != targetCluster.getNumberOfNodes())   throw new VoldemortException("Total number of nodes should be equal [ Current cluster (" + currentCluster.getNumberOfNodes() + ") not equal to Target cluster ("+ targetCluster.getNumberOfNodes()+ ") ]");
+  HashMultimap<Integer,RebalancePartitionsInfo> rebalancePartitionList=HashMultimap.create();
+  for (  Node node : targetCluster.getNodes()) {
+    for (    RebalancePartitionsInfo info : getRebalancePartitionsInfo(currentCluster,targetCluster,storeDefs,node.getId(),enabledDeletePartition)) {
+      if (isStealerBased) {
+        rebalancePartitionList.put(info.getStealerId(),info);
+      }
+ else {
+        rebalancePartitionList.put(info.getDonorId(),info);
+      }
+    }
+  }
+  for (  int nodeId : rebalancePartitionList.keySet()) {
+    rebalanceTaskQueue.offer(new RebalanceNodePlan(nodeId,Lists.newArrayList(rebalancePartitionList.get(nodeId)),isStealerBased));
+  }
+}

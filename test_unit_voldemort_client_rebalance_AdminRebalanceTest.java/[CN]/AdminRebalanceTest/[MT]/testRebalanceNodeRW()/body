@@ -25,7 +25,6 @@
       fail("Should have thrown an exception since not in rebalancing state");
     }
  catch (    VoldemortException e) {
-      e.printStackTrace();
     }
     for (    RebalancePartitionsInfo partitionPlan : plans) {
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
@@ -35,7 +34,6 @@
       fail("Should have thrown an exception since no steal info");
     }
  catch (    VoldemortException e) {
-      e.printStackTrace();
     }
     getServer(plans.get(0).getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(new RebalancePartitionsInfo(100,plans.get(0).getDonorId(),plans.get(0).getStoreToReplicaToAddPartitionList(),plans.get(0).getStoreToReplicaToDeletePartitionList(),plans.get(0).getInitialCluster(),0))));
     try {
@@ -43,7 +41,6 @@
       fail("Should have thrown an exception since the two plans eventhough have the same donor are different");
     }
  catch (    VoldemortException e) {
-      e.printStackTrace();
     }
     for (    RebalancePartitionsInfo partitionPlan : plans) {
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalancePartitionsInfo.create(partitionPlan.toJsonString()))));
