@@ -57,9 +57,7 @@
         for (        int testNodeId : oldNodeIdSet) {
           logger.info("Testing node " + testNodeId);
           try {
-            ClusterMapper clusterMapper=new ClusterMapper();
-            Versioned<String> clusterXml=adminClient.getRemoteMetadata(testNodeId,MetadataStore.CLUSTER_KEY);
-            Cluster cluster=clusterMapper.readCluster(new StringReader(clusterXml.getValue()));
+            Cluster cluster=adminClient.getRemoteCluster(testNodeId).getValue();
             Set<Integer> allNodeIds=new HashSet<Integer>();
             for (            Node node : cluster.getNodes()) {
               allNodeIds.add(node.getId());

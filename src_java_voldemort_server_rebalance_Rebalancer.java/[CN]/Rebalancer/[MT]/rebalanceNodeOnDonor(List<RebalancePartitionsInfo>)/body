@@ -1,0 +1,35 @@
+{
+  AdminClient adminClient=null;
+  List<Integer> stealerNodeIdsPermitsAcquired=Lists.newArrayList();
+  try {
+    adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),1);
+    int donorNodeId=metadataStore.getNodeId();
+    for (    RebalancePartitionsInfo info : stealInfos) {
+      int stealerNodeId=info.getStealerId();
+      if (!adminClient.getRemoteServerState(stealerNodeId).getValue().equals(VoldemortState.REBALANCING_MASTER_SERVER)) {
+        throw new VoldemortException("Stealer node " + stealerNodeId + " not in "+ VoldemortState.REBALANCING_MASTER_SERVER+ " state ");
+      }
+      if (adminClient.getRemoteRebalancerState(stealerNodeId).getValue().find(donorNodeId) == null) {
+        throw new VoldemortException("Stealer node " + stealerNodeId + " does not have any plan for donor "+ donorNodeId+ ". Excepted to have "+ info);
+      }
+      if (!acquireRebalancingPermit(stealerNodeId)) {
+        throw new VoldemortException("Node " + metadataStore.getNodeId() + " is already trying to steal from "+ stealerNodeId);
+      }
+      stealerNodeIdsPermitsAcquired.add(stealerNodeId);
+    }
+  }
+ catch (  VoldemortException e) {
+    for (    int stealerNodeId : stealerNodeIdsPermitsAcquired) {
+      releaseRebalancingPermit(stealerNodeId);
+    }
+    throw e;
+  }
+ finally {
+    if (adminClient != null) {
+      adminClient.stop();
+    }
+  }
+  int requestId=asyncService.getUniqueRequestId();
+  asyncService.submitOperation(requestId,new DonorBasedRebalanceAsyncOperation(voldemortConfig,metadataStore,requestId,stealInfos));
+  return requestId;
+}
