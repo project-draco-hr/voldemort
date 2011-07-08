@@ -1,2 +1,41 @@
 {
+  adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),voldemortConfig.getMaxParallelStoresRebalancing());
+  final List<Exception> failures=new ArrayList<Exception>();
+  final ConcurrentLinkedQueue<String> storesRebalancing=new ConcurrentLinkedQueue<String>();
+  final ConcurrentLinkedQueue<String> storesCompleted=new ConcurrentLinkedQueue<String>();
+  final int totalStoresCount=storeToNodePartitionMapping.keySet().size();
+  try {
+    for (    final String storeName : ImmutableList.copyOf(storeToNodePartitionMapping.keySet())) {
+      executors.submit(new Runnable(){
+        public void run(){
+          try {
+            boolean isReadOnlyStore=metadataStore.getStoreDef(storeName).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
+            storesRebalancing.add(storeName);
+            updateStatus(getHeader(stealInfos) + "Completed working on " + storesCompleted.size()+ " out of "+ totalStoresCount+ " stores. Still rebalancing "+ storesRebalancing);
+            rebalanceStore(storeName,adminClient,stealInfos,isReadOnlyStore);
+            storesRebalancing.remove(storeName);
+            storesCompleted.add(storeName);
+            updateStatus(getHeader(stealInfos) + "Completed working on " + storesCompleted.size()+ " out of "+ totalStoresCount+ " stores. Still rebalancing "+ storesRebalancing);
+          }
+ catch (          Exception e) {
+            logger.error(getHeader(stealInfos) + "Error while rebalancing for store " + storeName+ " - "+ e.getMessage(),e);
+            failures.add(e);
+          }
+        }
+      }
+);
+    }
+    waitForShutdown();
+    if (storesCompleted.size() != totalStoresCount) {
+      logger.error(getHeader(stealInfos) + "Could not complete all stores. Completed stores - " + storesCompleted);
+      throw new VoldemortRebalancingException(getHeader(stealInfos) + "Could not complete all stores. Completed stores - " + storesCompleted);
+    }
+ else {
+      logger.info(getHeader(stealInfos) + "Rebalance of " + stealInfos+ " completed successfully for all "+ totalStoresCount+ " stores");
+    }
+  }
+  finally {
+    adminClient.stop();
+    adminClient=null;
+  }
 }

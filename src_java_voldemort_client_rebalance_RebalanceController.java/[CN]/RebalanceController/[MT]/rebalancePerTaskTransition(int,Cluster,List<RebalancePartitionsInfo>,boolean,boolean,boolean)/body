@@ -4,8 +4,8 @@
     return;
   }
   ExecutorService service=RebalanceUtils.createExecutors(rebalanceConfig.getMaxParallelRebalancing());
-  final List<RebalanceTask> successfulTasks=Lists.newArrayList();
   final List<RebalanceTask> failedTasks=Lists.newArrayList();
+  final List<RebalanceTask> incompleteTasks=Lists.newArrayList();
   Semaphore[] donorPermits=new Semaphore[currentCluster.getNumberOfNodes()];
   for (  Node node : currentCluster.getNodes()) {
     donorPermits[node.getId()]=new Semaphore(1);
@@ -15,9 +15,21 @@
     RebalanceUtils.printLog(taskId,logger,"All rebalance tasks were submitted ( shutting down in " + rebalanceConfig.getRebalancingClientTimeoutSeconds() + " sec )");
     RebalanceUtils.executorShutDown(service,rebalanceConfig.getRebalancingClientTimeoutSeconds());
     RebalanceUtils.printLog(taskId,logger,"Finished waiting for executors");
-    List<Exception> failures=filterTasks(allTasks,successfulTasks,failedTasks);
+    List<Exception> failures=Lists.newArrayList();
+    for (    RebalanceTask task : allTasks) {
+      if (task.hasException()) {
+        failedTasks.add(task);
+        failures.add(task.getError());
+      }
+ else       if (!task.isComplete()) {
+        incompleteTasks.add(task);
+      }
+    }
     if (failedTasks.size() > 0) {
-      throw new VoldemortRebalancingException("Rebalance task terminated unsuccessfully",failures);
+      throw new VoldemortRebalancingException("Rebalance task terminated unsuccessfully on tasks " + failedTasks,failures);
+    }
+    if (incompleteTasks.size() > 0) {
+      throw new VoldemortException("Rebalance tasks are still incomplete / running " + incompleteTasks);
     }
   }
  catch (  VoldemortRebalancingException e) {

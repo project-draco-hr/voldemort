@@ -1,7 +1,7 @@
 {
   int rebalanceAsyncId=INVALID_REBALANCE_ID;
   try {
-    RebalanceUtils.printLog(taskId,logger,"Acquiring donor permit for node " + stealInfo.getDonorId() + " for "+ stealInfo);
+    RebalanceUtils.printLog(taskId,logger,"Acquiring donor permit for node " + stealInfos.get(0).getDonorId() + " for "+ stealInfos);
     donorPermit.acquire();
     rebalanceAsyncId=startNodeRebalancing();
     adminClient.waitForCompletion(stealerNodeId,rebalanceAsyncId,config.getRebalancingClientTimeoutSeconds(),TimeUnit.SECONDS);
@@ -17,5 +17,6 @@ catch (  Exception e) {
   }
  finally {
     donorPermit.release();
+    isComplete.set(true);
   }
 }
