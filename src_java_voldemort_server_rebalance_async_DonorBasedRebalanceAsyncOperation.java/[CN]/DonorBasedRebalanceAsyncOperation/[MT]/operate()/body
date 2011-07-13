@@ -9,12 +9,16 @@
       executors.submit(new Runnable(){
         public void run(){
           try {
+            Set<Pair<Integer,HashMap<Integer,List<Integer>>>> stealerNodeToMappingTuples=storeToNodePartitionMapping.get(storeName);
             boolean isReadOnlyStore=metadataStore.getStoreDef(storeName).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
             storesRebalancing.add(storeName);
             updateStatus(getHeader(stealInfos) + "Completed working on " + storesCompleted.size()+ " out of "+ totalStoresCount+ " stores. Still rebalancing "+ storesRebalancing);
-            rebalanceStore(storeName,adminClient,stealInfos,isReadOnlyStore);
+            rebalanceStore(storeName,adminClient,stealerNodeToMappingTuples,isReadOnlyStore);
             storesRebalancing.remove(storeName);
             storesCompleted.add(storeName);
+            for (            Pair<Integer,HashMap<Integer,List<Integer>>> entry : stealerNodeToMappingTuples) {
+              adminClient.deleteStoreRebalanceState(metadataStore.getNodeId(),entry.getFirst(),storeName);
+            }
             updateStatus(getHeader(stealInfos) + "Completed working on " + storesCompleted.size()+ " out of "+ totalStoresCount+ " stores. Still rebalancing "+ storesRebalancing);
           }
  catch (          Exception e) {
