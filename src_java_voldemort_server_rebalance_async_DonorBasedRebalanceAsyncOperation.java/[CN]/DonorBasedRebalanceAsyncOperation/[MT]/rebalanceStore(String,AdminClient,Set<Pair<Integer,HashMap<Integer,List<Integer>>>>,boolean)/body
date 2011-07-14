@@ -1,0 +1,76 @@
+{
+  StorageEngine<ByteArray,byte[],byte[]> storageEngine=storeRepository.getStorageEngine(storeName);
+  StoreDefinition storeDef=metadataStore.getStoreDef(storeName);
+  if (isReadOnlyStore) {
+  }
+ else {
+    HashMap<Integer,SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>>> nodeToQueue=Maps.newHashMap();
+    Set<Pair<Integer,HashMap<Integer,List<Integer>>>> optimizedStealerNodeToMappingTuples=Sets.newHashSet();
+    if (voldemortConfig.getRebalancingOptimization() && !storageEngine.isPartitionAware()) {
+      for (      Pair<Integer,HashMap<Integer,List<Integer>>> entry : stealerNodeToMappingTuples) {
+        HashMap<Integer,List<Integer>> optimizedReplicaToPartition=RebalanceUtils.getOptimizedReplicaToPartitionList(entry.getFirst(),initialCluster,storeDef,entry.getSecond());
+        if (optimizedReplicaToPartition.size() > 0) {
+          optimizedStealerNodeToMappingTuples.add(Pair.create(entry.getFirst(),optimizedReplicaToPartition));
+        }
+      }
+    }
+ else {
+      optimizedStealerNodeToMappingTuples.addAll(stealerNodeToMappingTuples);
+    }
+    if (optimizedStealerNodeToMappingTuples.size() <= 0) {
+      return;
+    }
+    for (    Pair<Integer,HashMap<Integer,List<Integer>>> tuple : stealerNodeToMappingTuples) {
+      final SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>> queue=new SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>>();
+      nodeToQueue.put(tuple.getFirst(),queue);
+      ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> nodeIterator=new ClosableIterator<Pair<ByteArray,Versioned<byte[]>>>(){
+        public void close(){
+        }
+        public boolean hasNext(){
+          Pair<ByteArray,Versioned<byte[]>> element=queue.poll();
+          if (element != null && element.equals(END)) {
+            return true;
+          }
+ else {
+            return false;
+          }
+        }
+        public Pair<ByteArray,Versioned<byte[]>> next(){
+          try {
+            return queue.take();
+          }
+ catch (          InterruptedException e) {
+            logger.info("Next did not return anything");
+          }
+          return null;
+        }
+        public void remove(){
+          throw new VoldemortException("Remove not supported");
+        }
+      }
+;
+      adminClient.updateEntries(tuple.getFirst(),storeName,nodeIterator,null);
+    }
+    ClosableIterator<ByteArray> keys=storageEngine.keys();
+    while (running.get() && keys.hasNext()) {
+      ByteArray key=keys.next();
+      List<Integer> nodeIds=RebalanceUtils.checkKeyBelongsToPartition(key.get(),optimizedStealerNodeToMappingTuples,initialCluster,storeDef);
+      if (nodeIds.size() > 0) {
+        List<Versioned<byte[]>> values=storageEngine.get(key,null);
+        for (        Versioned<byte[]> value : values) {
+          for (          int nodeId : nodeIds) {
+            try {
+              nodeToQueue.get(nodeId).put(Pair.create(key,value));
+            }
+ catch (            InterruptedException e) {
+              e.printStackTrace();
+            }
+          }
+        }
+      }
+    }
+    for (    SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>> queue : nodeToQueue.values()) {
+      queue.add(END);
+    }
+  }
+}

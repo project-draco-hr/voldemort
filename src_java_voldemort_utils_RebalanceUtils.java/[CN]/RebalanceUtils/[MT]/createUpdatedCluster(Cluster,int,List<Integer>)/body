@@ -1,0 +1,15 @@
+{
+  ClusterMapper mapper=new ClusterMapper();
+  Cluster updatedCluster=mapper.readCluster(new StringReader(mapper.writeCluster(currentCluster)));
+  for (  int donatedPartition : donatedPartitions) {
+    Node donorNode=RebalanceUtils.getNodeByPartitionId(updatedCluster,donatedPartition);
+    Node stealerNode=updatedCluster.getNodeById(stealerNodeId);
+    if (donorNode == stealerNode) {
+      continue;
+    }
+    donorNode=RebalanceUtils.removePartitionToNode(donorNode,donatedPartition);
+    stealerNode=RebalanceUtils.addPartitionToNode(stealerNode,donatedPartition);
+    updatedCluster=updateCluster(updatedCluster,Lists.newArrayList(donorNode,stealerNode));
+  }
+  return updatedCluster;
+}

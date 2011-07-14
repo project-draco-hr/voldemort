@@ -1,0 +1,11 @@
+{
+  List<Integer> keyPartitions=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster).getPartitionList(key);
+  List<Integer> nodesToPush=Lists.newArrayList();
+  for (  Pair<Integer,HashMap<Integer,List<Integer>>> stealNodeToMap : stealerNodeToMappingTuples) {
+    List<Integer> nodePartitions=cluster.getNodeById(stealNodeToMap.getFirst()).getPartitionIds();
+    if (checkKeyBelongsToPartition(keyPartitions,nodePartitions,stealNodeToMap.getSecond())) {
+      nodesToPush.add(stealNodeToMap.getFirst());
+    }
+  }
+  return nodesToPush;
+}

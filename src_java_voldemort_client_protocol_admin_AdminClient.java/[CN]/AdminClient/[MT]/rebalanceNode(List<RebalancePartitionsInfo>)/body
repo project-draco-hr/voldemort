@@ -1,0 +1,8 @@
+{
+  List<VAdminProto.RebalancePartitionInfoMap> rebalancePartitionInfoMap=ProtoUtils.encodeRebalancePartitionInfoMap(stealInfos);
+  VAdminProto.InitiateRebalanceNodeOnDonorRequest rebalanceNodeRequest=VAdminProto.InitiateRebalanceNodeOnDonorRequest.newBuilder().addAllRebalancePartitionInfo(rebalancePartitionInfoMap).build();
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.INITIATE_REBALANCE_NODE_ON_DONOR).setInitiateRebalanceNodeOnDonor(rebalanceNodeRequest).build();
+  VAdminProto.AsyncOperationStatusResponse.Builder response=sendAndReceive(stealInfos.get(0).getDonorId(),adminRequest,VAdminProto.AsyncOperationStatusResponse.newBuilder());
+  if (response.hasError())   throwException(response.getError());
+  return response.getRequestId();
+}

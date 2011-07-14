@@ -29,6 +29,9 @@ break;
 case INITIATE_REBALANCE_NODE:
 ProtoUtils.writeMessage(outputStream,handleRebalanceNode(request.getInitiateRebalanceNode()));
 break;
+case INITIATE_REBALANCE_NODE_ON_DONOR:
+ProtoUtils.writeMessage(outputStream,handleRebalanceNodeOnDonor(request.getInitiateRebalanceNodeOnDonor()));
+break;
 case ASYNC_OPERATION_LIST:
 ProtoUtils.writeMessage(outputStream,handleAsyncOperationList(request.getAsyncOperationList()));
 break;
@@ -71,6 +74,9 @@ ProtoUtils.writeMessage(outputStream,handleFailedFetch(request.getFailedFetchSto
 break;
 case REBALANCE_STATE_CHANGE:
 ProtoUtils.writeMessage(outputStream,handleRebalanceStateChange(request.getRebalanceStateChange()));
+break;
+case DELETE_STORE_REBALANCE_STATE:
+ProtoUtils.writeMessage(outputStream,handleDeleteStoreRebalanceState(request.getDeleteStoreRebalanceState()));
 break;
 default :
 throw new VoldemortException("Unkown operation " + request.getType());
