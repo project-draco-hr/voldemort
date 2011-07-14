@@ -10,6 +10,6 @@
     throw new AlreadyRebalancingException("Node " + metadataStore.getNodeId() + " is already rebalancing from donor "+ info.getDonorId()+ " with info "+ info);
   }
   int requestId=asyncService.getUniqueRequestId();
-  asyncService.submitOperation(requestId,new RebalanceAsyncOperation(this,voldemortConfig,metadataStore,requestId,info));
+  asyncService.submitOperation(requestId,new StealerBasedRebalanceAsyncOperation(this,voldemortConfig,metadataStore,requestId,info));
   return requestId;
 }

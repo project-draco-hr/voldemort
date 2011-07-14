@@ -1,0 +1,32 @@
+{
+  try {
+    final List<RebalanceNodePlan> rebalanceNodePlanList=orderedClusterTransition.getOrderedRebalanceNodePlanList();
+    if (rebalanceNodePlanList.isEmpty()) {
+      RebalanceUtils.printLog(orderedClusterTransition.getId(),logger,"Skipping rebalance task id " + orderedClusterTransition.getId() + " since it is empty");
+      return;
+    }
+    RebalanceUtils.printLog(orderedClusterTransition.getId(),logger,"Starting rebalance task id " + orderedClusterTransition.getId());
+    List<RebalancePartitionsInfo> rebalancePartitionPlanList=RebalanceUtils.flattenNodePlans(rebalanceNodePlanList);
+    List<StoreDefinition> readOnlyStoreDefs=RebalanceUtils.filterStores(orderedClusterTransition.getStoreDefs(),true);
+    List<StoreDefinition> readWriteStoreDefs=RebalanceUtils.filterStores(orderedClusterTransition.getStoreDefs(),false);
+    boolean hasReadOnlyStores=readOnlyStoreDefs != null && readOnlyStoreDefs.size() > 0;
+    boolean hasReadWriteStores=readWriteStoreDefs != null && readWriteStoreDefs.size() > 0;
+    boolean finishedReadOnlyPhase=false;
+    List<RebalancePartitionsInfo> filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionPlanList,readOnlyStoreDefs);
+    rebalanceStateChange(orderedClusterTransition.getId(),orderedClusterTransition.getCurrentCluster(),orderedClusterTransition.getTargetCluster(),filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
+    if (hasReadOnlyStores) {
+      rebalancePerTaskTransition(orderedClusterTransition.getId(),orderedClusterTransition.getCurrentCluster(),filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
+    }
+    finishedReadOnlyPhase=true;
+    filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionPlanList,readWriteStoreDefs);
+    rebalanceStateChange(orderedClusterTransition.getId(),orderedClusterTransition.getCurrentCluster(),orderedClusterTransition.getTargetCluster(),filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
+    if (hasReadWriteStores) {
+      rebalancePerTaskTransition(orderedClusterTransition.getId(),orderedClusterTransition.getCurrentCluster(),filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
+    }
+    RebalanceUtils.printLog(orderedClusterTransition.getId(),logger,"Successfully terminated rebalance task id " + orderedClusterTransition.getId());
+  }
+ catch (  Exception e) {
+    RebalanceUtils.printErrorLog(orderedClusterTransition.getId(),logger,"Error in rebalance task id " + orderedClusterTransition.getId() + " - "+ e.getMessage(),e);
+    throw new VoldemortException("Rebalance failed on rebalance task id " + orderedClusterTransition.getId(),e);
+  }
+}

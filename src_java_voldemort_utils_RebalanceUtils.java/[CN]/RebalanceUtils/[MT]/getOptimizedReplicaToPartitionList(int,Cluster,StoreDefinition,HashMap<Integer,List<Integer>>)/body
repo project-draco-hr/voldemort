@@ -1,0 +1,17 @@
+{
+  HashMap<Integer,List<Integer>> optimizedReplicaToPartitionList=Maps.newHashMap();
+  RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+  for (  Entry<Integer,List<Integer>> tuple : currentReplicaToPartitionList.entrySet()) {
+    List<Integer> partitionList=Lists.newArrayList();
+    for (    int partition : tuple.getValue()) {
+      List<Integer> preferenceList=strategy.getReplicatingPartitionList(partition);
+      if (!RebalanceUtils.containsPreferenceList(cluster,preferenceList,stealerNodeId)) {
+        partitionList.add(partition);
+      }
+    }
+    if (partitionList.size() > 0) {
+      optimizedReplicaToPartitionList.put(tuple.getKey(),partitionList);
+    }
+  }
+  return optimizedReplicaToPartitionList;
+}

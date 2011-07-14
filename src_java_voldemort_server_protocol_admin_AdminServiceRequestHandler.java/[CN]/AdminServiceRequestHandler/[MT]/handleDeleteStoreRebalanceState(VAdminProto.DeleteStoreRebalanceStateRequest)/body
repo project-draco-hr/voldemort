@@ -1,0 +1,23 @@
+{
+  VAdminProto.DeleteStoreRebalanceStateResponse.Builder response=VAdminProto.DeleteStoreRebalanceStateResponse.newBuilder();
+  try {
+    int nodeId=request.getNodeId();
+    String storeName=request.getStoreName();
+    logger.info("Removing rebalancing state for donor node " + nodeId + " and store "+ storeName);
+    RebalancePartitionsInfo info=metadataStore.getRebalancerState().find(nodeId);
+    if (info == null) {
+      throw new VoldemortException("Could not find state for donor node " + nodeId);
+    }
+    HashMap<Integer,List<Integer>> replicaToPartition=info.getReplicaToAddPartitionList(storeName);
+    if (replicaToPartition == null) {
+      throw new VoldemortException("Could not find state for donor node " + nodeId + " and store "+ storeName);
+    }
+    info.removeStore(storeName);
+    logger.info("Removed rebalancing state for donor node " + nodeId + " and store "+ storeName);
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleDeleteStoreRebalanceState failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}
