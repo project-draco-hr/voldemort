@@ -41,5 +41,8 @@
   finally {
     adminClient.stop();
     adminClient=null;
+    for (    RebalancePartitionsInfo stealInfo : stealInfos) {
+      rebalancer.releaseRebalancingPermit(stealInfo.getStealerId());
+    }
   }
 }

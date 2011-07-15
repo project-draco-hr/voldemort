@@ -9,6 +9,7 @@
   final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
   RebalanceClientConfig rebalanceClientConfig=new RebalanceClientConfig();
   rebalanceClientConfig.setMaxParallelRebalancing(2);
+  rebalanceClientConfig.setStealerBasedRebalancing(!useDonorBased());
   final RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCurrentCluster,0),rebalanceClientConfig);
   populateData(updatedCurrentCluster,roStoreDefWithReplication,rebalanceClient.getAdminClient(),true);
   populateData(updatedCurrentCluster,rwStoreDefWithReplication,rebalanceClient.getAdminClient(),false);

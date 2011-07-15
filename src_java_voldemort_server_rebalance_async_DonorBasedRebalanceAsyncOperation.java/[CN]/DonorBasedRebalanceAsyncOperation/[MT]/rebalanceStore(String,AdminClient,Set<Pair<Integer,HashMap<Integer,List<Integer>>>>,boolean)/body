@@ -2,6 +2,7 @@
   StorageEngine<ByteArray,byte[],byte[]> storageEngine=storeRepository.getStorageEngine(storeName);
   StoreDefinition storeDef=metadataStore.getStoreDef(storeName);
   if (isReadOnlyStore) {
+    throw new VoldemortException("Donor-based rebalancing for read-only store is currently not supported!");
   }
  else {
     HashMap<Integer,SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>>> nodeToQueue=Maps.newHashMap();
