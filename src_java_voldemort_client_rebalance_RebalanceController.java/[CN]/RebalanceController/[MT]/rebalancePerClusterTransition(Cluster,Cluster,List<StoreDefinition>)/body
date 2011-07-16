@@ -47,11 +47,16 @@
       primaryPartitionBatchSize++;
       if (primaryPartitionBatchSize == rebalanceConfig.getPrimaryPartitionBatchSize())       break;
     }
+    StringBuffer buffer=new StringBuffer();
+    buffer.append("Partitions being moved : ");
     for (    Entry<Integer,Integer> partitionMoved : partitionsMoved.entrySet()) {
+      buffer.append(" " + partitionMoved.getValue() + " [ to stealer node "+ partitionMoved.getKey()+ " ], ");
       stealerToStolenPrimaryPartitions.remove(partitionMoved.getKey(),partitionMoved.getValue());
     }
     final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(currentCluster,transitionCluster,storeDefs,rebalanceConfig.isDeleteAfterRebalancingEnabled(),rebalanceConfig.isStealerBasedRebalancing());
     final OrderedClusterTransition orderedClusterTransition=new OrderedClusterTransition(currentCluster,transitionCluster,storeDefs,rebalanceClusterPlan);
+    logger.info("----------------");
+    RebalanceUtils.printLog(orderedClusterTransition.getId(),logger,buffer.toString());
     RebalanceUtils.printLog(orderedClusterTransition.getId(),logger,orderedClusterTransition.toString());
     if (rebalanceConfig.hasOutputDirectory())     RebalanceUtils.dumpCluster(currentCluster,transitionCluster,new File(rebalanceConfig.getOutputDirectory()));
     long startTimeMs=System.currentTimeMillis();
