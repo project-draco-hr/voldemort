@@ -1,7 +1,7 @@
 {
   for (  RebalancePartitionsInfo rebalanceInfo : rebalanceInfoList) {
     boolean match=false;
-    for (    RebalancePartitionsInfo nodeRebalanceInfo : nodePlan.getRebalanceTaskList()) {
+    for (    RebalancePartitionsInfo nodeRebalanceInfo : toCheckRebalanceInfoList) {
       if (rebalanceInfo.getDonorId() == nodeRebalanceInfo.getDonorId()) {
         assertEquals("Store lists should match",rebalanceInfo.getUnbalancedStoreList(),nodeRebalanceInfo.getUnbalancedStoreList());
         assertEquals("Clusters to be same",rebalanceInfo.getInitialCluster(),nodeRebalanceInfo.getInitialCluster());
@@ -12,6 +12,6 @@
         match=true;
       }
     }
-    assertNotSame("rebalancePartition Info " + rebalanceInfo + " should be present in the nodePlan "+ nodePlan.getRebalanceTaskList(),false,match);
+    assertNotSame("rebalancePartition Info " + rebalanceInfo + " should be present in the nodePlan "+ toCheckRebalanceInfoList,false,match);
   }
 }

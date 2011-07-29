@@ -1,0 +1,16 @@
+{
+  HashSet<Integer> uniqueNodeSet=Sets.newHashSet();
+  for (  RebalancePartitionsInfo partitionInfo : rebalanceInfoList) {
+    int nodeId;
+    if (isDonorBased) {
+      nodeId=partitionInfo.getDonorId();
+    }
+ else {
+      nodeId=partitionInfo.getStealerId();
+    }
+    if (!uniqueNodeSet.contains(nodeId)) {
+      uniqueNodeSet.add(nodeId);
+    }
+  }
+  return uniqueNodeSet.size();
+}

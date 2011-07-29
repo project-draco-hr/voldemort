@@ -1,12 +1,12 @@
 {
   try {
-    final List<RebalanceNodePlan> rebalanceNodePlanList=orderedClusterTransition.getOrderedRebalanceNodePlanList();
-    if (rebalanceNodePlanList.isEmpty()) {
+    final List<RebalancePartitionsInfo> rebalancePartitionsInfoList=orderedClusterTransition.getOrderedRebalancePartitionsInfoList();
+    if (rebalancePartitionsInfoList.isEmpty()) {
       RebalanceUtils.printLog(orderedClusterTransition.getId(),logger,"Skipping rebalance task id " + orderedClusterTransition.getId() + " since it is empty");
       return;
     }
     RebalanceUtils.printLog(orderedClusterTransition.getId(),logger,"Starting rebalance task id " + orderedClusterTransition.getId());
-    List<RebalancePartitionsInfo> rebalancePartitionPlanList=RebalanceUtils.flattenNodePlans(rebalanceNodePlanList);
+    List<RebalancePartitionsInfo> rebalancePartitionPlanList=rebalancePartitionsInfoList;
     List<StoreDefinition> readOnlyStoreDefs=RebalanceUtils.filterStores(orderedClusterTransition.getStoreDefs(),true);
     List<StoreDefinition> readWriteStoreDefs=RebalanceUtils.filterStores(orderedClusterTransition.getStoreDefs(),false);
     boolean hasReadOnlyStores=readOnlyStoreDefs != null && readOnlyStoreDefs.size() > 0;

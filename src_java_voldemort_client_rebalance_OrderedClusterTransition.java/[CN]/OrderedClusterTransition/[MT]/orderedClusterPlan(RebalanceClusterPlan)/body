@@ -1,9 +1,8 @@
 {
   Queue<RebalanceNodePlan> rebalancingTaskQueue=rebalanceClusterPlan.getRebalancingTaskQueue();
-  List<RebalanceNodePlan> plans=new ArrayList<RebalanceNodePlan>();
+  List<RebalancePartitionsInfo> clusterRebalancePartitionsInfos=Lists.newArrayList();
   for (  RebalanceNodePlan rebalanceNodePlan : rebalancingTaskQueue) {
-    List<RebalancePartitionsInfo> orderedRebalancePartitionsInfos=orderedPartitionInfos(rebalanceNodePlan);
-    plans.add(new RebalanceNodePlan(rebalanceNodePlan.getNodeId(),orderedRebalancePartitionsInfos,rebalanceNodePlan.isNodeStealer()));
+    clusterRebalancePartitionsInfos.addAll(rebalanceNodePlan.getRebalanceTaskList());
   }
-  return orderedNodePlans(plans);
+  return orderedPartitionInfos(clusterRebalancePartitionsInfos);
 }
