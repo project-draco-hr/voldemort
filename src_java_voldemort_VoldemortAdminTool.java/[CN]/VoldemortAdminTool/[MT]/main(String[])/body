@@ -23,6 +23,7 @@
   parser.accepts("clear-rebalancing-metadata","Remove the metadata related to rebalancing");
   parser.accepts("async","a) Get a list of async job ids [get] b) Stop async job ids [stop] ").withRequiredArg().describedAs("op-type").ofType(String.class);
   parser.accepts("async-id","Comma separated list of async ids to stop").withOptionalArg().describedAs("job-ids").withValuesSeparatedBy(',').ofType(Integer.class);
+  parser.accepts("rebalance-clean","Clean after rebalancing is done");
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     printHelp(System.out,parser);
@@ -86,8 +87,11 @@
   if (options.has("async")) {
     ops+="b";
   }
+  if (options.has("rebalance-clean")) {
+    ops+="l";
+  }
   if (ops.length() < 1) {
-    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, key-distribution, clear-rebalancing-metadata, async) "+ "must be specified");
+    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, key-distribution, clear-rebalancing-metadata, async, rebalance-clean) "+ "must be specified");
   }
   List<String> storeNames=null;
   if (options.has("stores")) {
@@ -204,6 +208,9 @@
       List<Integer> asyncIds=null;
       if (options.hasArgument("async-id"))       asyncIds=(List<Integer>)options.valuesOf("async-id");
       executeAsync(nodeId,adminClient,asyncKey,asyncIds);
+    }
+    if (ops.contains("l")) {
+      adminClient.rebalanceRepair(nodeId);
     }
   }
  catch (  Exception e) {

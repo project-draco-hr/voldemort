@@ -1,0 +1,9 @@
+{
+  VAdminProto.RebalanceRepairRequest.Builder rebalanceRepairRequest=VAdminProto.RebalanceRepairRequest.newBuilder();
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setRebalanceRepair(rebalanceRepairRequest).setType(VAdminProto.AdminRequestType.REBALANCE_REPAIR).build();
+  VAdminProto.AsyncOperationStatusResponse.Builder response=sendAndReceive(nodeId,adminRequest,VAdminProto.AsyncOperationStatusResponse.newBuilder());
+  if (response.hasError()) {
+    throwException(response.getError());
+  }
+  return;
+}

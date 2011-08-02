@@ -11,7 +11,7 @@
   for (  StoreDefinition storeDef : metadataStore.getStoreDefList()) {
     localStats.put(storeDef.getName(),0L);
   }
-  acquireRepairPermit();
+  if (!acquireRepairPermit())   return;
   try {
     RoutingStrategyFactory routingStrategyFactory=new RoutingStrategyFactory();
     StorageEngine<ByteArray,Slop,byte[]> slopStorageEngine=storeRepo.getSlopStore().asSlopStore();
@@ -22,18 +22,23 @@
         iterator=engine.entries();
         RoutingStrategy routingStrategy=routingStrategyFactory.updateRoutingStrategy(storeDef,metadataStore.getCluster());
         long repairSlops=0L;
+        long numDeletedKeys=0;
         while (iterator.hasNext()) {
           Pair<ByteArray,Versioned<byte[]>> keyAndVal;
           keyAndVal=iterator.next();
           List<Node> nodes=routingStrategy.routeRequest(keyAndVal.getFirst().get());
           if (!hasDestination(nodes)) {
-            for (            Node node : nodes) {
-              Slop slop=new Slop(storeDef.getName(),Slop.Operation.PUT,keyAndVal.getFirst(),keyAndVal.getSecond().getValue(),null,node.getId(),new Date());
-              Versioned<Slop> slopVersioned=new Versioned<Slop>(slop,keyAndVal.getSecond().getVersion());
-              slopStorageEngine.put(slop.makeKey(),slopVersioned,null);
-              repairSlops++;
+            if (!deleteOnly) {
+              for (              Node node : nodes) {
+                Slop slop=new Slop(storeDef.getName(),Slop.Operation.PUT,keyAndVal.getFirst(),keyAndVal.getSecond().getValue(),null,node.getId(),new Date());
+                Versioned<Slop> slopVersioned=new Versioned<Slop>(slop,keyAndVal.getSecond().getVersion());
+                slopStorageEngine.put(slop.makeKey(),slopVersioned,null);
+                repairSlops++;
+              }
             }
             engine.delete(keyAndVal.getFirst(),keyAndVal.getSecond().getVersion());
+            numDeletedKeys++;
+            if (numDeletedKeys % DELETE_BATCH == 0)             logger.info("Total keys deleted = " + numDeletedKeys);
           }
         }
         closeIterator(iterator);
