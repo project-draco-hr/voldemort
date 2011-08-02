@@ -1,0 +1,12 @@
+{
+  SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
+  Store<ByteArray,byte[],byte[]> socketStore=socketStoreFactory.create(storeDef.getName(),cluster.getNodeById(nodeId).getHost(),cluster.getNodeById(nodeId).getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS,RequestRoutingType.IGNORE_CHECKS);
+  List<Versioned<byte[]>> value=socketStore.get(keyList,null);
+  if (testType == false && (value == null || value.size() == 0)) {
+    return true;
+  }
+ else   if (value != null && value.size() != 0) {
+    return true;
+  }
+  return false;
+}
