@@ -7,7 +7,12 @@
   parser.accepts("output-dir","[REQUIRED] The output directory where we'll store / retrieve the keys. ").withRequiredArg().describedAs("output-dir").ofType(String.class);
   parser.accepts("op-type","Operation type - false ( save keys ) [ default ], true ( run entropy calculator ) ").withRequiredArg().ofType(Boolean.class);
   parser.accepts("num-keys","Number of keys per store [ Default: " + Entropy.DEFAULT_NUM_KEYS + " ]").withRequiredArg().describedAs("keys").ofType(Long.class);
+  parser.accepts("negative-test","Check for keys that dont belong on the given nodeId are not present");
   OptionSet options=parser.parse(args);
+  boolean negativeTest=false;
+  if (options.has("negative-test")) {
+    negativeTest=true;
+  }
   if (options.has("help")) {
     parser.printHelpOn(System.out);
     System.exit(0);
@@ -40,5 +45,5 @@
   Cluster cluster=new ClusterMapper().readCluster(new File(clusterXml));
   List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new File(storesXml));
   Entropy detector=new Entropy(nodeId,numKeys);
-  detector.generateEntropy(cluster,storeDefs,outputDir,opType);
+  detector.generateEntropy(cluster,storeDefs,outputDir,opType,negativeTest);
 }
