@@ -24,33 +24,9 @@
     for (    Pair<Integer,HashMap<Integer,List<Integer>>> tuple : stealerNodeToMappingTuples) {
       final SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>> queue=new SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>>();
       nodeToQueue.put(tuple.getFirst(),queue);
-      ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> nodeIterator=new ClosableIterator<Pair<ByteArray,Versioned<byte[]>>>(){
-        public void close(){
-        }
-        public boolean hasNext(){
-          Pair<ByteArray,Versioned<byte[]>> element=queue.poll();
-          if (element != null && element.equals(END)) {
-            return true;
-          }
- else {
-            return false;
-          }
-        }
-        public Pair<ByteArray,Versioned<byte[]>> next(){
-          try {
-            return queue.take();
-          }
- catch (          InterruptedException e) {
-            logger.info("Next did not return anything");
-          }
-          return null;
-        }
-        public void remove(){
-          throw new VoldemortException("Remove not supported");
-        }
-      }
-;
-      adminClient.updateEntries(tuple.getFirst(),storeName,nodeIterator,null);
+      DonorBasedRebalancePusherSlave updatePushSlave=new DonorBasedRebalancePusherSlave(0,"test",tuple.getFirst(),queue,storeName,adminClient);
+      updatePushSlavePool.add(updatePushSlave);
+      pushSlavesExecutor.execute(updatePushSlave);
     }
     ClosableIterator<ByteArray> keys=storageEngine.keys();
     while (running.get() && keys.hasNext()) {
@@ -70,8 +46,6 @@
         }
       }
     }
-    for (    SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>> queue : nodeToQueue.values()) {
-      queue.add(END);
-    }
+    terminateAllSlaves(updatePushSlavePool);
   }
 }

@@ -1,0 +1,43 @@
+{
+  boolean operationCompleted=false;
+  while (!operationCompleted && !getStatus().isComplete()) {
+    try {
+      ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> nodeIterator=new ClosableIterator<Pair<ByteArray,Versioned<byte[]>>>(){
+        public void close(){
+        }
+        public boolean hasNext(){
+          Pair<ByteArray,Versioned<byte[]>> element=queue.poll();
+          if (element != null && element.equals(END)) {
+            return false;
+          }
+ else {
+            return true;
+          }
+        }
+        public Pair<ByteArray,Versioned<byte[]>> next(){
+          try {
+            return queue.take();
+          }
+ catch (          InterruptedException e) {
+            logger.info("Next did not return anything");
+          }
+          return null;
+        }
+        public void remove(){
+          throw new VoldemortException("Remove not supported");
+        }
+      }
+;
+      adminClient.updateEntries(nodeId,storeName,nodeIterator,null);
+      operationCompleted=true;
+    }
+ catch (    VoldemortException e) {
+      if (e.getCause() instanceof IOException) {
+        Thread.sleep(10000);
+      }
+ else {
+        throw e;
+      }
+    }
+  }
+}
