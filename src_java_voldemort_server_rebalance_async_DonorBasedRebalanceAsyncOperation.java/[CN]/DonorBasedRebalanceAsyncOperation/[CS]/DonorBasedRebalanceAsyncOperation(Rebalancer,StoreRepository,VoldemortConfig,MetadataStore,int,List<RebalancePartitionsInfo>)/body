@@ -2,7 +2,8 @@
   super(rebalancer,voldemortConfig,metadataStore,requestId,"Donor based rebalance : " + stealInfos);
   this.storeRepository=storeRepository;
   this.stealInfos=stealInfos;
+  this.targetCluster=metadataStore.getCluster();
   this.initialCluster=stealInfos.get(0).getInitialCluster();
   this.storeToNodePartitionMapping=groupByStores(stealInfos);
-  pushSlavesExecutor=Executors.newFixedThreadPool(initialCluster.getNumberOfNodes() - 1);
+  pushSlavesExecutor=Executors.newFixedThreadPool(targetCluster.getNumberOfNodes() - 1);
 }
