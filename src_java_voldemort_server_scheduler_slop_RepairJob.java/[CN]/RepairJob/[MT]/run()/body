@@ -24,6 +24,7 @@
         RoutingStrategy routingStrategy=routingStrategyFactory.updateRoutingStrategy(storeDef,metadataStore.getCluster());
         long repairSlops=0L;
         long numDeletedKeys=0;
+        long numScannedKeys=0;
         while (iterator.hasNext()) {
           Pair<ByteArray,Versioned<byte[]>> keyAndVal;
           keyAndVal=iterator.next();
@@ -39,8 +40,9 @@
             }
             engine.delete(keyAndVal.getFirst(),keyAndVal.getSecond().getVersion());
             numDeletedKeys++;
-            if (numDeletedKeys % DELETE_BATCH == 0)             logger.info("Total keys deleted = " + numDeletedKeys);
           }
+          numScannedKeys++;
+          if (numScannedKeys % DELETE_BATCH == 0)           logger.info("#Scanned:" + numScannedKeys + " #Deleted:"+ numDeletedKeys);
         }
         closeIterator(iterator);
         localStats.put(storeDef.getName(),repairSlops);
