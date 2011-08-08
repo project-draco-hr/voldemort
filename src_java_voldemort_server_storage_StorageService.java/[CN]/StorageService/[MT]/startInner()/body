@@ -15,12 +15,12 @@
       Date nextRun=cal.getTime();
       logger.info("Initializing slop pusher job type " + voldemortConfig.getPusherType() + " at "+ nextRun);
       scheduler.schedule("slop",(voldemortConfig.getPusherType().compareTo(BlockingSlopPusherJob.TYPE_NAME) == 0) ? new BlockingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig,scanPermits) : new StreamingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig,scanPermits),nextRun,voldemortConfig.getSlopFrequencyMs());
-      if (voldemortConfig.isRepairEnabled()) {
-        logger.info("Initializing repair job " + voldemortConfig.getPusherType());
-        RepairJob job=new RepairJob(storeRepository,metadata,scanPermits);
-        JmxUtils.registerMbean(job,JmxUtils.createObjectName(job.getClass()));
-        storeRepository.registerRepairJob(job);
-      }
+    }
+    if (voldemortConfig.isRepairEnabled()) {
+      logger.info("Initializing repair job " + voldemortConfig.getPusherType());
+      RepairJob job=new RepairJob(storeRepository,metadata,scanPermits);
+      JmxUtils.registerMbean(job,JmxUtils.createObjectName(job.getClass()));
+      storeRepository.registerRepairJob(job);
     }
   }
   List<StoreDefinition> storeDefs=new ArrayList<StoreDefinition>(this.metadata.getStoreDefList());
