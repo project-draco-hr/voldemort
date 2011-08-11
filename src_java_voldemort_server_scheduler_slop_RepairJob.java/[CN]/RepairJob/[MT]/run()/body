@@ -14,7 +14,6 @@
   if (!acquireRepairPermit())   return;
   try {
     RoutingStrategyFactory routingStrategyFactory=new RoutingStrategyFactory();
-    StorageEngine<ByteArray,Slop,byte[]> slopStorageEngine=storeRepo.getSlopStore().asSlopStore();
     for (    StoreDefinition storeDef : metadataStore.getStoreDefList()) {
       if (isWritableStore(storeDef)) {
         logger.info("Repairing store " + storeDef.getName());
@@ -29,14 +28,6 @@
           keyAndVal=iterator.next();
           List<Node> nodes=routingStrategy.routeRequest(keyAndVal.getFirst().get());
           if (!hasDestination(nodes)) {
-            if (!deleteOnly) {
-              for (              Node node : nodes) {
-                Slop slop=new Slop(storeDef.getName(),Slop.Operation.PUT,keyAndVal.getFirst(),keyAndVal.getSecond().getValue(),null,node.getId(),new Date());
-                Versioned<Slop> slopVersioned=new Versioned<Slop>(slop,keyAndVal.getSecond().getVersion());
-                slopStorageEngine.put(slop.makeKey(),slopVersioned,null);
-                repairSlops++;
-              }
-            }
             engine.delete(keyAndVal.getFirst(),keyAndVal.getSecond().getVersion());
             numDeletedKeys++;
           }
