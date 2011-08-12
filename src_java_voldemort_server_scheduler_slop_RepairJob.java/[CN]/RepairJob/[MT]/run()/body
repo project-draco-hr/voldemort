@@ -5,7 +5,6 @@
   }
   ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=null;
   Date startTime=new Date();
-  boolean terminatedEarly=false;
   logger.info("Started repair job at " + startTime);
   Map<String,Long> localStats=Maps.newHashMap();
   for (  StoreDefinition storeDef : metadataStore.getStoreDefList()) {
@@ -42,13 +41,9 @@
   }
  catch (  Exception e) {
     logger.error(e,e);
-    terminatedEarly=true;
   }
  finally {
     closeIterator(iterator);
-    if (!terminatedEarly) {
-      resetStats(localStats);
-    }
     this.repairPermits.release();
     logger.info("Completed repair job started at " + startTime);
   }
