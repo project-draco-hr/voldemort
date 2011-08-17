@@ -97,7 +97,7 @@
       }
     }
     if (pipelineData.getSuccesses() < required) {
-      pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but only "+ pipelineData.getSuccesses()+ " succeeded",pipelineData.getFailures()));
+      pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but only "+ pipelineData.getSuccesses()+ " succeeded. Failing nodes : "+ pipelineData.getFailedNodes(),pipelineData.getFailures()));
       pipeline.abort();
       quorumSatisfied=false;
     }
