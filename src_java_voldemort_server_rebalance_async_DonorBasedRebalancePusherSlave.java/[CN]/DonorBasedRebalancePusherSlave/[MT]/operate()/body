@@ -1,38 +1,20 @@
 {
-  boolean operationCompleted=false;
-  while (!operationCompleted && !getStatus().isComplete()) {
+  while (!getStatus().isComplete()) {
     try {
-      ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> nodeIterator=new ClosableIterator<Pair<ByteArray,Versioned<byte[]>>>(){
-        public void close(){
-        }
-        public boolean hasNext(){
-          Pair<ByteArray,Versioned<byte[]>> element=queue.poll();
-          if (element != null && element.equals(END)) {
-            return false;
-          }
- else {
-            return true;
-          }
-        }
-        public Pair<ByteArray,Versioned<byte[]>> next(){
-          try {
-            return queue.take();
-          }
- catch (          InterruptedException e) {
-            logger.info("Next did not return anything");
-          }
-          return null;
-        }
-        public void remove(){
-          throw new VoldemortException("Remove not supported");
+      adminClient.updateEntries(nodeId,storeName,nodeIterator,null,5000,1000,new Runnable(){
+        public void run(){
+          nodeIterator.purge();
         }
       }
-;
-      adminClient.updateEntries(nodeId,storeName,nodeIterator,null);
-      operationCompleted=true;
+);
+      logger.info("slave finished...");
+      setCompletion(true,false);
     }
  catch (    VoldemortException e) {
       if (e.getCause() instanceof IOException) {
+        nodeIterator.setRecoveryMode();
+        logger.error("Exception received while pushing entries to remote node " + nodeId + ". Will retry again after 10000 seconds");
+        logger.error(e.getCause());
         Thread.sleep(10000);
       }
  else {

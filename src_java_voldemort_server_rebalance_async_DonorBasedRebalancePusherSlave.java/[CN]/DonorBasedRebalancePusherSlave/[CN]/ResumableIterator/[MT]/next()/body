@@ -1,0 +1,16 @@
+{
+  while (null == currentElem) {
+    try {
+      currentElem=getNextElem();
+    }
+ catch (    InterruptedException e) {
+      logger.info("next is interrupted while waiting for the next elem.");
+    }
+    if (currentElem != null && currentElem.equals(END)) {
+      throw new NoSuchElementException();
+    }
+  }
+  Pair<ByteArray,Versioned<byte[]>> returnValue=currentElem;
+  currentElem=null;
+  return returnValue;
+}

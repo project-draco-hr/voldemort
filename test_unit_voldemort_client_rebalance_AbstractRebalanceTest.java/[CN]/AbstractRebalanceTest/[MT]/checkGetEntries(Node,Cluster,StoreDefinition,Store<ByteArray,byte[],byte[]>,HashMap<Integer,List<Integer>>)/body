@@ -5,6 +5,9 @@
     List<Integer> partitions=routing.getPartitionList(keyBytes.get());
     if (RebalanceUtils.checkKeyBelongsToPartition(partitions,node.getPartitionIds(),flattenedPresentTuples)) {
       List<Versioned<byte[]>> values=store.get(keyBytes,null);
+      if (values.size() == 0) {
+        fail("unable to find value for key=" + entry.getKey() + " on node="+ node.getId());
+      }
       assertEquals("Expecting exactly one version",1,values.size());
       Versioned<byte[]> value=values.get(0);
       assertEquals("Value version should match",new VectorClock(),value.getVersion());

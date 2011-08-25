@@ -24,9 +24,11 @@
     for (    Pair<Integer,HashMap<Integer,List<Integer>>> tuple : stealerNodeToMappingTuples) {
       final SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>> queue=new SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>>();
       nodeToQueue.put(tuple.getFirst(),queue);
-      DonorBasedRebalancePusherSlave updatePushSlave=new DonorBasedRebalancePusherSlave(0,"test",tuple.getFirst(),queue,storeName,adminClient);
+      int jobId=pushSlavesExecutor.getUniqueRequestId();
+      String jobName="DonorBasedRebalancePusherSlave for node " + tuple.getFirst();
+      DonorBasedRebalancePusherSlave updatePushSlave=new DonorBasedRebalancePusherSlave(jobId,jobName,tuple.getFirst(),queue,storeName,adminClient);
       updatePushSlavePool.add(updatePushSlave);
-      pushSlavesExecutor.execute(updatePushSlave);
+      pushSlavesExecutor.submitOperation(jobId,updatePushSlave);
     }
     ClosableIterator<ByteArray> keys=storageEngine.keys();
     while (running.get() && keys.hasNext()) {

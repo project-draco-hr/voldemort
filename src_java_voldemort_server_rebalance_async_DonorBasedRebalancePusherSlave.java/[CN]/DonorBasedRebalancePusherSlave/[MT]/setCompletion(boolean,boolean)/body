@@ -1,14 +1,18 @@
 {
   if (!getStatus().isComplete()) {
     try {
-      queue.put(END);
+      if (notifySlave) {
+        queue.put(END);
+      }
     }
  catch (    InterruptedException e) {
       logger.info("Unable to send termination message to pusher slave due to the following reason: " + e.getMessage());
     }
  finally {
-      markComplete();
-      notifyAll();
+      if (immediateTerminate) {
+        markComplete();
+        notifyAll();
+      }
     }
   }
 }

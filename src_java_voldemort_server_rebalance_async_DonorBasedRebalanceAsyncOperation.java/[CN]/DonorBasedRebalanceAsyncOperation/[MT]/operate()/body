@@ -1,6 +1,6 @@
 {
   adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),voldemortConfig.getMaxParallelStoresRebalancing());
-  final List<Exception> failures=new ArrayList<Exception>();
+  final CopyOnWriteArrayList<Exception> failures=new CopyOnWriteArrayList<Exception>();
   final ConcurrentLinkedQueue<String> storesRebalancing=new ConcurrentLinkedQueue<String>();
   final ConcurrentLinkedQueue<String> storesCompleted=new ConcurrentLinkedQueue<String>();
   final int totalStoresCount=storeToNodePartitionMapping.keySet().size();
@@ -14,11 +14,11 @@
             storesRebalancing.add(storeName);
             updateStatus(getHeader(stealInfos) + "Completed working on " + storesCompleted.size()+ " out of "+ totalStoresCount+ " stores. Still rebalancing "+ storesRebalancing);
             rebalanceStore(storeName,adminClient,stealerNodeToMappingTuples,isReadOnlyStore);
-            storesRebalancing.remove(storeName);
-            storesCompleted.add(storeName);
             for (            Pair<Integer,HashMap<Integer,List<Integer>>> entry : stealerNodeToMappingTuples) {
               adminClient.deleteStoreRebalanceState(metadataStore.getNodeId(),entry.getFirst(),storeName);
             }
+            storesRebalancing.remove(storeName);
+            storesCompleted.add(storeName);
             updateStatus(getHeader(stealInfos) + "Completed working on " + storesCompleted.size()+ " out of "+ totalStoresCount+ " stores. Still rebalancing "+ storesRebalancing);
           }
  catch (          Exception e) {
@@ -32,7 +32,7 @@
     waitForShutdown();
     if (storesCompleted.size() != totalStoresCount) {
       logger.error(getHeader(stealInfos) + "Could not complete all stores. Completed stores - " + storesCompleted);
-      throw new VoldemortRebalancingException(getHeader(stealInfos) + "Could not complete all stores. Completed stores - " + storesCompleted);
+      throw new VoldemortRebalancingException(getHeader(stealInfos) + "Could not complete all stores. Completed stores - " + storesCompleted,failures);
     }
  else {
       logger.info(getHeader(stealInfos) + "Rebalance of " + stealInfos+ " completed successfully for all "+ totalStoresCount+ " stores");
