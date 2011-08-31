@@ -15,11 +15,5 @@
   this.isOpen=new AtomicBoolean(true);
   this.cursorPreload=cursorPreload;
   this.readLockMode=readLockMode;
-  Callable<EnvironmentStats> statsCallable=new Callable<EnvironmentStats>(){
-    public EnvironmentStats call() throws Exception {
-      return getEnvironmentStats(true);
-    }
-  }
-;
-  this.fastStatsCallable=new CachedCallable<EnvironmentStats>(statsCallable,STATS_CACHE_TTL_MS);
+  this.bdbEnvironmentStats=new BdbEnvironmentStats(environment,STATS_CACHE_TTL_MS);
 }
