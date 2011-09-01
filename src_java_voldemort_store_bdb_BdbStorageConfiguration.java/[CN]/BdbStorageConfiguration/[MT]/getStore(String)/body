@@ -1,7 +1,6 @@
 {
 synchronized (lock) {
     try {
-      LockMode readLockMode=getLockMode();
       Environment environment=getEnvironment(storeName);
       Database db=environment.openDatabase(null,storeName,databaseConfig);
       if (voldemortConfig.getBdbCursorPreload()) {
@@ -9,7 +8,8 @@ synchronized (lock) {
         preloadConfig.setLoadLNs(true);
         db.preload(preloadConfig);
       }
-      BdbStorageEngine engine=new BdbStorageEngine(storeName,environment,db,readLockMode,voldemortConfig.getBdbCursorPreload());
+      BdbRuntimeConfig runtimeConfig=new BdbRuntimeConfig(voldemortConfig);
+      BdbStorageEngine engine=new BdbStorageEngine(storeName,environment,db,runtimeConfig);
       return engine;
     }
  catch (    DatabaseException d) {
