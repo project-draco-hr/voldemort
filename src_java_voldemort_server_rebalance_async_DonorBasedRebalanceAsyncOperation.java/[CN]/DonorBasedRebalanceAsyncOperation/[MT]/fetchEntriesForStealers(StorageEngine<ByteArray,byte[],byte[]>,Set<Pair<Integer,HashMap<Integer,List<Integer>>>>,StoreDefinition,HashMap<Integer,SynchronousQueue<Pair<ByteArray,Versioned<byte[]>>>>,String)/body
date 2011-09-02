@@ -1,0 +1,30 @@
+{
+  int scanned=0;
+  int[] fetched=new int[targetCluster.getNumberOfNodes()];
+  long startTime=System.currentTimeMillis();
+  ClosableIterator<ByteArray> keys=storageEngine.keys();
+  while (running.get() && keys.hasNext()) {
+    ByteArray key=keys.next();
+    scanned++;
+    List<Integer> nodeIds=RebalanceUtils.checkKeyBelongsToPartition(key.get(),optimizedStealerNodeToMappingTuples,targetCluster,storeDef);
+    if (nodeIds.size() > 0) {
+      List<Versioned<byte[]>> values=storageEngine.get(key,null);
+      for (      Versioned<byte[]> value : values) {
+        for (        int nodeId : nodeIds) {
+          try {
+            fetched[nodeId]++;
+            nodeToQueue.get(nodeId).put(Pair.create(key,value));
+          }
+ catch (          InterruptedException e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }
+    if (0 == scanned % 100000) {
+      printProgress(scanned,fetched,startTime,storeName);
+    }
+  }
+  terminateAllSlaves(updatePushSlavePool);
+  close(keys,storeName,scanned,fetched,startTime);
+}

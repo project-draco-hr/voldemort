@@ -30,24 +30,6 @@
       updatePushSlavePool.add(updatePushSlave);
       pushSlavesExecutor.submitOperation(jobId,updatePushSlave);
     }
-    ClosableIterator<ByteArray> keys=storageEngine.keys();
-    while (running.get() && keys.hasNext()) {
-      ByteArray key=keys.next();
-      List<Integer> nodeIds=RebalanceUtils.checkKeyBelongsToPartition(key.get(),optimizedStealerNodeToMappingTuples,targetCluster,storeDef);
-      if (nodeIds.size() > 0) {
-        List<Versioned<byte[]>> values=storageEngine.get(key,null);
-        for (        Versioned<byte[]> value : values) {
-          for (          int nodeId : nodeIds) {
-            try {
-              nodeToQueue.get(nodeId).put(Pair.create(key,value));
-            }
- catch (            InterruptedException e) {
-              e.printStackTrace();
-            }
-          }
-        }
-      }
-    }
-    terminateAllSlaves(updatePushSlavePool);
+    fetchEntriesForStealers(storageEngine,optimizedStealerNodeToMappingTuples,storeDef,nodeToQueue,storeName);
   }
 }
