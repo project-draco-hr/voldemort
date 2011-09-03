@@ -16,9 +16,9 @@
     while (results.next()) {
       byte[] thisKey=results.getBytes("key_");
       VectorClock version=new VectorClock(results.getBytes("version_"));
-      Occured occured=value.getVersion().compare(version);
-      if (occured == Occured.BEFORE)       throw new ObsoleteVersionException("Attempt to put version " + value.getVersion() + " which is superceeded by "+ version+ ".");
- else       if (occured == Occured.AFTER)       delete(conn,thisKey,version.toBytes());
+      Occurred occurred=value.getVersion().compare(version);
+      if (occurred == Occurred.BEFORE)       throw new ObsoleteVersionException("Attempt to put version " + value.getVersion() + " which is superceeded by "+ version+ ".");
+ else       if (occurred == Occurred.AFTER)       delete(conn,thisKey,version.toBytes());
     }
     insert=conn.prepareStatement(insertSql);
     insert.setBytes(1,key.get());
