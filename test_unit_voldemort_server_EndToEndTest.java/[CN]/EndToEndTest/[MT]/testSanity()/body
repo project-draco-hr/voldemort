@@ -8,9 +8,10 @@
   storeClient.put("Kazakhstan","Astana");
   Versioned<String> v2=storeClient.get("Kazakhstan");
   assertEquals("clobbering a value works as expected, we have read-your-writes consistency","Astana",v2.getValue());
-  Map<String,Versioned<String>> capitals=storeClient.getAll(Arrays.asList("Russia","Ukraine"));
+  Map<String,Versioned<String>> capitals=storeClient.getAll(Arrays.asList("Russia","Ukraine","Japan"));
   assertEquals("getAll works as expected","Moscow",capitals.get("Russia").getValue());
   assertEquals("getAll works as expected","Kiev",capitals.get("Ukraine").getValue());
+  assertFalse("getAll works as expected",capitals.containsKey("Japan"));
   storeClient.delete("Ukraine");
   assertNull("delete works as expected",storeClient.get("Ukraine"));
 }

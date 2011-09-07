@@ -1,0 +1,9 @@
+{
+  VAdminProto.RepairJobRequest.Builder repairJobRequest=VAdminProto.RepairJobRequest.newBuilder();
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setRepairJob(repairJobRequest).setType(VAdminProto.AdminRequestType.REPAIR_JOB).build();
+  VAdminProto.AsyncOperationStatusResponse.Builder response=sendAndReceive(nodeId,adminRequest,VAdminProto.AsyncOperationStatusResponse.newBuilder());
+  if (response.hasError()) {
+    throwException(response.getError());
+  }
+  return;
+}
