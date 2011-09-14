@@ -12,7 +12,7 @@
       if (voldemortConfig.isJmxEnabled()) {
         MBeanServer mbeanServer=ManagementFactory.getPlatformMBeanServer();
         ObjectName name=null;
-        if (this.voldemortConfig.isEnableJmxClusterName())         name=JmxUtils.createObjectName(metadata.getCluster().getName() + "." + JmxUtils.getPackageName(RedirectingStore.class),store.getName());
+        if (this.voldemortConfig.isEnableJmxClusterName())         name=JmxUtils.createObjectName(cluster.getName() + "." + JmxUtils.getPackageName(RedirectingStore.class),store.getName());
  else         name=JmxUtils.createObjectName(JmxUtils.getPackageName(RedirectingStore.class),store.getName());
 synchronized (mbeanServer) {
           if (mbeanServer.isRegistered(name))           JmxUtils.unregisterMbean(mbeanServer,name);
