@@ -1,0 +1,10 @@
+{
+  if (e == null)   throw new NullPointerException("null objects are not allowed");
+  AddNodeAction<K,E> addAction=new AddNodeAction<K,E>(_key,e);
+  try {
+    return _storeClient.applyUpdate(addAction);
+  }
+ catch (  IndexOutOfBoundsException ex) {
+    return false;
+  }
+}

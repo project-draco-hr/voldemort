@@ -1,0 +1,45 @@
+{
+  _storeClient=storeClient;
+  VListKey<K> newKey=new VListKey<K>(_key,0);
+  Versioned<Map<String,Object>> firstNodeMap=storeClient.get(newKey.mapValue());
+  if (firstNodeMap == null) {
+    Versioned<Map<String,Object>> newNode=new Versioned<Map<String,Object>>((new VListNode<E>(_value,0,VStack.NULL_ID,VStack.NULL_ID,true)).mapValue());
+    storeClient.put(newKey.mapValue(),newNode);
+  }
+ else {
+    Versioned<VListNode<E>> firstNode=new Versioned<VListNode<E>>(VListNode.<E>valueOf(firstNodeMap.getValue()),firstNodeMap.getVersion());
+    if (!firstNode.getValue().isStable()) {
+      throw new ObsoleteVersionException("cannot add when list node is not stable");
+    }
+    Map<String,Object> tmpMap=new HashMap<String,Object>(firstNodeMap.getValue());
+    tmpMap.put(VListNode.STABLE,false);
+    storeClient.put(newKey.mapValue(),new Versioned<Map<String,Object>>(tmpMap,firstNodeMap.getVersion()));
+    _rollback.put(0,firstNodeMap.getValue());
+    int newId;
+    int nextId=firstNode.getValue().getNextId();
+    newId=(nextId == VStack.NULL_ID) ? 1 : nextId + 1;
+    if (newId == Integer.MAX_VALUE)     throw new ArrayIndexOutOfBoundsException(newId + " out of bounds");
+    Versioned<VListNode<E>> nextNode=null;
+    VListKey<K> nextKey=new VListKey<K>(_key,nextId);
+    if (nextId != VStack.NULL_ID) {
+      Versioned<Map<String,Object>> nextNodeMap=storeClient.get(nextKey.mapValue());
+      if (nextNodeMap == null)       throw new ObsoleteVersionException("possible concurrent modification");
+      nextNode=new Versioned<VListNode<E>>(VListNode.<E>valueOf(nextNodeMap.getValue()),nextNodeMap.getVersion());
+      if (!nextNode.getValue().isStable()) {
+        throw new ObsoleteVersionException("cannot add when list node is not stable");
+      }
+      tmpMap=new HashMap<String,Object>(nextNode.getValue().mapValue());
+      tmpMap.put(VListNode.STABLE,false);
+      storeClient.put(nextKey.mapValue(),new Versioned<Map<String,Object>>(tmpMap,nextNode.getVersion()));
+      _rollback.put(nextId,nextNode.getValue().mapValue());
+    }
+    Map<String,Object> newNode=(new VListNode<E>(_value,0,VStack.NULL_ID,newId,true)).mapValue();
+    storeClient.put(newKey.mapValue(),newNode);
+    VListKey<K> firstKey=new VListKey<K>(_key,newId);
+    firstNode=new Versioned<VListNode<E>>(new VListNode<E>(firstNode.getValue().getValue(),newId,0,firstNode.getValue().getNextId(),true));
+    storeClient.put(firstKey.mapValue(),firstNode.getValue().mapValue());
+    if (nextNode != null) {
+      if (!storeClient.applyUpdate(new UpdateNextNode<K,E>(nextNode,nextKey,newId)))       throw new ObsoleteVersionException("unable to update node");
+    }
+  }
+}
