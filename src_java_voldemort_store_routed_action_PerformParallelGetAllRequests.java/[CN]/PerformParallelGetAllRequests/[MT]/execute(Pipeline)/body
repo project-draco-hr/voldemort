@@ -2,6 +2,7 @@
   int attempts=pipelineData.getNodeToKeysMap().size();
   final Map<Integer,Response<Iterable<ByteArray>,Object>> responses=new ConcurrentHashMap<Integer,Response<Iterable<ByteArray>,Object>>();
   final CountDownLatch latch=new CountDownLatch(attempts);
+  final AtomicBoolean doneWaiting=new AtomicBoolean(false);
   if (logger.isTraceEnabled())   logger.trace("Attempting " + attempts + " "+ pipeline.getOperation().getSimpleName()+ " operations in parallel");
   Map<ByteArray,byte[]> transforms=pipelineData.getTransforms();
   for (  Map.Entry<Node,List<ByteArray>> entry : pipelineData.getNodeToKeysMap().entrySet()) {
@@ -9,6 +10,7 @@
     final Collection<ByteArray> keys=entry.getValue();
     NonblockingStoreCallback callback=new NonblockingStoreCallback(){
       public void requestComplete(      Object result,      long requestTime){
+        if (doneWaiting.get() == true)         return;
         if (logger.isTraceEnabled())         logger.trace(pipeline.getOperation().getSimpleName() + " response received (" + requestTime+ " ms.) from node "+ node.getId());
         Response<Iterable<ByteArray>,Object> response=new Response<Iterable<ByteArray>,Object>(node,keys,result,requestTime);
         responses.put(node.getId(),response);
@@ -28,6 +30,7 @@
   }
   try {
     latch.await(timeoutMs * 3,TimeUnit.MILLISECONDS);
+    doneWaiting.compareAndSet(false,true);
   }
  catch (  InterruptedException e) {
     if (logger.isEnabledFor(Level.WARN))     logger.warn(e,e);

@@ -3,12 +3,14 @@
   int attempts=Math.min(preferred,nodes.size());
   final Map<Integer,Response<ByteArray,Object>> responses=new ConcurrentHashMap<Integer,Response<ByteArray,Object>>();
   final CountDownLatch latch=new CountDownLatch(attempts);
+  final AtomicBoolean doneWaiting=new AtomicBoolean(false);
   if (logger.isTraceEnabled())   logger.trace("Attempting " + attempts + " "+ pipeline.getOperation().getSimpleName()+ " operations in parallel");
   for (int i=0; i < attempts; i++) {
     final Node node=nodes.get(i);
     pipelineData.incrementNodeIndex();
     NonblockingStoreCallback callback=new NonblockingStoreCallback(){
       public void requestComplete(      Object result,      long requestTime){
+        if (doneWaiting.get() == true)         return;
         if (logger.isTraceEnabled())         logger.trace(pipeline.getOperation().getSimpleName() + " response received (" + requestTime+ " ms.) from node "+ node.getId());
         Response<ByteArray,Object> response=new Response<ByteArray,Object>(node,key,result,requestTime);
         responses.put(node.getId(),response);
@@ -32,6 +34,7 @@
   }
   try {
     latch.await(timeoutMs,TimeUnit.MILLISECONDS);
+    doneWaiting.compareAndSet(false,true);
   }
  catch (  InterruptedException e) {
     if (logger.isEnabledFor(Level.WARN))     logger.warn(e,e);
