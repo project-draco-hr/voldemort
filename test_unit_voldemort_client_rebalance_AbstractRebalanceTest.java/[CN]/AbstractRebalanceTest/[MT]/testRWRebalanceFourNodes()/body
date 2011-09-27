@@ -10,7 +10,7 @@
   }
   Cluster targetCluster=ServerTestUtils.getLocalCluster(4,ports,new int[][]{{0,4,7},{2,8},{1,6},{3,5,9}});
   List<Integer> serverList=Arrays.asList(0,1,2,3);
-  currentCluster=startServers(currentCluster,rwStoreDefFileWithReplication,serverList,null);
+  currentCluster=startServers(currentCluster,rwTwoStoreDefFileWithReplication,serverList,null);
   targetCluster=updateCluster(targetCluster);
   RebalanceClientConfig config=new RebalanceClientConfig();
   config.setDeleteAfterRebalancingEnabled(true);
@@ -19,7 +19,8 @@
   RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(currentCluster,0),config);
   try {
     populateData(currentCluster,rwStoreDefWithReplication,rebalanceClient.getAdminClient(),false);
-    rebalanceAndCheck(currentCluster,targetCluster,Lists.newArrayList(rwStoreDefWithReplication),rebalanceClient,serverList);
+    populateData(currentCluster,rwStoreDefWithReplication2,rebalanceClient.getAdminClient(),false);
+    rebalanceAndCheck(currentCluster,targetCluster,Lists.newArrayList(rwStoreDefWithReplication,rwStoreDefWithReplication2),rebalanceClient,serverList);
     checkConsistentMetadata(targetCluster,serverList);
   }
  catch (  Exception e) {
