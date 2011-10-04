@@ -6,6 +6,7 @@
   DataInputStream inputStream=sands.getInputStream();
   boolean firstMessage=true;
   long flushTimer=MAX_FLUSH_TIMER;
+  long printStatsTimer=System.currentTimeMillis() + PRINT_STATS_INTERVAL;
   long entryCount=0;
   try {
     if (entryIterator.hasNext()) {
@@ -21,15 +22,17 @@
           ProtoUtils.writeMessage(outputStream,VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_PARTITION_ENTRIES).setUpdatePartitionEntries(updateRequest).build());
           flushWithCallback(0,entryCount,flushCount,flushCallback,outputStream);
           flushTimer=System.currentTimeMillis() + flushInterval;
-          entryCount=0;
           firstMessage=false;
         }
  else {
           ProtoUtils.writeMessage(outputStream,updateRequest.build());
           if (flushWithCallback(flushTimer,entryCount,flushCount,flushCallback,outputStream)) {
             flushTimer=System.currentTimeMillis() + flushInterval;
-            entryCount=0;
           }
+        }
+        if (printStatsTimer <= System.currentTimeMillis() || 0 == entryCount % PRINT_STATS_THRESHOLD) {
+          logger.info("UpdatePartitionEntries: fetched " + entryCount + " to node "+ nodeId+ " for store "+ storeName);
+          printStatsTimer=System.currentTimeMillis() + PRINT_STATS_INTERVAL;
         }
       }
       ProtoUtils.writeEndOfStream(outputStream);
