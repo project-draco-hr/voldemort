@@ -5,6 +5,7 @@
   int mixedPercent=props.getInt(Benchmark.MIXED,0);
   int valueSize=props.getInt(Benchmark.VALUE_SIZE,1024);
   this.value=new String(TestUtils.randomBytes(valueSize));
+  this.sampleSize=props.getInt(Benchmark.SAMPLE_SIZE,0);
   int cachedPercent=props.getInt(Benchmark.PERCENT_CACHED,0);
   String keyType=props.getString(Benchmark.KEY_TYPE,Benchmark.STRING_KEY_TYPE);
   String recordSelection=props.getString(Benchmark.RECORD_SELECTION,Benchmark.UNIFORM_RECORD_SELECTION);
@@ -13,11 +14,8 @@
   double writeProportion=(double)writePercent / (double)100;
   double deleteProportion=(double)deletePercent / (double)100;
   double mixedProportion=(double)mixedPercent / (double)100;
-  if (Math.abs((writeProportion + readProportion + mixedProportion+ deleteProportion) - 1.0) > 0.1) {
-    readProportion=1.0;
-    mixedProportion=0.0;
-    writeProportion=0.0;
-    deleteProportion=0.0;
+  if (Math.abs(writeProportion + readProportion + mixedProportion+ deleteProportion) != 1.0) {
+    throw new VoldemortException("The sum of all workload percentage is NOT 100% \n" + " Read=" + (double)readPercent / (double)100 + " Write=" + (double)writePercent / (double)100 + " Delete=" + (double)deletePercent / (double)100 + " Mixed=" + (double)mixedPercent / (double)100);
   }
   List<Integer> keysFromFile=null;
   int recordCount=0;
@@ -36,6 +34,16 @@
   }
  else {
     recordCount=props.getInt(Benchmark.RECORD_COUNT,-1);
+  }
+  if (sampleSize > 0) {
+    if (recordSelection.compareTo(Benchmark.FILE_RECORD_SELECTION) != 0) {
+      sampleSize=0;
+      logger.warn(Benchmark.SAMPLE_SIZE + " will be ignored because " + Benchmark.REQUEST_FILE+ " is not specified.");
+    }
+ else     if (keysFromFile.size() < sampleSize) {
+      sampleSize=keysFromFile.size();
+      logger.warn(Benchmark.SAMPLE_SIZE + " is reduced to " + sampleSize+ " because it was larger than number of keys in "+ Benchmark.REQUEST_FILE);
+    }
   }
   int opCount=props.getInt(Benchmark.OPS_COUNT);
   Class<?> keyTypeClass=getKeyTypeClass(keyType);
@@ -87,4 +95,5 @@
     keyGenerator=new FileIntegerGenerator(0,keysFromFile);
   }
   this.keyProvider=getKeyProvider(keyTypeClass,keyGenerator,cachedPercent);
+  this.randomSampler=new Random(System.currentTimeMillis());
 }

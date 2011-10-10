@@ -9,7 +9,12 @@
   }
   Object key=keyProvider.next();
   if (op.compareTo(Benchmark.WRITES) == 0) {
-    db.write(key,this.value,transform);
+    if (sampleSize > 0) {
+      writeSampleValue(db,key);
+    }
+ else {
+      db.write(key,this.value,transform);
+    }
   }
  else   if (op.compareTo(Benchmark.MIXED) == 0) {
     db.mixed(key,this.value,transform);
