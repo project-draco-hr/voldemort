@@ -24,6 +24,8 @@
   parser.accepts("async","a) Get a list of async job ids [get] b) Stop async job ids [stop] ").withRequiredArg().describedAs("op-type").ofType(String.class);
   parser.accepts("async-id","Comma separated list of async ids to stop").withOptionalArg().describedAs("job-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("repair-job","Clean after rebalancing is done");
+  parser.accepts("native-backup","Perform a native backup").withRequiredArg().describedAs("store-name").ofType(String.class);
+  parser.accepts("backup-dir").withRequiredArg().describedAs("backup-directory").ofType(String.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     printHelp(System.out,parser);
@@ -31,7 +33,7 @@
   }
   Set<String> missing=CmdUtils.missing(options,"url","node");
   if (missing.size() > 0) {
-    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store") || options.has("ro-metadata")|| options.has("set-metadata")|| options.has("get-metadata")|| options.has("check-metadata")|| options.has("key-distribution")) || options.has("truncate") || options.has("clear-rebalancing-metadata") || options.has("async"))) {
+    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store") || options.has("ro-metadata")|| options.has("set-metadata")|| options.has("get-metadata")|| options.has("check-metadata")|| options.has("key-distribution")) || options.has("truncate") || options.has("clear-rebalancing-metadata") || options.has("async") || options.has("native-backup"))) {
       System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
       printHelp(System.err,parser);
       System.exit(1);
@@ -90,8 +92,14 @@
   if (options.has("repair-job")) {
     ops+="l";
   }
+  if (options.has("native-backup")) {
+    if (!options.has("backup-dir")) {
+      Utils.croak("A backup directory must be specified with dir");
+    }
+    ops+="n";
+  }
   if (ops.length() < 1) {
-    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, key-distribution, clear-rebalancing-metadata, async, repair-job) "+ "must be specified");
+    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, key-distribution, clear-rebalancing-metadata, async, "+ "repair-job, native-backup) must be specified");
   }
   List<String> storeNames=null;
   if (options.has("stores")) {
@@ -211,6 +219,11 @@
     }
     if (ops.contains("l")) {
       executeRepairJob(nodeId,adminClient);
+    }
+    if (ops.contains("n")) {
+      String backupDir=(String)options.valueOf("backup-dir");
+      String storeName=(String)options.valueOf("native-backup");
+      adminClient.nativeBackup(nodeId,storeName,backupDir);
     }
   }
  catch (  Exception e) {
