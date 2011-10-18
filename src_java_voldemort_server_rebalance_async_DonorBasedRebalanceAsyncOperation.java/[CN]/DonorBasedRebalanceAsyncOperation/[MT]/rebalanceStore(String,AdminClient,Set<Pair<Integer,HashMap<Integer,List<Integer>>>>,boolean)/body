@@ -27,7 +27,7 @@
       final SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>> queue=new SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>>();
       nodeToQueue.put(tuple.getFirst(),queue);
       int jobId=pushSlavesExecutor.getUniqueRequestId();
-      String jobName="DonorBasedRebalancePusherSlave for store " + storeName + " no node "+ tuple.getFirst();
+      String jobName="DonorBasedRebalancePusherSlave for store " + storeName + " on node "+ tuple.getFirst();
       DonorBasedRebalancePusherSlave updatePushSlave=new DonorBasedRebalancePusherSlave(jobId,jobName,tuple.getFirst(),queue,storeName,adminClient);
       storePushSlaves.add(updatePushSlave);
       pushSlavesExecutor.submitOperation(jobId,updatePushSlave);

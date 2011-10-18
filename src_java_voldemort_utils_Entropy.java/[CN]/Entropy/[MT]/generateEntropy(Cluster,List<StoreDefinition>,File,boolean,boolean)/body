@@ -103,6 +103,12 @@
                 List<Versioned<byte[]>> value=socketStoresPerNode.get(node.getId()).get(new ByteArray(key),null);
                 if (value == null || value.size() == 0) {
                   missingKey=true;
+                  if (this.verboseLogging) {
+                    String stringKey=ByteUtils.getString(key,"UTF-8");
+                    System.out.println("missing key=" + stringKey + " on node="+ node.getId());
+                    System.out.println("is value null " + ((value == null) ? "true" : "false"));
+                    System.out.println("is size zero " + ((value.size() == 0) ? "true" : "false"));
+                  }
                 }
               }
               if (!missingKey)               foundKeys++;

@@ -19,6 +19,7 @@
     parser.accepts("timeout","Time-out in seconds for rebalancing of a single task ( stealer - donor tuple ) [ Default : " + RebalanceClientConfig.REBALANCING_CLIENT_TIMEOUT_SEC + " ]").withRequiredArg().ofType(Long.class).describedAs("sec");
     parser.accepts("batch","Number of primary partitions to move together [ Default : " + RebalanceClientConfig.PRIMARY_PARTITION_BATCH_SIZE + " ]").withRequiredArg().ofType(Integer.class).describedAs("num-primary-partitions");
     parser.accepts("stealer-based","Run the rebalancing from the stealer node's perspective [ Default : " + RebalanceClientConfig.STEALER_BASED_REBALANCING + " ]").withRequiredArg().ofType(Boolean.class).describedAs("boolean");
+    parser.accepts("verbose-logging","Verbose logging such as keys found missing on specific nodes during post-rebalancing entropy verification");
     OptionSet options=parser.parse(args);
     if (options.has("help")) {
       printHelp(System.out,parser);
@@ -72,8 +73,9 @@
           System.exit(ERROR_EXIT_CODE);
         }
         boolean entropy=(Boolean)options.valueOf("entropy");
+        boolean verbose=options.has("verbose-logging");
         long numKeys=CmdUtils.valueOf(options,"keys",Entropy.DEFAULT_NUM_KEYS);
-        Entropy generator=new Entropy(-1,numKeys);
+        Entropy generator=new Entropy(-1,numKeys,verbose);
         generator.generateEntropy(currentCluster,storeDefs,new File(config.getOutputDirectory()),entropy);
         return;
       }
