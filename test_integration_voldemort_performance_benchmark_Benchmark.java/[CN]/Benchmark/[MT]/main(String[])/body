@@ -4,6 +4,7 @@
   parser.accepts(WRITES,"percentage of --ops-count to be writes; valid values [0-100]").withRequiredArg().describedAs("write-percent").ofType(Integer.class);
   parser.accepts(DELETES,"percentage of --ops-count to be deletes; valid values [0-100]").withRequiredArg().describedAs("delete-percent").ofType(Integer.class);
   parser.accepts(MIXED,"percentage of --ops-count to be updates; valid values [0-100]").withRequiredArg().describedAs("update-percent").ofType(Integer.class);
+  parser.accepts(SAMPLE_SIZE,"number of value samples to be obtained from the store for replay based on keys from request-file; 0 means no sample value replay. Default = 0").withRequiredArg().describedAs("sample-size").ofType(Integer.class);
   parser.accepts(VERBOSE,"verbose");
   parser.accepts(THREADS,"max number concurrent worker threads; Default = " + MAX_WORKERS).withRequiredArg().describedAs("num-threads").ofType(Integer.class);
   parser.accepts(ITERATIONS,"number of times to repeat benchmark phase; Default = 1").withRequiredArg().describedAs("num-iter").ofType(Integer.class);
@@ -95,6 +96,7 @@
     mainProps.put(DELETES,CmdUtils.valueOf(options,DELETES,0));
     mainProps.put(MIXED,CmdUtils.valueOf(options,MIXED,0));
     mainProps.put(PLUGIN_CLASS,CmdUtils.valueOf(options,PLUGIN_CLASS,""));
+    mainProps.put(SAMPLE_SIZE,CmdUtils.valueOf(options,SAMPLE_SIZE,0));
   }
   Benchmark benchmark=null;
   try {
