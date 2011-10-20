@@ -1,0 +1,12 @@
+{
+  T value=valueRef.get();
+  long now=time.getMilliseconds();
+  if (value == null || now - lastCalledMs > ttlMs) {
+    T newValue=inner.call();
+    if (valueRef.compareAndSet(value,newValue)) {
+      lastCalledMs=now;
+      return newValue;
+    }
+  }
+  return valueRef.get();
+}
