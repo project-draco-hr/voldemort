@@ -1,5 +1,6 @@
 {
-  while (null == currentElem) {
+  boolean hasNext=false;
+  if (null == currentElem) {
     try {
       currentElem=getNextElem();
     }
@@ -7,10 +8,8 @@
       logger.info("hasNext is interrupted while waiting for the next elem.");
     }
   }
-  if (currentElem != null && currentElem.equals(END)) {
-    return false;
+  if (null != currentElem && !currentElem.equals(DonorBasedRebalanceAsyncOperation.END)) {
+    hasNext=true;
   }
- else {
-    return true;
-  }
+  return hasNext;
 }

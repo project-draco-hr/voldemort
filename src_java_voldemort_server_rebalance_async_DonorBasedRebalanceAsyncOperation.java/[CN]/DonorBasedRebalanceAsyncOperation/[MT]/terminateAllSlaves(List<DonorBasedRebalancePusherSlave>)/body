@@ -1,8 +1,10 @@
 {
+  logger.info("Terminating DonorBasedRebalancePushSlaves...");
   for (Iterator<DonorBasedRebalancePusherSlave> it=updatePushSlavePool.iterator(); it.hasNext(); ) {
-    it.next().setCompletion(false,true);
+    it.next().requestCompletion();
   }
   for (Iterator<DonorBasedRebalancePusherSlave> it=updatePushSlavePool.iterator(); it.hasNext(); ) {
     it.next().waitCompletion();
   }
+  logger.info("All DonorBasedRebalancePushSlaves terminated successfully.");
 }
