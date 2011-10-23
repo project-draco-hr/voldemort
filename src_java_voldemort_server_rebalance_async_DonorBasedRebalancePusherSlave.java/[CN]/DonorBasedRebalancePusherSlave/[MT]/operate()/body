@@ -2,6 +2,7 @@
   logger.info("DonorBasedRebalancePusherSlave begains to send partitions for store " + storeName + " to node "+ nodeId);
   while (!isStopRequest()) {
     try {
+      nodeIterator.reset();
       adminClient.updateEntries(nodeId,storeName,nodeIterator,null);
       nodeIterator.purge();
     }
