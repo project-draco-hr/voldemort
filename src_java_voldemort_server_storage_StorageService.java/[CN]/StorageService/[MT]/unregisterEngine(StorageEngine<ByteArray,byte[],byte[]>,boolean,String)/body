@@ -8,13 +8,17 @@
     if (voldemortConfig.isJmxEnabled()) {
       MBeanServer mbeanServer=ManagementFactory.getPlatformMBeanServer();
       if (!isSlop && voldemortConfig.isEnableRebalanceService() && !isReadOnly&& !isMetadata&& !isView) {
-        ObjectName name=JmxUtils.createObjectName(JmxUtils.getPackageName(RedirectingStore.class),store.getName());
+        ObjectName name=null;
+        if (this.voldemortConfig.isEnableJmxClusterName())         name=JmxUtils.createObjectName(metadata.getCluster().getName() + "." + JmxUtils.getPackageName(RedirectingStore.class),store.getName());
+ else         name=JmxUtils.createObjectName(JmxUtils.getPackageName(RedirectingStore.class),store.getName());
 synchronized (mbeanServer) {
           if (mbeanServer.isRegistered(name))           JmxUtils.unregisterMbean(mbeanServer,name);
         }
       }
       if (voldemortConfig.isStatTrackingEnabled()) {
-        ObjectName name=JmxUtils.createObjectName(JmxUtils.getPackageName(store.getClass()),store.getName());
+        ObjectName name=null;
+        if (this.voldemortConfig.isEnableJmxClusterName())         name=JmxUtils.createObjectName(metadata.getCluster().getName() + "." + JmxUtils.getPackageName(store.getClass()),store.getName());
+ else         name=JmxUtils.createObjectName(JmxUtils.getPackageName(store.getClass()),store.getName());
 synchronized (mbeanServer) {
           if (mbeanServer.isRegistered(name))           JmxUtils.unregisterMbean(mbeanServer,name);
         }
