@@ -6,6 +6,7 @@
   ClientRequest<?> local=clientRequest;
   clientRequest=null;
   expiration=0;
-  local.complete();
+  if (isExpired)   local.timeOut();
+ else   local.complete();
   if (logger.isTraceEnabled())   logger.trace("Marked client associated with " + socketChannel.socket() + " as complete");
 }
