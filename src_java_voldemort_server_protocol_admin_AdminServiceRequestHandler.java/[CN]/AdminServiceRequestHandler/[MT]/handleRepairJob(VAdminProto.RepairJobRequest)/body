@@ -1,12 +1,21 @@
 {
   VAdminProto.RepairJobResponse.Builder response=VAdminProto.RepairJobResponse.newBuilder();
   try {
-    RepairJob job=storeRepository.getRepairJob();
-    if (job != null) {
-      logger.info("Starting the repair job now on ID : " + metadataStore.getNodeId());
-      job.run();
+    int requestId=asyncService.getUniqueRequestId();
+    asyncService.submitOperation(requestId,new AsyncOperation(requestId,"Repair Job"){
+      @Override public void operate(){
+        RepairJob job=storeRepository.getRepairJob();
+        if (job != null) {
+          logger.info("Starting the repair job now on ID : " + metadataStore.getNodeId());
+          job.run();
+        }
+ else         logger.error("RepairJob is not initialized.");
+      }
+      @Override public void stop(){
+        status.setException(new VoldemortException("Repair job interrupted"));
+      }
     }
- else     logger.error("RepairJob is not scheduled.");
+);
   }
  catch (  VoldemortException e) {
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
