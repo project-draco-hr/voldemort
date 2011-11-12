@@ -10,6 +10,13 @@
   pipeline.addEventAction(Event.INSUFFICIENT_SUCCESSES,new PerformSerialGetAllRequests(pipelineData,allowReadRepair ? Event.RESPONSES_RECEIVED : Event.COMPLETED,keys,failureDetector,innerStores,storeDef.getPreferredReads(),storeDef.getRequiredReads()));
   if (allowReadRepair)   pipeline.addEventAction(Event.RESPONSES_RECEIVED,new GetAllReadRepair(pipelineData,Event.COMPLETED,storeDef.getPreferredReads(),timeoutMs,nonblockingStores,readRepairer));
   pipeline.addEvent(Event.STARTED);
+  if (logger.isDebugEnabled()) {
+    StringBuilder keyStr=new StringBuilder();
+    for (    ByteArray key : keys) {
+      keyStr.append(ByteUtils.toHexString(key.get()) + ",");
+    }
+    logger.debug(String.format("Operation %s Keys %s",pipeline.getOperation().getSimpleName(),keyStr.toString()));
+  }
   pipeline.execute();
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   return pipelineData.getResult();

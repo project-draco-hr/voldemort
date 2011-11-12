@@ -5,5 +5,12 @@
   for (  int partition : partitionList) {
     preferenceList.add(partitionToNode[partition]);
   }
+  if (logger.isDebugEnabled()) {
+    StringBuilder nodeList=new StringBuilder();
+    for (    int partition : partitionList) {
+      nodeList.append(partitionToNode[partition].getId() + ",");
+    }
+    logger.debug(String.format("Key %s mapped to Nodes [%s] Partitions [%s]",ByteUtils.toHexString(key),nodeList,partitionList));
+  }
   return preferenceList;
 }
