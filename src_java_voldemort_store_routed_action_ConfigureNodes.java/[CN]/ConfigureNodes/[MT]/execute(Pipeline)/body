@@ -30,7 +30,7 @@
     }
     nodes=new ArrayList<Node>();
     LinkedList<Integer> zoneProximityList=this.clientZone.getProximityList();
-    if (pipeline.getOperation() != Operation.PUT) {
+    if (pipeline.getOperation() != Operation.PUT && pipeline.getOperation() != Operation.DELETE) {
       for (int index=0; index < pipelineData.getZonesRequired(); index++) {
         List<Node> zoneNodes=zoneIdToNode.get(zoneProximityList.get(index));
         if (zoneNodes != null && zoneNodes.size() > 0) {
@@ -46,6 +46,13 @@
         nodes.addAll(zoneNodes);
       }
     }
+  }
+  if (logger.isDebugEnabled()) {
+    StringBuilder nodeStr=new StringBuilder();
+    for (    Node node : nodes) {
+      nodeStr.append(node.getId() + ",");
+    }
+    logger.debug(String.format("Key %s Nodes after routing %s",ByteUtils.toHexString(key.get()),nodeStr));
   }
   pipelineData.setNodes(nodes);
   pipeline.addEvent(completeEvent);

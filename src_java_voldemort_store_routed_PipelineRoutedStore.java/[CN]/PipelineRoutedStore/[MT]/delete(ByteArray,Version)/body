@@ -15,6 +15,9 @@
     pipeline.addEventAction(Event.ABORTED,new PerformDeleteHintedHandoff(pipelineData,Event.ERROR,key,version,hintedHandoff));
   }
   pipeline.addEvent(Event.STARTED);
+  if (logger.isDebugEnabled()) {
+    logger.debug(String.format("Operation %s Key %s",pipeline.getOperation().getSimpleName(),ByteUtils.toHexString(key.get())));
+  }
   pipeline.execute();
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   for (  Response<ByteArray,Boolean> response : pipelineData.getResponses()) {
