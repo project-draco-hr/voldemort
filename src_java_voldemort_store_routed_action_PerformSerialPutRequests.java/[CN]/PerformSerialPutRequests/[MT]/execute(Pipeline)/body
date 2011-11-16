@@ -34,7 +34,7 @@
   currentNode++;
   if (currentNode == nodes.size()) {
     if (pipelineData.getSuccesses() < required) {
-      pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but only "+ pipelineData.getSuccesses()+ " succeeded",pipelineData.getFailures()));
+      pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but only "+ pipelineData.getSuccesses()+ " succeeded",new ArrayList<Node>(pipelineData.getReplicationSet()),new ArrayList<Node>(pipelineData.getNodes()),new ArrayList<Node>(pipelineData.getFailedNodes()),pipelineData.getFailures()));
       pipeline.abort();
     }
  else {
