@@ -1,5 +1,5 @@
 {
-  this(message.toString() + " Original replication set :" + stripNodeIds(replicationSet)+ " Known failed nodes before operation :"+ stripNodeIds(replicationSet.removeAll(preferenceList) ? replicationSet : replicationSet)+ " Estimated live nodes in preference list :"+ stripNodeIds(preferenceList)+ " New failed nodes during operation :"+ stripNodeIds(failedList.removeAll(replicationSet) ? failedList : failedList),failures.size() > 0 ? failures.iterator().next() : null);
+  this(message.toString() + " Original replication set :" + stripNodeIds(replicationSet)+ " Known failed nodes before operation :"+ stripNodeIds(difference(replicationSet,preferenceList))+ " Estimated live nodes in preference list :"+ stripNodeIds(preferenceList)+ " New failed nodes during operation :"+ stripNodeIds(difference(failedList,replicationSet)),failures.size() > 0 ? failures.iterator().next() : null);
   if (logger.isDebugEnabled()) {
     logger.debug(this.getMessage());
   }
