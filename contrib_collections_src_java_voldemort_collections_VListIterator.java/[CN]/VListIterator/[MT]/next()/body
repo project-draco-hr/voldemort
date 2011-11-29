@@ -1,0 +1,16 @@
+{
+  if (!hasNext())   throw new NoSuchElementException();
+  Versioned<VListNode<E>> tmpNode=_nextNode;
+  VListNode<E> tmpNodeValue=_nextNode.getValue();
+  _lastId=tmpNodeValue.getId();
+  _lastCall=LastCall.NEXT;
+  if (tmpNodeValue.getNextId() != VStack.NULL_ID) {
+    _nextNode=_stack.getListNode(tmpNodeValue.getNextId());
+  }
+ else {
+    _nextNode=null;
+  }
+  _previousNode=tmpNode;
+  _isPreviousSet=true;
+  return new Versioned<E>(tmpNodeValue.getValue(),tmpNode.getVersion());
+}

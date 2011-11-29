@@ -1,0 +1,32 @@
+{
+  StoreClient<Map<String,Object>,Map<String,Object>> storeClient=storeFactory.getStoreClient("test");
+  VStack<String,String> stack=new VStack<String,String>("stack3",storeClient);
+  stack.add("1");
+  stack.add("2");
+  stack.add("3");
+  assertEquals(3,stack.size());
+  VListIterator<String> it=stack.listIterator(0);
+  assertNull(it.previousId());
+  String s=it.next().getValue();
+  assertEquals("3",s);
+  it.setValue("4");
+  assertEquals("4",it.previous().getValue());
+  assertEquals("4",it.next().getValue());
+  assertEquals("2",it.next().getValue());
+  assertEquals("1",it.next().getValue());
+  Versioned<String> vs=it.previous();
+  assertEquals("1",vs.getValue());
+  it.set(new Versioned<String>("5",vs.getVersion()));
+  assertEquals("5",it.next().getValue());
+  assertEquals(3,stack.size());
+  try {
+    it.set(new Versioned<String>("6",vs.getVersion()));
+    TestCase.fail("expected ObsoleteVersionException");
+  }
+ catch (  ObsoleteVersionException e) {
+  }
+  assertNull(it.nextId());
+  Integer id=it.previousId();
+  stack.setById(id,"7");
+  assertEquals("7",stack.getById(id));
+}
