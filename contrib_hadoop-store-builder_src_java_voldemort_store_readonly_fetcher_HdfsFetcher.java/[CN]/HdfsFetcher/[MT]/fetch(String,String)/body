@@ -1,4 +1,8 @@
 {
+synchronized (this) {
+    numJobs++;
+    throttler.updateRate(this.maxBytesPerSecond / numJobs);
+  }
   Path path=new Path(sourceFileUrl);
   Configuration config=new Configuration();
   config.setInt("io.socket.receive.buffer",bufferSize);
