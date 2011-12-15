@@ -1,12 +1,19 @@
 {
   SerializerFactory factory=new DefaultSerializerFactory();
-  @SuppressWarnings("unchecked") Serializer<Integer> keySerializer=(Serializer<Integer>)factory.getSerializer(storeDefinition.getKeySerializer());
+  @SuppressWarnings("unchecked") Serializer<Object> keySerializer=(Serializer<Object>)factory.getSerializer(storeDefinition.getKeySerializer());
   BufferedReader in=new BufferedReader(new FileReader(inputFile));
   BufferedWriter out=new BufferedWriter(new FileWriter(outputFile));
   try {
     String line=null;
     while ((line=in.readLine()) != null) {
-      int key=Integer.valueOf(line.replaceAll("\\s+",""));
+      String keyStr=line.replaceAll("\\s+$","");
+      Object key=null;
+      if (stringKeys) {
+        key=keyStr;
+      }
+ else {
+        key=Integer.valueOf(keyStr);
+      }
       byte[] keyBytes=keySerializer.toBytes(key);
       List<Node> nodes=routingStrategy.routeRequest(keyBytes);
       if (nodes.contains(node)) {
@@ -15,7 +22,11 @@
     }
   }
   finally {
-    in.close();
-    out.close();
+    try {
+      in.close();
+    }
+  finally {
+      out.close();
+    }
   }
 }
