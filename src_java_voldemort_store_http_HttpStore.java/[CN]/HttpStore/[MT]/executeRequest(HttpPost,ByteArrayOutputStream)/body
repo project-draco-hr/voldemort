@@ -1,0 +1,12 @@
+{
+  try {
+    method.setEntity(new ByteArrayEntity(output.toByteArray()));
+    HttpResponse response=httpClient.execute(method);
+    int statusCode=response.getStatusLine().getStatusCode();
+    if (statusCode != HttpURLConnection.HTTP_OK)     throw new UnreachableStoreException("HTTP request to store " + storeName + " returned status code "+ response+ " "+ response.getStatusLine().getReasonPhrase());
+    return new DataInputStream(response.getEntity().getContent());
+  }
+ catch (  IOException e) {
+    throw new UnreachableStoreException("Could not connect to " + storeUrl + " for "+ storeName,e);
+  }
+}

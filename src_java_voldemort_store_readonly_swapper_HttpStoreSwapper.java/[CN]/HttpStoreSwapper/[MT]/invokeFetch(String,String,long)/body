@@ -4,16 +4,18 @@
     fetchDirs.put(node.getId(),executor.submit(new Callable<String>(){
       public String call() throws Exception {
         String url=node.getHttpUrl() + "/" + readOnlyMgmtPath;
-        PostMethod post=new PostMethod(url);
-        post.addParameter("operation","fetch");
+        HttpPost post=new HttpPost(url);
+        HttpParams params=post.getParams();
+        params.setParameter("operation","fetch");
         String storeDir=basePath + "/node-" + node.getId();
-        post.addParameter("dir",storeDir);
-        post.addParameter("store",storeName);
-        if (pushVersion > 0)         post.addParameter("pushVersion",Long.toString(pushVersion));
+        params.setParameter("dir",storeDir);
+        params.setParameter("store",storeName);
+        if (pushVersion > 0)         params.setParameter("pushVersion",Long.toString(pushVersion));
         logger.info("Invoking fetch for node " + node.getId() + " for "+ storeDir);
-        int responseCode=httpClient.executeMethod(post);
-        String response=post.getResponseBodyAsString(30000);
-        if (responseCode != 200)         throw new VoldemortException("Fetch request on node " + node.getId() + " ("+ url+ ") failed: "+ post.getStatusText());
+        HttpResponse httpResponse=httpClient.execute(post);
+        int responseCode=httpResponse.getStatusLine().getStatusCode();
+        String response=IOUtils.toString(httpResponse.getEntity().getContent());
+        if (responseCode != 200)         throw new VoldemortException("Fetch request on node " + node.getId() + " ("+ url+ ") failed: "+ httpResponse.getStatusLine().getReasonPhrase());
         logger.info("Fetch succeeded on node " + node.getId());
         return response.trim();
       }
@@ -36,13 +38,15 @@
       for (      int successfulNodeId : results.keySet()) {
         try {
           String url=cluster.getNodeById(successfulNodeId).getHttpUrl() + "/" + readOnlyMgmtPath;
-          PostMethod post=new PostMethod(url);
-          post.addParameter("operation","failed-fetch");
-          post.addParameter("dir",results.get(successfulNodeId));
-          post.addParameter("store",storeName);
+          HttpPost post=new HttpPost(url);
+          HttpParams params=post.getParams();
+          params.setParameter("operation","failed-fetch");
+          params.setParameter("dir",results.get(successfulNodeId));
+          params.setParameter("store",storeName);
           logger.info("Deleting fetched data from node " + successfulNodeId);
-          int responseCode=httpClient.executeMethod(post);
-          String response=post.getStatusText();
+          HttpResponse httpResponse=httpClient.execute(post);
+          int responseCode=httpResponse.getStatusLine().getStatusCode();
+          String response=httpResponse.getStatusLine().getReasonPhrase();
           if (responseCode == 200) {
             logger.info("Deleted successfully on node " + successfulNodeId);
           }

@@ -1,21 +1,17 @@
 {
   super(config);
-  HostConfiguration hostConfig=new HostConfiguration();
-  hostConfig.getParams().setParameter("http.protocol.version",HttpVersion.HTTP_1_1);
-  MultiThreadedHttpConnectionManager connectionManager=new MultiThreadedHttpConnectionManager();
-  this.httpClient=new HttpClient(connectionManager);
-  this.httpClient.setHostConfiguration(hostConfig);
-  HttpClientParams clientParams=this.httpClient.getParams();
-  clientParams.setConnectionManagerTimeout(config.getConnectionTimeout(TimeUnit.MILLISECONDS));
-  clientParams.setSoTimeout(config.getSocketTimeout(TimeUnit.MILLISECONDS));
-  clientParams.setParameter(HttpMethodParams.RETRY_HANDLER,new DefaultHttpMethodRetryHandler(0,false));
-  clientParams.setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
-  clientParams.setParameter("http.useragent",VOLDEMORT_USER_AGENT);
-  HttpConnectionManagerParams managerParams=this.httpClient.getHttpConnectionManager().getParams();
-  managerParams.setConnectionTimeout(config.getConnectionTimeout(TimeUnit.MILLISECONDS));
-  managerParams.setMaxTotalConnections(config.getMaxTotalConnections());
-  managerParams.setStaleCheckingEnabled(false);
-  managerParams.setMaxConnectionsPerHost(httpClient.getHostConfiguration(),config.getMaxConnectionsPerNode());
+  ThreadSafeClientConnManager mgr=new ThreadSafeClientConnManager();
+  mgr.setMaxTotal(config.getMaxTotalConnections());
+  mgr.setDefaultMaxPerRoute(config.getMaxConnectionsPerNode());
+  this.httpClient=new DefaultHttpClient(mgr);
+  HttpParams clientParams=this.httpClient.getParams();
+  clientParams.setParameter(CoreProtocolPNames.PROTOCOL_VERSION,HttpVersion.HTTP_1_1);
+  HttpConnectionParams.setConnectionTimeout(clientParams,config.getConnectionTimeout(TimeUnit.MILLISECONDS));
+  HttpConnectionParams.setSoTimeout(clientParams,config.getSocketTimeout(TimeUnit.MILLISECONDS));
+  this.httpClient.setHttpRequestRetryHandler(new DefaultHttpRequestRetryHandler(0,false));
+  HttpClientParams.setCookiePolicy(clientParams,CookiePolicy.IGNORE_COOKIES);
+  clientParams.setParameter(CoreProtocolPNames.USER_AGENT,VOLDEMORT_USER_AGENT);
+  HttpConnectionParams.setStaleCheckingEnabled(clientParams,false);
   this.reroute=config.getRoutingTier().equals(RoutingTier.SERVER);
   this.requestFormatFactory=new RequestFormatFactory();
 }

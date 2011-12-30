@@ -1,8 +1,8 @@
 {
   StoreUtils.assertValidKey(key);
-  PostMethod method=null;
+  HttpPost method=null;
   try {
-    method=new PostMethod(this.storeUrl);
+    method=new HttpPost(this.storeUrl);
     ByteArrayOutputStream outputBytes=new ByteArrayOutputStream();
     requestFormat.writeDeleteRequest(new DataOutputStream(outputBytes),storeName,key,(VectorClock)version,reroute);
     DataInputStream input=executeRequest(method,outputBytes);
@@ -10,8 +10,5 @@
   }
  catch (  IOException e) {
     throw new UnreachableStoreException("Could not connect to " + storeUrl + " for "+ storeName,e);
-  }
- finally {
-    if (method != null)     method.releaseConnection();
   }
 }

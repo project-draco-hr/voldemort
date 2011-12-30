@@ -40,12 +40,13 @@
     swapper=new AdminStoreSwapper(cluster,executor,adminClient,timeoutMs);
   }
  else {
-    HttpConnectionManager manager=new MultiThreadedHttpConnectionManager();
     int numConnections=cluster.getNumberOfNodes() + 3;
-    manager.getParams().setMaxTotalConnections(numConnections);
-    manager.getParams().setMaxConnectionsPerHost(HostConfiguration.ANY_HOST_CONFIGURATION,numConnections);
-    HttpClient client=new HttpClient(manager);
-    client.getParams().setParameter("http.socket.timeout",timeoutMs);
+    ThreadSafeClientConnManager connectionManager=new ThreadSafeClientConnManager();
+    DefaultHttpClient client=new DefaultHttpClient(connectionManager);
+    HttpParams clientParams=client.getParams();
+    connectionManager.setMaxTotal(numConnections);
+    connectionManager.setDefaultMaxPerRoute(numConnections);
+    HttpConnectionParams.setSoTimeout(clientParams,timeoutMs);
     swapper=new HttpStoreSwapper(cluster,executor,client,mgmtPath);
   }
   try {

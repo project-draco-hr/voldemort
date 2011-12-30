@@ -10,16 +10,13 @@
   final HttpClient client=createClient();
   PerformanceTest perfTest=new PerformanceTest(){
     @Override public void doOperation(    int index){
-      GetMethod get=new GetMethod(url);
+      HttpGet get=new HttpGet(url);
       try {
-        client.executeMethod(get);
-        get.getResponseBody();
+        HttpResponse response=client.execute(get);
+        response.getEntity().consumeContent();
       }
  catch (      Exception e) {
         e.printStackTrace();
-      }
- finally {
-        get.releaseConnection();
       }
     }
   }
