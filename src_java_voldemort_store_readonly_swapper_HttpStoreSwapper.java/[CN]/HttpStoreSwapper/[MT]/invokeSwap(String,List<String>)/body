@@ -13,7 +13,7 @@
       params.setParameter("store",storeName);
       HttpResponse httpResponse=httpClient.execute(post);
       int responseCode=httpResponse.getStatusLine().getStatusCode();
-      String previousDir=IOUtils.toString(httpResponse.getEntity().getContent());
+      String previousDir=VoldemortIOUtils.toString(httpResponse.getEntity().getContent(),30000);
       if (responseCode != 200)       throw new VoldemortException("Swap request on node " + node.getId() + " ("+ url+ ") failed: "+ httpResponse.getStatusLine().getReasonPhrase());
       logger.info("Swap succeeded on node " + node.getId());
       previousDirs.put(node.getId(),previousDir);

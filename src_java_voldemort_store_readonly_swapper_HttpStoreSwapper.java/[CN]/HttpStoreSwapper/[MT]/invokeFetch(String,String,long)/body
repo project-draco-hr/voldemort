@@ -14,7 +14,7 @@
         logger.info("Invoking fetch for node " + node.getId() + " for "+ storeDir);
         HttpResponse httpResponse=httpClient.execute(post);
         int responseCode=httpResponse.getStatusLine().getStatusCode();
-        String response=IOUtils.toString(httpResponse.getEntity().getContent());
+        String response=VoldemortIOUtils.toString(httpResponse.getEntity().getContent(),30000);
         if (responseCode != 200)         throw new VoldemortException("Fetch request on node " + node.getId() + " ("+ url+ ") failed: "+ httpResponse.getStatusLine().getReasonPhrase());
         logger.info("Fetch succeeded on node " + node.getId());
         return response.trim();

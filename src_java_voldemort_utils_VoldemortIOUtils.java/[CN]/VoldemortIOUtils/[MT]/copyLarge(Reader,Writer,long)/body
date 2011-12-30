@@ -1,0 +1,22 @@
+{
+  char[] buffer=new char[DEFAULT_BUFFER_SIZE];
+  long count=0;
+  int n=0;
+  long remaining=limit;
+  while (remaining > 0) {
+    if (remaining > DEFAULT_BUFFER_SIZE) {
+      n=input.read(buffer);
+    }
+ else {
+      char[] remainingbuffer=new char[(int)remaining];
+      n=input.read(remainingbuffer);
+    }
+    if (n == -1) {
+      break;
+    }
+    output.write(buffer,0,n);
+    count+=n;
+    remaining-=n;
+  }
+  return count;
+}
