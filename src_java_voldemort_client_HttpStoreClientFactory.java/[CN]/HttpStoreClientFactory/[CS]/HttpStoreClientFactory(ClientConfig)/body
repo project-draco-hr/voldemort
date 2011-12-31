@@ -1,6 +1,6 @@
 {
   super(config);
-  ThreadSafeClientConnManager mgr=new ThreadSafeClientConnManager();
+  ThreadSafeClientConnManager mgr=new ThreadSafeClientConnManager(SchemeRegistryFactory.createDefault(),config.getConnectionTimeout(TimeUnit.MILLISECONDS),TimeUnit.MILLISECONDS);
   mgr.setMaxTotal(config.getMaxTotalConnections());
   mgr.setDefaultMaxPerRoute(config.getMaxConnectionsPerNode());
   this.httpClient=new DefaultHttpClient(mgr);

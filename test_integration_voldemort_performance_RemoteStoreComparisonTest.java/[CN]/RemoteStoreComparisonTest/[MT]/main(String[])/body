@@ -77,7 +77,7 @@
   repository.addLocalStore(new InMemoryStorageEngine<ByteArray,byte[],byte[]>(storeName));
   HttpService httpService=new HttpService(null,null,repository,RequestFormatType.VOLDEMORT_V0,numThreads,8080);
   httpService.start();
-  ThreadSafeClientConnManager connectionManager=new ThreadSafeClientConnManager();
+  ThreadSafeClientConnManager connectionManager=new ThreadSafeClientConnManager(SchemeRegistryFactory.createDefault(),10000,TimeUnit.MILLISECONDS);
   DefaultHttpClient httpClient=new DefaultHttpClient(connectionManager);
   HttpParams clientParams=httpClient.getParams();
   httpClient.setHttpRequestRetryHandler(new DefaultHttpRequestRetryHandler(0,false));
