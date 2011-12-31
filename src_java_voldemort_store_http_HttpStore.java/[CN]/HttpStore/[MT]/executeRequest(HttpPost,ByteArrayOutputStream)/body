@@ -1,12 +1,18 @@
 {
+  HttpResponse response=null;
   try {
     method.setEntity(new ByteArrayEntity(output.toByteArray()));
-    HttpResponse response=httpClient.execute(method);
+    response=httpClient.execute(method);
     int statusCode=response.getStatusLine().getStatusCode();
-    if (statusCode != HttpURLConnection.HTTP_OK)     throw new UnreachableStoreException("HTTP request to store " + storeName + " returned status code "+ response+ " "+ response.getStatusLine().getReasonPhrase());
+    if (statusCode != HttpURLConnection.HTTP_OK) {
+      String message=response.getStatusLine().getReasonPhrase();
+      VoldemortIOUtils.closeQuietly(response);
+      throw new UnreachableStoreException("HTTP request to store " + storeName + " returned status code "+ statusCode+ " "+ message);
+    }
     return new DataInputStream(response.getEntity().getContent());
   }
  catch (  IOException e) {
+    VoldemortIOUtils.closeQuietly(response);
     throw new UnreachableStoreException("Could not connect to " + storeUrl + " for "+ storeName,e);
   }
 }

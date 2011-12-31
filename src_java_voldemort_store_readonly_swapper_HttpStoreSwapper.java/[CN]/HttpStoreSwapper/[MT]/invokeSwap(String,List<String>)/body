@@ -2,6 +2,7 @@
   Map<Integer,String> previousDirs=new HashMap<Integer,String>();
   HashMap<Integer,Exception> exceptions=Maps.newHashMap();
   for (  final Node node : cluster.getNodes()) {
+    HttpResponse httpResponse=null;
     try {
       String url=node.getHttpUrl() + "/" + readOnlyMgmtPath;
       HttpPost post=new HttpPost(url);
@@ -11,7 +12,7 @@
       logger.info("Attempting swap for node " + node.getId() + " dir = "+ dir);
       params.setParameter("dir",dir);
       params.setParameter("store",storeName);
-      HttpResponse httpResponse=httpClient.execute(post);
+      httpResponse=httpClient.execute(post);
       int responseCode=httpResponse.getStatusLine().getStatusCode();
       String previousDir=VoldemortIOUtils.toString(httpResponse.getEntity().getContent(),30000);
       if (responseCode != 200)       throw new VoldemortException("Swap request on node " + node.getId() + " ("+ url+ ") failed: "+ httpResponse.getStatusLine().getReasonPhrase());
@@ -22,10 +23,14 @@
       exceptions.put(node.getId(),e);
       logger.error("Exception thrown during swap operation on node " + node.getId() + ": ",e);
     }
+ finally {
+      VoldemortIOUtils.closeQuietly(httpResponse,node.toString());
+    }
   }
   if (!exceptions.isEmpty()) {
     if (rollbackFailedSwap) {
       for (      int successfulNodeId : previousDirs.keySet()) {
+        HttpResponse httpResponse=null;
         try {
           String url=cluster.getNodeById(successfulNodeId).getHttpUrl() + "/" + readOnlyMgmtPath;
           HttpPost post=new HttpPost(url);
@@ -34,7 +39,7 @@
           params.setParameter("store",storeName);
           params.setParameter("pushVersion",Long.toString(ReadOnlyUtils.getVersionId(new File(previousDirs.get(successfulNodeId)))));
           logger.info("Rolling back data on successful node " + successfulNodeId);
-          HttpResponse httpResponse=httpClient.execute(post);
+          httpResponse=httpClient.execute(post);
           int responseCode=httpResponse.getStatusLine().getStatusCode();
           String response=httpResponse.getStatusLine().getReasonPhrase();
           if (responseCode == 200) {
@@ -46,6 +51,9 @@
         }
  catch (        Exception e) {
           logger.error("Exception thrown during rollback ( after swap ) operation on node " + successfulNodeId + " : ",e);
+        }
+ finally {
+          VoldemortIOUtils.closeQuietly(httpResponse);
         }
       }
     }

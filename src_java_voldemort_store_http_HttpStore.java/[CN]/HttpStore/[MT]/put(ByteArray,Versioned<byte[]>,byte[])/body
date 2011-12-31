@@ -1,14 +1,17 @@
 {
   StoreUtils.assertValidKey(key);
-  HttpPost method=null;
+  DataInputStream input=null;
   try {
-    method=new HttpPost(this.storeUrl);
+    HttpPost method=new HttpPost(this.storeUrl);
     ByteArrayOutputStream outputBytes=new ByteArrayOutputStream();
     requestFormat.writePutRequest(new DataOutputStream(outputBytes),storeName,key,versioned.getValue(),transforms,(VectorClock)versioned.getVersion(),reroute);
-    DataInputStream input=executeRequest(method,outputBytes);
+    input=executeRequest(method,outputBytes);
     requestFormat.readPutResponse(input);
   }
  catch (  IOException e) {
     throw new UnreachableStoreException("Could not connect to " + storeUrl + " for "+ storeName,e);
+  }
+ finally {
+    IOUtils.closeQuietly(input);
   }
 }

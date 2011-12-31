@@ -12,12 +12,19 @@
         params.setParameter("store",storeName);
         if (pushVersion > 0)         params.setParameter("pushVersion",Long.toString(pushVersion));
         logger.info("Invoking fetch for node " + node.getId() + " for "+ storeDir);
-        HttpResponse httpResponse=httpClient.execute(post);
-        int responseCode=httpResponse.getStatusLine().getStatusCode();
-        String response=VoldemortIOUtils.toString(httpResponse.getEntity().getContent(),30000);
-        if (responseCode != 200)         throw new VoldemortException("Fetch request on node " + node.getId() + " ("+ url+ ") failed: "+ httpResponse.getStatusLine().getReasonPhrase());
-        logger.info("Fetch succeeded on node " + node.getId());
-        return response.trim();
+        HttpResponse httpResponse=null;
+        try {
+          httpResponse=httpClient.execute(post);
+          int responseCode=httpResponse.getStatusLine().getStatusCode();
+          InputStream is=httpResponse.getEntity().getContent();
+          String response=VoldemortIOUtils.toString(is,30000);
+          if (responseCode != 200)           throw new VoldemortException("Fetch request on node " + node.getId() + " ("+ url+ ") failed: "+ httpResponse.getStatusLine().getReasonPhrase());
+          logger.info("Fetch succeeded on node " + node.getId());
+          return response.trim();
+        }
+  finally {
+          VoldemortIOUtils.closeQuietly(httpResponse);
+        }
       }
     }
 ));
@@ -36,6 +43,7 @@
   if (!exceptions.isEmpty()) {
     if (deleteFailedFetch) {
       for (      int successfulNodeId : results.keySet()) {
+        HttpResponse httpResponse=null;
         try {
           String url=cluster.getNodeById(successfulNodeId).getHttpUrl() + "/" + readOnlyMgmtPath;
           HttpPost post=new HttpPost(url);
@@ -44,7 +52,7 @@
           params.setParameter("dir",results.get(successfulNodeId));
           params.setParameter("store",storeName);
           logger.info("Deleting fetched data from node " + successfulNodeId);
-          HttpResponse httpResponse=httpClient.execute(post);
+          httpResponse=httpClient.execute(post);
           int responseCode=httpResponse.getStatusLine().getStatusCode();
           String response=httpResponse.getStatusLine().getReasonPhrase();
           if (responseCode == 200) {
@@ -56,6 +64,9 @@
         }
  catch (        Exception e) {
           logger.error("Exception thrown during delete operation on node " + successfulNodeId + " : ",e);
+        }
+ finally {
+          VoldemortIOUtils.closeQuietly(httpResponse);
         }
       }
     }
