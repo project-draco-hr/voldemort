@@ -1,14 +1,16 @@
 {
   ExecutorService executor=Executors.newCachedThreadPool();
+  DefaultHttpClient client=null;
   try {
     ThreadSafeClientConnManager connectionManager=new ThreadSafeClientConnManager();
     connectionManager.setMaxTotal(10);
     connectionManager.setDefaultMaxPerRoute(10);
-    DefaultHttpClient client=new DefaultHttpClient(connectionManager);
+    client=new DefaultHttpClient(connectionManager);
     StoreSwapper swapper=new HttpStoreSwapper(cluster,executor,client,"read-only/mgmt",false,false);
     testFetchSwapWithoutRollback(swapper);
   }
   finally {
     executor.shutdown();
+    VoldemortIOUtils.closeQuietly(client);
   }
 }
