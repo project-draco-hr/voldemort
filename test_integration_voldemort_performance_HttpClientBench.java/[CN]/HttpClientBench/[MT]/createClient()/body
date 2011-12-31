@@ -2,10 +2,10 @@
   ThreadSafeClientConnManager connectionManager=new ThreadSafeClientConnManager(SchemeRegistryFactory.createDefault(),DEFAULT_CONNECTION_MANAGER_TIMEOUT,TimeUnit.MILLISECONDS);
   DefaultHttpClient httpClient=new DefaultHttpClient(connectionManager);
   HttpParams clientParams=httpClient.getParams();
-  clientParams.setBooleanParameter(CoreConnectionPNames.TCP_NODELAY,false);
-  clientParams.setIntParameter(CoreConnectionPNames.SOCKET_BUFFER_SIZE,60000);
-  clientParams.setParameter(CoreProtocolPNames.USER_AGENT,VOLDEMORT_USER_AGENT);
-  clientParams.setParameter(CoreProtocolPNames.PROTOCOL_VERSION,HttpVersion.HTTP_1_1);
+  HttpConnectionParams.setSocketBufferSize(clientParams,60000);
+  HttpConnectionParams.setTcpNoDelay(clientParams,false);
+  HttpProtocolParams.setUserAgent(clientParams,VOLDEMORT_USER_AGENT);
+  HttpProtocolParams.setVersion(clientParams,HttpVersion.HTTP_1_1);
   HttpConnectionParams.setConnectionTimeout(clientParams,DEFAULT_CONNECTION_MANAGER_TIMEOUT);
   HttpConnectionParams.setSoTimeout(clientParams,500);
   httpClient.setHttpRequestRetryHandler(new DefaultHttpRequestRetryHandler(0,false));

@@ -5,13 +5,13 @@
   mgr.setDefaultMaxPerRoute(config.getMaxConnectionsPerNode());
   this.httpClient=new DefaultHttpClient(mgr);
   HttpParams clientParams=this.httpClient.getParams();
-  clientParams.setParameter(CoreProtocolPNames.PROTOCOL_VERSION,HttpVersion.HTTP_1_1);
+  HttpProtocolParams.setUserAgent(clientParams,VOLDEMORT_USER_AGENT);
+  HttpProtocolParams.setVersion(clientParams,HttpVersion.HTTP_1_1);
   HttpConnectionParams.setConnectionTimeout(clientParams,config.getConnectionTimeout(TimeUnit.MILLISECONDS));
   HttpConnectionParams.setSoTimeout(clientParams,config.getSocketTimeout(TimeUnit.MILLISECONDS));
+  HttpConnectionParams.setStaleCheckingEnabled(clientParams,false);
   this.httpClient.setHttpRequestRetryHandler(new DefaultHttpRequestRetryHandler(0,false));
   HttpClientParams.setCookiePolicy(clientParams,CookiePolicy.IGNORE_COOKIES);
-  clientParams.setParameter(CoreProtocolPNames.USER_AGENT,VOLDEMORT_USER_AGENT);
-  HttpConnectionParams.setStaleCheckingEnabled(clientParams,false);
   this.reroute=config.getRoutingTier().equals(RoutingTier.SERVER);
   this.requestFormatFactory=new RequestFormatFactory();
 }

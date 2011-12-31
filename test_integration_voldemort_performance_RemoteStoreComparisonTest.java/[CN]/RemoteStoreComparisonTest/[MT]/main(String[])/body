@@ -82,8 +82,8 @@
   HttpParams clientParams=httpClient.getParams();
   httpClient.setHttpRequestRetryHandler(new DefaultHttpRequestRetryHandler(0,false));
   HttpClientParams.setCookiePolicy(clientParams,CookiePolicy.IGNORE_COOKIES);
-  clientParams.setParameter(CoreProtocolPNames.USER_AGENT,"test-agent");
-  clientParams.setParameter(CoreProtocolPNames.PROTOCOL_VERSION,HttpVersion.HTTP_1_1);
+  HttpProtocolParams.setUserAgent(clientParams,"test-agent");
+  HttpProtocolParams.setVersion(clientParams,HttpVersion.HTTP_1_1);
   HttpConnectionParams.setConnectionTimeout(clientParams,10000);
   connectionManager.setMaxTotal(numThreads);
   connectionManager.setDefaultMaxPerRoute(numThreads);
