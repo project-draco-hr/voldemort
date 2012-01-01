@@ -77,19 +77,17 @@
   repository.addLocalStore(new InMemoryStorageEngine<ByteArray,byte[],byte[]>(storeName));
   HttpService httpService=new HttpService(null,null,repository,RequestFormatType.VOLDEMORT_V0,numThreads,8080);
   httpService.start();
-  HttpClient httpClient=new HttpClient(new MultiThreadedHttpConnectionManager());
-  HttpClientParams clientParams=httpClient.getParams();
-  clientParams.setParameter(HttpMethodParams.RETRY_HANDLER,new DefaultHttpMethodRetryHandler(0,false));
-  clientParams.setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
-  clientParams.setParameter("http.useragent","test-agent");
-  HostConfiguration hostConfig=new HostConfiguration();
-  hostConfig.getParams().setParameter("http.protocol.version",HttpVersion.HTTP_1_1);
-  httpClient.setHostConfiguration(hostConfig);
-  HttpConnectionManagerParams managerParams=httpClient.getHttpConnectionManager().getParams();
-  managerParams.setConnectionTimeout(10000);
-  managerParams.setMaxTotalConnections(numThreads);
-  managerParams.setStaleCheckingEnabled(false);
-  managerParams.setMaxConnectionsPerHost(httpClient.getHostConfiguration(),numThreads);
+  ThreadSafeClientConnManager connectionManager=new ThreadSafeClientConnManager(SchemeRegistryFactory.createDefault(),10000,TimeUnit.MILLISECONDS);
+  DefaultHttpClient httpClient=new DefaultHttpClient(connectionManager);
+  HttpParams clientParams=httpClient.getParams();
+  httpClient.setHttpRequestRetryHandler(new DefaultHttpRequestRetryHandler(0,false));
+  HttpClientParams.setCookiePolicy(clientParams,CookiePolicy.IGNORE_COOKIES);
+  HttpProtocolParams.setUserAgent(clientParams,"test-agent");
+  HttpProtocolParams.setVersion(clientParams,HttpVersion.HTTP_1_1);
+  HttpConnectionParams.setConnectionTimeout(clientParams,10000);
+  connectionManager.setMaxTotal(numThreads);
+  connectionManager.setDefaultMaxPerRoute(numThreads);
+  HttpConnectionParams.setStaleCheckingEnabled(clientParams,false);
   final HttpStore httpStore=new HttpStore("test","localhost",8080,httpClient,new RequestFormatFactory().getRequestFormat(RequestFormatType.VOLDEMORT_V0),false);
   Thread.sleep(400);
   PerformanceTest httpWriteTest=new PerformanceTest(){
@@ -114,4 +112,5 @@
   httpReadTest.run(numRequests,numThreads);
   httpReadTest.printStats();
   httpService.stop();
+  VoldemortIOUtils.closeQuietly(httpClient);
 }
