@@ -6,10 +6,11 @@
       logger.info("Attempting rollback for node " + node.getId() + " storeName = "+ storeName);
       String url=node.getHttpUrl() + "/" + readOnlyMgmtPath;
       HttpPost post=new HttpPost(url);
-      HttpParams params=post.getParams();
-      params.setParameter("operation","rollback");
-      params.setParameter("store",storeName);
-      params.setParameter("pushVersion",Long.toString(pushVersion));
+      List<NameValuePair> params=new ArrayList<NameValuePair>();
+      params.add(new BasicNameValuePair("operation","rollback"));
+      params.add(new BasicNameValuePair("store",storeName));
+      params.add(new BasicNameValuePair("pushVersion",Long.toString(pushVersion)));
+      post.setEntity(new UrlEncodedFormEntity(params));
       httpResponse=httpClient.execute(post);
       int responseCode=httpResponse.getStatusLine().getStatusCode();
       String response=httpResponse.getStatusLine().getReasonPhrase();

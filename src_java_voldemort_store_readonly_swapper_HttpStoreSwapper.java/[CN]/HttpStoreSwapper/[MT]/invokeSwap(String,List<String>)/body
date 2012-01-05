@@ -6,12 +6,13 @@
     try {
       String url=node.getHttpUrl() + "/" + readOnlyMgmtPath;
       HttpPost post=new HttpPost(url);
-      HttpParams params=post.getParams();
-      params.setParameter("operation","swap");
+      List<NameValuePair> params=new ArrayList<NameValuePair>();
+      params.add(new BasicNameValuePair("operation","swap"));
       String dir=fetchFiles.get(node.getId());
       logger.info("Attempting swap for node " + node.getId() + " dir = "+ dir);
-      params.setParameter("dir",dir);
-      params.setParameter("store",storeName);
+      params.add(new BasicNameValuePair("dir",dir));
+      params.add(new BasicNameValuePair("store",storeName));
+      post.setEntity(new UrlEncodedFormEntity(params));
       httpResponse=httpClient.execute(post);
       int responseCode=httpResponse.getStatusLine().getStatusCode();
       String previousDir=VoldemortIOUtils.toString(httpResponse.getEntity().getContent(),30000);
@@ -34,10 +35,11 @@
         try {
           String url=cluster.getNodeById(successfulNodeId).getHttpUrl() + "/" + readOnlyMgmtPath;
           HttpPost post=new HttpPost(url);
-          HttpParams params=post.getParams();
-          params.setParameter("operation","rollback");
-          params.setParameter("store",storeName);
-          params.setParameter("pushVersion",Long.toString(ReadOnlyUtils.getVersionId(new File(previousDirs.get(successfulNodeId)))));
+          List<NameValuePair> params=new ArrayList<NameValuePair>();
+          params.add(new BasicNameValuePair("operation","rollback"));
+          params.add(new BasicNameValuePair("store",storeName));
+          params.add(new BasicNameValuePair("pushVersion",Long.toString(ReadOnlyUtils.getVersionId(new File(previousDirs.get(successfulNodeId))))));
+          post.setEntity(new UrlEncodedFormEntity(params));
           logger.info("Rolling back data on successful node " + successfulNodeId);
           httpResponse=httpClient.execute(post);
           int responseCode=httpResponse.getStatusLine().getStatusCode();
