@@ -5,12 +5,13 @@
       public String call() throws Exception {
         String url=node.getHttpUrl() + "/" + readOnlyMgmtPath;
         HttpPost post=new HttpPost(url);
-        HttpParams params=post.getParams();
-        params.setParameter("operation","fetch");
+        List<NameValuePair> params=new ArrayList<NameValuePair>();
+        params.add(new BasicNameValuePair("operation","fetch"));
         String storeDir=basePath + "/node-" + node.getId();
-        params.setParameter("dir",storeDir);
-        params.setParameter("store",storeName);
-        if (pushVersion > 0)         params.setParameter("pushVersion",Long.toString(pushVersion));
+        params.add(new BasicNameValuePair("dir",storeDir));
+        params.add(new BasicNameValuePair("store",storeName));
+        if (pushVersion > 0)         params.add(new BasicNameValuePair("pushVersion",Long.toString(pushVersion)));
+        post.setEntity(new UrlEncodedFormEntity(params));
         logger.info("Invoking fetch for node " + node.getId() + " for "+ storeDir);
         HttpResponse httpResponse=null;
         try {
@@ -47,10 +48,11 @@
         try {
           String url=cluster.getNodeById(successfulNodeId).getHttpUrl() + "/" + readOnlyMgmtPath;
           HttpPost post=new HttpPost(url);
-          HttpParams params=post.getParams();
-          params.setParameter("operation","failed-fetch");
-          params.setParameter("dir",results.get(successfulNodeId));
-          params.setParameter("store",storeName);
+          List<NameValuePair> params=new ArrayList<NameValuePair>();
+          params.add(new BasicNameValuePair("operation","failed-fetch"));
+          params.add(new BasicNameValuePair("dir",results.get(successfulNodeId)));
+          params.add(new BasicNameValuePair("store",storeName));
+          post.setEntity(new UrlEncodedFormEntity(params));
           logger.info("Deleting fetched data from node " + successfulNodeId);
           httpResponse=httpClient.execute(post);
           int responseCode=httpResponse.getStatusLine().getStatusCode();
