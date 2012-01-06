@@ -1,0 +1,23 @@
+{
+  Long lastFileInPrevBackup=determineLastFile(backupDir,status);
+  try {
+    DbBackup backupHelper;
+    if (lastFileInPrevBackup == null) {
+      backupHelper=new DbBackup(env);
+    }
+ else {
+      backupHelper=new DbBackup(env,lastFileInPrevBackup);
+    }
+    backupHelper.startBackup();
+    try {
+      String[] filesForBackup=backupHelper.getLogFilesInBackupSet();
+      backupFiles(filesForBackup,backupDir,status);
+    }
+  finally {
+      backupHelper.endBackup();
+    }
+  }
+ catch (  DatabaseException e) {
+    throw new VoldemortException("Error performing native backup",e);
+  }
+}
