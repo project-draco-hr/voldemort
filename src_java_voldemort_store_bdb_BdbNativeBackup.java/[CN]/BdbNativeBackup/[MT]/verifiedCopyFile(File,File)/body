@@ -1,0 +1,29 @@
+{
+  if (!destFile.exists()) {
+    destFile.createNewFile();
+  }
+  FileInputStream source=null;
+  FileOutputStream destination=null;
+  LogVerificationInputStream verifyStream=null;
+  try {
+    source=new FileInputStream(sourceFile);
+    destination=new FileOutputStream(destFile);
+    verifyStream=new LogVerificationInputStream(env,source,sourceFile.getName());
+    final byte[] buf=new byte[LOGVERIFY_BUFSIZE];
+    while (true) {
+      final int len=verifyStream.read(buf);
+      if (len < 0) {
+        break;
+      }
+      destination.write(buf,0,len);
+    }
+  }
+  finally {
+    if (verifyStream != null) {
+      verifyStream.close();
+    }
+    if (destination != null) {
+      destination.close();
+    }
+  }
+}

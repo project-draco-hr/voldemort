@@ -23,7 +23,12 @@
     File dest=new File(backupDir,name);
     status.setStatus(String.format("% 3d%% Copying %s",total * 100 / size,name));
     try {
-      copyFile(source,dest);
+      if (verifyFiles) {
+        verifiedCopyFile(source,dest);
+      }
+ else {
+        copyFile(source,dest);
+      }
     }
  catch (    IOException e) {
       if (dest.exists()) {
@@ -32,5 +37,16 @@
       throw new VoldemortException("Error occured while copying " + name + ". Deleting to ensure we don't have a corrupt backup.",e);
     }
     total+=source.length();
+  }
+  if (isIncremental) {
+    try {
+      recordBackupSet(backupDir);
+    }
+ catch (    IOException e) {
+      throw new VoldemortException("Error attempting to write backup records for ",e);
+    }
+  }
+ else {
+    cleanStaleFiles(backupDir,status);
   }
 }

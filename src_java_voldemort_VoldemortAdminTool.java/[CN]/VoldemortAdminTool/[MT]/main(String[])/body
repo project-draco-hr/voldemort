@@ -27,6 +27,8 @@
   parser.accepts("native-backup","Perform a native backup").withRequiredArg().describedAs("store-name").ofType(String.class);
   parser.accepts("backup-dir").withRequiredArg().describedAs("backup-directory").ofType(String.class);
   parser.accepts("backup-timeout").withRequiredArg().describedAs("minutes to wait for backup completion, default 30 mins").ofType(Integer.class);
+  parser.accepts("backup-verify","If provided, backup will also verify checksum (with extra overhead)");
+  parser.accepts("backup-incremental","Perform an incremental backup for point-in-time recovery." + " By default backup has latest consistent snapshot.");
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     printHelp(System.out,parser);
@@ -225,7 +227,7 @@
       String backupDir=(String)options.valueOf("backup-dir");
       String storeName=(String)options.valueOf("native-backup");
       int timeout=CmdUtils.valueOf(options,"backup-timeout",30);
-      adminClient.nativeBackup(nodeId,storeName,backupDir,timeout);
+      adminClient.nativeBackup(nodeId,storeName,backupDir,timeout,options.has("backup-verify"),options.has("backup-incremental"));
     }
   }
  catch (  Exception e) {
