@@ -35,18 +35,20 @@
   ExecutorService executor=Executors.newFixedThreadPool(cluster.getNumberOfNodes());
   StoreSwapper swapper=null;
   AdminClient adminClient=null;
+  DefaultHttpClient httpClient=null;
   if (useAdminServices) {
     adminClient=new AdminClient(cluster,new AdminClientConfig());
     swapper=new AdminStoreSwapper(cluster,executor,adminClient,timeoutMs);
   }
  else {
-    HttpConnectionManager manager=new MultiThreadedHttpConnectionManager();
     int numConnections=cluster.getNumberOfNodes() + 3;
-    manager.getParams().setMaxTotalConnections(numConnections);
-    manager.getParams().setMaxConnectionsPerHost(HostConfiguration.ANY_HOST_CONFIGURATION,numConnections);
-    HttpClient client=new HttpClient(manager);
-    client.getParams().setParameter("http.socket.timeout",timeoutMs);
-    swapper=new HttpStoreSwapper(cluster,executor,client,mgmtPath);
+    ThreadSafeClientConnManager connectionManager=new ThreadSafeClientConnManager();
+    httpClient=new DefaultHttpClient(connectionManager);
+    HttpParams clientParams=httpClient.getParams();
+    connectionManager.setMaxTotal(numConnections);
+    connectionManager.setDefaultMaxPerRoute(numConnections);
+    HttpConnectionParams.setSoTimeout(clientParams,timeoutMs);
+    swapper=new HttpStoreSwapper(cluster,executor,httpClient,mgmtPath);
   }
   try {
     long start=System.currentTimeMillis();
@@ -63,6 +65,7 @@
     if (useAdminServices && adminClient != null)     adminClient.stop();
     executor.shutdownNow();
     executor.awaitTermination(1,TimeUnit.SECONDS);
+    VoldemortIOUtils.closeQuietly(httpClient);
   }
   System.exit(0);
 }

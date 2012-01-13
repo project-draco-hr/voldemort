@@ -10,21 +10,23 @@
   final HttpClient client=createClient();
   PerformanceTest perfTest=new PerformanceTest(){
     @Override public void doOperation(    int index){
-      GetMethod get=new GetMethod(url);
+      HttpResponse response=null;
       try {
-        client.executeMethod(get);
-        get.getResponseBody();
+        HttpGet get=new HttpGet(url);
+        response=client.execute(get);
+        response.getEntity().consumeContent();
       }
  catch (      Exception e) {
         e.printStackTrace();
       }
  finally {
-        get.releaseConnection();
+        VoldemortIOUtils.closeQuietly(response);
       }
     }
   }
 ;
   perfTest.run(numRequests,numThreads);
   perfTest.printStats();
+  VoldemortIOUtils.closeQuietly(client);
   System.exit(1);
 }

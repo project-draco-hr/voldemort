@@ -1,5 +1,9 @@
 {
   String voldemortHome=System.getenv(VoldemortConfig.VOLDEMORT_HOME_VAR_NAME);
   if (voldemortHome == null)   throw new ConfigurationException("No environment variable " + VoldemortConfig.VOLDEMORT_HOME_VAR_NAME + " has been defined, set it!");
-  return loadFromVoldemortHome(voldemortHome);
+  String voldemortConfigDir=System.getenv(VoldemortConfig.VOLDEMORT_CONFIG_DIR);
+  if (voldemortConfigDir != null) {
+    if (!Utils.isReadableDir(voldemortConfigDir))     throw new ConfigurationException("Attempt to load configuration from VOLDEMORT_CONFIG_DIR, " + voldemortConfigDir + " failed. That is not a readable directory.");
+  }
+  return loadFromVoldemortHome(voldemortHome,voldemortConfigDir);
 }
