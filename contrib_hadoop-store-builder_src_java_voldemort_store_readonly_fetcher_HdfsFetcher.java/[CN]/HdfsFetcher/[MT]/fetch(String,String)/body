@@ -1,9 +1,7 @@
 {
-  if (throttler != null) synchronized (this) {
-    numJobs++;
-    long updatedRate=numJobs > 0 ? this.maxBytesPerSecond / numJobs : this.maxBytesPerSecond;
-    logger.info("# Jobs = " + numJobs + ". Updating throttling rate to : "+ updatedRate+ " bytes / sec");
-    throttler.updateRate(updatedRate);
+  if (throttler != null) {
+    DynamicEventThrottler dynThrottler=(DynamicEventThrottler)this.throttler;
+    dynThrottler.incrementNumJobs();
   }
   Path path=new Path(sourceFileUrl);
   Configuration config=new Configuration();
@@ -26,11 +24,9 @@
     }
   }
   finally {
-    if (throttler != null) synchronized (this) {
-      numJobs--;
-      long updatedRate=numJobs > 0 ? this.maxBytesPerSecond / numJobs : this.maxBytesPerSecond;
-      logger.info("# Jobs = " + numJobs + ". Updating throttling rate to : "+ updatedRate+ " bytes / sec");
-      throttler.updateRate(updatedRate);
+    if (throttler != null) {
+      DynamicEventThrottler dynThrottler=(DynamicEventThrottler)this.throttler;
+      dynThrottler.decrementNumJobs();
     }
     JmxUtils.unregisterMbean(jmxName);
   }
