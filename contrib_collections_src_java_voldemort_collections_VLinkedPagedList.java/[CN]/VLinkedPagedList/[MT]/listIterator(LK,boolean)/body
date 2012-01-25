@@ -1,0 +1,27 @@
+{
+  int indexPage=0;
+  if (linearKey == null) {
+    if (next) {
+      indexPage=0;
+    }
+ else {
+      List<Map<String,Object>> indexList=_pageIndex.getValue(_identifier);
+      if (indexList != null) {
+        VPageIndexEntry<LK> entry=VPageIndexEntry.valueOf(indexList.get(indexList.size()),_serializer);
+        indexPage=entry.getPageId();
+      }
+    }
+  }
+ else {
+    List<Map<String,Object>> indexList=_pageIndex.getValue(_identifier);
+    if (indexList != null) {
+      Map<String,Object> searchKey=new VPageIndexEntry<LK>(0,linearKey,_serializer).mapValue();
+      int position=Collections.binarySearch(indexList,searchKey,_pageIndexComparator);
+      if (position < 0) {
+        position=-1 * (position + 1);
+      }
+      indexPage=VPageIndexEntry.valueOf(indexList.get(position),_serializer).getPageId();
+    }
+  }
+  return listIterator(linearKey,next,indexPage);
+}

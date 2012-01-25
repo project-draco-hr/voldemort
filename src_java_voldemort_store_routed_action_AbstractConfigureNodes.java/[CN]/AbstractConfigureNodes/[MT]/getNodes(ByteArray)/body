@@ -1,9 +1,32 @@
 {
   List<Node> nodes=new ArrayList<Node>();
-  for (  Node node : routingStrategy.routeRequest(key.get())) {
-    if (failureDetector.isAvailable(node))     nodes.add(node);
- else     pipelineData.addFailedNode(node);
+  pipelineData.setReplicationSet(routingStrategy.routeRequest(key.get()));
+  if (pipelineData.getReplicationSet().size() == 0) {
+    throw new IllegalArgumentException("All servers configured with no partitions");
   }
-  if (nodes.size() < required)   throw new InsufficientOperationalNodesException("Only " + nodes.size() + " nodes in preference list, but "+ required+ " required.");
+  for (  Node node : pipelineData.getReplicationSet()) {
+    if (failureDetector.isAvailable(node))     nodes.add(node);
+ else {
+      pipelineData.addFailedNode(node);
+      if (logger.isDebugEnabled()) {
+        logger.debug("Key " + ByteUtils.toHexString(key.get()) + " Node "+ node.getId()+ " down");
+      }
+    }
+  }
+  if (nodes.size() < required) {
+    List<Integer> failedNodes=new ArrayList<Integer>();
+    List<Integer> allNodes=new ArrayList<Integer>();
+    for (    Node node : pipelineData.getReplicationSet()) {
+      allNodes.add(node.getId());
+    }
+    for (    Node node : pipelineData.getFailedNodes()) {
+      failedNodes.add(node.getId());
+    }
+    String errorMessage="Only " + nodes.size() + " nodes up in preference list"+ ", but "+ required+ " required. Replication set: "+ allNodes+ "Nodes down: "+ failedNodes;
+    if (logger.isDebugEnabled()) {
+      logger.debug(errorMessage);
+    }
+    throw new InsufficientOperationalNodesException(errorMessage);
+  }
   return nodes;
 }

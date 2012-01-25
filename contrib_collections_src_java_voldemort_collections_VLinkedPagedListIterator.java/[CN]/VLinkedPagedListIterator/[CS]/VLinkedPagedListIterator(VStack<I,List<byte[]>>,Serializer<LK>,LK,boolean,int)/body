@@ -1,0 +1,62 @@
+{
+  _serializer=serializer;
+  _currentIndexId=pageId;
+  if (next) {
+    _indexIterator=index.listIterator(pageId);
+    if (!_indexIterator.hasNext()) {
+      _keyIterator=new ArrayList<byte[]>(0).listIterator();
+    }
+ else {
+      List<byte[]> byteList=_indexIterator.next().getValue();
+      if (linearKey == null) {
+        _keyIterator=byteList.listIterator();
+      }
+ else {
+        boolean found=false;
+        int position=0;
+        while (!found) {
+          position=Collections.binarySearch(byteList,_serializer.toBytes(linearKey),new LKByteReverseComparator<LK>(_serializer));
+          if (position < 0) {
+            position=-1 * (position + 1);
+          }
+          if (position < byteList.size()) {
+            found=true;
+          }
+ else {
+            byteList=_indexIterator.next().getValue();
+          }
+        }
+        _keyIterator=byteList.listIterator(position);
+      }
+    }
+  }
+ else {
+    _indexIterator=index.previousListIterator(pageId);
+    if (!_indexIterator.hasPrevious()) {
+      _keyIterator=new ArrayList<byte[]>(0).listIterator();
+    }
+ else {
+      List<byte[]> byteList=_indexIterator.previous().getValue();
+      if (linearKey == null) {
+        _keyIterator=byteList.listIterator(byteList.size());
+      }
+ else {
+        boolean found=false;
+        int position=0;
+        while (!found) {
+          position=Collections.binarySearch(byteList,serializer.toBytes(linearKey),new LKByteReverseComparator<LK>(_serializer));
+          if (position < 0) {
+            position=-1 * (position + 1);
+          }
+          if (position > 0) {
+            found=true;
+          }
+ else {
+            byteList=_indexIterator.previous().getValue();
+          }
+        }
+        _keyIterator=byteList.listIterator(Math.min(position + 1,byteList.size()));
+      }
+    }
+  }
+}

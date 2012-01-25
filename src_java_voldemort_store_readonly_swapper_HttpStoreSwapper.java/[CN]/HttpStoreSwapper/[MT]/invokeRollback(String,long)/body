@@ -1,15 +1,19 @@
 {
   Exception exception=null;
   for (  Node node : cluster.getNodes()) {
+    HttpResponse httpResponse=null;
     try {
       logger.info("Attempting rollback for node " + node.getId() + " storeName = "+ storeName);
       String url=node.getHttpUrl() + "/" + readOnlyMgmtPath;
-      PostMethod post=new PostMethod(url);
-      post.addParameter("operation","rollback");
-      post.addParameter("store",storeName);
-      post.addParameter("pushVersion",Long.toString(pushVersion));
-      int responseCode=httpClient.executeMethod(post);
-      String response=post.getStatusText();
+      HttpPost post=new HttpPost(url);
+      List<NameValuePair> params=new ArrayList<NameValuePair>();
+      params.add(new BasicNameValuePair("operation","rollback"));
+      params.add(new BasicNameValuePair("store",storeName));
+      params.add(new BasicNameValuePair("pushVersion",Long.toString(pushVersion)));
+      post.setEntity(new UrlEncodedFormEntity(params));
+      httpResponse=httpClient.execute(post);
+      int responseCode=httpResponse.getStatusLine().getStatusCode();
+      String response=httpResponse.getStatusLine().getReasonPhrase();
       if (responseCode == 200) {
         logger.info("Rollback succeeded for node " + node.getId());
       }
@@ -20,6 +24,9 @@
  catch (    Exception e) {
       exception=e;
       logger.error("Exception thrown during rollback operation on node " + node.getId() + ": ",e);
+    }
+ finally {
+      VoldemortIOUtils.closeQuietly(httpResponse,String.valueOf(node));
     }
   }
   if (exception != null)   throw new VoldemortException(exception);

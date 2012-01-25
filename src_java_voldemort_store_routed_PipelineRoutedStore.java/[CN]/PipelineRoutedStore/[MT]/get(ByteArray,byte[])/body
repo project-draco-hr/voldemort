@@ -17,6 +17,9 @@
   if (allowReadRepair)   pipeline.addEventAction(Event.RESPONSES_RECEIVED,new ReadRepair<BasicPipelineData<List<Versioned<byte[]>>>>(pipelineData,Event.COMPLETED,storeDef.getPreferredReads(),timeoutMs,nonblockingStores,readRepairer));
   if (zoneRoutingEnabled)   pipeline.addEventAction(Event.INSUFFICIENT_ZONES,new PerformZoneSerialRequests<List<Versioned<byte[]>>,BasicPipelineData<List<Versioned<byte[]>>>>(pipelineData,allowReadRepair ? Event.RESPONSES_RECEIVED : Event.COMPLETED,key,failureDetector,innerStores,blockingStoreRequest));
   pipeline.addEvent(Event.STARTED);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Operation " + pipeline.getOperation().getSimpleName() + " Key "+ ByteUtils.toHexString(key.get()));
+  }
   pipeline.execute();
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   List<Versioned<byte[]>> results=new ArrayList<Versioned<byte[]>>();

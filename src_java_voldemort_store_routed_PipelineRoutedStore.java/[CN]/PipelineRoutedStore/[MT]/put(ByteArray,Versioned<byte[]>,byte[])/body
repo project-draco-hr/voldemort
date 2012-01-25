@@ -19,6 +19,9 @@
   }
  else   pipeline.addEventAction(Event.RESPONSES_RECEIVED,new IncrementClock(pipelineData,Event.COMPLETED,versioned,time));
   pipeline.addEvent(Event.STARTED);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Operation " + pipeline.getOperation().getSimpleName() + " Key "+ ByteUtils.toHexString(key.get()));
+  }
   pipeline.execute();
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
 }

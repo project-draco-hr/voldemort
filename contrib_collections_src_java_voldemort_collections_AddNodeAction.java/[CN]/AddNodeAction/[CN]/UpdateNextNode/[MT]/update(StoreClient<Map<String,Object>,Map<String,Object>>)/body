@@ -1,0 +1,12 @@
+{
+  if (numCalls > 0) {
+    Versioned<Map<String,Object>> nextNodeMap=storeClient.get(_key.mapValue());
+    if (nextNodeMap == null)     throw new ObsoleteVersionException("possible concurrent modification");
+    _listNode=new Versioned<VListNode<E>>(VListNode.<E>valueOf(nextNodeMap.getValue()),nextNodeMap.getVersion());
+  }
+  VListNode<E> nodeValue=_listNode.getValue();
+  _listNode.setObject(new VListNode<E>(nodeValue.getValue(),nodeValue.getId(),_newId,nodeValue.getNextId(),true));
+  Map<String,Object> nextNodeMap=_listNode.getValue().mapValue();
+  storeClient.put(_key.mapValue(),nextNodeMap);
+  numCalls++;
+}

@@ -1,0 +1,29 @@
+{
+  if (linearKey == null)   throw new NullPointerException();
+  Versioned<List<byte[]>> keyList=_index.peekVersioned();
+  if (keyList == null) {
+    List<byte[]> keyListValue=new ArrayList<byte[]>(1);
+    keyListValue.add(0,_serializer.toBytes(linearKey));
+    _index.add(keyListValue);
+    VPageIndexEntry<LK> indexEntry=new VPageIndexEntry<LK>(0,linearKey,_serializer);
+    ArrayList<Map<String,Object>> pageIndexList=new ArrayList<Map<String,Object>>(1);
+    pageIndexList.add(indexEntry.mapValue());
+    _pageIndex.put(_identifier,pageIndexList);
+  }
+ else {
+    List<byte[]> keyListValue=keyList.getValue();
+    if (keyListValue.size() >= _maxSize) {
+      keyListValue.add(0,_serializer.toBytes(linearKey));
+      List<byte[]> fixedList=keyListValue.subList(_maxSize - _fixedSize + 1,keyListValue.size());
+      List<byte[]> truncList=keyListValue.subList(0,_maxSize - _fixedSize + 1);
+      _index.setById(0,new Versioned<List<byte[]>>(fixedList,keyList.getVersion()));
+      _index.add(truncList);
+      LK lastIndex=_serializer.toObject(truncList.get(truncList.size() - 1));
+      _pageIndex.applyUpdate(new UpdatePageIndex<I,LK>(_identifier,lastIndex,_serializer));
+    }
+ else {
+      keyListValue.add(0,_serializer.toBytes(linearKey));
+      _index.setById(0,keyList);
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  StoreClient<Map<String,Object>,Map<String,Object>> stackClient=stackStoreFactory.getStoreClient("test");
+  StoreClient<String,List<Map<String,Object>>> pageIndexClient=pageIndexStoreFactory.getStoreClient("test");
+  Serializer<StringOrder> serializer=new StringOrderSerializer();
+  VLinkedPagedList<String,StringOrder> stringList=new VLinkedPagedList<String,StringOrder>("stringList",stackClient,pageIndexClient,serializer,7,5);
+  initStringList(stringList);
+  MappedListIterator<VLinkedPagedKey,StringOrder> it=stringList.listIterator(new StringOrder(10),true);
+  assertEquals(Integer.valueOf(10),it.next().getId());
+  it=stringList.listIterator(new StringOrder(10),false);
+  assertEquals(Integer.valueOf(10),it.previous().getId());
+  it=stringList.listIterator(new StringOrder(9),true);
+  assertEquals(new Integer(8),it.next().getId());
+  it=stringList.listIterator(new StringOrder(9),false);
+  assertEquals(new Integer(10),it.previous().getId());
+}

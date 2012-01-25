@@ -1,0 +1,17 @@
+{
+  String[] filesInEnv=env.getHome().list();
+  SimpleDateFormat format=new SimpleDateFormat("yyyy_MM_dd_kk_mm_ss");
+  String recordFileName="backupset-" + format.format(new Date());
+  File recordFile=new File(backupDir,recordFileName);
+  if (recordFile.exists()) {
+    recordFile.renameTo(new File(backupDir,recordFileName + ".old"));
+  }
+  PrintStream backupRecord=new PrintStream(new FileOutputStream(recordFile));
+  backupRecord.println("Lastfile:" + Long.toHexString(backupHelper.getLastFileInBackupSet()));
+  if (filesInEnv != null) {
+    for (    String file : filesInEnv) {
+      if (file.endsWith(BDB_EXT))       backupRecord.println(file);
+    }
+  }
+  backupRecord.close();
+}

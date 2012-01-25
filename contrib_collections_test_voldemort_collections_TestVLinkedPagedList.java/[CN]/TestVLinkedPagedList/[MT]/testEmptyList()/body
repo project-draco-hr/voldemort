@@ -1,0 +1,29 @@
+{
+  StoreClient<Map<String,Object>,Map<String,Object>> stackClient=stackStoreFactory.getStoreClient("test");
+  StoreClient<String,List<Map<String,Object>>> pageIndexClient=pageIndexStoreFactory.getStoreClient("test");
+  Serializer<StringOrder> serializer=new StringOrderSerializer();
+  VLinkedPagedList<String,StringOrder> stringList=new VLinkedPagedList<String,StringOrder>("stringList",stackClient,pageIndexClient,serializer,7,5);
+  Iterator<StringOrder> it=stringList.iterator();
+  assertFalse(it.hasNext());
+  try {
+    it.next();
+    TestCase.fail("expected NoSuchElementException");
+  }
+ catch (  NoSuchElementException e) {
+  }
+  MappedListIterator<VLinkedPagedKey,StringOrder> mlit=stringList.listIterator(null,false);
+  assertFalse(mlit.hasNext());
+  assertFalse(mlit.hasPrevious());
+  try {
+    mlit.previous();
+    TestCase.fail("expected NoSuchElementException");
+  }
+ catch (  NoSuchElementException e) {
+  }
+  try {
+    mlit.next();
+    TestCase.fail("expected NoSuchElementException");
+  }
+ catch (  NoSuchElementException e) {
+  }
+}

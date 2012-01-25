@@ -15,6 +15,9 @@
   pipeline.addEventAction(Event.INSUFFICIENT_SUCCESSES,new PerformSerialRequests<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getPreferredReads(),storeDef.getRequiredReads(),blockingStoreRequest,null));
   if (zoneRoutingEnabled)   pipeline.addEventAction(Event.INSUFFICIENT_ZONES,new PerformZoneSerialRequests<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,blockingStoreRequest));
   pipeline.addEvent(Event.STARTED);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Operation  " + pipeline.getOperation().getSimpleName() + "Key "+ ByteUtils.toHexString(key.get()));
+  }
   pipeline.execute();
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   List<Version> results=new ArrayList<Version>();

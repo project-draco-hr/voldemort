@@ -1,0 +1,12 @@
+{
+  if (identifier == null || stackClient == null || pageIndexClient == null)   throw new NullPointerException();
+  if (maxSize == 0 || fixedSize == 0)   throw new IllegalArgumentException("maxSize and fixedSize must be greater than 0");
+  if (fixedSize > maxSize)   throw new IllegalArgumentException("fixedSize must be less than or equal to maxSize");
+  _identifier=identifier;
+  _index=new VStack<I,List<byte[]>>(identifier,stackClient);
+  _pageIndex=pageIndexClient;
+  _serializer=serializer;
+  _pageIndexComparator=new IndexEntryComparator<LK>(serializer);
+  _maxSize=maxSize;
+  _fixedSize=fixedSize;
+}

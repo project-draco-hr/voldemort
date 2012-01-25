@@ -1,0 +1,18 @@
+{
+  File backupToDir=File.createTempFile("bdb-storage","bkp");
+  backupToDir.delete();
+  backupToDir.mkdir();
+  try {
+    store.nativeBackup(backupToDir,false,false,new AsyncOperationStatus(0,"dummy"));
+    assertArrayEquals(backupToDir.list(),new String[]{"00000000.jdb"});
+    long backupFileModified=backupToDir.listFiles()[0].lastModified();
+    store.nativeBackup(backupToDir,false,false,new AsyncOperationStatus(0,"dummy"));
+    String[] backedUp=backupToDir.list();
+    Arrays.sort(backedUp);
+    assertArrayEquals(backedUp,new String[]{"00000000.jdb","00000001.jdb"});
+    assertEquals(backupFileModified,backupToDir.listFiles()[0].lastModified());
+  }
+  finally {
+    deleteDir(backupToDir);
+  }
+}

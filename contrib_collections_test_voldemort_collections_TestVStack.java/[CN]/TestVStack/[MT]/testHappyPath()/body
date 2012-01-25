@@ -1,0 +1,45 @@
+{
+  StoreClient<Map<String,Object>,Map<String,Object>> storeClient=storeFactory.getStoreClient("test");
+  VStack<String,String> stack=new VStack<String,String>("stack",storeClient);
+  assertTrue(stack.isEmpty());
+  assertEquals(0,stack.size());
+  stack.add("world");
+  assertEquals("world",stack.peek());
+  assertEquals(1,stack.size());
+  assertFalse(stack.isEmpty());
+  assertTrue(stack.offer("hello"));
+  assertEquals(2,stack.size());
+  assertEquals("world",stack.getById(1));
+  stack.add("goodbye");
+  assertEquals(3,stack.size());
+  assertEquals("hello",stack.getById(2));
+  String[] strArray=new String[]{"goodbye","hello","world"};
+  int i=0;
+  for (  String word : stack) {
+    assertEquals(strArray[i],word);
+    i++;
+  }
+  i=0;
+  MappedListIterator<Integer,Versioned<String>> it=stack.listIterator();
+  while (it.hasNext()) {
+    assertEquals(strArray[i],it.next().getValue());
+    i++;
+  }
+  while (it.hasPrevious()) {
+    i--;
+    assertEquals(strArray[i],it.previous().getValue());
+  }
+  it=stack.previousListIterator(1);
+  i=3;
+  while (it.hasPrevious()) {
+    i--;
+    assertEquals(strArray[i],it.previous().getValue());
+  }
+  it=stack.listIterator();
+  String s1=it.next().getValue();
+  assertEquals(s1,stack.getById(it.previousId()));
+  assertEquals(s1,stack.getById(stack.listIterator().nextId()));
+  String s2=it.next().getValue();
+  Integer id=it.lastId();
+  assertEquals(s2,stack.getById(id));
+}
