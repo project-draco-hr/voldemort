@@ -4,6 +4,9 @@
     if (logger.isEnabledFor(Level.WARN))     logger.warn("creating new node status for node " + node.getId() + " for failure detector");
     nodeStatus=createNodeStatus(failureDetectorConfig.getTime().getMilliseconds());
     nodeStatusMap.put(node,nodeStatus);
+    if (!failureDetectorConfig.getNodes().contains(node)) {
+      failureDetectorConfig.addNode(node);
+    }
   }
   return nodeStatus;
 }
