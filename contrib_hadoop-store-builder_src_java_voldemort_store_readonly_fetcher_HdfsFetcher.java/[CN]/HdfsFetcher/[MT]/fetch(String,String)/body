@@ -1,7 +1,7 @@
 {
-  if (throttler != null) {
-    DynamicEventThrottler dynThrottler=(DynamicEventThrottler)this.throttler;
-    dynThrottler.incrementNumJobs();
+  if (this.globalThrottleLimit != null) {
+    if (this.globalThrottleLimit.getSpeculativeRate() < this.minBytesPerSecond)     throw new VoldemortException("Too many push jobs.");
+    this.globalThrottleLimit.incrementNumJobs();
   }
   Path path=new Path(sourceFileUrl);
   Configuration config=new Configuration();
@@ -24,9 +24,8 @@
     }
   }
   finally {
-    if (throttler != null) {
-      DynamicEventThrottler dynThrottler=(DynamicEventThrottler)this.throttler;
-      dynThrottler.decrementNumJobs();
+    if (this.globalThrottleLimit != null) {
+      this.globalThrottleLimit.decrementNumJobs();
     }
     JmxUtils.unregisterMbean(jmxName);
   }

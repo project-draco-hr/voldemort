@@ -1,5 +1,6 @@
 {
-  this.maxBytesPerSecond=dynThrottleLimit.getRate();
+  if (dynThrottleLimit != null)   this.maxBytesPerSecond=dynThrottleLimit.getRate();
+ else   this.maxBytesPerSecond=null;
   if (this.maxBytesPerSecond != null) {
     this.throttler=new DynamicEventThrottler(dynThrottleLimit);
     logger.info("Initializing Dynamic Event throttler with rate : " + this.maxBytesPerSecond + " bytes / sec");
@@ -7,4 +8,6 @@
   this.reportingIntervalBytes=Utils.notNull(reportingIntervalBytes);
   this.bufferSize=bufferSize;
   this.status=null;
+  this.minBytesPerSecond=minBytesPerSecond;
+  this.globalThrottleLimit=dynThrottleLimit;
 }
