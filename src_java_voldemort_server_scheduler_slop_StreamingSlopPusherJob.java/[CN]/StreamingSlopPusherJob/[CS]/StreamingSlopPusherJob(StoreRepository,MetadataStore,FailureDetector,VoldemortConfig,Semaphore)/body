@@ -8,4 +8,12 @@
   this.adminClient=null;
   this.consumerResults=Lists.newArrayList();
   this.zoneMapping=Maps.newHashMap();
+  this.consumerExecutor=Executors.newCachedThreadPool(new ThreadFactory(){
+    public Thread newThread(    Runnable r){
+      Thread thread=new Thread(r);
+      thread.setName("slop-pusher");
+      return thread;
+    }
+  }
+);
 }
