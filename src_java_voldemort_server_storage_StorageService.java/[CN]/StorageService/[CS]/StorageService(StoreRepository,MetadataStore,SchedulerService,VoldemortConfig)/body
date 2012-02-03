@@ -12,7 +12,9 @@
   this.failureDetector=create(failureDetectorConfig,config.isJmxEnabled());
   this.storeStats=new StoreStats();
   this.routedStoreFactory=new RoutedStoreFactory(voldemortConfig.isPipelineRoutedStoreEnabled(),this.clientThreadPool,voldemortConfig.getClientRoutingTimeoutMs());
-  Props props=this.voldemortConfig.getAllProps();
-  long rate=props.containsKey("fetcher.max.bytes.per.sec") ? props.getBytes("fetcher.max.bytes.per.sec") : DEFAULT_FETCH_RATE;
-  this.dynThrottleLimit=new DynamicThrottleLimit(rate);
+  if (this.voldemortConfig.getStorageConfigurations().contains(ReadOnlyStorageConfiguration.class.getName())) {
+    long rate=this.voldemortConfig.getMaxBytesPerSecond();
+    this.dynThrottleLimit=new DynamicThrottleLimit(rate);
+  }
+ else   this.dynThrottleLimit=null;
 }
