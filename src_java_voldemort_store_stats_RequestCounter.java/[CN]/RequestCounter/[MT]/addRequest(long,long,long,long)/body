@@ -1,4 +1,9 @@
 {
+synchronized (histogram) {
+    int timeMs=(int)timeNS / (int)Time.NS_PER_MS;
+    histogram.insert(timeMs);
+  }
+  maybeResetHistogram();
   for (int i=0; i < 3; i++) {
     Accumulator oldv=getValidAccumulator();
     Accumulator newv=new Accumulator(oldv.startTimeMS,oldv.count + 1,oldv.totalTimeNS + timeNS,oldv.total + 1,oldv.numEmptyResponses + numEmptyResponses,Math.max(timeNS,oldv.maxLatencyNS),oldv.totalBytes + bytes,Math.max(oldv.maxBytes,bytes),oldv.getAllAggregatedCount + getAllAggregatedCount);
