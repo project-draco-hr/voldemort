@@ -1,24 +1,39 @@
 {
-  RebalanceUtils.printLog(globalStealerNodeId,logger,"Submitting rebalance tasks for " + rebalancePartitionPlanList);
+  RebalanceUtils.printLog(taskId,logger,"Submitting rebalance tasks ");
   if (rebalanceConfig.isShowPlanEnabled()) {
     return;
   }
   ExecutorService service=RebalanceUtils.createExecutors(rebalanceConfig.getMaxParallelRebalancing());
-  final List<RebalanceTask> allTasks=Lists.newArrayList();
-  final List<RebalanceTask> successfulTasks=Lists.newArrayList();
   final List<RebalanceTask> failedTasks=Lists.newArrayList();
+  final List<RebalanceTask> incompleteTasks=Lists.newArrayList();
+  Semaphore[] donorPermits=new Semaphore[currentCluster.getNumberOfNodes()];
+  for (  Node node : currentCluster.getNodes()) {
+    donorPermits[node.getId()]=new Semaphore(1);
+  }
   try {
-    executeTasks(service,rebalancePartitionPlanList,allTasks);
-    RebalanceUtils.printLog(globalStealerNodeId,logger,"All rebalance tasks were submitted (shutting down in " + rebalanceConfig.getRebalancingClientTimeoutSeconds() + " sec)");
+    List<RebalanceTask> allTasks=executeTasks(taskId,service,rebalancePartitionPlanList,donorPermits);
+    RebalanceUtils.printLog(taskId,logger,"All rebalance tasks were submitted ( shutting down in " + rebalanceConfig.getRebalancingClientTimeoutSeconds() + " sec )");
     RebalanceUtils.executorShutDown(service,rebalanceConfig.getRebalancingClientTimeoutSeconds());
-    RebalanceUtils.printLog(globalStealerNodeId,logger,"Finished waiting for executors");
-    List<Exception> failures=filterTasks(allTasks,successfulTasks,failedTasks);
+    RebalanceUtils.printLog(taskId,logger,"Finished waiting for executors");
+    List<Exception> failures=Lists.newArrayList();
+    for (    RebalanceTask task : allTasks) {
+      if (task.hasException()) {
+        failedTasks.add(task);
+        failures.add(task.getError());
+      }
+ else       if (!task.isComplete()) {
+        incompleteTasks.add(task);
+      }
+    }
     if (failedTasks.size() > 0) {
-      throw new VoldemortRebalancingException("Rebalance task terminated unsuccessfully",failures);
+      throw new VoldemortRebalancingException("Rebalance task terminated unsuccessfully on tasks " + failedTasks,failures);
+    }
+    if (incompleteTasks.size() > 0) {
+      throw new VoldemortException("Rebalance tasks are still incomplete / running " + incompleteTasks);
     }
   }
  catch (  VoldemortRebalancingException e) {
-    logger.error("Failure while migrating partitions for stealer node " + globalStealerNodeId);
+    logger.error("Failure while migrating partitions for rebalance task " + taskId);
     if (hasReadOnlyStores && hasReadWriteStores && finishedReadOnlyStores) {
       adminClient.rebalanceStateChange(null,currentCluster,null,true,true,false,false,false);
     }
@@ -29,7 +44,7 @@
   }
  finally {
     if (!service.isShutdown()) {
-      RebalanceUtils.printErrorLog(globalStealerNodeId,logger,"Could not shutdown service cleanly for node " + globalStealerNodeId,null);
+      RebalanceUtils.printErrorLog(taskId,logger,"Could not shutdown service cleanly for rebalance task " + taskId,null);
       service.shutdownNow();
     }
   }

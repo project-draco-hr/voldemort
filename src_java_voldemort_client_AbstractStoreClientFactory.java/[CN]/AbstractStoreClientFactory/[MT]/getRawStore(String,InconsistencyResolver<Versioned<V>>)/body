@@ -1,11 +1,25 @@
 {
+  logger.info("Client zone-id [" + clientZoneId + "] Attempting to obtain metadata for store ["+ storeName+ "] ");
+  if (logger.isDebugEnabled()) {
+    for (    URI uri : bootstrapUrls) {
+      logger.debug("Client Bootstrap url [" + uri + "]");
+    }
+  }
   String clusterXml=bootstrapMetadataWithRetries(MetadataStore.CLUSTER_KEY,bootstrapUrls);
   Cluster cluster=clusterMapper.readCluster(new StringReader(clusterXml),false);
   String storesXml=bootstrapMetadataWithRetries(MetadataStore.STORES_KEY,bootstrapUrls);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Obtained cluster metadata xml" + clusterXml);
+    logger.debug("Obtained stores  metadata xml" + storesXml);
+  }
   List<StoreDefinition> storeDefs=storeMapper.readStoreList(new StringReader(storesXml),false);
   StoreDefinition storeDef=null;
   for (  StoreDefinition d : storeDefs)   if (d.getName().equals(storeName))   storeDef=d;
   if (storeDef == null)   throw new BootstrapFailureException("Unknown store '" + storeName + "'.");
+  if (logger.isDebugEnabled()) {
+    logger.debug(cluster.toString(true));
+    logger.debug(storeDef.toString());
+  }
   boolean repairReads=!storeDef.isView();
   Map<Integer,Store<ByteArray,byte[],byte[]>> clientMapping=Maps.newHashMap();
   Map<Integer,NonblockingStore> nonblockingStores=Maps.newHashMap();

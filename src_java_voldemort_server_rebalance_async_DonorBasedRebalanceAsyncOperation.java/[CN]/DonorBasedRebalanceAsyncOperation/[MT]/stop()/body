@@ -1,0 +1,9 @@
+{
+  running.set(false);
+  updateStatus(getHeader(stealInfos) + "Stop called on donor-based rebalance operation");
+  logger.info(getHeader(stealInfos) + "Stop called on donor-based rebalance operation");
+  for (  List<DonorBasedRebalancePusherSlave> storePushSlaves : updatePushSlavePool.values()) {
+    terminateAllSlavesAsync(storePushSlaves);
+  }
+  executors.shutdownNow();
+}

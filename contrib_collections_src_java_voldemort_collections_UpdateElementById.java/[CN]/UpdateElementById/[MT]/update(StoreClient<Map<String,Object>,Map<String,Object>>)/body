@@ -1,0 +1,12 @@
+{
+  Versioned<Map<String,Object>> nodeMap=storeClient.get(_key.mapValue());
+  if (nodeMap == null)   throw new IndexOutOfBoundsException("invalid id " + _key.getId());
+  Version version=(_version != null) ? _version : nodeMap.getVersion();
+  VListNode<E> listNode=VListNode.valueOf(nodeMap.getValue());
+  if (!listNode.isStable()) {
+    throw new ObsoleteVersionException("node " + _key.getId() + " not stable.");
+  }
+  _result=listNode.getValue();
+  VListNode<E> newNode=new VListNode<E>(_element,listNode.getId(),listNode.getPreviousId(),listNode.getNextId(),true);
+  storeClient.put(_key.mapValue(),new Versioned<Map<String,Object>>(newNode.mapValue(),version));
+}

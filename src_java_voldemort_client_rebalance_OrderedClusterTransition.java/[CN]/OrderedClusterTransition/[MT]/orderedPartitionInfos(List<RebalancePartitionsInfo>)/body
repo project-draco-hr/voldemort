@@ -1,0 +1,15 @@
+{
+  List<RebalancePartitionsInfo> listPrimaries=new ArrayList<RebalancePartitionsInfo>();
+  List<RebalancePartitionsInfo> listReplicas=new ArrayList<RebalancePartitionsInfo>();
+  for (  RebalancePartitionsInfo partitionInfo : clusterRebalancePartitionsInfo) {
+    List<Integer> stealMasterPartitions=partitionInfo.getStealMasterPartitions();
+    if (stealMasterPartitions != null && !stealMasterPartitions.isEmpty()) {
+      listPrimaries.add(partitionInfo);
+    }
+ else {
+      listReplicas.add(partitionInfo);
+    }
+  }
+  listPrimaries.addAll(listReplicas);
+  return listPrimaries;
+}

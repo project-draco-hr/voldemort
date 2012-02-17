@@ -1,0 +1,12 @@
+{
+  boolean primaryMovesCompleted=false;
+  for (  RebalancePartitionsInfo partitionInfo : rebalancePartitionInfoList) {
+    List<Integer> stealMasterPartitions=partitionInfo.getStealMasterPartitions();
+    if (stealMasterPartitions == null || stealMasterPartitions.isEmpty()) {
+      primaryMovesCompleted=true;
+    }
+ else     if (primaryMovesCompleted) {
+      fail("OrderedPartitionInfo has primary partition move after non-primary partition moves: " + rebalancePartitionInfoList);
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  int scanned=0;
+  int[] fetched=new int[targetCluster.getNumberOfNodes()];
+  long startTime=System.currentTimeMillis();
+  ClosableIterator<ByteArray> keys=storageEngine.keys();
+  try {
+    while (running.get() && keys.hasNext()) {
+      ByteArray key=keys.next();
+      scanned++;
+      List<Integer> nodeIds=RebalanceUtils.checkKeyBelongsToPartition(key.get(),optimizedStealerNodeToMappingTuples,targetCluster,storeDef);
+      if (nodeIds.size() > 0) {
+        List<Versioned<byte[]>> values=storageEngine.get(key,null);
+        putAll(nodeIds,key,values,nodeToQueue,fetched);
+      }
+      if (0 == scanned % SCAN_PROGRESS_COUNT) {
+        printProgress(scanned,fetched,startTime,storeName);
+      }
+    }
+    terminateAllSlaves(updatePushSlavePool.get(storeName));
+  }
+ catch (  InterruptedException e) {
+    logger.info("InterruptedException received while sending entries to remote nodes, the process is terminating...");
+    terminateAllSlavesAsync(updatePushSlavePool.get(storeName));
+  }
+ finally {
+    close(keys,storeName,scanned,fetched,startTime);
+  }
+}

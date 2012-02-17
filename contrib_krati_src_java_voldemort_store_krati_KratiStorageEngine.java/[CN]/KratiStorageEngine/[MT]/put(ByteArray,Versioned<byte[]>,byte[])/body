@@ -9,9 +9,9 @@ synchronized (this.locks.lockFor(key.get())) {
  else {
       List<Versioned<byte[]>> removedValueList=new ArrayList<Versioned<byte[]>>();
       for (      Versioned<byte[]> versioned : existingValuesList) {
-        Occured occured=value.getVersion().compare(versioned.getVersion());
-        if (occured == Occured.BEFORE)         throw new ObsoleteVersionException("Obsolete version for key '" + key + "': "+ value.getVersion());
- else         if (occured == Occured.AFTER)         removedValueList.add(versioned);
+        Occurred occurred=value.getVersion().compare(versioned.getVersion());
+        if (occurred == Occurred.BEFORE)         throw new ObsoleteVersionException("Obsolete version for key '" + key + "': "+ value.getVersion());
+ else         if (occurred == Occurred.AFTER)         removedValueList.add(versioned);
       }
       existingValuesList.removeAll(removedValueList);
       existingValuesList.add(value);

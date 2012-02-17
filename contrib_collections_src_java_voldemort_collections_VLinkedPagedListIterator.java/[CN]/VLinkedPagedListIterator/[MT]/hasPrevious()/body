@@ -1,0 +1,18 @@
+{
+  if (_indexIterator.previousId() != null && _indexIterator.lastId() != null) {
+    if (_indexIterator.previousId().equals(_indexIterator.lastId())) {
+      _indexIterator.previous();
+    }
+  }
+  while (!_keyIterator.hasPrevious()) {
+    if (_indexIterator.hasPrevious()) {
+      _currentIndexId=_indexIterator.previousId();
+      List<byte[]> byteList=_indexIterator.previous().getValue();
+      _keyIterator=byteList.listIterator(byteList.size());
+    }
+ else {
+      break;
+    }
+  }
+  return _keyIterator.hasPrevious();
+}

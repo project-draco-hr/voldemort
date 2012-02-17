@@ -1,0 +1,45 @@
+{
+  StoreClient<Map<String,Object>,Map<String,Object>> stackClient=stackStoreFactory.getStoreClient("test");
+  StoreClient<String,List<Map<String,Object>>> pageIndexClient=pageIndexStoreFactory.getStoreClient("test");
+  Serializer<StringOrder> serializer=new StringOrderSerializer();
+  VLinkedPagedList<String,StringOrder> stringList=new VLinkedPagedList<String,StringOrder>("stringList",stackClient,pageIndexClient,serializer,7,5);
+  VStack<String,List<byte[]>> stack=new VStack<String,List<byte[]>>("stringList",stackClient);
+  initStringList(stringList);
+  int[] pageValues=new int[]{0,3,2,1};
+  StringOrder[] indexValues=new StringOrder[]{new StringOrder(30),new StringOrder(20),new StringOrder(10),new StringOrder(0)};
+  int j=0;
+  List<Map<String,Object>> pageIndex=pageIndexClient.getValue("stringList");
+  for (  Map<String,Object> indexEntryMap : pageIndex) {
+    VPageIndexEntry<StringOrder> entry=VPageIndexEntry.valueOf(indexEntryMap,serializer);
+    assertEquals(Integer.valueOf(pageValues[j]),entry.getPageId());
+    assertEquals(indexValues[j],entry.getLastIndex());
+    j++;
+  }
+  int c=40;
+  for (  StringOrder i : stringList) {
+    assertEquals(Integer.valueOf(c),i.getId());
+    c-=2;
+  }
+  assertEquals(4,stack.size());
+  MappedListIterator<VLinkedPagedKey,StringOrder> it=stringList.listIterator();
+  for (int i=40; i >= 28; i-=2) {
+    assertEquals(Integer.valueOf(i),it.next().getId());
+  }
+  for (int i=28; i <= 40; i+=2) {
+    assertEquals(Integer.valueOf(i),it.previous().getId());
+  }
+  stringList.add(new StringOrder(50));
+  assertEquals(4,stack.size());
+  stringList.add(new StringOrder(60));
+  assertEquals(5,stack.size());
+  stringList.add(new StringOrder(70));
+  assertEquals(5,stack.size());
+  it=stringList.listIterator();
+  it.next();
+  it.next();
+  VLinkedPagedKey key=it.nextId();
+  Integer value=stringList.getById(key).getId();
+  assertEquals(value,it.next().getId());
+  assertEquals(value,stringList.getById(it.lastId()).getId());
+  assertEquals(value,stringList.getById(it.previousId()).getId());
+}

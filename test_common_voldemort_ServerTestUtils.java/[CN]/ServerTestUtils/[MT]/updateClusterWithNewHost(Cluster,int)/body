@@ -1,0 +1,22 @@
+{
+  int highestPortInuse=0;
+  for (  Node node : original.getNodes()) {
+    int nodeMaxPort=0;
+    nodeMaxPort=Math.max(nodeMaxPort,node.getAdminPort());
+    nodeMaxPort=Math.max(nodeMaxPort,node.getHttpPort());
+    nodeMaxPort=Math.max(nodeMaxPort,node.getSocketPort());
+    highestPortInuse=Math.max(highestPortInuse,nodeMaxPort);
+  }
+  Set<Integer> newNodesSet=new HashSet<Integer>(serverIds.length);
+  for (  int id : serverIds) {
+    newNodesSet.add(id);
+  }
+  List<Node> newNodeList=new ArrayList<Node>(serverIds.length);
+  for (  Node node : original.getNodes()) {
+    if (newNodesSet.contains(node.getId())) {
+      node=new Node(node.getId(),"localhost",++highestPortInuse,++highestPortInuse,++highestPortInuse,node.getPartitionIds());
+    }
+    newNodeList.add(node);
+  }
+  return new Cluster(original.getName(),newNodeList);
+}

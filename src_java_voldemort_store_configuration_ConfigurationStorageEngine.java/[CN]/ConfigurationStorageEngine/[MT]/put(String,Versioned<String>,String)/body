@@ -7,12 +7,12 @@
   for (  File file : files) {
     if (file.getName().equals(key)) {
       VectorClock clock=readVersion(key);
-      if (value.getVersion().compare(clock) == Occured.AFTER) {
+      if (value.getVersion().compare(clock) == Occurred.AFTER) {
       }
- else       if (value.getVersion().compare(clock) == Occured.BEFORE) {
+ else       if (value.getVersion().compare(clock) == Occurred.BEFORE) {
         throw new ObsoleteVersionException("A successor version " + clock + "  to this "+ value.getVersion()+ " exists for key "+ key);
       }
- else       if (value.getVersion().compare(clock) == Occured.CONCURRENTLY) {
+ else       if (value.getVersion().compare(clock) == Occurred.CONCURRENTLY) {
         throw new ObsoleteVersionException("Concurrent Operation not allowed on Metadata.");
       }
     }

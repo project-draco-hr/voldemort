@@ -1,0 +1,9 @@
+{
+  cachedCallable.call();
+  cachedCallable.call();
+  verify(inner,times(1)).call();
+  mockTime.addMilliseconds(1001);
+  when(inner.call()).thenReturn(CALL_RESULT + 1l);
+  assertEquals((long)cachedCallable.call(),CALL_RESULT + 1l);
+  verify(inner,times(2)).call();
+}

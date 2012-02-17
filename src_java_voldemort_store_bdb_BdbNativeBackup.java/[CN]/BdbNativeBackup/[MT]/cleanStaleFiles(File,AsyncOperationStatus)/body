@@ -1,0 +1,15 @@
+{
+  String[] filesInEnv=env.getHome().list();
+  String[] filesInBackupDir=backupDir.list();
+  if (filesInEnv != null && filesInBackupDir != null) {
+    HashSet<String> envFileSet=new HashSet<String>();
+    for (    String file : filesInEnv)     envFileSet.add(file);
+    for (    String file : filesInBackupDir) {
+      if (file.endsWith(BDB_EXT) && !envFileSet.contains(file)) {
+        status.setStatus("Deleting stale jdb file :" + file);
+        File staleJdbFile=new File(backupDir,file);
+        staleJdbFile.delete();
+      }
+    }
+  }
+}

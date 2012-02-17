@@ -1,0 +1,10 @@
+{
+  HashMultimap<String,Pair<Integer,HashMap<Integer,List<Integer>>>> returnMap=HashMultimap.create();
+  for (  RebalancePartitionsInfo info : stealInfos) {
+    int stealerNodeId=info.getStealerId();
+    for (    Entry<String,HashMap<Integer,List<Integer>>> entry : info.getStoreToReplicaToAddPartitionList().entrySet()) {
+      returnMap.put(entry.getKey(),Pair.create(stealerNodeId,entry.getValue()));
+    }
+  }
+  return returnMap;
+}

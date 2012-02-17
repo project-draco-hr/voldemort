@@ -1,0 +1,38 @@
+{
+  StorageEngine<ByteArray,byte[],byte[]> storageEngine=storeRepository.getStorageEngine(storeName);
+  StoreDefinition storeDef=metadataStore.getStoreDef(storeName);
+  List<DonorBasedRebalancePusherSlave> storePushSlaves=Lists.newArrayList();
+  updatePushSlavePool.put(storeName,storePushSlaves);
+  if (isReadOnlyStore) {
+    throw new VoldemortException("Donor-based rebalancing for read-only store is currently not supported!");
+  }
+ else {
+    HashMap<Integer,SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>>> nodeToQueue=Maps.newHashMap();
+    Set<Pair<Integer,HashMap<Integer,List<Integer>>>> optimizedStealerNodeToMappingTuples=Sets.newHashSet();
+    if (voldemortConfig.getRebalancingOptimization() && !storageEngine.isPartitionAware()) {
+      for (      Pair<Integer,HashMap<Integer,List<Integer>>> entry : stealerNodeToMappingTuples) {
+        HashMap<Integer,List<Integer>> optimizedReplicaToPartition=RebalanceUtils.getOptimizedReplicaToPartitionList(entry.getFirst(),initialCluster,storeDef,entry.getSecond());
+        if (optimizedReplicaToPartition.size() > 0) {
+          optimizedStealerNodeToMappingTuples.add(Pair.create(entry.getFirst(),optimizedReplicaToPartition));
+        }
+      }
+    }
+ else {
+      optimizedStealerNodeToMappingTuples.addAll(stealerNodeToMappingTuples);
+    }
+    if (optimizedStealerNodeToMappingTuples.size() <= 0) {
+      return;
+    }
+    for (    Pair<Integer,HashMap<Integer,List<Integer>>> tuple : stealerNodeToMappingTuples) {
+      final SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>> queue=new SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>>();
+      nodeToQueue.put(tuple.getFirst(),queue);
+      int jobId=pushSlavesExecutor.getUniqueRequestId();
+      String jobName="DonorBasedRebalancePusherSlave for store " + storeName + " on node "+ tuple.getFirst();
+      DonorBasedRebalancePusherSlave updatePushSlave=new DonorBasedRebalancePusherSlave(jobId,jobName,tuple.getFirst(),queue,storeName,adminClient);
+      storePushSlaves.add(updatePushSlave);
+      pushSlavesExecutor.submitOperation(jobId,updatePushSlave);
+      logger.info("Submitted donor-based pusher job: id=" + jobId + " name="+ jobName);
+    }
+    fetchEntriesForStealers(storageEngine,optimizedStealerNodeToMappingTuples,storeDef,nodeToQueue,storeName);
+  }
+}

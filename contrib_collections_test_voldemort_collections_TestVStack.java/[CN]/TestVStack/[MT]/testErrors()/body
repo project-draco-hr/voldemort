@@ -1,0 +1,18 @@
+{
+  StoreClient<Map<String,Object>,Map<String,Object>> storeClient=storeFactory.getStoreClient("test");
+  VStack<String,String> stack=new VStack<String,String>("stack2",storeClient);
+  stack.add("world");
+  stack.add("hello");
+  try {
+    stack.getById(2);
+    TestCase.fail("expected IndexOutOfBoundsException");
+  }
+ catch (  IndexOutOfBoundsException e) {
+  }
+  try {
+    stack.add(null);
+    TestCase.fail("expected NullPointerException");
+  }
+ catch (  NullPointerException npe) {
+  }
+}

@@ -1,0 +1,25 @@
+{
+  try {
+    HashSet<String> ipAddrList=new HashSet<String>();
+    InetAddress localhost=InetAddress.getLocalHost();
+    InetAddress[] serverAddrs=InetAddress.getAllByName(localhost.getCanonicalHostName());
+    ipAddrList.add("localhost");
+    if (serverAddrs != null && serverAddrs.length > 0) {
+      for (      InetAddress addr : serverAddrs) {
+        if (addr.getHostName() != null)         ipAddrList.add(addr.getHostName());
+        if (addr.getHostAddress() != null)         ipAddrList.add(addr.getHostAddress());
+        if (addr.getCanonicalHostName() != null)         ipAddrList.add(addr.getCanonicalHostName());
+      }
+    }
+    if (!ipAddrList.contains(this.identityNode.getHost())) {
+      logger.info("List of all IPs & Hostnames for the current node:" + ipAddrList);
+      logger.info("Configured hostname [" + this.identityNode.getHost() + "] does not seem to match current node.");
+    }
+  }
+ catch (  UnknownHostException uhe) {
+    logger.warn("Unable to obtain IP information for current node",uhe);
+  }
+catch (  SecurityException se) {
+    logger.warn("Security Manager does not permit obtaining IP Information",se);
+  }
+}

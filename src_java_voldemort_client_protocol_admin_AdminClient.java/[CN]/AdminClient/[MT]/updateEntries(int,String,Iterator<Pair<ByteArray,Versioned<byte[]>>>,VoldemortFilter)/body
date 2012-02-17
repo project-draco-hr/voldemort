@@ -5,12 +5,15 @@
   DataOutputStream outputStream=sands.getOutputStream();
   DataInputStream inputStream=sands.getInputStream();
   boolean firstMessage=true;
+  long printStatsTimer=System.currentTimeMillis() + PRINT_STATS_INTERVAL;
+  long entryCount=0;
   try {
     if (entryIterator.hasNext()) {
       while (entryIterator.hasNext()) {
         Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
         VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(entry.getFirst())).setVersioned(ProtoUtils.encodeVersioned(entry.getSecond())).build();
         VAdminProto.UpdatePartitionEntriesRequest.Builder updateRequest=VAdminProto.UpdatePartitionEntriesRequest.newBuilder().setStore(storeName).setPartitionEntry(partitionEntry);
+        entryCount++;
         if (firstMessage) {
           if (filter != null) {
             updateRequest.setFilter(encodeFilter(filter));
@@ -21,6 +24,10 @@
         }
  else {
           ProtoUtils.writeMessage(outputStream,updateRequest.build());
+          if (printStatsTimer <= System.currentTimeMillis() || 0 == entryCount % PRINT_STATS_THRESHOLD) {
+            logger.info("UpdatePartitionEntries: fetched " + entryCount + " to node "+ nodeId+ " for store "+ storeName);
+            printStatsTimer=System.currentTimeMillis() + PRINT_STATS_INTERVAL;
+          }
         }
       }
       ProtoUtils.writeEndOfStream(outputStream);

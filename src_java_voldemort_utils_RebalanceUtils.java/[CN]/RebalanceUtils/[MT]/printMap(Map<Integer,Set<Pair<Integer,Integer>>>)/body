@@ -4,9 +4,11 @@
     final Integer nodeId=entry.getKey();
     final Set<Pair<Integer,Integer>> allPartitions=entry.getValue();
     final HashMap<Integer,List<Integer>> replicaTypeToPartitions=flattenPartitionTuples(allPartitions);
+    final TreeMap<Integer,List<Integer>> sortedReplicaTypeToPartitions=new TreeMap<Integer,List<Integer>>(replicaTypeToPartitions);
     sb.append(nodeId);
     if (replicaTypeToPartitions.size() > 0) {
-      for (      Entry<Integer,List<Integer>> partitions : replicaTypeToPartitions.entrySet()) {
+      for (      Entry<Integer,List<Integer>> partitions : sortedReplicaTypeToPartitions.entrySet()) {
+        Collections.sort(partitions.getValue());
         sb.append(" - " + partitions.getValue());
       }
     }

@@ -53,7 +53,7 @@
       pipeline.addEvent(insufficientSuccessesEvent);
     }
  else {
-      pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but only "+ pipelineData.getSuccesses()+ " succeeded. Failing nodes : "+ pipelineData.getFailedNodes(),pipelineData.getFailures()));
+      pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but only "+ pipelineData.getSuccesses()+ " succeeded",new ArrayList<Node>(pipelineData.getReplicationSet()),new ArrayList<Node>(pipelineData.getNodes()),new ArrayList<Node>(pipelineData.getFailedNodes()),pipelineData.getFailures()));
       pipeline.abort();
     }
   }
@@ -64,6 +64,9 @@
         pipeline.addEvent(completeEvent);
       }
  else {
+        if (logger.isDebugEnabled()) {
+          logger.debug("Operation " + pipeline.getOperation().getSimpleName() + "failed due to insufficent zone responses, required "+ pipelineData.getZonesRequired()+ " obtained "+ zonesSatisfied+ " "+ pipelineData.getZoneResponses());
+        }
         if (this.insufficientZonesEvent != null) {
           pipeline.addEvent(this.insufficientZonesEvent);
         }

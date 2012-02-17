@@ -1,0 +1,8 @@
+{
+  VListKey<K> key=new VListKey<K>(_key,id);
+  Versioned<Map<String,Object>> resultMap=_storeClient.get(key.mapValue());
+  if (resultMap == null)   return null;
+  VListNode<E> listNode=VListNode.<E>valueOf(resultMap.getValue());
+  Versioned<VListNode<E>> versionedNode=new Versioned<VListNode<E>>(listNode,resultMap.getVersion());
+  return versionedNode;
+}
