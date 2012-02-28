@@ -1,0 +1,17 @@
+{
+  VoldemortTestConstants.getSingleStoreDefinitionsXml();
+  this.cluster=ServerTestUtils.getLocalCluster(2);
+  this.node=cluster.getNodes().iterator().next();
+  String bootstrapUrl="tcp://" + node.getHost() + ":"+ node.getSocketPort();
+  StoreClientFactory storeClientFactory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootstrapUrl));
+  servers=new ArrayList<VoldemortServer>();
+  servers.add(ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(useNio,0,TestUtils.createTempDir().getAbsolutePath(),null,STORES_XML,new Properties()),cluster));
+  servers.add(ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(useNio,1,TestUtils.createTempDir().getAbsolutePath(),null,STORES_XML,new Properties()),cluster));
+  vectorResolver=new VectorClockInconsistencyResolver<String>();
+  timeResolver=new TimeBasedInconsistencyResolver<String>();
+  chainedResolver=new ChainedResolver<Versioned<String>>(vectorResolver,timeResolver);
+  v1=getVersioned(0,0,1,1,1,1,1);
+  v2=getVersioned(0,0,0,1,1,1,1);
+  defaultStoreClient=storeClientFactory.getStoreClient("test");
+  socketStore=ServerTestUtils.getSocketStore(socketStoreFactory,"test",node.getSocketPort(),RequestFormatType.VOLDEMORT_V1);
+}
