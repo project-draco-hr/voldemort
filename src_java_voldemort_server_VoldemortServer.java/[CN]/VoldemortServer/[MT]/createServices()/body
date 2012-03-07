@@ -1,6 +1,6 @@
 {
   List<VoldemortService> services=new ArrayList<VoldemortService>();
-  SchedulerService scheduler=new SchedulerService(voldemortConfig.getSchedulerThreads(),SystemTime.INSTANCE);
+  SchedulerService scheduler=new SchedulerService(voldemortConfig.getSchedulerThreads(),SystemTime.INSTANCE,voldemortConfig.canInterruptService());
   StorageService storageService=new StorageService(storeRepository,metadata,scheduler,voldemortConfig);
   asyncService=new AsyncOperationService(scheduler,ASYNC_REQUEST_CACHE_SIZE);
   services.add(storageService);
