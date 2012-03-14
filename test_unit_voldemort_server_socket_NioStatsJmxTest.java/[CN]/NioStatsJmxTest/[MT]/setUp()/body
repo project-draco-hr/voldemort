@@ -1,0 +1,13 @@
+{
+  String storeDefinitionFile="test/common/voldemort/config/single-store.xml";
+  ClientConfig clientConfig=new ClientConfig().setMaxConnectionsPerNode(1).setMaxThreads(1);
+  SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(clientConfig.getSelectors(),clientConfig.getMaxConnectionsPerNode(),clientConfig.getConnectionTimeout(TimeUnit.MILLISECONDS),clientConfig.getSocketTimeout(TimeUnit.MILLISECONDS),clientConfig.getSocketBufferSize(),clientConfig.getSocketKeepAlive());
+  Cluster cluster=ServerTestUtils.getLocalCluster(1);
+  Properties props=new Properties();
+  props.put("jmx.enable","true");
+  VoldemortConfig config=ServerTestUtils.createServerConfig(true,0,TestUtils.createTempDir().getAbsolutePath(),null,storeDefinitionFile,props);
+  server=ServerTestUtils.startVoldemortServer(socketStoreFactory,config,cluster);
+  for (  Node node : cluster.getNodes()) {
+    socketStore=ServerTestUtils.getSocketStore(socketStoreFactory,"test",node.getSocketPort(),clientConfig.getRequestFormatType());
+  }
+}
