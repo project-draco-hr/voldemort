@@ -1,12 +1,17 @@
 {
-  Path path=new Path(sourceFileUrl);
-  Configuration config=new Configuration();
-  config.setInt("io.socket.receive.buffer",bufferSize);
-  config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
-  FileSystem fs=path.getFileSystem(config);
-  CopyStats stats=new CopyStats(sourceFileUrl,sizeOfPath(fs,path));
-  ObjectName jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
+  if (this.globalThrottleLimit != null) {
+    if (this.globalThrottleLimit.getSpeculativeRate() < this.minBytesPerSecond)     throw new VoldemortException("Too many push jobs.");
+    this.globalThrottleLimit.incrementNumJobs();
+  }
+  ObjectName jmxName=null;
   try {
+    Path path=new Path(sourceFileUrl);
+    Configuration config=new Configuration();
+    config.setInt("io.socket.receive.buffer",bufferSize);
+    config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
+    FileSystem fs=path.getFileSystem(config);
+    CopyStats stats=new CopyStats(sourceFileUrl,sizeOfPath(fs,path));
+    jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
     File destination=new File(destinationFile);
     if (destination.exists()) {
       throw new VoldemortException("Version directory " + destination.getAbsolutePath() + " already exists");
@@ -20,6 +25,9 @@
     }
   }
   finally {
+    if (this.globalThrottleLimit != null) {
+      this.globalThrottleLimit.decrementNumJobs();
+    }
     JmxUtils.unregisterMbean(jmxName);
   }
 }
