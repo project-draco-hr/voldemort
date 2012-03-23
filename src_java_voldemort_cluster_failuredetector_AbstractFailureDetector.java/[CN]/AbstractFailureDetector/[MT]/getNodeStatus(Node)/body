@@ -1,9 +1,16 @@
 {
   NodeStatus nodeStatus=nodeStatusMap.get(node);
-  if (nodeStatus == null) {
+  Node currentTrackedNode=nodeMap.get(node.getId());
+  if (nodeStatus == null || !currentTrackedNode.isEqualState(node)) {
     if (logger.isEnabledFor(Level.WARN))     logger.warn("creating new node status for node " + node.getId() + " for failure detector");
+    if (nodeStatus != null) {
+      nodeStatusMap.remove(currentTrackedNode);
+      nodeMap.remove(currentTrackedNode);
+      failureDetectorConfig.removeNode(currentTrackedNode);
+    }
     nodeStatus=createNodeStatus(failureDetectorConfig.getTime().getMilliseconds());
     nodeStatusMap.put(node,nodeStatus);
+    nodeMap.put(node.getId(),node);
     if (!failureDetectorConfig.getNodes().contains(node)) {
       failureDetectorConfig.addNode(node);
     }
