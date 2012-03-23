@@ -2,10 +2,8 @@
   if (failureDetectorConfig == null)   throw new IllegalArgumentException("FailureDetectorConfig must be non-null");
   this.failureDetectorConfig=failureDetectorConfig;
   listeners=new ConcurrentHashMap<FailureDetectorListener,Object>();
-  nodeStatusMap=new ConcurrentHashMap<Node,NodeStatus>();
-  nodeMap=new ConcurrentHashMap<Integer,Node>();
+  idNodeStatusMap=new ConcurrentHashMap<Integer,CompositeNodeStatus>();
   for (  Node node : failureDetectorConfig.getNodes()) {
-    nodeStatusMap.put(node,createNodeStatus(failureDetectorConfig.getTime().getMilliseconds()));
-    nodeMap.put(node.getId(),node);
+    idNodeStatusMap.put(node.getId(),new CompositeNodeStatus(node,createNodeStatus(failureDetectorConfig.getTime().getMilliseconds())));
   }
 }
