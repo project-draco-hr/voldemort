@@ -1,4 +1,7 @@
 {
+  if (done) {
+    throw new NoSuchElementException();
+  }
   while (null == currentElem) {
     try {
       currentElem=getNextElem();
@@ -7,9 +10,12 @@
       logger.info("next is interrupted while waiting for the next elem, existing...");
       break;
     }
-    if (null == currentElem || currentElem.equals(DonorBasedRebalanceAsyncOperation.END)) {
+    if (null == currentElem || currentElem.equals(DonorBasedRebalanceAsyncOperation.END) || currentElem.equals(DonorBasedRebalanceAsyncOperation.BREAK)) {
       throw new NoSuchElementException();
     }
+  }
+  if (currentElem != null && currentElem.equals(DonorBasedRebalanceAsyncOperation.END)) {
+    done=true;
   }
   Pair<ByteArray,Versioned<byte[]>> returnValue=currentElem;
   currentElem=null;
