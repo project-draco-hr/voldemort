@@ -1,7 +1,8 @@
 {
   ClientRequestExecutor clientRequestExecutor=pool.checkout(destination);
+  BlockingClientRequest<T> blockingClientRequest=null;
   try {
-    BlockingClientRequest<T> blockingClientRequest=new BlockingClientRequest<T>(delegate,timeoutMs);
+    blockingClientRequest=new BlockingClientRequest<T>(delegate,timeoutMs);
     clientRequestExecutor.addClientRequest(blockingClientRequest,timeoutMs);
     blockingClientRequest.await();
     return blockingClientRequest.getResult();
@@ -14,6 +15,9 @@ catch (  IOException e) {
     throw new UnreachableStoreException("Failure in " + operationName + " on "+ destination+ ": "+ e.getMessage(),e);
   }
  finally {
+    if (blockingClientRequest != null && !blockingClientRequest.isComplete()) {
+      clientRequestExecutor.close();
+    }
     pool.checkin(destination,clientRequestExecutor);
   }
 }
