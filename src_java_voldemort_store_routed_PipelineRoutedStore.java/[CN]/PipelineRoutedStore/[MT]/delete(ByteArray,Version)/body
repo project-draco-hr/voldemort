@@ -4,6 +4,7 @@
   if (zoneRoutingEnabled)   pipelineData.setZonesRequired(storeDef.getZoneCountWrites());
  else   pipelineData.setZonesRequired(null);
   pipelineData.setStoreName(name);
+  pipelineData.setStats(stats);
   Pipeline pipeline=new Pipeline(Operation.DELETE,timeoutMs,TimeUnit.MILLISECONDS);
   pipeline.setEnableHintedHandoff(isHintedHandoffEnabled());
   HintedHandoff hintedHandoff=null;
@@ -18,7 +19,13 @@
   if (logger.isDebugEnabled()) {
     logger.debug("Operation " + pipeline.getOperation().getSimpleName() + " Key "+ ByteUtils.toHexString(key.get()));
   }
-  pipeline.execute();
+  try {
+    pipeline.execute();
+  }
+ catch (  VoldemortException e) {
+    stats.reportException(e);
+    throw e;
+  }
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   for (  Response<ByteArray,Boolean> response : pipelineData.getResponses()) {
     if (response.getValue().booleanValue())     return true;

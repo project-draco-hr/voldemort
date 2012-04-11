@@ -1,0 +1,12 @@
+{
+  if (isPipelineRoutedStoreEnabled) {
+    return new PipelineRoutedStore(storeDefinition.getName(),nodeStores,nonblockingStores,slopStores,nonblockingSlopStores,cluster,storeDefinition,repairReads,clientZoneId,routingTimeoutMs,failureDetector,jmxEnabled);
+  }
+ else {
+    if (storeDefinition.getRoutingStrategyType().compareTo(RoutingStrategyType.ZONE_STRATEGY) == 0) {
+      throw new VoldemortException("Zone Routing for store '" + storeDefinition.getName() + "' not supported using thread pool routed store.");
+    }
+    if (slopStores != null)     throw new VoldemortException("Hinted Handoff for store '" + storeDefinition.getName() + "' not supported using thread pool routed store.");
+    return new ThreadPoolRoutedStore(storeDefinition.getName(),nodeStores,cluster,storeDefinition,repairReads,threadPool,routingTimeoutMs,failureDetector,SystemTime.INSTANCE);
+  }
+}

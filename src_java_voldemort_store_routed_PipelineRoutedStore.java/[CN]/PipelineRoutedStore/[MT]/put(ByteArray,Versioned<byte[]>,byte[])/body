@@ -5,6 +5,7 @@
  else   pipelineData.setZonesRequired(null);
   pipelineData.setStartTimeNs(System.nanoTime());
   pipelineData.setStoreName(name);
+  pipelineData.setStats(stats);
   Pipeline pipeline=new Pipeline(Operation.PUT,timeoutMs,TimeUnit.MILLISECONDS);
   pipeline.setEnableHintedHandoff(isHintedHandoffEnabled());
   HintedHandoff hintedHandoff=null;
@@ -22,6 +23,12 @@
   if (logger.isDebugEnabled()) {
     logger.debug("Operation " + pipeline.getOperation().getSimpleName() + " Key "+ ByteUtils.toHexString(key.get()));
   }
-  pipeline.execute();
+  try {
+    pipeline.execute();
+  }
+ catch (  VoldemortException e) {
+    stats.reportException(e);
+    throw e;
+  }
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
 }

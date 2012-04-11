@@ -4,6 +4,7 @@
   GetAllPipelineData pipelineData=new GetAllPipelineData();
   if (zoneRoutingEnabled)   pipelineData.setZonesRequired(storeDef.getZoneCountReads());
  else   pipelineData.setZonesRequired(null);
+  pipelineData.setStats(stats);
   Pipeline pipeline=new Pipeline(Operation.GET_ALL,timeoutMs,TimeUnit.MILLISECONDS);
   pipeline.addEventAction(Event.STARTED,new GetAllConfigureNodes(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),routingStrategy,keys,transforms,clientZone));
   pipeline.addEventAction(Event.CONFIGURED,new PerformParallelGetAllRequests(pipelineData,Event.INSUFFICIENT_SUCCESSES,failureDetector,timeoutMs,nonblockingStores));
@@ -17,7 +18,13 @@
     }
     logger.debug("Operation " + pipeline.getOperation().getSimpleName() + " Keys "+ keyStr.toString());
   }
-  pipeline.execute();
+  try {
+    pipeline.execute();
+  }
+ catch (  VoldemortException e) {
+    stats.reportException(e);
+    throw e;
+  }
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   return pipelineData.getResult();
 }

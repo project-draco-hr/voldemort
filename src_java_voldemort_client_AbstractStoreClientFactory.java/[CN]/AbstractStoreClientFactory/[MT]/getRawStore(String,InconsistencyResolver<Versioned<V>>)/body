@@ -38,7 +38,7 @@
       nonblockingSlopStores.put(node.getId(),routedStoreFactory.toNonblockingStore(rawSlopStore));
     }
   }
-  Store<ByteArray,byte[],byte[]> store=routedStoreFactory.create(cluster,storeDef,clientMapping,nonblockingStores,slopStores,nonblockingSlopStores,repairReads,clientZoneId,getFailureDetector());
+  Store<ByteArray,byte[],byte[]> store=routedStoreFactory.create(cluster,storeDef,clientMapping,nonblockingStores,slopStores,nonblockingSlopStores,repairReads,clientZoneId,getFailureDetector(),isJmxEnabled);
   store=new LoggingStore(store);
   if (isJmxEnabled) {
     StatTrackingStore statStore=new StatTrackingStore(store,this.stats);

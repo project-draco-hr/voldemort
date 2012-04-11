@@ -3,6 +3,7 @@
   BasicPipelineData<List<Versioned<byte[]>>> pipelineData=new BasicPipelineData<List<Versioned<byte[]>>>();
   if (zoneRoutingEnabled)   pipelineData.setZonesRequired(storeDef.getZoneCountReads());
  else   pipelineData.setZonesRequired(null);
+  pipelineData.setStats(stats);
   final Pipeline pipeline=new Pipeline(Operation.GET,timeoutMs,TimeUnit.MILLISECONDS);
   boolean allowReadRepair=repairReads && transforms == null;
   StoreRequest<List<Versioned<byte[]>>> blockingStoreRequest=new StoreRequest<List<Versioned<byte[]>>>(){
@@ -20,7 +21,13 @@
   if (logger.isDebugEnabled()) {
     logger.debug("Operation " + pipeline.getOperation().getSimpleName() + " Key "+ ByteUtils.toHexString(key.get()));
   }
-  pipeline.execute();
+  try {
+    pipeline.execute();
+  }
+ catch (  VoldemortException e) {
+    stats.reportException(e);
+    throw e;
+  }
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   List<Versioned<byte[]>> results=new ArrayList<Versioned<byte[]>>();
   for (  Response<ByteArray,List<Versioned<byte[]>>> response : pipelineData.getResponses()) {
