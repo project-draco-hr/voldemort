@@ -3,8 +3,17 @@
   for (Iterator<DonorBasedRebalancePusherSlave> it=updatePushSlavePool.iterator(); it.hasNext(); ) {
     it.next().requestCompletion();
   }
-  for (Iterator<DonorBasedRebalancePusherSlave> it=updatePushSlavePool.iterator(); it.hasNext(); ) {
-    it.next().waitCompletion();
+  pushSlavesExecutor.shutdown();
+  try {
+    if (pushSlavesExecutor.awaitTermination(30,TimeUnit.MINUTES)) {
+      logger.info("All DonorBasedRebalancePushSlaves terminated successfully.");
+    }
+ else {
+      logger.warn("Timed out while waiting for pusher slaves to shutdown!!!");
+    }
   }
-  logger.info("All DonorBasedRebalancePushSlaves terminated successfully.");
+ catch (  InterruptedException e) {
+    logger.warn("Interrupted while waiting for pusher slaves to shutdown!!!");
+  }
+  logger.info("DonorBasedRebalancingOperation existed.");
 }

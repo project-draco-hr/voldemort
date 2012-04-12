@@ -26,12 +26,11 @@
     for (    Pair<Integer,HashMap<Integer,List<Integer>>> tuple : stealerNodeToMappingTuples) {
       final SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>> queue=new SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>>();
       nodeToQueue.put(tuple.getFirst(),queue);
-      int jobId=pushSlavesExecutor.getUniqueRequestId();
       String jobName="DonorBasedRebalancePusherSlave for store " + storeName + " on node "+ tuple.getFirst();
-      DonorBasedRebalancePusherSlave updatePushSlave=new DonorBasedRebalancePusherSlave(jobId,jobName,tuple.getFirst(),queue,storeName,adminClient);
+      DonorBasedRebalancePusherSlave updatePushSlave=new DonorBasedRebalancePusherSlave(tuple.getFirst(),queue,storeName,adminClient);
       storePushSlaves.add(updatePushSlave);
-      pushSlavesExecutor.submitOperation(jobId,updatePushSlave);
-      logger.info("Submitted donor-based pusher job: id=" + jobId + " name="+ jobName);
+      pushSlavesExecutor.execute(updatePushSlave);
+      logger.info("Started a thread for " + jobName);
     }
     fetchEntriesForStealers(storageEngine,optimizedStealerNodeToMappingTuples,storeDef,nodeToQueue,storeName);
   }

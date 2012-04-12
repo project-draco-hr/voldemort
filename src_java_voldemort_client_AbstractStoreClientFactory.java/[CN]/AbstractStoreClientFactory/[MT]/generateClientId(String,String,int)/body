@@ -1,0 +1,26 @@
+{
+  String newLine=System.getProperty("line.separator");
+  StringBuilder context=new StringBuilder(contextName == null ? "" : contextName);
+  context.append(0 == clientSequence ? "" : ("." + clientSequence));
+  context.append(".").append(storeName);
+  try {
+    InetAddress host=InetAddress.getLocalHost();
+    context.append("@").append(host.getHostName()).append(":");
+  }
+ catch (  UnknownHostException e) {
+    logger.info("Unable to obtain client hostname.");
+    logger.info(e.getMessage());
+  }
+  try {
+    String currentPath=new File(".").getCanonicalPath();
+    context.append(currentPath).append(newLine);
+  }
+ catch (  IOException e) {
+    logger.info("Unable to obtain client run path.");
+    logger.info(e.getMessage());
+  }
+  if (logger.isDebugEnabled()) {
+    logger.debug(context.toString());
+  }
+  return UUID.nameUUIDFromBytes(context.toString().getBytes());
+}

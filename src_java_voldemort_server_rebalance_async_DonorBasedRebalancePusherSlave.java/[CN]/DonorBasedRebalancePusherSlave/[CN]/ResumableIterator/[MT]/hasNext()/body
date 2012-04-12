@@ -1,16 +1,22 @@
 {
   boolean hasNext=false;
-  while (null == currentElem) {
-    try {
-      currentElem=getNextElem();
+  if (!done) {
+    while (null == currentElem) {
+      try {
+        currentElem=getNextElem();
+      }
+ catch (      InterruptedException e) {
+        logger.info("hasNext is interrupted while waiting for the next elem, existing...");
+        break;
+      }
     }
- catch (    InterruptedException e) {
-      logger.info("hasNext is interrupted while waiting for the next elem, existing...");
-      break;
+    if (null != currentElem && !currentElem.equals(DonorBasedRebalanceAsyncOperation.END) && !currentElem.equals(DonorBasedRebalanceAsyncOperation.BREAK)) {
+      hasNext=true;
     }
-  }
-  if (null != currentElem && !currentElem.equals(DonorBasedRebalanceAsyncOperation.END)) {
-    hasNext=true;
+    if (currentElem != null && currentElem.equals(DonorBasedRebalanceAsyncOperation.END)) {
+      done=true;
+      hasNext=false;
+    }
   }
   return hasNext;
 }

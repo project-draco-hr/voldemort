@@ -1,0 +1,32 @@
+{
+  boolean needWait=false;
+  logger.info("DonorBasedRebalancePusherSlave begains to send partitions for store " + storeName + " to node "+ nodeId);
+  while (!nodeIterator.done) {
+    try {
+      nodeIterator.reset();
+      adminClient.updateEntries(nodeId,storeName,nodeIterator,null);
+      nodeIterator.purge();
+    }
+ catch (    VoldemortException e) {
+      if (e.getCause() instanceof IOException) {
+        nodeIterator.setRecoveryMode();
+        logger.error("Exception received while pushing entries for store " + storeName + " to remote node "+ nodeId+ ". Will retry again after 5 minutes");
+        logger.error(e.getCause());
+        needWait=true;
+      }
+ else {
+        throw e;
+      }
+    }
+    if (needWait) {
+      try {
+        logger.info("waiting for 5 minutes for the remote node to recover");
+        Thread.sleep(30000);
+        needWait=false;
+      }
+ catch (      InterruptedException e) {
+      }
+    }
+  }
+  logger.info("DonorBasedRebalancePusherSlave finished sending partitions for store " + storeName + " to node "+ nodeId);
+}
