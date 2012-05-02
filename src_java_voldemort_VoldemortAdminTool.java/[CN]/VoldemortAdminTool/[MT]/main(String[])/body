@@ -30,7 +30,7 @@
   parser.accepts("backup-verify","If provided, backup will also verify checksum (with extra overhead)");
   parser.accepts("backup-incremental","Perform an incremental backup for point-in-time recovery." + " By default backup has latest consistent snapshot.");
   parser.accepts("rollback","rollback a store").withRequiredArg().describedAs("store-name").ofType(String.class);
-  parser.accepts("version","version of store to rollback to").withRequiredArg().describedAs("version").ofType(Long.class);
+  parser.accepts("version","Push version of store to rollback to").withRequiredArg().describedAs("version").ofType(Long.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     printHelp(System.out,parser);
@@ -105,7 +105,7 @@
   }
   if (options.has("rollback")) {
     if (!options.has("version")) {
-      Utils.croak("A version of the read-only store must be specified with rollback option");
+      Utils.croak("A read-only push version must be specified with rollback option");
     }
     ops+="o";
   }
