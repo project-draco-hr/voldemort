@@ -1,5 +1,9 @@
 {
   boolean gotPermit=this.scanPermits.tryAcquire();
-  if (gotPermit)   permitOwners.add(Thread.currentThread().getStackTrace()[2].getClassName());
+  if (gotPermit) {
+synchronized (permitOwners) {
+      permitOwners.add(Thread.currentThread().getStackTrace()[2].getClassName());
+    }
+  }
   return gotPermit;
 }

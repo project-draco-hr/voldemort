@@ -1,4 +1,6 @@
 {
   this.scanPermits.acquire();
-  permitOwners.add(Thread.currentThread().getStackTrace()[2].getClassName());
+synchronized (permitOwners) {
+    permitOwners.add(Thread.currentThread().getStackTrace()[2].getClassName());
+  }
 }
