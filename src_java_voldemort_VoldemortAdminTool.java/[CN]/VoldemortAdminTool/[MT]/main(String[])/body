@@ -29,6 +29,7 @@
   parser.accepts("backup-timeout").withRequiredArg().describedAs("minutes to wait for backup completion, default 30 mins").ofType(Integer.class);
   parser.accepts("backup-verify","If provided, backup will also verify checksum (with extra overhead)");
   parser.accepts("backup-incremental","Perform an incremental backup for point-in-time recovery." + " By default backup has latest consistent snapshot.");
+  parser.accepts("zone","zone id").withRequiredArg().describedAs("zone-id").ofType(Integer.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     printHelp(System.out,parser);
@@ -45,6 +46,7 @@
   String url=(String)options.valueOf("url");
   Integer nodeId=CmdUtils.valueOf(options,"node",-1);
   int parallelism=CmdUtils.valueOf(options,"restore",5);
+  Integer zoneId=CmdUtils.valueOf(options,"zone",-1);
   AdminClient adminClient=new AdminClient(url,new AdminClientConfig());
   String ops="";
   if (options.has("delete-partitions")) {
@@ -126,7 +128,7 @@
         System.exit(1);
       }
       System.out.println("Starting restore");
-      adminClient.restoreDataFromReplications(nodeId,parallelism);
+      adminClient.restoreDataFromReplications(nodeId,parallelism,zoneId);
       System.out.println("Finished restore");
     }
     if (ops.contains("k")) {
