@@ -7,7 +7,6 @@
   int index=0;
   while (!found && index < remainderPartitions.size()) {
     replicaType=originalPartitions.indexOf(remainderPartitions.get(index));
-    partition=originalPartitions.get(0);
     nodeId=partitionToNodeId.get(remainderPartitions.get(index));
     if (-1 == zoneId || cluster.getNodeById(nodeId).getZoneId() == zoneId) {
       found=true;
@@ -19,6 +18,7 @@
   if (!found) {
     throw new VoldemortException("unable to find a node to fetch partition " + partition + " of replica type "+ replicaType+ " for store "+ storeDef.getName());
   }
+  partition=originalPartitions.get(0);
   HashMap<Integer,List<Integer>> replicaToPartitionList=null;
   if (donorMap.containsKey(nodeId)) {
     replicaToPartitionList=donorMap.get(nodeId);
