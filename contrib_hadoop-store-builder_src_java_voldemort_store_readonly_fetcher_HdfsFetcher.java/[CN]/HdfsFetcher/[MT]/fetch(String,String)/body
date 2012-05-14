@@ -5,11 +5,32 @@
   }
   ObjectName jmxName=null;
   try {
-    Path path=new Path(sourceFileUrl);
-    Configuration config=new Configuration();
+    final Path path=new Path(sourceFileUrl);
+    final Configuration config=new Configuration();
     config.setInt("io.socket.receive.buffer",bufferSize);
     config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
-    FileSystem fs=path.getFileSystem(config);
+    FileSystem fs=null;
+    if (this.keytabLocation.length() > 0) {
+      logger.debug("keytab path = " + keytabLocation + " and proxy user = "+ proxyUser);
+      UserGroupInformation.loginUserFromKeytab(proxyUser,keytabLocation);
+      logger.debug("I've logged in and am now Doasing as " + UserGroupInformation.getCurrentUser().getUserName());
+      try {
+        fs=UserGroupInformation.getCurrentUser().doAs(new PrivilegedExceptionAction<FileSystem>(){
+          public FileSystem run() throws Exception {
+            FileSystem fs=path.getFileSystem(config);
+            return fs;
+          }
+        }
+);
+      }
+ catch (      InterruptedException e) {
+        logger.error(e.getMessage());
+        return null;
+      }
+    }
+ else {
+      fs=path.getFileSystem(config);
+    }
     CopyStats stats=new CopyStats(sourceFileUrl,sizeOfPath(fs,path));
     jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
     File destination=new File(destinationFile);
@@ -17,6 +38,7 @@
       throw new VoldemortException("Version directory " + destination.getAbsolutePath() + " already exists");
     }
     boolean result=fetch(fs,path,destination,stats);
+    fs.close();
     if (result) {
       return destination;
     }
