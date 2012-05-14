@@ -23,7 +23,7 @@
     nonblockingSlopStores.put(nodeId,routedStoreFactory.toNonblockingStore(slopStorageEngine));
     slopStores.put(nodeId,storageEngine);
     MetadataStore metadataStore=ServerTestUtils.createMetadataStore(cluster,Lists.newArrayList(storeDef));
-    StreamingSlopPusherJob pusher=new StreamingSlopPusherJob(storeRepo,metadataStore,failureDetector,ServerTestUtils.createServerConfigWithDefs(false,nodeId,TestUtils.createTempDir().getAbsolutePath(),cluster,Lists.newArrayList(storeDef),new Properties()),new Semaphore(1));
+    StreamingSlopPusherJob pusher=new StreamingSlopPusherJob(storeRepo,metadataStore,failureDetector,ServerTestUtils.createServerConfigWithDefs(false,nodeId,TestUtils.createTempDir().getAbsolutePath(),cluster,Lists.newArrayList(storeDef),new Properties()),new ScanPermitWrapper(1));
     slopPusherJobs.add(pusher);
   }
   Map<Integer,NonblockingStore> nonblockingStores=Maps.newHashMap();

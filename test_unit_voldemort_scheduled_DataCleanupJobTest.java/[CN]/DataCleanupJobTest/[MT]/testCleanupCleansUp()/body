@@ -5,6 +5,6 @@
   put("d","e","f");
   assertContains("a","b","c","d","e","f");
   put("a");
-  new DataCleanupJob<String,String,String>(engine,new Semaphore(1),Time.MS_PER_DAY,time,new EventThrottler(1)).run();
+  new DataCleanupJob<String,String,String>(engine,new ScanPermitWrapper(1),Time.MS_PER_DAY,time,new EventThrottler(1)).run();
   assertContains("a","d","e","f");
 }

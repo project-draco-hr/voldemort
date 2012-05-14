@@ -3,7 +3,7 @@
   StorageEngine<ByteArray,Slop,byte[]> slopStoreNode0=getVoldemortServer(0).getStoreRepository().getSlopStore().asSlopStore();
   final List<Versioned<Slop>> entrySet=ServerTestUtils.createRandomSlops(1,100,"test-replication-memory","users","test-replication-persistent","test-readrepair-memory","test-consistent","test-consistent-with-pref-list");
   populateSlops(0,slopStoreNode0,entrySet);
-  StreamingSlopPusherJob pusher=new StreamingSlopPusherJob(getVoldemortServer(0).getStoreRepository(),getVoldemortServer(0).getMetadataStore(),new BannagePeriodFailureDetector(new FailureDetectorConfig().setNodes(cluster.getNodes()).setStoreVerifier(new ServerStoreVerifier(socketStoreFactory,metadataStore,configs[0]))),configs[0],new Semaphore(1));
+  StreamingSlopPusherJob pusher=new StreamingSlopPusherJob(getVoldemortServer(0).getStoreRepository(),getVoldemortServer(0).getMetadataStore(),new BannagePeriodFailureDetector(new FailureDetectorConfig().setNodes(cluster.getNodes()).setStoreVerifier(new ServerStoreVerifier(socketStoreFactory,metadataStore,configs[0]))),configs[0],new ScanPermitWrapper(1));
   pusher.run();
   Thread.sleep(2000);
   Iterator<Versioned<Slop>> entryIterator=entrySet.listIterator();
