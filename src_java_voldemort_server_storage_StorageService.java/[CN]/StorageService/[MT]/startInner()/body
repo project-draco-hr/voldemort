@@ -2,6 +2,7 @@
   registerEngine(metadata,false,"metadata");
   for (  String configClassName : voldemortConfig.getStorageConfigurations())   initStorageConfig(configClassName);
   storageConfigs.put(ViewStorageConfiguration.TYPE_NAME,new ViewStorageConfiguration(voldemortConfig,metadata.getStoreDefList(),storeRepository));
+  initSystemStores();
   if (voldemortConfig.isSlopEnabled()) {
     logger.info("Initializing the slop store using " + voldemortConfig.getSlopStoreType());
     StorageConfiguration config=storageConfigs.get(voldemortConfig.getSlopStoreType());
