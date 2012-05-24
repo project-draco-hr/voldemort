@@ -3,7 +3,13 @@
   Cursor cursor=null;
   try {
     cursor=getBdbDatabase().openCursor(null,null);
-    return get(cursor,key,lockMode,serializer);
+    List<T> result=get(cursor,key,lockMode,serializer);
+    if (result.size() == 0 && lockMode != LockMode.DEFAULT) {
+      return get(cursor,key,LockMode.DEFAULT,serializer);
+    }
+ else {
+      return result;
+    }
   }
  catch (  DatabaseException e) {
     logger.error(e);
