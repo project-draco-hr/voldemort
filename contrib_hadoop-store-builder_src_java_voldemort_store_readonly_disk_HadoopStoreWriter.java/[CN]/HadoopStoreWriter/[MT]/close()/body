@@ -17,18 +17,18 @@
   Path nodeDir=new Path(this.outputDir,"node-" + this.nodeId);
   FileSystem outputFs=nodeDir.getFileSystem(this.conf);
   outputFs.mkdirs(nodeDir);
-  outputFs.setPermission(nodeDir,new FsPermission("755"));
+  outputFs.setPermission(nodeDir,new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
   logger.info("Setting permission to 755 for " + nodeDir);
   if (this.checkSumType != CheckSumType.NONE) {
     if (this.checkSumDigestIndex != null && this.checkSumDigestValue != null) {
       Path checkSumIndexFile=new Path(nodeDir,fileNamePrefix + ".index.checksum");
       Path checkSumValueFile=new Path(nodeDir,fileNamePrefix + ".data.checksum");
       FSDataOutputStream output=outputFs.create(checkSumIndexFile);
-      outputFs.setPermission(checkSumIndexFile,new FsPermission("755"));
+      outputFs.setPermission(checkSumIndexFile,new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
       output.write(this.checkSumDigestIndex.getCheckSum());
       output.close();
       output=outputFs.create(checkSumValueFile);
-      outputFs.setPermission(checkSumValueFile,new FsPermission("755"));
+      outputFs.setPermission(checkSumValueFile,new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
       output.write(this.checkSumDigestValue.getCheckSum());
       output.close();
     }

@@ -28,10 +28,10 @@
       this.taskValueFileName[chunkId]=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + Integer.toString(chunkId)+ "_"+ this.taskId+ ".data");
       if (this.fs == null)       this.fs=this.taskIndexFileName[chunkId].getFileSystem(job);
       this.indexFileStream[chunkId]=fs.create(this.taskIndexFileName[chunkId]);
-      fs.setPermission(this.taskIndexFileName[chunkId],new FsPermission("755"));
+      fs.setPermission(this.taskIndexFileName[chunkId],new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
       logger.info("Setting permission to 755 for " + this.taskIndexFileName[chunkId]);
       this.valueFileStream[chunkId]=fs.create(this.taskValueFileName[chunkId]);
-      fs.setPermission(this.taskValueFileName[chunkId],new FsPermission("755"));
+      fs.setPermission(this.taskValueFileName[chunkId],new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
       logger.info("Setting permission to 755 for " + this.taskValueFileName[chunkId]);
       logger.info("Opening " + this.taskIndexFileName[chunkId] + " and "+ this.taskValueFileName[chunkId]+ " for writing.");
     }
