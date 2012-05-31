@@ -1,4 +1,9 @@
 {
   Map<String,RoutingStrategy> routingStrategyMap=(Map<String,RoutingStrategy>)metadataCache.get(ROUTING_STRATEGY_KEY).getValue();
-  return routingStrategyMap.get(storeName);
+  RoutingStrategy strategy=routingStrategyMap.get(storeName);
+  if (strategy == null) {
+    Map<String,RoutingStrategy> systemRoutingStrategyMap=(Map<String,RoutingStrategy>)metadataCache.get(SYSTEM_ROUTING_STRATEGY_KEY).getValue();
+    strategy=systemRoutingStrategyMap.get(storeName);
+  }
+  return strategy;
 }

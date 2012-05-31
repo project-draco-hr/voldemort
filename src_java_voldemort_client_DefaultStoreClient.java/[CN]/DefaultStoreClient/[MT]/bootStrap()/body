@@ -1,4 +1,9 @@
 {
   logger.info("Bootstrapping metadata for store " + this.storeName);
   this.store=storeFactory.getRawStore(storeName,resolver,clientId);
+  logger.info("Creating System store");
+  String systemKey=storeName + "-client";
+  this.sysStore=new SystemStore<String,String>("voldsys$_client_registry",this.storeFactory);
+  sysStore.putSysStore(systemKey,"Registered");
+  logger.info("Getting value - " + sysStore.getSysStore(systemKey));
 }

@@ -1,0 +1,10 @@
+{
+  logger.info("Invoking Get for key : " + key + " on store name : "+ this.storeName);
+  Versioned<V> versioned=null;
+  List<Versioned<V>> items=this.sysStore.get(key,null);
+  if (items.size() == 1)   versioned=items.get(0);
+ else   if (items.size() > 1)   throw new InconsistentDataException("Unresolved versions returned from get(" + key + ") = "+ items,items);
+  if (versioned != null)   logger.info("Value for key : " + key + " = "+ versioned.getValue()+ " on store name : "+ this.storeName);
+ else   logger.info("Got null value");
+  return versioned;
+}
