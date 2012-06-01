@@ -12,7 +12,7 @@
   FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setImplementationClassName(failureDetectorClass.getName()).setBannagePeriod(1000).setNodes(cluster.getNodes()).setStoreVerifier(create(subStores)).setTime(time);
   failureDetector=create(failureDetectorConfig,false);
   routedStoreThreadPool=Executors.newFixedThreadPool(1);
-  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,1000L);
+  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,new TimeoutConfig(1000L,false));
   RoutedStore store=routedStoreFactory.create(cluster,storeDef,subStores,true,failureDetector);
   recordException(failureDetector,Iterables.get(cluster.getNodes(),0));
   store.put(key,new Versioned<byte[]>(value),null);

@@ -14,7 +14,7 @@
   }
   setFailureDetector(stores);
   routedStoreThreadPool=Executors.newFixedThreadPool(3);
-  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,timeout);
+  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,new TimeoutConfig(timeout,false));
   RoutedStore routedStore=routedStoreFactory.create(new Cluster("test",nodes),definition,stores,true,failureDetector);
   long start=System.nanoTime();
   try {

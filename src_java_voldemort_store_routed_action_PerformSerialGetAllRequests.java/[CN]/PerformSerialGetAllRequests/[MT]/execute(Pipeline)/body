@@ -64,9 +64,14 @@
   for (  ByteArray key : keys) {
     MutableInt successCount=pipelineData.getSuccessCount(key);
     if (successCount.intValue() < required) {
-      pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but "+ successCount.intValue()+ " succeeded. Failing nodes : "+ pipelineData.getFailedNodes(),pipelineData.getFailures()));
-      pipeline.addEvent(Event.ERROR);
-      return;
+      if (allowPartial) {
+        result.remove(key);
+      }
+ else {
+        pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but "+ successCount.intValue()+ " succeeded. Failing nodes : "+ pipelineData.getFailedNodes(),pipelineData.getFailures()));
+        pipeline.addEvent(Event.ERROR);
+        return;
+      }
     }
   }
   pipeline.addEvent(completeEvent);

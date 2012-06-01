@@ -63,6 +63,13 @@
   this.clientMaxConnectionsPerNode=props.getInt("client.max.connections.per.node",50);
   this.clientConnectionTimeoutMs=props.getInt("client.connection.timeout.ms",500);
   this.clientRoutingTimeoutMs=props.getInt("client.routing.timeout.ms",15000);
+  this.clientTimeoutConfig=new TimeoutConfig(this.clientRoutingTimeoutMs,false);
+  this.clientTimeoutConfig.getTimeoutMs(props.getInt("client.routing.get.timeout.ms",this.clientRoutingTimeoutMs),TimeUnit.MILLISECONDS);
+  this.clientTimeoutConfig.getAllTimeoutMs(props.getInt("client.routing.getall.timeout.ms",this.clientRoutingTimeoutMs),TimeUnit.MILLISECONDS);
+  this.clientTimeoutConfig.putTimeoutMs(props.getInt("client.routing.put.timeout.ms",this.clientRoutingTimeoutMs),TimeUnit.MILLISECONDS);
+  this.clientTimeoutConfig.getVersionsTimeoutMs(props.getLong("client.routing.getversions.timeout.ms",this.clientTimeoutConfig.putTimeoutMs()),TimeUnit.MILLISECONDS);
+  this.clientTimeoutConfig.deleteTimeoutMs(props.getInt("client.routing.delete.timeout.ms",this.clientRoutingTimeoutMs),TimeUnit.MILLISECONDS);
+  this.clientTimeoutConfig.setPartialGetAllAllowed(props.getBoolean("client.routing.allow.partial.getall",false));
   this.clientMaxThreads=props.getInt("client.max.threads",500);
   this.clientThreadIdleMs=props.getInt("client.thread.idle.ms",100000);
   this.clientMaxQueuedRequests=props.getInt("client.max.queued.requests",1000);

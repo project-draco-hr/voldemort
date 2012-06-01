@@ -9,7 +9,7 @@
   }
   setFailureDetector(subStores);
   routedStoreThreadPool=Executors.newFixedThreadPool(NUM_THREADS);
-  routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,1500L);
+  routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,new TimeoutConfig(1500L,false));
   strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
   Map<Integer,NonblockingStore> nonblockingSlopStores=Maps.newHashMap();
   for (  Node node : cluster.getNodes()) {

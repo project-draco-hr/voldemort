@@ -13,6 +13,7 @@
     callables.add(new GetCallable<R>(node,key,transforms,fetcher));
   }
   List<Future<GetResult<R>>> futures;
+  long timeoutMs=(fetcher == VERSION_OP) ? timeoutConfig.getVersionsTimeoutMs() : timeoutConfig.getTimeoutMs();
   try {
     futures=executor.invokeAll(callables,timeoutMs,TimeUnit.MILLISECONDS);
   }

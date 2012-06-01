@@ -12,6 +12,6 @@
   setFailureDetector(subStores);
   StoreDefinition storeDef=ServerTestUtils.getStoreDef("test",reads,reads,writes,writes,zonereads,zonewrites,zoneReplicationFactor,HintedHandoffStrategyType.PROXIMITY_STRATEGY,strategy);
   routedStoreThreadPool=Executors.newFixedThreadPool(threads);
-  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,timeOutMs);
+  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,new TimeoutConfig(timeOutMs,false));
   return routedStoreFactory.create(cluster,storeDef,subStores,true,failureDetector);
 }

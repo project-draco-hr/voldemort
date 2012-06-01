@@ -24,7 +24,7 @@
   Integer reqs=CmdUtils.valueOf(options,REQS,1000);
   ClientConfig config=new ClientConfig();
   if (options.has(CONNECTION_TIMEOUT))   config.setConnectionTimeout((Integer)options.valueOf(CONNECTION_TIMEOUT),TimeUnit.MILLISECONDS);
-  if (options.has(ROUTING_TIMEOUT))   config.setRoutingTimeout((Integer)options.valueOf(ROUTING_TIMEOUT),TimeUnit.MILLISECONDS);
+  if (options.has(ROUTING_TIMEOUT))   config.setTimeoutConfig(new TimeoutConfig(TimeUnit.MILLISECONDS.toMillis((Integer)options.valueOf(ROUTING_TIMEOUT)),false));
   if (options.has(SOCKET_TIMEOUT))   config.setSocketTimeout((Integer)options.valueOf(SOCKET_TIMEOUT),TimeUnit.MILLISECONDS);
   if (options.has(MAX_CONNECTIONS))   config.setMaxConnectionsPerNode((Integer)options.valueOf(MAX_CONNECTIONS));
   if (options.has(MAX_THREADS))   config.setMaxThreads((Integer)options.valueOf(MAX_THREADS));
