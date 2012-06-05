@@ -1,0 +1,14 @@
+{
+switch (getNodeConfigurationType(pipelineData)) {
+case DEFAULT:
+    return new ConfigureNodesDefault<List<Versioned<byte[]>>,BasicPipelineData<List<Versioned<byte[]>>>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredReads(),routingStrategy,key);
+case BYZONE:
+  return new ConfigureNodesByZone<List<Versioned<byte[]>>,BasicPipelineData<List<Versioned<byte[]>>>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredReads(),routingStrategy,key,clientZone);
+case DEFAULT_LOCAL:
+return new ConfigureNodesLocalHost<List<Versioned<byte[]>>,BasicPipelineData<List<Versioned<byte[]>>>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredReads(),routingStrategy,key);
+case BYZONE_LOCAL:
+return new ConfigureNodesLocalHostByZone<List<Versioned<byte[]>>,BasicPipelineData<List<Versioned<byte[]>>>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredReads(),routingStrategy,key,clientZone);
+default :
+return null;
+}
+}

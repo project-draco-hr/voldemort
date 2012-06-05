@@ -12,7 +12,8 @@
     }
   }
 ;
-  pipeline.addEventAction(Event.STARTED,new ConfigureNodes<List<Versioned<byte[]>>,BasicPipelineData<List<Versioned<byte[]>>>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredReads(),routingStrategy,key,clientZone));
+  AbstractConfigureNodes<ByteArray,List<Versioned<byte[]>>,BasicPipelineData<List<Versioned<byte[]>>>> configureNodes=getNodeConfiguration(pipelineData,key);
+  pipeline.addEventAction(Event.STARTED,configureNodes);
   pipeline.addEventAction(Event.CONFIGURED,new PerformParallelRequests<List<Versioned<byte[]>>,BasicPipelineData<List<Versioned<byte[]>>>>(pipelineData,allowReadRepair ? Event.RESPONSES_RECEIVED : Event.COMPLETED,key,transforms,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),timeoutConfig.getOperationTimeout(VoldemortOpCode.GET_OP_CODE),nonblockingStores,Event.INSUFFICIENT_SUCCESSES,Event.INSUFFICIENT_ZONES));
   pipeline.addEventAction(Event.INSUFFICIENT_SUCCESSES,new PerformSerialRequests<List<Versioned<byte[]>>,BasicPipelineData<List<Versioned<byte[]>>>>(pipelineData,allowReadRepair ? Event.RESPONSES_RECEIVED : Event.COMPLETED,key,failureDetector,innerStores,storeDef.getPreferredReads(),storeDef.getRequiredReads(),blockingStoreRequest,null));
   if (allowReadRepair)   pipeline.addEventAction(Event.RESPONSES_RECEIVED,new ReadRepair<BasicPipelineData<List<Versioned<byte[]>>>>(pipelineData,Event.COMPLETED,storeDef.getPreferredReads(),timeoutConfig.getOperationTimeout(VoldemortOpCode.GET_OP_CODE),nonblockingStores,readRepairer));
