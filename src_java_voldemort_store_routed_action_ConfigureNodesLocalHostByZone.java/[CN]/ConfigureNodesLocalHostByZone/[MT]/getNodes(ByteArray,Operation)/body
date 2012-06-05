@@ -1,0 +1,26 @@
+{
+  List<Node> nodes=null;
+  List<Node> reorderedNodes=new ArrayList<Node>();
+  try {
+    nodes=super.getNodes(key,op);
+    String currentHost=InetAddress.getLocalHost().getHostName();
+    for (    Node n : nodes) {
+      if (currentHost.contains(n.getHost()) || n.getHost().contains(currentHost)) {
+        reorderedNodes.add(n);
+        nodes.remove(n);
+        break;
+      }
+    }
+    reorderedNodes.addAll(nodes);
+    nodes=reorderedNodes;
+  }
+ catch (  VoldemortException e) {
+    pipelineData.setFatalError(e);
+    return null;
+  }
+catch (  UnknownHostException e) {
+    e.printStackTrace();
+    return null;
+  }
+  return nodes;
+}

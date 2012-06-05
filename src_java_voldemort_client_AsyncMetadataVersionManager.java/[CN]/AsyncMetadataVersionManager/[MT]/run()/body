@@ -1,0 +1,34 @@
+{
+  while (!Thread.currentThread().isInterrupted() && isRunning) {
+    try {
+      Thread.sleep(asyncMetadataCheckInterval);
+    }
+ catch (    InterruptedException e) {
+      break;
+    }
+    Versioned<Long> newVersion=this.sysStore.getSysStore(systemKey);
+    if (newVersion == null) {
+      logger.info("Metadata unchanged after creation ...");
+      continue;
+    }
+    logger.info("MetadataVersion check => Obtained " + systemKey + " version : "+ newVersion);
+    if (!newVersion.equals(currentVersion)) {
+      logger.info("Metadata version mismatch detected.");
+      int delta=randomGenerator.nextInt(DELTA_MAX);
+      try {
+        logger.info("Sleeping for delta : " + delta + " (ms) before re-bootstrapping.");
+        Thread.sleep(delta);
+      }
+ catch (      InterruptedException e) {
+        break;
+      }
+      try {
+        this.storeClientThunk.call();
+      }
+ catch (      Exception e) {
+        e.printStackTrace();
+      }
+      currentVersion=newVersion;
+    }
+  }
+}
