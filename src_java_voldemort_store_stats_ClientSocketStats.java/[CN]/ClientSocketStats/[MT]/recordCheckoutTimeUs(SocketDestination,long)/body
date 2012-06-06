@@ -1,0 +1,22 @@
+{
+  if (dest != null) {
+    getOrCreateNodeStats(dest).recordCheckoutTimeUs(null,checkoutTimeUs);
+    recordCheckoutTimeUs(null,checkoutTimeUs);
+  }
+ else {
+    this.totalCheckoutTimeUs.getAndAdd(checkoutTimeUs);
+    checkoutTimeUsHistogram.insert(checkoutTimeUs);
+    int checkouts=this.connectionsCheckedout.getAndIncrement();
+    if (parent == null && statsMap != null) {
+      int interval=this.monitoringInterval.get();
+      if (checkouts % interval == interval - 1) {
+        Iterator<SocketDestination> it=statsMap.keySet().iterator();
+        while (it.hasNext()) {
+          ClientSocketStats stats=statsMap.get(it.next());
+          stats.resetForInterval();
+        }
+        resetForInterval();
+      }
+    }
+  }
+}
