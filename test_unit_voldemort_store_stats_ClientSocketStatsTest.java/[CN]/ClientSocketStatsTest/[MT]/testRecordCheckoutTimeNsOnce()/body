@@ -1,0 +1,11 @@
+{
+  ClientSocketStats stats=masterStats;
+  assertEquals(0,stats.getConnectionsCheckedout());
+  stats.recordCheckoutTimeUs(dest1,100);
+  assertEquals(1,stats.getConnectionsCheckedout());
+  assertEquals(100,stats.getWaitHistogram().getQuantile(0.99));
+  ClientSocketStats child=stats.getStatsMap().get(dest1);
+  assertNotNull(child);
+  assertEquals(1,child.getConnectionsCheckedout());
+  assertEquals(100,child.getWaitHistogram().getQuantile(0.99));
+}

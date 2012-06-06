@@ -1,0 +1,27 @@
+{
+  ClientSocketStats stats=masterStats;
+  stats.setMonitoringInterval(9);
+  stats.recordCheckoutTimeUs(dest1,100);
+  stats.recordCheckoutTimeUs(dest1,200);
+  stats.recordCheckoutTimeUs(dest1,300);
+  stats.recordCheckoutTimeUs(dest1,400);
+  stats.recordCheckoutTimeUs(dest1,500);
+  stats.recordCheckoutTimeUs(dest1,600);
+  stats.recordCheckoutTimeUs(dest2,700);
+  stats.recordCheckoutTimeUs(dest2,800);
+  assertEquals(8,stats.getConnectionsCheckedout());
+  assertEquals(450,stats.getAveWaitUs());
+  ClientSocketStats child1=stats.getStatsMap().get(dest1);
+  ClientSocketStats child2=stats.getStatsMap().get(dest2);
+  assertEquals(6,child1.getConnectionsCheckedout());
+  assertEquals(2,child2.getConnectionsCheckedout());
+  assertEquals(350,child1.getAveWaitUs());
+  assertEquals(750,child2.getAveWaitUs());
+  stats.recordCheckoutTimeUs(dest2,900000);
+  assertEquals(-1,stats.getAveWaitUs());
+  assertEquals(0,stats.getConnectionsCheckedout());
+  assertEquals(-1,child1.getAveWaitUs());
+  assertEquals(0,child1.getConnectionsCheckedout());
+  assertEquals(-1,child2.getAveWaitUs());
+  assertEquals(0,child2.getConnectionsCheckedout());
+}

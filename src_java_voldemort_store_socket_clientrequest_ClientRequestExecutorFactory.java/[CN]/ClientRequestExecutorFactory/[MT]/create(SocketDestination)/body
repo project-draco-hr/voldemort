@@ -1,5 +1,8 @@
 {
   int numCreated=created.incrementAndGet();
+  if (stats != null) {
+    stats.connectionCreate(dest);
+  }
   if (logger.isDebugEnabled())   logger.debug("Creating socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " using protocol "+ dest.getRequestFormatType().getCode());
   SocketChannel socketChannel=SocketChannel.open();
   socketChannel.socket().setReceiveBufferSize(this.socketBufferSize);
