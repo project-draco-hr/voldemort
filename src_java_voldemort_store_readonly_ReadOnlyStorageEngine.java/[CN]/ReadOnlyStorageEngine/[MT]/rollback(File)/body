@@ -7,7 +7,7 @@
     long versionId=ReadOnlyUtils.getVersionId(rollbackToDir);
     if (versionId == -1)     throw new VoldemortException("Cannot parse version id");
     File[] backUpDirs=ReadOnlyUtils.getVersionDirs(storeDir,versionId,Long.MAX_VALUE);
-    if (backUpDirs.length <= 1) {
+    if (backUpDirs == null || backUpDirs.length <= 1) {
       logger.warn("No rollback performed since there are no back-up directories");
       return;
     }
