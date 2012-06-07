@@ -1,5 +1,8 @@
 {
   clientRequestExecutor.close();
   int numDestroyed=destroyed.incrementAndGet();
+  if (stats != null) {
+    stats.connectionDestroy(dest);
+  }
   if (logger.isDebugEnabled())   logger.debug("Destroyed socket " + numDestroyed + " connection to "+ dest.getHost()+ ":"+ dest.getPort());
 }

@@ -2,7 +2,10 @@
   try {
     long start=System.nanoTime();
     ClientRequestExecutor clientRequestExecutor=pool.checkout(destination);
-    updateStats(System.nanoTime() - start);
+    long end=System.nanoTime();
+    if (stats != null) {
+      stats.recordCheckoutTimeUs(destination,(end - start) / Time.NS_PER_US);
+    }
     return clientRequestExecutor;
   }
  catch (  Exception e) {
