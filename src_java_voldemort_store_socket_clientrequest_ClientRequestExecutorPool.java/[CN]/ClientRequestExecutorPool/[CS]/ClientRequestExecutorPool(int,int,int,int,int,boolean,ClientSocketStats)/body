@@ -1,0 +1,9 @@
+{
+  ResourcePoolConfig config=new ResourcePoolConfig().setIsFair(true).setMaxPoolSize(maxConnectionsPerNode).setMaxInvalidAttempts(maxConnectionsPerNode).setTimeout(connectionTimeoutMs,TimeUnit.MILLISECONDS);
+  this.stats=stats;
+  this.factory=new ClientRequestExecutorFactory(selectors,connectionTimeoutMs,soTimeoutMs,socketBufferSize,socketKeepAlive,stats);
+  this.pool=new KeyedResourcePool<SocketDestination,ClientRequestExecutor>(factory,config);
+  if (stats != null) {
+    this.stats.setPool(pool);
+  }
+}

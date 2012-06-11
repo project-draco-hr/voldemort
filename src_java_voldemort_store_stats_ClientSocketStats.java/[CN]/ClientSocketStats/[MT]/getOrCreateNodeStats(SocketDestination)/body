@@ -7,9 +7,7 @@
     stats=new ClientSocketStats(this,destination,pool);
     statsMap.putIfAbsent(destination,stats);
     stats=statsMap.get(destination);
-    if (this.jmxEnable) {
-      JmxUtils.registerMbean(new ClientSocketStatsJmx(stats),JmxUtils.createObjectName("voldemort.store.socket.clientrequest","stats_" + destination.toString().replace(':','_')));
-    }
+    JmxUtils.registerMbean(new ClientSocketStatsJmx(stats),JmxUtils.createObjectName(JmxUtils.getPackageName(ClientRequestExecutor.class),"stats_" + destination.toString().replace(':','_')));
   }
   return stats;
 }
