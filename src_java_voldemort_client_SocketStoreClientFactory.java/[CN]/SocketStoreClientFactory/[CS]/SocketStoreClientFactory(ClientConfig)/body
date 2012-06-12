@@ -1,12 +1,5 @@
 {
   super(config);
   this.requestRoutingType=RequestRoutingType.getRequestRoutingType(RoutingTier.SERVER.equals(config.getRoutingTier()),false);
-  if (config.isJmxEnabled()) {
-    stats=new ClientSocketStats();
-  }
- else {
-    stats=null;
-  }
-  this.storeFactory=new ClientRequestExecutorPool(config.getSelectors(),config.getMaxConnectionsPerNode(),config.getConnectionTimeout(TimeUnit.MILLISECONDS),config.getSocketTimeout(TimeUnit.MILLISECONDS),config.getSocketBufferSize(),config.getSocketKeepAlive(),stats);
-  JmxUtils.registerMbean(new ClientSocketStatsJmx(stats),JmxUtils.createObjectName(JmxUtils.getPackageName(storeFactory.getClass()),"aggregated"));
+  this.storeFactory=new ClientRequestExecutorPool(config.getSelectors(),config.getMaxConnectionsPerNode(),config.getConnectionTimeout(TimeUnit.MILLISECONDS),config.getSocketTimeout(TimeUnit.MILLISECONDS),config.getSocketBufferSize(),config.getSocketKeepAlive(),config.isJmxEnabled());
 }
