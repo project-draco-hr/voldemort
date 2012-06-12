@@ -1,6 +1,6 @@
 {
   List<StoreDefinition> storeDefinitionList=adminClient.getRemoteStoreDefList(nodeId).getValue();
-  Map<String,StoreDefinition> storeDefinitionMap=Maps.newHashMap();
+  HashMap<String,StoreDefinition> storeDefinitionMap=Maps.newHashMap();
   for (  StoreDefinition storeDefinition : storeDefinitionList) {
     storeDefinitionMap.put(storeDefinition.getName(),storeDefinition);
   }
@@ -15,6 +15,9 @@
   if (stores == null) {
     stores=Lists.newArrayList();
     stores.addAll(storeDefinitionMap.keySet());
+  }
+ else {
+    storeDefinitionMap.putAll(getSystemStoreDef());
   }
   if (partitionIdList == null) {
     partitionIdList=Lists.newArrayList();

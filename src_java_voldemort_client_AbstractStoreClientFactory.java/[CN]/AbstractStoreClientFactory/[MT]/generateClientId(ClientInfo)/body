@@ -1,0 +1,14 @@
+{
+  String contextName=clientInfo.getContext();
+  int clientSequence=clientInfo.getClientSequence();
+  String newLine=System.getProperty("line.separator");
+  StringBuilder context=new StringBuilder(contextName == null ? "" : contextName);
+  context.append(0 == clientSequence ? "" : ("." + clientSequence));
+  context.append(".").append(clientInfo.getStoreName());
+  context.append("@").append(clientInfo.getLocalHostName()).append(":");
+  context.append(clientInfo.getDeploymentPath()).append(newLine);
+  if (logger.isDebugEnabled()) {
+    logger.debug(context.toString());
+  }
+  return UUID.nameUUIDFromBytes(context.toString().getBytes());
+}
