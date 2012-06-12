@@ -16,7 +16,10 @@
   List<StoreDefinition> storeDefs=storeMapper.readStoreList(new StringReader(storesXml),false);
   StoreDefinition storeDef=null;
   for (  StoreDefinition d : storeDefs)   if (d.getName().equals(storeName))   storeDef=d;
-  if (storeDef == null)   throw new BootstrapFailureException("Unknown store '" + storeName + "'.");
+  if (storeDef == null) {
+    logger.error("Bootstrap - unknown store: " + storeName);
+    throw new BootstrapFailureException("Unknown store '" + storeName + "'.");
+  }
   if (logger.isDebugEnabled()) {
     logger.debug(cluster.toString(true));
     logger.debug(storeDef.toString());

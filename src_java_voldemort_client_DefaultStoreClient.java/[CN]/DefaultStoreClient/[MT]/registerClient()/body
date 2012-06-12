@@ -1,0 +1,15 @@
+{
+  String name=SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name();
+  SystemStore<String,ClientInfo> clientRegistry=sysStoreMap.get(name);
+  if (null != clientRegistry) {
+    try {
+      clientRegistry.putSysStore(clientId.toString(),clientInfo);
+    }
+ catch (    Exception e) {
+      logger.warn("Unable to register with the cluster due to the following error:",e);
+    }
+  }
+ else {
+    logger.warn(name + "not found. Unable to registry with voldemort cluster.");
+  }
+}

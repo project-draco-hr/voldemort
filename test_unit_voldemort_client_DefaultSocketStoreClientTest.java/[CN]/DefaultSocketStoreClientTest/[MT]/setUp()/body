@@ -1,9 +1,8 @@
 {
-  String socketUrl="tcp://localhost:6667";
-  String storeName="test";
-  ClientConfig clientConfig=new ClientConfig().setMaxThreads(4).setMaxTotalConnections(4).setMaxConnectionsPerNode(4).setBootstrapUrls(socketUrl);
-  SocketStoreClientFactory socketFactory=new SocketStoreClientFactory(clientConfig);
-  this.client=socketFactory.getStoreClient(storeName);
-  this.nodeId=0;
-  this.time=SystemTime.INSTANCE;
+  cluster=ServerTestUtils.getLocalCluster(2,new int[][]{{0,1,2,3},{4,5,6,7}});
+  servers=new VoldemortServer[2];
+  storeDefs=new StoreDefinitionsMapper().readStoreList(new File(storesXmlfile));
+  servers[0]=ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(useNio,0,TestUtils.createTempDir().getAbsolutePath(),null,storesXmlfile,new Properties()),cluster);
+  servers[1]=ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(useNio,1,TestUtils.createTempDir().getAbsolutePath(),null,storesXmlfile,new Properties()),cluster);
+  adminClient=ServerTestUtils.getAdminClient(cluster);
 }

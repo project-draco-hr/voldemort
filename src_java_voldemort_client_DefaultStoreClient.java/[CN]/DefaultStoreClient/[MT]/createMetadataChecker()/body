@@ -1,0 +1,17 @@
+{
+  AsyncMetadataVersionManager asyncCheckMetadata=null;
+  SystemStore versionStore=this.sysStoreMap.get(SystemStoreConstants.SystemStoreName.voldsys$_metadata_version.name());
+  if (versionStore == null)   logger.warn("Metadata version system store not found. Cannot run Metadata version check thread.");
+ else {
+    Callable<Void> bootstrapCallback=new Callable<Void>(){
+      public Void call() throws Exception {
+        bootStrap();
+        return null;
+      }
+    }
+;
+    asyncCheckMetadata=new AsyncMetadataVersionManager(versionStore,config.getAsyncCheckMetadataInterval(),bootstrapCallback);
+    logger.info("Metadata version check thread started. Frequency = Every " + config.getAsyncCheckMetadataInterval() + " ms");
+  }
+  return asyncCheckMetadata;
+}
