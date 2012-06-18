@@ -2,5 +2,5 @@
   super(config);
   this.requestRoutingType=RequestRoutingType.getRequestRoutingType(RoutingTier.SERVER.equals(config.getRoutingTier()),false);
   this.storeFactory=new ClientRequestExecutorPool(config.getSelectors(),config.getMaxConnectionsPerNode(),config.getConnectionTimeout(TimeUnit.MILLISECONDS),config.getSocketTimeout(TimeUnit.MILLISECONDS),config.getSocketBufferSize(),config.getSocketKeepAlive());
-  if (config.isJmxEnabled())   JmxUtils.registerMbean(storeFactory,JmxUtils.createObjectName(storeFactory.getClass()));
+  if (config.isJmxEnabled())   JmxUtils.registerMbean(storeFactory,JmxUtils.createObjectName(JmxUtils.getPackageName(storeFactory.getClass()),JmxUtils.getClassName(storeFactory.getClass()) + jmxId()));
 }
