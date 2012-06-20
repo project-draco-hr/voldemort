@@ -2,7 +2,7 @@
   for (int i=startingIndex; i < blockCount; i++) {
     try {
       long ellapsedNs=System.nanoTime() - startNs;
-      long remainingNs=(timeoutConfig.putTimeoutMs() * Time.NS_PER_MS) - ellapsedNs;
+      long remainingNs=(timeoutConfig.getOperationTimeout(VoldemortOperation.PUT) * Time.NS_PER_MS) - ellapsedNs;
       boolean acquiredPermit=semaphore.tryAcquire(Math.max(remainingNs,0),TimeUnit.NANOSECONDS);
       if (!acquiredPermit) {
         logger.warn("Timed out waiting for put # " + (i + 1) + " of "+ blockCount+ " to succeed.");

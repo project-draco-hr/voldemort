@@ -4,7 +4,7 @@
   if (zoneRoutingEnabled)   pipelineData.setZonesRequired(storeDef.getZoneCountReads());
  else   pipelineData.setZonesRequired(null);
   pipelineData.setStats(stats);
-  Pipeline pipeline=new Pipeline(Operation.GET_VERSIONS,timeoutConfig.getVersionsTimeoutMs(),TimeUnit.MILLISECONDS);
+  Pipeline pipeline=new Pipeline(Operation.GET_VERSIONS,timeoutConfig.getOperationTimeout(VoldemortOperation.GETVERSIONS),TimeUnit.MILLISECONDS);
   StoreRequest<List<Version>> blockingStoreRequest=new StoreRequest<List<Version>>(){
     public List<Version> request(    Store<ByteArray,byte[],byte[]> store){
       return store.getVersions(key);
@@ -12,7 +12,7 @@
   }
 ;
   pipeline.addEventAction(Event.STARTED,new ConfigureNodes<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredReads(),routingStrategy,key,clientZone));
-  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelRequests<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.COMPLETED,key,null,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),timeoutConfig.getVersionsTimeoutMs(),nonblockingStores,Event.INSUFFICIENT_SUCCESSES,Event.INSUFFICIENT_ZONES));
+  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelRequests<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.COMPLETED,key,null,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),timeoutConfig.getOperationTimeout(VoldemortOperation.GETVERSIONS),nonblockingStores,Event.INSUFFICIENT_SUCCESSES,Event.INSUFFICIENT_ZONES));
   pipeline.addEventAction(Event.INSUFFICIENT_SUCCESSES,new PerformSerialRequests<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,storeDef.getPreferredReads(),storeDef.getRequiredReads(),blockingStoreRequest,null));
   if (zoneRoutingEnabled)   pipeline.addEventAction(Event.INSUFFICIENT_ZONES,new PerformZoneSerialRequests<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,blockingStoreRequest));
   pipeline.addEvent(Event.STARTED);

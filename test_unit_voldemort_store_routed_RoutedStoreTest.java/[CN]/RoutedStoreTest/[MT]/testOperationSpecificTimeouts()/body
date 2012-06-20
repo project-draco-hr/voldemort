@@ -11,7 +11,7 @@
   setFailureDetector(stores);
   routedStoreThreadPool=Executors.newFixedThreadPool(3);
   TimeoutConfig timeoutConfig=new TimeoutConfig(1500,false);
-  timeoutConfig.getTimeoutMs(100,TimeUnit.MILLISECONDS);
+  timeoutConfig.setOperationTimeout(VoldemortOperation.GET,100);
   RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,timeoutConfig);
   RoutedStore routedStore=routedStoreFactory.create(new Cluster("test",nodes),definition,stores,true,failureDetector);
   try {

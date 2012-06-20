@@ -11,7 +11,7 @@
   setFailureDetector(stores);
   routedStoreThreadPool=Executors.newFixedThreadPool(3);
   TimeoutConfig timeoutConfig=new TimeoutConfig(1500,true);
-  timeoutConfig.getAllTimeoutMs(250,TimeUnit.MILLISECONDS);
+  timeoutConfig.setOperationTimeout(VoldemortOperation.GETALL,250);
   RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,timeoutConfig);
   RoutedStore routedStore=routedStoreFactory.create(new Cluster("test",nodes),definition,stores,true,failureDetector);
   Map<ByteArray,byte[]> expectedValues=Maps.newHashMap();

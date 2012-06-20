@@ -65,6 +65,9 @@
     MutableInt successCount=pipelineData.getSuccessCount(key);
     if (successCount.intValue() < required) {
       if (allowPartial) {
+        if (logger.isDebugEnabled()) {
+          logger.debug("Excluding Key " + ByteUtils.toHexString(key.get()) + " from partial get_all result");
+        }
         result.remove(key);
       }
  else {
