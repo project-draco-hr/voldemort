@@ -13,7 +13,7 @@
     callables.add(new GetCallable<R>(node,key,transforms,fetcher));
   }
   List<Future<GetResult<R>>> futures;
-  long timeoutMs=(fetcher == VERSION_OP) ? timeoutConfig.getOperationTimeout(VoldemortOperation.GETVERSIONS) : timeoutConfig.getOperationTimeout(VoldemortOperation.GET);
+  long timeoutMs=(fetcher == VERSION_OP) ? timeoutConfig.getOperationTimeout(VoldemortOpCode.GET_VERSION_OP_CODE) : timeoutConfig.getOperationTimeout(VoldemortOpCode.GET_OP_CODE);
   try {
     futures=executor.invokeAll(callables,timeoutMs,TimeUnit.MILLISECONDS);
   }

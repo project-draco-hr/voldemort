@@ -11,15 +11,15 @@
   if (props.containsKey(SELECTORS_PROPERTY))   this.setSelectors(props.getInt(SELECTORS_PROPERTY));
   if (props.containsKey(ROUTING_TIMEOUT_MS_PROPERTY))   this.setRoutingTimeout(props.getInt(ROUTING_TIMEOUT_MS_PROPERTY),TimeUnit.MILLISECONDS);
   timeoutConfig=new TimeoutConfig(routingTimeoutMs,false);
-  if (props.containsKey(GETALL_ROUTING_TIMEOUT_MS_PROPERTY))   timeoutConfig.setOperationTimeout(VoldemortOperation.GETALL,props.getInt(GETALL_ROUTING_TIMEOUT_MS_PROPERTY));
-  if (props.containsKey(GET_ROUTING_TIMEOUT_MS_PROPERTY))   timeoutConfig.setOperationTimeout(VoldemortOperation.GET,props.getInt(GET_ROUTING_TIMEOUT_MS_PROPERTY));
+  if (props.containsKey(GETALL_ROUTING_TIMEOUT_MS_PROPERTY))   timeoutConfig.setOperationTimeout(VoldemortOpCode.GET_ALL_OP_CODE,props.getInt(GETALL_ROUTING_TIMEOUT_MS_PROPERTY));
+  if (props.containsKey(GET_ROUTING_TIMEOUT_MS_PROPERTY))   timeoutConfig.setOperationTimeout(VoldemortOpCode.GET_OP_CODE,props.getInt(GET_ROUTING_TIMEOUT_MS_PROPERTY));
   if (props.containsKey(PUT_ROUTING_TIMEOUT_MS_PROPERTY)) {
     long putTimeoutMs=props.getInt(PUT_ROUTING_TIMEOUT_MS_PROPERTY);
-    timeoutConfig.setOperationTimeout(VoldemortOperation.PUT,putTimeoutMs);
-    timeoutConfig.setOperationTimeout(VoldemortOperation.GETVERSIONS,putTimeoutMs);
+    timeoutConfig.setOperationTimeout(VoldemortOpCode.PUT_OP_CODE,putTimeoutMs);
+    timeoutConfig.setOperationTimeout(VoldemortOpCode.GET_VERSION_OP_CODE,putTimeoutMs);
   }
-  if (props.containsKey(GET_VERSIONS_ROUTING_TIMEOUT_MS_PROPERTY))   timeoutConfig.setOperationTimeout(VoldemortOperation.GETVERSIONS,props.getInt(GET_VERSIONS_ROUTING_TIMEOUT_MS_PROPERTY));
-  if (props.containsKey(DELETE_ROUTING_TIMEOUT_MS_PROPERTY))   timeoutConfig.setOperationTimeout(VoldemortOperation.DELETE,props.getInt(DELETE_ROUTING_TIMEOUT_MS_PROPERTY));
+  if (props.containsKey(GET_VERSIONS_ROUTING_TIMEOUT_MS_PROPERTY))   timeoutConfig.setOperationTimeout(VoldemortOpCode.GET_VERSION_OP_CODE,props.getInt(GET_VERSIONS_ROUTING_TIMEOUT_MS_PROPERTY));
+  if (props.containsKey(DELETE_ROUTING_TIMEOUT_MS_PROPERTY))   timeoutConfig.setOperationTimeout(VoldemortOpCode.DELETE_OP_CODE,props.getInt(DELETE_ROUTING_TIMEOUT_MS_PROPERTY));
   if (props.containsKey(ALLOW_PARTIAL_GETALLS_PROPERTY))   timeoutConfig.setPartialGetAllAllowed(props.getBoolean(ALLOW_PARTIAL_GETALLS_PROPERTY));
   if (props.containsKey(SOCKET_BUFFER_SIZE_PROPERTY))   this.setSocketBufferSize(props.getInt(SOCKET_BUFFER_SIZE_PROPERTY));
   if (props.containsKey(SERIALIZER_FACTORY_CLASS_PROPERTY)) {
