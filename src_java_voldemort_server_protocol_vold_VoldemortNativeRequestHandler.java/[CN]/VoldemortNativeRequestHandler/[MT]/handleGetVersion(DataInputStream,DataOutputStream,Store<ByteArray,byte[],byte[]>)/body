@@ -1,4 +1,10 @@
 {
+  long startTimeMs=-1;
+  long startTimeNs=-1;
+  if (logger.isDebugEnabled()) {
+    startTimeMs=System.currentTimeMillis();
+    startTimeNs=System.nanoTime();
+  }
   ByteArray key=readKey(inputStream);
   List<Version> results=null;
   try {
@@ -11,9 +17,14 @@
     return;
   }
   outputStream.writeInt(results.size());
+  String clockStr="";
   for (  Version v : results) {
     byte[] clock=((VectorClock)v).toBytes();
+    if (logger.isDebugEnabled())     clockStr+=clock + " ";
     outputStream.writeInt(clock.length);
     outputStream.write(clock);
+  }
+  if (logger.isDebugEnabled()) {
+    logger.debug("GETVERSIONS started at: " + startTimeMs + " handlerRef: "+ System.identityHashCode(this)+ " key: "+ key+ " "+ (System.nanoTime() - startTimeNs)+ " ns, keySize: "+ key.length()+ "clocks: "+ clockStr);
   }
 }
