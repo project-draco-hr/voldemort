@@ -1,5 +1,12 @@
 {
-  List<Integer> keyPartitions=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster).getPartitionList(key);
-  List<Integer> nodePartitions=cluster.getNodeById(nodeId).getPartitionIds();
-  return checkKeyBelongsToPartition(keyPartitions,nodePartitions,replicaToPartitionList);
+  boolean checkResult=false;
+  if (storeDef.getRoutingStrategyType().equals(RoutingStrategyType.TO_ALL_STRATEGY) || storeDef.getRoutingStrategyType().equals(RoutingStrategyType.TO_ALL_LOCAL_PREF_STRATEGY)) {
+    checkResult=true;
+  }
+ else {
+    List<Integer> keyPartitions=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster).getPartitionList(key);
+    List<Integer> nodePartitions=cluster.getNodeById(nodeId).getPartitionIds();
+    checkResult=checkKeyBelongsToPartition(keyPartitions,nodePartitions,replicaToPartitionList);
+  }
+  return checkResult;
 }

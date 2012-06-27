@@ -3,7 +3,7 @@
   this.resolver=resolver;
   this.storeFactory=Utils.notNull(storeFactory);
   this.metadataRefreshAttempts=maxMetadataRefreshAttempts;
-  this.clientInfo=new ClientInfo(storeName,clientContext,clientSequence,System.currentTimeMillis());
+  this.clientInfo=new ClientInfo(storeName,clientContext,clientSequence,System.currentTimeMillis(),ManifestFileReader.getReleaseVersion());
   this.clientId=AbstractStoreClientFactory.generateClientId(clientInfo);
   this.config=config;
   JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass()) + "." + clientContext+ "."+ storeName+ "."+ clientId.toString()));
@@ -13,5 +13,5 @@
     asyncCheckMetadata=createMetadataChecker();
   }
   registerClient();
-  logger.info("Voldemort client created: clientContext=" + clientContext + " clientSequence="+ clientSequence+ " clientId="+ clientId.toString());
+  logger.info("Voldemort client created: " + clientId.toString() + "\n"+ clientInfo);
 }
