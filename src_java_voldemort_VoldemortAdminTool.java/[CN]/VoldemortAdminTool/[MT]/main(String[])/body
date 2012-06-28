@@ -199,6 +199,7 @@
           ClusterMapper mapper=new ClusterMapper();
           Cluster newCluster=mapper.readCluster(new File(metadataValue));
           executeSetMetadata(nodeId,adminClient,MetadataStore.CLUSTER_KEY,mapper.writeCluster(newCluster));
+          updateMetadataversion(CLUSTER_VERSION_KEY);
         }
  else         if (metadataKey.compareTo(MetadataStore.SERVER_STATE_KEY) == 0) {
           VoldemortState newState=VoldemortState.valueOf(metadataValue);
@@ -209,7 +210,7 @@
           StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
           List<StoreDefinition> storeDefs=mapper.readStoreList(new File(metadataValue));
           executeSetMetadata(nodeId,adminClient,MetadataStore.STORES_KEY,mapper.writeStoreList(storeDefs));
-          updateStoreMetadataversion();
+          updateMetadataversion(STORES_VERSION_KEY);
         }
  else         if (metadataKey.compareTo(MetadataStore.REBALANCING_STEAL_INFO) == 0) {
           if (!Utils.isReadableFile(metadataValue))           throw new VoldemortException("Rebalancing steal info file path incorrect");

@@ -1,0 +1,13 @@
+{
+  Versioned<Long> metadataVersion=sysStoreVersion.getSysStore(versionKey);
+  if (metadataVersion == null) {
+    System.err.println("Current version is null. Assuming version 0.");
+    metadataVersion=new Versioned<Long>((long)1);
+  }
+ else {
+    System.out.println("Version obtained = " + metadataVersion.getValue());
+    long newValue=metadataVersion.getValue() + 1;
+    metadataVersion.setObject(newValue);
+  }
+  sysStoreVersion.putSysStore(versionKey,metadataVersion);
+}

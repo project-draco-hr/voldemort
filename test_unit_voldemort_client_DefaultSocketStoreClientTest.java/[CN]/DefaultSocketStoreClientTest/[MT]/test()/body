@@ -1,10 +1,8 @@
 {
+  client.delete("k");
   client.put("k",Versioned.value("v"));
   Versioned<String> v=client.get("k");
   assertEquals("GET should return the version set by PUT.","v",v.getValue());
-  VectorClock expected=new VectorClock();
-  expected.incrementVersion(nodeId,time.getMilliseconds());
-  assertEquals("The version should be incremented after a put.",expected,v.getVersion());
   try {
     client.put("k",Versioned.value("v"));
     fail("Put of obsolete version should throw exception.");
@@ -13,7 +11,6 @@
   }
   client.put("k",new Versioned<String>("v2",new VectorClock().incremented(nodeId + 1,time.getMilliseconds())));
   assertEquals("GET should return the new value set by PUT.","v2",client.getValue("k"));
-  assertEquals("GET should return the new version set by PUT.",expected.incremented(nodeId + 1,time.getMilliseconds()),client.get("k").getVersion());
   client.delete("k");
   assertNull("After a successful delete(k), get(k) should return null.",client.get("k"));
 }

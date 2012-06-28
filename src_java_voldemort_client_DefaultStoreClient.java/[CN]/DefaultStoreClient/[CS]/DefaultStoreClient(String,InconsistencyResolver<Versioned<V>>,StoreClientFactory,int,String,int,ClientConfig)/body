@@ -6,9 +6,9 @@
   this.clientInfo=new ClientInfo(storeName,clientContext,clientSequence,System.currentTimeMillis(),ManifestFileReader.getReleaseVersion());
   this.clientId=AbstractStoreClientFactory.generateClientId(clientInfo);
   this.config=config;
+  this.sysRepository=new SystemStoreRepository();
   JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass()) + "." + clientContext+ "."+ storeName+ "."+ clientId.toString()));
   bootStrap();
-  sysStoreMap=createSystemStores();
   if (config != null) {
     asyncCheckMetadata=createMetadataChecker();
   }

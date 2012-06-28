@@ -1,0 +1,30 @@
+{
+  this.sysRepository=sysRepository;
+  try {
+    this.currentStoreVersion=this.sysRepository.getVersionStore().getSysStore(STORES_VERSION_KEY);
+  }
+ catch (  Exception e) {
+    logger.error("Exception while getting currentStoreVersion : " + e);
+  }
+  try {
+    this.currentClusterVersion=this.sysRepository.getVersionStore().getSysStore(CLUSTER_VERSION_KEY);
+  }
+ catch (  Exception e) {
+    logger.error("Exception while getting currentClusterVersion : " + e);
+  }
+  if (currentStoreVersion == null)   currentStoreVersion=new Versioned<Long>((long)0);
+  if (currentClusterVersion == null)   currentClusterVersion=new Versioned<Long>((long)0);
+  isRunning=true;
+  Thread checkVersionThread=new Thread(this,"AsyncVersionCheckThread");
+  checkVersionThread.setDaemon(true);
+  checkVersionThread.setUncaughtExceptionHandler(new UncaughtExceptionHandler(){
+    public void uncaughtException(    Thread t,    Throwable e){
+      if (logger.isEnabledFor(Level.ERROR))       logger.error("Uncaught exception in Metadata Version check thread:",e);
+    }
+  }
+);
+  this.storeClientThunk=storeClientThunk;
+  this.asyncMetadataCheckInterval=config.getAsyncCheckMetadataInterval();
+  this.clientConfig=config;
+  checkVersionThread.start();
+}
