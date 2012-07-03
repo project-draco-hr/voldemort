@@ -10,6 +10,7 @@
   parser.accepts("fetch-entries","Fetch full entries").withOptionalArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("outdir","Output directory").withRequiredArg().describedAs("output-directory").ofType(String.class);
   parser.accepts("stores","Store names").withRequiredArg().describedAs("store-names").withValuesSeparatedBy(',').ofType(String.class);
+  parser.accepts("store","Store name for querying keys").withRequiredArg().describedAs("store-name").withValuesSeparatedBy(',').ofType(String.class);
   parser.accepts("add-stores","Add stores in this stores.xml").withRequiredArg().describedAs("stores.xml containing just the new stores").ofType(String.class);
   parser.accepts("delete-store","Delete store").withRequiredArg().describedAs("store-name").ofType(String.class);
   parser.accepts("update-entries","Insert or update entries").withRequiredArg().describedAs("input-directory").ofType(String.class);
@@ -33,6 +34,7 @@
   parser.accepts("rollback","rollback a store").withRequiredArg().describedAs("store-name").ofType(String.class);
   parser.accepts("version","Push version of store to rollback to").withRequiredArg().describedAs("version").ofType(Long.class);
   parser.accepts("reserve-memory","Memory in MB to reserve for the store").withRequiredArg().describedAs("size-in-mb").ofType(Long.class);
+  parser.accepts("query-keys","Get values of keys on specific nodes").withRequiredArg().describedAs("query-keys").withValuesSeparatedBy(',').ofType(String.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     printHelp(System.out,parser);
@@ -117,6 +119,9 @@
       Utils.croak("Specify the list of stores to reserve memory");
     }
     ops+="f";
+  }
+  if (options.has("query-keys")) {
+    ops+="q";
   }
   if (ops.length() < 1) {
     Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, key-distribution, clear-rebalancing-metadata, async, "+ "repair-job, native-backup, rollback, reserve-memory) must be specified");
@@ -254,6 +259,15 @@
     if (ops.contains("f")) {
       long reserveMB=(Long)options.valueOf("reserve-memory");
       adminClient.reserveMemory(nodeId,storeNames,reserveMB);
+    }
+    if (ops.contains("q")) {
+      List<String> keyList=null;
+      String storeName=(String)options.valueOf("store");
+      if (storeName == null) {
+        throw new VoldemortException("Must specify store name using --store option (NOT --stores)");
+      }
+      if (options.hasArgument("query-keys"))       keyList=(List<String>)options.valuesOf("query-keys");
+      executeQueryKeys(nodeId,adminClient,storeName,keyList);
     }
   }
  catch (  Exception e) {

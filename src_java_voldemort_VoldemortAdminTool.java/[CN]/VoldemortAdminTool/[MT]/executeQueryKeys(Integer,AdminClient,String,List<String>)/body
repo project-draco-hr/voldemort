@@ -1,0 +1,70 @@
+{
+  Serializer<String> serializer=new StringSerializer();
+  List<ByteArray> listKeys=new ArrayList<ByteArray>();
+  for (  String key : keys) {
+    listKeys.add(new ByteArray(serializer.toBytes(key)));
+  }
+  final Iterator<Pair<ByteArray,Pair<List<Versioned<byte[]>>,Exception>>> iterator=adminClient.queryKeys(nodeId.intValue(),storeName,listKeys.iterator());
+  List<StoreDefinition> storeDefinitionList=adminClient.getRemoteStoreDefList(nodeId).getValue();
+  StoreDefinition storeDefinition=null;
+  for (  StoreDefinition storeDef : storeDefinitionList) {
+    if (storeDef.getName().equals(storeName))     storeDefinition=storeDef;
+  }
+  SerializerDefinition keySerializerDef=storeDefinition.getKeySerializer();
+  SerializerDefinition valueSerializerDef=storeDefinition.getValueSerializer();
+  SerializerFactory serializerFactory=new DefaultSerializerFactory();
+  @SuppressWarnings("unchecked") final Serializer<Object> keySerializer=(Serializer<Object>)serializerFactory.getSerializer(keySerializerDef);
+  @SuppressWarnings("unchecked") final Serializer<Object> valueSerializer=(Serializer<Object>)serializerFactory.getSerializer(valueSerializerDef);
+  final CompressionStrategy keyCompressionStrategy;
+  final CompressionStrategy valueCompressionStrategy;
+  if (keySerializerDef != null && keySerializerDef.hasCompression()) {
+    keyCompressionStrategy=new CompressionStrategyFactory().get(keySerializerDef.getCompression());
+  }
+ else {
+    keyCompressionStrategy=null;
+  }
+  if (valueSerializerDef != null && valueSerializerDef.hasCompression()) {
+    valueCompressionStrategy=new CompressionStrategyFactory().get(valueSerializerDef.getCompression());
+  }
+ else {
+    valueCompressionStrategy=null;
+  }
+  writeAscii(null,new Writable(){
+    @Override public void writeTo(    BufferedWriter out) throws IOException {
+      final StringWriter stringWriter=new StringWriter();
+      final JsonGenerator generator=new JsonFactory(new ObjectMapper()).createJsonGenerator(stringWriter);
+      while (iterator.hasNext()) {
+        Pair<ByteArray,Pair<List<Versioned<byte[]>>,Exception>> kvPair=iterator.next();
+        byte[] keyBytes=kvPair.getFirst().get();
+        Object keyObject=keySerializer.toObject((null == keyCompressionStrategy) ? keyBytes : keyCompressionStrategy.inflate(keyBytes));
+        generator.writeObject(keyObject);
+        List<Versioned<byte[]>> values=kvPair.getSecond().getFirst();
+        if (values != null) {
+          for (          Versioned<byte[]> versioned : values) {
+            VectorClock version=(VectorClock)versioned.getVersion();
+            byte[] valueBytes=versioned.getValue();
+            Object valueObject=valueSerializer.toObject((null == valueCompressionStrategy) ? valueBytes : valueCompressionStrategy.inflate(valueBytes));
+            stringWriter.write(", ");
+            stringWriter.write(version.toString());
+            stringWriter.write('[');
+            stringWriter.write(new Date(version.getTimestamp()).toString());
+            stringWriter.write(']');
+            generator.writeObject(valueObject);
+          }
+        }
+        if (kvPair.getSecond().getSecond() != null) {
+          stringWriter.write(", ");
+          stringWriter.write(kvPair.getSecond().getSecond().toString());
+        }
+        StringBuffer buf=stringWriter.getBuffer();
+        if (buf.charAt(0) == ' ') {
+          buf.setCharAt(0,'\n');
+        }
+        out.write(buf.toString());
+        buf.setLength(0);
+      }
+      out.write('\n');
+    }
+  }
+);
+}
