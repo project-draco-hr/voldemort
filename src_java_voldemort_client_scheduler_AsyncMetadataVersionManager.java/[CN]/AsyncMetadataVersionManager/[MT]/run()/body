@@ -1,0 +1,27 @@
+{
+  Versioned<Long> newStoresVersion=fetchNewVersion(STORES_VERSION_KEY,currentStoreVersion);
+  Versioned<Long> newClusterVersion=fetchNewVersion(CLUSTER_VERSION_KEY,currentClusterVersion);
+  if ((newStoresVersion != null) || (newClusterVersion != null)) {
+    logger.info("Metadata version mismatch detected.");
+    int delta=randomGenerator.nextInt(DELTA_MAX);
+    try {
+      logger.info("Sleeping for delta : " + delta + " (ms) before re-bootstrapping.");
+      Thread.sleep(delta);
+    }
+ catch (    InterruptedException e) {
+    }
+    try {
+      this.storeClientThunk.call();
+      if (newStoresVersion != null) {
+        currentStoreVersion=newStoresVersion;
+      }
+      if (newClusterVersion != null) {
+        currentClusterVersion=newClusterVersion;
+      }
+    }
+ catch (    Exception e) {
+      e.printStackTrace();
+      logger.info(e.getMessage());
+    }
+  }
+}

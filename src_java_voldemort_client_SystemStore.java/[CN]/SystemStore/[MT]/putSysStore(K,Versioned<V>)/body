@@ -1,10 +1,13 @@
 {
+  Version version=null;
   try {
     logger.debug("Invoking Put for key : " + key + " on store name : "+ this.storeName);
     this.sysStore.put(key,value,null);
+    version=value.getVersion();
   }
  catch (  Exception e) {
     logger.info("Exception caught during putSysStore:");
     e.printStackTrace();
   }
+  return version;
 }

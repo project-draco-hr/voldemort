@@ -7,11 +7,12 @@
   this.clientId=AbstractStoreClientFactory.generateClientId(clientInfo);
   this.config=config;
   this.sysRepository=new SystemStoreRepository();
+  this.scheduler=new SchedulerService(ASYNC_THREADS_COUNT,SystemTime.INSTANCE,ALLOW_INTERRUPT_ASYNC);
   JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass()) + "." + clientContext+ "."+ storeName+ "."+ clientId.toString()));
   bootStrap();
   if (config != null) {
-    asyncCheckMetadata=createMetadataChecker();
+    asyncCheckMetadata=scheduleMetadataChecker(clientId.toString(),config.getAsyncCheckMetadataInterval());
   }
-  registerClient();
+  registerClient(clientId.toString(),config.getClientRegistryRefreshInterval());
   logger.info("Voldemort client created: " + clientId.toString() + "\n"+ clientInfo);
 }
