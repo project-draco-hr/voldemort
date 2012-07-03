@@ -1,0 +1,12 @@
+{
+  try {
+    SystemStore<String,Long> sysVersionStore=new SystemStore<String,Long>(SystemStoreConstants.SystemStoreName.voldsys$_metadata_version.name(),bootStrapUrls,this.CLIENT_ZONE_ID);
+    long storesVersion=1;
+    sysVersionStore.putSysStore("stores.xml",storesVersion);
+    long version=sysVersionStore.getValueSysStore("stores.xml");
+    assertEquals("Received incorrect version from the voldsys$_metadata_version system store",storesVersion,version);
+  }
+ catch (  Exception e) {
+    fail("Failed to create the default System Store : " + e.getMessage());
+  }
+}

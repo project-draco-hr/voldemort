@@ -1,0 +1,14 @@
+{
+switch (obtainNodeConfigurationType(pipelineData.getZonesRequired())) {
+case DEFAULT:
+    return new ConfigureNodesDefault<Void,PutPipelineData>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key);
+case BYZONE:
+  return new ConfigureNodesByZone<Void,PutPipelineData>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key,clientZone);
+case DEFAULT_LOCAL:
+return new ConfigureNodesLocalHost<Void,PutPipelineData>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key);
+case BYZONE_LOCAL:
+return new ConfigureNodesLocalHostByZone<Void,PutPipelineData>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key,clientZone);
+default :
+return null;
+}
+}
