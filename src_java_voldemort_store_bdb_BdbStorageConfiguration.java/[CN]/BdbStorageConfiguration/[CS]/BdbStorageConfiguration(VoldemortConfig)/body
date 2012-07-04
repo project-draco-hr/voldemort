@@ -2,7 +2,7 @@
   this.voldemortConfig=config;
   environmentConfig=new EnvironmentConfig();
   environmentConfig.setTransactional(true);
-  environmentConfig.setCacheSize(config.getBdbCacheSize());
+  totalCacheSize=config.getBdbCacheSize();
   if (config.isBdbWriteTransactionsEnabled() && config.isBdbFlushTransactionsEnabled()) {
     environmentConfig.setDurability(Durability.COMMIT_SYNC);
   }
@@ -34,5 +34,5 @@
   databaseConfig.setTransactional(true);
   bdbMasterDir=config.getBdbDataDirectory();
   useOneEnvPerStore=config.isBdbOneEnvPerStore();
-  if (useOneEnvPerStore)   environmentConfig.setSharedCache(true);
+  unreservedStores=new HashSet<Environment>();
 }

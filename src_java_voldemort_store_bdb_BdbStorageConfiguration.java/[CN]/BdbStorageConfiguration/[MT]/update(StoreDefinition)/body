@@ -1,0 +1,19 @@
+{
+  if (!useOneEnvPerStore)   throw new VoldemortException("Memory foot print can be set only when using different environments per store");
+  Environment environment=environments.get(storeDef.getName());
+  if (!unreservedStores.contains(environment) && storeDef.hasMemoryFootprint()) {
+    EnvironmentMutableConfig mConfig=environment.getMutableConfig();
+    long currentCacheSize=mConfig.getCacheSize();
+    long newCacheSize=storeDef.getMemoryFootprintMB() * BYTES_PER_MB;
+    if (currentCacheSize != newCacheSize) {
+      this.reservedCacheSize=this.reservedCacheSize - currentCacheSize + newCacheSize;
+      adjustCacheSizes();
+      mConfig.setCacheSize(newCacheSize);
+      environment.setMutableConfig(mConfig);
+      logger.info("Setting private cache for store " + storeDef.getName() + " to "+ newCacheSize);
+    }
+  }
+ else {
+    throw new VoldemortException("Cannot switch between shared and private cache dynamically");
+  }
+}

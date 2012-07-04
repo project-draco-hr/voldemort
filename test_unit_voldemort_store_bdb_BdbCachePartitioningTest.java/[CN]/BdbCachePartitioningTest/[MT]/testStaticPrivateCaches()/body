@@ -1,0 +1,53 @@
+{
+  int totalCache=20 * 1024 * 1024;
+  int shareA=10 * 1024 * 1024;
+  int shareB=5 * 1024 * 1024;
+  int shareC=totalCache - shareA - shareB;
+  int numRecords=40;
+  Props props=new Props();
+  props.put("node.id",1);
+  props.put("voldemort.home","test/common/voldemort/config");
+  VoldemortConfig voldemortConfig=new VoldemortConfig(props);
+  voldemortConfig.setBdbCacheSize(totalCache);
+  voldemortConfig.setBdbOneEnvPerStore(true);
+  voldemortConfig.setBdbDataDirectory(bdbMasterDir.toURI().getPath());
+  bdbStorage=new BdbStorageConfiguration(voldemortConfig);
+  StoreDefinition defA=TestUtils.makeStoreDefinition("storeA",shareA / (1024 * 1024));
+  BdbStorageEngine storeA=(BdbStorageEngine)bdbStorage.getStore(defA);
+  StoreDefinition defB=TestUtils.makeStoreDefinition("storeB",shareB / (1024 * 1024));
+  BdbStorageEngine storeB=(BdbStorageEngine)bdbStorage.getStore(defB);
+  StoreDefinition defC=TestUtils.makeStoreDefinition("storeC");
+  BdbStorageEngine storeC=(BdbStorageEngine)bdbStorage.getStore(defC);
+  byte[] value=new byte[1024 * 1024];
+  for (int i=0; i < numRecords; i++) {
+    storeA.put(TestUtils.toByteArray("testKey" + i),new Versioned<byte[]>(value),null);
+    storeB.put(TestUtils.toByteArray("testKey" + i),new Versioned<byte[]>(value),null);
+    storeC.put(TestUtils.toByteArray("testKey" + i),new Versioned<byte[]>(value),null);
+  }
+  for (int i=0; i < numRecords; i++) {
+    storeA.get(TestUtils.toByteArray("testKey" + i),null);
+    storeB.get(TestUtils.toByteArray("testKey" + i),null);
+    storeC.get(TestUtils.toByteArray("testKey" + i),null);
+  }
+  long cacheSizeA=bdbStorage.getEnvironment(defA).getConfig().getCacheSize();
+  long cacheSizeB=bdbStorage.getEnvironment(defB).getConfig().getCacheSize();
+  long cacheSizeC=bdbStorage.getEnvironment(defC).getConfig().getCacheSize();
+  assertTrue(cacheSizeA >= shareA);
+  assertTrue(cacheSizeB >= shareB);
+  assertTrue(cacheSizeC >= shareC);
+  assertTrue((cacheSizeA - (shareA)) <= (1024 * 1024));
+  assertTrue((cacheSizeB - (shareB)) <= (1024 * 1024));
+  assertTrue((cacheSizeC - (shareC)) <= (1024 * 1024));
+  for (int cycle=0; cycle < 2; cycle++) {
+    for (int i=0; i < numRecords; i++) {
+      storeC.get(TestUtils.toByteArray("testKey" + i),null);
+    }
+  }
+  long cacheSizeANow=bdbStorage.getEnvironment(defA).getConfig().getCacheSize();
+  long cacheSizeBNow=bdbStorage.getEnvironment(defB).getConfig().getCacheSize();
+  assertTrue(cacheSizeA == cacheSizeANow);
+  assertTrue(cacheSizeB == cacheSizeBNow);
+  storeA.close();
+  storeB.close();
+  storeC.close();
+}

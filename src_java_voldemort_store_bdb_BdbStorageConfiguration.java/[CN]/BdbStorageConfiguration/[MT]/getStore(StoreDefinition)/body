@@ -1,0 +1,18 @@
+{
+synchronized (lock) {
+    try {
+      String storeName=storeDef.getName();
+      Environment environment=getEnvironment(storeDef);
+      Database db=environment.openDatabase(null,storeName,databaseConfig);
+      BdbRuntimeConfig runtimeConfig=new BdbRuntimeConfig(voldemortConfig);
+      BdbStorageEngine engine=new BdbStorageEngine(storeName,environment,db,runtimeConfig);
+      if (voldemortConfig.isJmxEnabled()) {
+        JmxUtils.registerMbean(storeName,engine.getBdbEnvironmentStats());
+      }
+      return engine;
+    }
+ catch (    DatabaseException d) {
+      throw new StorageInitializationException(d);
+    }
+  }
+}
