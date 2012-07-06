@@ -10,7 +10,8 @@
   for (  StoreDefinition storeDef : metadataStore.getStoreDefList()) {
     localStats.put(storeDef.getName(),0L);
   }
-  if (!acquireRepairPermit())   return;
+  AtomicLong progress=new AtomicLong(0);
+  if (!acquireRepairPermit(progress))   return;
   try {
     RoutingStrategyFactory routingStrategyFactory=new RoutingStrategyFactory();
     for (    StoreDefinition storeDef : metadataStore.getStoreDefList()) {
@@ -21,7 +22,6 @@
         RoutingStrategy routingStrategy=routingStrategyFactory.updateRoutingStrategy(storeDef,metadataStore.getCluster());
         long repairSlops=0L;
         long numDeletedKeys=0;
-        long numScannedKeys=0;
         while (iterator.hasNext()) {
           Pair<ByteArray,Versioned<byte[]>> keyAndVal;
           keyAndVal=iterator.next();
@@ -30,8 +30,8 @@
             engine.delete(keyAndVal.getFirst(),keyAndVal.getSecond().getVersion());
             numDeletedKeys++;
           }
-          numScannedKeys++;
-          if (numScannedKeys % deleteBatchSize == 0)           logger.info("#Scanned:" + numScannedKeys + " #Deleted:"+ numDeletedKeys);
+          long itemsScanned=progress.incrementAndGet();
+          if (itemsScanned % deleteBatchSize == 0)           logger.info("#Scanned:" + itemsScanned + " #Deleted:"+ numDeletedKeys);
         }
         closeIterator(iterator);
         localStats.put(storeDef.getName(),repairSlops);

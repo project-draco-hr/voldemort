@@ -1,0 +1,15 @@
+{
+  StringBuffer summaryDetails=new StringBuffer();
+  if (summaryMap != null) {
+    summaryDetails.append("file,util%\n");
+    Iterator<Map.Entry<Long,FileSummary>> fileItr=summaryMap.entrySet().iterator();
+    while (fileItr.hasNext()) {
+      Map.Entry<Long,FileSummary> entry=fileItr.next();
+      FileSummary fs=entry.getValue();
+      long bytesUsed=fs.totalSize - fs.getObsoleteSize();
+      summaryDetails.append(String.format("%s,%f\n",Long.toHexString(entry.getKey().longValue()),BdbEnvironmentStats.safeGetPercentage(bytesUsed,fs.totalSize)));
+    }
+    summaryDetails.append(String.format("total,%f\n",BdbEnvironmentStats.safeGetPercentage(totalSpaceUtilized,totalSpaceUsed)));
+  }
+  return summaryDetails.toString();
+}

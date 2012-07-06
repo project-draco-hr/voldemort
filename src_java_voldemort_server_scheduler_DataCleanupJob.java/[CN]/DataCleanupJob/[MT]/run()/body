@@ -1,5 +1,5 @@
 {
-  acquireCleanupPermit();
+  acquireCleanupPermit(progressThisRun);
   ClosableIterator<Pair<K,Versioned<V>>> iterator=null;
   try {
     logger.info("Starting data cleanup on store \"" + store.getName() + "\"...");
@@ -11,6 +11,7 @@
         logger.info("Datacleanup job halted.");
         return;
       }
+      progressThisRun.incrementAndGet();
       Pair<K,Versioned<V>> keyAndVal=iterator.next();
       VectorClock clock=(VectorClock)keyAndVal.getSecond().getVersion();
       if (now - clock.getTimestamp() > maxAgeMs) {
@@ -20,7 +21,7 @@
       }
       throttler.maybeThrottle(1);
     }
-    logger.info("Data cleanup on store \"" + store.getName() + "\" is complete; "+ deleted+ " items deleted.");
+    logger.info("Data cleanup on store \"" + store.getName() + "\" is complete; "+ deleted+ " items deleted. "+ progressThisRun.get()+ " items scanned");
   }
  catch (  Exception e) {
     logger.error("Error in data cleanup job for store " + store.getName() + ": ",e);
@@ -29,5 +30,9 @@
     closeIterator(iterator);
     logger.info("Releasing lock  after data cleanup on \"" + store.getName() + "\".");
     this.cleanupPermits.release();
+synchronized (this) {
+      totalEntriesScanned+=progressThisRun.get();
+      progressThisRun.set(0);
+    }
   }
 }

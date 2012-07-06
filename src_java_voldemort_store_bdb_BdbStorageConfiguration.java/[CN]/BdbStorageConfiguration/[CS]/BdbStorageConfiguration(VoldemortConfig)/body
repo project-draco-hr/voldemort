@@ -4,15 +4,13 @@
   environmentConfig.setTransactional(true);
   environmentConfig.setCacheSize(config.getBdbCacheSize());
   if (config.isBdbWriteTransactionsEnabled() && config.isBdbFlushTransactionsEnabled()) {
-    environmentConfig.setTxnNoSync(false);
-    environmentConfig.setTxnWriteNoSync(false);
+    environmentConfig.setDurability(Durability.COMMIT_SYNC);
   }
  else   if (config.isBdbWriteTransactionsEnabled() && !config.isBdbFlushTransactionsEnabled()) {
-    environmentConfig.setTxnNoSync(false);
-    environmentConfig.setTxnWriteNoSync(true);
+    environmentConfig.setDurability(Durability.COMMIT_WRITE_NO_SYNC);
   }
  else {
-    environmentConfig.setTxnNoSync(true);
+    environmentConfig.setDurability(Durability.COMMIT_NO_SYNC);
   }
   environmentConfig.setAllowCreate(true);
   environmentConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX,Long.toString(config.getBdbMaxLogFileSize()));

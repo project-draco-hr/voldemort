@@ -1,0 +1,12 @@
+{
+  long itemsScanned=0;
+synchronized (permitOwners) {
+    for (    Map.Entry<String,AtomicLong> progressEntry : permitOwners.entrySet()) {
+      AtomicLong progress=progressEntry.getValue();
+      if (progress != null) {
+        itemsScanned+=progress.get();
+      }
+    }
+  }
+  return totalEntriesScanned + itemsScanned;
+}
