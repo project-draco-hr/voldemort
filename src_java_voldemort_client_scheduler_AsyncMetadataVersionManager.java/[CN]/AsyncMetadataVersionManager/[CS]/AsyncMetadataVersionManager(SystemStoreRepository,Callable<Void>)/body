@@ -12,15 +12,14 @@
  catch (  Exception e) {
     logger.error("Exception while getting currentClusterVersion : " + e);
   }
-  if (currentStoreVersion == null)   currentStoreVersion=new Versioned<Long>((long)0);
-  if (currentClusterVersion == null)   currentClusterVersion=new Versioned<Long>((long)0);
-  Thread checkVersionThread=new Thread(this,"AsyncVersionCheckThread");
-  checkVersionThread.setDaemon(true);
-  checkVersionThread.setUncaughtExceptionHandler(new UncaughtExceptionHandler(){
-    public void uncaughtException(    Thread t,    Throwable e){
-      if (logger.isEnabledFor(Level.ERROR))       logger.error("Uncaught exception in Metadata Version check thread:",e);
-    }
+  if (currentStoreVersion == null) {
+    currentStoreVersion=new Versioned<Long>((long)0);
   }
-);
+  if (currentClusterVersion == null) {
+    currentClusterVersion=new Versioned<Long>((long)0);
+  }
+  logger.debug("Initial stores.xml version = " + this.currentStoreVersion);
+  logger.debug("Initial cluster.xml version = " + this.currentClusterVersion);
   this.storeClientThunk=storeClientThunk;
+  this.isActive=true;
 }
