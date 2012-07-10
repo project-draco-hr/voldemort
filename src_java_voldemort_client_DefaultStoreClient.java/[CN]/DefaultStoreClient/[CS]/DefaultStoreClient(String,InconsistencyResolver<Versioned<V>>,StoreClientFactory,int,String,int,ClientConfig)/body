@@ -7,7 +7,7 @@
   this.clientId=AbstractStoreClientFactory.generateClientId(clientInfo);
   this.config=config;
   this.sysRepository=new SystemStoreRepository();
-  this.scheduler=new SchedulerService(ASYNC_THREADS_COUNT,SystemTime.INSTANCE,ALLOW_INTERRUPT_ASYNC);
+  this.scheduler=new SchedulerService(config.getAsyncJobThreadPoolSize(),SystemTime.INSTANCE,true);
   JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass()) + "." + clientContext+ "."+ storeName+ "."+ clientId.toString()));
   bootStrap();
   if (config != null) {
