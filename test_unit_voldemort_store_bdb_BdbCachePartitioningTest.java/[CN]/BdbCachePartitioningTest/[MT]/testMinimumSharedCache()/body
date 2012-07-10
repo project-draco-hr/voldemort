@@ -1,0 +1,43 @@
+{
+  int totalCache=20 * ByteUtils.BYTES_PER_MB;
+  int shareA=10 * ByteUtils.BYTES_PER_MB;
+  Props props=new Props();
+  props.put("node.id",1);
+  props.put("voldemort.home","test/common/voldemort/config");
+  VoldemortConfig voldemortConfig=new VoldemortConfig(props);
+  voldemortConfig.setBdbCacheSize(totalCache);
+  voldemortConfig.setBdbOneEnvPerStore(true);
+  voldemortConfig.setBdbDataDirectory(bdbMasterDir.toURI().getPath());
+  voldemortConfig.setBdbMinimumSharedCache(15 * ByteUtils.BYTES_PER_MB);
+  BdbStorageEngine storeA=null;
+  bdbStorage=new BdbStorageConfiguration(voldemortConfig);
+  assertEquals(0,bdbStorage.getReservedCacheSize());
+  try {
+    StoreDefinition defA=TestUtils.makeStoreDefinition("storeA",shareA / ByteUtils.BYTES_PER_MB);
+    storeA=(BdbStorageEngine)bdbStorage.getStore(defA);
+    fail("Should have thrown exception since minSharedCache will be violated");
+  }
+ catch (  StorageInitializationException sie) {
+  }
+  assertEquals(0,bdbStorage.getReservedCacheSize());
+  voldemortConfig.setBdbMinimumSharedCache(10 * ByteUtils.BYTES_PER_MB);
+  bdbStorage=new BdbStorageConfiguration(voldemortConfig);
+  try {
+    StoreDefinition defA=TestUtils.makeStoreDefinition("storeA",shareA / ByteUtils.BYTES_PER_MB);
+    storeA=(BdbStorageEngine)bdbStorage.getStore(defA);
+  }
+ catch (  StorageInitializationException sie) {
+    fail("minSharedCache should n't have been violated");
+  }
+  assertEquals(shareA,bdbStorage.getReservedCacheSize());
+  long reserveCacheSize=bdbStorage.getReservedCacheSize();
+  try {
+    StoreDefinition defA=TestUtils.makeStoreDefinition("storeA",15);
+    bdbStorage.update(defA);
+    fail("Should have thrown exception since minSharedCache will be violated");
+  }
+ catch (  StorageInitializationException sie) {
+  }
+  assertEquals(reserveCacheSize,bdbStorage.getReservedCacheSize());
+  if (storeA != null)   storeA.close();
+}

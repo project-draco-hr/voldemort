@@ -1,0 +1,70 @@
+{
+  int totalCache=20 * ByteUtils.BYTES_PER_MB;
+  int shareA=10 * ByteUtils.BYTES_PER_MB;
+  int shareB=totalCache - shareA;
+  int numRecords=40;
+  Props props=new Props();
+  props.put("node.id",1);
+  props.put("voldemort.home","test/common/voldemort/config");
+  VoldemortConfig voldemortConfig=new VoldemortConfig(props);
+  voldemortConfig.setBdbCacheSize(totalCache);
+  voldemortConfig.setBdbOneEnvPerStore(true);
+  voldemortConfig.setBdbDataDirectory(bdbMasterDir.toURI().getPath());
+  voldemortConfig.setBdbMinimumSharedCache(5 * ByteUtils.BYTES_PER_MB);
+  bdbStorage=new BdbStorageConfiguration(voldemortConfig);
+  StoreDefinition defA=TestUtils.makeStoreDefinition("storeA",shareA / (1024 * 1024));
+  BdbStorageEngine storeA=(BdbStorageEngine)bdbStorage.getStore(defA);
+  StoreDefinition defB=TestUtils.makeStoreDefinition("storeB");
+  BdbStorageEngine storeB=(BdbStorageEngine)bdbStorage.getStore(defB);
+  byte[] value=new byte[ByteUtils.BYTES_PER_MB];
+  for (int i=0; i < numRecords; i++) {
+    storeA.put(TestUtils.toByteArray("testKey" + i),new Versioned<byte[]>(value),null);
+    storeB.put(TestUtils.toByteArray("testKey" + i),new Versioned<byte[]>(value),null);
+  }
+  long cacheSizeA=Long.MIN_VALUE;
+  long cacheSizeB=Long.MIN_VALUE;
+  for (int cycle=0; cycle < 10; cycle++) {
+    for (int i=0; i < numRecords; i++) {
+      long cycleCacheSizeA=getAndCheckCacheSize(storeA,defA,"testKey" + i);
+      long cycleCacheSizeB=getAndCheckCacheSize(storeB,defB,"testKey" + i);
+      cacheSizeA=(cycleCacheSizeA > cacheSizeA) ? cycleCacheSizeA : cacheSizeA;
+      cacheSizeB=(cycleCacheSizeB > cacheSizeB) ? cycleCacheSizeB : cacheSizeB;
+    }
+  }
+  assertTrue(Math.abs(cacheSizeA - shareA) <= ByteUtils.BYTES_PER_MB);
+  assertTrue(Math.abs(cacheSizeB - shareB) <= ByteUtils.BYTES_PER_MB);
+  shareA=15 * ByteUtils.BYTES_PER_MB;
+  shareB=totalCache - shareA;
+  defA=TestUtils.makeStoreDefinition("storeA",shareA / (1024 * 1024));
+  bdbStorage.update(defA);
+  cacheSizeA=Long.MIN_VALUE;
+  cacheSizeB=Long.MIN_VALUE;
+  for (int cycle=0; cycle < 10; cycle++) {
+    for (int i=0; i < numRecords; i++) {
+      long cycleCacheSizeA=getAndCheckCacheSize(storeA,defA,"testKey" + i);
+      long cycleCacheSizeB=getAndCheckCacheSize(storeB,defB,"testKey" + i);
+      cacheSizeA=(cycleCacheSizeA > cacheSizeA) ? cycleCacheSizeA : cacheSizeA;
+      cacheSizeB=(cycleCacheSizeB > cacheSizeB) ? cycleCacheSizeB : cacheSizeB;
+    }
+  }
+  assertTrue(Math.abs(cacheSizeA - shareA) <= ByteUtils.BYTES_PER_MB);
+  assertTrue(Math.abs(cacheSizeB - shareB) <= ByteUtils.BYTES_PER_MB);
+  shareA=10 * ByteUtils.BYTES_PER_MB;
+  shareB=totalCache - shareA;
+  defA=TestUtils.makeStoreDefinition("storeA",shareA / (1024 * 1024));
+  bdbStorage.update(defA);
+  cacheSizeA=Long.MIN_VALUE;
+  cacheSizeB=Long.MIN_VALUE;
+  for (int cycle=0; cycle < 10; cycle++) {
+    for (int i=0; i < numRecords; i++) {
+      long cycleCacheSizeA=getAndCheckCacheSize(storeA,defA,"testKey" + i);
+      long cycleCacheSizeB=getAndCheckCacheSize(storeB,defB,"testKey" + i);
+      cacheSizeA=(cycleCacheSizeA > cacheSizeA) ? cycleCacheSizeA : cacheSizeA;
+      cacheSizeB=(cycleCacheSizeB > cacheSizeB) ? cycleCacheSizeB : cacheSizeB;
+    }
+  }
+  assertTrue(Math.abs(cacheSizeA - shareA) <= ByteUtils.BYTES_PER_MB);
+  assertTrue(Math.abs(cacheSizeB - shareB) <= ByteUtils.BYTES_PER_MB);
+  storeA.close();
+  storeB.close();
+}

@@ -6,15 +6,19 @@ synchronized (lock) {
       File bdbDir=new File(bdbMasterDir,storeName);
       createBdbDirIfNecessary(bdbDir);
       if (storeDef.hasMemoryFootprint()) {
-        long reservedBytes=storeDef.getMemoryFootprintMB() * BYTES_PER_MB;
-        this.reservedCacheSize+=reservedBytes;
+        long reservedBytes=storeDef.getMemoryFootprintMB() * ByteUtils.BYTES_PER_MB;
+        long newReservedCacheSize=this.reservedCacheSize + reservedBytes;
+        if ((voldemortConfig.getBdbCacheSize() - newReservedCacheSize) < voldemortConfig.getBdbMinimumSharedCache()) {
+          throw new StorageInitializationException("Reservation of " + storeDef.getMemoryFootprintMB() + " MB for store "+ storeName+ " violates minimum shared cache size of "+ voldemortConfig.getBdbMinimumSharedCache());
+        }
+        this.reservedCacheSize=newReservedCacheSize;
         adjustCacheSizes();
         environmentConfig.setSharedCache(false);
         environmentConfig.setCacheSize(reservedBytes);
       }
  else {
         environmentConfig.setSharedCache(true);
-        environmentConfig.setCacheSize(this.totalCacheSize - this.reservedCacheSize);
+        environmentConfig.setCacheSize(voldemortConfig.getBdbCacheSize() - this.reservedCacheSize);
       }
       Environment environment=new Environment(bdbDir,environmentConfig);
       logger.info("Creating environment for " + storeName + ": ");
