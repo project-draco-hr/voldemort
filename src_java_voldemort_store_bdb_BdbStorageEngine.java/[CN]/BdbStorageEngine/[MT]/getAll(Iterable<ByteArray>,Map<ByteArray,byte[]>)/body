@@ -1,10 +1,14 @@
 {
+  long startTimeNs=-1;
+  if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
   StoreUtils.assertValidKeys(keys);
   Map<ByteArray,List<Versioned<byte[]>>> result=StoreUtils.newEmptyHashMap(keys);
   Cursor cursor=null;
+  String keyStr="";
   try {
     cursor=getBdbDatabase().openCursor(null,null);
     for (    ByteArray key : keys) {
+      if (logger.isTraceEnabled())       keyStr+=key + " ";
       List<Versioned<byte[]>> values=get(cursor,key,readLockMode,versionedSerializer);
       if (!values.isEmpty())       result.put(key,values);
     }
@@ -16,5 +20,6 @@
  finally {
     attemptClose(cursor);
   }
+  if (logger.isTraceEnabled())   logger.trace("Completed GETALL from keys " + keyStr + " in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
   return result;
 }

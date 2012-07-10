@@ -7,10 +7,12 @@
   for (int i=0; i < attempts; i++) {
     final Node node=nodes.get(i);
     pipelineData.incrementNodeIndex();
+    final long startMs=logger.isDebugEnabled() ? System.currentTimeMillis() : -1;
     NonblockingStoreCallback callback=new NonblockingStoreCallback(){
       public void requestComplete(      Object result,      long requestTime){
         if (logger.isTraceEnabled())         logger.trace(pipeline.getOperation().getSimpleName() + " response received (" + requestTime+ " ms.) from node "+ node.getId());
         Response<ByteArray,Object> response=new Response<ByteArray,Object>(node,key,result,requestTime);
+        if (logger.isDebugEnabled())         logger.debug("Finished " + pipeline.getOperation().getSimpleName() + " for key "+ key+ " (keyRef: "+ System.identityHashCode(key)+ "); started at "+ startMs+ " took "+ requestTime+ " ms on node "+ node.getId()+ "("+ node.getHost()+ ")");
         responses.put(node.getId(),response);
         latch.countDown();
         if (pipeline.isFinished() && response.getValue() instanceof Exception) {
@@ -49,6 +51,7 @@
       pipelineData.getZoneResponses().add(response.getNode().getZoneId());
     }
   }
+  if (logger.isDebugEnabled())   logger.debug("GET for key " + key + " (keyRef: "+ System.identityHashCode(key)+ "); successes: "+ pipelineData.getSuccesses()+ " preferred: "+ preferred+ " required: "+ required);
   if (pipelineData.getSuccesses() < required) {
     if (insufficientSuccessesEvent != null) {
       pipeline.addEvent(insufficientSuccessesEvent);

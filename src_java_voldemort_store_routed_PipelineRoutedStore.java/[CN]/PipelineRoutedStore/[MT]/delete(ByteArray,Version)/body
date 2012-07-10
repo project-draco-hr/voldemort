@@ -1,5 +1,11 @@
 {
   StoreUtils.assertValidKey(key);
+  long startTimeMs=-1;
+  long startTimeNs=-1;
+  if (logger.isDebugEnabled()) {
+    startTimeMs=System.currentTimeMillis();
+    startTimeNs=System.nanoTime();
+  }
   BasicPipelineData<Boolean> pipelineData=new BasicPipelineData<Boolean>();
   if (zoneRoutingEnabled)   pipelineData.setZonesRequired(storeDef.getZoneCountWrites());
  else   pipelineData.setZonesRequired(null);
@@ -25,6 +31,9 @@
  catch (  VoldemortException e) {
     stats.reportException(e);
     throw e;
+  }
+  if (logger.isDebugEnabled()) {
+    logger.debug("Finished " + pipeline.getOperation().getSimpleName() + " for key "+ key.get()+ " keyRef: "+ System.identityHashCode(key)+ "; started at "+ startTimeMs+ " took "+ (System.nanoTime() - startTimeNs));
   }
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   for (  Response<ByteArray,Boolean> response : pipelineData.getResponses()) {

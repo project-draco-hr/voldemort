@@ -1,5 +1,7 @@
 {
   int count=0;
+  long startNs=-1;
+  if (logger.isDebugEnabled())   startNs=System.nanoTime();
   if ((count=socketChannel.read(inputStream.getBuffer())) == -1)   throw new EOFException("EOF for " + socketChannel.socket());
   if (logger.isTraceEnabled())   traceInputBufferState("Read " + count + " bytes");
   if (count == 0)   return;
@@ -21,6 +23,9 @@
   inputStream.getBuffer().rewind();
   if (logger.isTraceEnabled())   logger.trace("Starting execution for " + socketChannel.socket());
   streamRequestHandler=requestHandler.handleRequest(new DataInputStream(inputStream),new DataOutputStream(outputStream));
+  if (logger.isDebugEnabled()) {
+    logger.debug("AsyncRequestHandler:read finished request from " + socketChannel.socket().getRemoteSocketAddress() + " handlerRef: "+ System.identityHashCode(streamRequestHandler)+ " at time: "+ System.currentTimeMillis()+ " elapsed time: "+ (System.nanoTime() - startNs)+ " ns");
+  }
   if (streamRequestHandler != null) {
     handleStreamRequest(selectionKey);
     return;

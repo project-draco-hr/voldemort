@@ -1,4 +1,10 @@
 {
+  long startTimeMs=-1;
+  long startTimeNs=-1;
+  if (logger.isDebugEnabled()) {
+    startTimeMs=System.currentTimeMillis();
+    startTimeNs=System.nanoTime();
+  }
   ByteArray key=readKey(inputStream);
   int valueSize=inputStream.readInt();
   byte[] bytes=new byte[valueSize];
@@ -17,5 +23,8 @@
   }
  catch (  VoldemortException e) {
     writeException(outputStream,e);
+  }
+  if (logger.isDebugEnabled()) {
+    logger.debug("PUT started at: " + startTimeMs + " handlerRef: "+ System.identityHashCode(this)+ " key: "+ key+ " "+ (System.nanoTime() - startTimeNs)+ " ns, keySize: "+ key.length()+ " valueHash: "+ value.hashCode()+ " valueSize: "+ valueSize+ " clockSize: "+ clock.sizeInBytes()+ " time: "+ System.currentTimeMillis());
   }
 }

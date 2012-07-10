@@ -1,4 +1,10 @@
 {
+  long startTimeMs=-1;
+  long startTimeNs=-1;
+  if (logger.isDebugEnabled()) {
+    startTimeMs=System.currentTimeMillis();
+    startTimeNs=System.nanoTime();
+  }
   StoreUtils.assertValidKey(key);
   PutPipelineData pipelineData=new PutPipelineData();
   if (zoneRoutingEnabled)   pipelineData.setZonesRequired(storeDef.getZoneCountWrites());
@@ -29,6 +35,9 @@
  catch (  VoldemortException e) {
     stats.reportException(e);
     throw e;
+  }
+  if (logger.isDebugEnabled()) {
+    logger.debug("Finished " + pipeline.getOperation().getSimpleName() + " for key "+ key+ " keyRef: "+ System.identityHashCode(key)+ "; started at "+ startTimeMs+ " took "+ (System.nanoTime() - startTimeNs)+ " value: "+ versioned.getValue()+ " (size: "+ versioned.getValue().length+ ")");
   }
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
 }
