@@ -1,7 +1,7 @@
 import sys
 import random
 import argparse
-seed = int(random.randint(1, 99999999999))
+rseed = int(random.randint(1, 99999999999))
 parser = argparse.ArgumentParser(description='Build a voldemort cluster.xml.')
 parser.add_argument('-N', '--name', type=str, default='voldemort', dest='name', help='the name you want to give the clusteer')
 parser.add_argument('-n', '--nodes', type=int, default=2, dest='nodes', help='the number of nodes in the cluster')
@@ -10,7 +10,7 @@ parser.add_argument('-s', '--socket-port', type=int, default=6666, dest='sock_po
 parser.add_argument('-a', '--admin-port', type=int, default=6667, dest='admin_port', help='admin port number')
 parser.add_argument('-H', '--http-port', type=int, default=6665, dest='http_port', help='http port number')
 genType = parser.add_mutually_exclusive_group()
-genType.add_argument('-S', '--seed', type=int, default=seed, dest='seed', help='seed for randomizing partition distribution')
+genType.add_argument('-S', '--seed', type=int, default=rseed, dest='seed', help='seed for randomizing partition distribution')
 genType.add_argument('-l', '--loops', type=int, default=1000, dest='loops', help='loop n times, using a different random seed every                           time (Note: not currently supported)')
 parser.add_argument('-z', '--zones', type=int, dest='zones', help='if using zones, the number of zones you will have                          (Note: you must add your own <zone> fields                           manually)')
 args = parser.parse_args()
@@ -25,6 +25,7 @@ name = args.name
 http_port = args.http_port
 sock_port = args.sock_port
 admin_port = args.admin_port
+seed = args.seed
 part_ids = range((nodes * partitions))
 if args.zones:
     zone_ids = range(zones)
