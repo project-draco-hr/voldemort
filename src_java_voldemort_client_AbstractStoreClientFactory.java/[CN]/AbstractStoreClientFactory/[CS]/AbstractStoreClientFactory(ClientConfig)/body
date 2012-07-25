@@ -12,6 +12,7 @@
   this.clientContextName=(null == config.getClientContextName() ? "" : config.getClientContextName());
   this.routedStoreFactory=new RoutedStoreFactory(config.isPipelineRoutedStoreEnabled(),threadPool,config.getTimeoutConfig());
   this.sequencer=new AtomicInteger(0);
+  this.clientAsyncServiceRepo=new HashSet<SchedulerService>();
   if (this.isJmxEnabled) {
     JmxUtils.registerMbean(threadPool,JmxUtils.createObjectName(JmxUtils.getPackageName(threadPool.getClass()),JmxUtils.getClassName(threadPool.getClass()) + "." + clientContextName+ jmxId()));
     JmxUtils.registerMbean(new StoreStatsJmx(stats),JmxUtils.createObjectName("voldemort.store.stats.aggregate",clientContextName + ".aggregate-perf" + jmxId()));

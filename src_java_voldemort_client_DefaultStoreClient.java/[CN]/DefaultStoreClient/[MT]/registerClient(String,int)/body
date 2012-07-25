@@ -6,8 +6,13 @@
       ClientRegistryRefresher refresher=new ClientRegistryRefresher(clientRegistry,clientId.toString(),clientInfo,version);
       GregorianCalendar cal=new GregorianCalendar();
       cal.add(Calendar.SECOND,interval);
-      scheduler.schedule(jobId + refresher.getClass().getName(),refresher,cal.getTime(),TimeUnit.MILLISECONDS.convert(interval,TimeUnit.SECONDS));
-      logger.info("Client registry refresher thread started, refresh interval: " + interval + " seconds");
+      if (scheduler != null) {
+        scheduler.schedule(jobId + refresher.getClass().getName(),refresher,cal.getTime(),TimeUnit.MILLISECONDS.convert(interval,TimeUnit.SECONDS));
+        logger.info("Client registry refresher thread started, refresh interval: " + interval + " seconds");
+      }
+ else {
+        logger.warn("Client registry won't run because scheduler service is not configured");
+      }
     }
  catch (    Exception e) {
       logger.warn("Unable to register with the cluster due to the following error:",e);
