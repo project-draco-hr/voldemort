@@ -37,6 +37,8 @@
   parser.accepts("synchronize-metadata-version","Synchronize the metadata versions across all the nodes.");
   parser.accepts("reserve-memory","Memory in MB to reserve for the store").withRequiredArg().describedAs("size-in-mb").ofType(Long.class);
   parser.accepts("query-keys","Get values of keys on specific nodes").withRequiredArg().describedAs("query-keys").withValuesSeparatedBy(',').ofType(String.class);
+  parser.accepts("mirror-url","Cluster url to mirror data from").withRequiredArg().describedAs("mirror-cluster-bootstrap-url").ofType(String.class);
+  parser.accepts("mirror-node","Node id in the mirror cluster to mirror from").withRequiredArg().describedAs("id-of-mirror-node").ofType(Integer.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     printHelp(System.out,parser);
@@ -133,8 +135,17 @@
   if (options.has("query-keys")) {
     ops+="q";
   }
+  if (options.has("mirror-url")) {
+    if (!options.has("mirror-node")) {
+      Utils.croak("Specify the mirror node to fetch from");
+    }
+    if (!options.has("stores")) {
+      Utils.croak("Specify the list of stores to mirror");
+    }
+    ops+="h";
+  }
   if (ops.length() < 1) {
-    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, key-distribution, clear-rebalancing-metadata, async, "+ "repair-job, native-backup, rollback, reserve-memory, verify-metadata-version) must be specified");
+    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, key-distribution, clear-rebalancing-metadata, async, "+ "repair-job, native-backup, rollback, reserve-memory, mirror-url, verify-metadata-version) must be specified");
   }
   List<String> storeNames=null;
   if (options.has("stores")) {
@@ -301,6 +312,18 @@
         throw new VoldemortException("Must specify store name using --stores option");
       }
       executeQueryKeys(nodeId,adminClient,storeNames,keyList);
+    }
+    if (ops.contains("h")) {
+      if (nodeId == -1) {
+        System.err.println("Cannot run mirroring without node id");
+        System.exit(1);
+      }
+      Integer mirrorNodeId=CmdUtils.valueOf(options,"mirror-node",-1);
+      if (mirrorNodeId == -1) {
+        System.err.println("Cannot run mirroring without mirror node id");
+        System.exit(1);
+      }
+      adminClient.mirrorData(nodeId,mirrorNodeId,storeNames,(String)options.valueOf("mirror-url"));
     }
   }
  catch (  Exception e) {

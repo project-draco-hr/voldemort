@@ -1,0 +1,21 @@
+{
+  int size=1;
+  for (  Versioned<byte[]> v : values) {
+    size+=((VectorClock)v.getVersion()).sizeInBytes();
+    size+=4;
+    size+=v.getValue().length;
+  }
+  byte[] bytes=new byte[size];
+  int pos=1;
+  bytes[0]=VERSION;
+  for (  Versioned<byte[]> v : values) {
+    pos+=((VectorClock)v.getVersion()).toBytes(bytes,pos);
+    int len=v.getValue().length;
+    ByteUtils.writeInt(bytes,len,pos);
+    pos+=ByteUtils.SIZE_OF_INT;
+    System.arraycopy(v.getValue(),0,bytes,pos,len);
+    pos+=len;
+  }
+  if (pos != bytes.length)   throw new VoldemortException((bytes.length - pos) + " straggling bytes found in value (this should not be possible)!");
+  return bytes;
+}

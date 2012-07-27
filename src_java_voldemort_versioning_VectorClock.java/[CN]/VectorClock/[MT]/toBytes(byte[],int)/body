@@ -1,0 +1,14 @@
+{
+  ByteUtils.writeShort(buf,(short)versions.size(),offset);
+  byte versionSize=ByteUtils.numberOfBytesRequired(getMaxVersion());
+  buf[offset + 2]=versionSize;
+  int clockEntrySize=ByteUtils.SIZE_OF_SHORT + versionSize;
+  int start=offset + 3;
+  for (  ClockEntry v : versions) {
+    ByteUtils.writeShort(buf,v.getNodeId(),start);
+    ByteUtils.writeBytes(buf,v.getVersion(),start + ByteUtils.SIZE_OF_SHORT,versionSize);
+    start+=clockEntrySize;
+  }
+  ByteUtils.writeLong(buf,this.timestamp,start);
+  return sizeInBytes();
+}

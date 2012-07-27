@@ -1,3 +1,25 @@
 {
-  return get(key,transforms,readLockMode,versionedSerializer);
+  StoreUtils.assertValidKey(key);
+  DatabaseEntry keyEntry=new DatabaseEntry(key.get());
+  DatabaseEntry valueEntry=new DatabaseEntry();
+  long startTimeNs=-1;
+  if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
+  try {
+    OperationStatus status=getBdbDatabase().get(null,keyEntry,valueEntry,readLockMode);
+    if (OperationStatus.SUCCESS == status) {
+      return StoreBinaryFormat.fromByteArray(valueEntry.getData());
+    }
+ else {
+      return Collections.emptyList();
+    }
+  }
+ catch (  DatabaseException e) {
+    logger.error(e);
+    throw new PersistenceFailureException(e);
+  }
+ finally {
+    if (logger.isTraceEnabled()) {
+      logger.trace("Completed GET from key " + key + " (keyRef: "+ System.identityHashCode(key)+ ") in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
+    }
+  }
 }

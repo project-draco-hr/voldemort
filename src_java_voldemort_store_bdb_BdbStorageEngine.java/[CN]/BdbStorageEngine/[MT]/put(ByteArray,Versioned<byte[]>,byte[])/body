@@ -1,23 +1,31 @@
 {
-  StoreUtils.assertValidKey(key);
   long startTimeNs=-1;
   if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
+  StoreUtils.assertValidKey(key);
   DatabaseEntry keyEntry=new DatabaseEntry(key.get());
+  DatabaseEntry valueEntry=new DatabaseEntry();
   boolean succeeded=false;
   Transaction transaction=null;
-  Cursor cursor=null;
+  List<Versioned<byte[]>> vals=null;
   try {
-    transaction=this.environment.beginTransaction(null,null);
-    DatabaseEntry valueEntry=new DatabaseEntry();
-    cursor=getBdbDatabase().openCursor(transaction,null);
-    for (OperationStatus status=cursor.getSearchKey(keyEntry,valueEntry,LockMode.RMW); status == OperationStatus.SUCCESS; status=cursor.getNextDup(keyEntry,valueEntry,LockMode.RMW)) {
-      VectorClock clock=new VectorClock(valueEntry.getData());
-      Occurred occurred=value.getVersion().compare(clock);
-      if (occurred == Occurred.BEFORE)       throw new ObsoleteVersionException("Key " + new String(hexCodec.encode(key.get())) + " "+ value.getVersion().toString()+ " is obsolete, it is no greater than the current version of "+ clock+ ".");
- else       if (occurred == Occurred.AFTER)       cursor.delete();
+    transaction=environment.beginTransaction(null,null);
+    OperationStatus status=getBdbDatabase().get(transaction,keyEntry,valueEntry,LockMode.RMW);
+    if (OperationStatus.SUCCESS == status) {
+      vals=StoreBinaryFormat.fromByteArray(valueEntry.getData());
+      Iterator<Versioned<byte[]>> iter=vals.iterator();
+      while (iter.hasNext()) {
+        Versioned<byte[]> curr=iter.next();
+        Occurred occurred=value.getVersion().compare(curr.getVersion());
+        if (occurred == Occurred.BEFORE)         throw new ObsoleteVersionException("Key " + new String(hexCodec.encode(key.get())) + " "+ value.getVersion().toString()+ " is obsolete, it is no greater than the current version of "+ curr.getVersion().toString()+ ".");
+ else         if (occurred == Occurred.AFTER)         iter.remove();
+      }
     }
-    valueEntry=new DatabaseEntry(versionedSerializer.toBytes(value));
-    OperationStatus status=cursor.put(keyEntry,valueEntry);
+ else {
+      vals=new ArrayList<Versioned<byte[]>>();
+    }
+    vals.add(value);
+    valueEntry.setData(StoreBinaryFormat.toByteArray(vals));
+    status=getBdbDatabase().put(transaction,keyEntry,valueEntry);
     if (status != OperationStatus.SUCCESS)     throw new PersistenceFailureException("Put operation failed with status: " + status);
     succeeded=true;
   }
@@ -26,11 +34,10 @@
     throw new PersistenceFailureException(e);
   }
  finally {
-    attemptClose(cursor);
     if (succeeded)     attemptCommit(transaction);
  else     attemptAbort(transaction);
-  }
-  if (logger.isTraceEnabled()) {
-    logger.trace("Completed PUT to key " + ByteUtils.toHexString(key.get()) + " (keyRef: "+ System.identityHashCode(key)+ " value "+ value+ " in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
+    if (logger.isTraceEnabled()) {
+      logger.trace("Completed PUT to key " + key + " (keyRef: "+ System.identityHashCode(key)+ " value "+ value+ " in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
+    }
   }
 }

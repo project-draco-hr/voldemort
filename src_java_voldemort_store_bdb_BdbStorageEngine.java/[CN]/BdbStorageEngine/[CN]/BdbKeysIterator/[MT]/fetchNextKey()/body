@@ -1,0 +1,17 @@
+{
+  DatabaseEntry keyEntry=new DatabaseEntry();
+  DatabaseEntry valueEntry=new DatabaseEntry();
+  valueEntry.setPartial(true);
+  try {
+    OperationStatus status=cursor.getNext(keyEntry,valueEntry,LockMode.READ_UNCOMMITTED);
+    if (OperationStatus.NOTFOUND == status) {
+      return false;
+    }
+    current=new ByteArray(keyEntry.getData());
+    return true;
+  }
+ catch (  DatabaseException e) {
+    logger.error(e);
+    throw new PersistenceFailureException(e);
+  }
+}
