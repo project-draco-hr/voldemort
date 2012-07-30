@@ -6,16 +6,16 @@
   for (int i=0; i < 2; i++) {
     clients[i]=getFactoryWithClientContext(clientContext,getValidBootstrapUrl()).getStoreClient(getValidStoreName());
   }
-  ObjectName c1Name=JmxUtils.createObjectName(AGGREGATE_STATS_DOMAIN,clientContext + ".aggregate-perf" + jmxId1);
-  ObjectName c2Name=JmxUtils.createObjectName(AGGREGATE_STATS_DOMAIN,clientContext + ".aggregate-perf" + jmxId2);
+  ObjectName c1Name=JmxUtils.createObjectName(AGGREGATE_STATS_DOMAIN,"aggregate-perf" + jmxId1);
+  ObjectName c2Name=JmxUtils.createObjectName(AGGREGATE_STATS_DOMAIN,"aggregate-perf" + jmxId2);
   checkForMbeanFound(c1Name);
   checkForMbeanFound(c2Name);
   mbServer.unregisterMBean(c1Name);
   mbServer.unregisterMBean(c2Name);
-  String c1type=clientContext + ".test" + jmxId1;
-  String c2type=clientContext + ".test" + jmxId2;
-  c1Name=JmxUtils.createObjectName(STATS_DOMAIN,c1type + "." + ((DefaultStoreClient<Object,Object>)clients[0]).getClientId().toString());
-  c2Name=JmxUtils.createObjectName(STATS_DOMAIN,c2type + "." + ((DefaultStoreClient<Object,Object>)clients[1]).getClientId().toString());
+  String c1type="test" + jmxId1;
+  String c2type="test" + jmxId2;
+  c1Name=JmxUtils.createObjectName(STATS_DOMAIN,c1type);
+  c2Name=JmxUtils.createObjectName(STATS_DOMAIN,c2type);
   checkForMbeanFound(c1Name);
   checkForMbeanFound(c2Name);
   mbServer.unregisterMBean(c1Name);

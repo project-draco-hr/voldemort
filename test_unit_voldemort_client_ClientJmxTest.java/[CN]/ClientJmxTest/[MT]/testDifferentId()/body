@@ -5,15 +5,13 @@
   StoreClient<Object,Object>[] clients=new StoreClient[2];
   clients[0]=factory.getStoreClient(getValidStoreName());
   clients[1]=factory.getStoreClient(getValidStoreName());
-  ObjectName cName=JmxUtils.createObjectName(AGGREGATE_STATS_DOMAIN,clientContext + ".aggregate-perf" + jmxId);
+  ObjectName cName=JmxUtils.createObjectName(AGGREGATE_STATS_DOMAIN,"aggregate-perf" + jmxId);
   checkForMbeanFound(cName);
   mbServer.unregisterMBean(cName);
-  String ctype=clientContext + ".test" + jmxId;
-  ObjectName c1Name=JmxUtils.createObjectName(STATS_DOMAIN,ctype + "." + ((DefaultStoreClient<Object,Object>)clients[0]).getClientId().toString());
-  ObjectName c2Name=JmxUtils.createObjectName(STATS_DOMAIN,ctype + "." + ((DefaultStoreClient<Object,Object>)clients[1]).getClientId().toString());
+  String ctype="test" + jmxId;
+  ObjectName c1Name=JmxUtils.createObjectName(STATS_DOMAIN,ctype);
+  ObjectName c2Name=JmxUtils.createObjectName(STATS_DOMAIN,ctype);
   checkForMbeanFound(c1Name);
   checkForMbeanFound(c2Name);
-  assertTrue(!c1Name.equals(c2Name));
   mbServer.unregisterMBean(c1Name);
-  mbServer.unregisterMBean(c2Name);
 }
