@@ -1,10 +1,4 @@
 {
   logger.info("Bootstrapping metadata for store " + this.storeName);
-  clusterXml=((AbstractStoreClientFactory)storeFactory).bootstrapMetadataWithRetries(MetadataStore.CLUSTER_KEY);
-  this.store=storeFactory.getRawStore(storeName,resolver,clientId,null,clusterXml);
-  logger.info("Creating system stores for store " + this.storeName);
-  this.sysRepository.createSystemStores(this.config,this.clusterXml);
-  if (asyncCheckMetadata != null) {
-    asyncCheckMetadata.updateMetadataVersions();
-  }
+  this.store=storeFactory.getRawStore(storeName,resolver);
 }

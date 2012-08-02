@@ -1,0 +1,18 @@
+{
+  try {
+    Long newVersion=getCurrentVersion(versionKey,versionProps);
+    if (newVersion != null) {
+      logger.debug("MetadataVersion check => Obtained " + versionKey + " version : "+ newVersion);
+      if (!newVersion.equals(curVersion)) {
+        return newVersion;
+      }
+    }
+ else {
+      logger.debug("Metadata unchanged after creation ...");
+    }
+  }
+ catch (  Exception e) {
+    logger.info("Could not retrieve Metadata Version. Exception : " + e);
+  }
+  return null;
+}

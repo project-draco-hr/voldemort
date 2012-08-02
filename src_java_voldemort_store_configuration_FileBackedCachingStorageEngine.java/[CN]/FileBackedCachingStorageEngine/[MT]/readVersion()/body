@@ -1,0 +1,15 @@
+{
+  try {
+    if (this.cachedVersion == null) {
+      File versionFile=getVersionFile();
+      if (versionFile.exists()) {
+        String hexCode=FileUtils.readFileToString(versionFile,"UTF-8");
+        this.cachedVersion=new VectorClock(Hex.decodeHex(hexCode.toCharArray()));
+      }
+    }
+    return this.cachedVersion;
+  }
+ catch (  Exception e) {
+    throw new VoldemortException("Failed to read Version for file :" + this.name,e);
+  }
+}

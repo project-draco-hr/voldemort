@@ -1,6 +1,7 @@
 {
-  Versioned<Long> newStoresVersion=fetchNewVersion(STORES_VERSION_KEY,currentStoreVersion);
-  Versioned<Long> newClusterVersion=fetchNewVersion(CLUSTER_VERSION_KEY,currentClusterVersion);
+  Properties versionProps=MetadataVersionStoreUtils.getProperties(this.sysRepository.getMetadataVersionStore());
+  Long newStoresVersion=fetchNewVersion(STORES_VERSION_KEY,currentStoreVersion,versionProps);
+  Long newClusterVersion=fetchNewVersion(CLUSTER_VERSION_KEY,currentClusterVersion,versionProps);
   if ((newStoresVersion != null) || (newClusterVersion != null)) {
     logger.info("Metadata version mismatch detected.");
     int delta=randomGenerator.nextInt(DELTA_MAX);

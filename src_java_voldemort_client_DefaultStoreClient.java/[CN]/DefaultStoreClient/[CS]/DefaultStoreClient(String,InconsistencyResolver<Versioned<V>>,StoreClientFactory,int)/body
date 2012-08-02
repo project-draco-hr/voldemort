@@ -1,3 +1,8 @@
 {
-  this(storeName,resolver,storeFactory,maxMetadataRefreshAttempts,null,0,null);
+  this.storeName=Utils.notNull(storeName);
+  this.resolver=resolver;
+  this.storeFactory=Utils.notNull(storeFactory);
+  this.metadataRefreshAttempts=maxMetadataRefreshAttempts;
+  JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass()) + "." + storeName));
+  bootStrap();
 }

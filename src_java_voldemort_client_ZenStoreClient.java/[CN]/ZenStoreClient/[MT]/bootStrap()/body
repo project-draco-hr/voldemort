@@ -1,0 +1,13 @@
+{
+  logger.info("Bootstrapping metadata for store " + this.storeName);
+  clusterXml=abstractStoreFactory.bootstrapMetadataWithRetries(MetadataStore.CLUSTER_KEY);
+  this.store=abstractStoreFactory.getRawStore(storeName,resolver,clientId,null,clusterXml);
+  logger.info("Creating system stores for store " + this.storeName);
+  this.sysRepository.createSystemStores(this.config,this.clusterXml);
+  if (asyncCheckMetadata != null) {
+    asyncCheckMetadata.updateMetadataVersions();
+  }
+  if (this.clientInfo != null) {
+    this.clientInfo.setBootstrapTime(System.currentTimeMillis());
+  }
+}

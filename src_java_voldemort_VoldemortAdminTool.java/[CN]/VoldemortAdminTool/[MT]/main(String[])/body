@@ -52,7 +52,7 @@
   AdminClient adminClient=new AdminClient(url,new AdminClientConfig());
   String[] bootstrapUrls=new String[1];
   bootstrapUrls[0]=url;
-  sysStoreVersion=new SystemStore<String,Long>("voldsys$_metadata_version",bootstrapUrls,0);
+  SystemStore<String,String> sysStoreVersion=new SystemStore<String,String>(SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name(),bootstrapUrls,0);
   String ops="";
   if (options.has("delete-partitions")) {
     ops+="d";
@@ -199,7 +199,7 @@
           ClusterMapper mapper=new ClusterMapper();
           Cluster newCluster=mapper.readCluster(new File(metadataValue));
           executeSetMetadata(nodeId,adminClient,MetadataStore.CLUSTER_KEY,mapper.writeCluster(newCluster));
-          updateMetadataversion(CLUSTER_VERSION_KEY);
+          updateMetadataversion(CLUSTER_VERSION_KEY,sysStoreVersion);
         }
  else         if (metadataKey.compareTo(MetadataStore.SERVER_STATE_KEY) == 0) {
           VoldemortState newState=VoldemortState.valueOf(metadataValue);
@@ -210,7 +210,7 @@
           StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
           List<StoreDefinition> storeDefs=mapper.readStoreList(new File(metadataValue));
           executeSetMetadata(nodeId,adminClient,MetadataStore.STORES_KEY,mapper.writeStoreList(storeDefs));
-          updateMetadataversion(STORES_VERSION_KEY);
+          updateMetadataversion(STORES_VERSION_KEY,sysStoreVersion);
         }
  else         if (metadataKey.compareTo(MetadataStore.REBALANCING_STEAL_INFO) == 0) {
           if (!Utils.isReadableFile(metadataValue))           throw new VoldemortException("Rebalancing steal info file path incorrect");

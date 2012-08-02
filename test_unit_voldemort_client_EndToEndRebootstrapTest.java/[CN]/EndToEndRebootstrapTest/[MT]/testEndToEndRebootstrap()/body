@@ -1,0 +1,51 @@
+{
+  try {
+    String key="city";
+    String value="SF";
+    String storeName=SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name();
+    String bootstrapTime="";
+    String newBootstrapTime="";
+    AdminClient adminClient=new AdminClient(bootStrapUrls[0],new AdminClientConfig());
+    try {
+      storeClient.put(key,value);
+      String received=storeClient.getValue(key);
+      assertEquals(value,received);
+    }
+ catch (    VoldemortException ve) {
+      fail("Error in doing basic get, put");
+    }
+    String originalClientInfo=getClientInfo(adminClient,storeName,SystemStoreConstants.getSystemStoreDef(storeName));
+    try {
+      bootstrapTime=originalClientInfo.split("]")[0].split("\\[")[1];
+    }
+ catch (    Exception e) {
+      fail("Error in retrieving bootstrap time: " + e);
+    }
+    VoldemortAdminTool adminTool=new VoldemortAdminTool();
+    ClusterMapper mapper=new ClusterMapper();
+    for (    Node node : cluster.getNodes()) {
+      VoldemortAdminTool.executeSetMetadata(node.getId(),adminClient,CLUSTER_KEY,mapper.writeCluster(cluster));
+      VoldemortAdminTool.updateMetadataversion(CLUSTER_KEY,sysStoreVersion);
+    }
+    try {
+      Thread.sleep(15000);
+    }
+ catch (    Exception e) {
+      fail("Interrupted .");
+    }
+    String newClientInfo=getClientInfo(adminClient,storeName,SystemStoreConstants.getSystemStoreDef(storeName));
+    try {
+      newBootstrapTime=newClientInfo.split("]")[0].split("\\[")[1];
+    }
+ catch (    Exception e) {
+      fail("Error in retrieving bootstrap time: " + e);
+    }
+    assertFalse(bootstrapTime.equals(newBootstrapTime));
+    long origTime=Long.parseLong(bootstrapTime);
+    long newTime=Long.parseLong(newBootstrapTime);
+    assertTrue(newTime > origTime);
+  }
+ catch (  Exception e) {
+    fail("Error in validating end to end client rebootstrap : " + e);
+  }
+}

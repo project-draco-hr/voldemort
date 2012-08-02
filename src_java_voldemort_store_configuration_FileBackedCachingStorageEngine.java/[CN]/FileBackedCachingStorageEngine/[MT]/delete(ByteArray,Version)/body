@@ -1,0 +1,16 @@
+{
+  boolean deleteSuccessful=false;
+  StoreUtils.assertValidKey(key);
+  String keyString=new String(key.get());
+  String initialValue=this.metadataMap.get(keyString);
+  if (initialValue != null) {
+    String removedValue=this.metadataMap.remove(keyString);
+    if (removedValue != null) {
+      deleteSuccessful=(initialValue.equals(removedValue));
+    }
+  }
+  if (deleteSuccessful) {
+    this.flushData();
+  }
+  return deleteSuccessful;
+}

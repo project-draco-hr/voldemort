@@ -1,0 +1,29 @@
+{
+  this.sysRepository=sysRepository;
+  if (storeName != null) {
+    STORES_VERSION_KEY=storeName;
+  }
+  Properties versionProps=MetadataVersionStoreUtils.getProperties(this.sysRepository.getMetadataVersionStore());
+  try {
+    this.currentStoreVersion=getCurrentVersion(STORES_VERSION_KEY,versionProps);
+  }
+ catch (  Exception e) {
+    logger.error("Exception while getting currentStoreVersion : " + e);
+  }
+  try {
+    this.currentClusterVersion=getCurrentVersion(CLUSTER_VERSION_KEY,versionProps);
+  }
+ catch (  Exception e) {
+    logger.error("Exception while getting currentClusterVersion : " + e);
+  }
+  if (currentStoreVersion == null) {
+    currentStoreVersion=new Long(0);
+  }
+  if (currentClusterVersion == null) {
+    currentClusterVersion=new Long(0);
+  }
+  logger.debug("Initial stores.xml version = " + this.currentStoreVersion);
+  logger.debug("Initial cluster.xml version = " + this.currentClusterVersion);
+  this.storeClientThunk=storeClientThunk;
+  this.isActive=true;
+}

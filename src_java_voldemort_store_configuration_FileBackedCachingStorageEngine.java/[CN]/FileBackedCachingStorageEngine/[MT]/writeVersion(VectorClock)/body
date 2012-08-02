@@ -1,0 +1,13 @@
+{
+  File versionFile=getVersionFile();
+  try {
+    if (!versionFile.exists() || versionFile.delete()) {
+      String hexCode=new String(Hex.encodeHex(newClock.toBytes()));
+      FileUtils.writeStringToFile(versionFile,hexCode,"UTF-8");
+      this.cachedVersion=newClock;
+    }
+  }
+ catch (  Exception e) {
+    throw new VoldemortException("Failed to write Version for the current file :" + this.name,e);
+  }
+}

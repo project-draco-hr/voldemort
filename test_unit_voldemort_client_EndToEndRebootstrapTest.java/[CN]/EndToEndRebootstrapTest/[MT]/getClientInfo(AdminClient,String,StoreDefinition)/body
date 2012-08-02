@@ -1,0 +1,28 @@
+{
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> iterator=adminClient.fetchEntries(0,storeName,cluster.getNodeById(0).getPartitionIds(),null,true);
+  boolean hasData=iterator.hasNext();
+  assertTrue(hasData);
+  String clientInfo=null;
+  CompressionStrategy valueCompressionStrategy=null;
+  SerializerFactory serializerFactory=new DefaultSerializerFactory();
+  StringWriter stringWriter=new StringWriter();
+  JsonGenerator generator=new JsonFactory(new ObjectMapper()).createJsonGenerator(stringWriter);
+  SerializerDefinition valueSerializerDef=storeDefinition.getValueSerializer();
+  if (null != valueSerializerDef && valueSerializerDef.hasCompression()) {
+    valueCompressionStrategy=new CompressionStrategyFactory().get(valueSerializerDef.getCompression());
+  }
+  @SuppressWarnings("unchecked") Serializer<Object> valueSerializer=(Serializer<Object>)serializerFactory.getSerializer(storeDefinition.getValueSerializer());
+  try {
+    Pair<ByteArray,Versioned<byte[]>> kvPair=iterator.next();
+    VectorClock version=(VectorClock)kvPair.getSecond().getVersion();
+    byte[] valueBytes=kvPair.getSecond().getValue();
+    Object valueObject=valueSerializer.toObject((null == valueCompressionStrategy) ? valueBytes : valueCompressionStrategy.inflate(valueBytes));
+    generator.writeObject(valueObject);
+    StringBuffer buf=stringWriter.getBuffer();
+    clientInfo=buf.toString();
+    buf.setLength(0);
+  }
+  finally {
+  }
+  return clientInfo;
+}
