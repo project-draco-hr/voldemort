@@ -13,7 +13,7 @@
     }
  else {
       DatabaseEntry valueEntry=new DatabaseEntry();
-      OperationStatus status=getBdbDatabase().get(transaction,keyEntry,valueEntry,readLockMode);
+      OperationStatus status=getBdbDatabase().get(transaction,keyEntry,valueEntry,LockMode.RMW);
       if (OperationStatus.NOTFOUND == status)       return false;
       List<Versioned<byte[]>> vals=StoreBinaryFormat.fromByteArray(valueEntry.getData());
       Iterator<Versioned<byte[]>> iter=vals.iterator();
