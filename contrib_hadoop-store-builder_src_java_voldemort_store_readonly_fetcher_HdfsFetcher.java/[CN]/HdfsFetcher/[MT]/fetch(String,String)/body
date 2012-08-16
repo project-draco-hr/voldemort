@@ -10,6 +10,7 @@
     config.setInt("io.socket.receive.buffer",bufferSize);
     config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
     FileSystem fs=null;
+    HdfsFetcher.addPath(this.voldemortConfig.getHadoopConfigPath());
 synchronized (this) {
       if (this.keytabLocation.length() > 0) {
         logger.info("keytab path = " + keytabLocation + " and proxy user = "+ proxyUser);
@@ -58,7 +59,11 @@ catch (        Exception e) {
       return null;
     }
   }
-  finally {
+ catch (  Exception e) {
+    logger.error("Error while getting Hadoop filesystem : " + e);
+    return null;
+  }
+ finally {
     if (this.globalThrottleLimit != null) {
       this.globalThrottleLimit.decrementNumJobs();
     }

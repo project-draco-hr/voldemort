@@ -1,11 +1,13 @@
 {
-  if (args.length < 1)   Utils.croak("USAGE: java " + HdfsFetcher.class.getName() + " url [keytab location] [kerberos username]");
+  if (args.length < 1)   Utils.croak("USAGE: java " + HdfsFetcher.class.getName() + " url [keytab location] [kerberos username] [hadoop-config-path]");
   String url=args[0];
   String keytabLocation="";
   String proxyUser="";
-  if (args.length >= 3) {
+  String hadoopPath="";
+  if (args.length >= 4) {
     keytabLocation=args[1];
     proxyUser=args[2];
+    hadoopPath=args[3];
   }
   long maxBytesPerSec=1024 * 1024 * 1024;
   Path p=new Path(url);
@@ -15,6 +17,7 @@
   config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
   config.setInt("io.socket.receive.buffer",1 * 1024 * 1024 - 10000);
   FileSystem fs=null;
+  HdfsFetcher.addPath(hadoopPath);
   if (keytabLocation.length() > 0) {
     logger.debug("keytab path = " + keytabLocation + " and proxy user = "+ proxyUser);
     UserGroupInformation.loginUserFromKeytab(proxyUser,keytabLocation);
