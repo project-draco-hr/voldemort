@@ -22,11 +22,9 @@
   }
   inputStream.getBuffer().rewind();
   if (logger.isTraceEnabled())   logger.trace("Starting execution for " + socketChannel.socket());
-  DataInputStream dataInputStream=new DataInputStream(inputStream);
-  DataOutputStream dataOutputStream=new DataOutputStream(outputStream);
-  streamRequestHandler=requestHandler.handleRequest(dataInputStream,dataOutputStream);
+  streamRequestHandler=requestHandler.handleRequest(new DataInputStream(inputStream),new DataOutputStream(outputStream));
   if (logger.isDebugEnabled()) {
-    logger.debug("AsyncRequestHandler:read finished request from " + socketChannel.socket().getRemoteSocketAddress() + " handlerRef: "+ System.identityHashCode(dataInputStream)+ " at time: "+ System.currentTimeMillis()+ " elapsed time: "+ (System.nanoTime() - startNs)+ " ns");
+    logger.debug("AsyncRequestHandler:read finished request from " + socketChannel.socket().getRemoteSocketAddress() + " handlerRef: "+ System.identityHashCode(streamRequestHandler)+ " at time: "+ System.currentTimeMillis()+ " elapsed time: "+ (System.nanoTime() - startNs)+ " ns");
   }
   if (streamRequestHandler != null) {
     handleStreamRequest(selectionKey);

@@ -18,7 +18,7 @@
         if (logger.isTraceEnabled())         logger.trace(pipeline.getOperation().getSimpleName() + " response received (" + requestTime+ " ms.) from node "+ node.getId());
         Response<ByteArray,Object> response=new Response<ByteArray,Object>(node,key,result,requestTime);
         responses.put(node.getId(),response);
-        if (logger.isDebugEnabled())         logger.debug("Finished secondary PUT for key " + ByteUtils.toHexString(key.get()) + " (keyRef: "+ System.identityHashCode(key)+ "); took "+ requestTime+ " ms on node "+ node.getId()+ "("+ node.getHost()+ ")");
+        if (logger.isDebugEnabled())         logger.debug("Finished secondary PUT for key " + key + " (keyRef: "+ System.identityHashCode(key)+ "); took "+ requestTime+ " ms on node "+ node.getId()+ "("+ node.getHost()+ ")");
         if (isHintedHandoffEnabled() && pipeline.isFinished()) {
           if (response.getValue() instanceof UnreachableStoreException) {
             Slop slop=new Slop(pipelineData.getStoreName(),Slop.Operation.PUT,key,versionedCopy.getValue(),transforms,node.getId(),new Date());

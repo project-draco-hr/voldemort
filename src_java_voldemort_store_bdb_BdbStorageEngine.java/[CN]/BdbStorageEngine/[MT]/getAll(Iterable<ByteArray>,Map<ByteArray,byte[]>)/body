@@ -8,7 +8,7 @@
   try {
     cursor=getBdbDatabase().openCursor(null,null);
     for (    ByteArray key : keys) {
-      if (logger.isTraceEnabled())       keyStr+=ByteUtils.toHexString(key.get()) + " ";
+      if (logger.isTraceEnabled())       keyStr+=key + " ";
       List<Versioned<byte[]>> values=get(cursor,key,readLockMode,versionedSerializer);
       if (!values.isEmpty())       result.put(key,values);
     }

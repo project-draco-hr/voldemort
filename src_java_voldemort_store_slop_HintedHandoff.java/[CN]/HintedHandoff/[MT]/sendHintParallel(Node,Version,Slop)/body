@@ -8,7 +8,7 @@
       NonblockingStore nonblockingStore=nonblockingSlopStores.get(nodeId);
       Utils.notNull(nonblockingStore);
       final long startNs=System.nanoTime();
-      if (logger.isDebugEnabled())       logger.debug("Slop attempt to write " + ByteUtils.toHexString(slop.getKey().get()) + " for "+ failedNode+ " to node "+ node);
+      if (logger.isDebugEnabled())       logger.debug("Slop attempt to write " + slop.getKey() + " for "+ failedNode+ " to node "+ node);
       NonblockingStoreCallback callback=new NonblockingStoreCallback(){
         public void requestComplete(        Object result,        long requestTime){
           Response<ByteArray,Object> response=new Response<ByteArray,Object>(node,slopKey,result,requestTime);
@@ -19,14 +19,14 @@
               if (!failedNodes.contains(node))               failedNodes.add(node);
               if (response.getValue() instanceof UnreachableStoreException) {
                 UnreachableStoreException use=(UnreachableStoreException)response.getValue();
-                if (logger.isDebugEnabled())                 logger.debug("Write of key " + ByteUtils.toHexString(slop.getKey().get()) + " for "+ failedNode+ " to node "+ node+ " failed due to unreachable: "+ use.getMessage());
+                if (logger.isDebugEnabled())                 logger.debug("Write of key " + slop.getKey() + " for "+ failedNode+ " to node "+ node+ " failed due to unreachable: "+ use.getMessage());
                 failureDetector.recordException(node,(System.nanoTime() - startNs) / Time.NS_PER_MS,use);
               }
               sendHintSerial(failedNode,version,slop);
             }
             return;
           }
-          if (logger.isDebugEnabled())           logger.debug("Slop write of key " + ByteUtils.toHexString(slop.getKey().get()) + " for "+ failedNode+ " to node "+ node+ " succeeded in "+ (System.nanoTime() - startNs)+ " ns");
+          if (logger.isDebugEnabled())           logger.debug("Slop write of key " + slop.getKey() + " for "+ failedNode+ " to node "+ node+ " succeeded in "+ (System.nanoTime() - startNs)+ " ns");
           failureDetector.recordSuccess(node,(System.nanoTime() - startNs) / Time.NS_PER_MS);
         }
       }

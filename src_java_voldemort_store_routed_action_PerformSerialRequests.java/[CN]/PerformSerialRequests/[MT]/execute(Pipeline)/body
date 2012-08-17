@@ -7,7 +7,7 @@
       Store<ByteArray,byte[],byte[]> store=stores.get(node.getId());
       V result=storeRequest.request(store);
       Response<ByteArray,V> response=new Response<ByteArray,V>(node,key,result,((System.nanoTime() - start) / Time.NS_PER_MS));
-      if (logger.isDebugEnabled())       logger.debug(pipeline.getOperation().getSimpleName() + " for key " + ByteUtils.toHexString(key.get())+ " successes: "+ pipelineData.getSuccesses()+ " preferred: "+ preferred+ " required: "+ required+ " new "+ pipeline.getOperation().getSimpleName()+ " success on node "+ node.getId());
+      if (logger.isDebugEnabled())       logger.debug(pipeline.getOperation().getSimpleName() + " for key " + key+ " successes: "+ pipelineData.getSuccesses()+ " preferred: "+ preferred+ " required: "+ required+ " new "+ pipeline.getOperation().getSimpleName()+ " success on node "+ node.getId());
       pipelineData.incrementSuccesses();
       pipelineData.getResponses().add(response);
       failureDetector.recordSuccess(response.getNode(),response.getRequestTime());

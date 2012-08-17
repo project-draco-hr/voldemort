@@ -8,7 +8,7 @@
       Utils.notNull(slopStore);
       long startNs=System.nanoTime();
       try {
-        if (logger.isDebugEnabled())         logger.debug("Slop attempt to write " + ByteUtils.toHexString(slop.getKey().get()) + " (keyRef: "+ System.identityHashCode(slop.getKey())+ ") for "+ failedNode+ " to node "+ node);
+        if (logger.isDebugEnabled())         logger.debug("Slop attempt to write " + slop.getKey() + " (keyRef: "+ System.identityHashCode(slop.getKey())+ ") for "+ failedNode+ " to node "+ node);
         slopStore.put(slop.makeKey(),new Versioned<Slop>(slop,version),null);
         persisted=true;
         failureDetector.recordSuccess(node,(System.nanoTime() - startNs) / Time.NS_PER_MS);
@@ -22,7 +22,7 @@
 catch (      ObsoleteVersionException e) {
         logger.debug(e,e);
       }
-      if (logger.isDebugEnabled())       logger.debug("Slop write of key " + ByteUtils.toHexString(slop.getKey().get()) + " (keyRef: "+ System.identityHashCode(slop.getKey())+ " for "+ failedNode+ " to node "+ node+ " succeeded in "+ (System.nanoTime() - startNs)+ " ns");
+      if (logger.isDebugEnabled())       logger.debug("Slop write of key " + slop.getKey() + " (keyRef: "+ System.identityHashCode(slop.getKey())+ " for "+ failedNode+ " to node "+ node+ " succeeded in "+ (System.nanoTime() - startNs)+ " ns");
     }
   }
   return persisted;
