@@ -1,0 +1,16 @@
+{
+  for (int i=0; i < 5; ++i) {
+    long timeoutMs=60;
+    if (i == 0)     timeoutMs=0;
+    for (    byte op : opList) {
+      CountDownLatch waitForOp=new CountDownLatch(1);
+      new Thread(new OpInvoker(waitForOp,op,timeoutMs)).start();
+      try {
+        waitForOp.await();
+      }
+ catch (      InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+}
