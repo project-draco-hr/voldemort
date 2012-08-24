@@ -1,15 +1,15 @@
 {
   checkNotClosed();
   long startNs=System.nanoTime();
-  Pool<V> resources=getResourcePoolForKey(key);
+  Pool<V> resourcePool=getResourcePoolForKey(key);
   V resource=null;
   try {
     checkNotClosed();
-    resource=attemptCheckout(key,resources);
+    resource=attemptCheckoutGrowCheckout(key,resourcePool);
     if (resource == null) {
       long timeRemainingNs=this.timeoutNs - (System.nanoTime() - startNs);
       if (timeRemainingNs < 0)       throw new TimeoutException("Could not acquire resource in " + (this.timeoutNs / Time.NS_PER_MS) + " ms.");
-      resource=resources.blockingGet(timeoutNs);
+      resource=resourcePool.blockingGet(timeoutNs);
       if (resource == null) {
         throw new TimeoutException("Timed out wait for resource after " + (timeoutNs / Time.NS_PER_MS) + " ms.");
       }
@@ -17,7 +17,8 @@
     if (!objectFactory.validate(key,resource))     throw new ExcessiveInvalidResourcesException(1);
   }
  catch (  Exception e) {
-    destroyResource(key,resources,resource);
+    destroyResource(key,resourcePool,resource);
+    System.err.println(e.toString());
     throw e;
   }
   return resource;

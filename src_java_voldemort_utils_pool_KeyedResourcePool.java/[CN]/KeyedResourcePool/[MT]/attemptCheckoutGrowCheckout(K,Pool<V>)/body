@@ -1,0 +1,11 @@
+{
+  V resource=attemptCheckout(pool);
+  if (resource == null) {
+    if (pool.size.get() < this.poolMaxSize) {
+      if (attemptGrow(key,pool)) {
+        resource=attemptCheckout(pool);
+      }
+    }
+  }
+  return resource;
+}

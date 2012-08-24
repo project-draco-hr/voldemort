@@ -1,6 +1,5 @@
 {
-  Pool<V> pool=resourcesMap.get(key);
-  if (pool == null)   throw new IllegalArgumentException("Invalid key '" + key + "': no resource pool exists for that key.");
-  List<V> list=pool.close();
-  for (  V value : list)   destroyResource(key,pool,value);
+  Pool<V> resourcePool=getResourcePoolForExistingKey(key);
+  List<V> list=resourcePool.close();
+  for (  V value : list)   destroyResource(key,resourcePool,value);
 }
