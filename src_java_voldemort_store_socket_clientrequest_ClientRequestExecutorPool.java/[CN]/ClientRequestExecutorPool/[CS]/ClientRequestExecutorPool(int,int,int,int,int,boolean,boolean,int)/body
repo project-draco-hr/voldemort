@@ -10,7 +10,7 @@
     stats=null;
   }
   this.factory=new ClientRequestExecutorFactory(selectors,connectionTimeoutMs,soTimeoutMs,socketBufferSize,socketKeepAlive,stats);
-  this.pool=new KeyedResourcePool<SocketDestination,ClientRequestExecutor>(factory,config);
+  this.pool=new QueuedKeyedResourcePool<SocketDestination,ClientRequestExecutor>(factory,config);
   if (stats != null) {
     this.stats.setPool(pool);
   }

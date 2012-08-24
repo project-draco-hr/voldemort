@@ -1,0 +1,9 @@
+{
+  Queue<ResourceRequest<V>> requestQueue=requestQueueMap.get(key);
+  if (requestQueue == null) {
+    requestQueue=new ConcurrentLinkedQueue<ResourceRequest<V>>();
+    requestQueueMap.putIfAbsent(key,requestQueue);
+    requestQueue=requestQueueMap.get(key);
+  }
+  return requestQueue;
+}

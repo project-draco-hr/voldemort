@@ -1,0 +1,9 @@
+{
+  Queue<ResourceRequest<V>> requestQueue=getRequestQueueForExistingKey(key);
+  ResourceRequest<V> resourceRequest=requestQueue.poll();
+  while (resourceRequest != null) {
+    destroyRequest(key,requestQueue,resourceRequest);
+    resourceRequest=requestQueue.poll();
+  }
+  super.close(key);
+}
