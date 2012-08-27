@@ -1,9 +1,3 @@
 {
-  if (isOpen.compareAndSet(true,false)) {
-    for (    Entry<K,Pool<V>> entry : resourcePoolMap.entrySet()) {
-      Pool<V> pool=entry.getValue();
-      for (V value=pool.nonBlockingGet(); value != null; value=pool.nonBlockingGet())       destroyResource(entry.getKey(),entry.getValue(),value);
-      resourcePoolMap.remove(entry.getKey());
-    }
-  }
+  internalClose();
 }

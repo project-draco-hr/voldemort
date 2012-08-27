@@ -1,0 +1,25 @@
+{
+  Queue<ResourceRequest<V>> requestQueue=getRequestQueueForKey(key);
+  if (requestQueue.isEmpty()) {
+    return false;
+  }
+  Pool<V> resourcePool=getResourcePoolForKey(key);
+  V resource=null;
+  try {
+    attemptGrow(key,resourcePool);
+    resource=attemptCheckout(resourcePool);
+  }
+ catch (  Exception e) {
+    super.destroyResource(key,resourcePool,resource);
+  }
+  if (resource == null) {
+    return false;
+  }
+  ResourceRequest<V> resourceRequest=getNextUnexpiredResourceRequest(requestQueue);
+  if (resourceRequest == null) {
+    super.checkin(key,resource);
+    return false;
+  }
+  resourceRequest.useResource(resource);
+  return true;
+}

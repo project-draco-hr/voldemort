@@ -1,9 +1,20 @@
 {
-  try {
-    V resource=super.checkout(key);
-    resourceRequest.useResource(resource);
+  checkNotClosed();
+  Queue<ResourceRequest<V>> requestQueue=getRequestQueueForKey(key);
+  if (requestQueue.isEmpty()) {
+    Pool<V> resourcePool=getResourcePoolForKey(key);
+    V resource=null;
+    try {
+      resource=attemptCheckoutGrowCheckout(key,resourcePool);
+    }
+ catch (    Exception e) {
+      super.destroyResource(key,resourcePool,resource);
+      resourceRequest.handleException(e);
+    }
+    if (resource != null) {
+      resourceRequest.useResource(resource);
+      return;
+    }
   }
- catch (  Exception e) {
-    resourceRequest.handleException(e);
-  }
+  requestQueue.add(resourceRequest);
 }
