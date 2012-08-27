@@ -13,5 +13,6 @@
   if (voldemortConfig.isJmxEnabled()) {
     JmxUtils.registerMbean("DataCleanupJob-" + engine.getName(),cleanupJob);
   }
-  this.scheduler.schedule("cleanup-" + storeDef.getName(),cleanupJob,startTime,voldemortConfig.getRetentionCleanupScheduledPeriodInHour() * Time.MS_PER_HOUR);
+  long retentionFreqHours=storeDef.hasRetentionFrequencyDays() ? (storeDef.getRetentionFrequencyDays() * Time.HOURS_PER_DAY) : voldemortConfig.getRetentionCleanupScheduledPeriodInHour();
+  this.scheduler.schedule("cleanup-" + storeDef.getName(),cleanupJob,startTime,retentionFreqHours * Time.MS_PER_HOUR);
 }

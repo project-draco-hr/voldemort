@@ -5,7 +5,7 @@
       selectorManagers[i]=new NioSelectorManager(endpoint,requestHandlerFactory,socketBufferSize);
       selectorManagerThreadPool.execute(selectorManagers[i]);
     }
-    serverSocketChannel.socket().bind(endpoint);
+    serverSocketChannel.socket().bind(endpoint,acceptorBacklog);
     serverSocketChannel.socket().setReceiveBufferSize(socketBufferSize);
     serverSocketChannel.socket().setReuseAddress(true);
     acceptorThread.start();

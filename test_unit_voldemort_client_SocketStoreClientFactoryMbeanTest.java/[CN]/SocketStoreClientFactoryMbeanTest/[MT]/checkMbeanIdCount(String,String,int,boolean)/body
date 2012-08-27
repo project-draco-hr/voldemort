@@ -1,0 +1,14 @@
+{
+  ObjectName oName=JmxUtils.createObjectName(domain,type);
+  Set<ObjectName> objects=mbServer.queryNames(oName,null);
+  assertFalse("Extra mbeans found",objects.size() > maxMbeans);
+  assertFalse("Fewer than expected mbeans found",objects.size() < maxMbeans);
+  if (unregister) {
+    try {
+      for (      ObjectName objName : objects)       mbServer.unregisterMBean(objName);
+    }
+ catch (    Exception e) {
+      fail("Problem unregistering mbeans " + e.getMessage());
+    }
+  }
+}

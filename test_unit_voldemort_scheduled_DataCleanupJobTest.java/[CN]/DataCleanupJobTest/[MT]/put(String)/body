@@ -1,7 +1,7 @@
 {
   for (  String item : items) {
     VectorClock clock=null;
-    List<Versioned<String>> found=engine.get(item,null);
+    List<Versioned<byte[]>> found=engine.get(new ByteArray(item.getBytes()),null);
     if (found.size() == 0) {
       clock=new VectorClock(time.getMilliseconds());
     }
@@ -12,6 +12,6 @@
  else {
       fail("Found multiple versions.");
     }
-    engine.put(item,new Versioned<String>(item,clock),null);
+    engine.put(new ByteArray(item.getBytes()),new Versioned<byte[]>(item.getBytes(),clock),null);
   }
 }

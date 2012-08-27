@@ -1,0 +1,24 @@
+{
+  super(name,innerStores,cluster,storeDef,repairReads,timeoutConfig,failureDetector,SystemTime.INSTANCE);
+  this.nonblockingSlopStores=nonblockingSlopStores;
+  this.clientZone=cluster.getZoneById(clientZoneId);
+  if (storeDef.getRoutingStrategyType().compareTo(RoutingStrategyType.ZONE_STRATEGY) == 0) {
+    zoneRoutingEnabled=true;
+  }
+ else {
+    zoneRoutingEnabled=false;
+  }
+  this.nonblockingStores=new ConcurrentHashMap<Integer,NonblockingStore>(nonblockingStores);
+  this.slopStores=slopStores;
+  if (storeDef.hasHintedHandoffStrategyType()) {
+    HintedHandoffStrategyFactory factory=new HintedHandoffStrategyFactory(zoneRoutingEnabled,clientZone.getId());
+    this.handoffStrategy=factory.updateHintedHandoffStrategy(storeDef,cluster);
+  }
+ else {
+    this.handoffStrategy=null;
+  }
+  if (jmxEnabled) {
+    stats=new PipelineRoutedStats();
+    JmxUtils.registerMbean(stats,JmxUtils.createObjectName(JmxUtils.getPackageName(stats.getClass()),getName() + JmxUtils.getJmxId(jmxId)));
+  }
+}
