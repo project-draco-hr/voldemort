@@ -17,8 +17,10 @@
  else {
     this.handoffStrategy=null;
   }
-  if (jmxEnabled) {
+  this.jmxEnabled=jmxEnabled;
+  this.jmxId=jmxId;
+  if (this.jmxEnabled) {
     stats=new PipelineRoutedStats();
-    JmxUtils.registerMbean(stats,JmxUtils.createObjectName(JmxUtils.getPackageName(stats.getClass()),getName() + JmxUtils.getJmxId(jmxId)));
+    JmxUtils.registerMbean(stats,JmxUtils.createObjectName(JmxUtils.getPackageName(stats.getClass()),getName() + JmxUtils.getJmxId(this.jmxId)));
   }
 }

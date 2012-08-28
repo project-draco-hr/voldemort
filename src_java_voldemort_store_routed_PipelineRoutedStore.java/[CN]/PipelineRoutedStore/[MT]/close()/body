@@ -8,6 +8,9 @@
       exception=e;
     }
   }
+  if (this.jmxEnabled) {
+    JmxUtils.unregisterMbean(JmxUtils.createObjectName(JmxUtils.getPackageName(stats.getClass()),getName() + JmxUtils.getJmxId(jmxId)));
+  }
   if (exception != null)   throw exception;
   super.close();
 }
