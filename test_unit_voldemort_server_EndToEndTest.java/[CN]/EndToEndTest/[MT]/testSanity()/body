@@ -11,7 +11,7 @@
   Map<String,Versioned<String>> capitals=storeClient.getAll(Arrays.asList("Russia","Ukraine","Japan"));
   assertEquals("getAll works as expected","Moscow",capitals.get("Russia").getValue());
   assertEquals("getAll works as expected","Kiev",capitals.get("Ukraine").getValue());
-  assertFalse("getAll works as expected",capitals.containsKey("Japan"));
+  assertTrue("getAll works as expected",!capitals.containsKey("Japan") || capitals.get("Japan") == null);
   storeClient.delete("Ukraine");
   assertNull("delete works as expected",storeClient.get("Ukraine"));
 }
