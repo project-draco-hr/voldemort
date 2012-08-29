@@ -1,0 +1,21 @@
+{
+  assertEquals(0,this.pool.getTotalResourceCount());
+  Queue<TestResource> resources=new LinkedList<TestResource>();
+  for (int i=0; i < POOL_SIZE; i++) {
+    TestResource resource=this.pool.checkout("a");
+    resources.add(resource);
+  }
+  assertEquals(POOL_SIZE,this.pool.getTotalResourceCount());
+  for (int i=0; i < POOL_SIZE; i++) {
+    this.pool.checkin("a",resources.poll());
+  }
+  assertEquals(POOL_SIZE,this.pool.getTotalResourceCount());
+  TestResource extraResource=this.factory.create("a");
+  try {
+    this.pool.checkin("a",extraResource);
+    fail("Checking in an extra resource should throw an exception.");
+  }
+ catch (  IllegalStateException ise) {
+  }
+  assertEquals(POOL_SIZE - 1,this.pool.getTotalResourceCount());
+}

@@ -1,0 +1,15 @@
+{
+  assertEquals(0,this.pool.getTotalResourceCount());
+  TestResource resource=this.pool.checkout("a");
+  assertEquals(1,this.factory.getCreated());
+  assertEquals(1,this.pool.getTotalResourceCount());
+  assertEquals(0,this.pool.getCheckedInResourceCount());
+  this.pool.checkin("a",resource);
+  assertEquals(1,this.factory.getCreated());
+  assertEquals(1,this.pool.getTotalResourceCount());
+  assertEquals(1,this.pool.getCheckedInResourceCount());
+  this.pool.checkin("a",resource);
+  assertEquals(1,this.factory.getCreated());
+  assertEquals(1,this.pool.getTotalResourceCount());
+  assertEquals(2,this.pool.getCheckedInResourceCount());
+}

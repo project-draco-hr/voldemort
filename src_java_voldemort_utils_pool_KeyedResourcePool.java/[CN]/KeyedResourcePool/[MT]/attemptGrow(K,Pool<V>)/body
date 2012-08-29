@@ -1,20 +1,3 @@
 {
-  if (pool.size.get() >= this.poolMaxSize) {
-    return false;
-  }
-  if (pool.size.incrementAndGet() <= this.poolMaxSize) {
-    try {
-      V resource=objectFactory.create(key);
-      pool.nonBlockingPut(resource);
-    }
- catch (    Exception e) {
-      pool.size.decrementAndGet();
-      throw e;
-    }
-  }
- else {
-    pool.size.decrementAndGet();
-    return false;
-  }
-  return true;
+  return pool.attemptGrow(key,this.objectFactory);
 }

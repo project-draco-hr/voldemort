@@ -1,0 +1,27 @@
+{
+  startSignal.countDown();
+  try {
+    startSignal.await();
+  }
+ catch (  InterruptedException e) {
+    e.printStackTrace();
+  }
+  try {
+    TestResource tr=null;
+    for (int i=0; i < checks; ++i) {
+      tr=pool.checkout(key);
+      assertTrue(tr.isValid());
+      float f=random.nextFloat();
+      if (f < invalidationRate && i != checks - 1) {
+        tr.invalidate();
+      }
+      Thread.yield();
+      pool.checkin(key,tr);
+      Thread.yield();
+    }
+  }
+ catch (  Exception e) {
+    fail(e.toString());
+  }
+  doneSignal.countDown();
+}
