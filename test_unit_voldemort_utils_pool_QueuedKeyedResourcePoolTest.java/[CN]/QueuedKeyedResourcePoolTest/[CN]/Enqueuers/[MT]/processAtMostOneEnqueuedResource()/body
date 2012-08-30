@@ -1,0 +1,14 @@
+{
+  TestResource tr=resources.poll();
+  if (tr != null) {
+    this.used++;
+    assertTrue(tr.isValid());
+    float f=random.nextFloat();
+    if (f < invalidationRate && this.used < this.enqueues - POOL_SIZE) {
+      tr.invalidate();
+    }
+    Thread.yield();
+    queuedPool.checkin(key,tr);
+    Thread.yield();
+  }
+}
