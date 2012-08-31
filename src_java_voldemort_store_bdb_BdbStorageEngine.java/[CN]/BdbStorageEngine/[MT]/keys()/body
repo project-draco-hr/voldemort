@@ -1,6 +1,7 @@
 {
   try {
     Cursor cursor=getBdbDatabase().openCursor(null,null);
+    if (this.minimizeScanImpact)     cursor.setCacheMode(CacheMode.EVICT_BIN);
     return new BdbKeysIterator(cursor);
   }
  catch (  DatabaseException e) {

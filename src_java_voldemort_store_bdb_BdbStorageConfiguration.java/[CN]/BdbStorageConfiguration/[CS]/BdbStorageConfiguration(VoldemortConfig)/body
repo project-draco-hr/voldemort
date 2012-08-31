@@ -25,7 +25,11 @@
   environmentConfig.setConfigParam(EnvironmentConfig.CLEANER_MAX_BATCH_FILES,Integer.toString(config.getBdbCleanerMaxBatchFiles()));
   environmentConfig.setConfigParam(EnvironmentConfig.LOG_FAULT_READ_SIZE,Integer.toString(config.getBdbLogFaultReadSize()));
   environmentConfig.setConfigParam(EnvironmentConfig.LOG_ITERATOR_READ_SIZE,Integer.toString(config.getBdbLogIteratorReadSize()));
+  environmentConfig.setConfigParam(EnvironmentConfig.CLEANER_LAZY_MIGRATION,Boolean.toString(config.getBdbCleanerLazyMigration()));
   environmentConfig.setLockTimeout(config.getBdbLockTimeoutMs(),TimeUnit.MILLISECONDS);
+  if (config.getBdbCacheModeEvictLN()) {
+    environmentConfig.setCacheMode(CacheMode.EVICT_LN);
+  }
   databaseConfig=new DatabaseConfig();
   databaseConfig.setAllowCreate(true);
   databaseConfig.setSortedDuplicates(false);
