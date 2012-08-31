@@ -10,12 +10,12 @@
     }
     for (    NodeValue<ByteArray,byte[]> v : toReadRepair) {
       try {
-        if (logger.isDebugEnabled())         logger.debug("Doing read repair on node " + v.getNodeId() + " for key '"+ v.getKey()+ "' with version "+ v.getVersion()+ ".");
+        if (logger.isDebugEnabled())         logger.debug("Doing read repair on node " + v.getNodeId() + " for key '"+ ByteUtils.toHexString(v.getKey().get())+ "' with version "+ v.getVersion()+ ".");
         NonblockingStore store=nonblockingStores.get(v.getNodeId());
         store.submitPutRequest(v.getKey(),v.getVersioned(),null,null,timeoutMs);
       }
  catch (      VoldemortApplicationException e) {
-        if (logger.isDebugEnabled())         logger.debug("Read repair cancelled due to application level exception on node " + v.getNodeId() + " for key '"+ v.getKey()+ "' with version "+ v.getVersion()+ ": "+ e.getMessage());
+        if (logger.isDebugEnabled())         logger.debug("Read repair cancelled due to application level exception on node " + v.getNodeId() + " for key '"+ ByteUtils.toHexString(v.getKey().get())+ "' with version "+ v.getVersion()+ ": "+ e.getMessage());
       }
 catch (      Exception e) {
         logger.debug("Read repair failed: ",e);
