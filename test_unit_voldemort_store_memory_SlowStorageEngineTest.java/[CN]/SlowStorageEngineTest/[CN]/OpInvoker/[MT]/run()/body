@@ -20,11 +20,7 @@ default :
 logger.error("OpInvoker issued with bad operation code: " + this.opCode);
 }
 long runTimeMs=TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTimeNs);
-if (this.expectedTimeMs > 0) {
-String details="(runTimeMs: " + runTimeMs + ", Thread: "+ Thread.currentThread().getName()+ ")";
-assertFalse("OpInvoker operation time is bad " + details,!isRunTimeBad(runTimeMs,this.expectedTimeMs));
-}
-if (this.runTimes != null) runTimes.add(runTimeMs);
-logger.debug("OpInvoker finished operation " + getOpName() + "(Thread: "+ Thread.currentThread().getName()+ ")");
+runTimes.add(runTimeMs);
+logger.debug("OpInvoker finished operation " + getOpName(this.opCode) + "(Thread: "+ Thread.currentThread().getName()+ ")");
 signal.countDown();
 }

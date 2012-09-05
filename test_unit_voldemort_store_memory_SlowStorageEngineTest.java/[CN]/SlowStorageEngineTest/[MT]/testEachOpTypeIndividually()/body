@@ -1,16 +1,26 @@
 {
-  for (int i=0; i < 5; ++i) {
-    long timeoutMs=60;
-    if (i == 0)     timeoutMs=0;
-    for (    byte op : opList) {
+  long expectedMs=60;
+  int numOps=50;
+  int numOpsWithBadTimesOK=5;
+  for (  byte op : opList) {
+    int badTimesCounter=0;
+    for (int i=0; i < numOps; ++i) {
       CountDownLatch waitForOp=new CountDownLatch(1);
-      new Thread(new OpInvoker(waitForOp,op,timeoutMs)).start();
+      ConcurrentLinkedQueue<Long> runTimes=new ConcurrentLinkedQueue<Long>();
+      new Thread(new OpInvoker(waitForOp,op,runTimes)).start();
       try {
         waitForOp.await();
       }
  catch (      InterruptedException e) {
         e.printStackTrace();
       }
+      long runTimeMs=runTimes.poll();
+      assertTrue(runTimes.isEmpty());
+      if (isRunTimeBad(runTimeMs,expectedMs)) {
+        System.err.println("Bad run time (some are expected): " + getOpName(op) + ", runTimeMs: "+ runTimeMs+ ", expectedMs: "+ expectedMs+ ")");
+        badTimesCounter++;
+      }
     }
+    assertFalse("Too many bad times for operation " + getOpName(op),badTimesCounter > numOpsWithBadTimesOK);
   }
 }
