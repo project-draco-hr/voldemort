@@ -1,5 +1,16 @@
 {
-  OutputStream outputStream=(outputFile == null) ? System.out : (new FileOutputStream(outputFile));
+  OutputStream outputStream=null;
+  if (outputFile == null) {
+    outputStream=new FilterOutputStream(System.out){
+      @Override public void close() throws IOException {
+        flush();
+      }
+    }
+;
+  }
+ else {
+    outputStream=new FileOutputStream(outputFile);
+  }
   DataOutputStream dataOutputStream=new DataOutputStream(new BufferedOutputStream(outputStream));
   try {
     printable.printTo(dataOutputStream);

@@ -1,5 +1,16 @@
 {
-  Writer writer=(outputFile == null) ? (new OutputStreamWriter(System.out)) : (new FileWriter(outputFile));
+  Writer writer=null;
+  if (outputFile == null) {
+    writer=new OutputStreamWriter(new FilterOutputStream(System.out){
+      @Override public void close() throws IOException {
+        flush();
+      }
+    }
+);
+  }
+ else {
+    writer=new FileWriter(outputFile);
+  }
   BufferedWriter bufferedWriter=new BufferedWriter(writer);
   try {
     writable.writeTo(bufferedWriter);

@@ -261,13 +261,11 @@
       adminClient.reserveMemory(nodeId,storeNames,reserveMB);
     }
     if (ops.contains("q")) {
-      List<String> keyList=null;
-      String storeName=(String)options.valueOf("store");
-      if (storeName == null) {
-        throw new VoldemortException("Must specify store name using --store option (NOT --stores)");
+      List<String> keyList=(List<String>)options.valuesOf("query-keys");
+      if (storeNames == null || storeNames.size() == 0) {
+        throw new VoldemortException("Must specify store name using --stores option");
       }
-      if (options.hasArgument("query-keys"))       keyList=(List<String>)options.valuesOf("query-keys");
-      executeQueryKeys(nodeId,adminClient,storeName,keyList);
+      executeQueryKeys(nodeId,adminClient,storeNames,keyList);
     }
   }
  catch (  Exception e) {
