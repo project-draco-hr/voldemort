@@ -1,7 +1,21 @@
 {
   ArrayList<ClientInfo> infoList=Lists.newArrayList();
   while (it.hasNext()) {
-    infoList.add((ClientInfo)valueSerializer.toObject(it.next().getSecond().getValue()));
+    String clientInfoString=(String)valueSerializer.toObject(it.next().getSecond().getValue());
+    Properties props=new Properties();
+    try {
+      props.load(new ByteArrayInputStream(clientInfoString.getBytes()));
+      ClientConfig clientConfig=new ClientConfig();
+      clientConfig.setMaxConnectionsPerNode(Integer.parseInt(props.getProperty("max_connections"))).setMaxTotalConnections(Integer.parseInt(props.getProperty("max_total_connections"))).setRoutingTimeout(Integer.parseInt(props.getProperty("routing_timeout_ms")),TimeUnit.MILLISECONDS).setConnectionTimeout(Integer.parseInt(props.getProperty("connection_timeout_ms")),TimeUnit.MILLISECONDS).setSocketTimeout(Integer.parseInt(props.getProperty("socket_timeout_ms")),TimeUnit.MILLISECONDS).setClientZoneId(Integer.parseInt(props.getProperty("client_zone_id"))).setFailureDetectorImplementation(props.getProperty("failuredetector_implementation"));
+      ClientInfo cInfo=new ClientInfo(props.getProperty("storeName"),props.getProperty("context"),Integer.parseInt(props.getProperty("sequence")),Long.parseLong(props.getProperty("bootstrapTime")),props.getProperty("releaseVersion"),clientConfig);
+      cInfo.setUpdateTime(Long.parseLong(props.getProperty("updateTime")));
+      cInfo.setDeploymentPath(props.getProperty("deploymentPath"));
+      cInfo.setLocalHostName(props.getProperty("localHostName"));
+      infoList.add(cInfo);
+    }
+ catch (    Exception e) {
+      fail("Error in retrieving Client Info: " + e);
+    }
   }
   return infoList;
 }

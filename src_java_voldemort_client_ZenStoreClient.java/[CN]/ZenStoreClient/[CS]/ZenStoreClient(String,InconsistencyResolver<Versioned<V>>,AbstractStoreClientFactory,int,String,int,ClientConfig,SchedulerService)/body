@@ -1,0 +1,20 @@
+{
+  super();
+  this.storeName=Utils.notNull(storeName);
+  this.resolver=resolver;
+  this.abstractStoreFactory=Utils.notNull(storeFactory);
+  this.storeFactory=this.abstractStoreFactory;
+  this.metadataRefreshAttempts=maxMetadataRefreshAttempts;
+  this.clientInfo=new ClientInfo(storeName,clientContext,clientSequence,System.currentTimeMillis(),ManifestFileReader.getReleaseVersion(),config);
+  this.clientId=generateClientId(clientInfo);
+  this.config=config;
+  this.sysRepository=new SystemStoreRepository();
+  this.scheduler=scheduler;
+  JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass()) + "." + storeName));
+  bootStrap();
+  if (config != null) {
+    asyncCheckMetadata=scheduleMetadataChecker(clientId.toString(),config.getAsyncMetadataRefreshInMs());
+  }
+  registerClient(clientId,config.getClientRegistryUpdateInSecs());
+  logger.info("Voldemort client created: " + clientId + "\n"+ clientInfo);
+}

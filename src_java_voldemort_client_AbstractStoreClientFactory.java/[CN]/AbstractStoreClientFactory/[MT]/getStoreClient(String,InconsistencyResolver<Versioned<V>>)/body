@@ -1,6 +1,12 @@
 {
+  StoreClient<K,V> client=null;
   if (this.config.isDefaultClientEnabled()) {
-    return new DefaultStoreClient<K,V>(storeName,resolver,this,3);
+    client=new DefaultStoreClient<K,V>(storeName,resolver,this,3);
   }
-  return new ZenStoreClient<K,V>(storeName,resolver,this,3,clientContextName,sequencer.getAndIncrement(),config);
+ else {
+    SchedulerService service=new SchedulerService(config.getAsyncJobThreadPoolSize(),SystemTime.INSTANCE,true);
+    clientAsyncServiceRepo.add(service);
+    client=new ZenStoreClient<K,V>(storeName,resolver,this,3,clientContextName,clientSequencer.getAndIncrement(),config,service);
+  }
+  return client;
 }

@@ -1,0 +1,14 @@
+{
+  String valueObject=getMetadataVersionsForNode(adminClient,baseNodeId);
+  Properties props=new Properties();
+  try {
+    props.load(new ByteArrayInputStream(valueObject.getBytes()));
+    adminClient.setMetadataversion(props);
+    System.out.println("Metadata versions synchronized successfully.");
+  }
+ catch (  IOException e) {
+    System.err.println("Error while retrieving Metadata versions from node : " + baseNodeId + ". Exception = \n");
+    e.printStackTrace();
+    System.exit(-1);
+  }
+}

@@ -12,7 +12,9 @@
   clientConfig.setClientRegistryUpdateInSecs(5);
   clientConfig.setAsyncMetadataRefreshInMs(5000);
   clientConfig.setBootstrapUrls(bootstrapUrl);
-  StoreClientFactory storeClientFactory=new SocketStoreClientFactory(clientConfig);
-  storeClient=storeClientFactory.getStoreClient(STORE_NAME);
+  SocketStoreClientFactory storeClientFactory=new SocketStoreClientFactory(clientConfig);
+  SchedulerService service=new SchedulerService(clientConfig.getAsyncJobThreadPoolSize(),SystemTime.INSTANCE,true);
+  storeClient=new ZenStoreClient<String,String>(STORE_NAME,null,storeClientFactory,3,clientConfig.getClientContextName(),0,clientConfig,service);
   sysStoreVersion=new SystemStore<String,String>(SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name(),bootStrapUrls,0);
+  clientRegistryStore=new SystemStore<String,String>(SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),bootStrapUrls,0);
 }

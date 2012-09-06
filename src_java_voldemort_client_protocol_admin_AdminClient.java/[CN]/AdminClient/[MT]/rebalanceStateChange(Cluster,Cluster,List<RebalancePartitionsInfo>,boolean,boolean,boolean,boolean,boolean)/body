@@ -20,6 +20,9 @@
     if (exceptions.size() > 0) {
       throw new VoldemortRebalancingException("Got exceptions from nodes " + exceptions.keySet());
     }
+    if (changeClusterMetadata) {
+      updateMetadataversion(CLUSTER_VERSION_KEY);
+    }
   }
  catch (  Exception e) {
     if (rollback) {

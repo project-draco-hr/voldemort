@@ -1,0 +1,11 @@
+{
+  Entry<String,String> entry=iterator.next();
+  Pair<ByteArray,Versioned<byte[]>> nextValue=null;
+  if (entry != null && entry.getKey() != null && entry.getValue() != null) {
+    ByteArray key=new ByteArray(entry.getKey().getBytes());
+    byte[] resultBytes=entry.getValue().getBytes();
+    Versioned<byte[]> versionedValue=new Versioned<byte[]>(resultBytes,storageEngineRef.readVersion());
+    nextValue=Pair.create(key,versionedValue);
+  }
+  return nextValue;
+}

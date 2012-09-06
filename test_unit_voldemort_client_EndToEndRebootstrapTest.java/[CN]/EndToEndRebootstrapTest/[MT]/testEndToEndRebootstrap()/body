@@ -2,7 +2,6 @@
   try {
     String key="city";
     String value="SF";
-    String storeName=SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name();
     String bootstrapTime="";
     String newBootstrapTime="";
     AdminClient adminClient=new AdminClient(bootStrapUrls[0],new AdminClientConfig());
@@ -14,9 +13,13 @@
  catch (    VoldemortException ve) {
       fail("Error in doing basic get, put");
     }
-    String originalClientInfo=getClientInfo(adminClient,storeName,SystemStoreConstants.getSystemStoreDef(storeName));
+    String originalClientInfo=null;
     try {
-      bootstrapTime=originalClientInfo.split("]")[0].split("\\[")[1];
+      originalClientInfo=clientRegistryStore.getSysStore(storeClient.getClientId()).getValue();
+      Properties props=new Properties();
+      props.load(new ByteArrayInputStream(originalClientInfo.getBytes()));
+      bootstrapTime=props.getProperty("bootstrapTime");
+      assertNotNull(bootstrapTime);
     }
  catch (    Exception e) {
       fail("Error in retrieving bootstrap time: " + e);
@@ -25,7 +28,6 @@
     ClusterMapper mapper=new ClusterMapper();
     for (    Node node : cluster.getNodes()) {
       VoldemortAdminTool.executeSetMetadata(node.getId(),adminClient,CLUSTER_KEY,mapper.writeCluster(cluster));
-      VoldemortAdminTool.updateMetadataversion(CLUSTER_KEY,sysStoreVersion);
     }
     try {
       Thread.sleep(15000);
@@ -33,9 +35,13 @@
  catch (    Exception e) {
       fail("Interrupted .");
     }
-    String newClientInfo=getClientInfo(adminClient,storeName,SystemStoreConstants.getSystemStoreDef(storeName));
+    String newClientInfo=null;
     try {
-      newBootstrapTime=newClientInfo.split("]")[0].split("\\[")[1];
+      newClientInfo=clientRegistryStore.getSysStore(storeClient.getClientId()).getValue();
+      Properties newProps=new Properties();
+      newProps.load(new ByteArrayInputStream(newClientInfo.getBytes()));
+      newBootstrapTime=newProps.getProperty("bootstrapTime");
+      assertNotNull(newBootstrapTime);
     }
  catch (    Exception e) {
       fail("Error in retrieving bootstrap time: " + e);

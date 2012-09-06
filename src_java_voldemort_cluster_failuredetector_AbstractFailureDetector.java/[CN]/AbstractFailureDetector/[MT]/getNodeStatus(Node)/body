@@ -1,18 +1,15 @@
 {
   NodeStatus nodeStatus=null;
-  CompositeNodeStatus currentNodeStatus=idNodeStatusMap.get(node.getId());
-  if (currentNodeStatus == null || !currentNodeStatus.getNode().isEqualState(node)) {
-    if (logger.isEnabledFor(Level.WARN))     logger.warn("creating new node status for node " + node.getId() + " for failure detector");
-    if (currentNodeStatus != null) {
-      idNodeStatusMap.remove(currentNodeStatus);
-      failureDetectorConfig.removeNode(currentNodeStatus.getNode());
+  NodeStatus currentNodeStatus=idNodeStatusMap.get(node.getId());
+  if (currentNodeStatus == null) {
+    if (logger.isEnabledFor(Level.WARN)) {
+      logger.warn("creating new node status for node " + node.getId() + " for failure detector");
     }
     nodeStatus=createNodeStatus(failureDetectorConfig.getTime().getMilliseconds());
-    idNodeStatusMap.put(node.getId(),new CompositeNodeStatus(node,nodeStatus));
-    if (!failureDetectorConfig.getNodes().contains(node)) {
-      failureDetectorConfig.addNode(node);
-    }
+    idNodeStatusMap.put(node.getId(),nodeStatus);
   }
- else   nodeStatus=currentNodeStatus.getStatus();
+ else {
+    nodeStatus=currentNodeStatus;
+  }
   return nodeStatus;
 }

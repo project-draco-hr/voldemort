@@ -1,8 +1,7 @@
 {
   Properties versionProps=MetadataVersionStoreUtils.getProperties(this.sysRepository.getMetadataVersionStore());
-  Long newStoresVersion=fetchNewVersion(STORES_VERSION_KEY,currentStoreVersion,versionProps);
   Long newClusterVersion=fetchNewVersion(CLUSTER_VERSION_KEY,currentClusterVersion,versionProps);
-  if ((newStoresVersion != null) || (newClusterVersion != null)) {
+  if (newClusterVersion != null) {
     logger.info("Metadata version mismatch detected.");
     int delta=randomGenerator.nextInt(DELTA_MAX);
     try {
@@ -11,20 +10,16 @@
     }
  catch (    InterruptedException e) {
     }
-    try {
-      if (newStoresVersion != null) {
-        logger.info("Updating stores version");
-        currentStoreVersion=newStoresVersion;
-      }
-      if (newClusterVersion != null) {
+    if (!newClusterVersion.equals(currentClusterVersion)) {
+      try {
         logger.info("Updating cluster version");
         currentClusterVersion=newClusterVersion;
+        this.storeClientThunk.call();
       }
-      this.storeClientThunk.call();
-    }
- catch (    Exception e) {
-      e.printStackTrace();
-      logger.info(e.getMessage());
+ catch (      Exception e) {
+        e.printStackTrace();
+        logger.info(e.getMessage());
+      }
     }
   }
 }

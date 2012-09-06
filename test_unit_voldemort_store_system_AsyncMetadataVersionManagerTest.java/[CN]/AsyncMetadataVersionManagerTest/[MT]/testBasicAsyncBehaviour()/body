@@ -1,5 +1,5 @@
 {
-  String storeVersionKey="stores.xml";
+  String storeVersionKey="cluster.xml";
   try {
     Callable<Void> rebootstrapCallback=new Callable<Void>(){
       public Void call() throws Exception {
@@ -12,7 +12,7 @@
     existingVersions+=storeVersionKey + "=100";
     this.sysVersionStore.putSysStore(AsyncMetadataVersionManager.VERSIONS_METADATA_STORE,existingVersions);
     Thread.sleep(500);
-    this.asyncCheckMetadata=new AsyncMetadataVersionManager(this.repository,rebootstrapCallback,null);
+    this.asyncCheckMetadata=new AsyncMetadataVersionManager(this.repository,rebootstrapCallback);
     scheduler.schedule(asyncCheckMetadata.getClass().getName(),asyncCheckMetadata,new Date(),500);
     int maxRetries=0;
     while (maxRetries < 3 && !asyncCheckMetadata.isActive) {

@@ -48,9 +48,15 @@
  else   this.setFailureDetectorRequestLengthThreshold(getSocketTimeout(TimeUnit.MILLISECONDS));
   if (props.containsKey(MAX_BOOTSTRAP_RETRIES))   this.setMaxBootstrapRetries(props.getInt(MAX_BOOTSTRAP_RETRIES));
   if (props.containsKey(CLIENT_CONTEXT_NAME)) {
-    this.setClientContextName(props.getString(CLIENT_CONTEXT_NAME,null));
+    this.setClientContextName(props.getString(CLIENT_CONTEXT_NAME));
   }
   if (props.containsKey(ASYNC_CHECK_METADATA_INTERVAL)) {
-    this.setAsyncMetadataRefreshInMs(props.getLong(ASYNC_CHECK_METADATA_INTERVAL,5000));
+    this.setAsyncMetadataRefreshInMs(props.getLong(ASYNC_CHECK_METADATA_INTERVAL));
+  }
+  if (props.containsKey(CLIENT_REGISTRY_REFRESH_INTERVAL)) {
+    this.setClientRegistryUpdateInSecs(props.getInt(CLIENT_REGISTRY_REFRESH_INTERVAL));
+  }
+  if (props.containsKey(ASYNC_JOB_THREAD_POOL_SIZE)) {
+    this.setAsyncJobThreadPoolSize(props.getInt(ASYNC_JOB_THREAD_POOL_SIZE));
   }
 }

@@ -1,0 +1,13 @@
+{
+  Properties props=MetadataVersionStoreUtils.getProperties(this.sysStoreVersion);
+  if (props.getProperty(versionKey) != null) {
+    logger.debug("Version obtained = " + props.getProperty(versionKey));
+    long newValue=Long.parseLong(props.getProperty(versionKey)) + 1;
+    props.setProperty(versionKey,Long.toString(newValue));
+  }
+ else {
+    logger.debug("Current version is null. Assuming version 0.");
+    props.setProperty(versionKey,"0");
+  }
+  MetadataVersionStoreUtils.setProperties(this.sysStoreVersion,props);
+}
