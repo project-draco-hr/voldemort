@@ -20,11 +20,9 @@
     public void run(){
       try {
         List<String> keys=new ArrayList<String>(testEntries.keySet());
-        int nRequests=0;
         while (!rebalancingToken.get()) {
           int index=(int)(Math.random() * keys.size());
           try {
-            nRequests++;
             List<Versioned<byte[]>> values=serverSideRoutingStoreRW.get(new ByteArray(ByteUtils.getBytes(keys.get(index),"UTF-8")),null);
             assertEquals("serverSideRoutingStore should return value.",1,values.size());
             assertEquals("Value returned should be good",new Versioned<String>(testEntries.get(keys.get(index))),new Versioned<String>(ByteUtils.getString(values.get(0).getValue(),"UTF-8"),values.get(0).getVersion()));

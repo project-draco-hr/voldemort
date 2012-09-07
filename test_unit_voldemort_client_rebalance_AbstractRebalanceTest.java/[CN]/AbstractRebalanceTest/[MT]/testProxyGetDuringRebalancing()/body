@@ -19,11 +19,9 @@
     public void run(){
       try {
         List<String> keys=new ArrayList<String>(testEntries.keySet());
-        int nRequests=0;
         while (!rebalancingToken.get()) {
           int index=(int)(Math.random() * keys.size());
           try {
-            nRequests++;
             Versioned<String> value=storeClientRW.get(keys.get(index));
             assertNotSame("StoreClient get() should not return null.",null,value);
             assertEquals("Value returned should be good",new Versioned<String>(testEntries.get(keys.get(index))),value);
