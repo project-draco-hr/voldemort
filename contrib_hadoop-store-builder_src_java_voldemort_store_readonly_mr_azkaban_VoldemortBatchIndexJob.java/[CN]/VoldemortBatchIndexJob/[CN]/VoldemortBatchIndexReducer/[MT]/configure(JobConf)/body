@@ -1,0 +1,17 @@
+{
+  Props props=HadoopUtils.getPropsFromJob(job);
+  try {
+    _position=0;
+    _conf=job;
+    _taskId=job.get("mapred.task.id");
+    storeName=props.get("voldemort.store.name");
+    taskIndexFileName=new Path(FileOutputFormat.getOutputPath(_conf),_conf.get("voldemort.index.filename") + "_" + _taskId);
+    taskValueFileName=new Path(FileOutputFormat.getOutputPath(_conf),_conf.get("voldemort.data.filename") + "_" + _taskId);
+    FileSystem fs=taskIndexFileName.getFileSystem(job);
+    _indexFileStream=fs.create(taskIndexFileName,(short)1);
+    _valueFileStream=fs.create(taskValueFileName,(short)1);
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Failed to open Input/OutputStream",e);
+  }
+}

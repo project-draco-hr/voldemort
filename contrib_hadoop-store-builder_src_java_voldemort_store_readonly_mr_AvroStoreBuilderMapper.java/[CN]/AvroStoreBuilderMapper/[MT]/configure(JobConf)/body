@@ -1,0 +1,39 @@
+{
+  super.setConf(conf);
+  md5er=ByteUtils.getDigest("md5");
+  this.cluster=new ClusterMapper().readCluster(new StringReader(conf.get("cluster.xml")));
+  List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new StringReader(conf.get("stores.xml")));
+  if (storeDefs.size() != 1)   throw new IllegalStateException("Expected to find only a single store, but found multiple!");
+  this.storeDef=storeDefs.get(0);
+  this.numChunks=conf.getInt("num.chunks",-1);
+  if (this.numChunks < 1)   throw new VoldemortException("num.chunks not specified in the job conf.");
+  this.saveKeys=conf.getBoolean("save.keys",true);
+  this.reducerPerBucket=conf.getBoolean("reducer.per.bucket",false);
+  keySerializerDefinition=getStoreDef().getKeySerializer();
+  valueSerializerDefinition=getStoreDef().getValueSerializer();
+  try {
+    SerializerFactory factory=new DefaultSerializerFactory();
+    if (conf.get("serializer.factory") != null) {
+      factory=(SerializerFactory)Class.forName(conf.get("serializer.factory")).newInstance();
+    }
+    keyField=conf.get("avro.key.field");
+    valField=conf.get("avro.value.field");
+    keySchema=conf.get("avro.key.schema");
+    valSchema=conf.get("avro.val.schema");
+    keySerializer=new AvroGenericSerializer(keySchema);
+    valueSerializer=new AvroGenericSerializer(valSchema);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(e);
+  }
+  keyCompressor=new CompressionStrategyFactory().get(keySerializerDefinition.getCompression());
+  valueCompressor=new CompressionStrategyFactory().get(valueSerializerDefinition.getCompression());
+  routingStrategy=new ConsistentRoutingStrategy(getCluster().getNodes(),getStoreDef().getReplicationFactor());
+  Props props=HadoopUtils.getPropsFromJob(conf);
+  _keySelection=props.getString("key.selection",null);
+  _valSelection=props.getString("value.selection",null);
+  String _keyTransClass=props.getString("key.transformation.class",null);
+  String _valueTransClass=props.getString("value.transformation.class",null);
+  if (_keyTransClass != null)   _keyTrans=(StoreBuilderTransformation)Utils.callConstructor(_keyTransClass);
+  if (_valueTransClass != null)   _valTrans=(StoreBuilderTransformation)Utils.callConstructor(_valueTransClass);
+}

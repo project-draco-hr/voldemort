@@ -1,0 +1,29 @@
+{
+  byte[] keyBytes=ByteUtils.copy(key.get(),0,key.getSize());
+  byte[] valBytes=ByteUtils.copy(value.get(),0,value.getSize());
+  ByteArrayOutputStream versionedKey=new ByteArrayOutputStream();
+  DataOutputStream keyDin=new DataOutputStream(versionedKey);
+  keyDin.write(_version);
+  keyDin.write(keyBytes);
+  keyDin.close();
+  if (logger.isDebugEnabled()) {
+    logger.debug("Original key: size:" + versionedKey.toByteArray().length + " val:"+ ByteUtils.toHexString(versionedKey.toByteArray()));
+    logger.debug("MD5 val: size:" + ByteUtils.md5(versionedKey.toByteArray()).length + " val:"+ ByteUtils.toHexString(ByteUtils.md5(versionedKey.toByteArray())));
+    logger.debug(" value bytes:" + value.getSize() + " ["+ ByteUtils.toHexString(valBytes)+ "]");
+  }
+  List<Node> nodes=_routingStrategy.routeRequest(keyBytes);
+  for (  Node node : nodes) {
+    ByteArrayOutputStream versionedValue=new ByteArrayOutputStream();
+    DataOutputStream valueDin=new DataOutputStream(versionedValue);
+    valueDin.writeInt(node.getId());
+    valueDin.write(_version);
+    valueDin.write(valBytes);
+    valueDin.close();
+    if (Math.ceil(Math.random() * 100.0) < _checkPercent) {
+      checkJsonType(versionedKey.toByteArray(),ByteUtils.copy(versionedValue.toByteArray(),4,versionedValue.size()));
+    }
+    BytesWritable outputKey=new BytesWritable(ByteUtils.md5(versionedKey.toByteArray()));
+    BytesWritable outputVal=new BytesWritable(versionedValue.toByteArray());
+    output.collect(outputKey,outputVal);
+  }
+}

@@ -1,0 +1,46 @@
+{
+  String dataDir=swapConf.getDataDir();
+  String storeName=swapConf.getStoreName();
+  int httpTimeoutMs=swapConf.getHttpTimeoutMs();
+  long pushVersion=swapConf.getPushVersion();
+  Cluster cluster=swapConf.getCluster();
+  ExecutorService executor=Executors.newCachedThreadPool();
+  JobConf conf=new JobConf();
+  Path dataPath=new Path(dataDir);
+  dataDir=dataPath.makeQualified(FileSystem.get(conf)).toString();
+  Configuration hadoopConfig=new Configuration();
+  String protocolName=hadoopConfig.get("dfs.webhdfs.enabled");
+  String protocolPort="";
+  if (hadoopConfig.get("dfs.http.address").split(":").length >= 2)   protocolPort=hadoopConfig.get("dfs.http.address").split(":")[1];
+  protocolName=(protocolName == null) ? "hftp" : "webhdfs";
+  String existingProtocol="";
+  String existingPort="";
+  String[] pathComponents=dataDir.split(":");
+  if (pathComponents.length >= 3) {
+    existingProtocol=pathComponents[0];
+    existingPort=pathComponents[2].split("/")[0];
+  }
+  info("Existing protocol = " + existingProtocol + " and port = "+ existingPort);
+  if (protocolName.length() > 0 && protocolPort.length() > 0) {
+    dataDir=dataDir.replaceFirst(existingProtocol,protocolName);
+    dataDir=dataDir.replaceFirst(existingPort,protocolPort);
+  }
+  info("dfs.webhdfs.enabled = " + hadoopConfig.get("dfs.webhdfs.enabled") + " and new protocol = "+ protocolName+ " and port = "+ protocolPort);
+  AdminClient client=new AdminClient(cluster,new AdminClientConfig().setMaxConnectionsPerNode(cluster.getNumberOfNodes()).setAdminConnectionTimeoutSec(httpTimeoutMs / 1000).setMaxBackoffDelayMs(swapConf.getMaxBackoffDelayMs()));
+  if (pushVersion == -1L) {
+    ArrayList<String> stores=new ArrayList<String>();
+    stores.add(storeName);
+    Map<String,Long> pushVersions=client.getROMaxVersion(stores);
+    if (pushVersions == null || !pushVersions.containsKey(storeName)) {
+      throw new RuntimeException("Push version could not be determined for store " + storeName);
+    }
+    pushVersion=pushVersions.get(storeName);
+    pushVersion++;
+  }
+  info("Initiating swap of " + storeName + " with dataDir:"+ dataDir);
+  AdminStoreSwapper swapper=new AdminStoreSwapper(cluster,executor,client,httpTimeoutMs,swapConf.getRollback(),swapConf.getRollback());
+  swapper.swapStoreData(storeName,dataDir,pushVersion);
+  info("Swap complete.");
+  executor.shutdownNow();
+  executor.awaitTermination(10,TimeUnit.SECONDS);
+}

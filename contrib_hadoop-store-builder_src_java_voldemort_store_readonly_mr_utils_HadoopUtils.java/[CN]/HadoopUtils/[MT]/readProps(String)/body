@@ -1,0 +1,17 @@
+{
+  Path path=new Path(file);
+  FileSystem fs=path.getFileSystem(new Configuration());
+  if (fs.exists(path)) {
+    InputStream input=fs.open(path);
+    try {
+      Props p=new Props(null,input);
+      return new Props(p);
+    }
+  finally {
+      input.close();
+    }
+  }
+ else {
+    return new Props();
+  }
+}

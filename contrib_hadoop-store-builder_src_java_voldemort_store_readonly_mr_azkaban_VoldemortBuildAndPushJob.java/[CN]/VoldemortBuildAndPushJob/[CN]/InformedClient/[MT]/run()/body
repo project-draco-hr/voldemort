@@ -1,0 +1,38 @@
+{
+  try {
+    URL url=new URL(informedURL);
+    HttpURLConnection conn=(HttpURLConnection)url.openConnection();
+    conn.setRequestMethod("POST");
+    conn.setDoOutput(true);
+    conn.setDoInput(true);
+    conn.setRequestProperty("Content-Type","application/json");
+    String storeName=this.props.getString("push.store.name","null");
+    String clusterName=this.props.getString("push.cluster","null");
+    String owners=this.props.getString("push.store.owners","null");
+    String replicationFactor=this.props.getString("build.replication.factor","null");
+    String message="Store : " + storeName.replaceAll("[\'\"]","") + ",  Status : "+ this.status.replaceAll("[\'\"]","")+ ",  URL : "+ clusterName.replaceAll("[\'\"]","")+ ",  owners : "+ owners.replaceAll("[\'\"]","")+ ",  replication : "+ replicationFactor.replaceAll("[\'\"]","");
+    String payloadStr="{\"message\":\"" + message + "\",\"topic\":\"build-and-push\",\"source\":\""+ this.source+ "\",\"user\":\"bandp\"}";
+    if (log.isDebugEnabled())     log.debug("Payload : " + payloadStr);
+    OutputStream out=conn.getOutputStream();
+    out.write(payloadStr.getBytes());
+    out.close();
+    if (conn.getResponseCode() != 200) {
+      System.out.println(conn.getResponseCode());
+      log.error("Illegal response : " + conn.getResponseMessage());
+      throw new IOException(conn.getResponseMessage());
+    }
+    BufferedReader rd=new BufferedReader(new InputStreamReader(conn.getInputStream()));
+    StringBuilder sb=new StringBuilder();
+    String line;
+    while ((line=rd.readLine()) != null) {
+      sb.append(line);
+    }
+    rd.close();
+    if (log.isDebugEnabled())     log.debug("Received response: " + sb);
+    conn.disconnect();
+  }
+ catch (  Exception e) {
+    log.error(e.getMessage());
+    e.printStackTrace();
+  }
+}

@@ -1,0 +1,117 @@
+{
+  JobConf conf=new JobConf();
+  conf.setJobName(getId());
+  conf.setMapperClass(mapperClass);
+  conf.setReducerClass(reducerClass);
+  String hadoop_ugi=_props.getString("hadoop.job.ugi",null);
+  if (hadoop_ugi != null) {
+    conf.set("hadoop.job.ugi",hadoop_ugi);
+  }
+  if (_props.getBoolean("is.local",false)) {
+    conf.set("mapred.job.tracker","local");
+    conf.set("fs.default.name","file:///");
+    conf.set("mapred.local.dir","/tmp/map-red");
+    info("Running locally, no hadoop jar set.");
+  }
+ else {
+    setClassLoaderAndJar(conf,getClass());
+    info("Setting hadoop jar file for class:" + getClass() + "  to "+ conf.getJar());
+    info("*************************************************************************");
+    info("          Running on Real Hadoop Cluster(" + conf.get("mapred.job.tracker") + ")           ");
+    info("*************************************************************************");
+  }
+  if (_props.containsKey("mapred.child.java.opts")) {
+    conf.set("mapred.child.java.opts",_props.getString("mapred.child.java.opts"));
+    info("mapred.child.java.opts set to " + _props.getString("mapred.child.java.opts"));
+  }
+  if (_props.containsKey("input.paths")) {
+    List<String> inputPaths=_props.getStringList("input.paths");
+    if (inputPaths.size() == 0)     throw new IllegalArgumentException("Must specify at least one value for property 'input.paths'");
+    for (    String path : inputPaths) {
+      if (path.endsWith(LATEST_SUFFIX)) {
+        FileSystem fs=FileSystem.get(conf);
+        PathFilter filter=new PathFilter(){
+          @Override public boolean accept(          Path arg0){
+            return !arg0.getName().startsWith("_") && !arg0.getName().startsWith(".");
+          }
+        }
+;
+        String latestPath=path.substring(0,path.length() - LATEST_SUFFIX.length());
+        FileStatus[] statuses=fs.listStatus(new Path(latestPath),filter);
+        Arrays.sort(statuses);
+        path=statuses[statuses.length - 1].getPath().toString();
+        System.out.println("Using latest folder: " + path);
+      }
+      HadoopUtils.addAllSubPaths(conf,new Path(path));
+    }
+  }
+  if (_props.containsKey("output.path")) {
+    String location=_props.get("output.path");
+    if (location.endsWith("#CURRENT")) {
+      DateTimeFormatter format=DateTimeFormat.forPattern(COMMON_FILE_DATE_PATTERN);
+      String destPath=format.print(new DateTime());
+      location=location.substring(0,location.length() - "#CURRENT".length()) + destPath;
+      System.out.println("Store location set to " + location);
+    }
+    FileOutputFormat.setOutputPath(conf,new Path(location));
+    if (_props.getBoolean("force.output.overwrite",false)) {
+      FileSystem fs=FileOutputFormat.getOutputPath(conf).getFileSystem(conf);
+      fs.delete(FileOutputFormat.getOutputPath(conf),true);
+    }
+  }
+  String externalJarList=_props.getString("hadoop.external.jarFiles",null);
+  if (externalJarList != null) {
+    String[] jarFiles=externalJarList.split(",");
+    for (    String jarFile : jarFiles) {
+      info("Adding extenral jar File:" + jarFile);
+      DistributedCache.addFileToClassPath(new Path(jarFile),conf);
+    }
+  }
+  String cacheFileList=_props.getString("hadoop.cache.files",null);
+  if (cacheFileList != null) {
+    String[] cacheFiles=cacheFileList.split(",");
+    for (    String cacheFile : cacheFiles) {
+      info("Adding Distributed Cache File:" + cacheFile);
+      DistributedCache.addCacheFile(new URI(cacheFile),conf);
+    }
+  }
+  String archiveFileList=_props.getString("hadoop.cache.archives",null);
+  if (archiveFileList != null) {
+    String[] archiveFiles=archiveFileList.split(",");
+    for (    String archiveFile : archiveFiles) {
+      info("Adding Distributed Cache Archive File:" + archiveFile);
+      DistributedCache.addCacheArchive(new URI(archiveFile),conf);
+    }
+  }
+  String hadoopCacheJarDir=_props.getString("hdfs.default.classpath.dir",null);
+  if (hadoopCacheJarDir != null) {
+    FileSystem fs=FileSystem.get(conf);
+    if (fs != null) {
+      FileStatus[] status=fs.listStatus(new Path(hadoopCacheJarDir));
+      if (status != null) {
+        for (int i=0; i < status.length; ++i) {
+          if (!status[i].isDir()) {
+            Path path=new Path(hadoopCacheJarDir,status[i].getPath().getName());
+            info("Adding Jar to Distributed Cache Archive File:" + path);
+            DistributedCache.addFileToClassPath(path,conf);
+          }
+        }
+      }
+ else {
+        info("hdfs.default.classpath.dir " + hadoopCacheJarDir + " is empty.");
+      }
+    }
+ else {
+      info("hdfs.default.classpath.dir " + hadoopCacheJarDir + " filesystem doesn't exist");
+    }
+  }
+  for (  String key : getProps().keySet()) {
+    String lowerCase=key.toLowerCase();
+    if (lowerCase.startsWith(HADOOP_PREFIX)) {
+      String newKey=key.substring(HADOOP_PREFIX.length());
+      conf.set(newKey,getProps().get(key));
+    }
+  }
+  HadoopUtils.setPropsInJob(conf,getProps());
+  return conf;
+}

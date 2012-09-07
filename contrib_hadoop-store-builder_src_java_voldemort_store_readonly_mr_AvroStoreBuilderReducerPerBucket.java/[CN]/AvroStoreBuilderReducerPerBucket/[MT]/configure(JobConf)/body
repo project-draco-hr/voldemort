@@ -1,0 +1,12 @@
+{
+  JobConf conf=job;
+  try {
+    keyValueWriterClass=conf.get("writer.class");
+    if (keyValueWriterClass != null)     writer=(KeyValueWriter)Utils.callConstructor(keyValueWriterClass);
+ else     writer=new HadoopStoreWriterPerBucket();
+    writer.conf(job);
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+}

@@ -1,0 +1,11 @@
+{
+  int chunkSize=props.getInt("build.chunk.size." + storeDef.getName(),props.getInt("build.chunk.size",(int)1024 * 1024 * 1024));
+  Path tempDir=new Path(props.getString("build.temp.dir","/tmp/voldemort-build-temp-" + new Random().nextLong()));
+  String keySelection=props.getString("build.key.selection." + storeDef.getName(),props.getString("build.key.selection",null));
+  String valSelection=props.getString("build.value.selection." + storeDef.getName(),props.getString("build.key.selection",null));
+  int numChunks=props.getInt("num.chunks." + storeDef.getName(),props.getInt("num.chunks",-1));
+  CheckSumType checkSumType=CheckSum.fromString(props.getString("checksum.type",CheckSum.toString(CheckSumType.MD5)));
+  boolean saveKeys=props.getBoolean("save.keys",true);
+  boolean reducerPerBucket=props.getBoolean("reducer.per.bucket",false);
+  new VoldemortStoreBuilderJob(this.getId() + "-build-store",props,new VoldemortStoreBuilderConf(storeDef.getReplicationFactor(),chunkSize,tempDir,outputPath,inputPath,cluster,Lists.newArrayList(storeDef),storeDef.getName(),keySelection,valSelection,null,null,checkSumType,saveKeys,reducerPerBucket,numChunks)).run();
+}

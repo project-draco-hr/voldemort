@@ -1,0 +1,54 @@
+{
+  byte[] keyBytes=keySerializer.toBytes(record.get(keyField));
+  byte[] valBytes=valueSerializer.toBytes(record.get(valField));
+  if (keySerializerDefinition.hasCompression()) {
+    keyBytes=keyCompressor.deflate(keyBytes);
+  }
+  if (valueSerializerDefinition.hasCompression()) {
+    valBytes=valueCompressor.deflate(valBytes);
+  }
+  byte[] outputValue;
+  BytesWritable outputKey;
+  int offsetTillNow=2 * ByteUtils.SIZE_OF_INT;
+  if (getSaveKeys()) {
+    outputValue=new byte[valBytes.length + keyBytes.length + ByteUtils.SIZE_OF_BYTE+ 4 * ByteUtils.SIZE_OF_INT];
+    offsetTillNow+=ByteUtils.SIZE_OF_BYTE;
+    ByteUtils.writeInt(outputValue,keyBytes.length,offsetTillNow);
+    offsetTillNow+=ByteUtils.SIZE_OF_INT;
+    ByteUtils.writeInt(outputValue,valBytes.length,offsetTillNow);
+    offsetTillNow+=ByteUtils.SIZE_OF_INT;
+    System.arraycopy(keyBytes,0,outputValue,offsetTillNow,keyBytes.length);
+    offsetTillNow+=keyBytes.length;
+    System.arraycopy(valBytes,0,outputValue,offsetTillNow,valBytes.length);
+    outputKey=new BytesWritable(ByteUtils.copy(md5er.digest(keyBytes),0,2 * ByteUtils.SIZE_OF_INT));
+  }
+ else {
+    outputValue=new byte[valBytes.length + 2 * ByteUtils.SIZE_OF_INT];
+    System.arraycopy(valBytes,0,outputValue,offsetTillNow,valBytes.length);
+    outputKey=new BytesWritable(md5er.digest(keyBytes));
+  }
+  List<Integer> partitionList=routingStrategy.getPartitionList(keyBytes);
+  Node[] partitionToNode=routingStrategy.getPartitionToNode();
+  for (int replicaType=0; replicaType < partitionList.size(); replicaType++) {
+    ByteUtils.writeInt(outputValue,partitionToNode[partitionList.get(replicaType)].getId(),0);
+    if (getSaveKeys()) {
+      ByteUtils.writeInt(outputValue,partitionList.get(0),ByteUtils.SIZE_OF_INT);
+      ByteUtils.writeBytes(outputValue,replicaType,2 * ByteUtils.SIZE_OF_INT,ByteUtils.SIZE_OF_BYTE);
+    }
+ else {
+      ByteUtils.writeInt(outputValue,partitionList.get(replicaType),ByteUtils.SIZE_OF_INT);
+    }
+    BytesWritable outputVal=new BytesWritable(outputValue);
+    ByteBuffer keyBuffer=null, valueBuffer=null;
+    byte[] md5KeyBytes=outputKey.getBytes();
+    keyBuffer=ByteBuffer.allocate(md5KeyBytes.length);
+    keyBuffer.put(md5KeyBytes);
+    keyBuffer.rewind();
+    valueBuffer=ByteBuffer.allocate(outputValue.length);
+    valueBuffer.put(outputValue);
+    valueBuffer.rewind();
+    Pair<ByteBuffer,ByteBuffer> p=new Pair<ByteBuffer,ByteBuffer>(keyBuffer,valueBuffer);
+    collector.collect(p);
+  }
+  md5er.reset();
+}

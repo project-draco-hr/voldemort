@@ -1,0 +1,16 @@
+{
+  try {
+    Configuration conf=new Configuration();
+    conf.setInt("io.file.buffer.size",4096);
+    SequenceFile.Reader reader=new SequenceFile.Reader(fs,path,new Configuration());
+    SequenceFile.Metadata meta=reader.getMetadata();
+    reader.close();
+    TreeMap<Text,Text> map=meta.getMetadata();
+    Map<String,String> values=new HashMap<String,String>();
+    for (    Map.Entry<Text,Text> entry : map.entrySet())     values.put(entry.getKey().toString(),entry.getValue().toString());
+    return values;
+  }
+ catch (  IOException e) {
+    throw new RuntimeException(e);
+  }
+}

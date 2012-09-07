@@ -1,0 +1,23 @@
+{
+  int replicationFactor=props.getInt("build.replication.factor",2);
+  int chunkSize=props.getInt("build.chunk.size",1024 * 1024 * 1024);
+  Path tempDir=new Path(props.getString("build.temp.dir","/tmp/vold-build-and-push-" + new Random().nextLong()));
+  URI uri=new URI(url);
+  Path outputDir=new Path(props.getString("build.output.dir"),uri.getHost());
+  Path inputPath=getInputPath();
+  String keySelection=props.getString("build.key.selection",null);
+  String valSelection=props.getString("build.value.selection",null);
+  CheckSumType checkSumType=CheckSum.fromString(props.getString("checksum.type",CheckSum.toString(CheckSumType.MD5)));
+  boolean saveKeys=props.getBoolean("save.keys",true);
+  boolean reducerPerBucket=props.getBoolean("reducer.per.bucket",false);
+  int numChunks=props.getInt("num.chunks",-1);
+  if (isAvroJob) {
+    String recSchema=getRecordSchema();
+    String keySchema=getKeySchema();
+    String valSchema=getValueSchema();
+    new VoldemortStoreBuilderJob(this.getId() + "-build-store",props,new VoldemortStoreBuilderConf(replicationFactor,chunkSize,tempDir,outputDir,inputPath,cluster,storeDefs,storeName,keySelection,valSelection,null,null,checkSumType,saveKeys,reducerPerBucket,numChunks,keyField,valueField,recSchema,keySchema,valSchema),true).run();
+    return outputDir.toString();
+  }
+  new VoldemortStoreBuilderJob(this.getId() + "-build-store",props,new VoldemortStoreBuilderConf(replicationFactor,chunkSize,tempDir,outputDir,inputPath,cluster,storeDefs,storeName,keySelection,valSelection,null,null,checkSumType,saveKeys,reducerPerBucket,numChunks)).run();
+  return outputDir.toString();
+}

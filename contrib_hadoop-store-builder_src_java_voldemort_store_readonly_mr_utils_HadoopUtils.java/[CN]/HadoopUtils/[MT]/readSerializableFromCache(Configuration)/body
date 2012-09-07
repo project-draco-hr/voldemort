@@ -1,0 +1,23 @@
+{
+  if (HadoopUtils.cachedSerializable != null)   return HadoopUtils.cachedSerializable;
+  try {
+    String filename=conf.get("serializables.file");
+    if (filename == null)     return null;
+    Path serializable=getFilePathFromDistributedCache(filename,conf);
+    if (serializable == null) {
+      Path[] paths=DistributedCache.getLocalCacheFiles(conf);
+      throw new IllegalStateException("No serializable cache file found by the name of '" + filename + "', found only "+ paths);
+    }
+    ObjectInputStream stream=new ObjectInputStream(new FileInputStream(serializable.toString()));
+    Object obj=stream.readObject();
+    stream.close();
+    HadoopUtils.cachedSerializable=obj;
+    return obj;
+  }
+ catch (  IOException e) {
+    throw new RuntimeException(e);
+  }
+catch (  ClassNotFoundException e) {
+    throw new RuntimeException(e);
+  }
+}

@@ -1,0 +1,13 @@
+{
+  String propsString=conf.get("azkaban.props");
+  if (propsString == null)   throw new UndefinedPropertyException("The required property azkaban.props was not found in the Configuration.");
+  try {
+    ByteArrayInputStream input=new ByteArrayInputStream(propsString.getBytes("UTF-8"));
+    Properties properties=new Properties();
+    properties.load(input);
+    return new Props(null,properties);
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("This is not possible!",e);
+  }
+}

@@ -1,0 +1,15 @@
+{
+  final String pattern=acceptRegex != null ? acceptRegex : "\\S+";
+  PathFilter filter=new PathFilter(){
+    @Override public boolean accept(    Path arg0){
+      return !arg0.getName().startsWith("_") && Pattern.matches(pattern,arg0.getName());
+    }
+  }
+;
+  FileStatus[] statuses=fs.listStatus(directory,filter);
+  if (statuses == null || statuses.length == 0) {
+    return null;
+  }
+  Arrays.sort(statuses);
+  return statuses[statuses.length - 1].getPath();
+}
