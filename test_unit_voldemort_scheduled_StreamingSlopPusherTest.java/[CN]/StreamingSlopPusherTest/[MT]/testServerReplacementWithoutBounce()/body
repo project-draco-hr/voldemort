@@ -4,7 +4,7 @@
   final List<Versioned<Slop>> entrySet1=ServerTestUtils.createRandomSlops(1,50,"test-replication-memory","users","test-replication-persistent","test-readrepair-memory","test-consistent","test-consistent-with-pref-list");
   final List<Versioned<Slop>> entrySet2=ServerTestUtils.createRandomSlops(2,50,"test-replication-memory","users","test-replication-persistent","test-readrepair-memory","test-consistent","test-consistent-with-pref-list");
   populateSlops(0,slopStoreNode0,entrySet1,entrySet2);
-  StreamingSlopPusherJob pusher=new StreamingSlopPusherJob(getVoldemortServer(0).getStoreRepository(),getVoldemortServer(0).getMetadataStore(),new BannagePeriodFailureDetector(new FailureDetectorConfig().setNodes(cluster.getNodes()).setStoreVerifier(new ServerStoreVerifier(socketStoreFactory,metadataStore,configs[0]))),configs[0],new ScanPermitWrapper(1));
+  StreamingSlopPusherJob pusher=new StreamingSlopPusherJob(getVoldemortServer(0).getStoreRepository(),getVoldemortServer(0).getMetadataStore(),new BannagePeriodFailureDetector(new FailureDetectorConfig().setCluster(cluster).setStoreVerifier(new ServerStoreVerifier(socketStoreFactory,metadataStore,configs[0]))),configs[0],new ScanPermitWrapper(1));
   pusher.run();
   Thread.sleep(10000);
   Iterator<Versioned<Slop>> entryIterator=entrySet2.listIterator();

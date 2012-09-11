@@ -3,6 +3,7 @@
   Node node=cluster.getNodeById(9);
   storeVerifier.addStore(node);
   failureDetector.recordException(node,0,new UnreachableStoreException("intentionalerror",new ConnectException("intentionalerror")));
+  failureDetector.getConfig().setCluster(this.cluster);
   assertEquals(false,failureDetector.isAvailable(node));
   Thread.sleep(failureDetector.getConfig().getAsyncRecoveryInterval() * 2);
   assertEquals(true,failureDetector.isAvailable(node));

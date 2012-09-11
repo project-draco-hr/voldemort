@@ -1,5 +1,10 @@
 {
   String[] bootstrapUrls=new String[1];
   bootstrapUrls[0]=bootstrapURL;
-  this.sysStoreVersion=new SystemStore<String,String>(SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name(),bootstrapUrls,zoneID);
+  try {
+    this.sysStoreVersion=new SystemStore<String,String>(SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name(),bootstrapUrls,zoneID);
+  }
+ catch (  Exception e) {
+    logger.debug("Error while creating a system store client for metadata version store.");
+  }
 }

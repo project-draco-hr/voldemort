@@ -21,7 +21,12 @@
       throw new VoldemortRebalancingException("Got exceptions from nodes " + exceptions.keySet());
     }
     if (changeClusterMetadata) {
-      updateMetadataversion(CLUSTER_VERSION_KEY);
+      try {
+        updateMetadataversion(CLUSTER_VERSION_KEY);
+      }
+ catch (      Exception e) {
+        logger.info("Exception occurred while setting cluster metadata version during Rebalance state change !!!");
+      }
     }
   }
  catch (  Exception e) {

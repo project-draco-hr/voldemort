@@ -1,25 +1,32 @@
 {
-  Properties versionProps=MetadataVersionStoreUtils.getProperties(this.sysRepository.getMetadataVersionStore());
-  Long newClusterVersion=fetchNewVersion(CLUSTER_VERSION_KEY,currentClusterVersion,versionProps);
-  if (newClusterVersion != null) {
-    logger.info("Metadata version mismatch detected.");
-    int delta=randomGenerator.nextInt(DELTA_MAX);
-    try {
-      logger.info("Sleeping for delta : " + delta + " (ms) before re-bootstrapping.");
-      Thread.sleep(delta);
-    }
- catch (    InterruptedException e) {
-    }
-    if (!newClusterVersion.equals(currentClusterVersion)) {
+  try {
+    Properties versionProps=MetadataVersionStoreUtils.getProperties(this.sysRepository.getMetadataVersionStore());
+    Long newClusterVersion=fetchNewVersion(CLUSTER_VERSION_KEY,currentClusterVersion,versionProps);
+    if (newClusterVersion != null) {
+      logger.info("Metadata version mismatch detected.");
+      int delta=randomGenerator.nextInt(DELTA_MAX);
       try {
-        logger.info("Updating cluster version");
-        currentClusterVersion=newClusterVersion;
-        this.storeClientThunk.call();
+        logger.info("Sleeping for delta : " + delta + " (ms) before re-bootstrapping.");
+        Thread.sleep(delta);
       }
- catch (      Exception e) {
-        e.printStackTrace();
-        logger.info(e.getMessage());
+ catch (      InterruptedException e) {
+      }
+      if (!newClusterVersion.equals(currentClusterVersion)) {
+        try {
+          logger.info("Updating cluster version");
+          currentClusterVersion=newClusterVersion;
+          this.storeClientThunk.call();
+        }
+ catch (        Exception e) {
+          if (logger.isDebugEnabled()) {
+            e.printStackTrace();
+            logger.debug(e.getMessage());
+          }
+        }
       }
     }
+  }
+ catch (  Exception e) {
+    logger.debug("Could not retrieve metadata versions from the server.");
   }
 }
