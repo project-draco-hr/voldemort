@@ -30,10 +30,4 @@
   valueCompressor=new CompressionStrategyFactory().get(valueSerializerDefinition.getCompression());
   routingStrategy=new ConsistentRoutingStrategy(getCluster().getNodes(),getStoreDef().getReplicationFactor());
   Props props=HadoopUtils.getPropsFromJob(conf);
-  _keySelection=props.getString("key.selection",null);
-  _valSelection=props.getString("value.selection",null);
-  String _keyTransClass=props.getString("key.transformation.class",null);
-  String _valueTransClass=props.getString("value.transformation.class",null);
-  if (_keyTransClass != null)   _keyTrans=(StoreBuilderTransformation)Utils.callConstructor(_keyTransClass);
-  if (_valueTransClass != null)   _valTrans=(StoreBuilderTransformation)Utils.callConstructor(_valueTransClass);
 }
