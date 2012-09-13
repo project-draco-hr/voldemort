@@ -1,9 +1,11 @@
 {
   Pool<V> resourcePool=resourcePoolMap.get(key);
   if (resourcePool == null) {
-    resourcePool=new Pool<V>(this.resourcePoolConfig);
-    resourcePoolMap.putIfAbsent(key,resourcePool);
-    resourcePool=resourcePoolMap.get(key);
+    Pool<V> newResourcePool=new Pool<V>(this.resourcePoolConfig);
+    resourcePool=resourcePoolMap.putIfAbsent(key,newResourcePool);
+    if (resourcePool == null) {
+      resourcePool=newResourcePool;
+    }
   }
   return resourcePool;
 }

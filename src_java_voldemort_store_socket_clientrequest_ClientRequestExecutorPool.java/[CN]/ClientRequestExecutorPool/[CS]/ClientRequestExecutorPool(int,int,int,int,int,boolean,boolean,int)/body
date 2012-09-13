@@ -10,8 +10,8 @@
     stats=null;
   }
   this.factory=new ClientRequestExecutorFactory(selectors,connectionTimeoutMs,soTimeoutMs,socketBufferSize,socketKeepAlive,stats);
-  this.pool=new QueuedKeyedResourcePool<SocketDestination,ClientRequestExecutor>(factory,config);
+  this.queuedPool=new QueuedKeyedResourcePool<SocketDestination,ClientRequestExecutor>(factory,config);
   if (stats != null) {
-    this.stats.setPool(pool);
+    this.stats.setPool(queuedPool);
   }
 }

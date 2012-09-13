@@ -1,0 +1,31 @@
+{
+  Queue<TestResource> resources=new LinkedList<TestResource>();
+  Queue<TestResourceRequest> resourceRequests=new LinkedList<TestResourceRequest>();
+  long deadlineNs=System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(KeyedResourcePoolTest.TIMEOUT_MS);
+  for (int i=0; i < POOL_SIZE * 10001; i++) {
+    resourceRequests.add(new TestResourceRequest(deadlineNs,resources));
+  }
+  assertEquals(0,this.factory.getCreated());
+  assertEquals(0,this.queuedPool.getTotalResourceCount());
+  assertEquals(0,this.queuedPool.getCheckedInResourceCount());
+  assertEquals(0,this.queuedPool.getRegisteredResourceRequestCount());
+  assertEquals(0,resources.size());
+  for (int i=0; i < POOL_SIZE; i++) {
+    this.queuedPool.registerResourceRequest("a",resourceRequests.poll());
+  }
+  assertEquals(POOL_SIZE,this.factory.getCreated());
+  assertEquals(POOL_SIZE,this.queuedPool.getTotalResourceCount());
+  assertEquals(0,this.queuedPool.getCheckedInResourceCount());
+  assertEquals(0,this.queuedPool.getRegisteredResourceRequestCount());
+  assertEquals(POOL_SIZE,resources.size());
+  for (int i=0; i < POOL_SIZE * 10000; i++) {
+    this.queuedPool.registerResourceRequest("a",resourceRequests.poll());
+  }
+  long startNs=System.nanoTime();
+  assertEquals(POOL_SIZE * 10000,this.queuedPool.getRegisteredResourceRequestCount());
+  assertTrue("O(n) count of queue is too slow",System.nanoTime() - startNs < TimeUnit.MILLISECONDS.toNanos(10));
+  assertEquals(POOL_SIZE,this.factory.getCreated());
+  assertEquals(POOL_SIZE,this.queuedPool.getTotalResourceCount());
+  assertEquals(0,this.queuedPool.getCheckedInResourceCount());
+  assertEquals(POOL_SIZE,resources.size());
+}

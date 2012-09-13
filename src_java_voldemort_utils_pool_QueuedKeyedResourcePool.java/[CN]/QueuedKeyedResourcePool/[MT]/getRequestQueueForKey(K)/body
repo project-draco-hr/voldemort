@@ -1,9 +1,11 @@
 {
-  Queue<ResourceRequest<V>> requestQueue=requestQueueMap.get(key);
+  Queue<AsyncResourceRequest<V>> requestQueue=requestQueueMap.get(key);
   if (requestQueue == null) {
-    requestQueue=new ConcurrentLinkedQueue<ResourceRequest<V>>();
-    requestQueueMap.putIfAbsent(key,requestQueue);
-    requestQueue=requestQueueMap.get(key);
+    Queue<AsyncResourceRequest<V>> newRequestQueue=new ConcurrentLinkedQueue<AsyncResourceRequest<V>>();
+    requestQueue=requestQueueMap.putIfAbsent(key,newRequestQueue);
+    if (requestQueue == null) {
+      requestQueue=newRequestQueue;
+    }
   }
   return requestQueue;
 }

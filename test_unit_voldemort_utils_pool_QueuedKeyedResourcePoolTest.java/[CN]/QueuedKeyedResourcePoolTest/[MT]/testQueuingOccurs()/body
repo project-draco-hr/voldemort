@@ -8,30 +8,30 @@
   assertEquals(0,this.factory.getCreated());
   assertEquals(0,this.queuedPool.getTotalResourceCount());
   assertEquals(0,this.queuedPool.getCheckedInResourceCount());
-  assertEquals(0,this.queuedPool.getQueuedResourceRequestCount());
+  assertEquals(0,this.queuedPool.getRegisteredResourceRequestCount());
   assertEquals(0,resources.size());
   for (int i=0; i < POOL_SIZE; i++) {
-    this.queuedPool.requestResource("a",resourceRequests.poll());
+    this.queuedPool.registerResourceRequest("a",resourceRequests.poll());
   }
   assertEquals(POOL_SIZE,this.factory.getCreated());
   assertEquals(POOL_SIZE,this.queuedPool.getTotalResourceCount());
   assertEquals(0,this.queuedPool.getCheckedInResourceCount());
-  assertEquals(0,this.queuedPool.getQueuedResourceRequestCount());
+  assertEquals(0,this.queuedPool.getRegisteredResourceRequestCount());
   assertEquals(POOL_SIZE,resources.size());
   for (int i=0; i < POOL_SIZE; i++) {
-    this.queuedPool.requestResource("a",resourceRequests.poll());
+    this.queuedPool.registerResourceRequest("a",resourceRequests.poll());
   }
   assertEquals(POOL_SIZE,this.factory.getCreated());
   assertEquals(POOL_SIZE,this.queuedPool.getTotalResourceCount());
   assertEquals(0,this.queuedPool.getCheckedInResourceCount());
-  assertEquals(POOL_SIZE,this.queuedPool.getQueuedResourceRequestCount());
+  assertEquals(POOL_SIZE,this.queuedPool.getRegisteredResourceRequestCount());
   assertEquals(POOL_SIZE,resources.size());
   for (int i=0; i < POOL_SIZE; i++) {
     this.queuedPool.checkin("a",resources.poll());
     assertEquals(POOL_SIZE,this.factory.getCreated());
     assertEquals(POOL_SIZE,this.queuedPool.getTotalResourceCount());
     assertEquals(0,this.queuedPool.getCheckedInResourceCount());
-    assertEquals(POOL_SIZE - i - 1,this.queuedPool.getQueuedResourceRequestCount());
+    assertEquals(POOL_SIZE - i - 1,this.queuedPool.getRegisteredResourceRequestCount());
     assertEquals(POOL_SIZE,resources.size());
   }
   for (int i=0; i < POOL_SIZE; i++) {
@@ -39,13 +39,13 @@
     assertEquals(POOL_SIZE,this.factory.getCreated());
     assertEquals(POOL_SIZE,this.queuedPool.getTotalResourceCount());
     assertEquals(i + 1,this.queuedPool.getCheckedInResourceCount());
-    assertEquals(0,this.queuedPool.getQueuedResourceRequestCount());
+    assertEquals(0,this.queuedPool.getRegisteredResourceRequestCount());
     assertEquals(POOL_SIZE - i - 1,resources.size());
   }
   assertEquals(POOL_SIZE,this.factory.getCreated());
   assertEquals(POOL_SIZE,this.queuedPool.getTotalResourceCount());
   assertEquals(POOL_SIZE,this.queuedPool.getCheckedInResourceCount());
-  assertEquals(0,this.queuedPool.getQueuedResourceRequestCount());
+  assertEquals(0,this.queuedPool.getRegisteredResourceRequestCount());
   assertEquals(0,resources.size());
   assertEquals(POOL_SIZE * 2,TestResourceRequest.usedResourceCount.get());
   assertEquals(0,TestResourceRequest.handledTimeoutCount.get());
