@@ -15,11 +15,11 @@
   List<ByteArray> keys100=new ArrayList<ByteArray>();
   keys100.add(TestUtils.toByteArray("k100_zone1_only"));
   assertEquals(2,store.getAll(keys011,null).get(TestUtils.toByteArray("k011_zone0_only")).size());
-  assertEquals(0,store.getAll(keys100,null).get(TestUtils.toByteArray("k100_zone1_only")).size());
+  assertFalse(store.getAll(keys100,null).containsKey(TestUtils.toByteArray("k100_zone1_only")));
   List<ByteArray> keys=new ArrayList<ByteArray>();
   keys.add(TestUtils.toByteArray("k011_zone0_only"));
   keys.add(TestUtils.toByteArray("k100_zone1_only"));
   Map<ByteArray,List<Versioned<byte[]>>> result=store.getAll(keys,null);
   assertEquals(2,result.get(TestUtils.toByteArray("k011_zone0_only")).size());
-  assertEquals(0,result.get(TestUtils.toByteArray("k100_zone1_only")).size());
+  assertFalse(result.containsKey(TestUtils.toByteArray("k100_zone1_only")));
 }
