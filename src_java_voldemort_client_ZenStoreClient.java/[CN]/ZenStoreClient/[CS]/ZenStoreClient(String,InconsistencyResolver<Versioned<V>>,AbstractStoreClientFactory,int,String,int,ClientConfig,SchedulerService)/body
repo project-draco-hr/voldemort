@@ -13,8 +13,8 @@
   JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass()) + "." + storeName));
   bootStrap();
   if (config != null) {
-    asyncCheckMetadata=scheduleMetadataChecker(clientId.toString(),config.getAsyncMetadataRefreshInMs());
+    asyncMetadataManager=scheduleAsyncMetadataVersionManager(clientId.toString(),config.getAsyncMetadataRefreshInMs());
   }
-  registerClient(clientId,config.getClientRegistryUpdateInSecs());
+  clientRegistryRefresher=registerClient(clientId,config.getClientRegistryUpdateInSecs());
   logger.info("Voldemort client created: " + clientId + "\n"+ clientInfo);
 }

@@ -4,10 +4,20 @@
   this.store=abstractStoreFactory.getRawStore(storeName,resolver,null,clusterXml,null);
   logger.info("Creating system stores for store " + this.storeName);
   this.sysRepository.createSystemStores(this.config,this.clusterXml,abstractStoreFactory.getFailureDetector());
-  if (asyncCheckMetadata != null) {
-    asyncCheckMetadata.updateMetadataVersions();
+  if (asyncMetadataManager != null) {
+    asyncMetadataManager.updateMetadataVersions();
   }
   if (this.clientInfo != null) {
+    if (this.asyncMetadataManager != null) {
+      this.clientInfo.setClusterMetadataVersion(this.asyncMetadataManager.getClusterMetadataVersion());
+    }
     this.clientInfo.setBootstrapTime(System.currentTimeMillis());
+  }
+  if (this.clientRegistryRefresher == null) {
+    logger.error("Unable to publish the client registry after bootstrap. Client Registry Refresher is NULL.");
+  }
+ else {
+    logger.info("Publishing client registry after Bootstrap.");
+    this.clientRegistryRefresher.publishRegistry();
   }
 }

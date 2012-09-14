@@ -1,14 +1,3 @@
 {
-  String prefix=storeName.substring(0,SystemStoreConstants.NAME_PREFIX.length());
-  if (!SystemStoreConstants.NAME_PREFIX.equals(prefix))   throw new VoldemortException("Illegal system store : " + storeName);
-  ClientConfig config=new ClientConfig();
-  config.setSelectors(1).setBootstrapUrls(bootstrapUrls).setMaxConnectionsPerNode(2).setConnectionTimeout(1500,TimeUnit.MILLISECONDS).setSocketTimeout(5000,TimeUnit.MILLISECONDS).setRoutingTimeout(5000,TimeUnit.MILLISECONDS).setEnableJmx(false).setEnablePipelineRoutedStore(true).setClientZoneId(clientZoneID);
-  this.systemStoreFactory=new SystemStoreClientFactory(config);
-  this.storeName=storeName;
-  try {
-    this.sysStore=this.systemStoreFactory.getSystemStore(this.storeName,clusterXml,fd);
-  }
- catch (  Exception e) {
-    logger.debug("Error while creating a system store client for store : " + this.storeName);
-  }
+  this(storeName,bootstrapUrls,clientZoneID,clusterXml,fd,new ClientConfig());
 }
