@@ -1,0 +1,12 @@
+{
+  for (int i=0; i <= ClusterMapper.MAX_PARTITIONID; i++) {
+    byte[] pkey=StoreBinaryFormat.makePartitionKey(i);
+    int j=StoreBinaryFormat.extractPartition(pkey);
+    assertEquals(i,j);
+  }
+  byte[] key="abcdefghijklmnopqrstuvwxyz".getBytes();
+  byte[] prefixedkey=StoreBinaryFormat.makePrefixedKey(key,20);
+  int partition=StoreBinaryFormat.extractPartition(prefixedkey);
+  assertEquals(partition,20);
+  assertEquals(0,ByteUtils.compare(key,StoreBinaryFormat.extractKey(prefixedkey)));
+}

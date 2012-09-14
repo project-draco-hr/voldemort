@@ -1,0 +1,14 @@
+{
+  HashSet<String> keySet=new HashSet<String>();
+  while (itr.hasNext()) {
+    Pair<ByteArray,Versioned<byte[]>> entry=itr.next();
+    ByteArray key=entry.getFirst();
+    byte[] value=entry.getSecond().getValue();
+    String skey=new String(key.get());
+    int keyId=Integer.parseInt(skey.replaceAll("key",""));
+    assertEquals(0,ByteUtils.compare(value,("value" + keyId).getBytes()));
+    keySet.add(skey);
+  }
+  itr.close();
+  return keySet;
+}

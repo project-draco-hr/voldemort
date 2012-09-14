@@ -1,0 +1,53 @@
+{
+  if (keysPartitionIterator == null) {
+    if (currentIndex == partitionList.size()) {
+      stats.closeHandle(handle);
+      return StreamRequestHandlerState.COMPLETE;
+    }
+    boolean found=false;
+    while (!found && (currentIndex < partitionList.size())) {
+      Integer currentPartition=partitionList.get(currentIndex);
+      Integer currentReplicaType=replicaTypeList.get(currentIndex);
+      if (!fetchedPartitions.contains(currentPartition) && RebalanceUtils.checkPartitionBelongsToNode(currentPartition,currentReplicaType,nodeId,initialCluster,storeDef)) {
+        fetchedPartitions.add(currentPartition);
+        found=true;
+        logger.info("Fetching [partition: " + currentPartition + ", replica type:"+ currentReplicaType+ "] for store "+ storageEngine.getName());
+        keysPartitionIterator=storageEngine.keys(currentPartition.shortValue());
+      }
+      currentIndex++;
+    }
+  }
+ else {
+    long startNs=System.nanoTime();
+    if (keysPartitionIterator.hasNext()) {
+      counter++;
+      if (counter % skipRecords == 0) {
+        ByteArray key=keysPartitionIterator.next();
+        stats.recordDiskTime(handle,System.nanoTime() - startNs);
+        throttler.maybeThrottle(key.length());
+        if (filter.accept(key,null)) {
+          VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
+          response.setKey(ProtoUtils.encodeBytes(key));
+          fetched++;
+          handle.incrementEntriesScanned();
+          Message message=response.build();
+          startNs=System.nanoTime();
+          ProtoUtils.writeMessage(outputStream,message);
+          stats.recordNetworkTime(handle,System.nanoTime() - startNs);
+        }
+      }
+ else {
+        stats.recordDiskTime(handle,System.nanoTime() - startNs);
+      }
+      if (0 == counter % 100000) {
+        long totalTime=(System.currentTimeMillis() - startTime) / 1000;
+        logger.info("Fetch entries scanned " + counter + " entries, fetched "+ fetched+ " entries for store '"+ storageEngine.getName()+ "' replicaToPartitionList:"+ replicaToPartitionList+ " in "+ totalTime+ " s");
+      }
+    }
+    if (!keysPartitionIterator.hasNext()) {
+      keysPartitionIterator.close();
+      keysPartitionIterator=null;
+    }
+  }
+  return StreamRequestHandlerState.WRITING;
+}

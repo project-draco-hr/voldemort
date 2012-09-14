@@ -9,7 +9,8 @@
   voldemortConfig.setBdbCacheSize(1024 * 1024);
   voldemortConfig.setBdbOneEnvPerStore(true);
   voldemortConfig.setBdbDataDirectory(storeDir.toURI().getPath());
+  voldemortConfig.setBdbPrefixKeysWithPartitionId(prefixPartitionId);
   bdbStorage=new BdbStorageConfiguration(voldemortConfig);
   StoreDefinition defA=TestUtils.makeStoreDefinition("cleanupTestStore");
-  engine=bdbStorage.getStore(defA);
+  engine=bdbStorage.getStore(defA,TestUtils.makeSingleNodeRoutingStrategy());
 }

@@ -14,7 +14,13 @@
   databaseConfig.setTransactional(config.isBdbWriteTransactionsEnabled());
   databaseConfig.setSortedDuplicates(false);
   Database database=environment.openDatabase(null,storeName,databaseConfig);
-  StorageEngine<ByteArray,byte[],byte[]> store=new BdbStorageEngine(storeName,environment,database,new BdbRuntimeConfig());
+  StorageEngine<ByteArray,byte[],byte[]> store=null;
+  if (config.getBdbPrefixKeysWithPartitionId()) {
+    store=new PartitionPrefixedBdbStorageEngine(storeName,environment,database,new BdbRuntimeConfig(),TestUtils.makeSingleNodeRoutingStrategy());
+  }
+ else {
+    store=new BdbStorageEngine(storeName,environment,database,new BdbRuntimeConfig());
+  }
   StorageEngine<String,String,String> stringStore=SerializingStorageEngine.wrap(store,new StringSerializer(),new StringSerializer(),new StringSerializer());
   Iterator<Pair<String,Versioned<String>>> iter=stringStore.entries();
   while (iter.hasNext()) {

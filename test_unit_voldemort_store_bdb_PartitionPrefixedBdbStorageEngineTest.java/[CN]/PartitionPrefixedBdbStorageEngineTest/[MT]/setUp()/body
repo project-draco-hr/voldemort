@@ -1,0 +1,13 @@
+{
+  bdbMasterDir=TestUtils.createTempDir();
+  FileDeleteStrategy.FORCE.delete(bdbMasterDir);
+  Props props=new Props();
+  props.put("node.id",1);
+  props.put("voldemort.home","test/common/voldemort/config");
+  VoldemortConfig voldemortConfig=new VoldemortConfig(props);
+  voldemortConfig.setBdbCacheSize(10 * 1024 * 1024);
+  voldemortConfig.setBdbOneEnvPerStore(true);
+  voldemortConfig.setBdbDataDirectory(bdbMasterDir.toURI().getPath());
+  voldemortConfig.setBdbPrefixKeysWithPartitionId(true);
+  bdbStorage=new BdbStorageConfiguration(voldemortConfig);
+}

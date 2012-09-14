@@ -1,0 +1,26 @@
+{
+  DatabaseEntry keyEntry=new DatabaseEntry();
+  DatabaseEntry valueEntry=new DatabaseEntry();
+  OperationStatus status;
+  valueEntry.setPartial(true);
+  try {
+    if (!positioned) {
+      positioned=true;
+      keyEntry.setData(StoreBinaryFormat.makePartitionKey(partition));
+      status=cursor.getSearchKeyRange(keyEntry,valueEntry,LockMode.READ_UNCOMMITTED);
+    }
+ else {
+      status=cursor.getNext(keyEntry,valueEntry,LockMode.READ_UNCOMMITTED);
+    }
+    if (OperationStatus.NOTFOUND == status) {
+      return false;
+    }
+    if (StoreBinaryFormat.extractPartition(keyEntry.getData()) != partition)     return false;
+    current=new ByteArray(StoreBinaryFormat.extractKey(keyEntry.getData()));
+    return true;
+  }
+ catch (  DatabaseException e) {
+    logger.error(e);
+    throw new PersistenceFailureException(e);
+  }
+}

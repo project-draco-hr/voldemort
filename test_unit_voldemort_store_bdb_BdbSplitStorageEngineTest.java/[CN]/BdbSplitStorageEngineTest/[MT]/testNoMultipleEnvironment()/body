@@ -6,9 +6,10 @@
   voldemortConfig.setBdbCacheSize(1 * 1024 * 1024);
   voldemortConfig.setBdbDataDirectory(bdbMasterDir.toURI().getPath());
   voldemortConfig.setBdbOneEnvPerStore(false);
+  voldemortConfig.setBdbPrefixKeysWithPartitionId(prefixPartitionId);
   bdbStorage=new BdbStorageConfiguration(voldemortConfig);
-  BdbStorageEngine storeA=(BdbStorageEngine)bdbStorage.getStore(TestUtils.makeStoreDefinition("storeA"));
-  BdbStorageEngine storeB=(BdbStorageEngine)bdbStorage.getStore(TestUtils.makeStoreDefinition("storeB"));
+  BdbStorageEngine storeA=(BdbStorageEngine)bdbStorage.getStore(TestUtils.makeStoreDefinition("storeA"),TestUtils.makeSingleNodeRoutingStrategy());
+  BdbStorageEngine storeB=(BdbStorageEngine)bdbStorage.getStore(TestUtils.makeStoreDefinition("storeB"),TestUtils.makeSingleNodeRoutingStrategy());
   storeA.put(TestUtils.toByteArray("testKey1"),new Versioned<byte[]>("value".getBytes()),null);
   storeA.put(TestUtils.toByteArray("testKey2"),new Versioned<byte[]>("value".getBytes()),null);
   storeA.put(TestUtils.toByteArray("testKey3"),new Versioned<byte[]>("value".getBytes()),null);
@@ -17,7 +18,7 @@
   storeB.put(TestUtils.toByteArray("testKey3"),new Versioned<byte[]>("value".getBytes()),null);
   storeA.close();
   storeB.close();
-  assertEquals("common BDB file should exists.",true,(bdbMasterDir.exists()));
+  Assert.assertEquals("common BDB file should exists.",true,(bdbMasterDir.exists()));
   assertNotSame("StoreA BDB file should not exists.",true,(new File(bdbMasterDir + "/" + "storeA").exists()));
   assertNotSame("StoreB BDB file should not exists.",true,(new File(bdbMasterDir + "/" + "storeB").exists()));
 }

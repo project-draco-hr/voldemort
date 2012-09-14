@@ -8,7 +8,7 @@
     StorageConfiguration config=storageConfigs.get(voldemortConfig.getSlopStoreType());
     if (config == null)     throw new ConfigurationException("Attempt to open store " + SlopStorageEngine.SLOP_STORE_NAME + " but "+ voldemortConfig.getSlopStoreType()+ " storage engine has not been enabled.");
     StoreDefinition slopStoreDefinition=new StoreDefinition(SlopStorageEngine.SLOP_STORE_NAME,null,null,null,null,null,null,null,0,null,0,null,0,null,null,null,null,null,null,null,null,null,null,null,null,0);
-    SlopStorageEngine slopEngine=new SlopStorageEngine(config.getStore(slopStoreDefinition),metadata.getCluster());
+    SlopStorageEngine slopEngine=new SlopStorageEngine(config.getStore(slopStoreDefinition,new RoutingStrategyFactory().updateRoutingStrategy(slopStoreDefinition,metadata.getCluster())),metadata.getCluster());
     registerEngine(slopEngine,false,"slop");
     storeRepository.setSlopStore(slopEngine);
     if (voldemortConfig.isSlopPusherJobEnabled()) {

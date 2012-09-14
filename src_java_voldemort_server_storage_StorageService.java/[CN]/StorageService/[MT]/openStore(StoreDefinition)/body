@@ -3,11 +3,8 @@
   StorageConfiguration config=storageConfigs.get(storeDef.getType());
   if (config == null)   throw new ConfigurationException("Attempt to open store " + storeDef.getName() + " but "+ storeDef.getType()+ " storage engine has not been enabled.");
   boolean isReadOnly=storeDef.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
-  if (isReadOnly) {
-    final RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,metadata.getCluster());
-    ((ReadOnlyStorageConfiguration)config).setRoutingStrategy(routingStrategy);
-  }
-  final StorageEngine<ByteArray,byte[],byte[]> engine=config.getStore(storeDef);
+  final RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,metadata.getCluster());
+  final StorageEngine<ByteArray,byte[],byte[]> engine=config.getStore(storeDef,routingStrategy);
   if (storeDef.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0) {
     metadata.addMetadataStoreListener(storeDef.getName(),new MetadataStoreListener(){
       public void updateRoutingStrategy(      RoutingStrategy updatedRoutingStrategy){

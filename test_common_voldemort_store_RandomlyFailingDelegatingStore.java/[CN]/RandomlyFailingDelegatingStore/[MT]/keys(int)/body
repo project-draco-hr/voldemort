@@ -1,0 +1,18 @@
+{
+  return new ClosableIterator<K>(){
+    ClosableIterator<K> iterator=innerStorageEngine.keys(partition);
+    public void close(){
+      iterator.close();
+    }
+    public boolean hasNext(){
+      return iterator.hasNext();
+    }
+    public K next(){
+      if (Math.random() > FAIL_PROBABILITY)       return iterator.next();
+      throw new VoldemortException("Failing now !!");
+    }
+    public void remove(){
+    }
+  }
+;
+}

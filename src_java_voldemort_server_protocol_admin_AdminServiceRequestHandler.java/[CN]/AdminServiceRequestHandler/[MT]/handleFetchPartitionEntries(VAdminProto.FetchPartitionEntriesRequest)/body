@@ -1,7 +1,12 @@
 {
   boolean fetchValues=request.hasFetchValues() && request.getFetchValues();
+  StorageEngine<ByteArray,byte[],byte[]> storageEngine=AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
   if (fetchValues) {
-    return new FetchEntriesStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader,stats);
+    if (storageEngine.isPartitionScanSupported())     return new FetchPartitionEntriesStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader,stats);
+ else     return new FetchEntriesStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader,stats);
   }
- else   return new FetchKeysStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader,stats);
+ else {
+    if (storageEngine.isPartitionScanSupported())     return new FetchPartitionKeysStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader,stats);
+ else     return new FetchKeysStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader,stats);
+  }
 }

@@ -7,7 +7,8 @@
     if (OperationStatus.NOTFOUND == status) {
       return false;
     }
-    current=new ByteArray(keyEntry.getData());
+    if (bdbEngine.isPartitionScanSupported())     current=new ByteArray(StoreBinaryFormat.extractKey(keyEntry.getData()));
+ else     current=new ByteArray(keyEntry.getData());
     return true;
   }
  catch (  DatabaseException e) {

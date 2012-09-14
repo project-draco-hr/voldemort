@@ -6,7 +6,9 @@
     if (OperationStatus.NOTFOUND == status) {
       return false;
     }
-    ByteArray key=new ByteArray(keyEntry.getData());
+    ByteArray key=null;
+    if (bdbEngine.isPartitionScanSupported())     key=new ByteArray(StoreBinaryFormat.extractKey(keyEntry.getData()));
+ else     key=new ByteArray(keyEntry.getData());
     for (    Versioned<byte[]> val : StoreBinaryFormat.fromByteArray(valueEntry.getData()))     this.cache.add(Pair.create(key,val));
     return true;
   }

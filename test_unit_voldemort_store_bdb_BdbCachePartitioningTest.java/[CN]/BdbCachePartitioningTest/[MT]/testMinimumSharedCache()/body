@@ -9,12 +9,13 @@
   voldemortConfig.setBdbOneEnvPerStore(true);
   voldemortConfig.setBdbDataDirectory(bdbMasterDir.toURI().getPath());
   voldemortConfig.setBdbMinimumSharedCache(15 * ByteUtils.BYTES_PER_MB);
+  voldemortConfig.setBdbPrefixKeysWithPartitionId(prefixPartitionId);
   BdbStorageEngine storeA=null;
   bdbStorage=new BdbStorageConfiguration(voldemortConfig);
   assertEquals(0,bdbStorage.getReservedCacheSize());
   try {
     StoreDefinition defA=TestUtils.makeStoreDefinition("storeA",shareA / ByteUtils.BYTES_PER_MB);
-    storeA=(BdbStorageEngine)bdbStorage.getStore(defA);
+    storeA=(BdbStorageEngine)bdbStorage.getStore(defA,TestUtils.makeSingleNodeRoutingStrategy());
     fail("Should have thrown exception since minSharedCache will be violated");
   }
  catch (  StorageInitializationException sie) {
@@ -24,7 +25,7 @@
   bdbStorage=new BdbStorageConfiguration(voldemortConfig);
   try {
     StoreDefinition defA=TestUtils.makeStoreDefinition("storeA",shareA / ByteUtils.BYTES_PER_MB);
-    storeA=(BdbStorageEngine)bdbStorage.getStore(defA);
+    storeA=(BdbStorageEngine)bdbStorage.getStore(defA,TestUtils.makeSingleNodeRoutingStrategy());
   }
  catch (  StorageInitializationException sie) {
     fail("minSharedCache should n't have been violated");
@@ -40,4 +41,5 @@
   }
   assertEquals(reserveCacheSize,bdbStorage.getReservedCacheSize());
   if (storeA != null)   storeA.close();
+  bdbStorage.close();
 }
