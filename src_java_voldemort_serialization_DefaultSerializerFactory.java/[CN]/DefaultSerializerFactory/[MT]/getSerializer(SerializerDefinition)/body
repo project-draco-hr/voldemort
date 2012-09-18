@@ -34,6 +34,16 @@
  else   if (name.equals(AVRO_REFLECTIVE_TYPE_NAME)) {
     return new AvroReflectiveSerializer<Object>(serializerDef.getCurrentSchemaInfo());
   }
+ else   if (name.equals(AVRO_GENERIC_VERSIONED_TYPE_NAME)) {
+    if (serializerDef.hasVersion()) {
+      Map<Integer,String> versions=new HashMap<Integer,String>();
+      for (      Map.Entry<Integer,String> entry : serializerDef.getAllSchemaInfoVersions().entrySet())       versions.put(entry.getKey(),entry.getValue());
+      return new AvroVersionedGenericSerializer(versions);
+    }
+ else {
+      return new AvroVersionedGenericSerializer(serializerDef.getCurrentSchemaInfo());
+    }
+  }
  else {
     throw new IllegalArgumentException("No known serializer type: " + serializerDef.getName());
   }
