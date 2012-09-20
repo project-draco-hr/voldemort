@@ -1,5 +1,7 @@
 {
   StoreUtils.assertValidKey(key);
+  long startTimeNs=-1;
+  if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
   boolean deletedSomething=false;
   Cursor cursor=null;
   Transaction transaction=null;
@@ -23,6 +25,9 @@
     throw new PersistenceFailureException(e);
   }
  finally {
+    if (logger.isTraceEnabled()) {
+      logger.trace("Completed DELETE of key " + ByteUtils.toHexString(key.get()) + " (keyRef: "+ System.identityHashCode(key)+ ") in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
+    }
     try {
       attemptClose(cursor);
     }

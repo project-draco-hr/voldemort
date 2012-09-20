@@ -1,5 +1,11 @@
 {
   StoreUtils.assertValidKeys(keys);
+  long startTimeMs=-1;
+  long startTimeNs=-1;
+  if (logger.isDebugEnabled()) {
+    startTimeMs=System.currentTimeMillis();
+    startTimeNs=System.nanoTime();
+  }
   boolean allowReadRepair=repairReads && (transforms == null || transforms.size() == 0);
   GetAllPipelineData pipelineData=new GetAllPipelineData();
   if (zoneRoutingEnabled)   pipelineData.setZonesRequired(storeDef.getZoneCountReads());
@@ -26,5 +32,8 @@
     throw e;
   }
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
+  if (logger.isDebugEnabled()) {
+    logger.debug("Finished " + pipeline.getOperation().getSimpleName() + "for keys "+ ByteArray.toHexStrings(keys)+ " keyRef: "+ System.identityHashCode(keys)+ "; started at "+ startTimeMs+ " took "+ (System.nanoTime() - startTimeNs)+ " values: "+ formatNodeValuesFromGetAll(pipelineData.getResponses()));
+  }
   return pipelineData.getResult();
 }

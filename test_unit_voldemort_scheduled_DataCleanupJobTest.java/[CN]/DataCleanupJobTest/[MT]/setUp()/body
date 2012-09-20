@@ -1,4 +1,15 @@
 {
   time=new MockTime();
-  engine=new InMemoryStorageEngine<String,String,String>("test");
+  storeDir=TestUtils.createTempDir();
+  FileDeleteStrategy.FORCE.delete(storeDir);
+  Props props=new Props();
+  props.put("node.id",1);
+  props.put("voldemort.home","test/common/voldemort/config");
+  VoldemortConfig voldemortConfig=new VoldemortConfig(props);
+  voldemortConfig.setBdbCacheSize(1024 * 1024);
+  voldemortConfig.setBdbOneEnvPerStore(true);
+  voldemortConfig.setBdbDataDirectory(storeDir.toURI().getPath());
+  bdbStorage=new BdbStorageConfiguration(voldemortConfig);
+  StoreDefinition defA=TestUtils.makeStoreDefinition("cleanupTestStore");
+  engine=bdbStorage.getStore(defA);
 }

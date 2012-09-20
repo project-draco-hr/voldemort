@@ -1,0 +1,39 @@
+{
+  SchedulerService scheduler=new SchedulerService(1,time);
+  try {
+    Date now=new Date();
+    Runnable cleanupJob=new DataCleanupJob<ByteArray,byte[],byte[]>(engine,new ScanPermitWrapper(1),2 * Time.MS_PER_SECOND,SystemTime.INSTANCE,new EventThrottler(1));
+    scheduler.schedule("cleanup-freq-test",cleanupJob,now,5 * Time.MS_PER_SECOND);
+    for (int i=0; i < 10; i++) {
+      ByteArray b=new ByteArray(Integer.toString(i).getBytes());
+      engine.put(b,new Versioned<byte[]>(b.get()),null);
+    }
+    Thread.sleep(2 * Time.MS_PER_SECOND);
+    for (int i=0; i < 10; i++) {
+      ByteArray b=new ByteArray(Integer.toString(i).getBytes());
+      List<Versioned<byte[]>> found=engine.get(b,null);
+      assertTrue("Did not find key '" + i + "' in store!",found.size() > 0);
+    }
+    Thread.sleep(System.currentTimeMillis() - (now.getTime() + 4 * Time.MS_PER_SECOND));
+    for (int i=10; i < 20; i++) {
+      ByteArray b=new ByteArray(Integer.toString(i).getBytes());
+      engine.put(b,new Versioned<byte[]>(b.get()),null);
+    }
+    Thread.sleep(System.currentTimeMillis() - (now.getTime() + 6 * Time.MS_PER_SECOND));
+    for (int i=0; i < 10; i++) {
+      ByteArray b=new ByteArray(Integer.toString(i).getBytes());
+      List<Versioned<byte[]>> found=engine.get(b,null);
+      assertTrue("Expected key '" + i + "' to be deleted!",found.size() == 0);
+    }
+    for (int i=10; i < 20; i++) {
+      ByteArray b=new ByteArray(Integer.toString(i).getBytes());
+      List<Versioned<byte[]>> found=engine.get(b,null);
+      assertTrue("Expected key '" + i + "' to be retained!",found.size() > 0);
+    }
+  }
+ catch (  Exception e) {
+  }
+ finally {
+    scheduler.stop();
+  }
+}

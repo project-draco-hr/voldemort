@@ -1,0 +1,12 @@
+{
+  this.envImpl=envImpl;
+  UtilizationProfile profile=this.envImpl.getUtilizationProfile();
+  summaryMap=profile.getFileSummaryMap(true);
+  Iterator<Map.Entry<Long,FileSummary>> fileItr=summaryMap.entrySet().iterator();
+  while (fileItr.hasNext()) {
+    Map.Entry<Long,FileSummary> entry=fileItr.next();
+    FileSummary fs=entry.getValue();
+    totalSpaceUsed+=fs.totalSize;
+    totalSpaceUtilized+=fs.totalSize - fs.getObsoleteSize();
+  }
+}

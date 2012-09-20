@@ -1,0 +1,14 @@
+{
+  Environment storeEnv=environments.get(storeName);
+  if (storeEnv != null) {
+    Database storeDb=null;
+    try {
+      storeDb=storeEnv.openDatabase(null,storeName,databaseConfig);
+      return storeDb.count();
+    }
+  finally {
+      if (storeDb != null)       storeDb.close();
+    }
+  }
+  return 0;
+}

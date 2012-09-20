@@ -1,5 +1,11 @@
 {
   StoreUtils.assertValidKey(key);
+  long startTimeMs=-1;
+  long startTimeNs=-1;
+  if (logger.isDebugEnabled()) {
+    startTimeMs=System.currentTimeMillis();
+    startTimeNs=System.nanoTime();
+  }
   BasicPipelineData<List<Version>> pipelineData=new BasicPipelineData<List<Version>>();
   if (zoneRoutingEnabled)   pipelineData.setZonesRequired(storeDef.getZoneCountReads());
  else   pipelineData.setZonesRequired(null);
@@ -17,7 +23,7 @@
   if (zoneRoutingEnabled)   pipeline.addEventAction(Event.INSUFFICIENT_ZONES,new PerformZoneSerialRequests<List<Version>,BasicPipelineData<List<Version>>>(pipelineData,Event.COMPLETED,key,failureDetector,innerStores,blockingStoreRequest));
   pipeline.addEvent(Event.STARTED);
   if (logger.isDebugEnabled()) {
-    logger.debug("Operation  " + pipeline.getOperation().getSimpleName() + "Key "+ ByteUtils.toHexString(key.get()));
+    logger.debug("Operation  " + pipeline.getOperation().getSimpleName() + " Key "+ ByteUtils.toHexString(key.get()));
   }
   try {
     pipeline.execute();
@@ -29,5 +35,8 @@
   if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
   List<Version> results=new ArrayList<Version>();
   for (  Response<ByteArray,List<Version>> response : pipelineData.getResponses())   results.addAll(response.getValue());
+  if (logger.isDebugEnabled()) {
+    logger.debug("Finished " + pipeline.getOperation().getSimpleName() + " for key "+ ByteUtils.toHexString(key.get())+ " keyRef: "+ System.identityHashCode(key)+ "; started at "+ startTimeMs+ " took "+ (System.nanoTime() - startTimeNs)+ " values: "+ formatNodeValuesFromGetVersions(pipelineData.getResponses()));
+  }
   return results;
 }

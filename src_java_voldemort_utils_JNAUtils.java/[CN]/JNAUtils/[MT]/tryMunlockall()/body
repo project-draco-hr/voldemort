@@ -1,0 +1,12 @@
+{
+  try {
+    if (isOperatingSystem("windows"))     return;
+    munlockall();
+    logger.info("munlockall() on JVM Heap successful");
+  }
+ catch (  Exception e) {
+    if (!(e instanceof LastErrorException))     logger.error("Unexpected error during mlock of server heap",e);
+    LastErrorException le=(LastErrorException)e;
+    logger.warn("Error unlocking JVM heap  " + le.getErrorCode());
+  }
+}

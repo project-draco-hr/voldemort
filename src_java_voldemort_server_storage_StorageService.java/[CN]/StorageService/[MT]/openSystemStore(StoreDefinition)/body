@@ -2,7 +2,7 @@
   logger.info("Opening system store '" + storeDef.getName() + "' ("+ storeDef.getType()+ ").");
   StorageConfiguration config=storageConfigs.get(storeDef.getType());
   if (config == null)   throw new ConfigurationException("Attempt to open system store " + storeDef.getName() + " but "+ storeDef.getType()+ " storage engine has not been enabled.");
-  final StorageEngine<ByteArray,byte[],byte[]> engine=config.getStore(storeDef.getName());
+  final StorageEngine<ByteArray,byte[],byte[]> engine=config.getStore(storeDef);
   try {
     registerSystemEngine(engine);
     if (voldemortConfig.isServerRoutingEnabled())     registerNodeStores(storeDef,metadata.getCluster(),voldemortConfig.getNodeId());

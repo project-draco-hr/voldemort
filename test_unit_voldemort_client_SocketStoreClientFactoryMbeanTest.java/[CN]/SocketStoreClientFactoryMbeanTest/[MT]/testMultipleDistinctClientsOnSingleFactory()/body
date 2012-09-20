@@ -1,0 +1,21 @@
+{
+  try {
+    StoreClientFactory factory=getFactory(getValidBootstrapUrl());
+    List<DefaultStoreClient<Object,Object>> clients=new ArrayList<DefaultStoreClient<Object,Object>>();
+    clients.add((DefaultStoreClient<Object,Object>)factory.getStoreClient("test"));
+    clients.add((DefaultStoreClient<Object,Object>)factory.getStoreClient("best"));
+    factories.add(factory);
+    bootStrap(clients,10);
+    checkMbeanIdCount(CLIENT_DOMAIN,"ClientThreadPool*",1,true);
+    checkMbeanIdCount(CLIENT_DOMAIN,"ZenStoreClient*",2,true);
+    checkMbeanIdCount(CLUSTER_FAILUREDETECTOR_DOMAIN,"ThresholdFailureDetector*",1,true);
+    checkMbeanIdCount(PIPELINE_ROUTED_STATS_DOMAIN,"*",2,true);
+    checkMbeanIdCount(CLIENT_REQUEST_DOMAIN,"aggregated*",1,true);
+    checkMbeanIdCount(CLIENT_REQUEST_DOMAIN,"stats_localhost*",1,true);
+    checkMbeanIdCount(AGGREGATE_STATS_DOMAIN,"aggregate-perf*",1,true);
+    checkMbeanIdCount(STATS_DOMAIN,"*",2,true);
+  }
+ catch (  Exception e) {
+    fail("Unexpected error " + e.getMessage());
+  }
+}

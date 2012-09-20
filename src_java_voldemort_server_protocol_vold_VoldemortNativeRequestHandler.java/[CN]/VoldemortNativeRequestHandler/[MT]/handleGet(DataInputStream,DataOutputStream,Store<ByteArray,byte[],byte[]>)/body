@@ -1,4 +1,10 @@
 {
+  long startTimeMs=-1;
+  long startTimeNs=-1;
+  if (logger.isDebugEnabled()) {
+    startTimeMs=System.currentTimeMillis();
+    startTimeNs=System.nanoTime();
+  }
   ByteArray key=readKey(inputStream);
   byte[] transforms=null;
   if (protocolVersion > 2) {
@@ -15,4 +21,7 @@
     return;
   }
   writeResults(outputStream,results);
+  if (logger.isDebugEnabled()) {
+    debugLogReturnValue(inputStream,key,results,startTimeMs,startTimeNs,"GET");
+  }
 }

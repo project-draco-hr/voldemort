@@ -1,5 +1,7 @@
 {
   StoreUtils.assertValidKey(key);
+  long startTimeNs=-1;
+  if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
   Cursor cursor=null;
   try {
     cursor=getBdbDatabase().openCursor(null,null);
@@ -16,6 +18,9 @@
     throw new PersistenceFailureException(e);
   }
  finally {
+    if (logger.isTraceEnabled()) {
+      logger.trace("Completed GET from key " + key + " (keyRef: "+ System.identityHashCode(key)+ ") in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
+    }
     attemptClose(cursor);
   }
 }

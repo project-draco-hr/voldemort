@@ -1,9 +1,14 @@
 {
-  StatsConfig config=new StatsConfig();
-  config.setFast(fast);
   try {
-    Environment env=getEnvironment(storeName);
-    return env.getStats(config);
+    if (environments.containsKey(storeName)) {
+      StatsConfig config=new StatsConfig();
+      config.setFast(fast);
+      Environment env=environments.get(storeName);
+      return env.getStats(config).toString();
+    }
+ else {
+      return "";
+    }
   }
  catch (  DatabaseException e) {
     throw new VoldemortException(e);

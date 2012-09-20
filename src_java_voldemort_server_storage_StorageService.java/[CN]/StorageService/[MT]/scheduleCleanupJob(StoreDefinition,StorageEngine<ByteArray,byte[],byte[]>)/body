@@ -10,5 +10,9 @@
   logger.info("Scheduling data retention cleanup job for store '" + storeDef.getName() + "' at "+ startTime+ " with retention scan throttle rate:"+ maxReadRate+ " Entries/second.");
   EventThrottler throttler=new EventThrottler(maxReadRate);
   Runnable cleanupJob=new DataCleanupJob<ByteArray,byte[],byte[]>(engine,scanPermitWrapper,storeDef.getRetentionDays() * Time.MS_PER_DAY,SystemTime.INSTANCE,throttler);
-  this.scheduler.schedule("cleanup-" + storeDef.getName(),cleanupJob,startTime,voldemortConfig.getRetentionCleanupScheduledPeriodInHour() * Time.MS_PER_HOUR);
+  if (voldemortConfig.isJmxEnabled()) {
+    JmxUtils.registerMbean("DataCleanupJob-" + engine.getName(),cleanupJob);
+  }
+  long retentionFreqHours=storeDef.hasRetentionFrequencyDays() ? (storeDef.getRetentionFrequencyDays() * Time.HOURS_PER_DAY) : voldemortConfig.getRetentionCleanupScheduledPeriodInHour();
+  this.scheduler.schedule("cleanup-" + storeDef.getName(),cleanupJob,startTime,retentionFreqHours * Time.MS_PER_HOUR);
 }

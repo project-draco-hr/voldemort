@@ -1,0 +1,9 @@
+{
+  long newSharedCacheSize=voldemortConfig.getBdbCacheSize() - this.reservedCacheSize;
+  logger.info("Setting the shared cache size to " + newSharedCacheSize);
+  for (  Environment environment : unreservedStores) {
+    EnvironmentMutableConfig mConfig=environment.getMutableConfig();
+    mConfig.setCacheSize(newSharedCacheSize);
+    environment.setMutableConfig(mConfig);
+  }
+}

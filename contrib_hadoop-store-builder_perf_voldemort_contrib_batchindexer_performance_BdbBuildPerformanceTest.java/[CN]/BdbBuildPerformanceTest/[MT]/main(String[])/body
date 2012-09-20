@@ -3,7 +3,7 @@
   String serverPropsFile=args[0];
   String storeName=args[1];
   String jsonDataFile=args[2];
-  final Store<ByteArray,byte[],byte[]> store=new BdbStorageConfiguration(new VoldemortConfig(new Props(new File(serverPropsFile)))).getStore(storeName);
+  final Store<ByteArray,byte[],byte[]> store=new BdbStorageConfiguration(new VoldemortConfig(new Props(new File(serverPropsFile)))).getStore(TestUtils.makeStoreDefinition(storeName));
   final AtomicInteger obsoletes=new AtomicInteger(0);
   Path jsonFilePath=new Path(jsonDataFile);
   FileStatus jsonFileStatus=jsonFilePath.getFileSystem(new Configuration()).listStatus(jsonFilePath)[0];

@@ -7,7 +7,7 @@
     final RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,metadata.getCluster());
     ((ReadOnlyStorageConfiguration)config).setRoutingStrategy(routingStrategy);
   }
-  final StorageEngine<ByteArray,byte[],byte[]> engine=config.getStore(storeDef.getName());
+  final StorageEngine<ByteArray,byte[],byte[]> engine=config.getStore(storeDef);
   if (storeDef.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0) {
     metadata.addMetadataStoreListener(storeDef.getName(),new MetadataStoreListener(){
       public void updateRoutingStrategy(      RoutingStrategy updatedRoutingStrategy){

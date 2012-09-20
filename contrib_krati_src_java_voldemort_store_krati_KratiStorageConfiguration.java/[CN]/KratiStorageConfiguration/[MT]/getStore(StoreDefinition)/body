@@ -1,0 +1,11 @@
+{
+synchronized (lock) {
+    File storeDir=new File(dataDirectory,storeDef.getName());
+    if (!storeDir.exists()) {
+      logger.info("Creating krati data directory '" + storeDir.getAbsolutePath() + "'.");
+      storeDir.mkdirs();
+    }
+    SegmentFactory segmentFactory=(SegmentFactory)ReflectUtils.callConstructor(factoryClass);
+    return new KratiStorageEngine(storeDef.getName(),segmentFactory,segmentFileSizeMb,lockStripes,hashLoadFactor,initLevel,storeDir);
+  }
+}

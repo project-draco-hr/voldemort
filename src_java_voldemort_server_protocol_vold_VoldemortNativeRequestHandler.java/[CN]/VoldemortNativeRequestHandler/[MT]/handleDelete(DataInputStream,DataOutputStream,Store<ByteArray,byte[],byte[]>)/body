@@ -1,4 +1,10 @@
 {
+  long startTimeMs=-1;
+  long startTimeNs=-1;
+  if (logger.isDebugEnabled()) {
+    startTimeMs=System.currentTimeMillis();
+    startTimeNs=System.nanoTime();
+  }
   ByteArray key=readKey(inputStream);
   int versionSize=inputStream.readShort();
   byte[] versionBytes=new byte[versionSize];
@@ -11,5 +17,8 @@
   }
  catch (  VoldemortException e) {
     writeException(outputStream,e);
+  }
+  if (logger.isDebugEnabled()) {
+    logger.debug("DELETE started at: " + startTimeMs + " key: "+ ByteUtils.toHexString(key.get())+ " handlerRef: "+ System.identityHashCode(inputStream)+ " time: "+ (System.nanoTime() - startTimeNs)+ " ns, keySize: "+ key.length()+ " clockSize: "+ version.sizeInBytes());
   }
 }

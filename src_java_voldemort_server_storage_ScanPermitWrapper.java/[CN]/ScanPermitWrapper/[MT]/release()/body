@@ -1,6 +1,8 @@
 {
   this.scanPermits.release();
 synchronized (permitOwners) {
-    permitOwners.remove(Thread.currentThread().getStackTrace()[2].getClassName());
+    AtomicLong scannedCount=permitOwners.get(getOwnerName());
+    if (scannedCount != null)     totalEntriesScanned+=scannedCount.get();
+    permitOwners.remove(getOwnerName());
   }
 }

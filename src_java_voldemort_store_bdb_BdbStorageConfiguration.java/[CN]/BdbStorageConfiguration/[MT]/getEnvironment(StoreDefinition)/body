@@ -1,0 +1,41 @@
+{
+  String storeName=storeDef.getName();
+synchronized (lock) {
+    if (useOneEnvPerStore) {
+      if (environments.containsKey(storeName))       return environments.get(storeName);
+      File bdbDir=new File(bdbMasterDir,storeName);
+      createBdbDirIfNecessary(bdbDir);
+      if (storeDef.hasMemoryFootprint()) {
+        long reservedBytes=storeDef.getMemoryFootprintMB() * ByteUtils.BYTES_PER_MB;
+        long newReservedCacheSize=this.reservedCacheSize + reservedBytes;
+        if ((voldemortConfig.getBdbCacheSize() - newReservedCacheSize) < voldemortConfig.getBdbMinimumSharedCache()) {
+          throw new StorageInitializationException("Reservation of " + storeDef.getMemoryFootprintMB() + " MB for store "+ storeName+ " violates minimum shared cache size of "+ voldemortConfig.getBdbMinimumSharedCache());
+        }
+        this.reservedCacheSize=newReservedCacheSize;
+        adjustCacheSizes();
+        environmentConfig.setSharedCache(false);
+        environmentConfig.setCacheSize(reservedBytes);
+      }
+ else {
+        environmentConfig.setSharedCache(true);
+        environmentConfig.setCacheSize(voldemortConfig.getBdbCacheSize() - this.reservedCacheSize);
+      }
+      Environment environment=new Environment(bdbDir,environmentConfig);
+      logger.info("Creating environment for " + storeName + ": ");
+      logEnvironmentConfig(environment.getConfig());
+      environments.put(storeName,environment);
+      if (!storeDef.hasMemoryFootprint())       this.unreservedStores.add(environment);
+      return environment;
+    }
+ else {
+      if (!environments.isEmpty())       return environments.get(SHARED_ENV_KEY);
+      File bdbDir=new File(bdbMasterDir);
+      createBdbDirIfNecessary(bdbDir);
+      Environment environment=new Environment(bdbDir,environmentConfig);
+      logger.info("Creating shared BDB environment: ");
+      logEnvironmentConfig(environment.getConfig());
+      environments.put(SHARED_ENV_KEY,environment);
+      return environment;
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  super(ServiceType.SOCKET,port,serviceName,enableJmx);
+  this.requestHandlerFactory=requestHandlerFactory;
+  this.socketBufferSize=socketBufferSize;
+  this.acceptorBacklog=acceptorBacklog;
+  try {
+    this.serverSocketChannel=ServerSocketChannel.open();
+  }
+ catch (  IOException e) {
+    throw new VoldemortException(e);
+  }
+  this.endpoint=new InetSocketAddress(port);
+  this.selectorManagers=new NioSelectorManager[selectors];
+  this.selectorManagerThreadPool=Executors.newFixedThreadPool(selectorManagers.length,new DaemonThreadFactory("voldemort-niosocket-server"));
+  this.statusManager=new StatusManager((ThreadPoolExecutor)this.selectorManagerThreadPool);
+  this.acceptorThread=new Thread(new Acceptor(),"NioSocketService.Acceptor");
+}

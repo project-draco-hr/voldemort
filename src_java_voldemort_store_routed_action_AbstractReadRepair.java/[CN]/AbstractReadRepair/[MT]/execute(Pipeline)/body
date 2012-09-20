@@ -1,5 +1,7 @@
 {
   insertNodeValues();
+  long startTimeNs=-1;
+  if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
   if (nodeValues.size() > 1 && preferred > 1) {
     List<NodeValue<ByteArray,byte[]>> toReadRepair=Lists.newArrayList();
     for (    NodeValue<ByteArray,byte[]> v : readRepairer.getRepairs(nodeValues)) {
@@ -8,16 +10,24 @@
     }
     for (    NodeValue<ByteArray,byte[]> v : toReadRepair) {
       try {
-        if (logger.isDebugEnabled())         logger.debug("Doing read repair on node " + v.getNodeId() + " for key '"+ v.getKey()+ "' with version "+ v.getVersion()+ ".");
+        if (logger.isDebugEnabled())         logger.debug("Doing read repair on node " + v.getNodeId() + " for key '"+ ByteUtils.toHexString(v.getKey().get())+ "' with version "+ v.getVersion()+ ".");
         NonblockingStore store=nonblockingStores.get(v.getNodeId());
         store.submitPutRequest(v.getKey(),v.getVersioned(),null,null,timeoutMs);
       }
  catch (      VoldemortApplicationException e) {
-        if (logger.isDebugEnabled())         logger.debug("Read repair cancelled due to application level exception on node " + v.getNodeId() + " for key '"+ v.getKey()+ "' with version "+ v.getVersion()+ ": "+ e.getMessage());
+        if (logger.isDebugEnabled())         logger.debug("Read repair cancelled due to application level exception on node " + v.getNodeId() + " for key '"+ ByteUtils.toHexString(v.getKey().get())+ "' with version "+ v.getVersion()+ ": "+ e.getMessage());
       }
 catch (      Exception e) {
         logger.debug("Read repair failed: ",e);
       }
+    }
+    if (logger.isDebugEnabled()) {
+      String logStr="Repaired (node, key, version): (";
+      for (      NodeValue<ByteArray,byte[]> v : toReadRepair) {
+        logStr+="(" + v.getNodeId() + ", "+ v.getKey()+ ","+ v.getVersion()+ ") ";
+      }
+      logStr+="in " + (System.nanoTime() - startTimeNs) + " ns";
+      logger.debug(logStr);
     }
   }
   pipeline.addEvent(completeEvent);

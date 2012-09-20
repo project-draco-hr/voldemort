@@ -1,5 +1,7 @@
 {
   StoreUtils.assertValidKey(key);
+  long startTimeNs=-1;
+  if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
   DatabaseEntry keyEntry=new DatabaseEntry(key.get());
   boolean succeeded=false;
   Transaction transaction=null;
@@ -27,5 +29,8 @@
     attemptClose(cursor);
     if (succeeded)     attemptCommit(transaction);
  else     attemptAbort(transaction);
+  }
+  if (logger.isTraceEnabled()) {
+    logger.trace("Completed PUT to key " + ByteUtils.toHexString(key.get()) + " (keyRef: "+ System.identityHashCode(key)+ " value "+ value+ " in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
   }
 }

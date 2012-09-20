@@ -1,4 +1,10 @@
 {
+  long startTimeMs=-1;
+  long startTimeNs=-1;
+  if (logger.isDebugEnabled()) {
+    startTimeMs=System.currentTimeMillis();
+    startTimeNs=System.nanoTime();
+  }
   int numKeys=inputStream.readInt();
   List<ByteArray> keys=new ArrayList<ByteArray>(numKeys);
   for (int i=0; i < numKeys; i++)   keys.add(readKey(inputStream));
@@ -23,9 +29,14 @@
     return;
   }
   outputStream.writeInt(results.size());
+  if (logger.isDebugEnabled())   logger.debug("GETALL start");
   for (  Map.Entry<ByteArray,List<Versioned<byte[]>>> entry : results.entrySet()) {
     outputStream.writeInt(entry.getKey().length());
     outputStream.write(entry.getKey().get());
     writeResults(outputStream,entry.getValue());
+    if (logger.isDebugEnabled()) {
+      debugLogReturnValue(inputStream,entry.getKey(),entry.getValue(),startTimeMs,startTimeNs,"GETALL");
+    }
   }
+  if (logger.isDebugEnabled())   logger.debug("GETALL end");
 }

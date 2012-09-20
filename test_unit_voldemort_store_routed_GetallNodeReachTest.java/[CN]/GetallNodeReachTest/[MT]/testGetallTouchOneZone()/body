@@ -1,0 +1,25 @@
+{
+  cluster=getFourNodeClusterWithZones();
+  HashMap<Integer,Integer> zoneReplicationFactor=new HashMap<Integer,Integer>();
+  zoneReplicationFactor.put(0,2);
+  zoneReplicationFactor.put(1,1);
+  zoneReplicationFactor.put(2,1);
+  storeDef=new StoreDefinitionBuilder().setName("test").setType(InMemoryStorageConfiguration.TYPE_NAME).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.ZONE_STRATEGY).setReplicationFactor(4).setZoneReplicationFactor(zoneReplicationFactor).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setPreferredReads(2).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).setZoneCountReads(0).setZoneCountWrites(0).build();
+  makeStore();
+  Versioned<byte[]> v=Versioned.value("v".getBytes());
+  subStores.get(0).put(TestUtils.toByteArray("k011_zone0_only"),v,null);
+  subStores.get(1).put(TestUtils.toByteArray("k011_zone0_only"),v,null);
+  subStores.get(2).put(TestUtils.toByteArray("k100_zone1_only"),v,null);
+  List<ByteArray> keys011=new ArrayList<ByteArray>();
+  keys011.add(TestUtils.toByteArray("k011_zone0_only"));
+  List<ByteArray> keys100=new ArrayList<ByteArray>();
+  keys100.add(TestUtils.toByteArray("k100_zone1_only"));
+  assertEquals(2,store.getAll(keys011,null).get(TestUtils.toByteArray("k011_zone0_only")).size());
+  assertEquals(0,store.getAll(keys100,null).get(TestUtils.toByteArray("k100_zone1_only")).size());
+  List<ByteArray> keys=new ArrayList<ByteArray>();
+  keys.add(TestUtils.toByteArray("k011_zone0_only"));
+  keys.add(TestUtils.toByteArray("k100_zone1_only"));
+  Map<ByteArray,List<Versioned<byte[]>>> result=store.getAll(keys,null);
+  assertEquals(2,result.get(TestUtils.toByteArray("k011_zone0_only")).size());
+  assertEquals(0,result.get(TestUtils.toByteArray("k100_zone1_only")).size());
+}
