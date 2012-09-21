@@ -1,6 +1,6 @@
 {
   List<Integer> emptyPartitionList=Lists.newArrayList();
-  ClientConfig clientConfig=new ClientConfig().setMaxThreads(4).setMaxTotalConnections(4).setMaxConnectionsPerNode(4).setBootstrapUrls(SERVER_LOCAL_URL + serverPorts[0]).setClientContextName(CLIENT_CONTEXT_NAME).setClientRegistryUpdateInSecs(CLIENT_REGISTRY_REFRSH_INTERVAL).setEnableLazy(false);
+  ClientConfig clientConfig=new ClientConfig().setMaxThreads(4).setMaxTotalConnections(4).setMaxConnectionsPerNode(4).setBootstrapUrls(SERVER_LOCAL_URL + serverPorts[0]).setClientContextName(CLIENT_CONTEXT_NAME).setClientRegistryUpdateIntervalInSecs(CLIENT_REGISTRY_REFRESH_INTERVAL).setEnableLazy(false);
   SocketStoreClientFactory socketFactory=new SocketStoreClientFactory(clientConfig);
   StoreClient<String,String> client1=socketFactory.getStoreClient(TEST_STORE_NAME);
   StoreClient<String,String> client2=socketFactory.getStoreClient(TEST_STORE_NAME);
@@ -33,7 +33,7 @@
   assertNotNull("Client version is null",infoList.get(1).getReleaseVersion());
   assertEquals(infoList.size(),2);
   try {
-    Thread.sleep(CLIENT_REGISTRY_REFRSH_INTERVAL * 1000 * 5);
+    Thread.sleep(CLIENT_REGISTRY_REFRESH_INTERVAL * 1000 * 5);
   }
  catch (  InterruptedException e) {
   }

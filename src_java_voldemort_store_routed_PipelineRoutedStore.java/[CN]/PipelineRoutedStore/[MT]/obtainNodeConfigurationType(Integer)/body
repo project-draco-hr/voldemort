@@ -1,6 +1,16 @@
 {
-  if (zonesRequired != null && routingStrategy.getType().equals(RoutingStrategyType.TO_ALL_LOCAL_PREF_STRATEGY))   return ConfigureNodesType.BYZONE_LOCAL;
- else   if (zonesRequired == null && routingStrategy.getType().equals(RoutingStrategyType.TO_ALL_LOCAL_PREF_STRATEGY))   return ConfigureNodesType.DEFAULT_LOCAL;
- else   if (zonesRequired != null && !routingStrategy.getType().equals(RoutingStrategyType.TO_ALL_LOCAL_PREF_STRATEGY))   return ConfigureNodesType.BYZONE;
+  if (zonesRequired != null) {
+    if (routingStrategy.getType().equals(RoutingStrategyType.TO_ALL_LOCAL_PREF_STRATEGY)) {
+      return ConfigureNodesType.BYZONE_LOCAL;
+    }
+ else {
+      return ConfigureNodesType.BYZONE;
+    }
+  }
+ else {
+    if (routingStrategy.getType().equals(RoutingStrategyType.TO_ALL_LOCAL_PREF_STRATEGY)) {
+      return ConfigureNodesType.DEFAULT_LOCAL;
+    }
+  }
   return ConfigureNodesType.DEFAULT;
 }

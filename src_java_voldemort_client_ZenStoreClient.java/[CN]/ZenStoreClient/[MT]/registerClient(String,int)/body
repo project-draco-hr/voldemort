@@ -5,10 +5,10 @@
       Version version=this.sysRepository.getClientRegistryStore().putSysStore(clientId,clientInfo.toString());
       refresher=new ClientRegistryRefresher(this.sysRepository,clientId,clientInfo,version);
       GregorianCalendar cal=new GregorianCalendar();
-      cal.add(Calendar.SECOND,interval);
+      cal.add(Calendar.SECOND,intervalInSecs);
       if (scheduler != null) {
-        scheduler.schedule(jobId + refresher.getClass().getName(),refresher,cal.getTime(),TimeUnit.MILLISECONDS.convert(interval,TimeUnit.SECONDS));
-        logger.info("Client registry refresher thread started, refresh interval: " + interval + " seconds");
+        scheduler.schedule(jobId + refresher.getClass().getName(),refresher,cal.getTime(),TimeUnit.MILLISECONDS.convert(intervalInSecs,TimeUnit.SECONDS));
+        logger.info("Client registry refresher thread started, refresh interval: " + intervalInSecs + " seconds");
       }
  else {
         logger.warn("Client registry won't run because scheduler service is not configured");

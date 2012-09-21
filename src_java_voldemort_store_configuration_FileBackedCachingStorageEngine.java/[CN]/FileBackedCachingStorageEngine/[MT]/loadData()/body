@@ -3,18 +3,18 @@
     BufferedReader reader=new BufferedReader(new FileReader(new File(this.inputPath)));
     String line=reader.readLine();
     while (line != null) {
-      if (line.contains(NEW_PROPERTY_SEPARATOR)) {
+      if (line.startsWith(NEW_PROPERTY_SEPARATOR.toString())) {
         String key=null;
         StringBuilder value=new StringBuilder();
         String parts[]=line.split("=");
         if (parts.length == 2) {
           key=parts[1].substring(0,parts[1].length() - 1);
-          while ((line=reader.readLine()) != null && line.length() != 0 && !line.contains(NEW_PROPERTY_SEPARATOR)) {
+          while ((line=reader.readLine()) != null && line.length() != 0 && !line.startsWith(NEW_PROPERTY_SEPARATOR.toString())) {
             if (value.length() == 0) {
               value.append(line);
             }
  else {
-              value.append("\n" + line);
+              value.append(NEW_LINE + line);
             }
           }
           this.metadataMap.put(key,value.toString());
