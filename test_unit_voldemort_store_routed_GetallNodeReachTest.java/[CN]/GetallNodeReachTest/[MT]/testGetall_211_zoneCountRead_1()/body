@@ -30,16 +30,11 @@
   keys.add(TestUtils.toByteArray("k111"));
   Map<ByteArray,List<Versioned<byte[]>>> result=store.getAll(keys,null);
   assertFalse(result.containsKey(TestUtils.toByteArray("not_included")));
-  assertEquals(0,result.get(TestUtils.toByteArray("k000")).size());
-  assertEquals(1,result.get(TestUtils.toByteArray("k001")).size());
-  int size=-1;
-  size=result.get(TestUtils.toByteArray("k010")).size();
-  assertTrue(size == 1 || size == 0);
+  assertFalse(result.containsKey(TestUtils.toByteArray("k000")));
+  assertEquals(1,result.get(TestUtils.toByteArray("k011")).size());
+  assertFalse(result.containsKey(TestUtils.toByteArray("not_included")));
+  assertFalse(result.containsKey(TestUtils.toByteArray("k000")));
   assertEquals(1,result.get(TestUtils.toByteArray("k011")).size());
   assertEquals(1,result.get(TestUtils.toByteArray("k100")).size());
-  size=result.get(TestUtils.toByteArray("k101")).size();
-  assertTrue(size == 1 || size == 2);
-  size=result.get(TestUtils.toByteArray("k110")).size();
-  assertTrue(size == 1 || size == 2);
   assertEquals(2,result.get(TestUtils.toByteArray("k111")).size());
 }

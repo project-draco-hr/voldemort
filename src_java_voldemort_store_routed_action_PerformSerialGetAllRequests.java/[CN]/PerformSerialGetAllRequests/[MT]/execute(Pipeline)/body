@@ -33,8 +33,10 @@
         List<Versioned<byte[]>> values;
         if (transforms == null)         values=store.get(key,null);
  else         values=store.get(key,transforms.get(key));
-        if (result.get(key) == null)         result.put(key,Lists.newArrayList(values));
- else         result.get(key).addAll(values);
+        if (values.size() != 0) {
+          if (result.get(key) == null)           result.put(key,Lists.newArrayList(values));
+ else           result.get(key).addAll(values);
+        }
         Map<ByteArray,List<Versioned<byte[]>>> map=new HashMap<ByteArray,List<Versioned<byte[]>>>();
         map.put(key,values);
         Response<Iterable<ByteArray>,Map<ByteArray,List<Versioned<byte[]>>>> response=new Response<Iterable<ByteArray>,Map<ByteArray,List<Versioned<byte[]>>>>(node,Arrays.asList(key),map,((System.nanoTime() - start) / Time.NS_PER_MS));
