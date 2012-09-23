@@ -4,4 +4,7 @@
   this.pool=createSocketPool(adminClientConfig);
   this.networkClassLoader=new NetworkClassLoader(Thread.currentThread().getContextClassLoader());
   this.adminClientConfig=adminClientConfig;
+  Node node=cluster.getNodeById(0);
+  String bootstrapURL="tcp://" + node.getHost() + ":"+ node.getSocketPort();
+  cacheSystemStoreParams(bootstrapURL,DEFAULT_ZONE_ID);
 }

@@ -1,0 +1,21 @@
+{
+  BufferedWriter writer=null;
+  try {
+    writer=new BufferedWriter(new FileWriter(new File(this.inputPath)));
+    for (    String key : this.metadataMap.keySet()) {
+      writer.write(NEW_PROPERTY_SEPARATOR + key.toString() + "]"+ NEW_LINE);
+      writer.write(this.metadataMap.get(key).toString());
+      writer.write("" + NEW_LINE + ""+ NEW_LINE);
+    }
+    writer.flush();
+  }
+ catch (  IOException e) {
+    logger.error("IO exception while flushing data to file backed storage: " + e.getMessage());
+  }
+  try {
+    if (writer != null)     writer.close();
+  }
+ catch (  Exception e) {
+    logger.error("Error while flushing data to file backed storage: " + e.getMessage());
+  }
+}

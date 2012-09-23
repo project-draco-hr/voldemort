@@ -1,0 +1,21 @@
+{
+  String clientContextCompare="";
+  String jmxId1=getAndIncrementJmxId();
+  String jmxId2=getAndIncrementJmxId();
+  StoreClient<Object,Object> c1=getFactoryWithClientContext(null,getValidBootstrapUrl()).getStoreClient(getValidStoreName());
+  StoreClient<Object,Object> c2=getFactoryWithClientContext(null,getValidBootstrapUrl()).getStoreClient(getValidStoreName());
+  ObjectName c1Name=JmxUtils.createObjectName(AGGREGATE_STATS_DOMAIN,"aggregate-perf" + jmxId1);
+  ObjectName c2Name=JmxUtils.createObjectName(AGGREGATE_STATS_DOMAIN,"aggregate-perf" + jmxId2);
+  checkForMbeanFound(c1Name);
+  checkForMbeanFound(c2Name);
+  mbServer.unregisterMBean(c1Name);
+  mbServer.unregisterMBean(c2Name);
+  String c1type=clientContextCompare + "test" + jmxId1;
+  String c2type=clientContextCompare + "test" + jmxId2;
+  c1Name=JmxUtils.createObjectName(STATS_DOMAIN,c1type);
+  c2Name=JmxUtils.createObjectName(STATS_DOMAIN,c2type);
+  checkForMbeanFound(c1Name);
+  checkForMbeanFound(c2Name);
+  mbServer.unregisterMBean(c1Name);
+  mbServer.unregisterMBean(c2Name);
+}

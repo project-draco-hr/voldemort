@@ -1,0 +1,11 @@
+{
+  ByteArray key=getKey();
+  Store<ByteArray,byte[],byte[]> store=getStore();
+  VectorClock c1=getClock(1,1);
+  byte[] value=getValue();
+  assertTrue(!store.delete(key,c1));
+  store.put(key,new Versioned<byte[]>(value,c1),null);
+  assertEquals(1,store.get(key,null).size());
+  assertTrue("Delete failed!",store.delete(key,c1));
+  assertEquals(0,store.get(key,null).size());
+}

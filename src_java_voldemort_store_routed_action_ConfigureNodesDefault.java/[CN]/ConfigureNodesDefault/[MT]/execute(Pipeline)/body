@@ -1,0 +1,18 @@
+{
+  List<Node> nodes=null;
+  nodes=getNodes(key);
+  if (nodes == null) {
+    pipeline.abort();
+    return;
+  }
+  if (logger.isDebugEnabled())   logger.debug("Adding " + nodes.size() + " node(s) to preference list");
+  if (logger.isDebugEnabled()) {
+    StringBuilder nodeStr=new StringBuilder();
+    for (    Node node : nodes) {
+      nodeStr.append(node.getId() + ",");
+    }
+    logger.debug("Key " + ByteUtils.toHexString(key.get()) + " final preference list to contact "+ nodeStr);
+  }
+  pipelineData.setNodes(nodes);
+  pipeline.addEvent(completeEvent);
+}

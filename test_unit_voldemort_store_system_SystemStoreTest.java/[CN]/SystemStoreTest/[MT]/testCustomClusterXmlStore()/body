@@ -1,0 +1,12 @@
+{
+  try {
+    SystemStore<String,String> sysVersionStore=new SystemStore<String,String>(SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name(),bootStrapUrls,this.CLIENT_ZONE_ID,this.clusterXml,null);
+    long storesVersion=1;
+    sysVersionStore.putSysStore("stores.xml",Long.toString(storesVersion));
+    long version=Long.parseLong(sysVersionStore.getValueSysStore("stores.xml"));
+    assertEquals("Received incorrect version from the voldsys$_metadata_version system store",storesVersion,version);
+  }
+ catch (  Exception e) {
+    fail("Failed to create System Store with custom cluster Xml: " + e.getMessage());
+  }
+}

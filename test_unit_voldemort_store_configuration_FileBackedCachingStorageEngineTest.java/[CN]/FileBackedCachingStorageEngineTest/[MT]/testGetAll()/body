@@ -1,0 +1,23 @@
+{
+  Store<ByteArray,byte[],byte[]> store=getStore();
+  int putCount=10;
+  List<ByteArray> keys=getKeys(putCount);
+  List<byte[]> values=getValues(putCount);
+  assertEquals(putCount,values.size());
+  VectorClock clock=new VectorClock();
+  for (int i=0; i < putCount; i++) {
+    store.put(keys.get(i),new Versioned<byte[]>(values.get(i),clock),null);
+    clock=clock.incremented(0,System.currentTimeMillis());
+  }
+  int countForGet=putCount / 2;
+  List<ByteArray> keysForGet=keys.subList(0,countForGet);
+  List<byte[]> valuesForGet=values.subList(0,countForGet);
+  Map<ByteArray,List<Versioned<byte[]>>> result=store.getAll(keysForGet,null);
+  assertEquals(countForGet,result.size());
+  for (int i=0; i < keysForGet.size(); ++i) {
+    ByteArray key=keysForGet.get(i);
+    byte[] expectedValue=valuesForGet.get(i);
+    List<Versioned<byte[]>> versioneds=result.get(key);
+    assertGetAllValues(expectedValue,versioneds);
+  }
+}

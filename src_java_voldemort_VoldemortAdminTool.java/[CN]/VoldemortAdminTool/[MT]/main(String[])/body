@@ -33,6 +33,8 @@
   parser.accepts("zone","zone id").withRequiredArg().describedAs("zone-id").ofType(Integer.class);
   parser.accepts("rollback","rollback a store").withRequiredArg().describedAs("store-name").ofType(String.class);
   parser.accepts("version","Push version of store to rollback to").withRequiredArg().describedAs("version").ofType(Long.class);
+  parser.accepts("verify-metadata-version","Verify the version of Metadata on all the cluster nodes");
+  parser.accepts("synchronize-metadata-version","Synchronize the metadata versions across all the nodes.");
   parser.accepts("reserve-memory","Memory in MB to reserve for the store").withRequiredArg().describedAs("size-in-mb").ofType(Long.class);
   parser.accepts("query-keys","Get values of keys on specific nodes").withRequiredArg().describedAs("query-keys").withValuesSeparatedBy(',').ofType(String.class);
   OptionSet options=parser.parse(args);
@@ -42,7 +44,7 @@
   }
   Set<String> missing=CmdUtils.missing(options,"url","node");
   if (missing.size() > 0) {
-    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store") || options.has("ro-metadata")|| options.has("set-metadata")|| options.has("get-metadata")|| options.has("check-metadata")|| options.has("key-distribution")) || options.has("truncate") || options.has("clear-rebalancing-metadata") || options.has("async") || options.has("native-backup") || options.has("rollback") || options.has("reserve-memory"))) {
+    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store") || options.has("ro-metadata")|| options.has("set-metadata")|| options.has("get-metadata")|| options.has("check-metadata")|| options.has("key-distribution")) || options.has("truncate") || options.has("clear-rebalancing-metadata") || options.has("async") || options.has("native-backup") || options.has("rollback") || options.has("verify-metadata-version") || options.has("reserve-memory"))) {
       System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
       printHelp(System.err,parser);
       System.exit(1);
@@ -52,7 +54,12 @@
   Integer nodeId=CmdUtils.valueOf(options,"node",-1);
   int parallelism=CmdUtils.valueOf(options,"restore",5);
   Integer zoneId=CmdUtils.valueOf(options,"zone",-1);
-  AdminClient adminClient=new AdminClient(url,new AdminClientConfig());
+  int zone=zoneId == -1 ? 0 : zoneId;
+  AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),zone);
+  if (options.has("verify-metadata-version")) {
+    checkMetadataVersion(adminClient);
+    return;
+  }
   String ops="";
   if (options.has("delete-partitions")) {
     ops+="d";
@@ -114,6 +121,9 @@
     }
     ops+="o";
   }
+  if (options.has("synchronize-metadata-version")) {
+    ops+="z";
+  }
   if (options.has("reserve-memory")) {
     if (!options.has("stores")) {
       Utils.croak("Specify the list of stores to reserve memory");
@@ -124,7 +134,7 @@
     ops+="q";
   }
   if (ops.length() < 1) {
-    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, key-distribution, clear-rebalancing-metadata, async, "+ "repair-job, native-backup, rollback, reserve-memory) must be specified");
+    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, key-distribution, clear-rebalancing-metadata, async, "+ "repair-job, native-backup, rollback, reserve-memory, verify-metadata-version) must be specified");
   }
   List<String> storeNames=null;
   if (options.has("stores")) {
@@ -255,6 +265,9 @@
       String storeName=(String)options.valueOf("rollback");
       long pushVersion=(Long)options.valueOf("version");
       executeRollback(nodeId,storeName,pushVersion,adminClient);
+    }
+    if (ops.contains("z")) {
+      synchronizeMetadataVersion(adminClient,nodeId);
     }
     if (ops.contains("f")) {
       long reserveMB=(Long)options.valueOf("reserve-memory");

@@ -1,0 +1,57 @@
+{
+  try {
+    String key="city";
+    String value="SF";
+    String bootstrapTime="";
+    String newBootstrapTime="";
+    AdminClient adminClient=new AdminClient(bootStrapUrls[0],new AdminClientConfig(),CLIENT_ZONE_ID);
+    try {
+      storeClient.put(key,value);
+      String received=storeClient.getValue(key);
+      assertEquals(value,received);
+    }
+ catch (    VoldemortException ve) {
+      fail("Error in doing basic get, put");
+    }
+    String originalClientInfo=null;
+    try {
+      originalClientInfo=clientRegistryStore.getSysStore(storeClient.getClientId()).getValue();
+      Properties props=new Properties();
+      props.load(new ByteArrayInputStream(originalClientInfo.getBytes()));
+      bootstrapTime=props.getProperty("bootstrapTime");
+      assertNotNull(bootstrapTime);
+    }
+ catch (    Exception e) {
+      fail("Error in retrieving bootstrap time: " + e);
+    }
+    VoldemortAdminTool adminTool=new VoldemortAdminTool();
+    ClusterMapper mapper=new ClusterMapper();
+    for (    Node node : cluster.getNodes()) {
+      VoldemortAdminTool.executeSetMetadata(node.getId(),adminClient,CLUSTER_KEY,mapper.writeCluster(cluster));
+    }
+    try {
+      Thread.sleep(15000);
+    }
+ catch (    Exception e) {
+      fail("Interrupted .");
+    }
+    String newClientInfo=null;
+    try {
+      newClientInfo=clientRegistryStore.getSysStore(storeClient.getClientId()).getValue();
+      Properties newProps=new Properties();
+      newProps.load(new ByteArrayInputStream(newClientInfo.getBytes()));
+      newBootstrapTime=newProps.getProperty("bootstrapTime");
+      assertNotNull(newBootstrapTime);
+    }
+ catch (    Exception e) {
+      fail("Error in retrieving bootstrap time: " + e);
+    }
+    assertFalse(bootstrapTime.equals(newBootstrapTime));
+    long origTime=Long.parseLong(bootstrapTime);
+    long newTime=Long.parseLong(newBootstrapTime);
+    assertTrue(newTime > origTime);
+  }
+ catch (  Exception e) {
+    fail("Error in validating end to end client rebootstrap : " + e);
+  }
+}

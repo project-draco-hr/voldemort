@@ -1,0 +1,25 @@
+{
+  ClientRegistryRefresher refresher=null;
+  if (this.sysRepository.getClientRegistryStore() != null) {
+    try {
+      Version version=this.sysRepository.getClientRegistryStore().putSysStore(clientId,clientInfo.toString());
+      refresher=new ClientRegistryRefresher(this.sysRepository,clientId,clientInfo,version);
+      GregorianCalendar cal=new GregorianCalendar();
+      cal.add(Calendar.SECOND,intervalInSecs);
+      if (scheduler != null) {
+        scheduler.schedule(jobId + refresher.getClass().getName(),refresher,cal.getTime(),TimeUnit.MILLISECONDS.convert(intervalInSecs,TimeUnit.SECONDS));
+        logger.info("Client registry refresher thread started, refresh interval: " + intervalInSecs + " seconds");
+      }
+ else {
+        logger.warn("Client registry won't run because scheduler service is not configured");
+      }
+    }
+ catch (    Exception e) {
+      logger.warn("Unable to register with the cluster due to the following error:",e);
+    }
+  }
+ else {
+    logger.warn(SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name() + "not found. Unable to registry with voldemort cluster.");
+  }
+  return refresher;
+}

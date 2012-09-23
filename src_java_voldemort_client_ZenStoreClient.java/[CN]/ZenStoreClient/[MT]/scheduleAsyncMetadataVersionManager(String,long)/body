@@ -1,0 +1,25 @@
+{
+  AsyncMetadataVersionManager asyncMetadataManager=null;
+  SystemStore<String,String> versionStore=this.sysRepository.getMetadataVersionStore();
+  if (versionStore == null) {
+    logger.warn("Metadata version system store not found. Cannot run Metadata version check thread.");
+  }
+ else {
+    Callable<Void> rebootstrapCallback=new Callable<Void>(){
+      public Void call() throws Exception {
+        bootStrap();
+        return null;
+      }
+    }
+;
+    asyncMetadataManager=new AsyncMetadataVersionManager(this.sysRepository,rebootstrapCallback);
+    if (scheduler != null) {
+      scheduler.schedule(jobId + asyncMetadataManager.getClass().getName(),asyncMetadataManager,new Date(),interval);
+      logger.info("Metadata version check thread started. Frequency = Every " + interval + " ms");
+    }
+ else {
+      logger.warn("Metadata version check thread won't start because the scheduler service is not configured.");
+    }
+  }
+  return asyncMetadataManager;
+}

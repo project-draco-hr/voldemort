@@ -1,0 +1,12 @@
+{
+  StoreUtils.assertValidKey(key);
+  String keyString=new String(key.get());
+  List<Versioned<byte[]>> found=new ArrayList<Versioned<byte[]>>();
+  byte[] resultBytes=null;
+  String value=this.metadataMap.get(keyString);
+  if (value != null) {
+    resultBytes=value.getBytes();
+    found.add(new Versioned<byte[]>(resultBytes,readVersion()));
+  }
+  return found;
+}

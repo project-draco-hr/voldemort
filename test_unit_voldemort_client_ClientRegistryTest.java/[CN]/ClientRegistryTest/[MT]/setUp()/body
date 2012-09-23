@@ -1,0 +1,12 @@
+{
+  if (null == servers) {
+    servers=new VoldemortServer[TOTAL_SERVERS];
+    serverPorts=new int[TOTAL_SERVERS];
+    for (int i=0; i < TOTAL_SERVERS; i++) {
+      servers[i]=ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(true,i,TestUtils.createTempDir().getAbsolutePath(),null,STORES_XML_FILE,new Properties()),cluster);
+      serverPorts[i]=servers[i].getIdentityNode().getSocketPort();
+    }
+    adminClient=ServerTestUtils.getAdminClient(cluster);
+  }
+  startTime=System.currentTimeMillis();
+}

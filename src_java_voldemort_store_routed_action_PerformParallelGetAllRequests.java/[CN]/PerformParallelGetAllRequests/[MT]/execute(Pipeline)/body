@@ -43,12 +43,11 @@
         MutableInt successCount=pipelineData.getSuccessCount(key);
         successCount.increment();
         List<Versioned<byte[]>> retrieved=values.get(key);
-        if (retrieved == null) {
-          retrieved=new ArrayList<Versioned<byte[]>>();
+        if (retrieved != null) {
+          List<Versioned<byte[]>> existing=pipelineData.getResult().get(key);
+          if (existing == null)           pipelineData.getResult().put(key,Lists.newArrayList(retrieved));
+ else           existing.addAll(retrieved);
         }
-        List<Versioned<byte[]>> existing=pipelineData.getResult().get(key);
-        if (existing == null)         pipelineData.getResult().put(key,Lists.newArrayList(retrieved));
- else         existing.addAll(retrieved);
         HashSet<Integer> zoneResponses=null;
         if (pipelineData.getKeyToZoneResponse().containsKey(key)) {
           zoneResponses=pipelineData.getKeyToZoneResponse().get(key);

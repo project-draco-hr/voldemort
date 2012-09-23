@@ -1,0 +1,14 @@
+{
+  this.name=name;
+  this.inputDirectory=inputDirectory;
+  File directory=new File(this.inputDirectory);
+  if (!directory.exists() && directory.canRead()) {
+    throw new IllegalArgumentException("Directory " + directory.getAbsolutePath() + " does not exist or can not be read.");
+  }
+  this.inputPath=inputDirectory + System.getProperty("file.separator") + name;
+  this.metadataMap=new HashMap<String,String>();
+  this.loadData();
+  if (logger.isDebugEnabled()) {
+    logger.debug("Created a new File backed caching engine. File location = " + inputPath);
+  }
+}

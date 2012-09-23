@@ -1,0 +1,15 @@
+{
+  StoreUtils.assertValidKey(key);
+  VectorClock clock=readVersion();
+  if (clock != null) {
+    if (value.getVersion().compare(clock) == Occurred.BEFORE) {
+      throw new ObsoleteVersionException("A successor version " + clock + "  to this "+ value.getVersion()+ " exists for the current file : "+ this.name);
+    }
+ else     if (value.getVersion().compare(clock) == Occurred.CONCURRENTLY) {
+      throw new ObsoleteVersionException("Concurrent Operation not allowed on Metadata.");
+    }
+  }
+  this.metadataMap.put(new String(key.get()),new String(value.getValue()));
+  this.flushData();
+  writeVersion((VectorClock)value.getVersion());
+}

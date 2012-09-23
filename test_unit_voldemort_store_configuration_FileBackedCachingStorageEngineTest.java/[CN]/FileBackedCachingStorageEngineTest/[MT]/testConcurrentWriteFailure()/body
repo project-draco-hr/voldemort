@@ -1,0 +1,16 @@
+{
+  ByteArray key=getKey();
+  Store<ByteArray,byte[],byte[]> store=getStore();
+  VectorClock c1=getClock(1,1);
+  VectorClock c2=getClock(1,2);
+  byte[] value=getValue();
+  Versioned<byte[]> v1=new Versioned<byte[]>(value,c1);
+  Versioned<byte[]> v2=new Versioned<byte[]>(value,c2);
+  store.put(key,v1,null);
+  try {
+    store.put(key,v2,null);
+    fail("Concurrent write succeeded in FileBackedCachingStorageEngine. Should not be allowed.");
+  }
+ catch (  VoldemortException ve) {
+  }
+}

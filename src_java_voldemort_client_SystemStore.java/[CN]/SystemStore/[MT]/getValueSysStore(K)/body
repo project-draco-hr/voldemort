@@ -1,0 +1,17 @@
+{
+  V value=null;
+  try {
+    logger.debug("Invoking Get for key : " + key + " on store name : "+ this.storeName);
+    Versioned<V> versioned=getSysStore(key);
+    if (versioned != null) {
+      logger.debug("Value for key : " + key + " = "+ versioned.getValue()+ " on store name : "+ this.storeName);
+      value=versioned.getValue();
+    }
+  }
+ catch (  Exception e) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Exception caught during getSysStore: " + e);
+    }
+  }
+  return value;
+}

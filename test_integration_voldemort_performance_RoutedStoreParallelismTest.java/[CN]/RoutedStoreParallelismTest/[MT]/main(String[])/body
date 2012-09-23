@@ -53,7 +53,7 @@
     Store<ByteArray,byte[],byte[]> socketStore=ServerTestUtils.getSocketStore(socketStoreFactory,"test-sleepy",node.getSocketPort(),clientConfig.getRequestFormatType());
     stores.put(node.getId(),socketStore);
   }
-  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setImplementationClassName(BannagePeriodFailureDetector.class.getName()).setNodes(cluster.getNodes()).setStoreVerifier(MutableStoreVerifier.create(stores));
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setImplementationClassName(BannagePeriodFailureDetector.class.getName()).setCluster(cluster).setStoreVerifier(MutableStoreVerifier.create(stores));
   FailureDetector failureDetector=FailureDetectorUtils.create(failureDetectorConfig,false);
   ExecutorService routedStoreThreadPool=Executors.newFixedThreadPool(clientConfig.getMaxThreads());
   RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(routedStoreType.trim().equalsIgnoreCase(PIPELINE_ROUTED_STORE),routedStoreThreadPool,clientConfig.getTimeoutConfig());

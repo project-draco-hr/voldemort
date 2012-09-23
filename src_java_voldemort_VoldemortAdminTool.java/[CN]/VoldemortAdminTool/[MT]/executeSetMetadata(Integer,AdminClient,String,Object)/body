@@ -18,8 +18,5 @@
     updatedVersion=((VectorClock)currentValue.getVersion()).incremented(nodeId,System.currentTimeMillis());
     nodeIds.add(nodeId);
   }
-  for (  Integer currentNodeId : nodeIds) {
-    System.out.println("Setting " + key + " for "+ adminClient.getAdminClientCluster().getNodeById(currentNodeId).getHost()+ ":"+ adminClient.getAdminClientCluster().getNodeById(currentNodeId).getId());
-    adminClient.updateRemoteMetadata(currentNodeId,key,Versioned.value(value.toString(),updatedVersion));
-  }
+  adminClient.updateRemoteMetadata(nodeIds,key,Versioned.value(value.toString(),updatedVersion));
 }

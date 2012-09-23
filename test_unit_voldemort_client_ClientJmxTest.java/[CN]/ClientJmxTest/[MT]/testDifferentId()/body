@@ -1,0 +1,17 @@
+{
+  String clientContext="clientContext";
+  String jmxId=getAndIncrementJmxId();
+  StoreClientFactory factory=getFactoryWithClientContext(clientContext,getValidBootstrapUrl());
+  StoreClient<Object,Object>[] clients=new StoreClient[2];
+  clients[0]=factory.getStoreClient(getValidStoreName());
+  clients[1]=factory.getStoreClient(getValidStoreName());
+  ObjectName cName=JmxUtils.createObjectName(AGGREGATE_STATS_DOMAIN,"aggregate-perf" + jmxId);
+  checkForMbeanFound(cName);
+  mbServer.unregisterMBean(cName);
+  String ctype="test" + jmxId;
+  ObjectName c1Name=JmxUtils.createObjectName(STATS_DOMAIN,ctype);
+  ObjectName c2Name=JmxUtils.createObjectName(STATS_DOMAIN,ctype);
+  checkForMbeanFound(c1Name);
+  checkForMbeanFound(c2Name);
+  mbServer.unregisterMBean(c1Name);
+}

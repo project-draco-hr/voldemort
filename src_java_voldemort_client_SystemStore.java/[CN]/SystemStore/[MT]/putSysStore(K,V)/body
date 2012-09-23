@@ -1,0 +1,17 @@
+{
+  Version version=null;
+  try {
+    logger.debug("Invoking Put for key : " + key + " on store name : "+ this.storeName);
+    Versioned<V> versioned=getSysStore(key);
+    if (versioned == null)     versioned=Versioned.value(value,new VectorClock());
+ else     versioned.setObject(value);
+    this.sysStore.put(key,versioned,null);
+    version=versioned.getVersion();
+  }
+ catch (  Exception e) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Exception caught during putSysStore: " + e);
+    }
+  }
+  return version;
+}
