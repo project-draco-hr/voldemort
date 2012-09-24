@@ -12,7 +12,7 @@
         fetchedPartitions.add(currentPartition);
         found=true;
         logger.info("Fetching [partition: " + currentPartition + ", replica type:"+ currentReplicaType+ "] for store "+ storageEngine.getName());
-        entriesPartitionIterator=storageEngine.entries(currentPartition.shortValue());
+        entriesPartitionIterator=storageEngine.entries(currentPartition);
       }
       currentIndex++;
     }
@@ -44,7 +44,7 @@
         stats.recordDiskTime(handle,System.nanoTime() - startNs);
       }
       if (0 == counter % 100000) {
-        long totalTime=(System.currentTimeMillis() - startTime) / 1000;
+        long totalTime=(System.currentTimeMillis() - startTime) / Time.MS_PER_SECOND;
         logger.info("Fetch entries scanned " + counter + " entries, fetched "+ fetched+ " entries for store '"+ storageEngine.getName()+ "' replicaToPartitionList:"+ replicaToPartitionList+ " in "+ totalTime+ " s");
       }
     }
