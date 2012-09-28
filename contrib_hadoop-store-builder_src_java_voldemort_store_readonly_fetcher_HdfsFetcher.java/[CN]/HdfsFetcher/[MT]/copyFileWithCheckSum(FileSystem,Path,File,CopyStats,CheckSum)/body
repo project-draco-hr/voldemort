@@ -34,13 +34,20 @@
  catch (    IOException ioe) {
       success=false;
       logger.error("Error during copying file ",ioe);
-      if (attempt < NUM_RETRIES - 1)       logger.info("retrying copying");
- else       throw ioe;
+      ioe.printStackTrace();
+      if (attempt < NUM_RETRIES - 1) {
+        logger.info("retrying copying");
+      }
+ else {
+        throw ioe;
+      }
     }
  finally {
       IOUtils.closeQuietly(output);
       IOUtils.closeQuietly(input);
-      if (success)       break;
+      if (success) {
+        break;
+      }
     }
   }
 }
