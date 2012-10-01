@@ -1,0 +1,12 @@
+{
+  if (oldSchema == null || newSchema == null || oldSchema.getType() != Schema.Type.FIXED) {
+    throw new IllegalArgumentException("Old schema must be FIXED type. Name=" + name + ". Type="+ oldSchema);
+  }
+  if (newSchema.getType() != Schema.Type.FIXED) {
+    messages.add(new Message(Level.ERROR,"Illegal type change from " + oldSchema.getType() + " to "+ newSchema.getType()+ " for field "+ name));
+    return;
+  }
+  if (newSchema.getFixedSize() != oldSchema.getFixedSize()) {
+    messages.add(new Message(Level.ERROR,"Illegal size change for fixed type field " + name));
+  }
+}

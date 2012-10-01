@@ -1,0 +1,10 @@
+{
+  if (oldSchema == null || newSchema == null || oldSchema.getType() != Schema.Type.MAP) {
+    throw new IllegalArgumentException("Old schema must be MAP type. Name=" + name + ". Type="+ oldSchema);
+  }
+  if (newSchema.getType() != Schema.Type.MAP) {
+    messages.add(new Message(Level.ERROR,"Illegal type change from " + oldSchema.getType() + " to "+ newSchema.getType()+ " for field "+ name));
+    return;
+  }
+  compareTypes(oldSchema.getValueType(),newSchema.getValueType(),messages,name + ".<map element>");
+}

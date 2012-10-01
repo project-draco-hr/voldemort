@@ -1,0 +1,25 @@
+{
+  if (oldSchema == null || newSchema == null || oldSchema.getType() != Schema.Type.ENUM) {
+    throw new IllegalArgumentException("Old schema must be ENUM type. Name=" + name + ". Type="+ oldSchema);
+  }
+  if (newSchema.getType() != Schema.Type.ENUM) {
+    messages.add(new Message(Level.ERROR,"Illegal type change from " + oldSchema.getType() + " to "+ newSchema.getType()+ " for field "+ name));
+    return;
+  }
+  List<String> newEnumSymbols=newSchema.getEnumSymbols();
+  List<String> oldEnumSymbols=oldSchema.getEnumSymbols();
+  if (!newEnumSymbols.containsAll(oldEnumSymbols)) {
+    messages.add(new Message(Level.ERROR,"Existing ENUM field " + name + " had one or more enum symbols removed. The old symbols are:"+ oldEnumSymbols+ ". The new symbols are: "+ newEnumSymbols));
+  }
+  if (!oldEnumSymbols.containsAll(newEnumSymbols)) {
+    messages.add(new Message(Level.INFO,"Existing ENUM field " + name + " had one or more enum symbols added. The old symbols are:"+ oldEnumSymbols+ ". The new symbols are: "+ newEnumSymbols));
+  }
+  if (newEnumSymbols.containsAll(oldEnumSymbols)) {
+    for (int i=0; i < oldEnumSymbols.size(); i++) {
+      if (!oldEnumSymbols.get(i).equals(newEnumSymbols.get(i))) {
+        messages.add(new Message(Level.WARN,"Existing ENUM field " + name + " had one or more enum symbols reordered. The old symbols are:"+ oldEnumSymbols+ ". The new symbols are: "+ newEnumSymbols));
+        break;
+      }
+    }
+  }
+}

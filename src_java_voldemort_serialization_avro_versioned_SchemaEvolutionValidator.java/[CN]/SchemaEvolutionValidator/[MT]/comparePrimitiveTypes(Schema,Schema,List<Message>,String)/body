@@ -1,0 +1,15 @@
+{
+  if (oldSchema == null || newSchema == null) {
+    throw new IllegalArgumentException("Old schema must both be a primitive type. Name=" + name + ". Type="+ oldSchema);
+  }
+  Schema.Type oldType=oldSchema.getType();
+  Schema.Type newType=newSchema.getType();
+  if (oldType != newType) {
+    if (((oldType == Schema.Type.INT && (newType == Schema.Type.LONG || newType == Schema.Type.FLOAT || newType == Schema.Type.DOUBLE)) || (oldType == Schema.Type.LONG && (newType == Schema.Type.FLOAT || newType == Schema.Type.DOUBLE)) || (oldType == Schema.Type.FLOAT && (newType == Schema.Type.DOUBLE)))) {
+      messages.add(new Message(Level.INFO,"Type change from " + oldSchema.getType() + " to "+ newSchema.getType()+ " for field "+ name));
+    }
+ else {
+      messages.add(new Message(Level.ERROR,"Illegal type change from " + oldSchema.getType() + " to "+ newSchema.getType()+ " for field "+ name));
+    }
+  }
+}

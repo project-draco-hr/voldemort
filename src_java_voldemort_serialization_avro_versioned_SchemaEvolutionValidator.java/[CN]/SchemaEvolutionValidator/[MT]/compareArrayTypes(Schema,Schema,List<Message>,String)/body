@@ -1,0 +1,10 @@
+{
+  if (oldSchema == null || newSchema == null || oldSchema.getType() != Schema.Type.ARRAY) {
+    throw new IllegalArgumentException("Old schema must be ARRAY type. Name=" + name + ". Type="+ oldSchema);
+  }
+  if (newSchema.getType() != Schema.Type.ARRAY) {
+    messages.add(new Message(Level.ERROR,"Illegal type change from " + oldSchema.getType() + " to "+ newSchema.getType()+ " for field "+ name));
+    return;
+  }
+  compareTypes(oldSchema.getElementType(),newSchema.getElementType(),messages,name + ".<array element>");
+}
