@@ -1,0 +1,9 @@
+{
+  ScheduledFuture<?> future=null;
+  if (scheduleAtFixedRate)   future=scheduler.scheduleAtFixedRate(runnable,delayMs(nextRun),periodMs,TimeUnit.MILLISECONDS);
+ else   future=scheduler.scheduleWithFixedDelay(runnable,delayMs(nextRun),periodMs,TimeUnit.MILLISECONDS);
+  if (!allJobs.containsKey(id)) {
+    allJobs.put(id,new ScheduledRunnable(runnable,nextRun,periodMs));
+  }
+  scheduledJobResults.put(id,future);
+}

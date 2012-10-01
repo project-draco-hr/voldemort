@@ -123,7 +123,9 @@
   this.numScanPermits=props.getInt("num.scan.permits",1);
   this.storageConfigurations=props.getList("storage.configs",ImmutableList.of(BdbStorageConfiguration.class.getName(),MysqlStorageConfiguration.class.getName(),InMemoryStorageConfiguration.class.getName(),CacheStorageConfiguration.class.getName(),ReadOnlyStorageConfiguration.class.getName()));
   this.retentionCleanupFirstStartTimeInHour=props.getInt("retention.cleanup.first.start.hour",0);
+  this.retentionCleanupFirstStartDayOfWeek=props.getInt("retention.cleanup.first.start.day",Utils.getDayOfTheWeekFromNow(1));
   this.retentionCleanupScheduledPeriodInHour=props.getInt("retention.cleanup.period.hours",24);
+  this.retentionCleanupPinStartTime=props.getBoolean("retention.cleanup.pin.start.time",true);
   this.allProps=props;
   String requestFormatName=props.getString("request.format",RequestFormatType.VOLDEMORT_V1.getCode());
   this.requestFormatType=RequestFormatType.fromCode(requestFormatName);
