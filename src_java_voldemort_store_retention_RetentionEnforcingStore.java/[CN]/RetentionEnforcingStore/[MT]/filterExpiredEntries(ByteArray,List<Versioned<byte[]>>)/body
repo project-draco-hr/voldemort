@@ -1,0 +1,14 @@
+{
+  Iterator<Versioned<byte[]>> valsIterator=vals.iterator();
+  while (valsIterator.hasNext()) {
+    Versioned<byte[]> val=valsIterator.next();
+    VectorClock clock=(VectorClock)val.getVersion();
+    if (clock.getTimestamp() < (time.getMilliseconds() - this.retentionTimeMs)) {
+      valsIterator.remove();
+      if (deleteExpiredEntries) {
+        getInnerStore().delete(key,clock);
+      }
+    }
+  }
+  return vals;
+}

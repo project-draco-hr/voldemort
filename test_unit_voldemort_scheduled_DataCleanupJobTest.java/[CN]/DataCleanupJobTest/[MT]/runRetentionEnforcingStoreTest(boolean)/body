@@ -1,0 +1,23 @@
+{
+  time.setTime(System.currentTimeMillis());
+  StoreDefinition retentionStoreDef=new StoreDefinitionsMapper().readStoreList(new StringReader(VoldemortTestConstants.getStoreDefinitionsWithRetentionXml())).get(0);
+  RetentionEnforcingStore store=new RetentionEnforcingStore(engine,retentionStoreDef,onlineDeletes,time);
+  store.put(new ByteArray("k1".getBytes()),new Versioned<byte[]>("v1".getBytes()),null);
+  store.put(new ByteArray("k2".getBytes()),new Versioned<byte[]>("v2".getBytes()),null);
+  long writeMs=System.currentTimeMillis();
+  Thread.sleep(2000);
+  store.put(new ByteArray("k3".getBytes()),new Versioned<byte[]>("v3".getBytes()),null);
+  store.put(new ByteArray("k4".getBytes()),new Versioned<byte[]>("v4".getBytes()),null);
+  time.setTime(writeMs + retentionStoreDef.getRetentionDays() * Time.MS_PER_DAY + 1);
+  assertEquals("k1 should have expired",0,store.get(new ByteArray("k1".getBytes()),null).size());
+  assertEquals("k2 should have expired",0,store.get(new ByteArray("k2".getBytes()),null).size());
+  assertTrue("k3 should not have expired",store.get(new ByteArray("k3".getBytes()),null).size() > 0);
+  assertTrue("k4 should not have expired",store.get(new ByteArray("k4".getBytes()),null).size() > 0);
+  Map<ByteArray,List<Versioned<byte[]>>> getAllResult=store.getAll(Arrays.asList(new ByteArray("k1".getBytes()),new ByteArray("k4".getBytes())),null);
+  assertEquals("map should contain one element only",1,getAllResult.size());
+  assertEquals("k1 should not be present",false,getAllResult.containsKey(new ByteArray("k1".getBytes())));
+  assertEquals("k4 should be present",true,getAllResult.containsKey(new ByteArray("k4".getBytes())));
+  assertEquals("k1 should be present",!onlineDeletes,engine.get(new ByteArray("k1".getBytes()),null).size() > 0);
+  assertEquals("k2 should be present",!onlineDeletes,engine.get(new ByteArray("k2".getBytes()),null).size() > 0);
+  engine.truncate();
+}

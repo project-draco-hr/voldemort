@@ -1,4 +1,5 @@
 {
   if (this.storeNameTolisteners == null)   throw new VoldemortException("MetadataStoreListener must be non-null");
-  this.storeNameTolisteners.put(storeName,listener);
+  if (!this.storeNameTolisteners.containsKey(storeName))   this.storeNameTolisteners.put(storeName,new ArrayList<MetadataStoreListener>(2));
+  this.storeNameTolisteners.get(storeName).add(listener);
 }
