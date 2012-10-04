@@ -9,7 +9,7 @@
     resource=attemptCheckout(resourcePool);
     if (resource == null) {
       long timeRemainingNs=resourcePoolConfig.getTimeout(TimeUnit.NANOSECONDS) - (System.nanoTime() - startNs);
-      if (timeRemainingNs > 0)       resource=resourcePool.blockingGet(timeRemainingNs);
+      if (timeRemainingNs > 0)       resource=resourcePool.blockingGet(timeRemainingNs,System.currentTimeMillis());
       if (resource == null)       throw new TimeoutException("Could not acquire resource in " + resourcePoolConfig.getTimeout(TimeUnit.MILLISECONDS) + " ms.");
     }
     if (!objectFactory.validate(key,resource))     throw new ExcessiveInvalidResourcesException(1);

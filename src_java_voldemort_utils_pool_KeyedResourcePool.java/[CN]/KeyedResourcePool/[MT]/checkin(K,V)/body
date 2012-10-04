@@ -1,13 +1,10 @@
 {
-  Pool<V> resourcePool=getResourcePoolForExistingKey(key);
-  if (isOpen.get() && objectFactory.validate(key,resource)) {
+  if (isOpenAndValid(key,resource)) {
+    Pool<V> resourcePool=getResourcePoolForExistingKey(key);
     boolean success=resourcePool.nonBlockingPut(resource);
     if (!success) {
       destroyResource(key,resourcePool,resource);
-      throw new IllegalStateException("Checkin failed. Is the pool already full?");
+      throw new IllegalStateException("Checkin failed. Is the pool already full? (NB: see if KeyedResourcePool::destroyResource is being called multiple times.)");
     }
-  }
- else {
-    destroyResource(key,resourcePool,resource);
   }
 }

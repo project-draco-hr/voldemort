@@ -11,13 +11,19 @@
   }
  catch (  Exception e) {
     destroyResource(key,resourcePool,resource);
+    resource=null;
   }
   if (resource == null) {
     return false;
   }
   AsyncResourceRequest<V> resourceRequest=getNextUnexpiredResourceRequest(requestQueue);
   if (resourceRequest == null) {
-    super.checkin(key,resource);
+    try {
+      super.checkin(key,resource);
+    }
+ catch (    Exception e) {
+      logger.error("Exception checking in resource: ",e);
+    }
     return false;
   }
   resourceRequest.useResource(resource);
