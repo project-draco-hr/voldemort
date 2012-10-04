@@ -1,0 +1,26 @@
+{
+  ClientSocketStats stats=masterStats;
+  assertEquals(0,stats.getCheckoutQueueLengthHistogram().getQuantile(0.99));
+  stats.recordCheckoutQueueLength(dest1,50);
+  stats.recordCheckoutQueueLength(dest2,50);
+  stats.recordCheckoutQueueLength(dest1,100);
+  stats.recordCheckoutQueueLength(dest2,100);
+  stats.recordCheckoutQueueLength(dest2,100);
+  stats.recordCheckoutQueueLength(dest1,50);
+  assertEquals(50,stats.getCheckoutQueueLengthHistogram().getQuantile(0.01));
+  assertEquals(50,stats.getCheckoutQueueLengthHistogram().getQuantile(0.50));
+  assertEquals(100,stats.getCheckoutQueueLengthHistogram().getQuantile(0.51));
+  assertEquals(100,stats.getCheckoutQueueLengthHistogram().getQuantile(0.99));
+  ClientSocketStats child1=stats.getStatsMap().get(dest1);
+  assertNotNull(child1);
+  assertEquals(50,child1.getCheckoutQueueLengthHistogram().getQuantile(0.01));
+  assertEquals(50,child1.getCheckoutQueueLengthHistogram().getQuantile(0.66));
+  assertEquals(100,child1.getCheckoutQueueLengthHistogram().getQuantile(0.67));
+  assertEquals(100,child1.getCheckoutQueueLengthHistogram().getQuantile(0.99));
+  ClientSocketStats child2=stats.getStatsMap().get(dest2);
+  assertNotNull(child2);
+  assertEquals(50,child2.getCheckoutQueueLengthHistogram().getQuantile(0.01));
+  assertEquals(50,child2.getCheckoutQueueLengthHistogram().getQuantile(0.33));
+  assertEquals(100,child2.getCheckoutQueueLengthHistogram().getQuantile(0.34));
+  assertEquals(100,child2.getCheckoutQueueLengthHistogram().getQuantile(0.99));
+}

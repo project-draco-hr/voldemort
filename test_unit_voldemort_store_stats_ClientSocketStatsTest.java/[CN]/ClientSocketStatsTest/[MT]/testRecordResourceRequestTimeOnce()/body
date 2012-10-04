@@ -1,0 +1,11 @@
+{
+  ClientSocketStats stats=masterStats;
+  assertEquals(0,stats.resourceRequestCount());
+  stats.recordResourceRequestTimeUs(dest1,100);
+  assertEquals(1,stats.resourceRequestCount());
+  assertEquals(100,stats.getResourceRequestWaitUsHistogram().getQuantile(0.99));
+  ClientSocketStats child=stats.getStatsMap().get(dest1);
+  assertNotNull(child);
+  assertEquals(1,child.resourceRequestCount());
+  assertEquals(100,child.getResourceRequestWaitUsHistogram().getQuantile(0.99));
+}

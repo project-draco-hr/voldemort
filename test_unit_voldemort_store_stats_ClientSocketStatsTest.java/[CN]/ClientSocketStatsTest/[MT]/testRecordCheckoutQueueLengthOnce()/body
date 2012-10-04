@@ -1,0 +1,9 @@
+{
+  ClientSocketStats stats=masterStats;
+  assertEquals(0,stats.getCheckoutQueueLengthHistogram().getQuantile(0.99));
+  stats.recordCheckoutQueueLength(dest1,50);
+  assertEquals(50,stats.getCheckoutQueueLengthHistogram().getQuantile(0.99));
+  ClientSocketStats child=stats.getStatsMap().get(dest1);
+  assertNotNull(child);
+  assertEquals(50,child.getCheckoutQueueLengthHistogram().getQuantile(0.99));
+}
