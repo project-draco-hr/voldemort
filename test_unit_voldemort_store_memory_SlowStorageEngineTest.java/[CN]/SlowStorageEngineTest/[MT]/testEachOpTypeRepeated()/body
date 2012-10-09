@@ -1,5 +1,7 @@
 {
   for (int j=0; j < 2; j++) {
+    int numOpsWithBadTimesAllowed=1;
+    int numOpsWithBadTimes=0;
     for (    byte op : opList) {
       ConcurrentLinkedQueue<Long> runTimes=new ConcurrentLinkedQueue<Long>();
       CountDownLatch waitForOps=new CountDownLatch(5 + 1);
@@ -35,9 +37,13 @@ case VoldemortOpCode.DELETE_OP_CODE:
 expectedTimeMs=(5 * 30) + 30;
 break;
 }
-String details="(maxTimeMs: " + maxTimeMs + ", "+ expectedTimeMs+ ")";
-assertFalse("OpInvoker operation time is bad " + details,isRunTimeBad(maxTimeMs,expectedTimeMs));
+if (isRunTimeBad(maxTimeMs,expectedTimeMs)) {
+numOpsWithBadTimes++;
+String details=getOpName(op) + ", maxTimeMs: " + maxTimeMs+ ", "+ expectedTimeMs;
+System.err.println("Bad run time (some are expected): " + details);
 }
+}
+assertFalse("Too many operations with bad run times: " + numOpsWithBadTimes,numOpsWithBadTimes > numOpsWithBadTimesAllowed);
 }
 }
 }

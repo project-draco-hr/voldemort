@@ -23,7 +23,8 @@
   }
   long startNs=System.nanoTime();
   assertEquals(POOL_SIZE * 10000,this.queuedPool.getRegisteredResourceRequestCount());
-  assertTrue("O(n) count of queue is too slow",System.nanoTime() - startNs < TimeUnit.MILLISECONDS.toNanos(10));
+  long durationNs=System.nanoTime() - startNs;
+  assertTrue("O(n) count of queue is too slow: " + durationNs + " ns.",durationNs < TimeUnit.MILLISECONDS.toNanos(20));
   assertEquals(POOL_SIZE,this.factory.getCreated());
   assertEquals(POOL_SIZE,this.queuedPool.getTotalResourceCount());
   assertEquals(0,this.queuedPool.getCheckedInResourceCount());
