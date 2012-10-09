@@ -1,14 +1,12 @@
 {
-  int rc=0;
-  if (!resourcePoolMap.containsKey(key)) {
-    return rc;
+  if (resourcePoolMap.containsKey(key)) {
+    try {
+      Pool<V> resourcePool=getResourcePoolForExistingKey(key);
+      return resourcePool.size.get();
+    }
+ catch (    IllegalArgumentException iae) {
+      logger.debug("getTotalResourceCount called on invalid key: ",iae);
+    }
   }
-  try {
-    Pool<V> resourcePool=getResourcePoolForExistingKey(key);
-    rc=resourcePool.size.get();
-  }
- catch (  IllegalArgumentException iae) {
-    logger.debug("getTotalResourceCount called on invalid key: ",iae);
-  }
-  return rc;
+  return 0;
 }
