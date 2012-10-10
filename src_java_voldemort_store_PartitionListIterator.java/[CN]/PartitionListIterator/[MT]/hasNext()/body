@@ -1,0 +1,9 @@
+{
+  if (this.partitionIterator != null && this.partitionIterator.hasNext())   return true;
+  while ((currentIndex < partitionsToFetch.size())) {
+    if (this.partitionIterator != null)     this.partitionIterator.close();
+    this.partitionIterator=storageEngine.entries(this.partitionsToFetch.get(currentIndex++));
+    if (this.partitionIterator.hasNext())     return true;
+  }
+  return false;
+}

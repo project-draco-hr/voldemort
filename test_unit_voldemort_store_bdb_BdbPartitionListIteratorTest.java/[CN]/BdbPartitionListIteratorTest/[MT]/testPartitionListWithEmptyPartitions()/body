@@ -1,0 +1,20 @@
+{
+  PartitionListIterator plistItr=new PartitionListIterator(store,Arrays.asList(2,3,4,5,6));
+  HashMap<Integer,Set<String>> retrievedPartitionEntries=new HashMap<Integer,Set<String>>();
+  while (plistItr.hasNext()) {
+    String key=new String(plistItr.next().getFirst().get());
+    int p=strategy.getMasterPartition(key.getBytes());
+    if (!retrievedPartitionEntries.containsKey(p))     retrievedPartitionEntries.put(p,new HashSet<String>());
+    retrievedPartitionEntries.get(p).add(key);
+  }
+  plistItr.close();
+  assertEquals(3,retrievedPartitionEntries.size());
+  for (  Integer p : Arrays.asList(2,3,4,5,6)) {
+    if (p % 2 == 0) {
+      assertEquals(partitionEntries.get(p),retrievedPartitionEntries.get(p));
+    }
+ else {
+      assertEquals(false,retrievedPartitionEntries.containsKey(p));
+    }
+  }
+}
