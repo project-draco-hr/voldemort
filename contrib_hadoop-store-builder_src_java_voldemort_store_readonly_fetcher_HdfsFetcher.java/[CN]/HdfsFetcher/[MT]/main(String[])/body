@@ -1,5 +1,5 @@
 {
-  if (args.length < 1)   Utils.croak("USAGE: java " + HdfsFetcher.class.getName() + " url [keytab location] [kerberos username] [hadoop-config-path]");
+  if (args.length < 4)   Utils.croak("USAGE: java " + HdfsFetcher.class.getName() + " url [keytab location] [kerberos username] [hadoop-config-path]");
   String url=args[0];
   String keytabLocation="";
   String kerberosUser="";
@@ -16,33 +16,38 @@
   config.setInt("io.file.buffer.size",VoldemortConfig.DEFAULT_BUFFER_SIZE);
   config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
   config.setInt("io.socket.receive.buffer",1 * 1024 * 1024 - 10000);
+  config.set("hadoop.security.group.mapping","org.apache.hadoop.security.ShellBasedUnixGroupsMapping");
+  config.addResource(new Path(hadoopPath + "/core-site.xml"));
+  config.addResource(new Path(hadoopPath + "/hdfs-site.xml"));
   FileSystem fs=null;
-  HdfsFetcher.addPath(hadoopPath);
-  if (keytabLocation.length() > 0) {
-    logger.debug("keytab path = " + keytabLocation + " and Kerberos user = "+ kerberosUser);
-    UserGroupInformation.loginUserFromKeytab(kerberosUser,keytabLocation);
-    logger.debug("I've logged in and am now Doasing as " + UserGroupInformation.getCurrentUser().getUserName());
-    try {
-      fs=UserGroupInformation.getCurrentUser().doAs(new PrivilegedExceptionAction<FileSystem>(){
-        public FileSystem run() throws Exception {
-          FileSystem fs=FileSystem.get(uri,config);
-          return fs;
-        }
-      }
-);
-    }
- catch (    InterruptedException e) {
-      logger.error(e.getMessage());
-    }
+  p=new Path(url);
+  System.err.println("Using path : " + p);
+  String security=config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION);
+  if (security == null || !security.equals("kerberos")) {
+    logger.info("Security isn't turned on in the conf: " + CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION + " = "+ config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION));
+    logger.info("Fix that.  Exiting.");
+    return;
   }
  else {
-    fs=FileSystem.get(uri,config);
+    logger.info("Security is turned on in the conf.  That's good");
   }
-  FileStatus status=fs.getFileStatus(p);
+  HdfsFetcher.keytabPath=keytabLocation;
+  HdfsFetcher.kerberosPrincipal=kerberosUser;
+  try {
+    UserGroupInformation.setConfiguration(config);
+    UserGroupInformation.loginUserFromKeytab(kerberosUser,keytabLocation);
+    fs=p.getFileSystem(config);
+  }
+ catch (  IOException e) {
+    e.printStackTrace();
+    System.err.println("Error !!! Exiting !!!");
+    System.exit(-1);
+  }
+  FileStatus status=fs.listStatus(p)[0];
   long size=status.getLen();
   HdfsFetcher fetcher=new HdfsFetcher(maxBytesPerSec,VoldemortConfig.REPORTING_INTERVAL_BYTES,VoldemortConfig.DEFAULT_BUFFER_SIZE);
   long start=System.currentTimeMillis();
-  File location=fetcher.fetch(url,System.getProperty("java.io.tmpdir") + File.separator + start);
+  File location=fetcher.fetch(url,System.getProperty("java.io.tmpdir") + File.separator + start,hadoopPath);
   double rate=size * Time.MS_PER_SECOND / (double)(System.currentTimeMillis() - start);
   NumberFormat nf=NumberFormat.getInstance();
   nf.setMaximumFractionDigits(2);

@@ -1,0 +1,64 @@
+{
+  if (this.globalThrottleLimit != null) {
+    if (this.globalThrottleLimit.getSpeculativeRate() < this.minBytesPerSecond)     throw new VoldemortException("Too many push jobs.");
+    this.globalThrottleLimit.incrementNumJobs();
+  }
+  ObjectName jmxName=null;
+  try {
+    final Configuration config=new Configuration();
+    config.setInt("io.socket.receive.buffer",bufferSize);
+    config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
+    config.set("hadoop.security.group.mapping","org.apache.hadoop.security.ShellBasedUnixGroupsMapping");
+    config.addResource(new Path(hadoopConfigPath + "/core-site.xml"));
+    config.addResource(new Path(hadoopConfigPath + "/hdfs-site.xml"));
+    FileSystem fs=null;
+    final Path path=new Path(sourceFileUrl);
+    logger.info("Using path : " + path);
+    String security=config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION);
+    if (security == null || !security.equals("kerberos")) {
+      logger.info("Security isn't turned on in the conf: " + CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION + " = "+ config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION));
+      logger.info("Fix that.  Exiting.");
+      return null;
+    }
+ else {
+      logger.info("Security is turned on in the conf.  That's good");
+    }
+    System.err.println(HdfsFetcher.keytabPath);
+    try {
+      UserGroupInformation.setConfiguration(config);
+      UserGroupInformation.loginUserFromKeytab(HdfsFetcher.kerberosPrincipal,HdfsFetcher.keytabPath);
+      fs=path.getFileSystem(config);
+    }
+ catch (    IOException e) {
+      e.printStackTrace();
+      System.err.println("Error !!! Exiting !!!");
+      System.exit(-1);
+    }
+    CopyStats stats=new CopyStats(sourceFileUrl,sizeOfPath(fs,path));
+    jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
+    File destination=new File(destinationFile);
+    if (destination.exists()) {
+      throw new VoldemortException("Version directory " + destination.getAbsolutePath() + " already exists");
+    }
+    logger.info("Starting fetch for : " + sourceFileUrl);
+    boolean result=fetch(fs,path,destination,stats);
+    logger.info("Completed fetch : " + sourceFileUrl);
+    fs.close();
+    if (result) {
+      return destination;
+    }
+ else {
+      return null;
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Error while getting Hadoop filesystem : " + e);
+    return null;
+  }
+ finally {
+    if (this.globalThrottleLimit != null) {
+      this.globalThrottleLimit.decrementNumJobs();
+    }
+    if (jmxName != null)     JmxUtils.unregisterMbean(jmxName);
+  }
+}
