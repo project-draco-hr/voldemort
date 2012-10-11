@@ -1,0 +1,37 @@
+{
+  if (logger.isTraceEnabled())   logger.trace("Associating client with " + socketChannel.socket());
+  this.clientRequest=clientRequest;
+  if (timeoutMs == -1) {
+    this.expiration=-1;
+  }
+ else {
+    if (elapsedNs > (Time.NS_PER_MS * timeoutMs)) {
+      this.expiration=System.nanoTime();
+    }
+ else {
+      this.expiration=System.nanoTime() + (Time.NS_PER_MS * timeoutMs) - elapsedNs;
+    }
+    if (this.expiration < System.nanoTime())     throw new IllegalArgumentException("timeout " + timeoutMs + " not valid");
+  }
+  outputStream.getBuffer().clear();
+  boolean wasSuccessful=clientRequest.formatRequest(new DataOutputStream(outputStream));
+  if (logger.isTraceEnabled())   traceInputBufferState("About to clear read buffer");
+  if (inputStream.getBuffer().capacity() >= resizeThreshold)   inputStream.setBuffer(ByteBuffer.allocate(socketBufferSize));
+ else   inputStream.getBuffer().clear();
+  if (logger.isTraceEnabled())   traceInputBufferState("Cleared read buffer");
+  outputStream.getBuffer().flip();
+  if (wasSuccessful) {
+    SelectionKey selectionKey=socketChannel.keyFor(selector);
+    if (selectionKey != null) {
+      selectionKey.interestOps(SelectionKey.OP_WRITE);
+      selector.wakeup();
+    }
+ else {
+      if (logger.isDebugEnabled())       logger.debug("Client associated with " + socketChannel.socket() + " was not registered with Selector "+ selector+ ", assuming initial protocol negotiation");
+    }
+  }
+ else {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn("Client associated with " + socketChannel.socket() + " did not successfully buffer output for request");
+    completeClientRequest();
+  }
+}
