@@ -3,25 +3,18 @@
   props.put("gossip.interval.ms","250");
   props.put("socket.buffer.size",String.valueOf(socketBufferSize));
   props.put("admin.streams.buffer.size",String.valueOf(adminSocketBufferSize));
-  cluster=ServerTestUtils.getLocalCluster(3,new int[][]{{0,1,2,3},{4,5,6,7},{8,9,10,11}});
   ExecutorService executorService=Executors.newFixedThreadPool(3);
-  final CountDownLatch countDownLatch=new CountDownLatch(3);
-  for (int i=0; i < 3; i++) {
-    final int j=i;
-    executorService.submit(new Runnable(){
-      public void run(){
-        try {
-          servers.add(ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(useNio,j,TestUtils.createTempDir().getAbsolutePath(),null,storesXmlfile,props),cluster));
-          countDownLatch.countDown();
-        }
- catch (        IOException e) {
-          logger.error("Caught IOException during parallel server start: " + e.getMessage());
-          e.printStackTrace();
-          throw new RuntimeException();
-        }
-      }
+  countDownLatch=new CountDownLatch(3);
+  boolean clusterStarted=false;
+  while (!clusterStarted) {
+    try {
+      attemptParallelClusterStart(executorService);
+      clusterStarted=true;
     }
-);
+ catch (    RuntimeException re) {
+      logger.info("Some server thread threw a RuntimeException. Will print out stacktrace and then try again. Assumption is that the RuntimeException is due to BindException that in turn is due to TOCTOU issue with getLocalCluster");
+      re.printStackTrace();
+    }
   }
   try {
     countDownLatch.await();
