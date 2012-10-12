@@ -1,12 +1,8 @@
 {
-  VoldemortTestConstants.getSingleStoreDefinitionsXml();
-  this.cluster=ServerTestUtils.getLocalCluster(2);
-  this.node=cluster.getNodes().iterator().next();
-  String bootstrapUrl="tcp://" + node.getHost() + ":"+ node.getSocketPort();
-  StoreClientFactory storeClientFactory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootstrapUrl));
-  servers=new ArrayList<VoldemortServer>();
-  servers.add(ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(useNio,0,TestUtils.createTempDir().getAbsolutePath(),null,STORES_XML,new Properties()),cluster));
-  servers.add(ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(useNio,1,TestUtils.createTempDir().getAbsolutePath(),null,STORES_XML,new Properties()),cluster));
+  boolean useNio=false;
+  int numServers=2;
+  VoldemortServer[] servers=new VoldemortServer[numServers];
+  Cluster cluster=ServerTestUtils.startVoldemortCluster(numServers,servers,null,socketStoreFactory,useNio,null,STORES_XML,new Properties());
   v1=getVersioned(0,1,1,1,1,1);
   v2=getVersioned(0,0,1,1,1,1);
   conflict1=getVersioned(0,1,1,1,1,1,1,1,1,1);
@@ -15,6 +11,9 @@
   conflict4=getVersioned(0,0,0,0,1,1,1,1,1,1);
   conflict5=getVersioned(0,0,0,0,0,1,1,1,1,1);
   conflict6=getVersioned(0,0,0,0,0,0,1,1,1,1);
+  Node node=cluster.getNodes().iterator().next();
+  String bootstrapUrl="tcp://" + node.getHost() + ":"+ node.getSocketPort();
+  StoreClientFactory storeClientFactory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootstrapUrl));
   defaultStoreClient=storeClientFactory.getStoreClient("test");
   socketStore=ServerTestUtils.getSocketStore(socketStoreFactory,"test",node.getSocketPort(),RequestFormatType.VOLDEMORT_V1);
 }

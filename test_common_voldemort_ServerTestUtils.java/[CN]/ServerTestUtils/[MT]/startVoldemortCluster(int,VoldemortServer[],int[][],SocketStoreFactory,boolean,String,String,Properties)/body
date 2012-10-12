@@ -1,0 +1,14 @@
+{
+  boolean started=false;
+  Cluster cluster=null;
+  while (!started) {
+    try {
+      cluster=internalStartVoldemortCluster(numServers,voldemortServers,partitionMap,socketStoreFactory,useNio,clusterFile,storeFile,properties);
+      started=true;
+    }
+ catch (    BindException be) {
+      logger.debug("Caught BindException when starting cluster. Will retry.");
+    }
+  }
+  return cluster;
+}
