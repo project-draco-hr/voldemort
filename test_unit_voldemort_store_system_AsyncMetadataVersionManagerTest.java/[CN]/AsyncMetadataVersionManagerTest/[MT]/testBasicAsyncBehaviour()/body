@@ -12,7 +12,7 @@
     existingVersions+=storeVersionKey + "=100";
     this.sysVersionStore.putSysStore(AsyncMetadataVersionManager.VERSIONS_METADATA_STORE,existingVersions);
     Thread.sleep(500);
-    this.asyncCheckMetadata=new AsyncMetadataVersionManager(this.repository,rebootstrapCallback);
+    this.asyncCheckMetadata=new AsyncMetadataVersionManager(this.repository,rebootstrapCallback,null);
     scheduler.schedule(asyncCheckMetadata.getClass().getName(),asyncCheckMetadata,new Date(),500);
     int maxRetries=0;
     while (maxRetries < 3 && !asyncCheckMetadata.isActive) {
