@@ -12,7 +12,8 @@
     String url=clusterUrl.get(index);
     log.info("Working on " + url);
     try {
-      if (isAvroJob)       verifyAvroSchema(url);
+      if (isAvroJob && !isAvroVersioned)       verifyAvroSchema(url);
+ else       if (isAvroJob && isAvroVersioned)       verifyAvroSchemaandVersions(url);
  else       verifySchema(url);
       String buildOutputDir;
       if (build) {
