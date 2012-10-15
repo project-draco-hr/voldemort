@@ -9,6 +9,8 @@
   if (this.numChunks < 1)   throw new VoldemortException("num.chunks not specified in the job conf.");
   this.saveKeys=conf.getBoolean("save.keys",true);
   this.reducerPerBucket=conf.getBoolean("reducer.per.bucket",false);
+  keySerializerDefinition=getStoreDef().getKeySerializer();
+  valueSerializerDefinition=getStoreDef().getValueSerializer();
   try {
     SerializerFactory factory=new DefaultSerializerFactory();
     if (conf.get("serializer.factory") != null) {

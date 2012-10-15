@@ -2,18 +2,13 @@
   ByteArrayOutputStream output=new ByteArrayOutputStream();
   Encoder encoder=new BinaryEncoder(output);
   GenericDatumWriter<Object> datumWriter=null;
-  output.write(newestVersion.byteValue());
+  output.write(writerVersion.byteValue());
   try {
-    datumWriter=new GenericDatumWriter<Object>(typeDef);
+    datumWriter=new GenericDatumWriter<Object>(writer);
     datumWriter.write(object,encoder);
     encoder.flush();
   }
- catch (  ArrayIndexOutOfBoundsException aIOBE) {
-    Schema writer=((GenericContainer)object).getSchema();
-    Integer writerVersion=getSchemaVersion(writer);
-    return toBytes(object,writer,writerVersion);
-  }
-catch (  IOException e) {
+ catch (  IOException e) {
     throw new SerializationException(e);
   }
 catch (  SerializationException sE) {
