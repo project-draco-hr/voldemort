@@ -8,16 +8,16 @@
     datumWriter.write(object,encoder);
     encoder.flush();
   }
- catch (  ArrayIndexOutOfBoundsException aIOBE) {
-    Schema writer=((GenericContainer)object).getSchema();
-    Integer writerVersion=getSchemaVersion(writer);
-    return toBytes(object,writer,writerVersion);
+ catch (  SerializationException sE) {
+    throw sE;
   }
 catch (  IOException e) {
     throw new SerializationException(e);
   }
-catch (  SerializationException sE) {
-    throw sE;
+catch (  Exception aIOBE) {
+    Schema writer=((GenericContainer)object).getSchema();
+    Integer writerVersion=getSchemaVersion(writer);
+    return toBytes(object,writer,writerVersion);
   }
  finally {
     SerializationUtils.close(output);
