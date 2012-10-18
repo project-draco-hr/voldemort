@@ -1,0 +1,47 @@
+{
+  oldSchema=stripOptionalTypeUnion(oldSchema);
+  newSchema=stripOptionalTypeUnion(newSchema);
+  Schema.Type oldType=oldSchema.getType();
+  Schema.Type newType=newSchema.getType();
+  if (oldType != Type.UNION && newType == Type.UNION) {
+    boolean compatibleTypeFound=false;
+    for (    Schema s : newSchema.getTypes()) {
+      if ((oldType != Type.RECORD && oldType == s.getType()) || (oldType == Type.RECORD && s.getType() == Type.RECORD && oldSchema.getName().equals(s.getName()))) {
+        compareTypes(oldSchema,s,messages,name);
+        compatibleTypeFound=true;
+        break;
+      }
+    }
+    if (compatibleTypeFound) {
+      messages.add(new Message(Level.INFO,"Type change from " + oldType + " to "+ newType+ " for field "+ name+ ". The new union includes the original type."));
+    }
+ else {
+      messages.add(new Message(Level.ERROR,"Incompatible type change from " + oldType + " to "+ newType+ " for field "+ name+ ". The new union does not include the original type."));
+    }
+  }
+ else   if (oldType == Type.RECORD) {
+    if (!_recordStack.contains(oldSchema.getName())) {
+      _recordStack.add(oldSchema.getName());
+      compareRecordTypes(oldSchema,newSchema,messages,name);
+      _recordStack.remove(oldSchema.getName());
+    }
+  }
+ else   if (oldType == Type.ENUM) {
+    compareEnumTypes(oldSchema,newSchema,messages,name);
+  }
+ else   if (oldType == Type.ARRAY) {
+    compareArrayTypes(oldSchema,newSchema,messages,name);
+  }
+ else   if (oldType == Type.MAP) {
+    compareMapTypes(oldSchema,newSchema,messages,name);
+  }
+ else   if (oldType == Type.UNION) {
+    compareUnionTypes(oldSchema,newSchema,messages,name);
+  }
+ else   if (oldType == Type.FIXED) {
+    compareFixedTypes(oldSchema,newSchema,messages,name);
+  }
+ else {
+    comparePrimitiveTypes(oldSchema,newSchema,messages,name);
+  }
+}

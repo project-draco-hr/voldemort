@@ -1,0 +1,12 @@
+{
+  if (requestQueueMap.containsKey(key)) {
+    try {
+      Queue<AsyncResourceRequest<V>> requestQueue=getRequestQueueForExistingKey(key);
+      return requestQueue.size();
+    }
+ catch (    IllegalArgumentException iae) {
+      logger.debug("getRegisteredResourceRequestCount called on invalid key: ",iae);
+    }
+  }
+  return 0;
+}

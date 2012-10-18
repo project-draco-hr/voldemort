@@ -227,7 +227,29 @@
           if (!Utils.isReadableFile(metadataValue))           throw new VoldemortException("Stores definition xml file path incorrect");
           StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
           List<StoreDefinition> storeDefs=mapper.readStoreList(new File(metadataValue));
+          String AVRO_GENERIC_VERSIONED_TYPE_NAME="avro-generic-versioned";
+          for (          StoreDefinition storeDef : storeDefs) {
+            SerializerDefinition keySerDef=storeDef.getKeySerializer();
+            SerializerDefinition valueSerDef=storeDef.getValueSerializer();
+            if (keySerDef.getName().equals(AVRO_GENERIC_VERSIONED_TYPE_NAME)) {
+              SchemaEvolutionValidator.checkSchemaCompatibility(keySerDef);
+            }
+            if (valueSerDef.getName().equals(AVRO_GENERIC_VERSIONED_TYPE_NAME)) {
+              SchemaEvolutionValidator.checkSchemaCompatibility(valueSerDef);
+            }
+          }
           executeSetMetadata(nodeId,adminClient,MetadataStore.STORES_KEY,mapper.writeStoreList(storeDefs));
+          if (storeNames != null) {
+            System.out.println("Updating metadata version for the following stores: " + storeNames);
+            try {
+              for (              String name : storeNames) {
+                adminClient.updateMetadataversion(name);
+              }
+            }
+ catch (            Exception e) {
+              System.err.println("Error while updating metadata version for the specified store.");
+            }
+          }
         }
  else         if (metadataKey.compareTo(MetadataStore.REBALANCING_STEAL_INFO) == 0) {
           if (!Utils.isReadableFile(metadataValue))           throw new VoldemortException("Rebalancing steal info file path incorrect");

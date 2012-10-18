@@ -1,0 +1,49 @@
+{
+  for (int j=0; j < 2; j++) {
+    int numOpsWithBadTimesAllowed=1;
+    int numOpsWithBadTimes=0;
+    for (    byte op : opList) {
+      ConcurrentLinkedQueue<Long> runTimes=new ConcurrentLinkedQueue<Long>();
+      CountDownLatch waitForOps=new CountDownLatch(5 + 1);
+      for (int i=0; i < 5; ++i) {
+        new Thread(new OpInvoker(waitForOps,op,runTimes)).start();
+      }
+      waitForOps.countDown();
+      try {
+        waitForOps.await();
+      }
+ catch (      InterruptedException e) {
+        e.printStackTrace();
+      }
+      if (j > 0) {
+        Long[] allTimes=runTimes.toArray(new Long[0]);
+        Arrays.sort(allTimes);
+        long maxTimeMs=allTimes[4];
+        long expectedTimeMs=0;
+switch (op) {
+case VoldemortOpCode.GET_OP_CODE:
+          expectedTimeMs=(5 * 10) + 50;
+        break;
+case VoldemortOpCode.GET_VERSION_OP_CODE:
+      expectedTimeMs=(5 * 50) + 10;
+    break;
+case VoldemortOpCode.GET_ALL_OP_CODE:
+  expectedTimeMs=(5 * 40) + 20;
+break;
+case VoldemortOpCode.PUT_OP_CODE:
+expectedTimeMs=(5 * 20) + 40;
+break;
+case VoldemortOpCode.DELETE_OP_CODE:
+expectedTimeMs=(5 * 30) + 30;
+break;
+}
+if (isRunTimeBad(maxTimeMs,expectedTimeMs)) {
+numOpsWithBadTimes++;
+String details=getOpName(op) + ", maxTimeMs: " + maxTimeMs+ ", "+ expectedTimeMs;
+System.err.println("Bad run time (some are expected): " + details);
+}
+}
+assertFalse("Too many operations with bad run times: " + numOpsWithBadTimes,numOpsWithBadTimes > numOpsWithBadTimesAllowed);
+}
+}
+}

@@ -1,0 +1,14 @@
+{
+  int monitoringCount=this.checkoutCount.get() + this.resourceRequestCount.get();
+  if (parent == null && statsMap != null) {
+    int monitoringInterval=this.monitoringInterval.get();
+    if (monitoringCount % (monitoringInterval + 1) == monitoringInterval) {
+      Iterator<SocketDestination> it=statsMap.keySet().iterator();
+      while (it.hasNext()) {
+        ClientSocketStats stats=statsMap.get(it.next());
+        stats.resetForInterval();
+      }
+      resetForInterval();
+    }
+  }
+}

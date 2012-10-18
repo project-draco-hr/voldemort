@@ -1,0 +1,38 @@
+{
+  String storeVersionKey="users";
+  Callable<Void> rebootstrapCallback=new Callable<Void>(){
+    public Void call() throws Exception {
+      callbackForStoreChange();
+      return null;
+    }
+  }
+;
+  try {
+    Properties versionProps=MetadataVersionStoreUtils.getProperties(this.sysVersionStore);
+    versionProps.setProperty(storeVersionKey,Integer.toString(100));
+    MetadataVersionStoreUtils.setProperties(this.sysVersionStore,versionProps);
+    Thread.sleep(500);
+    this.asyncCheckMetadata=new AsyncMetadataVersionManager(this.repository,rebootstrapCallback,storeVersionKey);
+    scheduler.schedule(asyncCheckMetadata.getClass().getName(),asyncCheckMetadata,new Date(),500);
+    int maxRetries=0;
+    while (maxRetries < 3 && !asyncCheckMetadata.isActive) {
+      Thread.sleep(500);
+      maxRetries++;
+    }
+    this.newVersion=101;
+    System.err.println("Incrementing the version for : " + storeVersionKey);
+    versionProps.setProperty(storeVersionKey,Long.toString(this.newVersion));
+    MetadataVersionStoreUtils.setProperties(this.sysVersionStore,versionProps);
+    maxRetries=0;
+    while (maxRetries < 3 && !callbackDone) {
+      Thread.sleep(2000);
+      maxRetries++;
+    }
+    assertEquals(false,(this.updatedStoreVersion == 0));
+    assertEquals(this.updatedStoreVersion,this.newVersion);
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    fail("Failed to start the Metadata Version Manager : " + e.getMessage());
+  }
+}

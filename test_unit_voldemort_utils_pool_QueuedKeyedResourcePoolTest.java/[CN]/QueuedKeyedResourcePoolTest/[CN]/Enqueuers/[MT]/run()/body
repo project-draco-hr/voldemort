@@ -1,0 +1,25 @@
+{
+  startSignal.countDown();
+  try {
+    startSignal.await();
+  }
+ catch (  InterruptedException e) {
+    e.printStackTrace();
+  }
+  try {
+    for (int i=0; i < enqueues; ++i) {
+      long deadlineNs=System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(config.getTimeout(TimeUnit.NANOSECONDS));
+      queuedPool.registerResourceRequest(key,new TestResourceRequest(deadlineNs,resources));
+      Thread.yield();
+      processAtMostOneEnqueuedResource();
+    }
+    while (this.used < enqueues) {
+      processAtMostOneEnqueuedResource();
+      Thread.yield();
+    }
+  }
+ catch (  Exception e) {
+    fail(e.toString());
+  }
+  doneSignal.countDown();
+}

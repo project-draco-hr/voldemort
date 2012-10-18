@@ -1,0 +1,27 @@
+{
+  ClientSocketStats stats=masterStats;
+  assertEquals(0,stats.resourceRequestCount());
+  stats.recordResourceRequestTimeUs(dest1,100);
+  stats.recordResourceRequestTimeUs(dest1,200);
+  stats.recordResourceRequestTimeUs(dest1,300);
+  stats.recordResourceRequestTimeUs(dest1,400);
+  stats.recordResourceRequestTimeUs(dest2,500);
+  stats.recordResourceRequestTimeUs(dest2,600);
+  stats.recordResourceRequestTimeUs(dest1,700);
+  stats.recordResourceRequestTimeUs(dest1,800);
+  stats.recordResourceRequestTimeUs(dest2,900);
+  assertEquals(9,stats.resourceRequestCount());
+  assertEquals(900,stats.getResourceRequestWaitUsHistogram().getQuantile(0.99));
+  ClientSocketStats child1=stats.getStatsMap().get(dest1);
+  assertNotNull(child1);
+  assertEquals(6,child1.resourceRequestCount());
+  assertEquals(100,child1.getResourceRequestWaitUsHistogram().getQuantile(0.1));
+  assertEquals(300,child1.getResourceRequestWaitUsHistogram().getQuantile(0.5));
+  assertEquals(800,child1.getResourceRequestWaitUsHistogram().getQuantile(0.99));
+  ClientSocketStats child2=stats.getStatsMap().get(dest2);
+  assertNotNull(child2);
+  assertEquals(3,child2.resourceRequestCount());
+  assertEquals(500,child2.getResourceRequestWaitUsHistogram().getQuantile(0.1));
+  assertEquals(600,child2.getResourceRequestWaitUsHistogram().getQuantile(0.5));
+  assertEquals(900,child2.getResourceRequestWaitUsHistogram().getQuantile(0.99));
+}

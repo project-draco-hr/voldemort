@@ -1,0 +1,43 @@
+{
+  if (oldSchema == null || newSchema == null || oldSchema.getType() != Schema.Type.UNION) {
+    throw new IllegalArgumentException("Old and new schema must both be UNION types. Name=" + name + ". Type="+ oldSchema);
+  }
+  List<Schema> newTypes=new ArrayList<Schema>();
+  List<String> newTypeNames=new ArrayList<String>();
+  List<Schema> oldTypes=new ArrayList<Schema>();
+  List<String> oldTypeNames=new ArrayList<String>();
+  if (newSchema.getType() == Type.UNION) {
+    for (    Schema schema : newSchema.getTypes()) {
+      if (schema.getType() != Schema.Type.NULL) {
+        newTypes.add(schema);
+        newTypeNames.add(schema.getName());
+      }
+    }
+  }
+ else {
+    newTypes.add(newSchema);
+    newTypeNames.add(newSchema.getName());
+  }
+  for (  Schema schema : oldSchema.getTypes()) {
+    if (schema.getType() != Schema.Type.NULL) {
+      oldTypes.add(schema);
+      oldTypeNames.add(schema.getName());
+    }
+  }
+  if (!newTypeNames.containsAll(oldTypeNames)) {
+    messages.add(new Message(Level.ERROR,"Existing UNION field " + name + " had one or more types removed. The old types are:"+ oldTypeNames+ ". The new types are: "+ newTypeNames));
+  }
+  if (!oldTypeNames.containsAll(newTypeNames)) {
+    messages.add(new Message(Level.INFO,"Existing UNION field " + name + " had one or more types added. The old types are:"+ oldTypeNames+ ". The new types are: "+ newTypeNames));
+  }
+  if (newTypeNames.containsAll(oldTypeNames) && oldTypeNames.containsAll(newTypeNames) && !newTypeNames.equals(oldTypeNames)) {
+    messages.add(new Message(Level.INFO,"Existing UNION field " + name + " had one or more types reordered. The old types are:"+ oldTypeNames+ ". The new types are: "+ newTypeNames));
+  }
+  for (int i=0; i < newTypeNames.size(); i++) {
+    String typeName=newTypeNames.get(i);
+    int oldIndex=oldTypeNames.indexOf(typeName);
+    if (oldIndex != -1) {
+      compareTypes(oldTypes.get(oldIndex),newTypes.get(i),messages,name + "." + oldTypes.get(oldIndex).getName());
+    }
+  }
+}

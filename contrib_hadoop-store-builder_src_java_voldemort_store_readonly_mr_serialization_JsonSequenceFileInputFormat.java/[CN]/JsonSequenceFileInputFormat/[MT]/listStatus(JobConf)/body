@@ -1,0 +1,9 @@
+{
+  String dirs=job.get("mapred.input.dir","");
+  String[] list=StringUtils.split(dirs);
+  List<FileStatus> status=new ArrayList<FileStatus>();
+  for (int i=0; i < list.length; i++) {
+    status.addAll(getAllSubFileStatus(job,new Path(list[i])));
+  }
+  return status.toArray(new FileStatus[0]);
+}

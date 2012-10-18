@@ -1,0 +1,84 @@
+{
+  if (oldSchema == null || newSchema == null || oldSchema.getType() != Schema.Type.RECORD) {
+    throw new IllegalArgumentException("Old schema must be RECORD type. Name=" + name + ". Type="+ oldSchema);
+  }
+  if (newSchema.getType() != Schema.Type.RECORD) {
+    messages.add(new Message(Level.ERROR,"Illegal type change from " + oldSchema.getType() + " to "+ newSchema.getType()+ " for field "+ name));
+    return;
+  }
+  for (  Field newField : newSchema.getFields()) {
+    String fieldName=newField.name();
+    Field oldField=oldSchema.getField(fieldName);
+    if (oldField == null) {
+      if (isOptional(newField)) {
+        if (newField.defaultValue() == null) {
+          messages.add(new Message(Level.INFO,"Added optional field " + name + "."+ fieldName+ " with no default value."));
+        }
+ else {
+          messages.add(new Message(Level.INFO,"Added optional field " + name + "."+ fieldName+ " with default value: "+ newField.defaultValue()));
+        }
+      }
+ else {
+        if (newField.defaultValue() == null) {
+          messages.add(new Message(Level.ERROR,"Added required field " + name + "."+ fieldName+ " with no default value."));
+        }
+ else {
+          messages.add(new Message(Level.INFO,"Added required field " + name + "."+ fieldName+ " with default value: "+ newField.defaultValue()));
+        }
+      }
+    }
+ else {
+      boolean newFieldIsOptional=isOptional(newField);
+      boolean oldFieldIsOptional=isOptional(oldField);
+      if (oldFieldIsOptional != newFieldIsOptional) {
+        if (oldFieldIsOptional) {
+          messages.add(new Message(Level.ERROR,"Existing field " + name + "."+ fieldName+ " was optional and is now required."));
+        }
+ else {
+          messages.add(new Message(Level.WARN,"Existing field " + name + "."+ fieldName+ " was required and is now optional."));
+        }
+      }
+      compareTypes(oldField.schema(),newField.schema(),messages,name + "." + fieldName);
+      if (newField.defaultValue() == null) {
+        if (oldField.defaultValue() != null) {
+          messages.add(new Message(Level.WARN,"Removed default value for existing field " + name + "."+ fieldName+ ". The old default was: "+ oldField.defaultValue()));
+        }
+      }
+ else {
+        if (oldField.defaultValue() == null) {
+          messages.add(new Message(Level.WARN,"Added a default value for existing field " + name + "."+ fieldName+ ". The new default is: "+ newField.defaultValue()));
+        }
+ else         if (!newField.defaultValue().equals(oldField.defaultValue())) {
+          messages.add(new Message(Level.INFO,"Changed the default value for existing field " + name + "."+ fieldName+ ". The old default was: "+ oldField.defaultValue()+ ". The new default is: "+ newField.defaultValue()));
+        }
+      }
+    }
+    if (newField.defaultValue() != null) {
+      checkDefaultValueIsLegal(newField,messages,name + "." + fieldName);
+    }
+  }
+  for (  Field oldField : newSchema.getFields()) {
+    String fieldName=oldField.name();
+    Field newField=newSchema.getField(fieldName);
+    if (newField == null) {
+      if (isOptional(oldField)) {
+        messages.add(new Message(Level.INFO,"Removed optional field " + name + "."+ fieldName));
+      }
+ else {
+        messages.add(new Message(Level.WARN,"Removed required field " + name + "."+ fieldName));
+      }
+    }
+  }
+  for (  Field oldField : oldSchema.getFields()) {
+    if (newSchema.getField(oldField.name()) != null) {
+      String oldIndexType=oldField.getProp("indexType");
+      String newIndexType=newSchema.getField(oldField.name()).getProp("indexType");
+      if (oldIndexType == null && newIndexType != null) {
+        messages.add(new Message(Level.ERROR,"Cannot add indexing to " + oldField.name() + ". Adding indexing to fields created without indexing is not supported."));
+      }
+      if (oldIndexType != null && !oldIndexType.equals(newIndexType)) {
+        messages.add(new Message(Level.ERROR,"Cannot change indexing from " + oldIndexType + " to "+ newIndexType+ " for "+ oldField.name()+ ". Changing indexing method is not supported."));
+      }
+    }
+  }
+}

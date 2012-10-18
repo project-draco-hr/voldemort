@@ -1,0 +1,17 @@
+{
+  CountDownLatch waitForPutters=new CountDownLatch(NUM_CLIENTS);
+  System.out.println("PRE THREAD CREATION");
+  for (int i=0; i < NUM_CLIENTS; i++) {
+    System.out.println("THREAD CREATION");
+    long timeoutMs=MAX_PUT_TIME_MS + (NUM_CLIENTS * SLOW_PUT_MS);
+    new Thread(new Putter(waitForPutters,NUM_PUTS,NUM_PUTS * i,true,timeoutMs)).start();
+  }
+  System.out.println("POST THREAD CREATION");
+  try {
+    waitForPutters.await();
+    System.out.println("POST AWAIT");
+  }
+ catch (  InterruptedException e) {
+    e.printStackTrace();
+  }
+}

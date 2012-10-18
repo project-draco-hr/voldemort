@@ -1,0 +1,40 @@
+{
+  Queue<TestResource> resources=new LinkedList<TestResource>();
+  Queue<TestResourceRequest> resourceRequests=new LinkedList<TestResourceRequest>();
+  long deadlineNs=System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(KeyedResourcePoolTest.TIMEOUT_MS);
+  for (int i=0; i < POOL_SIZE * 2; i++) {
+    resourceRequests.add(new TestResourceRequest(deadlineNs,resources));
+  }
+  assertEquals(0,this.factory.getCreated());
+  assertEquals(0,this.queuedPool.getTotalResourceCount());
+  assertEquals(0,this.queuedPool.getCheckedInResourceCount());
+  assertEquals(0,this.queuedPool.getRegisteredResourceRequestCount());
+  assertEquals(0,resources.size());
+  for (int i=0; i < POOL_SIZE; i++) {
+    this.queuedPool.registerResourceRequest("a",resourceRequests.poll());
+  }
+  for (int i=0; i < POOL_SIZE; i++) {
+    this.queuedPool.registerResourceRequest("a",resourceRequests.poll());
+  }
+  TimeUnit.MILLISECONDS.sleep(KeyedResourcePoolTest.TIMEOUT_MS * 2);
+  this.queuedPool.checkin("a",resources.poll());
+  assertEquals(POOL_SIZE,this.factory.getCreated());
+  assertEquals(POOL_SIZE,this.queuedPool.getTotalResourceCount());
+  assertEquals(1,this.queuedPool.getCheckedInResourceCount());
+  assertEquals(0,this.queuedPool.getRegisteredResourceRequestCount());
+  assertEquals(POOL_SIZE - 1,resources.size());
+  assertEquals(POOL_SIZE,TestResourceRequest.usedResourceCount.get());
+  assertEquals(POOL_SIZE,TestResourceRequest.handledTimeoutCount.get());
+  assertEquals(0,TestResourceRequest.handledExceptionCount.get());
+  for (int i=0; i < POOL_SIZE - 1; i++) {
+    this.queuedPool.checkin("a",resources.poll());
+  }
+  assertEquals(POOL_SIZE,this.factory.getCreated());
+  assertEquals(POOL_SIZE,this.queuedPool.getTotalResourceCount());
+  assertEquals(POOL_SIZE,this.queuedPool.getCheckedInResourceCount());
+  assertEquals(0,this.queuedPool.getRegisteredResourceRequestCount());
+  assertEquals(0,resources.size());
+  assertEquals(POOL_SIZE,TestResourceRequest.usedResourceCount.get());
+  assertEquals(POOL_SIZE,TestResourceRequest.handledTimeoutCount.get());
+  assertEquals(0,TestResourceRequest.handledExceptionCount.get());
+}

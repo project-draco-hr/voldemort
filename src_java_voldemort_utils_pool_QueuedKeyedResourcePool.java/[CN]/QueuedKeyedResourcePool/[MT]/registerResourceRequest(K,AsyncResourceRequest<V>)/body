@@ -1,0 +1,29 @@
+{
+  checkNotClosed();
+  Queue<AsyncResourceRequest<V>> requestQueue=getRequestQueueForKey(key);
+  if (requestQueue.isEmpty()) {
+    Pool<V> resourcePool=getResourcePoolForKey(key);
+    try {
+      attemptGrow(key,resourcePool);
+    }
+ catch (    Exception e) {
+      resourceRequest.handleException(e);
+      return;
+    }
+    V resource=null;
+    try {
+      resource=attemptCheckout(resourcePool);
+    }
+ catch (    Exception e) {
+      destroyResource(key,resourcePool,resource);
+      resource=null;
+      resourceRequest.handleException(e);
+    }
+    if (resource != null) {
+      resourceRequest.useResource(resource);
+      return;
+    }
+  }
+  requestQueue.add(resourceRequest);
+  processQueueLoop(key);
+}

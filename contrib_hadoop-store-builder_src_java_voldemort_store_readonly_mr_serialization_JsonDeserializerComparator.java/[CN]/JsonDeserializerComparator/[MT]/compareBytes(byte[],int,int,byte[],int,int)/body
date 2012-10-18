@@ -1,0 +1,18 @@
+{
+  if (serializer == null)   throw new SerializationException("No serializer has been set!");
+  try {
+    buffer.reset(b1,s1,l1);
+    Object key1=serializer.toObject(dataInput);
+    buffer.reset(b2,s2,l2);
+    Object key2=serializer.toObject(dataInput);
+    if (key1 instanceof Comparable) {
+      return this.compareSerializedObjects(key1,key2);
+    }
+ else {
+      return customCompare(key1,key2,serializer);
+    }
+  }
+ catch (  IOException e) {
+    throw new SerializationException(e);
+  }
+}

@@ -1,20 +1,15 @@
 {
-  int originalSize=cluster.getNumberOfNodes();
-  int numOriginalPorts=originalSize * 3;
-  int ports[]=new int[numOriginalPorts + 3];
-  for (int i=0, j=0; i < originalSize; i++, j+=3) {
-    Node node=cluster.getNodeById(i);
-    System.arraycopy(new int[]{node.getHttpPort(),node.getSocketPort(),node.getAdminPort()},0,ports,j,3);
-  }
-  System.arraycopy(ServerTestUtils.findFreePorts(3),0,ports,numOriginalPorts,3);
-  final Cluster newCluster=ServerTestUtils.getLocalCluster(originalSize + 1,ports,new int[][]{{0,4,8},{1,5,9},{2,6,10},{3,7,11}});
-  VoldemortServer newServer=ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(useNio,3,TestUtils.createTempDir().getAbsolutePath(),null,storesXmlfile,props),newCluster);
-  servers.add(newServer);
-  try {
-    Thread.sleep(500);
-  }
- catch (  InterruptedException e) {
-    Thread.currentThread().interrupt();
+  Cluster newCluster=null;
+  boolean startedAdditionalServer=false;
+  while (!startedAdditionalServer) {
+    try {
+      newCluster=attemptStartAdditionalServer();
+      startedAdditionalServer=true;
+    }
+ catch (    IOException ioe) {
+      logger.warn("Caught an IOException when attempting to start additional server. Will print stacktrace and then attempt to start additional server again.");
+      ioe.printStackTrace();
+    }
   }
   AdminClient localAdminClient=getAdminClient(newCluster);
   Versioned<String> versionedClusterXML=localAdminClient.getRemoteMetadata(3,MetadataStore.CLUSTER_KEY);
@@ -29,6 +24,7 @@
  catch (  InterruptedException e) {
     Thread.currentThread().interrupt();
   }
+  final Cluster newFinalCluster=newCluster;
   try {
     TestUtils.assertWithBackoff(5000,new Attempt(){
       public void checkCondition(){
@@ -36,8 +32,8 @@
         for (        VoldemortServer server : servers) {
           Cluster clusterAtServer=server.getMetadataStore().getCluster();
           int nodeId=server.getMetadataStore().getNodeId();
-          assertEquals("server " + nodeId + " has heard "+ " the gossip about number of nodes",clusterAtServer.getNumberOfNodes(),newCluster.getNumberOfNodes());
-          assertEquals("server " + nodeId + " has heard "+ " the gossip about partitions",clusterAtServer.getNodeById(nodeId).getPartitionIds(),newCluster.getNodeById(nodeId).getPartitionIds());
+          assertEquals("server " + nodeId + " has heard "+ " the gossip about number of nodes",clusterAtServer.getNumberOfNodes(),newFinalCluster.getNumberOfNodes());
+          assertEquals("server " + nodeId + " has heard "+ " the gossip about partitions",clusterAtServer.getNodeById(nodeId).getPartitionIds(),newFinalCluster.getNodeById(nodeId).getPartitionIds());
           serversSeen++;
         }
         assertEquals("saw all servers",serversSeen,servers.size());

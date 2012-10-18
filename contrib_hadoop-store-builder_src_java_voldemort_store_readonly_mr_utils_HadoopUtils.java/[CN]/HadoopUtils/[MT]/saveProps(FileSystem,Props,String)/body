@@ -1,0 +1,12 @@
+{
+  Path path=new Path(file);
+  Path parent=path.getParent();
+  if (!fs.exists(parent))   fs.mkdirs(parent);
+  OutputStream output=fs.create(path);
+  try {
+    props.storeFlattened(output);
+  }
+  finally {
+    output.close();
+  }
+}

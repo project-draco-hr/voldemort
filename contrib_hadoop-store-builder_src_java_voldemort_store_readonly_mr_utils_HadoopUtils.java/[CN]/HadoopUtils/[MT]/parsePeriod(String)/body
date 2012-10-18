@@ -1,0 +1,20 @@
+{
+  Matcher monthsFormat=Pattern.compile("[0-9][0-9]*M").matcher(periodStr);
+  Matcher daysFormat=Pattern.compile("[0-9][0-9]*d").matcher(periodStr);
+  Matcher hoursFormat=Pattern.compile("[0-9][0-9]*h").matcher(periodStr);
+  Matcher minutesFormat=Pattern.compile("[0-9][0-9]*m").matcher(periodStr);
+  Period period=new Period();
+  while (monthsFormat.find()) {
+    period=period.plusMonths(Integer.parseInt(monthsFormat.group().substring(0,monthsFormat.group().length() - 1)));
+  }
+  while (daysFormat.find()) {
+    period=period.plusDays(Integer.parseInt(daysFormat.group().substring(0,daysFormat.group().length() - 1)));
+  }
+  while (hoursFormat.find()) {
+    period=period.plusHours(Integer.parseInt(hoursFormat.group().substring(0,hoursFormat.group().length() - 1)));
+  }
+  while (minutesFormat.find()) {
+    period=period.plusMinutes(Integer.parseInt(minutesFormat.group().substring(0,minutesFormat.group().length() - 1)));
+  }
+  return period;
+}

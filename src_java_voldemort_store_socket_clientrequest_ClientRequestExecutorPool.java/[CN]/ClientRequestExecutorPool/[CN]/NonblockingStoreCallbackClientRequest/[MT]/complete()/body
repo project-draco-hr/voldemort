@@ -1,0 +1,14 @@
+{
+  try {
+    clientRequest.complete();
+    Object result=clientRequest.getResult();
+    invokeCallback(result,(System.nanoTime() - startNs) / Time.NS_PER_MS);
+  }
+ catch (  Exception e) {
+    invokeCallback(e,(System.nanoTime() - startNs) / Time.NS_PER_MS);
+  }
+ finally {
+    isComplete=true;
+    checkin(destination,clientRequestExecutor);
+  }
+}

@@ -1,0 +1,33 @@
+{
+  int numPorts=25000;
+  ServerSocketChannel serverSocketChannel[]=new ServerSocketChannel[numPorts];
+  int ports[]=ServerTestUtils.findFreePorts(numPorts);
+  for (int i=0; i < numPorts; i++) {
+    boolean bound=false;
+    while (!bound) {
+      try {
+        serverSocketChannel[i]=ServerSocketChannel.open();
+        serverSocketChannel[i].socket().bind(new InetSocketAddress(ports[i]));
+        serverSocketChannel[i].socket().setReuseAddress(true);
+        bound=true;
+      }
+ catch (      IOException ioe) {
+        System.err.println("Attempt: " + i + ", port: "+ ports[i]);
+        ioe.printStackTrace();
+        Thread.sleep(10);
+      }
+    }
+  }
+  for (int i=0; i < numPorts; i++) {
+    try {
+      serverSocketChannel[i].socket().close();
+    }
+ catch (    IOException ioe) {
+      System.err.println("Attempt: " + i + ", port: "+ ports[i]);
+      ioe.printStackTrace();
+      assertTrue(false);
+      return;
+    }
+  }
+  assertTrue(true);
+}

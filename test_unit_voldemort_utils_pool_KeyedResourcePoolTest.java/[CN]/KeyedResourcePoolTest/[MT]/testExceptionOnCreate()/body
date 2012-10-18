@@ -1,0 +1,14 @@
+{
+  Exception toThrow=new Exception("An exception!");
+  assertEquals(0,this.pool.getTotalResourceCount());
+  this.factory.setCreateException(toThrow);
+  try {
+    this.pool.checkout("b");
+    fail("Expected exception!");
+  }
+ catch (  Exception caught) {
+    assertEquals("The exception thrown by the factory should propagate to the caller.",toThrow,caught);
+  }
+  assertEquals(0,this.pool.getTotalResourceCount());
+  assertEquals(0,this.pool.getCheckedInResourceCount());
+}

@@ -1,0 +1,128 @@
+{
+  Schema.Type fieldType=schema.getType();
+  String expectedVal=null;
+switch (fieldType) {
+case NULL:
+    if (!defaultJson.isNull()) {
+      expectedVal="null";
+    }
+  break;
+case BOOLEAN:
+if (!defaultJson.isBoolean()) {
+  expectedVal="boolean";
+}
+break;
+case INT:
+if (!defaultJson.isInt()) {
+expectedVal="int";
+}
+break;
+case LONG:
+if (!defaultJson.isInt() && !defaultJson.isLong()) {
+expectedVal="long";
+}
+break;
+case FLOAT:
+case DOUBLE:
+if (!defaultJson.isNumber()) {
+expectedVal="number";
+}
+break;
+case BYTES:
+if (defaultJson.isTextual()) {
+break;
+}
+expectedVal="bytes (ex. \"\\u00FF\")";
+break;
+case STRING:
+if (!defaultJson.isTextual()) {
+expectedVal="string";
+}
+break;
+case ENUM:
+if (defaultJson.isTextual()) {
+if (schema.hasEnumSymbol(defaultJson.getTextValue())) {
+break;
+}
+}
+expectedVal="valid enum";
+break;
+case FIXED:
+if (defaultJson.isTextual()) {
+byte[] fixed=defaultJson.getValueAsText().getBytes();
+if (fixed.length == schema.getFixedSize()) {
+break;
+}
+expectedVal="fixed size incorrect. Expected size: " + schema.getFixedSize() + " got size "+ fixed.length;
+break;
+}
+expectedVal="fixed (ex. \"\\u00FF\")";
+break;
+case ARRAY:
+if (defaultJson.isArray()) {
+boolean isGood=true;
+for (JsonNode node : defaultJson) {
+String val=checkDefaultJson(node,schema.getElementType());
+if (val == null) {
+continue;
+}
+ else {
+isGood=false;
+break;
+}
+}
+if (isGood) {
+break;
+}
+}
+expectedVal="array of type " + schema.getElementType().toString();
+break;
+case MAP:
+if (defaultJson.isObject()) {
+boolean isGood=true;
+for (JsonNode node : defaultJson) {
+String val=checkDefaultJson(node,schema.getValueType());
+if (val == null) {
+continue;
+}
+ else {
+isGood=false;
+break;
+}
+}
+if (isGood) {
+break;
+}
+}
+expectedVal="map of type " + schema.getValueType().toString();
+break;
+case RECORD:
+if (defaultJson.isObject()) {
+boolean isGood=true;
+for (Field field : schema.getFields()) {
+JsonNode jsonNode=defaultJson.get(field.name());
+if (jsonNode == null) {
+jsonNode=field.defaultValue();
+if (jsonNode == null) {
+isGood=false;
+break;
+}
+}
+String val=checkDefaultJson(jsonNode,field.schema());
+if (val != null) {
+isGood=false;
+break;
+}
+}
+if (isGood) {
+break;
+}
+}
+expectedVal="record of type " + schema.toString();
+break;
+case UNION:
+expectedVal=checkDefaultJson(defaultJson,schema.getTypes().get(0));
+break;
+}
+return expectedVal;
+}

@@ -1,0 +1,12 @@
+{
+  if (resourcePoolMap.containsKey(key)) {
+    try {
+      Pool<V> resourcePool=getResourcePoolForExistingKey(key);
+      return resourcePool.blockingGets.get();
+    }
+ catch (    IllegalArgumentException iae) {
+      logger.debug("getBlockingGetsCount called on invalid key: ",iae);
+    }
+  }
+  return 0;
+}

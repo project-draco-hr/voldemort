@@ -1,0 +1,14 @@
+{
+  _runningJob=new JobClient(conf).submitJob(conf);
+  info("See " + _runningJob.getTrackingURL() + " for details.");
+  _runningJob.waitForCompletion();
+  if (!_runningJob.isSuccessful()) {
+    throw new Exception("Hadoop job:" + getId() + " failed!");
+  }
+  Counters counters=_runningJob.getCounters();
+  for (  String groupName : counters.getGroupNames()) {
+    Counters.Group group=counters.getGroup(groupName);
+    info("Group: " + group.getDisplayName());
+    for (    Counter counter : group)     info(counter.getDisplayName() + ":\t" + counter.getValue());
+  }
+}

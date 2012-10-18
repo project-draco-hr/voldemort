@@ -1,0 +1,41 @@
+{
+  this.indexFileStream.close();
+  this.valueFileStream.close();
+  if (this.nodeId == -1 || this.chunkId == -1 || this.partitionId == -1) {
+    return;
+  }
+  if (getSaveKeys() && this.replicaType == -1) {
+    throw new RuntimeException("Could not read the replica type correctly for node " + nodeId + " ( partition - "+ this.partitionId+ " )");
+  }
+  String fileNamePrefix=null;
+  if (getSaveKeys()) {
+    fileNamePrefix=new String(Integer.toString(this.partitionId) + "_" + Integer.toString(this.replicaType)+ "_"+ Integer.toString(this.chunkId));
+  }
+ else {
+    fileNamePrefix=new String(Integer.toString(this.partitionId) + "_" + Integer.toString(this.chunkId));
+  }
+  Path nodeDir=new Path(this.outputDir,"node-" + this.nodeId);
+  FileSystem outputFs=nodeDir.getFileSystem(this.conf);
+  outputFs.mkdirs(nodeDir);
+  if (this.checkSumType != CheckSumType.NONE) {
+    if (this.checkSumDigestIndex != null && this.checkSumDigestValue != null) {
+      Path checkSumIndexFile=new Path(nodeDir,fileNamePrefix + ".index.checksum");
+      Path checkSumValueFile=new Path(nodeDir,fileNamePrefix + ".data.checksum");
+      FSDataOutputStream output=outputFs.create(checkSumIndexFile);
+      output.write(this.checkSumDigestIndex.getCheckSum());
+      output.close();
+      output=outputFs.create(checkSumValueFile);
+      output.write(this.checkSumDigestValue.getCheckSum());
+      output.close();
+    }
+ else {
+      throw new RuntimeException("Failed to open checksum digest for node " + nodeId + " ( partition - "+ this.partitionId+ ", chunk - "+ chunkId+ " )");
+    }
+  }
+  Path indexFile=new Path(nodeDir,fileNamePrefix + ".index");
+  Path valueFile=new Path(nodeDir,fileNamePrefix + ".data");
+  logger.info("Moving " + this.taskIndexFileName + " to "+ indexFile);
+  outputFs.rename(taskIndexFileName,indexFile);
+  logger.info("Moving " + this.taskValueFileName + " to "+ valueFile);
+  outputFs.rename(this.taskValueFileName,valueFile);
+}

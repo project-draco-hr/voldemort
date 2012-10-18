@@ -1,0 +1,26 @@
+{
+  long startTimeNs=System.nanoTime();
+switch (this.opCode) {
+case VoldemortOpCode.GET_OP_CODE:
+    doGet();
+  break;
+case VoldemortOpCode.GET_VERSION_OP_CODE:
+doGetVersion();
+break;
+case VoldemortOpCode.GET_ALL_OP_CODE:
+doGetAll();
+break;
+case VoldemortOpCode.PUT_OP_CODE:
+doPut();
+break;
+case VoldemortOpCode.DELETE_OP_CODE:
+doDelete();
+break;
+default :
+logger.error("OpInvoker issued with bad operation code: " + this.opCode);
+}
+long runTimeMs=TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTimeNs);
+runTimes.add(runTimeMs);
+logger.debug("OpInvoker finished operation " + getOpName(this.opCode) + "(Thread: "+ Thread.currentThread().getName()+ ")");
+signal.countDown();
+}

@@ -1,0 +1,23 @@
+{
+  byte[] keyBytes=keySerializer.toBytes(record.get(keyField));
+  byte[] valBytes=valueSerializer.toBytes(record.get(valField));
+  MapperKeyValueWriter mapWriter=new MapperKeyValueWriter();
+  List mapperList=mapWriter.map(routingStrategy,keySerializer,valueSerializer,valueCompressor,keyCompressor,keySerializerDefinition,valueSerializerDefinition,keyBytes,valBytes,getSaveKeys(),md5er);
+  for (int i=0; i < mapperList.size(); i++) {
+    voldemort.utils.Pair<BytesWritable,BytesWritable> pair=(voldemort.utils.Pair<BytesWritable,BytesWritable>)mapperList.get(i);
+    BytesWritable outputKey=pair.getFirst();
+    BytesWritable outputVal=pair.getSecond();
+    ByteBuffer keyBuffer=null, valueBuffer=null;
+    byte[] md5KeyBytes=outputKey.getBytes();
+    keyBuffer=ByteBuffer.allocate(md5KeyBytes.length);
+    keyBuffer.put(md5KeyBytes);
+    keyBuffer.rewind();
+    byte[] outputValue=outputVal.getBytes();
+    valueBuffer=ByteBuffer.allocate(outputValue.length);
+    valueBuffer.put(outputValue);
+    valueBuffer.rewind();
+    Pair<ByteBuffer,ByteBuffer> p=new Pair<ByteBuffer,ByteBuffer>(keyBuffer,valueBuffer);
+    collector.collect(p);
+  }
+  md5er.reset();
+}

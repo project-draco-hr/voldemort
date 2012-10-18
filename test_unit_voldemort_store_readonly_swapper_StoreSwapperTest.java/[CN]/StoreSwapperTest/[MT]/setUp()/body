@@ -1,19 +1,13 @@
 {
-  cluster=ServerTestUtils.getLocalCluster(NUM_NODES);
+  String storesXmlFile=constructStoresXml();
   servers=new VoldemortServer[NUM_NODES];
-  baseDirs=new File[NUM_NODES];
-  storeDef=new StoreDefinitionBuilder().setName(STORE_NAME).setType(ReadOnlyStorageConfiguration.TYPE_NAME).setKeySerializer(serializerDef).setValueSerializer(serializerDef).setRoutingPolicy(RoutingTier.SERVER).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).build();
-  File storesXml=new File(TestUtils.createTempDir(),"stores.xml");
-  StoreDefinitionsMapper storeDefMapper=new StoreDefinitionsMapper();
-  FileWriter writer=new FileWriter(storesXml);
-  writer.write(storeDefMapper.writeStoreList(Lists.newArrayList(storeDef)));
-  writer.close();
-  File baseTempDir=TestUtils.createTempDir();
   Properties props=new Properties();
   props.put("readonly.backups","1");
+  cluster=ServerTestUtils.startVoldemortCluster(NUM_NODES,servers,null,socketStoreFactory,false,null,storesXmlFile,props);
+  baseDirs=new File[NUM_NODES];
   for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
-    servers[nodeId]=ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(false,nodeId,baseTempDir.getAbsolutePath(),null,storesXml.getAbsolutePath(),props),cluster);
-    baseDirs[nodeId]=new File(baseTempDir + "/node-" + nodeId+ "/data/read-only/"+ STORE_NAME);
+    String baseDir=servers[nodeId].getVoldemortConfig().getDataDirectory();
+    baseDirs[nodeId]=new File(baseDir + "/read-only/" + STORE_NAME);
   }
   adminClient=ServerTestUtils.getAdminClient(cluster);
 }

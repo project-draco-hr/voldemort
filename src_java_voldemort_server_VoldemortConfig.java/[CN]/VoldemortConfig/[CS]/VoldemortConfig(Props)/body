@@ -46,6 +46,18 @@
   this.mysqlHost=props.getString("mysql.host","localhost");
   this.mysqlPort=props.getInt("mysql.port",3306);
   this.mysqlDatabaseName=props.getString("mysql.database","voldemort");
+  this.testingSlowQueueingDelays=new OpTimeMap(0);
+  this.testingSlowQueueingDelays.setOpTime(VoldemortOpCode.GET_OP_CODE,props.getInt("testing.slow.queueing.get.ms",0));
+  this.testingSlowQueueingDelays.setOpTime(VoldemortOpCode.GET_ALL_OP_CODE,props.getInt("testing.slow.queueing.getall.ms",0));
+  this.testingSlowQueueingDelays.setOpTime(VoldemortOpCode.GET_VERSION_OP_CODE,props.getInt("testing.slow.queueing.getversions.ms",0));
+  this.testingSlowQueueingDelays.setOpTime(VoldemortOpCode.PUT_OP_CODE,props.getInt("testing.slow.queueing.put.ms",0));
+  this.testingSlowQueueingDelays.setOpTime(VoldemortOpCode.DELETE_OP_CODE,props.getInt("testing.slow.queueing.delete.ms",0));
+  this.testingSlowConcurrentDelays=new OpTimeMap(0);
+  this.testingSlowConcurrentDelays.setOpTime(VoldemortOpCode.GET_OP_CODE,props.getInt("testing.slow.concurrent.get.ms",0));
+  this.testingSlowConcurrentDelays.setOpTime(VoldemortOpCode.GET_ALL_OP_CODE,props.getInt("testing.slow.concurrent.getall.ms",0));
+  this.testingSlowConcurrentDelays.setOpTime(VoldemortOpCode.GET_VERSION_OP_CODE,props.getInt("testing.slow.concurrent.getversions.ms",0));
+  this.testingSlowConcurrentDelays.setOpTime(VoldemortOpCode.PUT_OP_CODE,props.getInt("testing.slow.concurrent.put.ms",0));
+  this.testingSlowConcurrentDelays.setOpTime(VoldemortOpCode.DELETE_OP_CODE,props.getInt("testing.slow.concurrent.delete.ms",0));
   this.maxThreads=props.getInt("max.threads",100);
   this.coreThreads=props.getInt("core.threads",Math.max(1,maxThreads / 2));
   this.adminMaxThreads=props.getInt("admin.max.threads",20);

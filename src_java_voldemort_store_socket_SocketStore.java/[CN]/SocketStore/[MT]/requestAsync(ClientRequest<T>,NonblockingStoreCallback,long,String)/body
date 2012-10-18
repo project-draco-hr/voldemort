@@ -1,21 +1,3 @@
 {
-  ClientRequestExecutor clientRequestExecutor=null;
-  try {
-    clientRequestExecutor=pool.checkout(destination);
-    if (logger.isDebugEnabled()) {
-      logger.debug("Async request start; type: " + operationName + " requestRef: "+ System.identityHashCode(delegate)+ " time: "+ System.currentTimeMillis()+ " server: "+ clientRequestExecutor.getSocketChannel().socket().getRemoteSocketAddress()+ " local socket: "+ clientRequestExecutor.getSocketChannel().socket().getLocalAddress()+ ":"+ clientRequestExecutor.getSocketChannel().socket().getLocalPort());
-    }
-  }
- catch (  Exception e) {
-    if (!(e instanceof UnreachableStoreException))     e=new UnreachableStoreException("Failure in " + operationName + ": "+ e.getMessage(),e);
-    try {
-      callback.requestComplete(e,0);
-    }
- catch (    Exception ex) {
-      if (logger.isEnabledFor(Level.WARN))       logger.warn(ex,ex);
-    }
-    return;
-  }
-  NonblockingStoreCallbackClientRequest<T> clientRequest=new NonblockingStoreCallbackClientRequest<T>(delegate,clientRequestExecutor,callback);
-  clientRequestExecutor.addClientRequest(clientRequest,timeoutMs);
+  pool.submitAsync(this.destination,delegate,callback,timeoutMs,operationName);
 }

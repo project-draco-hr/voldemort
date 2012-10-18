@@ -6,15 +6,17 @@
     conf.set("stores.xml",new StoreDefinitionsMapper().writeStoreList(Collections.singletonList(storeDef)));
     conf.setBoolean("save.keys",saveKeys);
     conf.setBoolean("reducer.per.bucket",reducerPerBucket);
-    conf.setPartitionerClass(HadoopStoreBuilderPartitioner.class);
-    conf.setMapperClass(mapperClass);
-    conf.setMapOutputKeyClass(BytesWritable.class);
-    conf.setMapOutputValueClass(BytesWritable.class);
-    if (reducerPerBucket) {
-      conf.setReducerClass(HadoopStoreBuilderReducerPerBucket.class);
-    }
+    if (!isAvro) {
+      conf.setPartitionerClass(HadoopStoreBuilderPartitioner.class);
+      conf.setMapperClass(mapperClass);
+      conf.setMapOutputKeyClass(BytesWritable.class);
+      conf.setMapOutputValueClass(BytesWritable.class);
+      if (reducerPerBucket) {
+        conf.setReducerClass(HadoopStoreBuilderReducerPerBucket.class);
+      }
  else {
-      conf.setReducerClass(HadoopStoreBuilderReducer.class);
+        conf.setReducerClass(HadoopStoreBuilderReducer.class);
+      }
     }
     conf.setInputFormat(inputFormatClass);
     conf.setOutputFormat(SequenceFileOutputFormat.class);
@@ -65,18 +67,36 @@
     }
     conf.setInt("num.chunks",numChunks);
     conf.setNumReduceTasks(numReducers);
+    if (isAvro) {
+      conf.setPartitionerClass(AvroStoreBuilderPartitioner.class);
+      conf.setMapOutputKeyClass(ByteBuffer.class);
+      conf.setMapOutputValueClass(ByteBuffer.class);
+      conf.setInputFormat(inputFormatClass);
+      conf.setOutputFormat((Class<? extends OutputFormat>)AvroOutputFormat.class);
+      conf.setOutputKeyClass(ByteBuffer.class);
+      conf.setOutputValueClass(ByteBuffer.class);
+      AvroJob.setInputSchema(conf,Schema.parse(config.get("avro.rec.schema")));
+      AvroJob.setOutputSchema(conf,Pair.getPairSchema(Schema.create(Schema.Type.BYTES),Schema.create(Schema.Type.BYTES)));
+      AvroJob.setMapperClass(conf,mapperClass);
+      if (reducerPerBucket) {
+        conf.setReducerClass(AvroStoreBuilderReducerPerBucket.class);
+      }
+ else {
+        conf.setReducerClass(AvroStoreBuilderReducer.class);
+      }
+    }
     logger.info("Number of chunks: " + numChunks + ", number of reducers: "+ numReducers+ ", save keys: "+ saveKeys+ ", reducerPerBucket: "+ reducerPerBucket);
     logger.info("Building store...");
     RunningJob job=JobClient.runJob(conf);
     Counters counters=job.getCounters();
     if (saveKeys) {
       if (reducerPerBucket) {
-        logger.info("Number of collisions in the job - " + counters.getCounter(HadoopStoreBuilderReducerPerBucket.CollisionCounter.NUM_COLLISIONS));
-        logger.info("Maximum number of collisions for one entry - " + counters.getCounter(HadoopStoreBuilderReducerPerBucket.CollisionCounter.MAX_COLLISIONS));
+        logger.info("Number of collisions in the job - " + counters.getCounter(KeyValueWriter.CollisionCounter.NUM_COLLISIONS));
+        logger.info("Maximum number of collisions for one entry - " + counters.getCounter(KeyValueWriter.CollisionCounter.MAX_COLLISIONS));
       }
  else {
-        logger.info("Number of collisions in the job - " + counters.getCounter(HadoopStoreBuilderReducer.CollisionCounter.NUM_COLLISIONS));
-        logger.info("Maximum number of collisions for one entry - " + counters.getCounter(HadoopStoreBuilderReducer.CollisionCounter.MAX_COLLISIONS));
+        logger.info("Number of collisions in the job - " + counters.getCounter(KeyValueWriter.CollisionCounter.NUM_COLLISIONS));
+        logger.info("Maximum number of collisions for one entry - " + counters.getCounter(KeyValueWriter.CollisionCounter.MAX_COLLISIONS));
       }
     }
     CheckSum checkSumGenerator=CheckSum.getInstance(this.checkSumType);

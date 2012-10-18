@@ -1,0 +1,12 @@
+{
+  if (dest != null) {
+    getOrCreateNodeStats(dest).recordResourceRequestTimeUs(null,resourceRequestTimeUs);
+    recordResourceRequestTimeUs(null,resourceRequestTimeUs);
+  }
+ else {
+    this.totalResourceRequestTimeUs.getAndAdd(resourceRequestTimeUs);
+    this.resourceRequestTimeUsHistogram.insert(resourceRequestTimeUs);
+    this.resourceRequestCount.getAndIncrement();
+    checkMonitoringInterval();
+  }
+}

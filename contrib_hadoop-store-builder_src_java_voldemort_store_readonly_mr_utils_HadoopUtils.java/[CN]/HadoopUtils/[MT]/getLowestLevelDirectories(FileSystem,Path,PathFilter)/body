@@ -1,0 +1,15 @@
+{
+  List<String> lowestLevelDirectories=new ArrayList<String>();
+  if (hasSubDirectories(fs,directory)) {
+    FileStatus[] statuses=fs.listStatus(directory);
+    for (    FileStatus status : statuses) {
+      if (status.isDir()) {
+        lowestLevelDirectories.addAll(getLowestLevelDirectories(fs,status.getPath(),pathFilter));
+      }
+    }
+  }
+ else   if (pathFilter == null || pathFilter.accept(directory)) {
+    lowestLevelDirectories.add(directory.toString());
+  }
+  return lowestLevelDirectories;
+}

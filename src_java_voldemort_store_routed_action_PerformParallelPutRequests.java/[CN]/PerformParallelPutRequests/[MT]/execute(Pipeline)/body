@@ -55,11 +55,8 @@
   }
   for (  Entry<Integer,Response<ByteArray,Object>> responseEntry : responses.entrySet()) {
     Response<ByteArray,Object> response=responseEntry.getValue();
-    if (response.getValue() instanceof Exception) {
-      if (response.getValue() instanceof ObsoleteVersionException) {
-        responses.remove(responseEntry.getKey());
-      }
- else       if (handleResponseError(response,pipeline,failureDetector))       return;
+    if (response.getValue() instanceof Exception && !(response.getValue() instanceof ObsoleteVersionException)) {
+      if (handleResponseError(response,pipeline,failureDetector))       return;
     }
  else {
       pipelineData.incrementSuccesses();
@@ -81,11 +78,8 @@
       }
       for (      Entry<Integer,Response<ByteArray,Object>> responseEntry : responses.entrySet()) {
         Response<ByteArray,Object> response=responseEntry.getValue();
-        if (response.getValue() instanceof Exception) {
-          if (response.getValue() instanceof ObsoleteVersionException) {
-            responses.remove(responseEntry.getKey());
-          }
- else           if (handleResponseError(response,pipeline,failureDetector))           return;
+        if (response.getValue() instanceof Exception && !(response.getValue() instanceof ObsoleteVersionException)) {
+          if (handleResponseError(response,pipeline,failureDetector))           return;
         }
  else {
           pipelineData.incrementSuccesses();

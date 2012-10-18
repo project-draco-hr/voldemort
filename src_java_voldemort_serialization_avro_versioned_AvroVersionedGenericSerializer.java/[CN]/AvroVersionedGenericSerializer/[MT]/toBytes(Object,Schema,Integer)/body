@@ -1,0 +1,21 @@
+{
+  ByteArrayOutputStream output=new ByteArrayOutputStream();
+  Encoder encoder=new BinaryEncoder(output);
+  GenericDatumWriter<Object> datumWriter=null;
+  output.write(writerVersion.byteValue());
+  try {
+    datumWriter=new GenericDatumWriter<Object>(writer);
+    datumWriter.write(object,encoder);
+    encoder.flush();
+  }
+ catch (  IOException e) {
+    throw new SerializationException(e);
+  }
+catch (  SerializationException sE) {
+    throw sE;
+  }
+ finally {
+    SerializationUtils.close(output);
+  }
+  return output.toByteArray();
+}

@@ -1,0 +1,19 @@
+{
+  if (shouldPathBeIgnored(path)) {
+    throw new IllegalArgumentException(String.format("Path[%s] should be ignored.",path));
+  }
+  final FileSystem fs=path.getFileSystem(conf);
+  if (fs.exists(path)) {
+    for (    FileStatus status : fs.listStatus(path)) {
+      if (!shouldPathBeIgnored(status.getPath())) {
+        if (status.isDir()) {
+          addAllSubPaths(conf,status.getPath());
+        }
+ else {
+          FileInputFormat.addInputPath(conf,status.getPath());
+        }
+      }
+    }
+  }
+  return conf;
+}

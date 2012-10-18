@@ -1,0 +1,26 @@
+{
+  if (this.size.get() >= this.maxPoolSize) {
+    return false;
+  }
+  if (this.size.incrementAndGet() <= this.maxPoolSize) {
+    try {
+      V resource=objectFactory.create(key);
+      if (resource != null) {
+        if (!nonBlockingPut(resource)) {
+          this.size.decrementAndGet();
+          objectFactory.destroy(key,resource);
+          return false;
+        }
+      }
+    }
+ catch (    Exception e) {
+      this.size.decrementAndGet();
+      throw e;
+    }
+  }
+ else {
+    this.size.decrementAndGet();
+    return false;
+  }
+  return true;
+}

@@ -1,0 +1,25 @@
+{
+  super(name);
+  this.props=props;
+  this.storeName=props.getString("push.store.name").trim();
+  this.clusterUrl=new ArrayList<String>();
+  this.dataDirs=new ArrayList<String>();
+  String clusterUrlText=props.getString("push.cluster");
+  for (  String url : Utils.COMMA_SEP.split(clusterUrlText.trim()))   if (url.trim().length() > 0)   this.clusterUrl.add(url);
+  if (clusterUrl.size() <= 0)   throw new RuntimeException("Number of urls should be atleast 1");
+  String dataDirText=props.getString("build.output.dir");
+  for (  String dataDir : Utils.COMMA_SEP.split(dataDirText.trim()))   if (dataDir.trim().length() > 0)   this.dataDirs.add(dataDir);
+  if (dataDirs.size() <= 0)   throw new RuntimeException("Number of data dirs should be atleast 1");
+  this.nodeId=props.getInt("push.node",0);
+  this.log=Logger.getLogger(name);
+  this.informedResults=Lists.newArrayList();
+  this.informedExecutor=Executors.newFixedThreadPool(2);
+  isAvroJob=props.getBoolean("build.type.avro",false);
+  isAvroVersioned=props.getBoolean("avro.serializer.versioned",false);
+  keyField=props.getString("avro.key.field",null);
+  valueField=props.getString("avro.value.field",null);
+  if (isAvroJob) {
+    if (keyField == null)     throw new RuntimeException("The key field must be specified in the properties for the Avro build and push job!");
+    if (valueField == null)     throw new RuntimeException("The value field must be specified in the properties for the Avro build and push job!");
+  }
+}

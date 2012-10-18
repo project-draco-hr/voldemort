@@ -1,0 +1,59 @@
+{
+  boolean build=props.getBoolean("build",true);
+  boolean push=props.getBoolean("push",true);
+  if (build && push && dataDirs.size() != 1) {
+    throw new RuntimeException(" Should have only one data directory ( which acts like root directory ) since they are auto-generated during build phase ");
+  }
+ else   if (!build && push && dataDirs.size() != clusterUrl.size()) {
+    throw new RuntimeException(" Since we are only pushing, number of data directories ( comma separated ) should be equal to number of cluster urls ");
+  }
+  HashMap<String,Exception> exceptions=Maps.newHashMap();
+  for (int index=0; index < clusterUrl.size(); index++) {
+    String url=clusterUrl.get(index);
+    log.info("Working on " + url);
+    try {
+      if (isAvroJob)       verifyAvroSchemaAndVersions(url,isAvroVersioned);
+ else       verifySchema(url);
+      String buildOutputDir;
+      if (build) {
+        buildOutputDir=runBuildStore(props,url);
+      }
+ else {
+        buildOutputDir=dataDirs.get(index);
+      }
+      if (push) {
+        if (log.isDebugEnabled())         log.debug("Informing about push start ...");
+        informedResults.add(this.informedExecutor.submit(new InformedClient(this.props,"Running",this.getId())));
+        runPushStore(props,url,buildOutputDir);
+      }
+      if (build && push && !props.getBoolean("build.output.keep",false)) {
+        JobConf jobConf=new JobConf();
+        if (props.containsKey("hadoop.job.ugi")) {
+          jobConf.set("hadoop.job.ugi",props.getString("hadoop.job.ugi"));
+        }
+        log.info("Deleting " + buildOutputDir);
+        HadoopUtils.deletePathIfExists(jobConf,buildOutputDir);
+        log.info("Deleted " + buildOutputDir);
+      }
+      if (log.isDebugEnabled())       log.debug("Informing about push finish ...");
+      informedResults.add(this.informedExecutor.submit(new InformedClient(this.props,"Finished",this.getId())));
+      for (      Future result : informedResults) {
+        try {
+          result.get();
+        }
+ catch (        Exception e) {
+          this.log.error("Exception in consumer",e);
+        }
+      }
+      this.informedExecutor.shutdownNow();
+    }
+ catch (    Exception e) {
+      log.error("Exception during build and push for url " + url,e);
+      exceptions.put(url,e);
+    }
+  }
+  if (exceptions.size() > 0) {
+    log.error("Got exceptions while pushing to " + Joiner.on(",").join(exceptions.keySet()) + " => "+ Joiner.on(",").join(exceptions.values()));
+    System.exit(-1);
+  }
+}

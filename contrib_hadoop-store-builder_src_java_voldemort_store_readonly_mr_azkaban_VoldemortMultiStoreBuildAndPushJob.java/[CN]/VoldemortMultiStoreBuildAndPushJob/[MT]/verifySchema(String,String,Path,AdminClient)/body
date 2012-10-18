@@ -1,0 +1,83 @@
+{
+  JsonSchema schema=HadoopUtils.getSchemaFromPath(inputPath);
+  int replicationFactor=props.getInt("build.replication.factor." + storeName,props.getInt("build.replication.factor",2));
+  int requiredReads=props.getInt("build.required.reads." + storeName,props.getInt("build.required.reads",1));
+  int requiredWrites=props.getInt("build.required.writes." + storeName,props.getInt("build.required.writes",1));
+  int preferredReads=props.getInt("build.preferred.reads." + storeName,props.getInt("build.preferred.reads",-1));
+  int preferredWrites=props.getInt("build.preferred.writes." + storeName,props.getInt("build.preferred.writes",-1));
+  String description=props.getString("push.store.description." + storeName,props.getString("push.store.description",""));
+  String owners=props.getString("push.store.owners." + storeName,props.getString("push.store.owners",""));
+  String keySchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + schema.getKeyType() + "</schema-info>\n\t";
+  String valSchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + schema.getValueType() + "</schema-info>\n\t";
+  String keySchemaCompression="";
+  if (props.containsKey("build.compress.key." + storeName) || (storeNames.size() == 1 && props.containsKey("build.compress.key"))) {
+    keySchemaCompression="\t<compression><type>gzip</type></compression>\n\t";
+    keySchema+=keySchemaCompression;
+  }
+  String valueSchemaCompression="";
+  if (props.containsKey("build.compress.value." + storeName) || (storeNames.size() == 1 && props.containsKey("build.compress.value"))) {
+    valueSchemaCompression="\t<compression><type>gzip</type></compression>\n\t";
+    valSchema+=valueSchemaCompression;
+  }
+  if (props.containsKey("build.force.schema.key." + storeName)) {
+    keySchema=props.get("build.force.schema.key." + storeName);
+  }
+  if (props.containsKey("build.force.schema.value." + storeName)) {
+    valSchema=props.get("build.force.schema.value." + storeName);
+  }
+  if (props.containsKey("build.force.schema.key") && storeNames.size() == 1) {
+    keySchema=props.get("build.force.schema.key");
+  }
+  if (props.containsKey("build.force.schema.value") && storeNames.size() == 1) {
+    valSchema=props.get("build.force.schema.value");
+  }
+  String newStoreDefXml=VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,(preferredReads < 0) ? null : preferredReads,(preferredWrites < 0) ? null : preferredWrites,keySchema,valSchema,description,owners);
+  log.info("Verifying store: \n" + newStoreDefXml.toString());
+  StoreDefinition newStoreDef=VoldemortUtils.getStoreDef(newStoreDefXml);
+  log.info("Getting store definition from: " + url + " ( node id "+ this.nodeId+ " )");
+  List<StoreDefinition> remoteStoreDefs=adminClient.getRemoteStoreDefList(this.nodeId).getValue();
+  boolean foundStore=false;
+  for (  StoreDefinition remoteStoreDef : remoteStoreDefs) {
+    if (remoteStoreDef.getName().equals(storeName)) {
+      if (!remoteStoreDef.equals(newStoreDef)) {
+        SerializerDefinition localKeySerializerDef=newStoreDef.getKeySerializer();
+        SerializerDefinition localValueSerializerDef=newStoreDef.getValueSerializer();
+        SerializerDefinition remoteKeySerializerDef=remoteStoreDef.getKeySerializer();
+        SerializerDefinition remoteValueSerializerDef=remoteStoreDef.getValueSerializer();
+        if (remoteKeySerializerDef.getName().equals("json") && remoteValueSerializerDef.getName().equals("json") && remoteKeySerializerDef.getAllSchemaInfoVersions().size() == 1 && remoteValueSerializerDef.getAllSchemaInfoVersions().size() == 1) {
+          JsonTypeDefinition remoteKeyDef=JsonTypeDefinition.fromJson(remoteKeySerializerDef.getCurrentSchemaInfo());
+          JsonTypeDefinition remoteValDef=JsonTypeDefinition.fromJson(remoteValueSerializerDef.getCurrentSchemaInfo());
+          JsonTypeDefinition localKeyDef=JsonTypeDefinition.fromJson(localKeySerializerDef.getCurrentSchemaInfo());
+          JsonTypeDefinition localValDef=JsonTypeDefinition.fromJson(localValueSerializerDef.getCurrentSchemaInfo());
+          if (remoteKeyDef.equals(localKeyDef) && remoteValDef.equals(localValDef)) {
+            keySchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + remoteKeySerializerDef.getCurrentSchemaInfo() + "</schema-info>\n\t"+ keySchemaCompression;
+            valSchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + remoteValueSerializerDef.getCurrentSchemaInfo() + "</schema-info>\n\t"+ valueSchemaCompression;
+            newStoreDefXml=VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,(preferredReads < 0) ? null : preferredReads,(preferredWrites < 0) ? null : preferredWrites,keySchema,valSchema,description,owners);
+            newStoreDef=VoldemortUtils.getStoreDef(newStoreDefXml);
+            if (!remoteStoreDef.equals(newStoreDef)) {
+              throw new RuntimeException("Your store schema is identical, but the store definition does not match. Have: " + newStoreDef + "\nBut expected: "+ remoteStoreDef);
+            }
+          }
+ else {
+            throw new RuntimeException("Your store definition does not match the store definition that is already in the cluster. Tried to resolve identical schemas between local and remote, but failed. Have: " + newStoreDef + "\nBut expected: "+ remoteStoreDef);
+          }
+        }
+      }
+      foundStore=true;
+      break;
+    }
+  }
+  if (!foundStore) {
+    if (description.length() == 0) {
+      throw new RuntimeException("Description field missing in store definition. " + "Please add \"push.store.description\" with a line describing your store");
+    }
+    if (owners.length() == 0) {
+      throw new RuntimeException("Owner field missing in store definition. " + "Please add \"push.store.owners\" with value being comma-separated list of LinkedIn email ids");
+    }
+    log.info("Could not find store " + storeName + " on Voldemort. Adding it to all nodes for cluster "+ url);
+    adminClient.addStore(newStoreDef);
+  }
+  StoreDefinition storeDef=VoldemortUtils.getStoreDef(VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,(preferredReads < 0) ? null : preferredReads,(preferredWrites < 0) ? null : preferredWrites,keySchema,valSchema,description,owners));
+  Cluster cluster=adminClient.getAdminClientCluster();
+  return Pair.create(storeDef,cluster);
+}

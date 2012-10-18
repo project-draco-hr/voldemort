@@ -1,8 +1,0 @@
-{
-  V resource=pool.nonBlockingGet();
-  if (resource != null)   return resource;
-  if (pool.size.get() < this.poolMaxSize)   attemptGrow(key,pool);
-  resource=pool.blockingGet(timeoutNs);
-  if (resource == null)   throw new TimeoutException("Timed out wait for resource after " + (timeoutNs / Time.NS_PER_MS) + " ms.");
-  return resource;
-}

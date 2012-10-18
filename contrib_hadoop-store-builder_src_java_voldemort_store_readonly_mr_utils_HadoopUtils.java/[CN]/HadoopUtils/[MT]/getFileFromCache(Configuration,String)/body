@@ -1,0 +1,10 @@
+{
+  if ("local".equals(conf.get("mapred.job.tracker"))) {
+    URI[] uris=DistributedCache.getCacheFiles(conf);
+    return getFileFromURIList(uris,fileName);
+  }
+ else {
+    Path[] pathList=DistributedCache.getLocalCacheFiles(conf);
+    return getFileFromPathList(pathList,fileName);
+  }
+}

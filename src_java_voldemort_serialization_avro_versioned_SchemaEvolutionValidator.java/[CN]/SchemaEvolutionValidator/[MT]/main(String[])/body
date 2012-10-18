@@ -1,0 +1,45 @@
+{
+  if (args.length != 2) {
+    System.out.println("Usage: SchemaEvolutionValidator pathToOldSchema pathToNewSchema");
+    return;
+  }
+  Schema oldSchema;
+  Schema newSchema;
+  try {
+    oldSchema=Schema.parse(new File(args[0]));
+  }
+ catch (  Exception ex) {
+    oldSchema=null;
+    System.out.println("Could not open or parse the old schema (" + args[0] + ") due to "+ ex);
+  }
+  try {
+    newSchema=Schema.parse(new File(args[1]));
+  }
+ catch (  Exception ex) {
+    newSchema=null;
+    System.out.println("Could not open or parse the new schema (" + args[1] + ") due to "+ ex);
+  }
+  if (oldSchema == null || newSchema == null) {
+    return;
+  }
+  System.out.println("Comparing: ");
+  System.out.println("\t" + args[0]);
+  System.out.println("\t" + args[1]);
+  List<Message> messages=SchemaEvolutionValidator.checkBackwardCompatability(oldSchema,newSchema,oldSchema.getName());
+  Level maxLevel=Level.ALL;
+  for (  Message message : messages) {
+    System.out.println(message.getLevel() + ": " + message.getMessage());
+    if (message.getLevel().isGreaterOrEqual(maxLevel)) {
+      maxLevel=message.getLevel();
+    }
+  }
+  if (maxLevel.isGreaterOrEqual(Level.ERROR)) {
+    System.out.println(Level.ERROR + ": The schema is not backward compatible. New clients will not be able to read existing data.");
+  }
+ else   if (maxLevel.isGreaterOrEqual(Level.WARN)) {
+    System.out.println(Level.WARN + ": The schema is partially backward compatible, but old clients will not be able to read data serialized in the new format.");
+  }
+ else {
+    System.out.println(Level.INFO + ": The schema is backward compatible. Old and new clients will be able to read records serialized by one another.");
+  }
+}

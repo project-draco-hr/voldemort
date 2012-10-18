@@ -1,0 +1,27 @@
+{
+  for (int i=0; i < puts; ++i) {
+    sleepUntilNextPeriod();
+    String I=getString(i);
+    System.out.println("");
+    String context=new String("PUT of " + I + " (Put #: "+ i+ ", Thread: "+ Thread.currentThread().getName()+ ")");
+    System.out.println("START " + context);
+    long startTimeMs=System.currentTimeMillis();
+    try {
+      storeClient.put(I,I);
+    }
+ catch (    ObsoleteVersionException e) {
+      System.out.println("ObsoleteVersionException caught on put." + context);
+    }
+    long endTimeMs=System.currentTimeMillis();
+    System.out.println(" DONE " + context + " --- Time (ms): "+ (endTimeMs - startTimeMs));
+    if (i >= NUM_EXEMPT_PUTS) {
+      assertFalse("Operation completes without blocking on slow server:" + (endTimeMs - startTimeMs),(endTimeMs - startTimeMs) > this.putTimeLimitMs);
+      if ((endTimeMs - startTimeMs) > this.putTimeLimitMs) {
+        System.err.println("Operation blocked! Therefore, operation is not nonblocking... " + context + " (Operation time: "+ (endTimeMs - startTimeMs)+ " ms)");
+      }
+    }
+  }
+  sleepUntilNextPeriod();
+  System.out.println("Thread done. (Thread: " + Thread.currentThread().getName() + ")");
+  signal.countDown();
+}

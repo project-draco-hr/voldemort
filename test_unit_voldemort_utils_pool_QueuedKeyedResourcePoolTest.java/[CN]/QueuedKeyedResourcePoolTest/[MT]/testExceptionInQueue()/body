@@ -1,0 +1,21 @@
+{
+  Exception toThrow=new Exception("An exception!");
+  this.factory.setCreateException(toThrow);
+  Queue<TestResource> resources=new LinkedList<TestResource>();
+  long deadlineNs=System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(KeyedResourcePoolTest.TIMEOUT_MS);
+  TestResourceRequest trr=new TestResourceRequest(deadlineNs,resources);
+  assertEquals(0,this.factory.getCreated());
+  assertEquals(0,this.queuedPool.getTotalResourceCount());
+  assertEquals(0,this.queuedPool.getCheckedInResourceCount());
+  assertEquals(0,this.queuedPool.getRegisteredResourceRequestCount());
+  assertEquals(0,resources.size());
+  this.queuedPool.registerResourceRequest("a",trr);
+  assertEquals(0,this.factory.getCreated());
+  assertEquals(0,this.queuedPool.getTotalResourceCount());
+  assertEquals(0,this.queuedPool.getCheckedInResourceCount());
+  assertEquals(0,this.queuedPool.getRegisteredResourceRequestCount());
+  assertEquals(0,resources.size());
+  assertEquals(0,TestResourceRequest.usedResourceCount.get());
+  assertEquals(0,TestResourceRequest.handledTimeoutCount.get());
+  assertEquals(1,TestResourceRequest.handledExceptionCount.get());
+}

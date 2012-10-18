@@ -1,0 +1,29 @@
+{
+  conf=job;
+  try {
+    this.cluster=new ClusterMapper().readCluster(new StringReader(conf.get("cluster.xml")));
+    List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new StringReader(conf.get("stores.xml")));
+    if (storeDefs.size() != 1)     throw new IllegalStateException("Expected to find only a single store, but found multiple!");
+    this.storeDef=storeDefs.get(0);
+    this.numChunks=conf.getInt("num.chunks",-1);
+    if (this.numChunks < 1)     throw new VoldemortException("num.chunks not specified in the job conf.");
+    this.saveKeys=conf.getBoolean("save.keys",false);
+    this.reducerPerBucket=conf.getBoolean("reducer.per.bucket",false);
+    this.conf=job;
+    this.position=0;
+    this.outputDir=job.get("final.output.dir");
+    this.taskId=job.get("mapred.task.id");
+    this.checkSumType=CheckSum.fromString(job.get("checksum.type"));
+    this.checkSumDigestIndex=CheckSum.getInstance(checkSumType);
+    this.checkSumDigestValue=CheckSum.getInstance(checkSumType);
+    this.taskIndexFileName=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + this.taskId+ ".index");
+    this.taskValueFileName=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + this.taskId+ ".data");
+    if (this.fs == null)     this.fs=this.taskIndexFileName.getFileSystem(job);
+    this.indexFileStream=fs.create(this.taskIndexFileName);
+    this.valueFileStream=fs.create(this.taskValueFileName);
+    logger.info("Opening " + this.taskIndexFileName + " and "+ this.taskValueFileName+ " for writing.");
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Failed to open Input/OutputStream",e);
+  }
+}

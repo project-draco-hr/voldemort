@@ -1,12 +1,10 @@
 {
-  SocketDestination dest3=new SocketDestination("localhost",dest1.getPort() + 2,RequestFormatType.VOLDEMORT_V1);
-  SocketDestination dest4=new SocketDestination("localhost",dest1.getPort() + 3,RequestFormatType.VOLDEMORT_V1);
 class TestThread implements Runnable {
     SocketDestination dest;
     public TestThread(    SocketDestination dest){
       this.dest=dest;
     }
-    public void run(){
+    @Override public void run(){
       masterStats.recordCheckoutTimeUs(dest,1000);
       masterStats.recordCheckoutTimeUs(dest,2000);
       masterStats.recordCheckoutTimeUs(dest,3000);
@@ -40,10 +38,10 @@ class TestThread implements Runnable {
   }
  catch (  Exception e) {
   }
-  assertEquals(masterStats.getWaitHistogram().getQuantile(0.01),1000);
-  assertEquals(masterStats.getWaitHistogram().getQuantile(0.5),5000);
-  assertEquals(masterStats.getStatsMap().get(dest1).getWaitHistogram().getQuantile(0.01),1000);
-  assertEquals(masterStats.getStatsMap().get(dest1).getWaitHistogram().getQuantile(0.5),5000);
-  assertEquals(masterStats.getStatsMap().get(dest2).getWaitHistogram().getQuantile(0.01),1000);
-  assertEquals(masterStats.getStatsMap().get(dest2).getWaitHistogram().getQuantile(0.5),5000);
+  assertEquals(masterStats.getCheckoutWaitUsHistogram().getQuantile(0.01),1000);
+  assertEquals(masterStats.getCheckoutWaitUsHistogram().getQuantile(0.5),5000);
+  assertEquals(masterStats.getStatsMap().get(dest1).getCheckoutWaitUsHistogram().getQuantile(0.01),1000);
+  assertEquals(masterStats.getStatsMap().get(dest1).getCheckoutWaitUsHistogram().getQuantile(0.5),5000);
+  assertEquals(masterStats.getStatsMap().get(dest2).getCheckoutWaitUsHistogram().getQuantile(0.01),1000);
+  assertEquals(masterStats.getStatsMap().get(dest2).getCheckoutWaitUsHistogram().getQuantile(0.5),5000);
 }

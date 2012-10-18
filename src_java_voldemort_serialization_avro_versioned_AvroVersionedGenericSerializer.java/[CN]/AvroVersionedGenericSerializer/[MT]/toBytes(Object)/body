@@ -1,0 +1,26 @@
+{
+  ByteArrayOutputStream output=new ByteArrayOutputStream();
+  Encoder encoder=new BinaryEncoder(output);
+  GenericDatumWriter<Object> datumWriter=null;
+  output.write(newestVersion.byteValue());
+  try {
+    datumWriter=new GenericDatumWriter<Object>(typeDef);
+    datumWriter.write(object,encoder);
+    encoder.flush();
+  }
+ catch (  SerializationException sE) {
+    throw sE;
+  }
+catch (  IOException e) {
+    throw new SerializationException(e);
+  }
+catch (  Exception aIOBE) {
+    Schema writer=((GenericContainer)object).getSchema();
+    Integer writerVersion=getSchemaVersion(writer);
+    return toBytes(object,writer,writerVersion);
+  }
+ finally {
+    SerializationUtils.close(output);
+  }
+  return output.toByteArray();
+}

@@ -1,0 +1,20 @@
+{
+  try {
+    for (Enumeration itr=loader.getResources(fileName); itr.hasMoreElements(); ) {
+      URL url=(URL)itr.nextElement();
+      logger.info("findContainingJar finds url:" + url);
+      if ("jar".equals(url.getProtocol())) {
+        String toReturn=url.getPath();
+        if (toReturn.startsWith("file:")) {
+          toReturn=toReturn.substring("file:".length());
+        }
+        toReturn=URLDecoder.decode(toReturn,"UTF-8");
+        return toReturn.replaceAll("!.*$","");
+      }
+    }
+  }
+ catch (  IOException e) {
+    throw new RuntimeException(e);
+  }
+  return null;
+}

@@ -1,0 +1,13 @@
+{
+  try {
+    Path filePath=getFilePathFromDistributedCache(filename,conf);
+    if (filePath == null) {
+      Path[] paths=DistributedCache.getLocalCacheFiles(conf);
+      throw new IllegalStateException("No cache file found by the name of '" + filename + "', found only "+ paths);
+    }
+    return new FileInputStream(filePath.toString());
+  }
+ catch (  IOException e) {
+    throw new RuntimeException(e);
+  }
+}

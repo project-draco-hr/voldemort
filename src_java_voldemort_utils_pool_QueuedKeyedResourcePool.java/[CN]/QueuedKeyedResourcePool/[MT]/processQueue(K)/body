@@ -1,0 +1,31 @@
+{
+  Queue<AsyncResourceRequest<V>> requestQueue=getRequestQueueForKey(key);
+  if (requestQueue.isEmpty()) {
+    return false;
+  }
+  Pool<V> resourcePool=getResourcePoolForKey(key);
+  V resource=null;
+  try {
+    attemptGrow(key,resourcePool);
+    resource=attemptCheckout(resourcePool);
+  }
+ catch (  Exception e) {
+    destroyResource(key,resourcePool,resource);
+    resource=null;
+  }
+  if (resource == null) {
+    return false;
+  }
+  AsyncResourceRequest<V> resourceRequest=getNextUnexpiredResourceRequest(requestQueue);
+  if (resourceRequest == null) {
+    try {
+      super.checkin(key,resource);
+    }
+ catch (    Exception e) {
+      logger.error("Exception checking in resource: ",e);
+    }
+    return false;
+  }
+  resourceRequest.useResource(resource);
+  return true;
+}

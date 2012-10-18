@@ -1,11 +1,9 @@
 {
-  if (clientRequest == null) {
+  ClientRequest<?> local=atomicNullOutClientRequest();
+  if (local == null) {
     if (logger.isEnabledFor(Level.WARN))     logger.warn("No client associated with " + socketChannel.socket());
     return;
   }
-  ClientRequest<?> local=clientRequest;
-  clientRequest=null;
-  expiration=0;
   if (isExpired)   local.timeOut();
  else   local.complete();
   if (logger.isTraceEnabled())   logger.trace("Marked client associated with " + socketChannel.socket() + " as complete");

@@ -1,4 +1,12 @@
 {
-  Pool<V> pool=this.resourcesMap.get(k);
-  return pool.queue.size();
+  if (resourcePoolMap.containsKey(key)) {
+    try {
+      Pool<V> resourcePool=getResourcePoolForExistingKey(key);
+      return resourcePool.queue.size();
+    }
+ catch (    IllegalArgumentException iae) {
+      logger.debug("getCheckedInResourceCount called on invalid key: ",iae);
+    }
+  }
+  return 0;
 }

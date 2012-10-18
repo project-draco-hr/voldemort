@@ -1,0 +1,16 @@
+{
+  if (field == null) {
+    throw new IllegalArgumentException("Field must be non-null. Name=" + name);
+  }
+  if (field.defaultValue() != null) {
+    Schema fieldSchema=field.schema();
+    if (fieldSchema.getType() == Schema.Type.UNION) {
+      fieldSchema=fieldSchema.getTypes().get(0);
+    }
+    JsonNode defaultJson=field.defaultValue();
+    String expectedVal=checkDefaultJson(defaultJson,field.schema());
+    if (expectedVal != null) {
+      messages.add(new Message(Level.ERROR,"Illegal default value for field " + name + ". The default must be of type "+ expectedVal+ "."));
+    }
+  }
+}
