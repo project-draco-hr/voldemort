@@ -9,6 +9,11 @@
       for (      List<Integer> partitions : replicaToPartitionMap.values())       if (partitions != null)       partitionsToDonate.addAll(partitions);
     }
   }
+  for (  Integer partition : partitionsToDonate) {
+    if (!RebalanceUtils.checkPartitionBelongsToNode(partition,voldemortConfig.getNodeId(),initialCluster,storeDef)) {
+      logger.info("Node " + voldemortConfig.getNodeId() + " does not seem to contain partition "+ partition+ " as primary/secondary");
+    }
+  }
   PartitionListIterator entries=new PartitionListIterator(storageEngine,new ArrayList<Integer>(partitionsToDonate));
   try {
     while (running.get() && entries.hasNext()) {
