@@ -1,7 +1,7 @@
 {
   int size=1;
   for (  Versioned<byte[]> v : values) {
-    size+=v.getVersion().sizeInBytes();
+    size+=((VectorClock)v.getVersion()).sizeInBytes();
     size+=ByteUtils.SIZE_OF_INT;
     size+=v.getValue().length;
   }
@@ -9,7 +9,7 @@
   int pos=1;
   bytes[0]=VERSION;
   for (  Versioned<byte[]> v : values) {
-    pos+=v.getVersion().toBytes(bytes,pos);
+    pos+=((VectorClock)v.getVersion()).toBytes(bytes,pos);
     int len=v.getValue().length;
     ByteUtils.writeInt(bytes,len,pos);
     pos+=ByteUtils.SIZE_OF_INT;
