@@ -1,0 +1,19 @@
+{
+  if (args.length < 1) {
+    System.err.println("Missing argument: <Bootstrap URL>");
+    System.exit(-1);
+  }
+  if (args.length == 2) {
+    if (args[1].equals("noop")) {
+      noop=true;
+    }
+  }
+  ServerBootstrap bootstrap=new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),Executors.newCachedThreadPool()));
+  bootstrap.setOption("backlog",1000);
+  ClientConfig clientConfig=new ClientConfig().setBootstrapUrls(args[0]).setEnableLazy(false).setRequestFormatType(RequestFormatType.VOLDEMORT_V3).setEnableCompressionLayer(false).setEnableSerializationLayer(false).setEnableInconsistencyResolvingLayer(false);
+  SocketStoreClientFactory factory=new SocketStoreClientFactory(clientConfig);
+  ZenStoreClient<Object,Object> storeClient=(ZenStoreClient<Object,Object>)factory.getStoreClient("test");
+  System.out.println("Successfully created ZenStoreClient");
+  bootstrap.setPipelineFactory(new HttpServerPipelineFactory(storeClient,noop));
+  bootstrap.bind(new InetSocketAddress(8080));
+}

@@ -1,0 +1,80 @@
+{
+  String storeName="";
+  List<Versioned<Object>> results=new ArrayList<Versioned<Object>>();
+  if (!readingChunks) {
+    HttpRequest request=this.request=(HttpRequest)e.getMessage();
+    QueryStringDecoder queryStringDecoder=new QueryStringDecoder(request.getUri());
+    OP_TYPE operation=getOperationType(queryStringDecoder.getPath());
+    Map<String,List<String>> params=queryStringDecoder.getParameters();
+    if (params != null && params.containsKey(STORE_NAME)) {
+      storeName=params.get(STORE_NAME).get(0);
+    }
+ else {
+      System.err.println("Store Name missing. Critical error");
+      this.responseContent=ChannelBuffers.copiedBuffer("Store Name missing. Critical error".getBytes());
+      return;
+    }
+    if (request.isChunked()) {
+      readingChunks=true;
+    }
+ else {
+      ChannelBuffer content=request.getContent();
+      if (!content.readable()) {
+        System.err.println("Contents not readable");
+        this.responseContent=ChannelBuffers.copiedBuffer("Contents not readable".getBytes());
+        return;
+      }
+switch (operation) {
+case GET:
+        ByteArray getKey=readKey(content);
+      Versioned<Object> responseVersioned=this.storeClient.get(getKey);
+    if (responseVersioned == null) {
+      byte[] nullByteArray=new byte[1];
+      nullByteArray[0]=0;
+      responseVersioned=new Versioned<Object>(nullByteArray);
+    }
+  results.add(responseVersioned);
+byte[] responseValue=(byte[])responseVersioned.getValue();
+this.responseContent=ChannelBuffers.dynamicBuffer(responseValue.length);
+writeResults(results);
+break;
+case PUT:
+ByteArray putKey=readKey(content);
+byte[] putValue=readValue(content);
+try {
+Version putVersion=this.storeClient.put(putKey,putValue);
+}
+ catch (ObsoleteVersionException oe) {
+}
+this.responseContent=ChannelBuffers.EMPTY_BUFFER;
+break;
+default :
+System.err.println("Illegal operation.");
+this.responseContent=ChannelBuffers.copiedBuffer("Illegal operation.".getBytes());
+return;
+}
+writeResponse(e);
+}
+}
+ else {
+HttpChunk chunk=(HttpChunk)e.getMessage();
+if (chunk.isLast()) {
+readingChunks=false;
+buf.append("END OF CONTENT\r\n");
+HttpChunkTrailer trailer=(HttpChunkTrailer)chunk;
+if (!trailer.getHeaderNames().isEmpty()) {
+buf.append("\r\n");
+for (String name : trailer.getHeaderNames()) {
+for (String value : trailer.getHeaders(name)) {
+buf.append("TRAILING HEADER: " + name + " = "+ value+ "\r\n");
+}
+}
+buf.append("\r\n");
+}
+writeResponse(e);
+}
+ else {
+buf.append("CHUNK: " + chunk.getContent().toString(CharsetUtil.UTF_8) + "\r\n");
+}
+}
+}

@@ -1,0 +1,10 @@
+{
+  responseContent.writeInt(values.size());
+  for (  Versioned<Object> v : values) {
+    byte[] clock=((VectorClock)v.getVersion()).toBytes();
+    byte[] value=(byte[])v.getValue();
+    responseContent.writeInt(clock.length + value.length);
+    responseContent.writeBytes(clock);
+    responseContent.writeBytes(value);
+  }
+}

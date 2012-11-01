@@ -1,0 +1,18 @@
+{
+  boolean success=false;
+  try {
+    for (int i=0; i < maxTries; i++) {
+      try {
+        action.update(this);
+        success=true;
+        return success;
+      }
+ catch (      ObsoleteVersionException e) {
+      }
+    }
+  }
+  finally {
+    if (!success)     action.rollback();
+  }
+  return false;
+}
