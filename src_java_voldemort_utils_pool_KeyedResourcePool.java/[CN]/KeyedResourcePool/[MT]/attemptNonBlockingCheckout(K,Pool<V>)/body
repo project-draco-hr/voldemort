@@ -1,0 +1,9 @@
+{
+  V resource=pool.nonBlockingGet();
+  if (resource == null) {
+    if (pool.attemptGrow(key,this.objectFactory)) {
+      resource=pool.nonBlockingGet();
+    }
+  }
+  return resource;
+}

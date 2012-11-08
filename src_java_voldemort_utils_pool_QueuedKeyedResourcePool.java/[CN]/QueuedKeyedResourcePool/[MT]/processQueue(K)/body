@@ -6,8 +6,7 @@
   Pool<V> resourcePool=getResourcePoolForKey(key);
   V resource=null;
   try {
-    attemptGrow(key,resourcePool);
-    resource=attemptCheckout(resourcePool);
+    resource=attemptNonBlockingCheckout(key,resourcePool);
   }
  catch (  Exception e) {
     destroyResource(key,resourcePool,resource);
