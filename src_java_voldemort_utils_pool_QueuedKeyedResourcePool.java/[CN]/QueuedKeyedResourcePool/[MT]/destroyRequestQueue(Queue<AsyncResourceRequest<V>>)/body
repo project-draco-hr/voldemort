@@ -1,7 +1,9 @@
 {
-  AsyncResourceRequest<V> resourceRequest=requestQueue.poll();
-  while (resourceRequest != null) {
-    destroyRequest(resourceRequest);
-    resourceRequest=requestQueue.poll();
+  if (requestQueue != null) {
+    AsyncResourceRequest<V> resourceRequest=requestQueue.poll();
+    while (resourceRequest != null) {
+      destroyRequest(resourceRequest);
+      resourceRequest=requestQueue.poll();
+    }
   }
 }

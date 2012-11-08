@@ -1,7 +1,10 @@
 {
-  Queue<AsyncResourceRequest<V>> requestQueue=requestQueueMap.get(key);
-  if (requestQueue != null) {
-    destroyRequestQueue(requestQueue);
+  Queue<AsyncResourceRequest<V>> requestQueueToDestroy=requestQueueMap.get(key);
+  if (requestQueueToDestroy != null) {
+    Queue<AsyncResourceRequest<V>> newRequestQueue=new ConcurrentLinkedQueue<AsyncResourceRequest<V>>();
+    if (requestQueueMap.replace(key,requestQueueToDestroy,newRequestQueue)) {
+      destroyRequestQueue(requestQueueToDestroy);
+    }
   }
   super.reset(key);
 }
