@@ -3,12 +3,14 @@
   if (parent == null && statsMap != null) {
     int monitoringInterval=this.monitoringInterval.get();
     if (monitoringCount % (monitoringInterval + 1) == monitoringInterval) {
+      long startTimeNs=System.nanoTime();
       Iterator<SocketDestination> it=statsMap.keySet().iterator();
       while (it.hasNext()) {
         ClientSocketStats stats=statsMap.get(it.next());
         stats.resetForInterval();
       }
       resetForInterval();
+      logger.info("ClientSocketStats(" + System.identityHashCode(this) + ")::checkMonitoringInterval: reset self and all children in "+ (startTimeNs - System.nanoTime())+ " ns.");
     }
   }
 }
