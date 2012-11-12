@@ -9,4 +9,5 @@
     Accumulator newv=new Accumulator(oldv.startTimeMS,oldv.count + 1,oldv.totalTimeNS + timeNS,oldv.total + 1,oldv.numEmptyResponses + numEmptyResponses,Math.max(timeNS,oldv.maxLatencyNS),oldv.totalBytes + bytes,Math.max(oldv.maxBytes,bytes),oldv.getAllAggregatedCount + getAllAggregatedCount,getAllAggregatedCount > oldv.getAllMaxCount ? getAllAggregatedCount : oldv.getAllMaxCount);
     if (values.compareAndSet(oldv,newv))     return;
   }
+  logger.info("addRequest lost data because three retries was insufficient.");
 }

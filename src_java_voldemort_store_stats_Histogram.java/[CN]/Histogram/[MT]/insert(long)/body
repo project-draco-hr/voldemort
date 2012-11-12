@@ -11,8 +11,8 @@
  else {
     index=data / step;
   }
-  if (index >= nBuckets) {
-    logger.error(data + " can't be bucketed because index overflowed number of buckets!");
+  if (index < 0 || index >= nBuckets) {
+    logger.error(data + " can't be bucketed because index is not in range [0,nBuckets).");
     return;
   }
   buckets[(int)index]++;
