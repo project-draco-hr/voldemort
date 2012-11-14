@@ -1,6 +1,8 @@
 {
-  final long infoCutoffNs=100 * 1000;
-  long startTimeNs=System.nanoTime();
+  long startTimeNs=0;
+  if (logger.isTraceEnabled()) {
+    startTimeNs=System.nanoTime();
+  }
   long timeMs=timeNS / Time.NS_PER_MS;
   if (this.useHistogram) {
     histogram.insert(timeMs);
@@ -10,12 +12,14 @@
     Accumulator oldv=getValidAccumulator();
     Accumulator newv=new Accumulator(oldv.startTimeMS,oldv.count + 1,oldv.totalTimeNS + timeNS,oldv.total + 1,oldv.numEmptyResponses + numEmptyResponses,Math.max(timeNS,oldv.maxLatencyNS),oldv.totalBytes + bytes,Math.max(oldv.maxBytes,bytes),oldv.getAllAggregatedCount + getAllAggregatedCount,getAllAggregatedCount > oldv.getAllMaxCount ? getAllAggregatedCount : oldv.getAllMaxCount);
     if (values.compareAndSet(oldv,newv)) {
-      long durationNs=System.nanoTime() - startTimeNs;
-      if (durationNs > infoCutoffNs) {
-        logger.info("addRequest (histogram.insert and accumulator update) took more than " + infoCutoffNs + " ns: "+ durationNs+ " ns.");
+      if (logger.isTraceEnabled()) {
+        logger.trace("addRequest (histogram.insert and accumulator update) took " + (System.nanoTime() - startTimeNs) + " ns.");
       }
       return;
     }
   }
-  logger.info("addRequest lost data because three retries was insufficient.");
+  logger.info("addRequest lost timing instrumentation data because three retries was insufficient to update the accumulator.");
+  if (logger.isTraceEnabled()) {
+    logger.trace("addRequest (histogram.insert and accumulator update) took " + (System.nanoTime() - startTimeNs) + " ns.");
+  }
 }

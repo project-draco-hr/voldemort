@@ -1,5 +1,8 @@
 {
-  long start=System.nanoTime();
+  long startTimeNs=0;
+  if (stats != null) {
+    startTimeNs=System.nanoTime();
+  }
   ClientRequestExecutor clientRequestExecutor;
   try {
     clientRequestExecutor=queuedPool.checkout(destination);
@@ -8,9 +11,8 @@
     throw new UnreachableStoreException("Failure while checking out socket for " + destination + ": ",e);
   }
  finally {
-    long end=System.nanoTime();
     if (stats != null) {
-      stats.recordCheckoutTimeUs(destination,(end - start) / Time.NS_PER_US);
+      stats.recordCheckoutTimeUs(destination,(System.nanoTime() - startTimeNs) / Time.NS_PER_US);
       stats.recordCheckoutQueueLength(destination,queuedPool.getBlockingGetsCount(destination));
     }
   }
