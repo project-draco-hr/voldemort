@@ -9,7 +9,9 @@
         if (!nonBlockingPut(resource)) {
           this.size.decrementAndGet();
           objectFactory.destroy(key,resource);
-          logger.info("attemptGrow established new connection for key " + key.toString() + " and immediately destroyed the new connection "+ "because there were too many connections already established.");
+          if (logger.isInfoEnabled()) {
+            logger.info("attemptGrow established new connection for key " + key.toString() + " and immediately destroyed the new connection "+ "because there were too many connections already established.");
+          }
           return false;
         }
         if (logger.isDebugEnabled()) {
