@@ -21,7 +21,15 @@
     indexFileSizes.add((int)indexLength);
     dataFileSizes.add((int)dataLength);
     dataFiles.add(openChannel(data));
-    indexFiles.add(mapFile(index));
+    MappedFileReader idxFileReader=null;
+    try {
+      idxFileReader=new MappedFileReader(index);
+      mappedIndexFileReader.add(idxFileReader);
+      indexFiles.add(idxFileReader.map());
+    }
+ catch (    IOException e) {
+      e.printStackTrace();
+    }
     chunkId++;
   }
   if (chunkId == 0)   throw new VoldemortException("No data chunks found in directory " + baseDir.toString());

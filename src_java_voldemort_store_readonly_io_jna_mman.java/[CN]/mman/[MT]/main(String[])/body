@@ -1,0 +1,10 @@
+{
+  String path=args[0];
+  File file=new File(path);
+  FileInputStream in=new FileInputStream(file);
+  int fd=voldemort.store.readonly.io.Native.getFd(in.getFD());
+  Pointer addr=mmap(file.length(),PROT_READ,mman.MAP_SHARED | mman.MAP_LOCKED,fd,0);
+  mlock(addr,file.length());
+  munlock(addr,file.length());
+  munmap(addr,file.length());
+}
