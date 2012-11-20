@@ -1,5 +1,7 @@
 {
   int result=Delegate.posix_fallocate(fd,offset,len);
-  if (result != 0)   throw new IOException(errno.strerror(result));
+  if (result != 0) {
+    logger.warn(errno.strerror(result));
+  }
   return result;
 }

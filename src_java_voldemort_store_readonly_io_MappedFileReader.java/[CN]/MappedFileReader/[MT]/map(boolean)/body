@@ -1,7 +1,7 @@
 {
   try {
     if (mappedByteBuffer == null) {
-      if (autoLock) {
+      if (setAutoLock) {
         closer.add(new MemLock(file,in.getFD(),offset,length));
       }
       mappedByteBuffer=channel.map(FileChannel.MapMode.READ_ONLY,offset,length);
@@ -10,6 +10,7 @@
     return mappedByteBuffer;
   }
  catch (  IOException e) {
+    log.error(String.format("Failed to map %s of length %,d at %,d",file.getPath(),length,offset),e);
     throw new IOException(String.format("Failed to map %s of length %,d at %,d",file.getPath(),length,offset),e);
   }
 }
