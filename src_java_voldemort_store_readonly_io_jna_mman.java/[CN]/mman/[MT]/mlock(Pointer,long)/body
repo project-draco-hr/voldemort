@@ -1,7 +1,10 @@
 {
-  if (Delegate.mlock(addr,len) != 0) {
+  int res=Delegate.mlock(addr,len);
+  if (res != 0) {
+    String error=errno.strerror();
     logger.warn("Mlock failed probably because of insufficient privileges");
-    logger.warn(errno.strerror());
+    logger.warn(error);
+    logger.warn(res);
   }
  else {
     logger.info("Mlock successfull");
