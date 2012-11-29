@@ -6,32 +6,57 @@
   ObjectName jmxName=null;
   try {
     final Configuration config=new Configuration();
+    FileSystem fs=null;
     config.setInt("io.socket.receive.buffer",bufferSize);
     config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
     config.set("hadoop.security.group.mapping","org.apache.hadoop.security.ShellBasedUnixGroupsMapping");
-    config.addResource(new Path(hadoopConfigPath + "/core-site.xml"));
-    config.addResource(new Path(hadoopConfigPath + "/hdfs-site.xml"));
-    FileSystem fs=null;
     final Path path=new Path(sourceFileUrl);
-    logger.info("Using path : " + path);
-    String security=config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION);
-    if (security == null || !security.equals("kerberos")) {
-      logger.info("Security isn't turned on in the conf: " + CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION + " = "+ config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION));
-      logger.info("Fix that.  Exiting.");
-      return null;
-    }
+    if (hadoopConfigPath.length() > 0) {
+      config.addResource(new Path(hadoopConfigPath + "/core-site.xml"));
+      config.addResource(new Path(hadoopConfigPath + "/hdfs-site.xml"));
+      String security=config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION);
+      if (security == null || !security.equals("kerberos")) {
+        logger.info("Security isn't turned on in the conf: " + CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION + " = "+ config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION));
+        logger.info("Fix that.  Exiting.");
+        return null;
+      }
  else {
-      logger.info("Security is turned on in the conf.  That's good");
+        logger.info("Security is turned on in the conf. Trying to authenticate ...");
+      }
     }
-    System.err.println(HdfsFetcher.keytabPath);
     try {
-      UserGroupInformation.setConfiguration(config);
-      UserGroupInformation.loginUserFromKeytab(HdfsFetcher.kerberosPrincipal,HdfsFetcher.keytabPath);
-      fs=path.getFileSystem(config);
+      if (HdfsFetcher.keytabPath.length() > 0) {
+        UserGroupInformation.setConfiguration(config);
+        UserGroupInformation.loginUserFromKeytab(HdfsFetcher.kerberosPrincipal,HdfsFetcher.keytabPath);
+        try {
+          logger.info("I've logged in and am now Doasing as " + UserGroupInformation.getCurrentUser().getUserName());
+          fs=UserGroupInformation.getCurrentUser().doAs(new PrivilegedExceptionAction<FileSystem>(){
+            public FileSystem run() throws Exception {
+              FileSystem fs=path.getFileSystem(config);
+              return fs;
+            }
+          }
+);
+        }
+ catch (        InterruptedException e) {
+          logger.error(e.getMessage());
+        }
+catch (        Exception e) {
+          logger.error("Got an exception while getting the filesystem object: ");
+          logger.error("Exception class : " + e.getClass());
+          e.printStackTrace();
+          for (          StackTraceElement et : e.getStackTrace()) {
+            logger.error(et.toString());
+          }
+        }
+      }
+ else {
+        fs=path.getFileSystem(config);
+      }
     }
  catch (    IOException e) {
       e.printStackTrace();
-      System.err.println("Error !!! Exiting !!!");
+      logger.error("Error in authenticating or getting the Filesystem object !!! Exiting !!!");
       System.exit(-1);
     }
     CopyStats stats=new CopyStats(sourceFileUrl,sizeOfPath(fs,path));
