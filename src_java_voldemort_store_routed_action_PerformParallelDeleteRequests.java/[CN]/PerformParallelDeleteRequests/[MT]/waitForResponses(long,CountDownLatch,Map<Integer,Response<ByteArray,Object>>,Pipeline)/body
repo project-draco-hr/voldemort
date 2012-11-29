@@ -1,0 +1,13 @@
+{
+  long elapsedNs=System.nanoTime() - startTimeNs;
+  long remainingNs=(timeoutMs * Time.NS_PER_MS) - elapsedNs;
+  if (remainingNs > 0) {
+    try {
+      latch.await(remainingNs,TimeUnit.NANOSECONDS);
+    }
+ catch (    InterruptedException e) {
+      if (logger.isEnabledFor(Level.WARN))       logger.warn(e,e);
+    }
+    processResponses(responses,pipeline);
+  }
+}

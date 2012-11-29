@@ -1,0 +1,16 @@
+{
+  for (  Entry<Integer,Response<ByteArray,Object>> responseEntry : responses.entrySet()) {
+    Response<ByteArray,Object> response=responseEntry.getValue();
+    if (response.getValue() instanceof Exception && !(response.getValue() instanceof ObsoleteVersionException)) {
+      if (handleResponseError(response,pipeline,failureDetector))       return;
+    }
+ else {
+      pipelineData.incrementSuccesses();
+      failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
+      pipelineData.getZoneResponses().add(response.getNode().getZoneId());
+      Response<ByteArray,V> rCast=Utils.uncheckedCast(response);
+      pipelineData.getResponses().add(rCast);
+      responses.remove(responseEntry.getKey());
+    }
+  }
+}

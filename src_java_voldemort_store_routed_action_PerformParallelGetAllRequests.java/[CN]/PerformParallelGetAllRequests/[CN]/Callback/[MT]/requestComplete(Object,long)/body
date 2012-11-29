@@ -1,0 +1,13 @@
+{
+  if (logger.isTraceEnabled())   logger.trace(pipeline.getOperation().getSimpleName() + " response received (" + requestTime+ " ms.) from node "+ node.getId());
+  Response<Iterable<ByteArray>,Object> response=new Response<Iterable<ByteArray>,Object>(node,keys,result,requestTime);
+  responses.put(node.getId(),response);
+  attemptsLatch.countDown();
+  if (pipeline.isFinished() && response.getValue() instanceof Exception)   if (response.getValue() instanceof InvalidMetadataException) {
+    pipelineData.reportException((InvalidMetadataException)response.getValue());
+    logger.warn("Received invalid metadata problem after a successful " + pipeline.getOperation().getSimpleName() + " call on node "+ node.getId()+ ", store '"+ pipelineData.getStoreName()+ "'");
+  }
+ else {
+    handleResponseError(response,pipeline,failureDetector);
+  }
+}
