@@ -1,0 +1,15 @@
+{
+  logger.error("OMG DoExceptionHandling.run() invoked!");
+  if (response.getValue() instanceof UnreachableStoreException && isHintedHandoffEnabled()) {
+    Slop slop=new Slop(pipelineData.getStoreName(),Slop.Operation.PUT,key,versionedCopy.getValue(),transforms,node.getId(),new Date());
+    pipelineData.addFailedNode(node);
+    hintedHandoff.sendHintSerial(node,versionedCopy.getVersion(),slop);
+  }
+ else   if (response.getValue() instanceof InvalidMetadataException) {
+    pipelineData.reportException((InvalidMetadataException)response.getValue());
+    logger.warn("Received invalid metadata problem after a successful " + pipeline.getOperation().getSimpleName() + " call on node "+ node.getId()+ ", store '"+ pipelineData.getStoreName()+ "'");
+  }
+ else {
+    handleResponseError(response,pipeline,failureDetector);
+  }
+}
