@@ -1,0 +1,18 @@
+{
+  socketStoreFactory=new ClientRequestExecutorPool(numSelectors,connectionsPerNode,CONNECTION_TIMEOUT_MS,SOCKET_TIMEOUT_MS,SOCKET_BUFFER_SIZE,SOCKET_KEEP_ALIVE);
+  cluster=ServerTestUtils.getLocalCluster(numServers,new int[][]{{0,4},{1,5},{2,6},{3,7}});
+  servers=new ArrayList<VoldemortServer>();
+  Properties p=new Properties();
+  String storageConfigs=BdbStorageConfiguration.class.getName() + "," + InMemoryStorageConfiguration.class.getName()+ ","+ SlowStorageConfiguration.class.getName();
+  p.setProperty("storage.configs",storageConfigs);
+  p.setProperty("testing.slow.queueing.put.ms",Long.toString(opSlowMs));
+  p.setProperty("testing.slow.queueing.get.ms",Long.toString(opSlowMs));
+  for (int i=0; i < numServers; i++) {
+    VoldemortConfig voldemortConfig=ServerTestUtils.createServerConfigWithDefs(this.useNio,i,TestUtils.createTempDir().getAbsolutePath(),cluster,getStoreDef(),p);
+    VoldemortServer voldemortServer=ServerTestUtils.startVoldemortServer(socketStoreFactory,voldemortConfig);
+    servers.add(voldemortServer);
+  }
+  Node node=cluster.getNodeById(0);
+  String bootstrapUrl="tcp://" + node.getHost() + ":"+ node.getSocketPort();
+  storeClientFactory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootstrapUrl).setMaxConnectionsPerNode(connectionsPerNode).setConnectionTimeout(CONNECTION_TIMEOUT_MS,TimeUnit.MILLISECONDS).setSocketTimeout(SOCKET_TIMEOUT_MS,TimeUnit.MILLISECONDS).setRoutingTimeout(ROUTING_TIMEOUT_MS,TimeUnit.MILLISECONDS).setFailureDetectorThreshold(99).setFailureDetectorThresholdInterval(250));
+}
