@@ -40,25 +40,41 @@
       numNodesPerZone.put(node.getZoneId(),1);
     }
   }
+  System.out.println("numPartitionsPerZone");
+  for (  int zone : numPartitionsPerZone.keySet()) {
+    System.out.println(zone + " : " + numPartitionsPerZone.get(zone));
+  }
+  System.out.println("numNodesPerZone");
+  for (  int zone : numNodesPerZone.keySet()) {
+    System.out.println(zone + " : " + numNodesPerZone.get(zone));
+  }
+  System.out.println("numDonorNodesPerZone");
+  for (  int zone : numDonorNodesPerZone.keySet()) {
+    System.out.println(zone + " : " + numDonorNodesPerZone.get(zone));
+  }
   Cluster returnCluster=updateCluster(targetCluster,allNodes);
   int totalPrimaryPartitionsMoved=0;
   if (currentNumNodes == targetNumNodes) {
     return Pair.create(returnCluster,totalPrimaryPartitionsMoved);
   }
+  int donorIndexRotationOffset=0;
   for (  int newNodeId : newNodeIds) {
     Node newNode=targetCluster.getNodeById(newNodeId);
     int partitionsToSteal=(int)Math.floor(numPartitionsPerZone.get(newNode.getZoneId()) * 1.0 / numNodesPerZone.get(newNode.getZoneId()));
+    System.out.println("newNodeId (" + newNodeId + ") has partitionsToSteal of "+ partitionsToSteal);
     int nodesStolenFrom=0;
     for (int index=0; index < donorNodeIds.size(); index++) {
-      int donorNodeId=donorNodeIds.get(index);
+      int donorNodeId=donorNodeIds.get((index + donorIndexRotationOffset) % donorNodeIds.size());
       Node donorNode=currentCluster.getNodeById(donorNodeId);
       if (donorNode.getZoneId() != newNode.getZoneId()) {
         continue;
       }
       if (partitionsToSteal <= 0)       break;
       int partitionsToDonate=Math.max((int)Math.floor(partitionsToSteal / (numDonorNodesPerZone.get(newNode.getZoneId()) - nodesStolenFrom)),1);
+      System.out.println("donorNodeId (" + donorNodeId + ") has partitionsToDonate of "+ partitionsToDonate);
       nodesStolenFrom++;
       if (returnCluster.getNodeById(donorNodeId).getNumberOfPartitions() <= partitionsToDonate) {
+        System.out.println("donorNodeId (" + donorNodeId + ") cannot donate any more partitions because getNumberof Partitions ("+ returnCluster.getNodeById(donorNodeId).getNumberOfPartitions()+ ") is less than partitions to Donate ("+ partitionsToDonate+ ")");
         continue;
       }
       List<Integer> donorPartitions=Lists.newArrayList(returnCluster.getNodeById(donorNodeId).getPartitionIds());
@@ -75,6 +91,7 @@
       }
       partitionsToSteal-=partitionsDonated;
     }
+    donorIndexRotationOffset++;
   }
   return Pair.create(returnCluster,totalPrimaryPartitionsMoved);
 }
