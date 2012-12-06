@@ -20,7 +20,9 @@
   p=new Path(url);
   HdfsFetcher.keytabPath=keytabLocation;
   HdfsFetcher.kerberosPrincipal=kerberosUser;
-  if (hadoopPath.length() > 0) {
+  boolean isHftpBasedFetch=url.length() > 4 && url.substring(0,4).equals("hftp");
+  logger.info("URL : " + url + " and hftp protocol enabled = "+ isHftpBasedFetch);
+  if (hadoopPath.length() > 0 && !isHftpBasedFetch) {
     config.set("hadoop.security.group.mapping","org.apache.hadoop.security.ShellBasedUnixGroupsMapping");
     config.addResource(new Path(hadoopPath + "/core-site.xml"));
     config.addResource(new Path(hadoopPath + "/hdfs-site.xml"));
@@ -35,7 +37,7 @@
     }
   }
   try {
-    if (keytabLocation.length() > 0) {
+    if (keytabLocation.length() > 0 && !isHftpBasedFetch) {
       UserGroupInformation.setConfiguration(config);
       UserGroupInformation.loginUserFromKeytab(kerberosUser,keytabLocation);
       final Path path=p;
@@ -67,7 +69,7 @@ catch (      Exception e) {
   }
  catch (  IOException e) {
     e.printStackTrace();
-    System.err.println("Error !!! Exiting !!!");
+    System.err.println("Error in getting Hadoop filesystem object !!! Exiting !!!");
     System.exit(-1);
   }
   FileStatus status=fs.listStatus(p)[0];

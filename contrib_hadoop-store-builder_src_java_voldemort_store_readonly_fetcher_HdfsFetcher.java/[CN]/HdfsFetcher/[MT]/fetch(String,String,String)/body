@@ -11,13 +11,16 @@
     config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
     config.set("hadoop.security.group.mapping","org.apache.hadoop.security.ShellBasedUnixGroupsMapping");
     final Path path=new Path(sourceFileUrl);
-    if (hadoopConfigPath.length() > 0) {
+    boolean isHftpBasedFetch=sourceFileUrl.length() > 4 && sourceFileUrl.substring(0,4).equals("hftp");
+    logger.info("URL : " + sourceFileUrl + " and hftp protocol enabled = "+ isHftpBasedFetch);
+    logger.info("Hadoop path = " + hadoopConfigPath + " , keytab path = "+ HdfsFetcher.keytabPath+ " , kerberos principal = "+ HdfsFetcher.kerberosPrincipal);
+    if (hadoopConfigPath.length() > 0 && !isHftpBasedFetch) {
       config.addResource(new Path(hadoopConfigPath + "/core-site.xml"));
       config.addResource(new Path(hadoopConfigPath + "/hdfs-site.xml"));
       String security=config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION);
       if (security == null || !security.equals("kerberos")) {
-        logger.info("Security isn't turned on in the conf: " + CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION + " = "+ config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION));
-        logger.info("Fix that.  Exiting.");
+        logger.error("Security isn't turned on in the conf: " + CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION + " = "+ config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION));
+        logger.error("Please make sure that the Hadoop config directory path is valid.");
         return null;
       }
  else {
@@ -25,7 +28,11 @@
       }
     }
     try {
-      if (HdfsFetcher.keytabPath.length() > 0) {
+      if (HdfsFetcher.keytabPath.length() > 0 && !isHftpBasedFetch) {
+        if (!new File(HdfsFetcher.keytabPath).exists()) {
+          logger.error("Invalid keytab file path. Please provide a valid keytab path");
+          return null;
+        }
         UserGroupInformation.setConfiguration(config);
         UserGroupInformation.loginUserFromKeytab(HdfsFetcher.kerberosPrincipal,HdfsFetcher.keytabPath);
         try {
@@ -56,8 +63,8 @@ catch (        Exception e) {
     }
  catch (    IOException e) {
       e.printStackTrace();
-      logger.error("Error in authenticating or getting the Filesystem object !!! Exiting !!!");
-      System.exit(-1);
+      logger.error("Error in authenticating or getting the Filesystem object !!!");
+      return null;
     }
     CopyStats stats=new CopyStats(sourceFileUrl,sizeOfPath(fs,path));
     jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
