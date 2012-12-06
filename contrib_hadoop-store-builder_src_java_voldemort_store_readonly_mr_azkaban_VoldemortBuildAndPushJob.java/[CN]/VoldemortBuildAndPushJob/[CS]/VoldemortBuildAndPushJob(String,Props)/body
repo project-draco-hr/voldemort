@@ -14,6 +14,10 @@
   this.log=Logger.getLogger(name);
   this.informedResults=Lists.newArrayList();
   this.informedExecutor=Executors.newFixedThreadPool(2);
+  this.hdfsFetcherProtocol=props.getString("voldemort.fetcher.protocol","hftp");
+  this.hdfsFetcherPort=props.getString("voldemort.fetcher.port","50070");
+  log.info("voldemort.fetcher.protocol is set to : " + hdfsFetcherProtocol);
+  log.info("voldemort.fetcher.port is set to : " + hdfsFetcherPort);
   isAvroJob=props.getBoolean("build.type.avro",false);
   isAvroVersioned=props.getBoolean("avro.serializer.versioned",false);
   keyField=props.getString("avro.key.field",null);
