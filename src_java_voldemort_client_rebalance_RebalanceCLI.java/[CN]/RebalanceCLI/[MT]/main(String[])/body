@@ -14,6 +14,7 @@
     parser.accepts("generate-primaries-within-zone","Keep primary partitions within the same zone").withRequiredArg().ofType(Boolean.class);
     parser.accepts("generate-permit-xzone-moves","Allow non-primary partitions to move across zones.").withRequiredArg().ofType(Boolean.class);
     parser.accepts("generate-random-num-partitions","Vary number of partitions per node by some amount.").withRequiredArg().ofType(Integer.class).describedAs("number-partitions");
+    parser.accepts("generate-max-contiguous-partitions","Limit the number of contiguous partition IDs allowed within a zone.").withRequiredArg().ofType(Integer.class).describedAs("num-contiguous");
     parser.accepts("analyze","Analyze how balanced given cluster is.");
     parser.accepts("entropy","True - if we want to run the entropy calculator. False - if we want to store keys").withRequiredArg().ofType(Boolean.class);
     parser.accepts("output-dir","Specify the output directory for (1) dumping metadata" + "(b) dumping entropy keys").withRequiredArg().ofType(String.class).describedAs("path");
@@ -39,6 +40,7 @@
     boolean generatePrimariesWithinZone=CmdUtils.valueOf(options,"generate-primaries-within-zone",true);
     boolean generatePermitXZoneMoves=CmdUtils.valueOf(options,"generate-permit-xzone-moves",true);
     int generateRandomNumPartitions=CmdUtils.valueOf(options,"generate-random-num-partitions",0);
+    int generateMaxContiguousPartitionsPerZone=CmdUtils.valueOf(options,"generate-max-contiguous-partitions",-1);
     RebalanceClientConfig config=new RebalanceClientConfig();
     config.setMaxParallelRebalancing(parallelism);
     config.setDeleteAfterRebalancingEnabled(deleteAfterRebalancing);
@@ -98,7 +100,7 @@
       String targetClusterXML=(String)options.valueOf("target-cluster");
       Cluster targetCluster=new ClusterMapper().readCluster(new File(targetClusterXML));
       if (options.has("generate")) {
-        RebalanceUtils.generateMinCluster(currentCluster,targetCluster,storeDefs,config.getOutputDirectory(),config.getMaxTriesRebalancing(),generatePrimariesWithinZone,generatePermitXZoneMoves,generateRandomNumPartitions);
+        RebalanceUtils.generateMinCluster(currentCluster,targetCluster,storeDefs,config.getOutputDirectory(),config.getMaxTriesRebalancing(),generatePrimariesWithinZone,generatePermitXZoneMoves,generateRandomNumPartitions,generateMaxContiguousPartitionsPerZone);
         return;
       }
       rebalanceController=new RebalanceController(currentCluster,config);

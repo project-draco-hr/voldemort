@@ -5,7 +5,7 @@
   int minMoves=Integer.MAX_VALUE;
   double minStdDev=Double.MAX_VALUE;
   for (int numTries=0; numTries < tries; numTries++) {
-    Pair<Cluster,Integer> minClusterMove=RebalanceUtils.generateMinCluster(currentCluster,targetCluster,storeDefs,keepPrimaryPartitionsInSameZone,permitCrossZoneMoves,varyNumPartitionsPerNode);
+    Pair<Cluster,Integer> minClusterMove=RebalanceUtils.generateMinCluster(currentCluster,targetCluster,storeDefs,keepPrimaryPartitionsInSameZone,permitCrossZoneMoves,varyNumPartitionsPerNode,maxContiguousPartitionsPerZone);
     double currentStdDev=KeyDistributionGenerator.getStdDeviation(KeyDistributionGenerator.generateOverallDistributionWithUniqueStores(minClusterMove.getFirst(),uniqueStores,keys));
     System.out.println("Optimization number " + numTries + ": "+ minClusterMove.getSecond()+ " moves, "+ currentStdDev+ " std dev");
     System.out.println("Current min moves: " + minMoves + "; current min std dev: "+ minStdDev);

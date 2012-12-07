@@ -3,6 +3,8 @@
   List<Integer> donorNodeIds=Lists.newArrayList();
   List<Node> allNodes=Lists.newArrayList();
   HashMap<Integer,Integer> numPartitionsPerZone=Maps.newHashMap();
+  HashMap<Integer,List<Integer>> partitionsPerZone=Maps.newHashMap();
+  HashMap<Integer,List<Integer>> nodesPerZone=Maps.newHashMap();
   HashMap<Integer,Integer> numNodesPerZone=Maps.newHashMap();
   HashMap<Integer,Integer> numDonorNodesPerZone=Maps.newHashMap();
   HashMap<Integer,Integer> numStealerNodesPerZone=Maps.newHashMap();
@@ -46,6 +48,30 @@
  else {
       numNodesPerZone.put(node.getZoneId(),1);
     }
+    if (maxContiguousPartitionsPerZone >= 0) {
+      if (partitionsPerZone.containsKey(node.getZoneId())) {
+        List<Integer> currentPartitions=partitionsPerZone.get(node.getZoneId());
+        List<Integer> mutableCurrentPartitions=new ArrayList<Integer>();
+        mutableCurrentPartitions.addAll(currentPartitions);
+        mutableCurrentPartitions.addAll(node.getPartitionIds());
+        partitionsPerZone.put(node.getZoneId(),mutableCurrentPartitions);
+      }
+ else {
+        partitionsPerZone.put(node.getZoneId(),node.getPartitionIds());
+      }
+      if (nodesPerZone.containsKey(node.getZoneId())) {
+        List<Integer> currentNodeList=nodesPerZone.get(node.getZoneId());
+        List<Integer> mutableNodeList=new ArrayList<Integer>();
+        mutableNodeList.addAll(currentNodeList);
+        mutableNodeList.add(node.getId());
+        nodesPerZone.put(node.getZoneId(),mutableNodeList);
+      }
+ else {
+        List<Integer> nodeList=new ArrayList<Integer>();
+        nodeList.add(node.getId());
+        nodesPerZone.put(node.getZoneId(),nodeList);
+      }
+    }
   }
   System.out.println("numPartitionsPerZone");
   for (  int zone : numPartitionsPerZone.keySet()) {
@@ -63,8 +89,54 @@
   for (  int zone : numStealerNodesPerZone.keySet()) {
     System.out.println(zone + " : " + numStealerNodesPerZone.get(zone));
   }
+  HashMap<Integer,List<Integer>> partitionsToRemoveFromZone=Maps.newHashMap();
+  if (maxContiguousPartitionsPerZone >= 0) {
+    for (    Integer zoneId : partitionsPerZone.keySet()) {
+      List<Integer> partitions=partitionsPerZone.get(zoneId);
+      java.util.Collections.sort(partitions);
+      List<Integer> partitionsToRemoveFromThisZone=new ArrayList<Integer>();
+      int contiguousCount=0;
+      int lastPartitionId=partitions.get(0);
+      for (int i=1; i < partitions.size(); ++i) {
+        if (partitions.get(i) == lastPartitionId + 1) {
+          contiguousCount++;
+          if (contiguousCount == maxContiguousPartitionsPerZone) {
+            partitionsToRemoveFromThisZone.add(partitions.get(i));
+            contiguousCount=0;
+          }
+        }
+ else {
+          contiguousCount=0;
+        }
+        lastPartitionId=partitions.get(i);
+      }
+      partitionsToRemoveFromZone.put(zoneId,partitionsToRemoveFromThisZone);
+      System.out.println("Partitions to remove from zone " + zoneId);
+      System.out.println("\t" + partitionsToRemoveFromThisZone);
+    }
+  }
   Cluster returnCluster=updateCluster(targetCluster,allNodes);
   int totalPrimaryPartitionsMoved=0;
+  if (maxContiguousPartitionsPerZone >= 0) {
+    Random r=new Random();
+    Set<Integer> zoneIds=numNodesPerZone.keySet();
+    for (    int zoneId : zoneIds) {
+      for (      int partitionId : partitionsToRemoveFromZone.get(zoneId)) {
+        List<Integer> otherZoneIds=new ArrayList<Integer>();
+        for (        int otherZoneId : zoneIds) {
+          if (otherZoneId != zoneId) {
+            otherZoneIds.add(otherZoneId);
+          }
+        }
+        int whichOtherZoneId=otherZoneIds.get(r.nextInt(otherZoneIds.size()));
+        int whichNodeOffset=r.nextInt(nodesPerZone.get(whichOtherZoneId).size());
+        int whichNodeId=nodesPerZone.get(whichOtherZoneId).get(whichNodeOffset);
+        returnCluster=createUpdatedCluster(returnCluster,whichNodeId,Lists.newArrayList(partitionId));
+        totalPrimaryPartitionsMoved++;
+      }
+    }
+    return Pair.create(returnCluster,totalPrimaryPartitionsMoved);
+  }
   HashMap<Integer,List<Integer>> numPartitionsPerNodePerZone=Maps.newHashMap();
   for (  Integer zoneId : numNodesPerZone.keySet()) {
     int numNodesInZone=numNodesPerZone.get(zoneId);
