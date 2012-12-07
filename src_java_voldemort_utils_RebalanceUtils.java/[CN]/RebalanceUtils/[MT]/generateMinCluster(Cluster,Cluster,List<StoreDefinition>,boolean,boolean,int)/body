@@ -80,6 +80,33 @@
     }
     numPartitionsPerNodePerZone.put(zoneId,partitionsOnNode);
   }
+  if (varyNumPartitionsPerNode > 0) {
+    Random r=new Random();
+    for (    Integer zoneId : numPartitionsPerNodePerZone.keySet()) {
+      int totalRandom=0;
+      for (int i=0; i < numPartitionsPerNodePerZone.get(zoneId).size(); i++) {
+        int current=numPartitionsPerNodePerZone.get(zoneId).get(i);
+        int randomVal=r.nextInt(varyNumPartitionsPerNode * 2 + 1);
+        randomVal=Math.max(-current + 1,randomVal - varyNumPartitionsPerNode);
+        numPartitionsPerNodePerZone.get(zoneId).set(i,current + randomVal);
+        totalRandom+=randomVal;
+      }
+      while (totalRandom > 0) {
+        int id=r.nextInt(numPartitionsPerNodePerZone.get(zoneId).size());
+        int current=numPartitionsPerNodePerZone.get(zoneId).get(id);
+        if (current > 1) {
+          numPartitionsPerNodePerZone.get(zoneId).set(id,current - 1);
+          totalRandom--;
+        }
+      }
+      while (totalRandom < 0) {
+        int id=r.nextInt(numPartitionsPerNodePerZone.get(zoneId).size());
+        int current=numPartitionsPerNodePerZone.get(zoneId).get(id);
+        numPartitionsPerNodePerZone.get(zoneId).set(id,current + 1);
+        totalRandom++;
+      }
+    }
+  }
   List<Node> donorNodes=Lists.newArrayList();
   List<Node> stealerNodes=Lists.newArrayList();
   HashMap<Integer,Integer> numPartitionsOnNode=Maps.newHashMap();
@@ -112,7 +139,7 @@
     while (partitionsToSteal > 0) {
       for (      Node donorNode : donorNodes) {
         Node currentDonorNode=returnCluster.getNodeById(donorNode.getId());
-        if (currentDonorNode.getZoneId() != stealerNode.getZoneId()) {
+        if (keepPrimaryPartitionsInSameZone && (currentDonorNode.getZoneId() != stealerNode.getZoneId())) {
           continue;
         }
         if (currentDonorNode.getNumberOfPartitions() == numPartitionsOnNode.get(currentDonorNode.getId())) {
@@ -121,12 +148,13 @@
         List<Integer> donorPartitions=Lists.newArrayList(currentDonorNode.getPartitionIds());
         Collections.shuffle(donorPartitions,new Random(System.currentTimeMillis()));
         for (        int donorPartition : donorPartitions) {
-          long startTimeNs=System.nanoTime();
           Cluster intermediateCluster=createUpdatedCluster(returnCluster,stealerNode.getId(),Lists.newArrayList(donorPartition));
-          System.out.println("createUpdatedCluster took " + (System.nanoTime() - startTimeNs) + " ns.");
-          startTimeNs=System.nanoTime();
-          int crossZoneMoves=RebalanceUtils.getCrossZoneMoves(intermediateCluster,new RebalanceClusterPlan(returnCluster,intermediateCluster,storeDefs,true));
-          System.out.println("getCrossZoneMoves took " + (System.nanoTime() - startTimeNs) + " ns.");
+          int crossZoneMoves=0;
+          if (!permitCrossZoneMoves) {
+            long startTimeNs=System.nanoTime();
+            crossZoneMoves=RebalanceUtils.getCrossZoneMoves(intermediateCluster,new RebalanceClusterPlan(returnCluster,intermediateCluster,storeDefs,true));
+            System.out.println("getCrossZoneMoves took " + (System.nanoTime() - startTimeNs) + " ns.");
+          }
           if (crossZoneMoves == 0) {
             returnCluster=intermediateCluster;
             totalPrimaryPartitionsMoved++;
