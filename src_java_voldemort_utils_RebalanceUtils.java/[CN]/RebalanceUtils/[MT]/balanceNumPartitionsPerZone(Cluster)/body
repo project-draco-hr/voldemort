@@ -1,0 +1,88 @@
+{
+  System.out.println("Balance number of partitions per zone.");
+  List<Node> allNodes=Lists.newArrayList();
+  HashMap<Integer,List<Integer>> nodesPerZone=Maps.newHashMap();
+  HashMap<Integer,List<Integer>> partitionsPerZone=Maps.newHashMap();
+  int numPartitions=0;
+  for (  Node node : targetCluster.getNodes()) {
+    allNodes.add(updateNode(node,Lists.newArrayList(node.getPartitionIds())));
+    numPartitions+=node.getNumberOfPartitions();
+    if (nodesPerZone.containsKey(node.getZoneId())) {
+      List<Integer> currentNodeList=nodesPerZone.get(node.getZoneId());
+      List<Integer> mutableNodeList=new ArrayList<Integer>();
+      mutableNodeList.addAll(currentNodeList);
+      mutableNodeList.add(node.getId());
+      nodesPerZone.put(node.getZoneId(),mutableNodeList);
+    }
+ else {
+      List<Integer> nodeList=new ArrayList<Integer>();
+      nodeList.add(node.getId());
+      nodesPerZone.put(node.getZoneId(),nodeList);
+    }
+    if (partitionsPerZone.containsKey(node.getZoneId())) {
+      List<Integer> currentPartitions=partitionsPerZone.get(node.getZoneId());
+      List<Integer> mutableCurrentPartitions=new ArrayList<Integer>();
+      mutableCurrentPartitions.addAll(currentPartitions);
+      mutableCurrentPartitions.addAll(node.getPartitionIds());
+      partitionsPerZone.put(node.getZoneId(),mutableCurrentPartitions);
+    }
+ else {
+      partitionsPerZone.put(node.getZoneId(),node.getPartitionIds());
+    }
+  }
+  System.out.println("numPartitionsPerZone");
+  for (  int zone : partitionsPerZone.keySet()) {
+    System.out.println(zone + " : " + partitionsPerZone.get(zone).size());
+  }
+  System.out.println("numNodesPerZone");
+  for (  int zone : nodesPerZone.keySet()) {
+    System.out.println(zone + " : " + nodesPerZone.get(zone).size());
+  }
+  HashMap<Integer,Integer> targetNumPartitionsPerZone=Maps.newHashMap();
+  int numZones=nodesPerZone.size();
+  int floorPartitions=numPartitions / numZones;
+  int numZonesWithCeil=numPartitions - (numZones * floorPartitions);
+  int zoneCounter=0;
+  for (  Integer zoneId : nodesPerZone.keySet()) {
+    if (zoneCounter < numZonesWithCeil) {
+      targetNumPartitionsPerZone.put(zoneId,floorPartitions + 1 - partitionsPerZone.get(zoneId).size());
+    }
+ else {
+      targetNumPartitionsPerZone.put(zoneId,floorPartitions - partitionsPerZone.get(zoneId).size());
+    }
+    zoneCounter++;
+  }
+  List<Integer> donorZoneIds=new ArrayList<Integer>();
+  List<Integer> stealerZoneIds=new ArrayList<Integer>();
+  for (  Integer zoneId : nodesPerZone.keySet()) {
+    if (targetNumPartitionsPerZone.get(zoneId) > 0) {
+      stealerZoneIds.add(zoneId);
+    }
+ else     if (targetNumPartitionsPerZone.get(zoneId) < 0) {
+      donorZoneIds.add(zoneId);
+    }
+  }
+  Cluster returnCluster=updateCluster(targetCluster,allNodes);
+  int totalPrimaryPartitionsMoved=0;
+  Random r=new Random();
+  for (  Integer stealerZoneId : stealerZoneIds) {
+    while (targetNumPartitionsPerZone.get(stealerZoneId) > 0) {
+      for (      Integer donorZoneId : donorZoneIds) {
+        if (targetNumPartitionsPerZone.get(donorZoneId) < 0) {
+          int stealerNodeOffset=r.nextInt(nodesPerZone.get(stealerZoneId).size());
+          Integer stealerNodeId=nodesPerZone.get(stealerZoneId).get(stealerNodeOffset);
+          List<Integer> partitionsThisZone=partitionsPerZone.get(donorZoneId);
+          int donorPartitionOffset=r.nextInt(partitionsThisZone.size());
+          int donorPartitionId=partitionsThisZone.get(donorPartitionOffset);
+          partitionsThisZone.remove(donorPartitionOffset);
+          partitionsPerZone.put(donorZoneId,partitionsThisZone);
+          targetNumPartitionsPerZone.put(donorZoneId,targetNumPartitionsPerZone.get(donorZoneId) + 1);
+          targetNumPartitionsPerZone.put(stealerZoneId,targetNumPartitionsPerZone.get(stealerZoneId) - 1);
+          totalPrimaryPartitionsMoved++;
+          returnCluster=createUpdatedCluster(returnCluster,stealerNodeId,Lists.newArrayList(donorPartitionId));
+        }
+      }
+    }
+  }
+  return Pair.create(returnCluster,totalPrimaryPartitionsMoved);
+}

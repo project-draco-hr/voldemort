@@ -14,6 +14,9 @@
     parser.accepts("generate-primaries-within-zone","Keep primary partitions within the same zone").withRequiredArg().ofType(Boolean.class);
     parser.accepts("generate-permit-xzone-moves","Allow non-primary partitions to move across zones.").withRequiredArg().ofType(Boolean.class);
     parser.accepts("generate-random-num-partitions","Vary number of partitions per node by some amount.").withRequiredArg().ofType(Integer.class).describedAs("number-partitions");
+    parser.accepts("generate-enable-random-swaps","Enable attempts to improve balance by random partition swaps within a zone").withRequiredArg().ofType(Boolean.class);
+    parser.accepts("generate-random-swap-attempts","Number of random swaps to attempt.").withRequiredArg().ofType(Integer.class).describedAs("num-attempts");
+    parser.accepts("generate-random-swap-successes","Number of successful random swaps to permit exit before completing all swap attempts.").withRequiredArg().ofType(Integer.class).describedAs("num-successes");
     parser.accepts("generate-max-contiguous-partitions","Limit the number of contiguous partition IDs allowed within a zone.").withRequiredArg().ofType(Integer.class).describedAs("num-contiguous");
     parser.accepts("analyze","Analyze how balanced given cluster is.");
     parser.accepts("entropy","True - if we want to run the entropy calculator. False - if we want to store keys").withRequiredArg().ofType(Boolean.class);
@@ -40,6 +43,9 @@
     boolean generatePrimariesWithinZone=CmdUtils.valueOf(options,"generate-primaries-within-zone",true);
     boolean generatePermitXZoneMoves=CmdUtils.valueOf(options,"generate-permit-xzone-moves",true);
     int generateRandomNumPartitions=CmdUtils.valueOf(options,"generate-random-num-partitions",0);
+    boolean generateEnableRandomSwaps=CmdUtils.valueOf(options,"generate-enable-random-swaps",true);
+    int generateRandomSwapAttempts=CmdUtils.valueOf(options,"generate-random-swap-attempts",100);
+    int generateRandomSwapSuccesses=CmdUtils.valueOf(options,"generate-random-swap-successes",100);
     int generateMaxContiguousPartitionsPerZone=CmdUtils.valueOf(options,"generate-max-contiguous-partitions",-1);
     RebalanceClientConfig config=new RebalanceClientConfig();
     config.setMaxParallelRebalancing(parallelism);
@@ -100,7 +106,11 @@
       String targetClusterXML=(String)options.valueOf("target-cluster");
       Cluster targetCluster=new ClusterMapper().readCluster(new File(targetClusterXML));
       if (options.has("generate")) {
-        RebalanceUtils.generateMinCluster(currentCluster,targetCluster,storeDefs,config.getOutputDirectory(),config.getMaxTriesRebalancing(),generatePrimariesWithinZone,generatePermitXZoneMoves,generateRandomNumPartitions,generateMaxContiguousPartitionsPerZone);
+        if ((options.has("generate-random-swap-attempts") || options.has("generate-random-swap-successes")) && !generateEnableRandomSwaps) {
+          System.err.println("Provided arguments for generate random swaps but disabled the feature");
+          printHelp(System.err,parser);
+        }
+        RebalanceUtils.balanceTargetCluster(currentCluster,targetCluster,storeDefs,config.getOutputDirectory(),config.getMaxTriesRebalancing(),generatePrimariesWithinZone,generatePermitXZoneMoves,generateRandomNumPartitions,generateEnableRandomSwaps,generateRandomSwapAttempts,generateRandomSwapSuccesses,generateMaxContiguousPartitionsPerZone);
         return;
       }
       rebalanceController=new RebalanceController(currentCluster,config);

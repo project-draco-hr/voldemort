@@ -1,0 +1,72 @@
+{
+  HashMap<StoreDefinition,Integer> uniqueStores=KeyDistributionGenerator.getUniqueStoreDefinitionsWithCounts(storeDefs);
+  List<ByteArray> keys=KeyDistributionGenerator.generateKeys(KeyDistributionGenerator.DEFAULT_NUM_KEYS);
+  Cluster minCluster=targetCluster;
+  int minMoves=Integer.MAX_VALUE;
+  double minStdDev=Double.MAX_VALUE;
+  Cluster nextCluster;
+  int xzonePartitionsMoved;
+  for (int numTries=0; numTries < tries; numTries++) {
+    nextCluster=targetCluster;
+    xzonePartitionsMoved=0;
+    if (maxContiguousPartitionsPerZone > 0) {
+      int contigPartitionsMoved=0;
+      do {
+        Pair<Cluster,Integer> contigPartPerZone=RebalanceUtils.balanceContiguousPartitionsPerZone(nextCluster,maxContiguousPartitionsPerZone);
+        nextCluster=contigPartPerZone.getFirst();
+        contigPartitionsMoved=contigPartPerZone.getSecond();
+        xzonePartitionsMoved+=contigPartPerZone.getSecond();
+        Pair<Cluster,Integer> balanceXZone=RebalanceUtils.balanceNumPartitionsPerZone(nextCluster);
+        nextCluster=balanceXZone.getFirst();
+        xzonePartitionsMoved+=balanceXZone.getSecond();
+        System.out.println("Looping to evenly balance partitions across zones while limiting contiguous partitions: " + contigPartitionsMoved);
+      }
+ while (contigPartitionsMoved > 0);
+    }
+    Pair<Cluster,Integer> numPartPerZone=RebalanceUtils.balanceNumberOfPartitionsPerNode(nextCluster,storeDefs,keepPrimaryPartitionsInSameZone,permitCrossZoneMoves,varyNumPartitionsPerNode);
+    nextCluster=numPartPerZone.getFirst();
+    int currentMoves=xzonePartitionsMoved + numPartPerZone.getSecond();
+    if (enableRandomSwaps) {
+      Pair<Cluster,Integer> shuffleCluster=RebalanceUtils.shufflePartitions(nextCluster,swapAttempts,swapSuccesses,uniqueStores,keys);
+      nextCluster=shuffleCluster.getFirst();
+      currentMoves+=shuffleCluster.getSecond();
+    }
+    double currentStdDev=KeyDistributionGenerator.getStdDeviation(KeyDistributionGenerator.generateOverallDistributionWithUniqueStores(nextCluster,uniqueStores,keys));
+    System.out.println("Optimization number " + numTries + ": "+ numPartPerZone.getSecond()+ " moves, "+ currentStdDev+ " std dev");
+    System.out.println("Current min moves: " + minMoves + "; current min std dev: "+ minStdDev);
+    if (currentStdDev <= minStdDev) {
+      if (currentMoves > minMoves) {
+        System.out.println("Warning: the newly chosen cluster requires " + (currentMoves - minMoves) + " addition moves!");
+      }
+      minMoves=currentMoves;
+      minStdDev=currentStdDev;
+      minCluster=nextCluster;
+      System.out.println("Current distribution");
+      System.out.println(KeyDistributionGenerator.printOverallDistribution(currentCluster,storeDefs,keys));
+      System.out.println("-------------------------\n");
+      System.out.println("Target distribution");
+      System.out.println(KeyDistributionGenerator.printOverallDistribution(minCluster,storeDefs,keys));
+      System.out.println("=========================\n");
+      if (outputDir != null) {
+        try {
+          FileUtils.writeStringToFile(new File(outputDir,RebalanceUtils.finalClusterFileName + numTries),new ClusterMapper().writeCluster(minCluster));
+        }
+ catch (        Exception e) {
+        }
+      }
+    }
+  }
+  System.out.println("\n==========================");
+  System.out.println("Final distribution");
+  System.out.println(KeyDistributionGenerator.printOverallDistribution(minCluster,storeDefs,keys));
+  System.out.println("=========================\n");
+  analyzeBalance(minCluster,storeDefs);
+  if (outputDir != null) {
+    try {
+      FileUtils.writeStringToFile(new File(outputDir,RebalanceUtils.finalClusterFileName),new ClusterMapper().writeCluster(minCluster));
+    }
+ catch (    Exception e) {
+    }
+  }
+  return;
+}
