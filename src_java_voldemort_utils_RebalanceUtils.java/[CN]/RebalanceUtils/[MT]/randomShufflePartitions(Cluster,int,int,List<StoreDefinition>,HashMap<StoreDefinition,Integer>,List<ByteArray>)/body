@@ -1,0 +1,29 @@
+{
+  List<Node> allNodes=Lists.newArrayList();
+  Set<Integer> zoneIds=new HashSet<Integer>();
+  for (  Node node : targetCluster.getNodes()) {
+    allNodes.add(updateNode(node,Lists.newArrayList(node.getPartitionIds())));
+    zoneIds.add(node.getZoneId());
+  }
+  Cluster returnCluster=updateCluster(targetCluster,allNodes);
+  int totalPrimaryPartitionsMoved=0;
+  double currentMaxMinRatio=analyzeBalance(returnCluster,storeDefs,false);
+  int successes=0;
+  for (int i=0; i < swapAttempts; i++) {
+    for (    Integer zoneId : zoneIds) {
+      Pair<Cluster,Integer> shuffleResults=swapRandomPartitionsWithinZone(returnCluster,zoneId);
+      double nextMaxMinRatio=analyzeBalance(shuffleResults.getFirst(),storeDefs,false);
+      if (nextMaxMinRatio < currentMaxMinRatio) {
+        successes++;
+        System.out.println("Swap improved max-min ratio: " + currentMaxMinRatio + " -> "+ nextMaxMinRatio+ " (improvement "+ successes+ " on swap attempt "+ i+ " in zone "+ zoneId+ ")");
+        returnCluster=shuffleResults.getFirst();
+        currentMaxMinRatio=nextMaxMinRatio;
+        totalPrimaryPartitionsMoved+=shuffleResults.getSecond();
+      }
+    }
+    if (successes >= swapSuccesses) {
+      break;
+    }
+  }
+  return Pair.create(returnCluster,totalPrimaryPartitionsMoved);
+}

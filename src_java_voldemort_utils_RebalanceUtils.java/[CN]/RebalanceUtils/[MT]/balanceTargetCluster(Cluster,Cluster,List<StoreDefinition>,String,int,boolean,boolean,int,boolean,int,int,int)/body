@@ -27,7 +27,7 @@
     nextCluster=numPartPerZone.getFirst();
     int currentMoves=xzonePartitionsMoved + numPartPerZone.getSecond();
     if (enableRandomSwaps) {
-      Pair<Cluster,Integer> shuffleCluster=RebalanceUtils.shufflePartitions(nextCluster,swapAttempts,swapSuccesses,uniqueStores,keys);
+      Pair<Cluster,Integer> shuffleCluster=RebalanceUtils.randomShufflePartitions(nextCluster,swapAttempts,swapSuccesses,storeDefs,uniqueStores,keys);
       nextCluster=shuffleCluster.getFirst();
       currentMoves+=shuffleCluster.getSecond();
     }
@@ -60,7 +60,7 @@
   System.out.println("Final distribution");
   System.out.println(KeyDistributionGenerator.printOverallDistribution(minCluster,storeDefs,keys));
   System.out.println("=========================\n");
-  analyzeBalance(minCluster,storeDefs);
+  analyzeBalance(minCluster,storeDefs,true);
   if (outputDir != null) {
     try {
       FileUtils.writeStringToFile(new File(outputDir,RebalanceUtils.finalClusterFileName),new ClusterMapper().writeCluster(minCluster));
