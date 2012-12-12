@@ -1,13 +1,10 @@
 {
-  HashMap<StoreDefinition,Integer> uniqueStores=KeyDistributionGenerator.getUniqueStoreDefinitionsWithCounts(storeDefs);
   List<ByteArray> keys=KeyDistributionGenerator.generateKeys(KeyDistributionGenerator.DEFAULT_NUM_KEYS);
   Cluster minCluster=targetCluster;
   int minMoves=Integer.MAX_VALUE;
   double minMaxMinRatio=Double.MAX_VALUE;
   Cluster nextCluster;
   int xzonePartitionsMoved;
-  final boolean enableGreedySwaps=true;
-  final int greedySwapAttempts=1;
   for (int numTries=0; numTries < tries; numTries++) {
     nextCluster=targetCluster;
     xzonePartitionsMoved=0;
@@ -29,12 +26,12 @@
     nextCluster=numPartPerZone.getFirst();
     int currentMoves=xzonePartitionsMoved + numPartPerZone.getSecond();
     if (enableRandomSwaps) {
-      Pair<Cluster,Integer> shuffleCluster=RebalanceUtils.randomShufflePartitions(nextCluster,swapAttempts,swapSuccesses,storeDefs,uniqueStores,keys);
+      Pair<Cluster,Integer> shuffleCluster=RebalanceUtils.randomShufflePartitions(nextCluster,randomSwapAttempts,randomSwapSuccesses,storeDefs);
       nextCluster=shuffleCluster.getFirst();
       currentMoves+=shuffleCluster.getSecond();
     }
     if (enableGreedySwaps) {
-      Pair<Cluster,Integer> shuffleCluster=RebalanceUtils.greedyShufflePartitions(nextCluster,greedySwapAttempts,storeDefs);
+      Pair<Cluster,Integer> shuffleCluster=RebalanceUtils.greedyShufflePartitions(nextCluster,greedySwapAttempts,greedySwapMaxPartitionsPerNode,greedySwapMaxPartitionsPerZone,storeDefs);
       nextCluster=shuffleCluster.getFirst();
       currentMoves+=shuffleCluster.getSecond();
     }

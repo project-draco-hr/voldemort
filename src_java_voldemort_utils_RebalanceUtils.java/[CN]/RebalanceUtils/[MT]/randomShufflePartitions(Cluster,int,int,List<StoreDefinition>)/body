@@ -8,20 +8,21 @@
   Cluster returnCluster=updateCluster(targetCluster,allNodes);
   int totalPrimaryPartitionsMoved=0;
   double currentMaxMinRatio=analyzeBalance(returnCluster,storeDefs,false);
-  for (int i=0; i < swapAttempts; i++) {
+  int successes=0;
+  for (int i=0; i < randomSwapAttempts; i++) {
     for (    Integer zoneId : zoneIds) {
-      System.out.println("Greedy swap attempt: zone " + zoneId + " , attempt "+ i);
-      Pair<Cluster,Integer> shuffleResults=swapGreedyPartitionsWithinZone(returnCluster,zoneId,storeDefs);
+      Pair<Cluster,Integer> shuffleResults=swapRandomPartitionsWithinZone(returnCluster,zoneId);
       double nextMaxMinRatio=analyzeBalance(shuffleResults.getFirst(),storeDefs,false);
-      if (nextMaxMinRatio == currentMaxMinRatio) {
-        System.out.println("Not improving for zone: " + zoneId);
-      }
- else {
-        System.out.println("Swap improved max-min ratio: " + currentMaxMinRatio + " -> "+ nextMaxMinRatio+ " (swap attempt "+ i+ " in zone "+ zoneId+ ")");
+      if (nextMaxMinRatio < currentMaxMinRatio) {
+        successes++;
+        System.out.println("Swap improved max-min ratio: " + currentMaxMinRatio + " -> "+ nextMaxMinRatio+ " (improvement "+ successes+ " on swap attempt "+ i+ " in zone "+ zoneId+ ")");
         returnCluster=shuffleResults.getFirst();
         currentMaxMinRatio=nextMaxMinRatio;
         totalPrimaryPartitionsMoved+=shuffleResults.getSecond();
       }
+    }
+    if (successes >= randomSwapSuccesses) {
+      break;
     }
   }
   return Pair.create(returnCluster,totalPrimaryPartitionsMoved);

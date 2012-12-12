@@ -17,6 +17,10 @@
     parser.accepts("generate-enable-random-swaps","Enable attempts to improve balance by random partition swaps within a zone").withRequiredArg().ofType(Boolean.class);
     parser.accepts("generate-random-swap-attempts","Number of random swaps to attempt.").withRequiredArg().ofType(Integer.class).describedAs("num-attempts");
     parser.accepts("generate-random-swap-successes","Number of successful random swaps to permit exit before completing all swap attempts.").withRequiredArg().ofType(Integer.class).describedAs("num-successes");
+    parser.accepts("generate-enable-greedy-swaps","Enable attempts to improve balance by greedily swapping (random) partitions within a zone").withRequiredArg().ofType(Boolean.class);
+    parser.accepts("generate-greedy-swap-attempts","Number of greedy (random) swaps to attempt.").withRequiredArg().ofType(Integer.class).describedAs("num-attempts");
+    parser.accepts("generate-greedy-max-partitions-per-node","Max number of partitions per-node to evaluate swapping with other partitions within the zone.").withRequiredArg().ofType(Integer.class).describedAs("max-partitions-per-node");
+    parser.accepts("generate-greedy-max-partitions-per-zone","Max number of (random) partitions per-zone to evaluate swapping with partitions from node being evaluated.").withRequiredArg().ofType(Integer.class).describedAs("max-partitions-per-zone");
     parser.accepts("generate-max-contiguous-partitions","Limit the number of contiguous partition IDs allowed within a zone.").withRequiredArg().ofType(Integer.class).describedAs("num-contiguous");
     parser.accepts("analyze","Analyze how balanced given cluster is.");
     parser.accepts("entropy","True - if we want to run the entropy calculator. False - if we want to store keys").withRequiredArg().ofType(Boolean.class);
@@ -43,9 +47,13 @@
     boolean generatePrimariesWithinZone=CmdUtils.valueOf(options,"generate-primaries-within-zone",true);
     boolean generatePermitXZoneMoves=CmdUtils.valueOf(options,"generate-permit-xzone-moves",true);
     int generateRandomNumPartitions=CmdUtils.valueOf(options,"generate-random-num-partitions",0);
-    boolean generateEnableRandomSwaps=CmdUtils.valueOf(options,"generate-enable-random-swaps",true);
+    boolean generateEnableRandomSwaps=CmdUtils.valueOf(options,"generate-enable-random-swaps",false);
     int generateRandomSwapAttempts=CmdUtils.valueOf(options,"generate-random-swap-attempts",100);
     int generateRandomSwapSuccesses=CmdUtils.valueOf(options,"generate-random-swap-successes",100);
+    boolean generateEnableGreedySwaps=CmdUtils.valueOf(options,"generate-enable-greedy-swaps",false);
+    int generateGreedySwapAttempts=CmdUtils.valueOf(options,"generate-greedy-swap-attempts",5);
+    int generateGreedyMaxPartitionsPerNode=CmdUtils.valueOf(options,"generate-greedy-max-partitions-per-node",5);
+    int generateGreedyMaxPartitionsPerZone=CmdUtils.valueOf(options,"generate-greedy-max-partitions-per-zone",25);
     int generateMaxContiguousPartitionsPerZone=CmdUtils.valueOf(options,"generate-max-contiguous-partitions",-1);
     RebalanceClientConfig config=new RebalanceClientConfig();
     config.setMaxParallelRebalancing(parallelism);
@@ -110,7 +118,7 @@
           System.err.println("Provided arguments for generate random swaps but disabled the feature");
           printHelp(System.err,parser);
         }
-        RebalanceUtils.balanceTargetCluster(currentCluster,targetCluster,storeDefs,config.getOutputDirectory(),config.getMaxTriesRebalancing(),generatePrimariesWithinZone,generatePermitXZoneMoves,generateRandomNumPartitions,generateEnableRandomSwaps,generateRandomSwapAttempts,generateRandomSwapSuccesses,generateMaxContiguousPartitionsPerZone);
+        RebalanceUtils.balanceTargetCluster(currentCluster,targetCluster,storeDefs,config.getOutputDirectory(),config.getMaxTriesRebalancing(),generatePrimariesWithinZone,generatePermitXZoneMoves,generateRandomNumPartitions,generateEnableRandomSwaps,generateRandomSwapAttempts,generateRandomSwapSuccesses,generateEnableGreedySwaps,generateGreedySwapAttempts,generateGreedyMaxPartitionsPerNode,generateGreedyMaxPartitionsPerZone,generateMaxContiguousPartitionsPerZone);
         return;
       }
       rebalanceController=new RebalanceController(currentCluster,config);
