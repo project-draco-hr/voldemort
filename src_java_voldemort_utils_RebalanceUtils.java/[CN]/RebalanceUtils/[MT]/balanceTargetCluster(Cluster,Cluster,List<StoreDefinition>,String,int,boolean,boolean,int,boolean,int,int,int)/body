@@ -6,6 +6,8 @@
   double minMaxMinRatio=Double.MAX_VALUE;
   Cluster nextCluster;
   int xzonePartitionsMoved;
+  final boolean enableGreedySwaps=true;
+  final int greedySwapAttempts=1;
   for (int numTries=0; numTries < tries; numTries++) {
     nextCluster=targetCluster;
     xzonePartitionsMoved=0;
@@ -28,6 +30,11 @@
     int currentMoves=xzonePartitionsMoved + numPartPerZone.getSecond();
     if (enableRandomSwaps) {
       Pair<Cluster,Integer> shuffleCluster=RebalanceUtils.randomShufflePartitions(nextCluster,swapAttempts,swapSuccesses,storeDefs,uniqueStores,keys);
+      nextCluster=shuffleCluster.getFirst();
+      currentMoves+=shuffleCluster.getSecond();
+    }
+    if (enableGreedySwaps) {
+      Pair<Cluster,Integer> shuffleCluster=RebalanceUtils.greedyShufflePartitions(nextCluster,greedySwapAttempts,storeDefs);
       nextCluster=shuffleCluster.getFirst();
       currentMoves+=shuffleCluster.getSecond();
     }

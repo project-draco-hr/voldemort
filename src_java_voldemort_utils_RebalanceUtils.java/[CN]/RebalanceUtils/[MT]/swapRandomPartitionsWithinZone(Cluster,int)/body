@@ -25,7 +25,5 @@
   List<Integer> donorPartitions=returnCluster.getNodeById(donorNodeId).getPartitionIds();
   int donorPartitionOffset=r.nextInt(donorPartitions.size());
   int donorPartitionId=donorPartitions.get(donorPartitionOffset);
-  returnCluster=createUpdatedCluster(returnCluster,stealerNodeId,Lists.newArrayList(donorPartitionId));
-  returnCluster=createUpdatedCluster(returnCluster,donorNodeId,Lists.newArrayList(stealerPartitionId));
-  return Pair.create(returnCluster,2);
+  return swapPartitions(returnCluster,stealerNodeId,stealerPartitionId,donorNodeId,donorPartitionId);
 }
