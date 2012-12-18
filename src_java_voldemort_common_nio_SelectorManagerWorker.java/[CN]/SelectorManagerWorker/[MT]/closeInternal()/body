@@ -1,0 +1,27 @@
+{
+  if (logger.isInfoEnabled())   logger.info("Closing remote connection from " + socketChannel.socket());
+  try {
+    socketChannel.socket().close();
+  }
+ catch (  IOException e) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
+  }
+  try {
+    socketChannel.close();
+  }
+ catch (  IOException e) {
+    if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
+  }
+  SelectionKey selectionKey=socketChannel.keyFor(selector);
+  if (selectionKey != null) {
+    try {
+      selectionKey.attach(null);
+      selectionKey.cancel();
+    }
+ catch (    Exception e) {
+      if (logger.isEnabledFor(Level.WARN))       logger.warn(e.getMessage(),e);
+    }
+  }
+  inputStream.close();
+  outputStream.close();
+}

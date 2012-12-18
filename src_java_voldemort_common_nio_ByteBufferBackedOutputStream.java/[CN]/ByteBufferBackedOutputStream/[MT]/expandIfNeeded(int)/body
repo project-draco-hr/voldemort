@@ -1,0 +1,11 @@
+{
+  int need=len - buffer.remaining();
+  if (need <= 0)   return;
+  int newCapacity=(buffer.capacity() + need) * 2;
+  if (sizeTracker != null) {
+    sizeTracker.add(newCapacity);
+    sizeTracker.subtract(this.buffer.capacity());
+  }
+  buffer=ByteUtils.expand(buffer,newCapacity);
+  wasExpanded=true;
+}

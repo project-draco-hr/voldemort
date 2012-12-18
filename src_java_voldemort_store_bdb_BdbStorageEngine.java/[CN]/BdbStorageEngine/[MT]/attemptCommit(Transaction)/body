@@ -3,6 +3,7 @@
     if (transaction != null)     transaction.commit();
   }
  catch (  DatabaseException e) {
+    this.bdbEnvironmentStats.reportException(e);
     logger.error("Transaction commit failed!",e);
     attemptAbort(transaction);
     throw new PersistenceFailureException(e);

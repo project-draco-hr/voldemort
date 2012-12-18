@@ -14,12 +14,13 @@
     }
   }
  catch (  DatabaseException e) {
+    this.bdbEnvironmentStats.reportException(e);
     logger.error(e);
     throw new PersistenceFailureException(e);
   }
  finally {
     if (logger.isTraceEnabled()) {
-      logger.trace("Completed GET from key " + key + " (keyRef: "+ System.identityHashCode(key)+ ") in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
+      logger.trace("Completed GET (" + getName() + ") from key "+ key+ " (keyRef: "+ System.identityHashCode(key)+ ") in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
     }
   }
 }

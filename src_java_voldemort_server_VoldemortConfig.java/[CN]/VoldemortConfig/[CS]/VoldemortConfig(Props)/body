@@ -14,12 +14,13 @@
   this.bdbDataDirectory=props.getString("bdb.data.directory",this.dataDirectory + File.separator + "bdb");
   this.bdbMaxLogFileSize=props.getBytes("bdb.max.logfile.size",60 * 1024 * 1024);
   this.bdbBtreeFanout=props.getInt("bdb.btree.fanout",512);
-  this.bdbCheckpointBytes=props.getLong("bdb.checkpoint.interval.bytes",20 * 1024 * 1024);
+  this.bdbCheckpointBytes=props.getLong("bdb.checkpoint.interval.bytes",200 * 1024 * 1024);
   this.bdbCheckpointMs=props.getLong("bdb.checkpoint.interval.ms",30 * Time.MS_PER_SECOND);
   this.bdbOneEnvPerStore=props.getBoolean("bdb.one.env.per.store",false);
   this.bdbCleanerMinFileUtilization=props.getInt("bdb.cleaner.min.file.utilization",5);
   this.bdbCleanerMinUtilization=props.getInt("bdb.cleaner.minUtilization",50);
   this.bdbCleanerThreads=props.getInt("bdb.cleaner.threads",1);
+  this.bdbCleanerBytesInterval=props.getLong("bdb.cleaner.interval.bytes",this.bdbMaxLogFileSize);
   this.bdbCleanerLookAheadCacheSize=props.getInt("bdb.cleaner.lookahead.cache.size",8192);
   this.bdbLockTimeoutMs=props.getLong("bdb.lock.timeout.ms",500);
   this.bdbLockNLockTables=props.getInt("bdb.lock.nLockTables",1);

@@ -30,6 +30,7 @@
     succeeded=true;
   }
  catch (  DatabaseException e) {
+    this.bdbEnvironmentStats.reportException(e);
     logger.error(e);
     throw new PersistenceFailureException(e);
   }
@@ -37,7 +38,7 @@
     if (succeeded)     attemptCommit(transaction);
  else     attemptAbort(transaction);
     if (logger.isTraceEnabled()) {
-      logger.trace("Completed PUT to key " + key + " (keyRef: "+ System.identityHashCode(key)+ " value "+ value+ " in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
+      logger.trace("Completed PUT (" + getName() + ") to key "+ key+ " (keyRef: "+ System.identityHashCode(key)+ " value "+ value+ " in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
     }
   }
 }
