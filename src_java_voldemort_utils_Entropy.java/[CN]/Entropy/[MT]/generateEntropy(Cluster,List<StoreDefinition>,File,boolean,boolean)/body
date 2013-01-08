@@ -34,7 +34,7 @@
               keys=adminClient.bulkFetchOps.fetchKeys(node.getId(),storeDef.getName(),cluster.getNodeById(node.getId()).getPartitionIds(),null,false);
               for (long keyId=0; keyId < numKeysPerNode && keys.hasNext(); keyId++) {
                 ByteArray key=keys.next();
-                if (RebalanceUtils.getNodeIds(strategy.routeRequest(key.get()).subList(0,1)).contains(node.getId())) {
+                if (NodeUtils.getNodeIds(strategy.routeRequest(key.get()).subList(0,1)).contains(node.getId())) {
                   writer.write(key.length());
                   writer.write(key.get());
                 }
@@ -52,7 +52,7 @@
             keys=adminClient.bulkFetchOps.fetchKeys(nodeId,storeDef.getName(),partitions,null,false);
             while (keys.hasNext() && numKeysStored < numKeys) {
               ByteArray key=keys.next();
-              if (RebalanceUtils.getNodeIds(strategy.routeRequest(key.get()).subList(0,1)).contains(nodeId)) {
+              if (NodeUtils.getNodeIds(strategy.routeRequest(key.get()).subList(0,1)).contains(nodeId)) {
                 int targetPartition=strategy.getPartitionList(key.get()).get(0);
                 int partitionCount=partitionMap.get(targetPartition);
                 if (partitionCount == numKeysPerPartition)                 continue;

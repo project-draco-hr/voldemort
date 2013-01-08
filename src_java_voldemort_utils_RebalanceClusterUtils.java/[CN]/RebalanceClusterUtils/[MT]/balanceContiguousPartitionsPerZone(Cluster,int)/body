@@ -23,7 +23,7 @@
  else {
         if (contiguousPartitions.size() > maxContiguousPartitionsPerZone) {
           System.out.println("Contiguous partitions: " + contiguousPartitions);
-          partitionsToRemoveFromThisZone.addAll(RebalanceUtils.removeItemsToSplitListEvenly(contiguousPartitions,maxContiguousPartitionsPerZone));
+          partitionsToRemoveFromThisZone.addAll(removeItemsToSplitListEvenly(contiguousPartitions,maxContiguousPartitionsPerZone));
         }
         contiguousPartitions.clear();
       }
@@ -32,7 +32,7 @@
     partitionsToRemoveFromZone.put(zoneId,partitionsToRemoveFromThisZone);
     System.out.println("\t\tPartitions to remove: " + partitionsToRemoveFromThisZone);
   }
-  Cluster returnCluster=RebalanceUtils.copyCluster(targetCluster);
+  Cluster returnCluster=ClusterUtils.copyCluster(targetCluster);
   Random r=new Random();
   for (  int zoneId : returnCluster.getZoneIds()) {
     for (    int partitionId : partitionsToRemoveFromZone.get(zoneId)) {
