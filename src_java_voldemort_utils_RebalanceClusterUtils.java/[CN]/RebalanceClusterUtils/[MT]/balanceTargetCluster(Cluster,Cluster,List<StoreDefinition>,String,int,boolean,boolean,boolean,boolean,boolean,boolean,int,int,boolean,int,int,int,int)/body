@@ -1,6 +1,6 @@
 {
   Pair<Double,String> analysis=analyzeBalanceVerbose(currentCluster,storeDefs);
-  dumpAnalysisToFile(outputDir,RebalanceUtils.initialClusterFileName + ".analysis",analysis.getSecond());
+  RebalanceUtils.dumpAnalysisToFile(outputDir,RebalanceUtils.initialClusterFileName + ".analysis",analysis.getSecond());
   Cluster minCluster=targetCluster;
   double minMaxMinRatio=Double.MAX_VALUE;
   for (int numTries=0; numTries < maxTriesRebalancing; numTries++) {
@@ -9,13 +9,13 @@
       nextCluster=repeatedlyBalanceContiguousPartitionsPerZone(nextCluster,maxContiguousPartitionsPerZone);
     }
     if (!generateDisablePrimaryBalancing) {
-      nextCluster=RebalanceUtils.balancePrimaryPartitionsPerNode(nextCluster,storeDefs,generateEnableXzonePrimary,generateEnableAnyXzoneNary,generateEnableLastResortXzoneNary);
+      nextCluster=balancePrimaryPartitionsPerNode(nextCluster,storeDefs,generateEnableXzonePrimary,generateEnableAnyXzoneNary,generateEnableLastResortXzoneNary);
     }
     if (enableRandomSwaps) {
-      nextCluster=RebalanceUtils.randomShufflePartitions(nextCluster,enableXzoneShuffle,randomSwapAttempts,randomSwapSuccesses,storeDefs);
+      nextCluster=randomShufflePartitions(nextCluster,enableXzoneShuffle,randomSwapAttempts,randomSwapSuccesses,storeDefs);
     }
     if (enableGreedySwaps) {
-      nextCluster=RebalanceUtils.greedyShufflePartitions(nextCluster,enableXzoneShuffle,greedySwapAttempts,greedySwapMaxPartitionsPerNode,greedySwapMaxPartitionsPerZone,storeDefs);
+      nextCluster=greedyShufflePartitions(nextCluster,enableXzoneShuffle,greedySwapAttempts,greedySwapMaxPartitionsPerNode,greedySwapMaxPartitionsPerZone,storeDefs);
     }
     if (!validateClusterUpdate(currentCluster,nextCluster)) {
       System.err.println("The modified cluster does not pass validation. Reverting to initial cluster...");
@@ -28,8 +28,8 @@
     if (currentMaxMinRatio <= minMaxMinRatio) {
       minMaxMinRatio=currentMaxMinRatio;
       minCluster=nextCluster;
-      dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName + numTries,minCluster);
-      dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName + numTries + ".analysis",analysis.getSecond());
+      RebalanceUtils.dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName + numTries,minCluster);
+      RebalanceUtils.dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName + numTries + ".analysis",analysis.getSecond());
     }
     System.out.println("-------------------------\n");
   }
@@ -37,7 +37,7 @@
   System.out.println("Final distribution");
   analysis=analyzeBalanceVerbose(minCluster,storeDefs);
   System.out.println(analysis.getSecond());
-  dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName,minCluster);
-  dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName + ".analysis",analysis.getSecond());
+  RebalanceUtils.dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName,minCluster);
+  RebalanceUtils.dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName + ".analysis",analysis.getSecond());
   return;
 }

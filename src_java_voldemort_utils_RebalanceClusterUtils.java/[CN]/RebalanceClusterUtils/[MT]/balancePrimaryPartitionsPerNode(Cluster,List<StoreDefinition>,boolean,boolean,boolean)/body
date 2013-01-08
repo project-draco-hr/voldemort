@@ -13,7 +13,7 @@
   List<Node> donorNodeKeys=new ArrayList<Node>(donorNodes.keySet());
   HashMap<Node,Integer> stealerNodes=donorsAndStealers.getSecond();
   List<Node> stealerNodeKeys=new ArrayList<Node>(stealerNodes.keySet());
-  Cluster returnCluster=copyCluster(targetCluster);
+  Cluster returnCluster=RebalanceUtils.copyCluster(targetCluster);
   Collections.shuffle(stealerNodeKeys,new Random(System.currentTimeMillis()));
   for (  Node stealerNode : stealerNodeKeys) {
     int partitionsToSteal=stealerNodes.get(stealerNode) - stealerNode.getNumberOfPartitions();
@@ -31,7 +31,7 @@
         List<Integer> donorPartitions=Lists.newArrayList(currentDonorNode.getPartitionIds());
         Collections.shuffle(donorPartitions,new Random(System.currentTimeMillis()));
         for (        int donorPartition : donorPartitions) {
-          Cluster intermediateCluster=createUpdatedCluster(returnCluster,stealerNode.getId(),Lists.newArrayList(donorPartition));
+          Cluster intermediateCluster=RebalanceUtils.createUpdatedCluster(returnCluster,stealerNode.getId(),Lists.newArrayList(donorPartition));
           int crossZoneMoves=0;
           if (!generateEnableAnyXzoneNary) {
             long startTimeNs=System.nanoTime();

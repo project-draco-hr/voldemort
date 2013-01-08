@@ -34,7 +34,7 @@
       donorZoneIds.add(zoneId);
     }
   }
-  Cluster returnCluster=copyCluster(targetCluster);
+  Cluster returnCluster=RebalanceUtils.copyCluster(targetCluster);
   Random r=new Random();
   for (  Integer stealerZoneId : stealerZoneIds) {
     while (targetNumPartitionsPerZone.get(stealerZoneId) > 0) {
@@ -47,7 +47,7 @@
           int donorPartitionId=partitionsThisZone.get(donorPartitionOffset);
           targetNumPartitionsPerZone.put(donorZoneId,targetNumPartitionsPerZone.get(donorZoneId) + 1);
           targetNumPartitionsPerZone.put(stealerZoneId,targetNumPartitionsPerZone.get(stealerZoneId) - 1);
-          returnCluster=createUpdatedCluster(returnCluster,stealerNodeId,Lists.newArrayList(donorPartitionId));
+          returnCluster=RebalanceUtils.createUpdatedCluster(returnCluster,stealerNodeId,Lists.newArrayList(donorPartitionId));
         }
       }
     }

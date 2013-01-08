@@ -1,20 +1,22 @@
 {
   Set<Integer> zoneIds=targetCluster.getZoneIds();
-  Cluster returnCluster=copyCluster(targetCluster);
+  Cluster returnCluster=RebalanceUtils.copyCluster(targetCluster);
   double currentMaxMinRatio=analyzeBalance(returnCluster,storeDefs);
-  int successes=0;
-  for (int i=0; i < randomSwapAttempts; i++) {
+  for (int i=0; i < greedyAttempts; i++) {
     for (    Integer zoneId : zoneIds) {
-      Cluster shuffleResults=swapRandomPartitionsWithinZone(returnCluster,zoneId);
+      System.out.println("Greedy swap attempt: zone " + zoneId + " , attempt "+ i+ " of "+ greedyAttempts);
+      Cluster shuffleResults=swapGreedyRandomPartitionsWithinZone(returnCluster,zoneId,greedySwapMaxPartitionsPerNode,greedySwapMaxPartitionsPerZone,storeDefs);
       double nextMaxMinRatio=analyzeBalance(shuffleResults,storeDefs);
-      if (nextMaxMinRatio < currentMaxMinRatio) {
-        System.out.println("Swap improved max-min ratio: " + currentMaxMinRatio + " -> "+ nextMaxMinRatio+ " (improvement "+ successes+ " on swap attempt "+ i+ " in zone "+ zoneId+ ")");
+      if (nextMaxMinRatio == currentMaxMinRatio) {
+        System.out.println("Not improving for zone: " + zoneId);
+      }
+ else {
+        System.out.println("Swap improved max-min ratio: " + currentMaxMinRatio + " -> "+ nextMaxMinRatio+ " (swap attempt "+ i+ " in zone "+ zoneId+ ")");
         int xZoneMoves=0;
         if (!enableXzoneShuffle) {
           xZoneMoves=RebalanceUtils.getCrossZoneMoves(shuffleResults,new RebalanceClusterPlan(returnCluster,shuffleResults,storeDefs,true));
         }
         if (xZoneMoves == 0) {
-          successes++;
           returnCluster=shuffleResults;
           currentMaxMinRatio=nextMaxMinRatio;
         }
@@ -22,9 +24,6 @@
           System.out.println("BUT, swap resulted in a cross zone move and so is ignored.");
         }
       }
-    }
-    if (successes >= randomSwapSuccesses) {
-      break;
     }
   }
   return returnCluster;
