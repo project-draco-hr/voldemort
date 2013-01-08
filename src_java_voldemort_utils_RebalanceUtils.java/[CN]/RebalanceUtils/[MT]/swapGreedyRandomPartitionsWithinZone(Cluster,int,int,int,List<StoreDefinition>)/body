@@ -1,15 +1,8 @@
 {
-  List<Node> allNodes=Lists.newArrayList();
-  List<Integer> nodeIdsInZone=new ArrayList<Integer>();
-  for (  Node node : targetCluster.getNodes()) {
-    allNodes.add(updateNode(node,Lists.newArrayList(node.getPartitionIds())));
-    if (node.getZoneId() == zoneId) {
-      nodeIdsInZone.add(node.getId());
-    }
-  }
+  List<Integer> nodeIdsInZone=new ArrayList<Integer>(targetCluster.getNodeIdsInZone(zoneId));
   System.out.println("GreedyRandom : nodeIdsInZone:" + nodeIdsInZone);
-  Cluster returnCluster=updateCluster(targetCluster,allNodes);
-  double currentMaxMinRatio=analyzeBalance(returnCluster,storeDefs,false);
+  Cluster returnCluster=copyCluster(targetCluster);
+  double currentMaxMinRatio=analyzeBalance(returnCluster,storeDefs);
   int nodeIdA=-1;
   int nodeIdB=-1;
   int partitionIdA=-1;
@@ -34,8 +27,8 @@
       for (int offsetZone=0; offsetZone < maxPartitionsInZone; offsetZone++) {
         Integer nodeIdBee=partitionIdsZone.get(offsetZone).getFirst();
         Integer partitionIdBee=partitionIdsZone.get(offsetZone).getSecond();
-        Pair<Cluster,Integer> swapResult=swapPartitions(returnCluster,nodeIdEh,partitionIdEh,nodeIdBee,partitionIdBee);
-        double swapMaxMinRatio=analyzeBalance(swapResult.getFirst(),storeDefs,false);
+        Cluster swapResult=swapPartitions(returnCluster,nodeIdEh,partitionIdEh,nodeIdBee,partitionIdBee);
+        double swapMaxMinRatio=analyzeBalance(swapResult,storeDefs);
         if (swapMaxMinRatio < currentMaxMinRatio) {
           currentMaxMinRatio=swapMaxMinRatio;
           System.out.println(" -> " + currentMaxMinRatio);
@@ -48,7 +41,7 @@
     }
   }
   if (nodeIdA == -1) {
-    return new Pair<Cluster,Integer>(returnCluster,0);
+    return returnCluster;
   }
   return swapPartitions(returnCluster,nodeIdA,partitionIdA,nodeIdB,partitionIdB);
 }

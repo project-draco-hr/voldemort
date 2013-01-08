@@ -1,0 +1,66 @@
+{
+  System.out.println("Balance number of partitions per node within a zone.");
+  System.out.println("numPartitionsPerZone");
+  for (  int zoneId : targetCluster.getZoneIds()) {
+    System.out.println(zoneId + " : " + targetCluster.getNumberOfPartitionsInZone(zoneId));
+  }
+  System.out.println("numNodesPerZone");
+  for (  int zoneId : targetCluster.getZoneIds()) {
+    System.out.println(zoneId + " : " + targetCluster.getNumberOfNodesInZone(zoneId));
+  }
+  Pair<HashMap<Node,Integer>,HashMap<Node,Integer>> donorsAndStealers=getDonorsAndStealersForBalancedPrimaries(targetCluster);
+  HashMap<Node,Integer> donorNodes=donorsAndStealers.getFirst();
+  List<Node> donorNodeKeys=new ArrayList<Node>(donorNodes.keySet());
+  HashMap<Node,Integer> stealerNodes=donorsAndStealers.getSecond();
+  List<Node> stealerNodeKeys=new ArrayList<Node>(stealerNodes.keySet());
+  Cluster returnCluster=copyCluster(targetCluster);
+  Collections.shuffle(stealerNodeKeys,new Random(System.currentTimeMillis()));
+  for (  Node stealerNode : stealerNodeKeys) {
+    int partitionsToSteal=stealerNodes.get(stealerNode) - stealerNode.getNumberOfPartitions();
+    System.out.println("Node (" + stealerNode.getId() + ") in zone ("+ stealerNode.getZoneId()+ ") has partitionsToSteal of "+ partitionsToSteal);
+    while (partitionsToSteal > 0) {
+      Collections.shuffle(donorNodeKeys,new Random(System.currentTimeMillis()));
+      for (      Node donorNode : donorNodeKeys) {
+        Node currentDonorNode=returnCluster.getNodeById(donorNode.getId());
+        if (!generateEnableXzonePrimary && (currentDonorNode.getZoneId() != stealerNode.getZoneId())) {
+          continue;
+        }
+        if (currentDonorNode.getNumberOfPartitions() == donorNodes.get(donorNode)) {
+          continue;
+        }
+        List<Integer> donorPartitions=Lists.newArrayList(currentDonorNode.getPartitionIds());
+        Collections.shuffle(donorPartitions,new Random(System.currentTimeMillis()));
+        for (        int donorPartition : donorPartitions) {
+          Cluster intermediateCluster=createUpdatedCluster(returnCluster,stealerNode.getId(),Lists.newArrayList(donorPartition));
+          int crossZoneMoves=0;
+          if (!generateEnableAnyXzoneNary) {
+            long startTimeNs=System.nanoTime();
+            crossZoneMoves=RebalanceUtils.getCrossZoneMoves(intermediateCluster,new RebalanceClusterPlan(returnCluster,intermediateCluster,storeDefs,true));
+            System.out.println("getCrossZoneMoves took " + (System.nanoTime() - startTimeNs) + " ns.");
+          }
+          if (crossZoneMoves == 0) {
+            returnCluster=intermediateCluster;
+            partitionsToSteal--;
+            System.out.println("Stealer node " + stealerNode.getId() + ", donor node "+ currentDonorNode.getId()+ ", partition stolen "+ donorPartition);
+            break;
+          }
+ else {
+            System.out.println("Stealer node " + stealerNode.getId() + ", donor node "+ currentDonorNode.getId()+ ", attempted to steal partition "+ donorPartition+ " however,  getCrossZoneMoves did NOT return 0!");
+            if (donorPartition == donorPartitions.get(donorPartitions.size() - 1)) {
+              partitionsToSteal--;
+              if (generateEnableLastResortXzoneNary) {
+                returnCluster=intermediateCluster;
+                System.out.println("Stealer node " + stealerNode.getId() + ", donor node "+ currentDonorNode.getId()+ ", is stealing partition "+ donorPartition+ " in spite of the fact that getCrossZoneMoves did NOT return 0!");
+              }
+ else {
+                System.out.println("Stealer node " + stealerNode.getId() + " is reducing number of partitions to steal because getCrossZoneMoves did not return 0 for all possible partitions.");
+              }
+            }
+          }
+        }
+        if (partitionsToSteal == 0)         break;
+      }
+    }
+  }
+  return returnCluster;
+}

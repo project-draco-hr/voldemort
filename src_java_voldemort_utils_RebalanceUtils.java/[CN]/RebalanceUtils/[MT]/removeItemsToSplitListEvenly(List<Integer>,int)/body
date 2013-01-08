@@ -1,0 +1,19 @@
+{
+  List<Integer> itemsToRemove=new ArrayList<Integer>();
+  int contiguousCount=inputList.size();
+  if (contiguousCount > maxContiguous) {
+    int numToRemove=contiguousCount / (maxContiguous + 1);
+    int numRuns=numToRemove + 1;
+    int numItemsLeft=contiguousCount - numToRemove;
+    int floorOfEachRun=numItemsLeft / numRuns;
+    int numOfRunsWithExtra=numItemsLeft - (floorOfEachRun * numRuns);
+    int offset=0;
+    for (int i=0; i < numToRemove; ++i) {
+      offset+=floorOfEachRun;
+      if (i < numOfRunsWithExtra)       offset++;
+      itemsToRemove.add(inputList.get(offset));
+      offset++;
+    }
+  }
+  return itemsToRemove;
+}

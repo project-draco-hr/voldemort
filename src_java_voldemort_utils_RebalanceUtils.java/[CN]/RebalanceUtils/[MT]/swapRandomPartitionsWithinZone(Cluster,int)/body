@@ -1,13 +1,6 @@
 {
-  List<Node> allNodes=Lists.newArrayList();
-  List<Integer> nodeIdsInZone=new ArrayList<Integer>();
-  for (  Node node : targetCluster.getNodes()) {
-    allNodes.add(updateNode(node,Lists.newArrayList(node.getPartitionIds())));
-    if (node.getZoneId() == zoneId) {
-      nodeIdsInZone.add(node.getId());
-    }
-  }
-  Cluster returnCluster=updateCluster(targetCluster,allNodes);
+  List<Integer> nodeIdsInZone=new ArrayList<Integer>(targetCluster.getNodeIdsInZone(zoneId));
+  Cluster returnCluster=copyCluster(targetCluster);
   Random r=new Random();
   int stealerNodeOffset=r.nextInt(nodeIdsInZone.size());
   Integer stealerNodeId=nodeIdsInZone.get(stealerNodeOffset);
@@ -18,7 +11,7 @@
   donorNodeIds.addAll(nodeIdsInZone);
   donorNodeIds.remove(stealerNodeId);
   if (donorNodeIds.isEmpty()) {
-    return Pair.create(returnCluster,0);
+    return returnCluster;
   }
   int donorIdOffset=r.nextInt(donorNodeIds.size());
   Integer donorNodeId=donorNodeIds.get(donorIdOffset);

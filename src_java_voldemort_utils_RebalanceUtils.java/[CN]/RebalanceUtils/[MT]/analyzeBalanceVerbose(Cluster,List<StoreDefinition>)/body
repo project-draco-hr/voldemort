@@ -1,0 +1,99 @@
+{
+  StringBuilder builder=new StringBuilder();
+  HashMap<StoreDefinition,Integer> uniqueStores=KeyDistributionGenerator.getUniqueStoreDefinitionsWithCounts(storeDefs);
+  List<ByteArray> keys=KeyDistributionGenerator.generateKeys(KeyDistributionGenerator.DEFAULT_NUM_KEYS);
+  Set<Integer> nodeIds=currentCluster.getNodeIds();
+  builder.append("CLUSTER XML SUMMARY\n");
+  Map<Integer,Integer> zoneIdToPartitionCount=Maps.newHashMap();
+  Map<Integer,Integer> zoneIdToNodeCount=Maps.newHashMap();
+  for (  Zone zone : currentCluster.getZones()) {
+    zoneIdToPartitionCount.put(zone.getId(),0);
+    zoneIdToNodeCount.put(zone.getId(),0);
+  }
+  for (  Node node : currentCluster.getNodes()) {
+    zoneIdToPartitionCount.put(node.getZoneId(),zoneIdToPartitionCount.get(node.getZoneId()) + node.getNumberOfPartitions());
+    zoneIdToNodeCount.put(node.getZoneId(),zoneIdToNodeCount.get(node.getZoneId()) + 1);
+  }
+  builder.append("\n");
+  builder.append("Number of partitions per zone:\n");
+  for (  Zone zone : currentCluster.getZones()) {
+    builder.append("\tZone: " + zone.getId() + " - "+ zoneIdToPartitionCount.get(zone.getId())+ "\n");
+  }
+  builder.append("\n");
+  builder.append("Number of nodes per zone:\n");
+  for (  Zone zone : currentCluster.getZones()) {
+    builder.append("\tZone: " + zone.getId() + " - "+ zoneIdToNodeCount.get(zone.getId())+ "\n");
+  }
+  builder.append("\n");
+  builder.append("Number of partitions per node:\n");
+  for (  Node node : currentCluster.getNodes()) {
+    builder.append("\tNode ID: " + node.getId() + " - "+ node.getNumberOfPartitions()+ " ("+ node.getHost()+ ")\n");
+  }
+  builder.append("\n");
+  builder.append("PARTITION DUMP\n");
+  Map<Integer,Integer> primaryAggNodeIdToPartitionCount=Maps.newHashMap();
+  for (  Integer nodeId : nodeIds) {
+    primaryAggNodeIdToPartitionCount.put(nodeId,0);
+  }
+  Map<Integer,Integer> allAggNodeIdToPartitionCount=Maps.newHashMap();
+  for (  Integer nodeId : nodeIds) {
+    allAggNodeIdToPartitionCount.put(nodeId,0);
+  }
+  for (  StoreDefinition storeDefinition : uniqueStores.keySet()) {
+    builder.append("\n");
+    builder.append("Store exemplar: " + storeDefinition.getName() + "\n");
+    builder.append("\tReplication factor: " + storeDefinition.getReplicationFactor() + "\n");
+    builder.append("\tRouting strategy: " + storeDefinition.getRoutingStrategyType() + "\n");
+    builder.append("\tThere are " + uniqueStores.get(storeDefinition) + " other similar stores.\n");
+    Map<Integer,Set<Pair<Integer,Integer>>> nodeIdToAllPartitions=getNodeIdToAllPartitions(currentCluster,storeDefinition,true);
+    Map<Integer,Integer> primaryNodeIdToPartitionCount=Maps.newHashMap();
+    Map<Integer,Integer> allNodeIdToPartitionCount=Maps.newHashMap();
+    builder.append("\n");
+    builder.append("\tDetailed Dump:\n");
+    for (    Integer nodeId : nodeIds) {
+      builder.append("\tNode ID: " + nodeId + "\n");
+      primaryNodeIdToPartitionCount.put(nodeId,0);
+      allNodeIdToPartitionCount.put(nodeId,0);
+      Set<Pair<Integer,Integer>> partitionPairs=nodeIdToAllPartitions.get(nodeId);
+      int replicaType=0;
+      while (partitionPairs.size() > 0) {
+        List<Pair<Integer,Integer>> replicaPairs=new ArrayList<Pair<Integer,Integer>>();
+        for (        Pair<Integer,Integer> pair : partitionPairs) {
+          if (pair.getFirst() == replicaType) {
+            replicaPairs.add(pair);
+          }
+        }
+        List<Integer> partitions=new ArrayList<Integer>();
+        for (        Pair<Integer,Integer> pair : replicaPairs) {
+          partitionPairs.remove(pair);
+          partitions.add(pair.getSecond());
+        }
+        java.util.Collections.sort(partitions);
+        builder.append("\t\t" + replicaType + " : "+ partitions.size()+ " : "+ partitions.toString()+ "\n");
+        if (replicaType == 0) {
+          primaryNodeIdToPartitionCount.put(nodeId,primaryNodeIdToPartitionCount.get(nodeId) + partitions.size());
+        }
+        allNodeIdToPartitionCount.put(nodeId,allNodeIdToPartitionCount.get(nodeId) + partitions.size());
+        replicaType++;
+      }
+    }
+    builder.append("\n");
+    builder.append("\tSummary Dump:\n");
+    for (    Integer nodeId : nodeIds) {
+      builder.append("\tNode ID: " + nodeId + " : "+ allNodeIdToPartitionCount.get(nodeId)+ "\n");
+      primaryAggNodeIdToPartitionCount.put(nodeId,primaryAggNodeIdToPartitionCount.get(nodeId) + (primaryNodeIdToPartitionCount.get(nodeId) * uniqueStores.get(storeDefinition)));
+      allAggNodeIdToPartitionCount.put(nodeId,allAggNodeIdToPartitionCount.get(nodeId) + (allNodeIdToPartitionCount.get(nodeId) * uniqueStores.get(storeDefinition)));
+    }
+  }
+  builder.append("\n");
+  builder.append("STD DEV ANALYSIS\n");
+  builder.append("\n");
+  builder.append(KeyDistributionGenerator.printOverallDistribution(currentCluster,storeDefs,keys));
+  builder.append("\n");
+  builder.append("\n");
+  Pair<Double,String> summary=summarizeBalance(currentCluster,primaryAggNodeIdToPartitionCount,"AGGREGATE PRIMARY-PARTITION COUNT (across all stores)");
+  builder.append(summary.getSecond());
+  summary=summarizeBalance(currentCluster,allAggNodeIdToPartitionCount,"AGGREGATE NARY-PARTITION COUNT (across all stores)");
+  builder.append(summary.getSecond());
+  return new Pair<Double,String>(summary.getFirst(),builder.toString());
+}

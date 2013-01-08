@@ -1,0 +1,43 @@
+{
+  Pair<Double,String> analysis=analyzeBalanceVerbose(currentCluster,storeDefs);
+  dumpAnalysisToFile(outputDir,RebalanceUtils.initialClusterFileName + ".analysis",analysis.getSecond());
+  Cluster minCluster=targetCluster;
+  double minMaxMinRatio=Double.MAX_VALUE;
+  for (int numTries=0; numTries < maxTriesRebalancing; numTries++) {
+    Cluster nextCluster=targetCluster;
+    if (maxContiguousPartitionsPerZone > 0) {
+      nextCluster=repeatedlyBalanceContiguousPartitionsPerZone(nextCluster,maxContiguousPartitionsPerZone);
+    }
+    if (!generateDisablePrimaryBalancing) {
+      nextCluster=RebalanceUtils.balancePrimaryPartitionsPerNode(nextCluster,storeDefs,generateEnableXzonePrimary,generateEnableAnyXzoneNary,generateEnableLastResortXzoneNary);
+    }
+    if (enableRandomSwaps) {
+      nextCluster=RebalanceUtils.randomShufflePartitions(nextCluster,enableXzoneShuffle,randomSwapAttempts,randomSwapSuccesses,storeDefs);
+    }
+    if (enableGreedySwaps) {
+      nextCluster=RebalanceUtils.greedyShufflePartitions(nextCluster,enableXzoneShuffle,greedySwapAttempts,greedySwapMaxPartitionsPerNode,greedySwapMaxPartitionsPerZone,storeDefs);
+    }
+    if (!validateClusterUpdate(currentCluster,nextCluster)) {
+      System.err.println("The modified cluster does not pass validation. Reverting to initial cluster...");
+      nextCluster=currentCluster;
+    }
+    System.out.println("-------------------------\n");
+    analysis=analyzeBalanceVerbose(nextCluster,storeDefs);
+    double currentMaxMinRatio=analysis.getFirst();
+    System.out.println("Optimization number " + numTries + ": "+ currentMaxMinRatio+ " max/min ratio");
+    if (currentMaxMinRatio <= minMaxMinRatio) {
+      minMaxMinRatio=currentMaxMinRatio;
+      minCluster=nextCluster;
+      dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName + numTries,minCluster);
+      dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName + numTries + ".analysis",analysis.getSecond());
+    }
+    System.out.println("-------------------------\n");
+  }
+  System.out.println("\n==========================");
+  System.out.println("Final distribution");
+  analysis=analyzeBalanceVerbose(minCluster,storeDefs);
+  System.out.println(analysis.getSecond());
+  dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName,minCluster);
+  dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName + ".analysis",analysis.getSecond());
+  return;
+}

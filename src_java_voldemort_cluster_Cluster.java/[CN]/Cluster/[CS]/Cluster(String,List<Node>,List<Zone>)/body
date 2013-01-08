@@ -1,20 +1,29 @@
 {
   this.name=Utils.notNull(name);
+  this.partitionsPerZone=new LinkedHashMap<Zone,List<Integer>>();
+  this.nodesPerZone=new LinkedHashMap<Zone,List<Integer>>();
   if (zones.size() != 0) {
     zonesById=new LinkedHashMap<Integer,Zone>(zones.size());
     for (    Zone zone : zones) {
       if (zonesById.containsKey(zone.getId()))       throw new IllegalArgumentException("Zone id " + zone.getId() + " appears twice in the zone list.");
       zonesById.put(zone.getId(),zone);
+      nodesPerZone.put(zone,new ArrayList<Integer>());
+      partitionsPerZone.put(zone,new ArrayList<Integer>());
     }
   }
  else {
     zonesById=new LinkedHashMap<Integer,Zone>(1);
     zonesById.put(Zone.DEFAULT_ZONE_ID,new Zone());
+    nodesPerZone.put(new Zone(),new ArrayList<Integer>());
+    partitionsPerZone.put(new Zone(),new ArrayList<Integer>());
   }
   this.nodesById=new LinkedHashMap<Integer,Node>(nodes.size());
   for (  Node node : nodes) {
     if (nodesById.containsKey(node.getId()))     throw new IllegalArgumentException("Node id " + node.getId() + " appears twice in the node list.");
     nodesById.put(node.getId(),node);
+    Zone nodesZone=zonesById.get(node.getZoneId());
+    nodesPerZone.get(nodesZone).add(node.getId());
+    partitionsPerZone.get(nodesZone).addAll(node.getPartitionIds());
   }
   this.numberOfTags=getNumberOfTags(nodes);
 }

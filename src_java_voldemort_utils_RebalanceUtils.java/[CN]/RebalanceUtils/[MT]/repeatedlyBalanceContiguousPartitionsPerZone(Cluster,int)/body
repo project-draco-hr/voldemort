@@ -1,0 +1,11 @@
+{
+  int contigPartitionsMoved=0;
+  Cluster nextCluster=targetCluster;
+  do {
+    nextCluster=RebalanceUtils.balanceContiguousPartitionsPerZone(nextCluster,maxContiguousPartitionsPerZone);
+    nextCluster=RebalanceUtils.balanceNumPartitionsPerZone(nextCluster);
+    System.out.println("Looping to evenly balance partitions across zones while limiting contiguous partitions: " + contigPartitionsMoved);
+  }
+ while (contigPartitionsMoved > 0);
+  return nextCluster;
+}

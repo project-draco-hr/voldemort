@@ -1,10 +1,6 @@
 {
-  List<Node> allNodes=Lists.newArrayList();
-  for (  Node node : targetCluster.getNodes()) {
-    allNodes.add(updateNode(node,Lists.newArrayList(node.getPartitionIds())));
-  }
-  Cluster returnCluster=updateCluster(targetCluster,allNodes);
+  Cluster returnCluster=copyCluster(targetCluster);
   returnCluster=createUpdatedCluster(returnCluster,nodeIdA,Lists.newArrayList(partitionIdB));
   returnCluster=createUpdatedCluster(returnCluster,nodeIdB,Lists.newArrayList(partitionIdA));
-  return Pair.create(returnCluster,2);
+  return returnCluster;
 }
