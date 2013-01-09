@@ -12,13 +12,19 @@
     if (curCount > maxVal)     maxVal=curCount;
     if (curCount < minVal)     minVal=curCount;
   }
+  int avgVal=aggCount / nodeIdToPartitionCount.size();
+  double maxAvgRatio=maxVal * 1.0 / avgVal;
+  if (avgVal == 0) {
+    maxAvgRatio=maxVal;
+  }
   double maxMinRatio=maxVal * 1.0 / minVal;
   if (minVal == 0) {
     maxMinRatio=maxVal;
   }
   builder.append("\tMin: " + minVal + "\n");
-  builder.append("\tAvg: " + aggCount / nodeIdToPartitionCount.size() + "\n");
+  builder.append("\tAvg: " + avgVal + "\n");
   builder.append("\tMax: " + maxVal + "\n");
+  builder.append("\t\tMax/Avg: " + maxAvgRatio + "\n");
   builder.append("\t\tMax/Min: " + maxMinRatio + "\n");
   return Pair.create(maxMinRatio,builder.toString());
 }

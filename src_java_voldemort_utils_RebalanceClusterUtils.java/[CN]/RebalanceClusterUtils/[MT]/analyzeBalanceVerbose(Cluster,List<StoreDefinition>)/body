@@ -1,35 +1,9 @@
 {
   StringBuilder builder=new StringBuilder();
+  builder.append(ClusterUtils.verboseClusterDump(currentCluster));
   HashMap<StoreDefinition,Integer> uniqueStores=KeyDistributionGenerator.getUniqueStoreDefinitionsWithCounts(storeDefs);
   List<ByteArray> keys=KeyDistributionGenerator.generateKeys(KeyDistributionGenerator.DEFAULT_NUM_KEYS);
   Set<Integer> nodeIds=currentCluster.getNodeIds();
-  builder.append("CLUSTER XML SUMMARY\n");
-  Map<Integer,Integer> zoneIdToPartitionCount=Maps.newHashMap();
-  Map<Integer,Integer> zoneIdToNodeCount=Maps.newHashMap();
-  for (  Zone zone : currentCluster.getZones()) {
-    zoneIdToPartitionCount.put(zone.getId(),0);
-    zoneIdToNodeCount.put(zone.getId(),0);
-  }
-  for (  Node node : currentCluster.getNodes()) {
-    zoneIdToPartitionCount.put(node.getZoneId(),zoneIdToPartitionCount.get(node.getZoneId()) + node.getNumberOfPartitions());
-    zoneIdToNodeCount.put(node.getZoneId(),zoneIdToNodeCount.get(node.getZoneId()) + 1);
-  }
-  builder.append("\n");
-  builder.append("Number of partitions per zone:\n");
-  for (  Zone zone : currentCluster.getZones()) {
-    builder.append("\tZone: " + zone.getId() + " - "+ zoneIdToPartitionCount.get(zone.getId())+ "\n");
-  }
-  builder.append("\n");
-  builder.append("Number of nodes per zone:\n");
-  for (  Zone zone : currentCluster.getZones()) {
-    builder.append("\tZone: " + zone.getId() + " - "+ zoneIdToNodeCount.get(zone.getId())+ "\n");
-  }
-  builder.append("\n");
-  builder.append("Number of partitions per node:\n");
-  for (  Node node : currentCluster.getNodes()) {
-    builder.append("\tNode ID: " + node.getId() + " - "+ node.getNumberOfPartitions()+ " ("+ node.getHost()+ ")\n");
-  }
-  builder.append("\n");
   builder.append("PARTITION DUMP\n");
   Map<Integer,Integer> primaryAggNodeIdToPartitionCount=Maps.newHashMap();
   for (  Integer nodeId : nodeIds) {

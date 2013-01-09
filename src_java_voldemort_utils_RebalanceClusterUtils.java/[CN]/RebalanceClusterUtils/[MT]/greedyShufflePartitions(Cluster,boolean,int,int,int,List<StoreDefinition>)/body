@@ -1,8 +1,9 @@
 {
-  Set<Integer> zoneIds=targetCluster.getZoneIds();
+  List<Integer> zoneIds=new ArrayList<Integer>(targetCluster.getZoneIds());
   Cluster returnCluster=ClusterUtils.copyCluster(targetCluster);
   double currentMaxMinRatio=analyzeBalance(returnCluster,storeDefs);
   for (int i=0; i < greedyAttempts; i++) {
+    Collections.shuffle(zoneIds,new Random(System.currentTimeMillis()));
     for (    Integer zoneId : zoneIds) {
       System.out.println("Greedy swap attempt: zone " + zoneId + " , attempt "+ i+ " of "+ greedyAttempts);
       Cluster shuffleResults=swapGreedyRandomPartitionsWithinZone(returnCluster,zoneId,greedySwapMaxPartitionsPerNode,greedySwapMaxPartitionsPerZone,storeDefs);
