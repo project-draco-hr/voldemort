@@ -1,0 +1,17 @@
+{
+  assertEquals(0.0,simpleCounter.getAvgEventValue(),0.0);
+  assertEquals(0.0,simpleCounter.getEventRate(),0.0);
+  for (int i=0; i < 10; i++)   simpleCounter.count();
+  sleepForResetInterval();
+  for (int i=0; i < 10; i++)   simpleCounter.count(100);
+  assertEquals(0.0,simpleCounter.getAvgEventValue(),0.0);
+  assertEquals(10 / ((COUNTER_RESET_INTERVAL_MS * 1.0) / Time.MS_PER_SECOND),simpleCounter.getEventRate(),0.0);
+  sleepForResetInterval();
+  for (int i=0; i < 10; i++) {
+    assertEquals(100.0,simpleCounter.getAvgEventValue(),0.0);
+    assertEquals(10 / ((COUNTER_RESET_INTERVAL_MS * 1.0) / Time.MS_PER_SECOND),simpleCounter.getEventRate(),0.0);
+  }
+  sleepForResetInterval();
+  assertEquals(0.0,simpleCounter.getAvgEventValue(),0.0);
+  assertEquals(0.0,simpleCounter.getEventRate(),0.0);
+}

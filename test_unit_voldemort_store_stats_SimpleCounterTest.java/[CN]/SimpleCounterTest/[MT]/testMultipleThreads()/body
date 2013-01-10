@@ -1,0 +1,68 @@
+{
+  ExecutorService executorService=null;
+  try {
+    final int NUM_THREADS=5;
+    final int NUM_OPS=10000;
+    executorService=Executors.newFixedThreadPool(NUM_THREADS);
+    final CountDownLatch latch1=new CountDownLatch(NUM_THREADS);
+    for (int i=0; i < NUM_THREADS; i++) {
+      final int threadId=i;
+      executorService.submit(new Runnable(){
+        public void run(){
+          try {
+            sleepForResetInterval();
+            for (int j=0; j < NUM_OPS; j++) {
+              simpleCounter.count(100 * (threadId + 1));
+            }
+          }
+  finally {
+            latch1.countDown();
+          }
+        }
+      }
+);
+    }
+    latch1.await();
+    sleepForResetInterval();
+    assertEquals(300.0,simpleCounter.getAvgEventValue(),0.0);
+    assertEquals((NUM_OPS * NUM_THREADS) / ((COUNTER_RESET_INTERVAL_MS * 1.0) / Time.MS_PER_SECOND),simpleCounter.getEventRate(),0.0);
+    sleepForResetInterval();
+    final ConcurrentLinkedQueue<Double> observedEventRate=new ConcurrentLinkedQueue<Double>();
+    final ConcurrentLinkedQueue<Double> observedEventValueAvg=new ConcurrentLinkedQueue<Double>();
+    final int NUM_INTERVALS=30;
+    final CountDownLatch latch2=new CountDownLatch(NUM_THREADS);
+    for (int i=0; i < NUM_THREADS; i++) {
+      final int threadId=i;
+      executorService.submit(new Runnable(){
+        public void run(){
+          try {
+            for (int interval=0; interval < NUM_INTERVALS; interval++) {
+              sleepForResetInterval();
+              for (int j=0; j < NUM_OPS; j++) {
+                simpleCounter.count(100);
+              }
+            }
+            observedEventRate.add(simpleCounter.getEventRate());
+            observedEventValueAvg.add(simpleCounter.getAvgEventValue());
+          }
+  finally {
+            latch2.countDown();
+          }
+        }
+      }
+);
+    }
+    latch2.await();
+    Object[] actualEventRates=new Object[NUM_THREADS];
+    Object[] actualEventValueAvgs=new Object[NUM_THREADS];
+    for (int i=0; i < NUM_THREADS; i++) {
+      actualEventRates[i]=(NUM_OPS * NUM_THREADS) / ((COUNTER_RESET_INTERVAL_MS * 1.0) / Time.MS_PER_SECOND);
+      actualEventValueAvgs[i]=100.0;
+    }
+    assertEquals(Arrays.equals(observedEventRate.toArray(),actualEventRates),true);
+    assertEquals(Arrays.equals(observedEventValueAvg.toArray(),actualEventValueAvgs),true);
+  }
+  finally {
+    if (executorService != null)     executorService.shutdown();
+  }
+}

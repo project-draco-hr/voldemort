@@ -1,0 +1,34 @@
+{
+  this.nodeId=metadataStore.getNodeId();
+  this.request=request;
+  this.errorCodeMapper=errorCodeMapper;
+  this.replicaToPartitionList=ProtoUtils.decodePartitionTuple(request.getReplicaToPartitionList());
+  this.storageEngine=AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
+  if (voldemortConfig.isJmxEnabled()) {
+    this.streamStats=storeRepository.getStreamingStats(this.storageEngine.getName());
+  }
+ else {
+    this.streamStats=null;
+  }
+  this.operation=operation;
+  this.storeDef=getStoreDef(request.getStore(),metadataStore);
+  if (request.hasInitialCluster()) {
+    this.initialCluster=new ClusterMapper().readCluster(new StringReader(request.getInitialCluster()));
+  }
+ else {
+    this.initialCluster=metadataStore.getCluster();
+  }
+  this.throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
+  if (request.hasFilter()) {
+    this.filter=AdminServiceRequestHandler.getFilterFromRequest(request.getFilter(),voldemortConfig,networkClassLoader);
+  }
+ else {
+    this.filter=new DefaultVoldemortFilter();
+  }
+  this.startTime=System.currentTimeMillis();
+  this.counter=0;
+  this.skipRecords=1;
+  if (request.hasSkipRecords() && request.getSkipRecords() >= 0) {
+    this.skipRecords=request.getSkipRecords() + 1;
+  }
+}

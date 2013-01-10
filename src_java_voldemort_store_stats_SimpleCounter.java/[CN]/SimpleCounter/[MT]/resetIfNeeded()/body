@@ -1,0 +1,16 @@
+{
+  long currentLastResetTimeMs=lastResetTimeMs.longValue();
+  long now=System.currentTimeMillis();
+  if ((now - currentLastResetTimeMs) >= resetIntervalMs) {
+    long numEvents=eventsCounter.longValue();
+    long totalEventValue=eventsValueCounter.longValue();
+    if (lastResetTimeMs.compareAndSet(currentLastResetTimeMs,now)) {
+synchronized (this) {
+        numEventsLastLastInterval=numEventsLastInterval;
+        totalEventValueLastLastInterval=totalEventValueLastInterval;
+        numEventsLastInterval=numEvents;
+        totalEventValueLastInterval=totalEventValue;
+      }
+    }
+  }
+}

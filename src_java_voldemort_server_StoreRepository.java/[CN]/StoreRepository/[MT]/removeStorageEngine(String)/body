@@ -1,3 +1,10 @@
 {
+  if (streamingStatsMap != null) {
+    JmxUtils.unregisterMbean(JmxUtils.createObjectName(this.getClass().getCanonicalName(),storeName));
+    streamingStatsMap.remove(storeName);
+    if (storageEngines.size() == 1) {
+      JmxUtils.unregisterMbean(JmxUtils.createObjectName(this.getClass().getCanonicalName(),"aggregated-streaming-stats"));
+    }
+  }
   return this.storageEngines.remove(storeName);
 }

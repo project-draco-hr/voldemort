@@ -4,7 +4,7 @@
     this.chunkedFileWriter.close();
     currentChunkId++;
     dataFile=indexFile=null;
-    handle.incrementEntriesScanned();
+    if (streamStats != null)     streamStats.reportStreamingFetch(Operation.FETCH_FILE);
     if (currentChunkId >= numChunks) {
       fetchStatus=FetchStatus.NEXT_PARTITION;
     }

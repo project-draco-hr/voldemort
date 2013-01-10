@@ -1,7 +1,6 @@
 {
   if (entriesPartitionIterator == null) {
     if (currentIndex == partitionList.size()) {
-      stats.closeHandle(handle);
       return StreamRequestHandlerState.COMPLETE;
     }
     boolean found=false;
@@ -23,27 +22,30 @@
       counter++;
       if (counter % skipRecords == 0) {
         Pair<ByteArray,Versioned<byte[]>> entry=entriesPartitionIterator.next();
-        stats.recordDiskTime(handle,System.nanoTime() - startNs);
+        if (streamStats != null) {
+          streamStats.reportStorageTime(operation,System.nanoTime() - startNs);
+          streamStats.reportStreamingScan(operation);
+        }
         ByteArray key=entry.getFirst();
         Versioned<byte[]> value=entry.getSecond();
         throttler.maybeThrottle(key.length());
         if (filter.accept(key,value)) {
           fetched++;
-          handle.incrementEntriesScanned();
+          if (streamStats != null)           streamStats.reportStreamingFetch(operation);
           VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
           VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(key)).setVersioned(ProtoUtils.encodeVersioned(value)).build();
           response.setPartitionEntry(partitionEntry);
           Message message=response.build();
           startNs=System.nanoTime();
           ProtoUtils.writeMessage(outputStream,message);
-          stats.recordNetworkTime(handle,System.nanoTime() - startNs);
+          if (streamStats != null)           streamStats.reportNetworkTime(operation,System.nanoTime() - startNs);
           throttler.maybeThrottle(AdminServiceRequestHandler.valueSize(value));
         }
       }
  else {
-        stats.recordDiskTime(handle,System.nanoTime() - startNs);
+        if (streamStats != null)         streamStats.reportStorageTime(operation,System.nanoTime() - startNs);
       }
-      if (0 == counter % 100000) {
+      if (0 == counter % STAT_RECORDS_INTERVAL) {
         long totalTime=(System.currentTimeMillis() - startTime) / Time.MS_PER_SECOND;
         logger.info("Fetch entries scanned " + counter + " entries, fetched "+ fetched+ " entries for store '"+ storageEngine.getName()+ "' replicaToPartitionList:"+ replicaToPartitionList+ " in "+ totalTime+ " s");
       }
