@@ -1,5 +1,6 @@
 {
   acquireCleanupPermit(progressThisRun);
+  store.beginBatchModifications();
   ClosableIterator<Pair<K,Versioned<V>>> iterator=null;
   try {
     logger.info("Starting data cleanup on store \"" + store.getName() + "\"...");
@@ -34,5 +35,6 @@ synchronized (this) {
       totalEntriesScanned+=progressThisRun.get();
       progressThisRun.set(0);
     }
+    store.endBatchModifications();
   }
 }

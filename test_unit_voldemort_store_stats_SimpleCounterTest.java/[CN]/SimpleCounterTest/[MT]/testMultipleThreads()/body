@@ -5,23 +5,28 @@
     final int NUM_OPS=10000;
     executorService=Executors.newFixedThreadPool(NUM_THREADS);
     final CountDownLatch latch1=new CountDownLatch(NUM_THREADS);
+    final CountDownLatch latch0=new CountDownLatch(1);
     for (int i=0; i < NUM_THREADS; i++) {
       final int threadId=i;
       executorService.submit(new Runnable(){
         public void run(){
           try {
-            sleepForResetInterval();
+            latch0.await();
             for (int j=0; j < NUM_OPS; j++) {
               simpleCounter.count(100 * (threadId + 1));
             }
           }
-  finally {
+ catch (          InterruptedException e) {
+            e.printStackTrace();
+          }
+ finally {
             latch1.countDown();
           }
         }
       }
 );
     }
+    latch0.countDown();
     latch1.await();
     sleepForResetInterval();
     assertEquals(300.0,simpleCounter.getAvgEventValue(),0.0);
