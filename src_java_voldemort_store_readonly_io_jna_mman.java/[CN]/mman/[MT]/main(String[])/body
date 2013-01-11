@@ -3,9 +3,9 @@
   File file=new File(path);
   FileInputStream in=new FileInputStream(file);
   int fd=voldemort.store.readonly.io.Native.getFd(in.getFD());
-  logger.info("File descriptor is: " + fd);
+  logger.debug("File descriptor is: " + fd);
   Pointer addr=mmap(file.length(),PROT_READ,mman.MAP_SHARED | mman.MAP_ALIGN,fd,0L);
-  logger.info("mmap address is: " + Pointer.nativeValue(addr));
+  logger.debug("mmap address is: " + Pointer.nativeValue(addr));
   mlock(addr,file.length());
   munlock(addr,file.length());
   munmap(addr,file.length());
