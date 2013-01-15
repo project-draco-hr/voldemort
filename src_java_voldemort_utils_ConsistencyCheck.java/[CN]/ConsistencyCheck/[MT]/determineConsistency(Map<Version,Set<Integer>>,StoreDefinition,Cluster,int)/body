@@ -1,0 +1,47 @@
+{
+  boolean fullyConsistent=true;
+  Version latestVersion=null;
+  for (  Map.Entry<Version,Set<Integer>> versionNodeSetEntry : versionNodeSetMap.entrySet()) {
+    Version version=versionNodeSetEntry.getKey();
+    if (latestVersion == null || ((VectorClock)latestVersion).getTimestamp() < ((VectorClock)version).getTimestamp()) {
+      latestVersion=version;
+    }
+    Set<Integer> nodeSet=versionNodeSetEntry.getValue();
+    fullyConsistent=fullyConsistent && (nodeSet.size() == storeDef.getReplicationFactor());
+  }
+  if (fullyConsistent) {
+    return ConsistencyLevel.FULL;
+  }
+ else {
+    Set<Integer> nodeSet=versionNodeSetMap.get(latestVersion);
+    if (nodeSet.size() == storeDef.getReplicationFactor()) {
+      return ConsistencyLevel.GREY;
+    }
+    if (nodeSet.size() <= storeDef.getRequiredWrites()) {
+      return ConsistencyLevel.GREY;
+    }
+    Map<Integer,Integer> zoneToAvailableNodeCounts=new HashMap<Integer,Integer>();
+    for (    Integer nodeId : nodeSet) {
+      Integer zoneId=cluster.getNodeById(nodeId).getZoneId();
+      Integer count=0;
+      if (zoneToAvailableNodeCounts.containsKey(zoneId)) {
+        count=zoneToAvailableNodeCounts.get(zoneId);
+      }
+      count++;
+      zoneToAvailableNodeCounts.put(zoneId,count);
+    }
+    Integer primaryZoneAvailableNodeCounts=zoneToAvailableNodeCounts.get(primaryZoneId);
+    if (primaryZoneAvailableNodeCounts == null) {
+      primaryZoneAvailableNodeCounts=0;
+    }
+    for (    Zone zone : cluster.getZones()) {
+      Integer zoneId=zone.getId();
+      if (primaryZoneId != zoneId) {
+        if (!zoneToAvailableNodeCounts.containsKey(zoneId) || zoneToAvailableNodeCounts.get(zoneId) == null || zoneToAvailableNodeCounts.get(zoneId) < primaryZoneAvailableNodeCounts) {
+          return ConsistencyLevel.ANTI_DR;
+        }
+      }
+    }
+    return ConsistencyLevel.ORANGE;
+  }
+}

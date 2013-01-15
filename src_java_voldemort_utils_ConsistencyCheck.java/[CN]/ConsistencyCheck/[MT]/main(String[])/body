@@ -2,196 +2,54 @@
   OptionParser parser=new OptionParser();
   parser.accepts("help","print help information");
   parser.accepts("url","[REQUIRED] bootstrap URL").withRequiredArg().describedAs("bootstrap-url").ofType(String.class);
-  parser.accepts("partition","partition-id").withRequiredArg().describedAs("partition-id").ofType(Integer.class);
+  parser.accepts("partitions","partition-id").withRequiredArg().describedAs("partition-id").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("store","store name").withRequiredArg().describedAs("store-name").ofType(String.class);
+  parser.accepts("primary-zone","primary zone id").withRequiredArg().ofType(Integer.class);
+  parser.accepts("verbose","verbose");
   OptionSet options=parser.parse(args);
+  boolean verbose=false;
   if (options.hasArgument("help")) {
     printUsage();
+    return;
   }
-  if (!options.hasArgument("url") || !options.hasArgument("partition") || !options.hasArgument("store")) {
+  if (!options.hasArgument("url") || !options.hasArgument("partitions") || !options.hasArgument("store")|| !options.hasArgument("primary-zone")) {
     printUsage();
+    return;
+  }
+  if (options.has("verbose")) {
+    verbose=true;
   }
   String url=(String)options.valueOf("url");
   String storeName=(String)options.valueOf("store");
-  Integer partitionId=(Integer)options.valueOf("partition");
-  List<Integer> singlePartition=new ArrayList<Integer>();
-  singlePartition.add(partitionId);
-  AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),0);
-  Cluster cluster=adminClient.getAdminClientCluster();
-  Versioned<List<StoreDefinition>> storeDefinitions=adminClient.getRemoteStoreDefList(0);
-  List<StoreDefinition> StoreDefitions=storeDefinitions.getValue();
-  StoreDefinition storeDefinition=null;
-  for (  StoreDefinition def : StoreDefitions) {
-    if (def.getName().equals(storeName)) {
-      storeDefinition=def;
-      break;
-    }
+  List<Integer> partitionIds=(List<Integer>)options.valuesOf("partitions");
+  Integer primaryZoneId=(Integer)options.valueOf("primary-zone");
+  ConsistencyCheckStats globalStats=new ConsistencyCheckStats();
+  Map<Integer,ConsistencyCheckStats> partitionStatsMap=new HashMap<Integer,ConsistencyCheckStats>();
+  for (  Integer partitionId : partitionIds) {
+    ConsistencyCheckStats partitionStats=doConsistencyCheck(storeName,partitionId,url,primaryZoneId,verbose);
+    partitionStatsMap.put(partitionId,partitionStats);
+    globalStats.append(partitionStats);
   }
-  if (storeDefinition == null) {
-    throw new Exception("No such store found: " + storeName);
+  StringBuilder statsString=new StringBuilder();
+  statsString.append("TYPE,Store,ParitionId,KeysConsistent,KeysTotal,Consistency\n");
+  for (  Map.Entry<Integer,ConsistencyCheckStats> entry : partitionStatsMap.entrySet()) {
+    Integer partitionId=entry.getKey();
+    ConsistencyCheckStats partitionStats=entry.getValue();
+    statsString.append("STATS,");
+    statsString.append(storeName + ",");
+    statsString.append(partitionId + ",");
+    statsString.append(partitionStats.getConsistentKeys() + ",");
+    statsString.append(partitionStats.getTotalKeys() + ",");
+    statsString.append((double)(partitionStats.getConsistentKeys()) / (double)partitionStats.getTotalKeys());
+    statsString.append("\n");
   }
-  RetentionChecker retentionChecker;
-  int retentionDays=0;
-  if (storeDefinition.getRetentionDays() != null) {
-    retentionDays=storeDefinition.getRetentionDays().intValue();
-  }
-  retentionChecker=new RetentionChecker(retentionDays);
-  SortedMap<Integer,Node> partitionToNodeMap=new TreeMap<Integer,Node>();
-  Collection<Node> nodes=cluster.getNodes();
-  for (  Node n : nodes) {
-    for (    Integer partition : n.getPartitionIds()) {
-      if (partitionToNodeMap.containsKey(partition))       throw new IllegalArgumentException("Duplicate partition id " + partition + " in cluster configuration "+ nodes);
-      partitionToNodeMap.put(partition,n);
-    }
-  }
-  List<Integer> partitionList=new RoutingStrategyFactory().updateRoutingStrategy(storeDefinition,cluster).getReplicatingPartitionList(partitionId);
-  List<Integer> nodeIdList=new ArrayList<Integer>(partitionList.size());
-  for (  int partition : partitionList) {
-    Integer nodeId=partitionToNodeMap.get(partition).getId();
-    nodeIdList.add(nodeId);
-  }
-  Map<Integer,Set<Integer>> zoneToNodeIds=new HashMap<Integer,Set<Integer>>();
-  for (  Integer nodeId : nodeIdList) {
-    Integer zoneId=cluster.getNodeById(nodeId).getZoneId();
-    if (!zoneToNodeIds.containsKey(zoneId)) {
-      zoneToNodeIds.put(zoneId,new HashSet<Integer>());
-    }
-    zoneToNodeIds.get(zoneId).add(nodeId);
-  }
-  StringBuilder configInfo=new StringBuilder();
-  configInfo.append("Configuration\n");
-  configInfo.append("=============\n");
-  configInfo.append("  URL: " + url + "\n");
-  configInfo.append("Store: " + storeName + "\n");
-  configInfo.append("ParId: " + partitionId + "\n");
-  configInfo.append("Nodes: " + nodeIdList.toString() + "\n");
-  System.out.println(configInfo);
-  Map<Integer,Iterator<Pair<ByteArray,Versioned<byte[]>>>> nodeEntriesMap;
-  nodeEntriesMap=new HashMap<Integer,Iterator<Pair<ByteArray,Versioned<byte[]>>>>();
-  for (  Integer nodeId : nodeIdList) {
-    Iterator<Pair<ByteArray,Versioned<byte[]>>> entries;
-    entries=adminClient.fetchEntries(nodeId,storeName,singlePartition,null,false);
-    nodeEntriesMap.put(nodeId,entries);
-  }
-  Map<ByteArray,Map<Version,Set<Integer>>> keyVersionNodeSetMap;
-  Map<ByteArray,Set<Iterator<Pair<ByteArray,Versioned<byte[]>>>>> fullyFetchedKeys;
-  Map<Iterator<Pair<ByteArray,Versioned<byte[]>>>,ByteArray> lastFetchedKey;
-  keyVersionNodeSetMap=new HashMap<ByteArray,Map<Version,Set<Integer>>>();
-  fullyFetchedKeys=new HashMap<ByteArray,Set<Iterator<Pair<ByteArray,Versioned<byte[]>>>>>();
-  lastFetchedKey=new HashMap<Iterator<Pair<ByteArray,Versioned<byte[]>>>,ByteArray>();
-  long numRecordsScanned=0;
-  long numRecordsScannedLast=0;
-  long lastReportTimeMs=0;
-  long reportPeriodMs=5000;
-  long expiredRecords=0;
-  long preQualifiedKeys=0;
-  boolean anyNodeHasNext;
-  do {
-    anyNodeHasNext=false;
-    for (    Map.Entry<Integer,Iterator<Pair<ByteArray,Versioned<byte[]>>>> nodeEntriesMapEntry : nodeEntriesMap.entrySet()) {
-      Integer nodeId=nodeEntriesMapEntry.getKey();
-      Iterator<Pair<ByteArray,Versioned<byte[]>>> nodeEntries=nodeEntriesMapEntry.getValue();
-      if (nodeEntries.hasNext()) {
-        anyNodeHasNext=true;
-        numRecordsScanned++;
-        Pair<ByteArray,Versioned<byte[]>> nodeEntry=nodeEntries.next();
-        ByteArray key=nodeEntry.getFirst();
-        Version version=nodeEntry.getSecond().getVersion();
-        if (lastFetchedKey.containsKey(nodeEntries)) {
-          ByteArray lastKey=lastFetchedKey.get(nodeEntries);
-          if (key != lastKey) {
-            if (!fullyFetchedKeys.containsKey(lastKey)) {
-              fullyFetchedKeys.put(lastKey,new HashSet<Iterator<Pair<ByteArray,Versioned<byte[]>>>>());
-            }
-            Set<Iterator<Pair<ByteArray,Versioned<byte[]>>>> lastKeyIterSet=fullyFetchedKeys.get(lastKey);
-            lastKeyIterSet.add(nodeEntries);
-            if (lastKeyIterSet.size() == nodeIdList.size()) {
-              if (isConsistent(keyVersionNodeSetMap.get(lastKey),storeDefinition.getReplicationFactor())) {
-                keyVersionNodeSetMap.remove(lastKey);
-                preQualifiedKeys++;
-              }
-              fullyFetchedKeys.remove(lastKey);
-            }
-          }
-        }
-        lastFetchedKey.put(nodeEntries,key);
-        if (retentionChecker.isExpired(version)) {
-          expiredRecords++;
-          continue;
-        }
- else {
-          if (!keyVersionNodeSetMap.containsKey(key)) {
-            keyVersionNodeSetMap.put(key,new HashMap<Version,Set<Integer>>());
-          }
-          Map<Version,Set<Integer>> versionNodeSetMap=keyVersionNodeSetMap.get(key);
-          if (!versionNodeSetMap.containsKey(version)) {
-            Iterator<Version> iter=versionNodeSetMap.keySet().iterator();
-            if (iter.hasNext()) {
-              Version existingVersion=iter.next();
-              if (version.compare(existingVersion) == Occurred.AFTER) {
-                versionNodeSetMap=new HashMap<Version,Set<Integer>>();
-                keyVersionNodeSetMap.put(key,versionNodeSetMap);
-              }
- else               if (existingVersion.compare(version) == Occurred.AFTER) {
-                continue;
-              }
- else               if (existingVersion.compare(version) == Occurred.CONCURRENTLY) {
-              }
- else {
-                System.err.print("[ERROR]Two versions are not after each other nor currently(key, v1, v2)");
-                System.err.print(key + ", " + existingVersion+ ", "+ version);
-              }
-            }
-            versionNodeSetMap.put(version,new HashSet<Integer>());
-          }
-          Set<Integer> nodeSet=versionNodeSetMap.get(version);
-          nodeSet.add(nodeId);
-        }
-      }
-    }
-    if (System.currentTimeMillis() > lastReportTimeMs + reportPeriodMs) {
-      long currentTimeMs=System.currentTimeMillis();
-      System.out.println("Progress Report");
-      System.out.println("===============");
-      System.out.println("    Number of records Scanned: " + numRecordsScanned);
-      System.out.println("  Total number of unique keys: " + keyVersionNodeSetMap.size());
-      System.out.println("   Records Ignored(Retention): " + expiredRecords);
-      System.out.println("Recent fetch speed(records/s): " + (numRecordsScanned - numRecordsScannedLast) / ((currentTimeMs - lastReportTimeMs) / 1000));
-      System.out.println();
-      lastReportTimeMs=currentTimeMs;
-      numRecordsScannedLast=numRecordsScanned;
-    }
-  }
- while (anyNodeHasNext);
-  System.out.println("Analyzing....");
-  cleanIneligibleKeys(keyVersionNodeSetMap,storeDefinition.getRequiredWrites());
-  long totalKeys=keyVersionNodeSetMap.size() + preQualifiedKeys;
-  long totalKeysConsistent=preQualifiedKeys;
-  StringBuilder totalStats=new StringBuilder();
-  totalStats.append("KeysTotal, KeysConsistent, Consistency\n");
-  totalStats.append(totalKeys + ", " + totalKeysConsistent+ ", ");
-  totalStats.append((double)totalKeysConsistent / (double)totalKeys);
-  totalStats.append("\n");
-  System.out.println(totalStats.toString());
-  Map<Integer,Integer> zonePartialConsistentKeyCount=new HashMap<Integer,Integer>();
-  for (  Map.Entry<Integer,Set<Integer>> zoneToNodeSetEntry : zoneToNodeIds.entrySet()) {
-    Integer zoneId=zoneToNodeSetEntry.getKey();
-    Set<Integer> zoneNodeSet=zoneToNodeSetEntry.getValue();
-    int partialConsistentKeyCount=0;
-    for (    Map.Entry<ByteArray,Map<Version,Set<Integer>>> entry : keyVersionNodeSetMap.entrySet()) {
-      boolean partialConsistent=true;
-      for (      Set<Integer> keyVersionNodeSet : entry.getValue().values()) {
-        partialConsistent=partialConsistent && keyVersionNodeSet.containsAll(zoneNodeSet);
-      }
-      if (partialConsistent) {
-        partialConsistentKeyCount++;
-      }
-    }
-    zonePartialConsistentKeyCount.put(zoneId,partialConsistentKeyCount);
-  }
-  System.out.println("storeName,zoneId,consistency");
-  for (  Integer zoneId : zoneToNodeIds.keySet()) {
-    long zoneConsistentKeys=totalKeysConsistent + zonePartialConsistentKeyCount.get(zoneId);
-    System.out.println(storeName + "," + zoneId+ ","+ (double)(zoneConsistentKeys) / (double)totalKeys);
-  }
+  statsString.append("STATS,");
+  statsString.append(storeName + ",");
+  statsString.append("aggregate,");
+  statsString.append(globalStats.getConsistentKeys() + ",");
+  statsString.append(globalStats.getTotalKeys() + ",");
+  statsString.append((double)(globalStats.getConsistentKeys()) / (double)globalStats.getTotalKeys());
+  statsString.append("\n");
+  System.out.println();
+  System.out.println(statsString.toString());
 }
