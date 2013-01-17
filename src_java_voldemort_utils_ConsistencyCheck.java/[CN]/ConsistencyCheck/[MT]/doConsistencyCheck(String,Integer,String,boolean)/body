@@ -103,8 +103,8 @@
               Set<Iterator<Pair<ByteArray,Versioned<byte[]>>>> lastKeyIterSet=fullyFetchedKeys.get(lastKey);
               lastKeyIterSet.add(nodeEntries);
               if (lastKeyIterSet.size() == nodeIdList.size()) {
-                ConsistencyLevel level=determineConsistency(keyVersionNodeSetMap.get(lastKey),storeDefinition,cluster,primaryZoneId);
-                if (level == ConsistencyLevel.FULL) {
+                ConsistencyLevel level=determineConsistency(keyVersionNodeSetMap.get(lastKey),storeDefinition);
+                if (level == ConsistencyLevel.FULL || level == ConsistencyLevel.LATEST_CONSISTENT) {
                   keyVersionNodeSetMap.remove(lastKey);
                   preQualifiedKeys++;
                 }
@@ -161,8 +161,8 @@
   cleanIneligibleKeys(keyVersionNodeSetMap,storeDefinition.getRequiredWrites());
   Set<ByteArray> keysToDelete=new HashSet<ByteArray>();
   for (  ByteArray key : keyVersionNodeSetMap.keySet()) {
-    ConsistencyLevel level=determineConsistency(keyVersionNodeSetMap.get(key),storeDefinition,cluster,primaryZoneId);
-    if (level == ConsistencyLevel.FULL) {
+    ConsistencyLevel level=determineConsistency(keyVersionNodeSetMap.get(key),storeDefinition);
+    if (level == ConsistencyLevel.FULL || level == ConsistencyLevel.LATEST_CONSISTENT) {
       keysToDelete.add(key);
     }
   }
@@ -173,25 +173,12 @@
   long totalKeys=keyVersionNodeSetMap.size() + preQualifiedKeys;
   long totalKeysConsistent=preQualifiedKeys;
   if (verbose) {
-    StringBuilder record=new StringBuilder();
-    record.append("TYPE,Store,ParId,Key,ServerSet,VersionTS,VectorClock,ConsistentyLevel\n");
+    System.out.println("TYPE,Store,ParId,Key,ServerSet,VersionTS,VectorClock,ConsistentyLevel");
     for (    Map.Entry<ByteArray,Map<Version,Set<Integer>>> entry : keyVersionNodeSetMap.entrySet()) {
       ByteArray key=entry.getKey();
       Map<Version,Set<Integer>> versionMap=entry.getValue();
-      for (      Map.Entry<Version,Set<Integer>> versionSet : versionMap.entrySet()) {
-        Version version=versionSet.getKey();
-        Set<Integer> nodeSet=versionSet.getValue();
-        record.append("BAD_KEY,");
-        record.append(storeName + ",");
-        record.append(partitionId + ",");
-        record.append(ByteUtils.toHexString(key.get()) + ",");
-        record.append(nodeSet.toString().replaceAll(", ",";") + ",");
-        record.append(((VectorClock)version).getTimestamp() + ",");
-        record.append(version.toString().replaceAll(", ",";").replaceAll(" ts:[0-9]*","").replaceAll("version\\((.*)\\)","[$1]") + ",");
-        record.append(determineConsistency(versionMap,storeDefinition,cluster,primaryZoneId).toString() + "\n");
-      }
+      System.out.println(keyVersionToString(key,versionMap,storeName,partitionId));
     }
-    System.out.println(record.toString());
   }
   ConsistencyCheckStats stats=new ConsistencyCheckStats();
   stats.setConsistentKeys(totalKeysConsistent);

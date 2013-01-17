@@ -4,7 +4,6 @@
   parser.accepts("url","[REQUIRED] bootstrap URL").withRequiredArg().describedAs("bootstrap-url").ofType(String.class);
   parser.accepts("partitions","partition-id").withRequiredArg().describedAs("partition-id").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("store","store name").withRequiredArg().describedAs("store-name").ofType(String.class);
-  parser.accepts("primary-zone","primary zone id").withRequiredArg().ofType(Integer.class);
   parser.accepts("verbose","verbose");
   OptionSet options=parser.parse(args);
   boolean verbose=false;
@@ -12,7 +11,7 @@
     printUsage();
     return;
   }
-  if (!options.hasArgument("url") || !options.hasArgument("partitions") || !options.hasArgument("store")|| !options.hasArgument("primary-zone")) {
+  if (!options.hasArgument("url") || !options.hasArgument("partitions") || !options.hasArgument("store")) {
     printUsage();
     return;
   }
@@ -22,11 +21,10 @@
   String url=(String)options.valueOf("url");
   String storeName=(String)options.valueOf("store");
   List<Integer> partitionIds=(List<Integer>)options.valuesOf("partitions");
-  Integer primaryZoneId=(Integer)options.valueOf("primary-zone");
   ConsistencyCheckStats globalStats=new ConsistencyCheckStats();
   Map<Integer,ConsistencyCheckStats> partitionStatsMap=new HashMap<Integer,ConsistencyCheckStats>();
   for (  Integer partitionId : partitionIds) {
-    ConsistencyCheckStats partitionStats=doConsistencyCheck(storeName,partitionId,url,primaryZoneId,verbose);
+    ConsistencyCheckStats partitionStats=doConsistencyCheck(storeName,partitionId,url,verbose);
     partitionStatsMap.put(partitionId,partitionStats);
     globalStats.append(partitionStats);
   }

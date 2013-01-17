@@ -1,0 +1,22 @@
+{
+  boolean fullyConsistent=true;
+  Version latestVersion=null;
+  for (  Map.Entry<Version,Set<Integer>> versionNodeSetEntry : versionNodeSetMap.entrySet()) {
+    Version version=versionNodeSetEntry.getKey();
+    if (latestVersion == null || ((VectorClock)latestVersion).getTimestamp() < ((VectorClock)version).getTimestamp()) {
+      latestVersion=version;
+    }
+    Set<Integer> nodeSet=versionNodeSetEntry.getValue();
+    fullyConsistent=fullyConsistent && (nodeSet.size() == storeDef.getReplicationFactor());
+  }
+  if (fullyConsistent) {
+    return ConsistencyLevel.FULL;
+  }
+ else {
+    Set<Integer> nodeSet=versionNodeSetMap.get(latestVersion);
+    if (nodeSet.size() == storeDef.getReplicationFactor()) {
+      return ConsistencyLevel.LATEST_CONSISTENT;
+    }
+    return ConsistencyLevel.ORANGE;
+  }
+}
