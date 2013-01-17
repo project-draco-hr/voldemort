@@ -1,0 +1,23 @@
+{
+  System.out.println("Connecting to bootstrap server: " + url);
+  adminClient=new AdminClient(url,new AdminClientConfig(),0);
+  cluster=adminClient.getAdminClientCluster();
+  System.out.println("Cluster determined to be: " + cluster.getName());
+  System.out.println("Determining store definition for store: " + storeName);
+  Versioned<List<StoreDefinition>> storeDefinitions=adminClient.getRemoteStoreDefList(0);
+  List<StoreDefinition> StoreDefitions=storeDefinitions.getValue();
+  boolean storeFound=false;
+  for (  StoreDefinition def : StoreDefitions) {
+    if (def.getName().equals(storeName)) {
+      storeDefinition=def;
+      storeFound=true;
+      break;
+    }
+  }
+  if (!storeFound) {
+    throw new Exception("Store definition for store '" + storeName + "' not found.");
+  }
+  System.out.println("Store definition determined.");
+  System.out.println("Determining partition ID to node ID mapping.");
+  partitionIdToNodeIdMap=RebalanceUtils.getCurrentPartitionMapping(cluster);
+}

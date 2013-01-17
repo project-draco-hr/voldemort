@@ -1,0 +1,26 @@
+{
+  OptionParser parser=new OptionParser();
+  parser.accepts("help","print help information");
+  parser.accepts("url").withRequiredArg().describedAs("The bootstrap url.").ofType(String.class);
+  parser.accepts("store").withRequiredArg().describedAs("The store name.").ofType(String.class);
+  parser.accepts("key").withRequiredArg().describedAs("The key in hexadecimal format.").ofType(String.class);
+  parser.accepts("verbose","verbose");
+  OptionSet options=parser.parse(args);
+  if (options.hasArgument("help")) {
+    printUsage();
+    return;
+  }
+  if (!options.hasArgument("url") || !options.hasArgument("store") || !options.has("key")) {
+    printUsage("Missing at least one of the required parameters (url, store, key).");
+    return;
+  }
+  boolean verbose=false;
+  if (options.has("verbose")) {
+    verbose=true;
+  }
+  String url=(String)options.valueOf("url");
+  String storeName=(String)options.valueOf("store");
+  String keyInHexFormat=(String)options.valueOf("key");
+  VoldemortInstance vInstance=new VoldemortInstance(url,storeName);
+  fixKey(vInstance,keyInHexFormat,verbose);
+}

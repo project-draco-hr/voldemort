@@ -1,0 +1,28 @@
+{
+  Node node=this.getAdminClientCluster().getNodeById(nodeKeyValue.getNodeId());
+  ClientConfig clientConfig=new ClientConfig();
+  final Store<ByteArray,byte[],byte[]> store;
+  final ClientRequestExecutorPool clientPool=new ClientRequestExecutorPool(clientConfig.getSelectors(),clientConfig.getMaxConnectionsPerNode(),clientConfig.getConnectionTimeout(TimeUnit.MILLISECONDS),clientConfig.getSocketTimeout(TimeUnit.MILLISECONDS),clientConfig.getSocketBufferSize(),clientConfig.getSocketKeepAlive());
+  try {
+    store=clientPool.create(storeName,node.getHost(),node.getSocketPort(),clientConfig.getRequestFormatType(),RequestRoutingType.IGNORE_CHECKS);
+  }
+ catch (  Exception e) {
+    clientPool.close();
+    throw new VoldemortException(e);
+  }
+  ByteArray key=nodeKeyValue.getKey();
+  Versioned<byte[]> value=nodeKeyValue.getVersioned();
+  Exception exception=null;
+  try {
+    store.put(key,value,null);
+  }
+ catch (  ObsoleteVersionException ove) {
+    System.out.println("Node with id " + nodeKeyValue.getNodeId() + " received ObsoleteVersionException. IGNORING!");
+  }
+catch (  VoldemortException ve) {
+    System.out.println("Node with id " + nodeKeyValue.getNodeId() + " received some VoldemortException.");
+    exception=ve;
+  }
+  clientPool.close();
+  return exception;
+}
