@@ -2,7 +2,7 @@
   this.nodeId=metadataStore.getNodeId();
   this.request=request;
   this.errorCodeMapper=errorCodeMapper;
-  this.replicaToPartitionList=ProtoUtils.decodePartitionTuple(request.getReplicaToPartitionList());
+  if (request.getReplicaToPartitionList() != null)   this.replicaToPartitionList=ProtoUtils.decodePartitionTuple(request.getReplicaToPartitionList());
   this.storageEngine=AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
   if (voldemortConfig.isJmxEnabled()) {
     this.streamStats=storeRepository.getStreamingStats(this.storageEngine.getName());
@@ -31,4 +31,5 @@
   if (request.hasSkipRecords() && request.getSkipRecords() >= 0) {
     this.skipRecords=request.getSkipRecords() + 1;
   }
+  this.fetchOrphaned=request.hasFetchOrphaned() && request.getFetchOrphaned();
 }

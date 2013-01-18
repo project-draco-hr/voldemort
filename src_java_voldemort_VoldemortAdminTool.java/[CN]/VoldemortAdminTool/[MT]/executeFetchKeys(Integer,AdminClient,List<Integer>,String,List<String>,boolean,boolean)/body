@@ -32,14 +32,20 @@
       System.out.println("No store found under the name \'" + store + "\'");
       continue;
     }
+    Iterator<ByteArray> keyIteratorRef=null;
+    if (fetchOrphaned) {
+      System.out.println("Fetching orphaned keys  of " + store);
+      keyIteratorRef=adminClient.fetchOrphanedKeys(nodeId,store);
+    }
  else {
       System.out.println("Fetching keys in partitions " + Joiner.on(", ").join(partitionIdList) + " of "+ store);
+      keyIteratorRef=adminClient.fetchKeys(nodeId,store,partitionIdList,null,false);
     }
-    final Iterator<ByteArray> keyIterator=adminClient.fetchKeys(nodeId,store,partitionIdList,null,false);
     File outputFile=null;
     if (directory != null) {
       outputFile=new File(directory,store + ".keys");
     }
+    final Iterator<ByteArray> keyIterator=keyIteratorRef;
     if (useAscii) {
       final SerializerDefinition serializerDef=storeDefinition.getKeySerializer();
       final SerializerFactory serializerFactory=new DefaultSerializerFactory();

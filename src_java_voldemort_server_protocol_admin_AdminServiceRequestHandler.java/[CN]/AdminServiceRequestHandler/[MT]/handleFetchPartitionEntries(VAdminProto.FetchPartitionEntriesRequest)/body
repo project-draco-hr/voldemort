@@ -1,12 +1,13 @@
 {
   boolean fetchValues=request.hasFetchValues() && request.getFetchValues();
+  boolean fetchOrphaned=request.hasFetchOrphaned() && request.getFetchOrphaned();
   StorageEngine<ByteArray,byte[],byte[]> storageEngine=AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
   if (fetchValues) {
-    if (storageEngine.isPartitionScanSupported())     return new FetchPartitionEntriesStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader);
+    if (storageEngine.isPartitionScanSupported() && !fetchOrphaned)     return new FetchPartitionEntriesStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader);
  else     return new FetchEntriesStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader);
   }
  else {
-    if (storageEngine.isPartitionScanSupported())     return new FetchPartitionKeysStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader);
+    if (storageEngine.isPartitionScanSupported() && !fetchOrphaned)     return new FetchPartitionKeysStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader);
  else     return new FetchKeysStreamRequestHandler(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader);
   }
 }

@@ -3,7 +3,18 @@
   long startNs=System.nanoTime();
   ByteArray key=keyIterator.next();
   if (streamStats != null)   streamStats.reportStreamingScan(operation);
-  if (RebalanceUtils.checkKeyBelongsToPartition(nodeId,key.get(),replicaToPartitionList,initialCluster,storeDef) && counter % skipRecords == 0) {
+  boolean entryAccepted=false;
+  if (!fetchOrphaned) {
+    if (RebalanceUtils.checkKeyBelongsToPartition(nodeId,key.get(),replicaToPartitionList,initialCluster,storeDef) && counter % skipRecords == 0) {
+      entryAccepted=true;
+    }
+  }
+ else {
+    if (!RebalanceUtils.checkKeyBelongsToNode(key.get(),nodeId,initialCluster,storeDef)) {
+      entryAccepted=true;
+    }
+  }
+  if (entryAccepted) {
     List<Versioned<byte[]>> values=storageEngine.get(key,null);
     if (streamStats != null)     streamStats.reportStorageTime(operation,System.nanoTime() - startNs);
     for (    Versioned<byte[]> value : values) {

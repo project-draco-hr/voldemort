@@ -39,6 +39,7 @@
   parser.accepts("query-keys","Get values of keys on specific nodes").withRequiredArg().describedAs("query-keys").withValuesSeparatedBy(',').ofType(String.class);
   parser.accepts("mirror-from-url","Cluster url to mirror data from").withRequiredArg().describedAs("mirror-cluster-bootstrap-url").ofType(String.class);
   parser.accepts("mirror-node","Node id in the mirror cluster to mirror from").withRequiredArg().describedAs("id-of-mirror-node").ofType(Integer.class);
+  parser.accepts("fetch-orphaned","Fetch any orphaned keys/entries in the node");
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     printHelp(System.out,parser);
@@ -63,53 +64,47 @@
     return;
   }
   String ops="";
-  if (options.has("delete-partitions")) {
-    ops+="d";
-  }
-  if (options.has("fetch-keys")) {
-    ops+="k";
-  }
-  if (options.has("fetch-entries")) {
-    ops+="v";
-  }
-  if (options.has("restore")) {
-    ops+="r";
-  }
   if (options.has("add-stores")) {
     ops+="a";
-  }
-  if (options.has("update-entries")) {
-    ops+="u";
-  }
-  if (options.has("delete-store")) {
-    ops+="s";
-  }
-  if (options.has("get-metadata")) {
-    ops+="g";
-  }
-  if (options.has("ro-metadata")) {
-    ops+="e";
-  }
-  if (options.has("truncate")) {
-    ops+="t";
-  }
-  if (options.has("set-metadata")) {
-    ops+="m";
-  }
-  if (options.has("check-metadata")) {
-    ops+="c";
-  }
-  if (options.has("key-distribution")) {
-    ops+="y";
-  }
-  if (options.has("clear-rebalancing-metadata")) {
-    ops+="i";
   }
   if (options.has("async")) {
     ops+="b";
   }
+  if (options.has("check-metadata")) {
+    ops+="c";
+  }
+  if (options.has("delete-partitions")) {
+    ops+="d";
+  }
+  if (options.has("ro-metadata")) {
+    ops+="e";
+  }
+  if (options.has("reserve-memory")) {
+    if (!options.has("stores")) {
+      Utils.croak("Specify the list of stores to reserve memory");
+    }
+    ops+="f";
+  }
+  if (options.has("get-metadata")) {
+    ops+="g";
+  }
+  if (options.has("mirror-from-url")) {
+    if (!options.has("mirror-node")) {
+      Utils.croak("Specify the mirror node to fetch from");
+    }
+    ops+="h";
+  }
+  if (options.has("clear-rebalancing-metadata")) {
+    ops+="i";
+  }
+  if (options.has("fetch-keys")) {
+    ops+="k";
+  }
   if (options.has("repair-job")) {
     ops+="l";
+  }
+  if (options.has("set-metadata")) {
+    ops+="m";
   }
   if (options.has("native-backup")) {
     if (!options.has("backup-dir")) {
@@ -123,23 +118,29 @@
     }
     ops+="o";
   }
-  if (options.has("synchronize-metadata-version")) {
-    ops+="z";
-  }
-  if (options.has("reserve-memory")) {
-    if (!options.has("stores")) {
-      Utils.croak("Specify the list of stores to reserve memory");
-    }
-    ops+="f";
-  }
   if (options.has("query-keys")) {
     ops+="q";
   }
-  if (options.has("mirror-from-url")) {
-    if (!options.has("mirror-node")) {
-      Utils.croak("Specify the mirror node to fetch from");
-    }
-    ops+="h";
+  if (options.has("restore")) {
+    ops+="r";
+  }
+  if (options.has("delete-store")) {
+    ops+="s";
+  }
+  if (options.has("truncate")) {
+    ops+="t";
+  }
+  if (options.has("update-entries")) {
+    ops+="u";
+  }
+  if (options.has("fetch-entries")) {
+    ops+="v";
+  }
+  if (options.has("key-distribution")) {
+    ops+="y";
+  }
+  if (options.has("synchronize-metadata-version")) {
+    ops+="z";
   }
   if (ops.length() < 1) {
     Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, key-distribution, clear-rebalancing-metadata, async, "+ "repair-job, native-backup, rollback, reserve-memory, mirror-url, verify-metadata-version) must be specified");
@@ -174,14 +175,14 @@
       System.out.println("Starting fetch keys");
       List<Integer> partitionIdList=null;
       if (options.hasArgument("fetch-keys"))       partitionIdList=(List<Integer>)options.valuesOf("fetch-keys");
-      executeFetchKeys(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
+      executeFetchKeys(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii,options.has("fetch-orphaned"));
     }
     if (ops.contains("v")) {
       boolean useAscii=options.has("ascii");
       System.out.println("Starting fetch entries");
       List<Integer> partitionIdList=null;
       if (options.hasArgument("fetch-entries"))       partitionIdList=(List<Integer>)options.valuesOf("fetch-entries");
-      executeFetchEntries(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
+      executeFetchEntries(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii,options.has("fetch-orphaned"));
     }
     if (ops.contains("a")) {
       String storesXml=(String)options.valueOf("add-stores");

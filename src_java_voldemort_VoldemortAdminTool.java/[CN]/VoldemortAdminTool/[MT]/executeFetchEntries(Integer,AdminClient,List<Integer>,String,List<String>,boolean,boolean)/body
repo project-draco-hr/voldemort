@@ -32,10 +32,16 @@
       System.out.println("No store found under the name \'" + store + "\'");
       continue;
     }
+    Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIteratorRef=null;
+    if (fetchOrphaned) {
+      System.out.println("Fetching orphaned entries of " + store);
+      entriesIteratorRef=adminClient.fetchOrphanedEntries(nodeId,store);
+    }
  else {
       System.out.println("Fetching entries in partitions " + Joiner.on(", ").join(partitionIdList) + " of "+ store);
+      entriesIteratorRef=adminClient.fetchEntries(nodeId,store,partitionIdList,null,false);
     }
-    final Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=adminClient.fetchEntries(nodeId,store,partitionIdList,null,false);
+    final Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=entriesIteratorRef;
     File outputFile=null;
     if (directory != null) {
       outputFile=new File(directory,store + ".entries");
