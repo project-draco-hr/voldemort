@@ -1,8 +1,10 @@
 {
+  final int numServers=2;
+  servers=new VoldemortServer[numServers];
+  int partitionMap[][]={{0,1,2,3},{4,5,6,7}};
   cluster=ServerTestUtils.getLocalCluster(2,new int[][]{{0,1,2,3},{4,5,6,7}});
   servers=new VoldemortServer[2];
-  servers[0]=ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(true,0,TestUtils.createTempDir().getAbsolutePath(),null,storesXmlfile,new Properties()),cluster);
-  servers[1]=ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(true,1,TestUtils.createTempDir().getAbsolutePath(),null,storesXmlfile,new Properties()),cluster);
+  cluster=ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,true,null,storesXmlfile,new Properties());
   socketUrl=servers[0].getIdentityNode().getSocketUrl().toString();
   ClientConfig clientConfig=new ClientConfig().setMaxTotalConnections(4).setMaxConnectionsPerNode(4).setBootstrapUrls(socketUrl);
   SocketStoreClientFactory socketFactory=new SocketStoreClientFactory(clientConfig);
