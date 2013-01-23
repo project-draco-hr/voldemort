@@ -1,0 +1,36 @@
+{
+  storeNames.add(store);
+  for (  Node node : nodesToStream) {
+    SocketDestination destination=new SocketDestination(node.getHost(),node.getAdminPort(),RequestFormatType.ADMIN_PROTOCOL_BUFFERS);
+    SocketAndStreams sands=streamingSocketPool.checkout(destination);
+    try {
+      DataOutputStream outputStream=sands.getOutputStream();
+      DataInputStream inputStream=sands.getInputStream();
+      nodeIdStoreToSocketRequest.put(new Pair(store,node.getId()),destination);
+      nodeIdStoreToOutputStreamRequest.put(new Pair(store,node.getId()),outputStream);
+      nodeIdStoreToInputStreamRequest.put(new Pair(store,node.getId()),inputStream);
+      nodeIdStoreToSocketAndStreams.put(new Pair(store,node.getId()),sands);
+      nodeIdStoreInitialized.put(new Pair(store,node.getId()),false);
+      remoteStoreDefs=adminClient.getRemoteStoreDefList(node.getId()).getValue();
+    }
+ catch (    Exception e) {
+      close(sands.getSocket());
+      streamingSocketPool.checkin(destination,sands);
+      throw new VoldemortException(e);
+    }
+  }
+  boolean foundStore=false;
+  for (  StoreDefinition remoteStoreDef : remoteStoreDefs) {
+    if (remoteStoreDef.getName().equals(store)) {
+      RoutingStrategyFactory factory=new RoutingStrategyFactory();
+      RoutingStrategy storeRoutingStrategy=factory.updateRoutingStrategy(remoteStoreDef,adminClient.getAdminClientCluster());
+      storeToRoutingStrategy.put(store,storeRoutingStrategy);
+      foundStore=true;
+      break;
+    }
+  }
+  if (!foundStore) {
+    logger.error("Store Name not found on the cluster");
+    throw new VoldemortException("Store Name not found on the cluster");
+  }
+}

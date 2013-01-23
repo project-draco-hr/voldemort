@@ -1,0 +1,38 @@
+{
+  logger.info("Initializing a streaming session");
+  adminClientConfig=new AdminClientConfig();
+  adminClient=new AdminClient(bootstrapURL,adminClientConfig);
+  this.checkpointCallback=checkpointCallback;
+  this.recoveryCallback=recoveryCallback;
+  this.allowMerge=allowMerge;
+  streamingresults=Executors.newFixedThreadPool(3);
+  entriesProcessed=0;
+  newBatch=true;
+  isMultiSession=true;
+  storeNames=new ArrayList();
+  this.throttler=new EventThrottler(THROTTLE_QPS);
+  TimeUnit unit=TimeUnit.SECONDS;
+  Collection<Node> nodesInCluster=adminClient.getAdminClientCluster().getNodes();
+  nodesToStream=new ArrayList();
+  if (blackListedNodes != null && blackListedNodes.size() > 0) {
+    this.blackListedNodes=blackListedNodes;
+  }
+  for (  Node node : nodesInCluster) {
+    if (blackListedNodes != null && blackListedNodes.size() > 0) {
+      if (!blackListedNodes.contains(node.getId())) {
+        nodesToStream.add(node);
+      }
+    }
+ else     nodesToStream.add(node);
+  }
+  streamingSocketPool=new SocketPool(adminClient.getAdminClientCluster().getNumberOfNodes() * MAX_STORES_PER_SESSION,(int)unit.toMillis(adminClientConfig.getAdminConnectionTimeoutSec()),(int)unit.toMillis(adminClientConfig.getAdminSocketTimeoutSec()),adminClientConfig.getAdminSocketBufferSize(),adminClientConfig.getAdminSocketKeepAlive());
+  nodeIdStoreToSocketRequest=new HashMap();
+  nodeIdStoreToOutputStreamRequest=new HashMap();
+  nodeIdStoreToInputStreamRequest=new HashMap();
+  nodeIdStoreInitialized=new HashMap();
+  storeToRoutingStrategy=new HashMap();
+  nodeIdStoreToSocketAndStreams=new HashMap();
+  for (  String store : stores) {
+    addStoreToSession(store);
+  }
+}
