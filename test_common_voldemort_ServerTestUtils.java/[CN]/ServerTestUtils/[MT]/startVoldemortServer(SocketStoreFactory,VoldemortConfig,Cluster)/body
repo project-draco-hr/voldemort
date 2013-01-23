@@ -1,0 +1,17 @@
+{
+  VoldemortServer server=new VoldemortServer(config,cluster);
+  try {
+    server.start();
+  }
+ catch (  VoldemortException ve) {
+    if (ve.getCause() instanceof BindException) {
+      ve.printStackTrace();
+      throw new BindException(ve.getMessage());
+    }
+ else {
+      throw ve;
+    }
+  }
+  ServerTestUtils.waitForServerStart(socketStoreFactory,server.getIdentityNode());
+  return server;
+}
