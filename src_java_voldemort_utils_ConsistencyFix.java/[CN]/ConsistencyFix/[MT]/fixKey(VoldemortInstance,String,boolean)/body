@@ -1,85 +1,40 @@
 {
-  int masterPartitionId=vInstance.getMasterPartitionId(keyInHexFormat);
-  List<Integer> nodeIdList=vInstance.getReplicationNodeList(masterPartitionId);
-  byte[] key=ByteUtils.fromHexString(keyInHexFormat);
-  List<ByteArray> keys=new ArrayList<ByteArray>();
-  keys.add(new ByteArray(key));
-  System.out.println("Reading key-values for specified key: " + keyInHexFormat);
-  Map<Integer,Iterator<Pair<ByteArray,Pair<List<Versioned<byte[]>>,Exception>>>> nodeIdToKeyValues;
-  nodeIdToKeyValues=new HashMap<Integer,Iterator<Pair<ByteArray,Pair<List<Versioned<byte[]>>,Exception>>>>();
-  for (  int nodeId : nodeIdList) {
-    Iterator<Pair<ByteArray,Pair<List<Versioned<byte[]>>,Exception>>> keyValues;
-    keyValues=vInstance.getAdminClient().queryKeys(nodeId,vInstance.getStoreName(),keys.iterator());
-    nodeIdToKeyValues.put(nodeId,keyValues);
+  if (verbose) {
+    System.out.println("Performing consistency fix of key: " + keyInHexFormat);
   }
-  System.out.println("Confirming all nodes (" + nodeIdList + ") responded with key-values for specified key: "+ keyInHexFormat);
+  byte[] keyInBytes;
+  List<Integer> nodeIdList=null;
+  int masterPartitionId=-1;
+  try {
+    keyInBytes=ByteUtils.fromHexString(keyInHexFormat);
+    masterPartitionId=vInstance.getMasterPartitionId(keyInHexFormat);
+    nodeIdList=vInstance.getReplicationNodeList(masterPartitionId);
+  }
+ catch (  Exception exception) {
+    if (verbose) {
+      System.out.println("Aborting fixKey due to bad init.");
+      exception.printStackTrace();
+    }
+    return FixKeyResult.BAD_INIT;
+  }
+  ByteArray keyAsByteArray=new ByteArray(keyInBytes);
+  Map<Integer,Iterator<QueryKeyResult>> nodeIdToKeyValues=new HashMap<Integer,Iterator<QueryKeyResult>>();
+  FixKeyResult fixKeyResult=ConsistencyFix.doRead(vInstance,nodeIdList,keyInBytes,keyInHexFormat,verbose,nodeIdToKeyValues);
+  if (fixKeyResult != FixKeyResult.SUCCESS) {
+    return fixKeyResult;
+  }
   List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayList();
-  boolean exceptionsEncountered=false;
-  for (  int nodeId : nodeIdList) {
-    System.out.println("\t Processing response from node with id:" + nodeId);
-    Pair<ByteArray,Pair<List<Versioned<byte[]>>,Exception>> keyValue;
-    if (nodeIdToKeyValues.get(nodeId).hasNext()) {
-      System.out.println("\t... There was a key-value returned from node with id:" + nodeId);
-      keyValue=nodeIdToKeyValues.get(nodeId).next();
-      Exception e=keyValue.getSecond().getSecond();
-      if (e != null) {
-        System.out.println("\t... Exception encountered while fetching key " + keyInHexFormat + " from node with nodeId "+ nodeId+ " : "+ e.getMessage());
-        exceptionsEncountered=true;
-      }
- else {
-        ByteArray keyByteArray=keyValue.getFirst();
-        List<Versioned<byte[]>> values=keyValue.getSecond().getFirst();
-        if (values.isEmpty()) {
-          System.out.println("\t... Adding null version to nodeValues");
-          Versioned<byte[]> versioned=new Versioned<byte[]>(null);
-          nodeValues.add(new NodeValue<ByteArray,byte[]>(nodeId,new ByteArray(key),versioned));
-        }
- else {
-          for (          Versioned<byte[]> value : values) {
-            System.out.println("\t... Adding following version to nodeValues: " + value.getVersion());
-            nodeValues.add(new NodeValue<ByteArray,byte[]>(nodeId,keyByteArray,value));
-          }
-        }
-      }
-    }
- else {
-      System.out.println("\t... No key-value returned from node with id:" + nodeId);
-      System.out.println("\t... Adding null version to nodeValues");
-      Versioned<byte[]> versioned=new Versioned<byte[]>(null);
-      nodeValues.add(new NodeValue<ByteArray,byte[]>(nodeId,new ByteArray(key),versioned));
-    }
+  fixKeyResult=ConsistencyFix.processReadReplies(nodeIdList,keyAsByteArray,keyInHexFormat,verbose,nodeIdToKeyValues,nodeValues);
+  if (fixKeyResult != FixKeyResult.SUCCESS) {
+    return fixKeyResult;
   }
-  if (exceptionsEncountered) {
-    System.err.println("Aborting fixKey because exceptions were encountered when fetching key-values.");
-    return;
+  List<NodeValue<ByteArray,byte[]>> toReadRepair=ConsistencyFix.resolveReadConflicts(verbose,nodeValues);
+  fixKeyResult=ConsistencyFix.doWriteBack(vInstance,verbose,toReadRepair);
+  if (fixKeyResult != FixKeyResult.SUCCESS) {
+    return fixKeyResult;
   }
-  System.out.println("Resolving conflicts in responses.");
-  ReadRepairer<ByteArray,byte[]> readRepairer=new ReadRepairer<ByteArray,byte[]>();
-  List<NodeValue<ByteArray,byte[]>> toReadRepair=Lists.newArrayList();
-  for (  NodeValue<ByteArray,byte[]> v : readRepairer.getRepairs(nodeValues)) {
-    Versioned<byte[]> versioned=Versioned.value(v.getVersioned().getValue(),((VectorClock)v.getVersion()).clone());
-    System.out.println("\tAdding toReadRepair: key (" + v.getKey() + "), version ("+ versioned.getVersion()+ ")");
-    toReadRepair.add(new NodeValue<ByteArray,byte[]>(v.getNodeId(),v.getKey(),versioned));
+  if (verbose) {
+    System.out.println("Fix for key " + keyInHexFormat + "completed successfully!!");
   }
-  System.out.println("Repair work to be done:");
-  for (  NodeValue<ByteArray,byte[]> nodeKeyValue : toReadRepair) {
-    System.out.println("\tRepair key " + nodeKeyValue.getKey() + "on node with id "+ nodeKeyValue.getNodeId()+ " for version "+ nodeKeyValue.getVersion());
-  }
-  System.out.println("Performing repair work:");
-  boolean allRepairsSuccessful=true;
-  for (  NodeValue<ByteArray,byte[]> nodeKeyValue : toReadRepair) {
-    System.out.println("\tDoing repair for node with id:" + nodeKeyValue.getNodeId());
-    Exception e=vInstance.getAdminClient().repairEntry(vInstance.getStoreName(),nodeKeyValue);
-    if (e != null) {
-      System.out.println("\t... Repair of key " + nodeKeyValue.getKey() + "on node with id "+ nodeKeyValue.getNodeId()+ " for version "+ nodeKeyValue.getVersion()+ " failed because of exception : "+ e.getMessage());
-      allRepairsSuccessful=false;
-    }
-  }
-  if (!allRepairsSuccessful) {
-    System.err.println("Aborting fixKey because exceptions were encountered when reparing key-values.");
-    System.out.println("Fix failed...");
-    return;
-  }
-  System.out.println("Fix completed successfully!!");
-  return;
+  return FixKeyResult.SUCCESS;
 }

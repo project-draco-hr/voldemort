@@ -5,8 +5,8 @@
     listKeys.add(new ByteArray(serializer.toBytes(key)));
   }
   for (  final String storeName : storeNames) {
-    final Iterator<Pair<ByteArray,Pair<List<Versioned<byte[]>>,Exception>>> iterator=adminClient.storeOps.queryKeys(nodeId.intValue(),storeName,listKeys.iterator());
-    List<StoreDefinition> storeDefinitionList=adminClient.metadataMgmtOps.getRemoteStoreDefList(nodeId).getValue();
+    final Iterator<QueryKeyResult> iterator=adminClient.queryKeys(nodeId.intValue(),storeName,listKeys.iterator());
+    List<StoreDefinition> storeDefinitionList=adminClient.getRemoteStoreDefList(nodeId).getValue();
     StoreDefinition storeDefinition=null;
     for (    StoreDefinition storeDef : storeDefinitionList) {
       if (storeDef.getName().equals(storeName))       storeDefinition=storeDef;
@@ -36,11 +36,11 @@
         final JsonGenerator generator=new JsonFactory(new ObjectMapper()).createJsonGenerator(stringWriter);
         stringWriter.write("Querying keys in node " + nodeId + " of "+ storeName+ "\n");
         while (iterator.hasNext()) {
-          Pair<ByteArray,Pair<List<Versioned<byte[]>>,Exception>> kvPair=iterator.next();
-          byte[] keyBytes=kvPair.getFirst().get();
+          QueryKeyResult queryKeyResult=iterator.next();
+          byte[] keyBytes=queryKeyResult.key.get();
           Object keyObject=keySerializer.toObject((null == keyCompressionStrategy) ? keyBytes : keyCompressionStrategy.inflate(keyBytes));
           generator.writeObject(keyObject);
-          List<Versioned<byte[]>> values=kvPair.getSecond().getFirst();
+          List<Versioned<byte[]>> values=queryKeyResult.values;
           if (values != null) {
             if (values.size() == 0) {
               stringWriter.write(", null");
@@ -60,9 +60,9 @@
  else {
             stringWriter.write(", null");
           }
-          if (kvPair.getSecond().getSecond() != null) {
+          if (queryKeyResult.exception != null) {
             stringWriter.write(", ");
-            stringWriter.write(kvPair.getSecond().getSecond().toString());
+            stringWriter.write(queryKeyResult.exception.toString());
           }
           StringBuffer buf=stringWriter.getBuffer();
           if (buf.charAt(0) == ' ') {

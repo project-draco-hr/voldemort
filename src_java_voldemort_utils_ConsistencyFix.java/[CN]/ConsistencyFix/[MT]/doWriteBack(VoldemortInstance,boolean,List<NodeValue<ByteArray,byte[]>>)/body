@@ -1,0 +1,26 @@
+{
+  if (verbose) {
+    System.out.println("Performing repair work:");
+  }
+  boolean allRepairsSuccessful=true;
+  for (  NodeValue<ByteArray,byte[]> nodeKeyValue : toReadRepair) {
+    if (verbose) {
+      System.out.println("\tDoing repair for node with id:" + nodeKeyValue.getNodeId());
+    }
+    Exception e=vInstance.getAdminClient().repairEntry(vInstance.getStoreName(),nodeKeyValue);
+    if (e != null) {
+      if (verbose) {
+        System.out.println("\t... Repair of key " + nodeKeyValue.getKey() + "on node with id "+ nodeKeyValue.getNodeId()+ " for version "+ nodeKeyValue.getVersion()+ " failed because of exception : "+ e.getMessage());
+      }
+      allRepairsSuccessful=false;
+    }
+  }
+  if (!allRepairsSuccessful) {
+    if (verbose) {
+      System.err.println("Aborting fixKey because exceptions were encountered when reparing key-values.");
+      System.out.println("Fix failed...");
+    }
+    return FixKeyResult.REPAIR_EXCEPTION;
+  }
+  return FixKeyResult.SUCCESS;
+}

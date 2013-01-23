@@ -1,0 +1,19 @@
+{
+  if (nodeIdToKeyValues == null) {
+    if (verbose) {
+      System.out.println("Aborting doRead due to bad init.");
+    }
+    return FixKeyResult.BAD_INIT;
+  }
+  List<ByteArray> keys=new ArrayList<ByteArray>();
+  keys.add(new ByteArray(keyInBytes));
+  if (verbose) {
+    System.out.println("Reading key-values for specified key: " + keyInHexFormat);
+  }
+  for (  int nodeId : nodeIdList) {
+    Iterator<QueryKeyResult> keyValues;
+    keyValues=vInstance.getAdminClient().queryKeys(nodeId,vInstance.getStoreName(),keys.iterator());
+    nodeIdToKeyValues.put(nodeId,keyValues);
+  }
+  return FixKeyResult.SUCCESS;
+}

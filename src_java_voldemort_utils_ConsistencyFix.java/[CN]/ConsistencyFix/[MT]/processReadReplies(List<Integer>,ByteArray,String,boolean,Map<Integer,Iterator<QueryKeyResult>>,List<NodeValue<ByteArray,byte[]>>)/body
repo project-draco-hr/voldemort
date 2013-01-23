@@ -1,0 +1,62 @@
+{
+  if (nodeValues == null) {
+    if (verbose) {
+      System.out.println("Aborting processReadReplies due to bad init.");
+    }
+    return FixKeyResult.BAD_INIT;
+  }
+  if (verbose) {
+    System.out.println("Confirming all nodes (" + nodeIdList + ") responded with key-values for specified key: "+ keyInHexFormat);
+  }
+  boolean exceptionsEncountered=false;
+  for (  int nodeId : nodeIdList) {
+    if (verbose) {
+      System.out.println("\t Processing response from node with id:" + nodeId);
+    }
+    QueryKeyResult keyValue;
+    if (nodeIdToKeyValues.get(nodeId).hasNext()) {
+      if (verbose) {
+        System.out.println("\t... There was a key-value returned from node with id:" + nodeId);
+      }
+      keyValue=nodeIdToKeyValues.get(nodeId).next();
+      if (keyValue.exception != null) {
+        if (verbose) {
+          System.out.println("\t... Exception encountered while fetching key " + keyInHexFormat + " from node with nodeId "+ nodeId+ " : "+ keyValue.exception.getMessage());
+        }
+        exceptionsEncountered=true;
+      }
+ else {
+        if (keyValue.values.isEmpty()) {
+          if (verbose) {
+            System.out.println("\t... Adding null version to nodeValues");
+          }
+          Versioned<byte[]> versioned=new Versioned<byte[]>(null);
+          nodeValues.add(new NodeValue<ByteArray,byte[]>(nodeId,keyValue.key,versioned));
+        }
+ else {
+          for (          Versioned<byte[]> value : keyValue.values) {
+            if (verbose) {
+              System.out.println("\t... Adding following version to nodeValues: " + value.getVersion());
+            }
+            nodeValues.add(new NodeValue<ByteArray,byte[]>(nodeId,keyValue.key,value));
+          }
+        }
+      }
+    }
+ else {
+      if (verbose) {
+        System.out.println("\t... No key-value returned from node with id:" + nodeId);
+        System.out.println("\t... Adding null version to nodeValues");
+      }
+      Versioned<byte[]> versioned=new Versioned<byte[]>(null);
+      nodeValues.add(new NodeValue<ByteArray,byte[]>(nodeId,keyAsByteArray,versioned));
+    }
+  }
+  if (exceptionsEncountered) {
+    if (verbose) {
+      System.out.println("Aborting fixKey because exceptions were encountered when fetching key-values.");
+    }
+    return FixKeyResult.FETCH_EXCEPTION;
+  }
+  return FixKeyResult.SUCCESS;
+}

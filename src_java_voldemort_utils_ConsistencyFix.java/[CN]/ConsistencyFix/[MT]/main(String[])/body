@@ -1,65 +1,23 @@
 {
-  OptionParser parser=new OptionParser();
-  parser.accepts("help","print help information");
-  parser.accepts("url").withRequiredArg().describedAs("The bootstrap url.").ofType(String.class);
-  parser.accepts("store").withRequiredArg().describedAs("The store name.").ofType(String.class);
-  parser.accepts("key").withRequiredArg().describedAs("The key in hexadecimal format.").ofType(String.class);
-  parser.accepts("keys").withRequiredArg().withValuesSeparatedBy(',').describedAs("List of keys. " + "Each key must be in hexadecimal format. " + "Each key must be separated only by a comma ',' without any white space.").ofType(String.class);
-  parser.accepts("key-file").withRequiredArg().describedAs("Name of key-file. " + "Each key must be in hexadecimal format. " + "Each key must be on a separate line in the file. ").ofType(String.class);
-  parser.accepts("verbose","verbose");
-  OptionSet options=parser.parse(args);
-  if (options.hasArgument("help")) {
-    parser.printHelpOn(System.out);
-    printUsage();
-    return;
+  Options options=parseArgs(args);
+  BufferedWriter fileWriter=null;
+  try {
+    fileWriter=new BufferedWriter(new FileWriter(options.outFile));
   }
-  if (!options.hasArgument("url")) {
-    printUsage("Missing required 'url' argument.");
-    return;
+ catch (  IOException e) {
+    Utils.croak("Failure to open ouput file '" + options.outFile + "': "+ e.getMessage());
   }
-  if (!options.hasArgument("store")) {
-    printUsage("Missing required 'store' argument.");
-    return;
+  if (fileWriter == null) {
+    Utils.croak("Failure to create BufferedWriter for ouput file '" + options.outFile + "'");
   }
-  if (!options.has("key") && !options.has("keys") && !options.has("key-file")) {
-    printUsage("Missing required key-specifying argument: 'key', 'keys', or 'key-file'.");
-    return;
-  }
-  if ((options.has("key") && options.has("keys")) || (options.has("key") && options.has("key-file")) || (options.has("keys") && options.has("key-file"))) {
-    printUsage("Please provide exactly one key-specifying argument: 'key', 'keys', or 'key-file'.");
-    return;
-  }
-  boolean verbose=false;
-  if (options.has("verbose")) {
-    verbose=true;
-  }
-  String url=(String)options.valueOf("url");
-  String storeName=(String)options.valueOf("store");
-  List<String> keysInHexFormat=new LinkedList<String>();
-  if (options.has("key")) {
-    keysInHexFormat.add((String)options.valueOf("key"));
-  }
-  if (options.has("keys")) {
-    @SuppressWarnings("unchecked") List<String> valuesOf=(List<String>)options.valuesOf("keys");
-    keysInHexFormat=valuesOf;
-  }
-  if (options.has("key-file")) {
-    String keyFile=(String)options.valueOf("key-file");
-    System.err.println("Key file: " + keyFile);
-    try {
-      BufferedReader fileReader=new BufferedReader(new FileReader(keyFile));
-      for (String line=fileReader.readLine(); line != null; line=fileReader.readLine()) {
-        if (!line.isEmpty()) {
-          keysInHexFormat.add(line);
-        }
-      }
+  VoldemortInstance vInstance=new VoldemortInstance(options.url,options.storeName);
+  for (  String keyInHexFormat : options.keysInHexFormat) {
+    FixKeyResult fixKeyResult=fixKey(vInstance,keyInHexFormat,options.verbose);
+    if (fixKeyResult == FixKeyResult.SUCCESS) {
+      System.out.println("Successfully processed " + keyInHexFormat);
     }
- catch (    IOException e) {
-      Utils.croak("Failure to open input stream: " + e.getMessage());
+ else {
+      fileWriter.write("BADKEY," + keyInHexFormat + ","+ fixKeyResult.name());
     }
-  }
-  VoldemortInstance vInstance=new VoldemortInstance(url,storeName);
-  for (  String keyInHexFormat : keysInHexFormat) {
-    fixKey(vInstance,keyInHexFormat,verbose);
   }
 }

@@ -1,0 +1,68 @@
+{
+  OptionParser parser=new OptionParser();
+  parser.accepts("help","print help information");
+  parser.accepts("url").withRequiredArg().describedAs("The bootstrap url.").ofType(String.class);
+  parser.accepts("store").withRequiredArg().describedAs("The store name.").ofType(String.class);
+  parser.accepts("key").withRequiredArg().describedAs("The key in hexadecimal format.").ofType(String.class);
+  parser.accepts("keys").withRequiredArg().withValuesSeparatedBy(',').describedAs("List of keys. " + "Each key must be in hexadecimal format. " + "Each key must be separated only by a comma ',' without any white space.").ofType(String.class);
+  parser.accepts("key-file").withRequiredArg().describedAs("Name of key-file. " + "Each key must be in hexadecimal format. " + "Each key must be on a separate line in the file. ").ofType(String.class);
+  parser.accepts("out-file").withRequiredArg().describedAs("Name of out-file. " + "Success/failure of each key is dumped to out-file. ").ofType(String.class);
+  parser.accepts("verbose","verbose");
+  OptionSet optionSet=parser.parse(args);
+  if (optionSet.hasArgument("help")) {
+    try {
+      parser.printHelpOn(System.out);
+    }
+ catch (    IOException e) {
+      e.printStackTrace();
+    }
+    printUsage();
+    System.exit(0);
+  }
+  if (!optionSet.hasArgument("url")) {
+    printUsage("Missing required 'url' argument.");
+  }
+  if (!optionSet.hasArgument("store")) {
+    printUsage("Missing required 'store' argument.");
+  }
+  if (!optionSet.has("key") && !optionSet.has("keys") && !optionSet.has("key-file")) {
+    printUsage("Missing required key-specifying argument: 'key', 'keys', or 'key-file'.");
+  }
+  if ((optionSet.has("key") && optionSet.has("keys")) || (optionSet.has("key") && optionSet.has("key-file")) || (optionSet.has("keys") && optionSet.has("key-file"))) {
+    printUsage("Please provide exactly one key-specifying argument: 'key', 'keys', or 'key-file'.");
+  }
+  if (!optionSet.has("out-file")) {
+    printUsage("Missing required 'out-file' argument.");
+  }
+  Options options=new Options();
+  if (optionSet.has("verbose")) {
+    options.verbose=true;
+  }
+  options.url=(String)optionSet.valueOf("url");
+  options.storeName=(String)optionSet.valueOf("store");
+  options.outFile=(String)optionSet.valueOf("out-file");
+  options.keysInHexFormat=new LinkedList<String>();
+  if (optionSet.has("key")) {
+    options.keysInHexFormat.add((String)optionSet.valueOf("key"));
+  }
+  if (optionSet.has("keys")) {
+    @SuppressWarnings("unchecked") List<String> valuesOf=(List<String>)optionSet.valuesOf("keys");
+    options.keysInHexFormat=valuesOf;
+  }
+  if (optionSet.has("key-file")) {
+    String keyFile=(String)optionSet.valueOf("key-file");
+    System.err.println("Key file: " + keyFile);
+    try {
+      BufferedReader fileReader=new BufferedReader(new FileReader(keyFile));
+      for (String line=fileReader.readLine(); line != null; line=fileReader.readLine()) {
+        if (!line.isEmpty()) {
+          options.keysInHexFormat.add(line);
+        }
+      }
+    }
+ catch (    IOException e) {
+      Utils.croak("Failure to open input stream: " + e.getMessage());
+    }
+  }
+  return options;
+}
