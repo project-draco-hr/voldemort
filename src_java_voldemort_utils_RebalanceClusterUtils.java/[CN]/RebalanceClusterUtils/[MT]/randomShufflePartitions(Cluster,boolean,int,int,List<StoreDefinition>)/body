@@ -1,13 +1,13 @@
 {
   List<Integer> zoneIds=new ArrayList<Integer>(targetCluster.getZoneIds());
   Cluster returnCluster=ClusterUtils.copyCluster(targetCluster);
-  double currentMaxMinRatio=analyzeBalance(returnCluster,storeDefs);
+  double currentMaxMinRatio=new ClusterInstance(returnCluster,storeDefs).analyzeBalance();
   int successes=0;
   for (int i=0; i < randomSwapAttempts; i++) {
     Collections.shuffle(zoneIds,new Random(System.currentTimeMillis()));
     for (    Integer zoneId : zoneIds) {
       Cluster shuffleResults=swapRandomPartitionsWithinZone(returnCluster,zoneId);
-      double nextMaxMinRatio=analyzeBalance(shuffleResults,storeDefs);
+      double nextMaxMinRatio=new ClusterInstance(shuffleResults,storeDefs).analyzeBalance();
       if (nextMaxMinRatio < currentMaxMinRatio) {
         System.out.println("Swap improved max-min ratio: " + currentMaxMinRatio + " -> "+ nextMaxMinRatio+ " (improvement "+ successes+ " on swap attempt "+ i+ " in zone "+ zoneId+ ")");
         int xZoneMoves=0;

@@ -10,7 +10,7 @@
     }
   }
   for (  Integer partition : partitionsToDonate) {
-    if (!RebalanceUtils.checkPartitionBelongsToNode(partition,voldemortConfig.getNodeId(),initialCluster,storeDef)) {
+    if (!StoreInstance.checkPartitionBelongsToNode(partition,voldemortConfig.getNodeId(),initialCluster,storeDef)) {
       logger.info("Node " + voldemortConfig.getNodeId() + " does not seem to contain partition "+ partition+ " as primary/secondary");
     }
   }
@@ -21,7 +21,7 @@
       ByteArray key=entry.getFirst();
       Versioned<byte[]> value=entry.getSecond();
       scanned++;
-      List<Integer> nodeIds=RebalanceUtils.checkKeyBelongsToPartition(key.get(),optimizedStealerNodeToMappingTuples,targetCluster,storeDef);
+      List<Integer> nodeIds=StoreInstance.checkKeyBelongsToPartition(key.get(),optimizedStealerNodeToMappingTuples,targetCluster,storeDef);
       if (nodeIds.size() > 0) {
         putValue(nodeIds,key,value,nodeToQueue,fetched);
       }

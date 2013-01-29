@@ -1,9 +1,9 @@
 {
   StringBuilder builder=new StringBuilder();
-  builder.append(ClusterUtils.verboseClusterDump(currentCluster));
+  builder.append(ClusterUtils.verboseClusterDump(cluster));
   HashMap<StoreDefinition,Integer> uniqueStores=KeyDistributionGenerator.getUniqueStoreDefinitionsWithCounts(storeDefs);
   List<ByteArray> keys=KeyDistributionGenerator.generateKeys(KeyDistributionGenerator.DEFAULT_NUM_KEYS);
-  Set<Integer> nodeIds=currentCluster.getNodeIds();
+  Set<Integer> nodeIds=cluster.getNodeIds();
   builder.append("PARTITION DUMP\n");
   Map<Integer,Integer> primaryAggNodeIdToPartitionCount=Maps.newHashMap();
   for (  Integer nodeId : nodeIds) {
@@ -19,7 +19,7 @@
     builder.append("\tReplication factor: " + storeDefinition.getReplicationFactor() + "\n");
     builder.append("\tRouting strategy: " + storeDefinition.getRoutingStrategyType() + "\n");
     builder.append("\tThere are " + uniqueStores.get(storeDefinition) + " other similar stores.\n");
-    Map<Integer,Set<Pair<Integer,Integer>>> nodeIdToAllPartitions=RebalanceUtils.getNodeIdToAllPartitions(currentCluster,storeDefinition,true);
+    Map<Integer,Set<Pair<Integer,Integer>>> nodeIdToAllPartitions=RebalanceUtils.getNodeIdToAllPartitions(cluster,storeDefinition,true);
     Map<Integer,Integer> primaryNodeIdToPartitionCount=Maps.newHashMap();
     Map<Integer,Integer> allNodeIdToPartitionCount=Maps.newHashMap();
     builder.append("\n");
@@ -62,12 +62,12 @@
   builder.append("\n");
   builder.append("STD DEV ANALYSIS\n");
   builder.append("\n");
-  builder.append(KeyDistributionGenerator.printOverallDistribution(currentCluster,storeDefs,keys));
+  builder.append(KeyDistributionGenerator.printOverallDistribution(cluster,storeDefs,keys));
   builder.append("\n");
   builder.append("\n");
-  Pair<Double,String> summary=summarizeBalance(currentCluster,primaryAggNodeIdToPartitionCount,"AGGREGATE PRIMARY-PARTITION COUNT (across all stores)");
+  Pair<Double,String> summary=summarizeBalance(primaryAggNodeIdToPartitionCount,"AGGREGATE PRIMARY-PARTITION COUNT (across all stores)");
   builder.append(summary.getSecond());
-  summary=summarizeBalance(currentCluster,allAggNodeIdToPartitionCount,"AGGREGATE NARY-PARTITION COUNT (across all stores)");
+  summary=summarizeBalance(allAggNodeIdToPartitionCount,"AGGREGATE NARY-PARTITION COUNT (across all stores)");
   builder.append(summary.getSecond());
   return new Pair<Double,String>(summary.getFirst(),builder.toString());
 }

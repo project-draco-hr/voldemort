@@ -1,9 +1,9 @@
 {
-  List<StoreDefinition> readOnlyStores=filterStores(storeDefs,true);
+  List<StoreDefinition> readOnlyStores=StoreDefinitionUtils.filterStores(storeDefs,true);
   if (readOnlyStores.size() == 0) {
     return;
   }
-  List<String> storeNames=getStoreNames(readOnlyStores);
+  List<String> storeNames=StoreDefinitionUtils.getStoreNames(readOnlyStores);
   for (  Node node : cluster.getNodes()) {
     if (node.getNumberOfPartitions() != 0) {
       for (      Entry<String,String> storeToStorageFormat : adminClient.readonlyOps.getROStorageFormat(node.getId(),storeNames).entrySet()) {
