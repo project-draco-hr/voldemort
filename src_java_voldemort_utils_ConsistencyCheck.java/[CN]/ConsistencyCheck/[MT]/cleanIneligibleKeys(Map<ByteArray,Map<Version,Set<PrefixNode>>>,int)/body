@@ -1,11 +1,11 @@
 {
   Set<ByteArray> keysToDelete=new HashSet<ByteArray>();
-  for (  Map.Entry<ByteArray,Map<Version,Set<Integer>>> entry : keyVersionNodeSetMap.entrySet()) {
+  for (  Map.Entry<ByteArray,Map<Version,Set<PrefixNode>>> entry : keyVersionNodeSetMap.entrySet()) {
     Set<Version> versionsToDelete=new HashSet<Version>();
     ByteArray key=entry.getKey();
-    Map<Version,Set<Integer>> versionNodeSetMap=entry.getValue();
-    for (    Map.Entry<Version,Set<Integer>> versionNodeSetEntry : versionNodeSetMap.entrySet()) {
-      Set<Integer> nodeSet=versionNodeSetEntry.getValue();
+    Map<Version,Set<PrefixNode>> versionNodeSetMap=entry.getValue();
+    for (    Map.Entry<Version,Set<PrefixNode>> versionNodeSetEntry : versionNodeSetMap.entrySet()) {
+      Set<PrefixNode> nodeSet=versionNodeSetEntry.getValue();
       if (nodeSet.size() < requiredWrite) {
         versionsToDelete.add(versionNodeSetEntry.getKey());
       }
