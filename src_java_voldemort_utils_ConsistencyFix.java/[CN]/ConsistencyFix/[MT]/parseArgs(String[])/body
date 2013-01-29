@@ -3,7 +3,6 @@
   parser.accepts("help","print help information");
   parser.accepts("url").withRequiredArg().describedAs("The bootstrap url.").ofType(String.class);
   parser.accepts("store").withRequiredArg().describedAs("The store name.").ofType(String.class);
-  parser.accepts("key").withRequiredArg().describedAs("The key in hexadecimal format.").ofType(String.class);
   parser.accepts("keys").withRequiredArg().withValuesSeparatedBy(',').describedAs("List of keys. " + "Each key must be in hexadecimal format. " + "Each key must be separated only by a comma ',' without any white space.").ofType(String.class);
   parser.accepts("key-file").withRequiredArg().describedAs("Name of key-file. " + "Each key must be in hexadecimal format. " + "Each key must be on a separate line in the file. ").ofType(String.class);
   parser.accepts("out-file").withRequiredArg().describedAs("Name of out-file. " + "Success/failure of each key is dumped to out-file. ").ofType(String.class);
@@ -25,11 +24,11 @@
   if (!optionSet.hasArgument("store")) {
     printUsage("Missing required 'store' argument.");
   }
-  if (!optionSet.has("key") && !optionSet.has("keys") && !optionSet.has("key-file")) {
-    printUsage("Missing required key-specifying argument: 'key', 'keys', or 'key-file'.");
+  if (!optionSet.has("keys") && !optionSet.has("key-file")) {
+    printUsage("Missing required key-specifying argument: 'keys' or 'key-file'.");
   }
-  if ((optionSet.has("key") && optionSet.has("keys")) || (optionSet.has("key") && optionSet.has("key-file")) || (optionSet.has("keys") && optionSet.has("key-file"))) {
-    printUsage("Please provide exactly one key-specifying argument: 'key', 'keys', or 'key-file'.");
+  if (optionSet.has("keys") && optionSet.has("key-file")) {
+    printUsage("Please provide exactly one key-specifying argument: 'keys' or 'key-file'.");
   }
   if (!optionSet.has("out-file")) {
     printUsage("Missing required 'out-file' argument.");
@@ -42,9 +41,6 @@
   options.storeName=(String)optionSet.valueOf("store");
   options.outFile=(String)optionSet.valueOf("out-file");
   options.keysInHexFormat=new LinkedList<String>();
-  if (optionSet.has("key")) {
-    options.keysInHexFormat.add((String)optionSet.valueOf("key"));
-  }
   if (optionSet.has("keys")) {
     @SuppressWarnings("unchecked") List<String> valuesOf=(List<String>)optionSet.valuesOf("keys");
     options.keysInHexFormat=valuesOf;
