@@ -10,7 +10,7 @@
     client1.put("k1","v1");
     client2.put("k2","v2");
   }
-  Iterator<Pair<ByteArray,Versioned<byte[]>>> it=adminClient.fetchEntries(1,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),emptyPartitionList,null,false);
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> it=adminClient.bulkFetchOps.fetchEntries(1,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),emptyPartitionList,null,false);
   ArrayList<ClientInfo> infoList=getClientRegistryContent(it);
   assertEquals("Incrrect # of entries created in client registry",6,infoList.size());
   socketFactory1.close();

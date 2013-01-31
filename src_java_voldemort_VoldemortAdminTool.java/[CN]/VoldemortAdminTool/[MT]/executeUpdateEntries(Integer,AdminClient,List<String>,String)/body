@@ -1,5 +1,5 @@
 {
-  List<StoreDefinition> storeDefinitionList=adminClient.getRemoteStoreDefList(nodeId).getValue();
+  List<StoreDefinition> storeDefinitionList=adminClient.metadataMgmtOps.getRemoteStoreDefList(nodeId).getValue();
   Map<String,StoreDefinition> storeDefinitionMap=Maps.newHashMap();
   for (  StoreDefinition storeDefinition : storeDefinitionList) {
     storeDefinitionMap.put(storeDefinition.getName(),storeDefinition);
@@ -20,6 +20,6 @@
   }
   for (  String storeName : storeNames) {
     Iterator<Pair<ByteArray,Versioned<byte[]>>> iterator=readEntriesBinary(inputDir,storeName);
-    adminClient.updateEntries(nodeId,storeName,iterator,null);
+    adminClient.storeOps.updateEntries(nodeId,storeName,iterator,null);
   }
 }

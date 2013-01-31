@@ -1,13 +1,13 @@
 {
-  Map<String,Long> storesToVersions=getAdminClient().getROCurrentVersion(0,Lists.newArrayList("test-readonly-fetchfiles","test-readonly-versions"));
+  Map<String,Long> storesToVersions=getAdminClient().readonlyOps.getROCurrentVersion(0,Lists.newArrayList("test-readonly-fetchfiles","test-readonly-versions"));
   assertEquals(storesToVersions.size(),2);
   assertEquals(storesToVersions.get("test-readonly-fetchfiles").longValue(),0);
   assertEquals(storesToVersions.get("test-readonly-versions").longValue(),0);
-  storesToVersions=getAdminClient().getROMaxVersion(0,Lists.newArrayList("test-readonly-fetchfiles","test-readonly-versions"));
+  storesToVersions=getAdminClient().readonlyOps.getROMaxVersion(0,Lists.newArrayList("test-readonly-fetchfiles","test-readonly-versions"));
   assertEquals(storesToVersions.size(),2);
   assertEquals(storesToVersions.get("test-readonly-fetchfiles").longValue(),0);
   assertEquals(storesToVersions.get("test-readonly-versions").longValue(),0);
-  storesToVersions=getAdminClient().getROMaxVersion(Lists.newArrayList("test-readonly-fetchfiles","test-readonly-versions"));
+  storesToVersions=getAdminClient().readonlyOps.getROMaxVersion(Lists.newArrayList("test-readonly-fetchfiles","test-readonly-versions"));
   assertEquals(storesToVersions.size(),2);
   assertEquals(storesToVersions.get("test-readonly-fetchfiles").longValue(),0);
   assertEquals(storesToVersions.get("test-readonly-versions").longValue(),0);
@@ -17,15 +17,15 @@
   File newVersionNode1=new File(storeNode1.getStoreDirPath(),"version-11");
   Utils.mkdirs(newVersionNode1);
   storeNode1.swapFiles(newVersionNode1.getAbsolutePath());
-  storesToVersions=getAdminClient().getROCurrentVersion(0,Lists.newArrayList("test-readonly-fetchfiles"));
+  storesToVersions=getAdminClient().readonlyOps.getROCurrentVersion(0,Lists.newArrayList("test-readonly-fetchfiles"));
   assertEquals(storesToVersions.get("test-readonly-fetchfiles").longValue(),0);
-  storesToVersions=getAdminClient().getROMaxVersion(0,Lists.newArrayList("test-readonly-fetchfiles"));
+  storesToVersions=getAdminClient().readonlyOps.getROMaxVersion(0,Lists.newArrayList("test-readonly-fetchfiles"));
   assertEquals(storesToVersions.get("test-readonly-fetchfiles").longValue(),10);
-  storesToVersions=getAdminClient().getROCurrentVersion(1,Lists.newArrayList("test-readonly-fetchfiles"));
+  storesToVersions=getAdminClient().readonlyOps.getROCurrentVersion(1,Lists.newArrayList("test-readonly-fetchfiles"));
   assertEquals(storesToVersions.get("test-readonly-fetchfiles").longValue(),11);
-  storesToVersions=getAdminClient().getROMaxVersion(1,Lists.newArrayList("test-readonly-fetchfiles"));
+  storesToVersions=getAdminClient().readonlyOps.getROMaxVersion(1,Lists.newArrayList("test-readonly-fetchfiles"));
   assertEquals(storesToVersions.get("test-readonly-fetchfiles").longValue(),11);
-  storesToVersions=getAdminClient().getROMaxVersion(Lists.newArrayList("test-readonly-fetchfiles","test-readonly-versions"));
+  storesToVersions=getAdminClient().readonlyOps.getROMaxVersion(Lists.newArrayList("test-readonly-fetchfiles","test-readonly-versions"));
   assertEquals(storesToVersions.get("test-readonly-fetchfiles").longValue(),11);
   assertEquals(storesToVersions.get("test-readonly-versions").longValue(),0);
 }

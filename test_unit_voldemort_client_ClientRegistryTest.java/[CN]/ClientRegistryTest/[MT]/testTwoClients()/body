@@ -6,7 +6,7 @@
   StoreClient<String,String> client2=socketFactory.getStoreClient(TEST_STORE_NAME);
   client1.put("k1","v1");
   client2.put("k2","v2");
-  Iterator<Pair<ByteArray,Versioned<byte[]>>> it=adminClient.fetchEntries(0,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),emptyPartitionList,null,false);
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> it=adminClient.bulkFetchOps.fetchEntries(0,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),emptyPartitionList,null,false);
   ArrayList<ClientInfo> infoList=getClientRegistryContent(it);
   assertEquals(TEST_STORE_NAME,infoList.get(0).getStoreName());
   assertEquals(CLIENT_CONTEXT_NAME,infoList.get(0).getContext());
@@ -19,7 +19,7 @@
   assertTrue("Client registry bootstrap time incorrect",startTime <= infoList.get(1).getBootstrapTime());
   assertNotNull("Client version is null",infoList.get(1).getReleaseVersion());
   assertEquals(infoList.size(),2);
-  it=adminClient.fetchEntries(1,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),emptyPartitionList,null,false);
+  it=adminClient.bulkFetchOps.fetchEntries(1,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),emptyPartitionList,null,false);
   infoList=getClientRegistryContent(it);
   assertEquals(TEST_STORE_NAME,infoList.get(0).getStoreName());
   assertEquals(CLIENT_CONTEXT_NAME,infoList.get(0).getContext());
@@ -37,7 +37,7 @@
   }
  catch (  InterruptedException e) {
   }
-  it=adminClient.fetchEntries(1,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),emptyPartitionList,null,false);
+  it=adminClient.bulkFetchOps.fetchEntries(1,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),emptyPartitionList,null,false);
   infoList=getClientRegistryContent(it);
   assertTrue("Client registry not updated.",infoList.get(0).getBootstrapTime() < infoList.get(0).getUpdateTime());
   assertTrue("Client registry not updated.",infoList.get(1).getBootstrapTime() < infoList.get(1).getUpdateTime());

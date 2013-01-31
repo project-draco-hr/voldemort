@@ -67,7 +67,7 @@
   Pair<ByteArray,Pair<List<Versioned<byte[]>>,Exception>> entry;
   queryKeys=new ArrayList<ByteArray>();
   queryKeys.add(belongToAndInsideServer0Keys.get(0));
-  results=getAdminClient().queryKeys(0,testStoreName,queryKeys.iterator());
+  results=getAdminClient().storeOps.queryKeys(0,testStoreName,queryKeys.iterator());
   assertTrue("Results should not be empty",results.hasNext());
   entry=results.next();
   assertEquals(queryKeys.get(0),entry.getFirst());
@@ -77,7 +77,7 @@
   assertFalse("There should be only one result",results.hasNext());
   queryKeys=new ArrayList<ByteArray>();
   queryKeys.add(belongToServer0ButOutsideBothKeys.get(0));
-  results=getAdminClient().queryKeys(0,testStoreName,queryKeys.iterator());
+  results=getAdminClient().storeOps.queryKeys(0,testStoreName,queryKeys.iterator());
   assertTrue("Results should not be empty",results.hasNext());
   entry=results.next();
   assertFalse("There should not be more results",results.hasNext());
@@ -87,7 +87,7 @@
   assertNull("There should not be exception",entry.getSecond().getSecond());
   queryKeys=new ArrayList<ByteArray>();
   queryKeys.add(notBelongToServer0AndOutsideBothKeys.get(0));
-  results=getAdminClient().queryKeys(0,testStoreName,queryKeys.iterator());
+  results=getAdminClient().storeOps.queryKeys(0,testStoreName,queryKeys.iterator());
   assertTrue("Results should not be empty",results.hasNext());
   entry=results.next();
   assertFalse("There should not be more results",results.hasNext());
@@ -97,7 +97,7 @@
   assertTrue("There should be InvalidMetadataException exception",entry.getSecond().getSecond() instanceof InvalidMetadataException);
   queryKeys=new ArrayList<ByteArray>();
   queryKeys.add(notBelongServer0ButInsideServer0Keys.get(0));
-  results=getAdminClient().queryKeys(0,testStoreName,queryKeys.iterator());
+  results=getAdminClient().storeOps.queryKeys(0,testStoreName,queryKeys.iterator());
   assertTrue("Results should not be empty",results.hasNext());
   entry=results.next();
   assertFalse("There should not be more results",results.hasNext());
@@ -108,7 +108,7 @@
   store0.delete(belongToAndInsideServer0Keys.get(4),null);
   queryKeys=new ArrayList<ByteArray>();
   queryKeys.add(belongToAndInsideServer0Keys.get(4));
-  results=getAdminClient().queryKeys(0,testStoreName,queryKeys.iterator());
+  results=getAdminClient().storeOps.queryKeys(0,testStoreName,queryKeys.iterator());
   assertTrue("Results should not be empty",results.hasNext());
   entry=results.next();
   assertFalse("There should not be more results",results.hasNext());
@@ -117,12 +117,12 @@
   assertEquals("Value should be empty list",0,entry.getSecond().getFirst().size());
   assertNull("There should not be exception",entry.getSecond().getSecond());
   queryKeys=new ArrayList<ByteArray>();
-  results=getAdminClient().queryKeys(0,testStoreName,queryKeys.iterator());
+  results=getAdminClient().storeOps.queryKeys(0,testStoreName,queryKeys.iterator());
   assertFalse("Results should be empty",results.hasNext());
   queryKeys=new ArrayList<ByteArray>();
   queryKeys.add(null);
   assertEquals(1,queryKeys.size());
-  results=getAdminClient().queryKeys(0,testStoreName,queryKeys.iterator());
+  results=getAdminClient().storeOps.queryKeys(0,testStoreName,queryKeys.iterator());
   assertTrue("Results should not be empty",results.hasNext());
   entry=results.next();
   assertFalse("There should not be more results",results.hasNext());
@@ -133,7 +133,7 @@
   queryKeys.add(belongToAndInsideServer1Keys.get(0));
   queryKeys.add(belongToAndInsideServer1Keys.get(1));
   queryKeys.add(belongToAndInsideServer1Keys.get(2));
-  results=getAdminClient().queryKeys(1,testStoreName,queryKeys.iterator());
+  results=getAdminClient().storeOps.queryKeys(1,testStoreName,queryKeys.iterator());
   assertTrue("Results should not be empty",results.hasNext());
   Map<ByteArray,List<Versioned<byte[]>>> entries=new HashMap<ByteArray,List<Versioned<byte[]>>>();
   int resultCount=0;
@@ -158,7 +158,7 @@
   queryKeys.add(belongToAndInsideServer0Keys.get(3));
   queryKeys.add(belongToAndInsideServer0Keys.get(5));
   queryKeys.add(notBelongServer0ButInsideServer0Keys.get(2));
-  results=getAdminClient().queryKeys(0,testStoreName,queryKeys.iterator());
+  results=getAdminClient().storeOps.queryKeys(0,testStoreName,queryKeys.iterator());
   entry=results.next();
   assertEquals(0,ByteUtils.compare(queryKeys.get(0).get(),entry.getFirst().get()));
   assertEquals(0,ByteUtils.compare(belongToAndInsideServer0.get(queryKeys.get(0)),entry.getSecond().getFirst().get(0).getValue()));

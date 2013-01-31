@@ -1,5 +1,5 @@
 {
-  List<StoreDefinition> storeDefinitionList=adminClient.getRemoteStoreDefList(nodeId).getValue();
+  List<StoreDefinition> storeDefinitionList=adminClient.metadataMgmtOps.getRemoteStoreDefList(nodeId).getValue();
   Map<String,StoreDefinition> storeDefinitionMap=Maps.newHashMap();
   for (  StoreDefinition storeDefinition : storeDefinitionList) {
     storeDefinitionMap.put(storeDefinition.getName(),storeDefinition);
@@ -35,11 +35,11 @@
     Iterator<ByteArray> keyIteratorRef=null;
     if (fetchOrphaned) {
       System.out.println("Fetching orphaned keys  of " + store);
-      keyIteratorRef=adminClient.fetchOrphanedKeys(nodeId,store);
+      keyIteratorRef=adminClient.bulkFetchOps.fetchOrphanedKeys(nodeId,store);
     }
  else {
       System.out.println("Fetching keys in partitions " + Joiner.on(", ").join(partitionIdList) + " of "+ store);
-      keyIteratorRef=adminClient.fetchKeys(nodeId,store,partitionIdList,null,false);
+      keyIteratorRef=adminClient.bulkFetchOps.fetchKeys(nodeId,store,partitionIdList,null,false);
     }
     File outputFile=null;
     if (directory != null) {

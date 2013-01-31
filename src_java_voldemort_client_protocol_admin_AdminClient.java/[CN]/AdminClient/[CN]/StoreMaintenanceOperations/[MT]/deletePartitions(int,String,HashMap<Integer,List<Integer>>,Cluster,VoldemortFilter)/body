@@ -1,0 +1,18 @@
+{
+  VAdminProto.DeletePartitionEntriesRequest.Builder deleteRequest=VAdminProto.DeletePartitionEntriesRequest.newBuilder().addAllReplicaToPartition(ProtoUtils.encodePartitionTuple(replicaToPartitionList)).setStore(storeName);
+  try {
+    if (filter != null) {
+      deleteRequest.setFilter(helperOps.encodeFilter(filter));
+    }
+  }
+ catch (  IOException e) {
+    throw new VoldemortException(e);
+  }
+  if (initialCluster != null) {
+    deleteRequest.setInitialCluster(new ClusterMapper().writeCluster(initialCluster));
+  }
+  VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.DELETE_PARTITION_ENTRIES).setDeletePartitionEntries(deleteRequest).build();
+  VAdminProto.DeletePartitionEntriesResponse.Builder response=rpcOps.sendAndReceive(nodeId,request,VAdminProto.DeletePartitionEntriesResponse.newBuilder());
+  if (response.hasError())   helperOps.throwException(response.getError());
+  return response.getCount();
+}

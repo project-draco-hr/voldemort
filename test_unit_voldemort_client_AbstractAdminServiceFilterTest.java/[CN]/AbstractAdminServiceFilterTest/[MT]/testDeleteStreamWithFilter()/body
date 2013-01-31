@@ -7,7 +7,7 @@
   for (  Pair<ByteArray,Versioned<byte[]>> pair : entrySet) {
     if (RebalanceUtils.getNodeIds(strategy.routeRequest(pair.getFirst().get())).contains(0))     store.put(pair.getFirst(),pair.getSecond(),null);
   }
-  getAdminClient().deletePartitions(0,testStoreName,Lists.newArrayList(0,1),filter);
+  getAdminClient().storeMntOps.deletePartitions(0,testStoreName,Lists.newArrayList(0,1),filter);
   for (  Pair<ByteArray,Versioned<byte[]>> entry : entrySet) {
     if (RebalanceUtils.getNodeIds(strategy.routeRequest(entry.getFirst().get())).contains(0)) {
       if (filter.accept(entry.getFirst(),entry.getSecond())) {

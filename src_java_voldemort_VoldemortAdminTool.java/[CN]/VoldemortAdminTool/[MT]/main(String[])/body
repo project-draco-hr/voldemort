@@ -167,7 +167,7 @@
         System.exit(1);
       }
       System.out.println("Starting restore");
-      adminClient.restoreDataFromReplications(nodeId,parallelism,zoneId);
+      adminClient.restoreOps.restoreDataFromReplications(nodeId,parallelism,zoneId);
       System.out.println("Finished restore");
     }
     if (ops.contains("k")) {
@@ -252,7 +252,7 @@
             System.out.println("Updating metadata version for the following stores: " + storeNames);
             try {
               for (              String name : storeNames) {
-                adminClient.updateMetadataversion(name);
+                adminClient.metadataMgmtOps.updateMetadataversion(name);
               }
             }
  catch (            Exception e) {
@@ -290,7 +290,7 @@
       String backupDir=(String)options.valueOf("backup-dir");
       String storeName=(String)options.valueOf("native-backup");
       int timeout=CmdUtils.valueOf(options,"backup-timeout",30);
-      adminClient.nativeBackup(nodeId,storeName,backupDir,timeout,options.has("backup-verify"),options.has("backup-incremental"));
+      adminClient.storeMntOps.nativeBackup(nodeId,storeName,backupDir,timeout,options.has("backup-verify"),options.has("backup-incremental"));
     }
     if (ops.contains("o")) {
       String storeName=(String)options.valueOf("rollback");
@@ -302,7 +302,7 @@
     }
     if (ops.contains("f")) {
       long reserveMB=(Long)options.valueOf("reserve-memory");
-      adminClient.reserveMemory(nodeId,storeNames,reserveMB);
+      adminClient.storeMntOps.reserveMemory(nodeId,storeNames,reserveMB);
     }
     if (ops.contains("q")) {
       List<String> keyList=(List<String>)options.valuesOf("query-keys");
@@ -321,7 +321,7 @@
         System.err.println("Cannot run mirroring without mirror node id");
         System.exit(1);
       }
-      adminClient.mirrorData(nodeId,mirrorNodeId,(String)options.valueOf("mirror-from-url"),storeNames);
+      adminClient.restoreOps.mirrorData(nodeId,mirrorNodeId,(String)options.valueOf("mirror-from-url"),storeNames);
     }
   }
  catch (  Exception e) {

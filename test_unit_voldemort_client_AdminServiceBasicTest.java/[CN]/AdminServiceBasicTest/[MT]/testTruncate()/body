@@ -4,7 +4,7 @@
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
     store.put(entry.getKey(),new Versioned<byte[]>(entry.getValue()),null);
   }
-  getAdminClient().truncate(0,testStoreName);
+  getAdminClient().storeMntOps.truncate(0,testStoreName);
   store=getStore(0,testStoreName);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
     assertEquals("Deleted key should be missing.",0,store.get(entry.getKey(),null).size());

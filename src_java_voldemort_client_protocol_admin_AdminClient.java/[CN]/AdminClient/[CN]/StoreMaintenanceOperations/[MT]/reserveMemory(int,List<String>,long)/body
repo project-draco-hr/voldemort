@@ -1,0 +1,18 @@
+{
+  List<Integer> reserveNodes=new ArrayList<Integer>();
+  if (nodeId == -1) {
+    for (    Node node : currentCluster.getNodes())     reserveNodes.add(node.getId());
+  }
+ else {
+    reserveNodes.add(nodeId);
+  }
+  for (  String storeName : stores) {
+    for (    Integer reserveNodeId : reserveNodes) {
+      VAdminProto.ReserveMemoryRequest reserveRequest=VAdminProto.ReserveMemoryRequest.newBuilder().setStoreName(storeName).setSizeInMb(sizeInMB).build();
+      VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setReserveMemory(reserveRequest).setType(VAdminProto.AdminRequestType.RESERVE_MEMORY).build();
+      VAdminProto.ReserveMemoryResponse.Builder response=rpcOps.sendAndReceive(reserveNodeId,adminRequest,VAdminProto.ReserveMemoryResponse.newBuilder());
+      if (response.hasError())       helperOps.throwException(response.getError());
+    }
+    logger.info("Finished reserving memory for store : " + storeName);
+  }
+}

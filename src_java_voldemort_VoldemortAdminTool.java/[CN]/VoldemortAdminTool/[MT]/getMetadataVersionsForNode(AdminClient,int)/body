@@ -3,7 +3,7 @@
   for (  Node node : adminClient.getAdminClientCluster().getNodes()) {
     partitionIdList.addAll(node.getPartitionIds());
   }
-  Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=adminClient.fetchEntries(nodeId,SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name(),partitionIdList,null,true);
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=adminClient.bulkFetchOps.fetchEntries(nodeId,SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name(),partitionIdList,null,true);
   Serializer<String> serializer=new StringSerializer("UTF8");
   String keyObject=null;
   String valueObject=null;

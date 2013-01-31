@@ -1,0 +1,62 @@
+{
+  final AdminClient mirrorAdminClient=new AdminClient(urlToMirrorFrom,new AdminClientConfig());
+  final AdminClient currentAdminClient=AdminClient.this;
+  Node mirrorNode=mirrorAdminClient.getAdminClientCluster().getNodeById(nodeIdToMirrorFrom);
+  Node currentNode=currentAdminClient.getAdminClientCluster().getNodeById(nodeId);
+  if (mirrorNode == null) {
+    logger.error("Mirror node specified does not exist in the mirror cluster");
+    return;
+  }
+  if (currentNode == null) {
+    logger.error("node specified does not exist in the current cluster");
+    return;
+  }
+  List<String> currentStoreList=StoreUtils.getStoreNames(currentAdminClient.metadataMgmtOps.getRemoteStoreDefList(nodeId).getValue(),true);
+  List<String> mirrorStoreList=StoreUtils.getStoreNames(mirrorAdminClient.metadataMgmtOps.getRemoteStoreDefList(nodeIdToMirrorFrom).getValue(),true);
+  if (stores == null)   stores=currentStoreList;
+  if (!currentStoreList.containsAll(stores) || !mirrorStoreList.containsAll(stores)) {
+    logger.error("Make sure the set of stores match on both sides");
+    return;
+  }
+  if (!currentNode.getPartitionIds().equals(mirrorNode.getPartitionIds())) {
+    logger.error("Make sure the same set of partitions exist on both sides");
+    return;
+  }
+  ExecutorService executors=Executors.newFixedThreadPool(stores.size(),new ThreadFactory(){
+    public Thread newThread(    Runnable r){
+      Thread thread=new Thread(r);
+      thread.setName("mirror-data-thread");
+      return thread;
+    }
+  }
+);
+  final List<Integer> partitionIdList=mirrorNode.getPartitionIds();
+  final CountDownLatch waitLatch=new CountDownLatch(stores.size());
+  try {
+    for (    final String storeName : stores)     executors.submit(new Runnable(){
+      public void run(){
+        try {
+          logger.info("Mirroring data for store " + storeName + " from node "+ nodeIdToMirrorFrom+ "("+ urlToMirrorFrom+ ") to node "+ nodeId+ " partitions:"+ partitionIdList);
+          Iterator<Pair<ByteArray,Versioned<byte[]>>> iterator=mirrorAdminClient.bulkFetchOps.fetchEntries(nodeIdToMirrorFrom,storeName,partitionIdList,null,false);
+          currentAdminClient.storeOps.updateEntries(nodeId,storeName,iterator,null);
+          logger.info("Mirroring data for store:" + storeName + " from node "+ nodeIdToMirrorFrom+ " completed.");
+        }
+ catch (        Exception e) {
+          logger.error("Mirroring operation for store " + storeName + "from node "+ nodeIdToMirrorFrom+ " failed.",e);
+        }
+ finally {
+          waitLatch.countDown();
+        }
+      }
+    }
+);
+    waitLatch.await();
+  }
+ catch (  Exception e) {
+    logger.error("Mirroring operation failed.",e);
+  }
+ finally {
+    executors.shutdown();
+    logger.info("Finished mirroring data.");
+  }
+}

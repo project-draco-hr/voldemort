@@ -2,7 +2,7 @@
   Map<String,Long> storeToValue=Maps.newHashMap();
   if (storeNames == null) {
     storeNames=Lists.newArrayList();
-    for (    StoreDefinition storeDef : adminClient.getRemoteStoreDefList(nodeId > 0 ? nodeId : 0).getValue()) {
+    for (    StoreDefinition storeDef : adminClient.metadataMgmtOps.getRemoteStoreDefList(nodeId > 0 ? nodeId : 0).getValue()) {
       if (storeDef.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0) {
         storeNames.add(storeDef.getName());
       }
@@ -20,13 +20,13 @@
   for (  int currentNodeId : nodeIds) {
     System.out.println(adminClient.getAdminClientCluster().getNodeById(currentNodeId).getHost() + ":" + adminClient.getAdminClientCluster().getNodeById(currentNodeId).getId());
     if (type.compareTo("max") == 0) {
-      storeToValue=adminClient.getROMaxVersion(currentNodeId,storeNames);
+      storeToValue=adminClient.readonlyOps.getROMaxVersion(currentNodeId,storeNames);
     }
  else     if (type.compareTo("current") == 0) {
-      storeToValue=adminClient.getROCurrentVersion(currentNodeId,storeNames);
+      storeToValue=adminClient.readonlyOps.getROCurrentVersion(currentNodeId,storeNames);
     }
  else     if (type.compareTo("storage-format") == 0) {
-      Map<String,String> storeToStorageFormat=adminClient.getROStorageFormat(currentNodeId,storeNames);
+      Map<String,String> storeToStorageFormat=adminClient.readonlyOps.getROStorageFormat(currentNodeId,storeNames);
       for (      String storeName : storeToStorageFormat.keySet()) {
         System.out.println(storeName + ":" + storeToStorageFormat.get(storeName));
       }

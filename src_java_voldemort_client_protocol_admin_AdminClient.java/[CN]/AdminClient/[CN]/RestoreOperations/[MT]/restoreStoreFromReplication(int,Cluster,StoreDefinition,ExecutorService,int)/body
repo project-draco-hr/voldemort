@@ -1,0 +1,21 @@
+{
+  logger.info("Restoring data for store " + storeDef.getName() + " on node "+ restoringNodeId);
+  Map<Integer,HashMap<Integer,List<Integer>>> restoreMapping=helperOps.getReplicationMapping(restoringNodeId,cluster,storeDef,zoneId);
+  for (  final Entry<Integer,HashMap<Integer,List<Integer>>> replicationEntry : restoreMapping.entrySet()) {
+    final int donorNodeId=replicationEntry.getKey();
+    executorService.submit(new Runnable(){
+      public void run(){
+        try {
+          logger.info("Restoring data for store " + storeDef.getName() + " at node "+ restoringNodeId+ " from node "+ replicationEntry.getKey()+ " partitions:"+ replicationEntry.getValue());
+          int migrateAsyncId=storeMntOps.migratePartitions(donorNodeId,restoringNodeId,storeDef.getName(),replicationEntry.getValue(),null,null,false);
+          rpcOps.waitForCompletion(restoringNodeId,migrateAsyncId,adminClientConfig.getRestoreDataTimeoutSec(),TimeUnit.SECONDS);
+          logger.info("Restoring data for store:" + storeDef.getName() + " from node "+ donorNodeId+ " completed.");
+        }
+ catch (        Exception e) {
+          logger.error("Restore operation for store " + storeDef.getName() + "from node "+ donorNodeId+ " failed.",e);
+        }
+      }
+    }
+);
+  }
+}

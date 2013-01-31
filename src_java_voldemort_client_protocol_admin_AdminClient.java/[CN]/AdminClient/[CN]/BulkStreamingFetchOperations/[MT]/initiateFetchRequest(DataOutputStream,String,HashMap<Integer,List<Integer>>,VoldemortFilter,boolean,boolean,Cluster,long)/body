@@ -1,0 +1,29 @@
+{
+  HashMap<Integer,List<Integer>> filteredReplicaToPartitionList=Maps.newHashMap();
+  if (fetchMasterEntries) {
+    if (!replicaToPartitionList.containsKey(0)) {
+      throw new VoldemortException("Could not find any partitions for primary replica type");
+    }
+ else {
+      filteredReplicaToPartitionList.put(0,replicaToPartitionList.get(0));
+    }
+  }
+ else {
+    filteredReplicaToPartitionList.putAll(replicaToPartitionList);
+  }
+  VAdminProto.FetchPartitionEntriesRequest.Builder fetchRequest=VAdminProto.FetchPartitionEntriesRequest.newBuilder().setFetchValues(fetchValues).addAllReplicaToPartition(ProtoUtils.encodePartitionTuple(filteredReplicaToPartitionList)).setStore(storeName).setSkipRecords(skipRecords);
+  try {
+    if (filter != null) {
+      fetchRequest.setFilter(helperOps.encodeFilter(filter));
+    }
+  }
+ catch (  IOException e) {
+    throw new VoldemortException(e);
+  }
+  if (initialCluster != null) {
+    fetchRequest.setInitialCluster(new ClusterMapper().writeCluster(initialCluster));
+  }
+  VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.FETCH_PARTITION_ENTRIES).setFetchPartitionEntries(fetchRequest).build();
+  ProtoUtils.writeMessage(outputStream,request);
+  outputStream.flush();
+}
