@@ -37,10 +37,10 @@
         stringWriter.write("Querying keys in node " + nodeId + " of "+ storeName+ "\n");
         while (iterator.hasNext()) {
           QueryKeyResult queryKeyResult=iterator.next();
-          byte[] keyBytes=queryKeyResult.key.get();
+          byte[] keyBytes=queryKeyResult.getKey().get();
           Object keyObject=keySerializer.toObject((null == keyCompressionStrategy) ? keyBytes : keyCompressionStrategy.inflate(keyBytes));
           generator.writeObject(keyObject);
-          List<Versioned<byte[]>> values=queryKeyResult.values;
+          List<Versioned<byte[]>> values=queryKeyResult.getValues();
           if (values != null) {
             if (values.size() == 0) {
               stringWriter.write(", null");
@@ -60,9 +60,9 @@
  else {
             stringWriter.write(", null");
           }
-          if (queryKeyResult.exception != null) {
+          if (queryKeyResult.hasException()) {
             stringWriter.write(", ");
-            stringWriter.write(queryKeyResult.exception.toString());
+            stringWriter.write(queryKeyResult.getException().toString());
           }
           StringBuffer buf=stringWriter.getBuffer();
           if (buf.charAt(0) == ' ') {

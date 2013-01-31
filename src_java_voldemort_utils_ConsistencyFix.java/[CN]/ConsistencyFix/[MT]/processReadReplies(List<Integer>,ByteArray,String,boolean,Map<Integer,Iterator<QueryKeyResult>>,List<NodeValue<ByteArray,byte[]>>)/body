@@ -19,26 +19,26 @@
         System.out.println("\t... There was a key-value returned from node with id:" + nodeId);
       }
       keyValue=nodeIdToKeyValues.get(nodeId).next();
-      if (keyValue.exception != null) {
+      if (keyValue.hasException()) {
         if (verbose) {
-          System.out.println("\t... Exception encountered while fetching key " + keyInHexFormat + " from node with nodeId "+ nodeId+ " : "+ keyValue.exception.getMessage());
+          System.out.println("\t... Exception encountered while fetching key " + keyInHexFormat + " from node with nodeId "+ nodeId+ " : "+ keyValue.getException().getMessage());
         }
         exceptionsEncountered=true;
       }
  else {
-        if (keyValue.values.isEmpty()) {
+        if (keyValue.getValues().isEmpty()) {
           if (verbose) {
             System.out.println("\t... Adding null version to nodeValues");
           }
           Versioned<byte[]> versioned=new Versioned<byte[]>(null);
-          nodeValues.add(new NodeValue<ByteArray,byte[]>(nodeId,keyValue.key,versioned));
+          nodeValues.add(new NodeValue<ByteArray,byte[]>(nodeId,keyValue.getKey(),versioned));
         }
  else {
-          for (          Versioned<byte[]> value : keyValue.values) {
+          for (          Versioned<byte[]> value : keyValue.getValues()) {
             if (verbose) {
               System.out.println("\t... Adding following version to nodeValues: " + value.getVersion());
             }
-            nodeValues.add(new NodeValue<ByteArray,byte[]>(nodeId,keyValue.key,value));
+            nodeValues.add(new NodeValue<ByteArray,byte[]>(nodeId,keyValue.getKey(),value));
           }
         }
       }
