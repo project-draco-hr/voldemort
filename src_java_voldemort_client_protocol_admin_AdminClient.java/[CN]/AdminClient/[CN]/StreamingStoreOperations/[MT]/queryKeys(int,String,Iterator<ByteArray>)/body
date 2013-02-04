@@ -10,10 +10,9 @@
     clientPool.close();
     throw new VoldemortException(e);
   }
-  return new AbstractIterator<Pair<ByteArray,Pair<List<Versioned<byte[]>>,Exception>>>(){
-    @Override public Pair<ByteArray,Pair<List<Versioned<byte[]>>,Exception>> computeNext(){
+  return new AbstractIterator<QueryKeyResult>(){
+    @Override public QueryKeyResult computeNext(){
       ByteArray key;
-      Exception exception=null;
       List<Versioned<byte[]>> value=null;
       if (!keys.hasNext()) {
         clientPool.close();
@@ -24,11 +23,11 @@
       }
       try {
         value=store.get(key,null);
+        return new QueryKeyResult(key,value);
       }
  catch (      Exception e) {
-        exception=e;
+        return new QueryKeyResult(key,e);
       }
-      return Pair.create(key,Pair.create(value,exception));
     }
   }
 ;

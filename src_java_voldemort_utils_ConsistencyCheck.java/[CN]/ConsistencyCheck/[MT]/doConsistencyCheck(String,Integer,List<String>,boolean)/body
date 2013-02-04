@@ -17,7 +17,7 @@
     AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),0);
     adminClients.add(adminClient);
     Cluster cluster=adminClient.getAdminClientCluster();
-    Versioned<List<StoreDefinition>> storeDefinitions=adminClient.getRemoteStoreDefList(0);
+    Versioned<List<StoreDefinition>> storeDefinitions=adminClient.metadataMgmtOps.getRemoteStoreDefList(0);
     List<StoreDefinition> StoreDefitions=storeDefinitions.getValue();
     StoreDefinition storeDefinition=null;
     for (    StoreDefinition def : StoreDefitions) {
@@ -67,7 +67,7 @@
     }
     for (    Integer nodeId : nodeIdList) {
       Iterator<Pair<ByteArray,Versioned<byte[]>>> entries;
-      entries=adminClient.fetchEntries(nodeId,storeName,singlePartition,null,false);
+      entries=adminClient.bulkFetchOps.fetchEntries(nodeId,storeName,singlePartition,null,false);
       nodeEntriesMap.put(new PrefixNode(urlId,cluster.getNodeById(nodeId)),entries);
     }
     replicationFactor+=storeDefinition.getReplicationFactor();
