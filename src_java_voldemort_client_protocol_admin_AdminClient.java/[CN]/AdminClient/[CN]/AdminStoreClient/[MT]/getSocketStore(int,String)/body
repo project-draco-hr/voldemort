@@ -1,0 +1,16 @@
+{
+  NodeStore nodeStore=new NodeStore(nodeId,storeName);
+  if (!nodeStoreSocketCache.containsKey(nodeStore)) {
+    SocketStore socketStore=null;
+    Node node=getAdminClientCluster().getNodeById(nodeId);
+    try {
+      socketStore=clientPool.create(storeName,node.getHost(),node.getSocketPort(),clientConfig.getRequestFormatType(),RequestRoutingType.IGNORE_CHECKS);
+    }
+ catch (    Exception e) {
+      clientPool.close();
+      throw new VoldemortException(e);
+    }
+    nodeStoreSocketCache.putIfAbsent(nodeStore,socketStore);
+  }
+  return nodeStoreSocketCache.get(nodeStore);
+}

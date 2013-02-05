@@ -7,10 +7,13 @@
     if (verbose) {
       System.out.println("\tDoing repair for node with id:" + nodeKeyValue.getNodeId());
     }
-    Exception e=vInstance.getAdminClient().repairEntry(vInstance.getStoreName(),nodeKeyValue);
-    if (e != null) {
+    RepairEntryResult repairEntryResult=vInstance.getAdminClient().storeOps.repairEntry(vInstance.getStoreName(),nodeKeyValue);
+    if (!repairEntryResult.isSuccess()) {
       if (verbose) {
-        System.out.println("\t... Repair of key " + nodeKeyValue.getKey() + "on node with id "+ nodeKeyValue.getNodeId()+ " for version "+ nodeKeyValue.getVersion()+ " failed because of exception : "+ e.getMessage());
+        if (repairEntryResult.hasException()) {
+          VoldemortException ve=repairEntryResult.getException();
+          System.out.println("\t... Repair of key " + nodeKeyValue.getKey() + "on node with id "+ nodeKeyValue.getNodeId()+ " for version "+ nodeKeyValue.getVersion()+ " failed because of exception : "+ ve.getMessage());
+        }
       }
       allRepairsSuccessful=false;
     }

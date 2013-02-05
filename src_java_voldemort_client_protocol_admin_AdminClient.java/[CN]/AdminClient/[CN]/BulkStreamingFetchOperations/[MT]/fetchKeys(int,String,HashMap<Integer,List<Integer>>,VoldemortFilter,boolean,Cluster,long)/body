@@ -1,7 +1,7 @@
 {
   Node node=AdminClient.this.getAdminClientCluster().getNodeById(nodeId);
   final SocketDestination destination=new SocketDestination(node.getHost(),node.getAdminPort(),RequestFormatType.ADMIN_PROTOCOL_BUFFERS);
-  final SocketAndStreams sands=pool.checkout(destination);
+  final SocketAndStreams sands=socketPool.checkout(destination);
   DataOutputStream outputStream=sands.getOutputStream();
   final DataInputStream inputStream=sands.getInputStream();
   try {
@@ -9,7 +9,7 @@
   }
  catch (  IOException e) {
     helperOps.close(sands.getSocket());
-    pool.checkin(destination,sands);
+    socketPool.checkin(destination,sands);
     throw new VoldemortException(e);
   }
   return new AbstractIterator<ByteArray>(){
@@ -17,19 +17,19 @@
       try {
         int size=inputStream.readInt();
         if (size == -1) {
-          pool.checkin(destination,sands);
+          socketPool.checkin(destination,sands);
           return endOfData();
         }
         VAdminProto.FetchPartitionEntriesResponse response=responseFromStream(inputStream,size);
         if (response.hasError()) {
-          pool.checkin(destination,sands);
+          socketPool.checkin(destination,sands);
           helperOps.throwException(response.getError());
         }
         return ProtoUtils.decodeBytes(response.getKey());
       }
  catch (      IOException e) {
         helperOps.close(sands.getSocket());
-        pool.checkin(destination,sands);
+        socketPool.checkin(destination,sands);
         throw new VoldemortException(e);
       }
     }

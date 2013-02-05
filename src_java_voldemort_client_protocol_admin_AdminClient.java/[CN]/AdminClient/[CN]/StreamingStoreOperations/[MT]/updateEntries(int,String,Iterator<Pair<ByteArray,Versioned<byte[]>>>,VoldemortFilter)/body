@@ -1,7 +1,7 @@
 {
   Node node=AdminClient.this.getAdminClientCluster().getNodeById(nodeId);
   SocketDestination destination=new SocketDestination(node.getHost(),node.getAdminPort(),RequestFormatType.ADMIN_PROTOCOL_BUFFERS);
-  SocketAndStreams sands=pool.checkout(destination);
+  SocketAndStreams sands=socketPool.checkout(destination);
   DataOutputStream outputStream=sands.getOutputStream();
   DataInputStream inputStream=sands.getInputStream();
   boolean firstMessage=true;
@@ -43,6 +43,6 @@
     throw new VoldemortException(e);
   }
  finally {
-    pool.checkin(destination,sands);
+    socketPool.checkin(destination,sands);
   }
 }

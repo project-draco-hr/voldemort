@@ -23,7 +23,7 @@
     return;
   }
   ExecutorService executors=Executors.newFixedThreadPool(stores.size(),new ThreadFactory(){
-    public Thread newThread(    Runnable r){
+    @Override public Thread newThread(    Runnable r){
       Thread thread=new Thread(r);
       thread.setName("mirror-data-thread");
       return thread;
@@ -34,7 +34,7 @@
   final CountDownLatch waitLatch=new CountDownLatch(stores.size());
   try {
     for (    final String storeName : stores)     executors.submit(new Runnable(){
-      public void run(){
+      @Override public void run(){
         try {
           logger.info("Mirroring data for store " + storeName + " from node "+ nodeIdToMirrorFrom+ "("+ urlToMirrorFrom+ ") to node "+ nodeId+ " partitions:"+ partitionIdList);
           Iterator<Pair<ByteArray,Versioned<byte[]>>> iterator=mirrorAdminClient.bulkFetchOps.fetchEntries(nodeIdToMirrorFrom,storeName,partitionIdList,null,false);

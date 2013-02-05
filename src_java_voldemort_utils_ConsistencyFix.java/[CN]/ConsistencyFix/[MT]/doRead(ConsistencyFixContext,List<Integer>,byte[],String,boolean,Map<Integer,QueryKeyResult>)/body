@@ -5,15 +5,12 @@
     }
     return FixKeyResult.BAD_INIT;
   }
-  List<ByteArray> keys=new ArrayList<ByteArray>();
-  keys.add(new ByteArray(keyInBytes));
   if (verbose) {
     System.out.println("Reading key-values for specified key: " + keyInHexFormat);
   }
   for (  int nodeId : nodeIdList) {
-    Iterator<QueryKeyResult> keyValues;
-    keyValues=vInstance.getAdminClient().storeOps.queryKeys(nodeId,vInstance.getStoreName(),keys.iterator());
-    nodeIdToKeyValues.put(nodeId,keyValues);
+    QueryKeyResult queryKeyResult=vInstance.getAdminClient().storeOps.queryKey(vInstance.getStoreName(),nodeId,new ByteArray(keyInBytes));
+    nodeIdToKeyValues.put(nodeId,queryKeyResult);
   }
   return FixKeyResult.SUCCESS;
 }

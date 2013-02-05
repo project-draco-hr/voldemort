@@ -3,7 +3,7 @@
   VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setRepairJob(repairJobRequest).setType(VAdminProto.AdminRequestType.REPAIR_JOB).build();
   Node node=AdminClient.this.getAdminClientCluster().getNodeById(nodeId);
   SocketDestination destination=new SocketDestination(node.getHost(),node.getAdminPort(),RequestFormatType.ADMIN_PROTOCOL_BUFFERS);
-  SocketAndStreams sands=pool.checkout(destination);
+  SocketAndStreams sands=socketPool.checkout(destination);
   try {
     DataOutputStream outputStream=sands.getOutputStream();
     ProtoUtils.writeMessage(outputStream,adminRequest);
@@ -14,7 +14,7 @@
     throw new VoldemortException(e);
   }
  finally {
-    pool.checkin(destination,sands);
+    socketPool.checkin(destination,sands);
   }
   return;
 }
