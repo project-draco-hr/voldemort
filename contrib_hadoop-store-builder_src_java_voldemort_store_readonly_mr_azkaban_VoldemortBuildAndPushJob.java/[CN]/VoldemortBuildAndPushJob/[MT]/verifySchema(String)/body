@@ -6,7 +6,9 @@
   String description=props.getString("push.store.description","");
   String owners=props.getString("push.store.owners","");
   String keySchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + schema.getKeyType() + "</schema-info>\n\t";
+  if (jsonKeyField != null && jsonKeyField.length() > 0)   keySchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + schema.getKeyType().subtype(jsonKeyField) + "</schema-info>\n\t";
   String valSchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + schema.getValueType() + "</schema-info>\n\t";
+  if (jsonValueField != null && jsonValueField.length() > 0)   valSchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + schema.getValueType().subtype(jsonValueField) + "</schema-info>\n\t";
   boolean hasCompression=false;
   if (props.containsKey("build.compress.value"))   hasCompression=true;
   if (hasCompression) {
