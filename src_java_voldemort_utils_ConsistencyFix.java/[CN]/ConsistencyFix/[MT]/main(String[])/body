@@ -10,9 +10,9 @@
   if (fileWriter == null) {
     Utils.croak("Failure to create BufferedWriter for ouput file '" + options.outFile + "'");
   }
-  ConsistencyFixContext vInstance=new ConsistencyFixContext(options.url,options.storeName);
+  init(options);
   for (  String keyInHexFormat : options.keysInHexFormat) {
-    FixKeyResult fixKeyResult=fixKey(vInstance,keyInHexFormat,options.verbose);
+    FixKeyResult fixKeyResult=fixKey(keyInHexFormat,options.verbose);
     if (fixKeyResult == FixKeyResult.SUCCESS) {
       System.out.println("Successfully processed " + keyInHexFormat);
     }
@@ -20,5 +20,5 @@
       fileWriter.write("BADKEY," + keyInHexFormat + ","+ fixKeyResult.name());
     }
   }
-  vInstance.getAdminClient().stop();
+  stop();
 }

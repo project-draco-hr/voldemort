@@ -1,0 +1,12 @@
+{
+  System.out.println("Connecting to bootstrap server: " + options.url);
+  adminClient=new AdminClient(options.url,new AdminClientConfig(),0);
+  Cluster cluster=adminClient.getAdminClientCluster();
+  System.out.println("Cluster determined to be: " + cluster.getName());
+  System.out.println("Determining store definition for store: " + options.storeName);
+  Versioned<List<StoreDefinition>> storeDefinitions=adminClient.metadataMgmtOps.getRemoteStoreDefList(0);
+  List<StoreDefinition> storeDefs=storeDefinitions.getValue();
+  StoreDefinition storeDefinition=StoreDefinitionUtils.getStoreDefinitionWithName(storeDefs,options.storeName);
+  System.out.println("Store definition determined.");
+  storeInstance=new StoreInstance(cluster,storeDefinition);
+}

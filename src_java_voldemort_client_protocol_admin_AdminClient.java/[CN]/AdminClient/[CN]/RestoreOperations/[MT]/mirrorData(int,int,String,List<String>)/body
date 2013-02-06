@@ -38,7 +38,7 @@
         try {
           logger.info("Mirroring data for store " + storeName + " from node "+ nodeIdToMirrorFrom+ "("+ urlToMirrorFrom+ ") to node "+ nodeId+ " partitions:"+ partitionIdList);
           Iterator<Pair<ByteArray,Versioned<byte[]>>> iterator=mirrorAdminClient.bulkFetchOps.fetchEntries(nodeIdToMirrorFrom,storeName,partitionIdList,null,false);
-          currentAdminClient.storeOps.updateEntries(nodeId,storeName,iterator,null);
+          currentAdminClient.streamingOps.updateEntries(nodeId,storeName,iterator,null);
           logger.info("Mirroring data for store:" + storeName + " from node "+ nodeIdToMirrorFrom+ " completed.");
         }
  catch (        Exception e) {
