@@ -1,0 +1,28 @@
+{
+  if (verbose) {
+    System.out.println("Performing repair work:");
+  }
+  boolean allRepairsSuccessful=true;
+  for (  NodeValue<ByteArray,byte[]> nodeKeyValue : toReadRepair) {
+    if (verbose) {
+      System.out.println("\tDoing repair for node with id:" + nodeKeyValue.getNodeId());
+    }
+    try {
+      adminClient.storeOps.putNodeKeyValue(getStoreName(),nodeKeyValue);
+    }
+ catch (    ObsoleteVersionException ove) {
+    }
+catch (    VoldemortException ve) {
+      allRepairsSuccessful=false;
+      System.out.println("\t... Repair of key " + nodeKeyValue.getKey() + "on node with id "+ nodeKeyValue.getNodeId()+ " for version "+ nodeKeyValue.getVersion()+ " failed because of exception : "+ ve.getMessage());
+    }
+  }
+  if (!allRepairsSuccessful) {
+    if (verbose) {
+      System.err.println("Aborting fixKey because exceptions were encountered when reparing key-values.");
+      System.out.println("Fix failed...");
+    }
+    return ConsistencyFixStatus.REPAIR_EXCEPTION;
+  }
+  return ConsistencyFixStatus.SUCCESS;
+}

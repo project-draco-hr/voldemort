@@ -1,0 +1,33 @@
+{
+  if (verbose) {
+    System.out.println("Performing consistency fix of key: " + keyInHexFormat);
+  }
+  byte[] keyInBytes;
+  List<Integer> nodeIdList=null;
+  int masterPartitionId=-1;
+  try {
+    keyInBytes=ByteUtils.fromHexString(keyInHexFormat);
+    masterPartitionId=getMasterPartitionId(keyInHexFormat);
+    nodeIdList=storeInstance.getReplicationNodeList(masterPartitionId);
+  }
+ catch (  Exception exception) {
+    if (verbose) {
+      System.out.println("Aborting fixKey due to bad init.");
+      exception.printStackTrace();
+    }
+    return new doKeyGetStatus(ConsistencyFixStatus.BAD_INIT);
+  }
+  ByteArray keyAsByteArray=new ByteArray(keyInBytes);
+  Map<Integer,QueryKeyResult> nodeIdToKeyValues=new HashMap<Integer,QueryKeyResult>();
+  ConsistencyFixStatus fixKeyResult=ConsistencyFix.doRead(nodeIdList,keyInBytes,keyInHexFormat,verbose,nodeIdToKeyValues);
+  if (fixKeyResult != ConsistencyFixStatus.SUCCESS) {
+    return new doKeyGetStatus(fixKeyResult);
+  }
+  List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayList();
+  fixKeyResult=ConsistencyFix.processReadReplies(nodeIdList,keyAsByteArray,keyInHexFormat,verbose,nodeIdToKeyValues,nodeValues);
+  if (fixKeyResult != ConsistencyFixStatus.SUCCESS) {
+    return new doKeyGetStatus(fixKeyResult);
+  }
+  List<NodeValue<ByteArray,byte[]>> toReadRepair=ConsistencyFix.resolveReadConflicts(verbose,nodeValues);
+  return new doKeyGetStatus(ConsistencyFixStatus.SUCCESS,toReadRepair);
+}

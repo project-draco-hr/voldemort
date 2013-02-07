@@ -1,24 +1,37 @@
 {
   Options options=parseArgs(args);
-  BufferedWriter fileWriter=null;
-  try {
-    fileWriter=new BufferedWriter(new FileWriter(options.outFile));
-  }
- catch (  IOException e) {
-    Utils.croak("Failure to open ouput file '" + options.outFile + "': "+ e.getMessage());
-  }
-  if (fileWriter == null) {
-    Utils.croak("Failure to create BufferedWriter for ouput file '" + options.outFile + "'");
-  }
   init(options);
-  for (  String keyInHexFormat : options.keysInHexFormat) {
-    FixKeyResult fixKeyResult=fixKey(keyInHexFormat,options.verbose);
-    if (fixKeyResult == FixKeyResult.SUCCESS) {
-      System.out.println("Successfully processed " + keyInHexFormat);
-    }
- else {
-      fileWriter.write("BADKEY," + keyInHexFormat + ","+ fixKeyResult.name());
-    }
+  System.out.println("Initialized the consistency fixer..");
+  BlockingQueue<BadKeyInput> badKeyQIn=new ArrayBlockingQueue<BadKeyInput>(1000);
+  badKeyReaderService=Executors.newSingleThreadExecutor();
+  badKeyReaderService.submit(new BadKeyReader(options.badKeyFileIn,badKeyQIn));
+  System.out.println("Created badKeyReader.");
+  BlockingQueue<BadKeyResult> badKeyQOut=new ArrayBlockingQueue<BadKeyResult>(1000);
+  badKeyWriterService=Executors.newSingleThreadExecutor();
+  badKeyWriterService.submit(new BadKeyWriter(options.badKeyFileOut,badKeyQOut));
+  System.out.println("Created badKeyWriter.");
+  CountDownLatch latch=new CountDownLatch(options.parallelism);
+  badKeyGetters=Executors.newFixedThreadPool(options.parallelism);
+  repairPutters=Executors.newFixedThreadPool(options.parallelism);
+  System.out.println("Created getters & putters.");
+  for (int i=0; i < options.parallelism; i++) {
+    badKeyGetters.submit(new KeyGetter(latch,repairPutters,badKeyQIn,badKeyQOut,options.verbose));
   }
+  latch.await();
+  System.out.println("All badKeyGetters have completed.");
+  badKeyReaderService.shutdown();
+  badKeyReaderService.awaitTermination(Long.MAX_VALUE,TimeUnit.NANOSECONDS);
+  System.out.println("Bad key reader service has shutdown.");
+  badKeyGetters.shutdown();
+  badKeyGetters.awaitTermination(Long.MAX_VALUE,TimeUnit.NANOSECONDS);
+  System.out.println("All badKeyGetters have shutdown.");
+  repairPutters.shutdown();
+  repairPutters.awaitTermination(Long.MAX_VALUE,TimeUnit.NANOSECONDS);
+  System.out.println("All repairPutters have shutdown.");
+  badKeyQOut.put(new BadKeyResult());
+  badKeyWriterService.shutdown();
+  badKeyWriterService.awaitTermination(Long.MAX_VALUE,TimeUnit.NANOSECONDS);
+  System.out.println("Bad key writer service has shutdown.");
   stop();
+  System.out.println("Stopped the consistency fixer..");
 }

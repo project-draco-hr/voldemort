@@ -3,9 +3,9 @@
   parser.accepts("help","print help information");
   parser.accepts("url").withRequiredArg().describedAs("The bootstrap url.").ofType(String.class);
   parser.accepts("store").withRequiredArg().describedAs("The store name.").ofType(String.class);
-  parser.accepts("keys").withRequiredArg().withValuesSeparatedBy(',').describedAs("List of keys. " + "Each key must be in hexadecimal format. " + "Each key must be separated only by a comma ',' without any white space.").ofType(String.class);
-  parser.accepts("key-file").withRequiredArg().describedAs("Name of key-file. " + "Each key must be in hexadecimal format. " + "Each key must be on a separate line in the file. ").ofType(String.class);
-  parser.accepts("out-file").withRequiredArg().describedAs("Name of out-file. " + "Success/failure of each key is dumped to out-file. ").ofType(String.class);
+  parser.accepts("bad-key-file-in").withRequiredArg().describedAs("Name of bad-key-file-in. " + "Each key must be in hexadecimal format. " + "Each key must be on a separate line in the file. ").ofType(String.class);
+  parser.accepts("bad-key-file-out").withRequiredArg().describedAs("Name of bad-key-file-out. " + "Keys that are not mae consistent are output to this file.").ofType(String.class);
+  parser.accepts("parallelism").withOptionalArg().describedAs("Number of read and to repair in parallel. " + "Up to 2X this value requests outstanding simultaneously. " + "[Default value: " + Options.defaultParallelism + "]").ofType(Integer.class);
   parser.accepts("verbose","verbose");
   OptionSet optionSet=parser.parse(args);
   if (optionSet.hasArgument("help")) {
@@ -24,41 +24,23 @@
   if (!optionSet.hasArgument("store")) {
     printUsage("Missing required 'store' argument.");
   }
-  if (!optionSet.has("keys") && !optionSet.has("key-file")) {
-    printUsage("Missing required key-specifying argument: 'keys' or 'key-file'.");
+  if (!optionSet.has("bad-key-file-in")) {
+    printUsage("Missing required 'bad-key-file-in' argument.");
   }
-  if (optionSet.has("keys") && optionSet.has("key-file")) {
-    printUsage("Please provide exactly one key-specifying argument: 'keys' or 'key-file'.");
-  }
-  if (!optionSet.has("out-file")) {
-    printUsage("Missing required 'out-file' argument.");
+  if (!optionSet.has("bad-key-file-out")) {
+    printUsage("Missing required 'bad-key-file-out' argument.");
   }
   Options options=new Options();
-  if (optionSet.has("verbose")) {
-    options.verbose=true;
-  }
   options.url=(String)optionSet.valueOf("url");
   options.storeName=(String)optionSet.valueOf("store");
-  options.outFile=(String)optionSet.valueOf("out-file");
-  options.keysInHexFormat=new LinkedList<String>();
-  if (optionSet.has("keys")) {
-    @SuppressWarnings("unchecked") List<String> valuesOf=(List<String>)optionSet.valuesOf("keys");
-    options.keysInHexFormat=valuesOf;
+  options.badKeyFileOut=(String)optionSet.valueOf("bad-key-file-out");
+  options.badKeyFileIn=(String)optionSet.valueOf("bad-key-file-in");
+  options.parallelism=Options.defaultParallelism;
+  if (optionSet.has("parallelism")) {
+    options.parallelism=(Integer)optionSet.valueOf("parallelism");
   }
-  if (optionSet.has("key-file")) {
-    String keyFile=(String)optionSet.valueOf("key-file");
-    System.err.println("Key file: " + keyFile);
-    try {
-      BufferedReader fileReader=new BufferedReader(new FileReader(keyFile));
-      for (String line=fileReader.readLine(); line != null; line=fileReader.readLine()) {
-        if (!line.isEmpty()) {
-          options.keysInHexFormat.add(line);
-        }
-      }
-    }
- catch (    IOException e) {
-      Utils.croak("Failure to open input stream: " + e.getMessage());
-    }
+  if (optionSet.has("verbose")) {
+    options.verbose=true;
   }
   return options;
 }

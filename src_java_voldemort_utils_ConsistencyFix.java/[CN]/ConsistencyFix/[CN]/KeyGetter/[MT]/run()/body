@@ -1,0 +1,26 @@
+{
+  int counter=0;
+  BadKeyInput badKeyInput=null;
+  try {
+    badKeyInput=badKeyQIn.take();
+    while (!badKeyInput.isPoison()) {
+      counter++;
+      ConsistencyFix.doKeyGetStatus doKeyGetStatus=doKeyGet(badKeyInput.getKey(),verbose);
+      if (doKeyGetStatus.status == ConsistencyFixStatus.SUCCESS) {
+        repairPuttersService.submit(new RepairPutter(badKeyInput.getKey(),badKeyQOut,doKeyGetStatus.nodeValues,verbose));
+      }
+ else {
+        badKeyQOut.put(new BadKeyResult(badKeyInput.getKey(),doKeyGetStatus.status));
+      }
+      badKeyInput=badKeyQIn.take();
+    }
+    badKeyQIn.put(new BadKeyInput());
+  }
+ catch (  InterruptedException ie) {
+    System.err.println("KeyGetter thread " + myName() + " interruped.");
+  }
+ finally {
+    latch.countDown();
+  }
+  System.err.println("Thread " + myName() + " has swallowed poison and has counter = "+ counter);
+}
