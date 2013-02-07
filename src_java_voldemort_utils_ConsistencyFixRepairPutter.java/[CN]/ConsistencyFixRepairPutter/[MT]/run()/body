@@ -1,0 +1,11 @@
+{
+  Status consistencyFixStatus=consistencyFix.doRepairPut(nodeValues,verbose);
+  if (consistencyFixStatus != Status.SUCCESS) {
+    try {
+      badKeyQOut.put(consistencyFix.new BadKeyResult(keyInHexFormat,consistencyFixStatus));
+    }
+ catch (    InterruptedException ie) {
+      System.err.println("RepairPutter thread " + myName() + " interruped.");
+    }
+  }
+}
