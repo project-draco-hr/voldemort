@@ -69,7 +69,12 @@ catch (      Exception e) {
   }
  catch (  IOException e) {
     e.printStackTrace();
-    System.err.println("Error in getting Hadoop filesystem object !!! Exiting !!!");
+    System.err.println("IOException in getting Hadoop filesystem object !!! Exiting !!!");
+    System.exit(-1);
+  }
+catch (  Throwable te) {
+    te.printStackTrace();
+    logger.error("Error thrown while trying to get Hadoop filesystem");
     System.exit(-1);
   }
   FileStatus status=fs.listStatus(p)[0];

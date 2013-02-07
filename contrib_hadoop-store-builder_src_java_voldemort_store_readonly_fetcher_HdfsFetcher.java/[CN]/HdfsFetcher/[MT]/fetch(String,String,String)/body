@@ -63,7 +63,12 @@ catch (        Exception e) {
     }
  catch (    IOException e) {
       e.printStackTrace();
-      logger.error("Error in authenticating or getting the Filesystem object !!!");
+      logger.error("IOException in authenticating or getting the Filesystem object !!!");
+      return null;
+    }
+catch (    Throwable te) {
+      te.printStackTrace();
+      logger.error("Error thrown while trying to get Hadoop filesystem");
       return null;
     }
     CopyStats stats=new CopyStats(sourceFileUrl,sizeOfPath(fs,path));
