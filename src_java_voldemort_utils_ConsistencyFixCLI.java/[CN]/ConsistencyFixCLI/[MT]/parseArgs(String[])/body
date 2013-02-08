@@ -5,8 +5,8 @@
   parser.accepts("store").withRequiredArg().describedAs("The store name.").ofType(String.class);
   parser.accepts("bad-key-file-in").withRequiredArg().describedAs("Name of bad-key-file-in. " + "Each key must be in hexadecimal format. " + "Each key must be on a separate line in the file. ").ofType(String.class);
   parser.accepts("bad-key-file-out").withRequiredArg().describedAs("Name of bad-key-file-out. " + "Keys that are not mae consistent are output to this file.").ofType(String.class);
-  parser.accepts("parallelism").withOptionalArg().describedAs("Number of read and to repair in parallel. " + "Up to 2X this value requests outstanding simultaneously. " + "[Default value: " + Options.defaultParallelism + "]").ofType(Integer.class);
-  parser.accepts("verbose","verbose");
+  parser.accepts("parallelism").withRequiredArg().describedAs("Number of consistency fix messages outstanding in parallel. " + "[Default value: " + Options.defaultParallelism + "]").ofType(Integer.class);
+  parser.accepts("progress-bar").withRequiredArg().describedAs("Number of operations between 'info' progress messages. " + "[Default value: " + Options.defaultProgressBar + "]").ofType(Long.class);
   OptionSet optionSet=parser.parse(args);
   if (optionSet.hasArgument("help")) {
     try {
@@ -35,12 +35,11 @@
   options.storeName=(String)optionSet.valueOf("store");
   options.badKeyFileOut=(String)optionSet.valueOf("bad-key-file-out");
   options.badKeyFileIn=(String)optionSet.valueOf("bad-key-file-in");
-  options.parallelism=Options.defaultParallelism;
   if (optionSet.has("parallelism")) {
     options.parallelism=(Integer)optionSet.valueOf("parallelism");
   }
-  if (optionSet.has("verbose")) {
-    options.verbose=true;
+  if (optionSet.has("progress-bar")) {
+    options.progressBar=(Long)optionSet.valueOf("progress-bar");
   }
   return options;
 }

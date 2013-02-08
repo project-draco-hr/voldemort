@@ -1,0 +1,40 @@
+{
+  ExecutorService badKeyReaderService;
+  ExecutorService badKeyWriterService;
+  ExecutorService consistencyFixWorkers;
+  BlockingQueue<BadKeyResult> badKeyQOut=new ArrayBlockingQueue<BadKeyResult>(parallelism * 10);
+  badKeyWriterService=Executors.newSingleThreadExecutor();
+  badKeyWriterService.submit(new BadKeyWriter(badKeyFileOut,badKeyQOut));
+  logger.info("Created badKeyWriter.");
+  BlockingQueue<Runnable> blockingQ=new ArrayBlockingQueue<Runnable>(parallelism);
+  RejectedExecutionHandler rejectedExecutionHandler=new ThreadPoolExecutor.CallerRunsPolicy();
+  consistencyFixWorkers=new ThreadPoolExecutor(parallelism,parallelism,0L,TimeUnit.MILLISECONDS,blockingQ,rejectedExecutionHandler);
+  logger.info("Created ConsistencyFixWorker pool.");
+  CountDownLatch allBadKeysReadLatch=new CountDownLatch(1);
+  badKeyReaderService=Executors.newSingleThreadExecutor();
+  badKeyReaderService.submit(new BadKeyReader(allBadKeysReadLatch,badKeyFileIn,this,consistencyFixWorkers,badKeyQOut));
+  logger.info("Created badKeyReader.");
+  try {
+    allBadKeysReadLatch.await();
+    badKeyReaderService.shutdown();
+    badKeyReaderService.awaitTermination(Long.MAX_VALUE,TimeUnit.NANOSECONDS);
+    logger.info("Bad key reader service has shutdown.");
+    consistencyFixWorkers.shutdown();
+    consistencyFixWorkers.awaitTermination(Long.MAX_VALUE,TimeUnit.NANOSECONDS);
+    logger.info("All workers have shutdown.");
+    badKeyQOut.put(new BadKeyResult());
+    badKeyWriterService.shutdown();
+    badKeyWriterService.awaitTermination(Long.MAX_VALUE,TimeUnit.NANOSECONDS);
+    logger.info("Bad key writer service has shutdown.");
+  }
+ catch (  InterruptedException e) {
+    logger.warn("InterruptedException caught.");
+    if (logger.isDebugEnabled()) {
+      e.printStackTrace();
+    }
+  }
+ finally {
+    adminClient.stop();
+  }
+  return stats.summary();
+}

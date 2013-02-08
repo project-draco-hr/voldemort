@@ -1,0 +1,24 @@
+{
+  try {
+    BadKeyResult badKeyResult=badKeyQOut.take();
+    while (!badKeyResult.isPoison()) {
+      logger.debug("BadKeyWriter write key (" + badKeyResult.keyInHexFormat + ")");
+      fileWriter.write("BADKEY," + badKeyResult.keyInHexFormat + ","+ badKeyResult.fixKeyResult.name()+ "\n");
+      badKeyResult=badKeyQOut.take();
+    }
+  }
+ catch (  IOException ioe) {
+    logger.warn("IO exception reading badKeyFile " + badKeyFileOut + " : "+ ioe.getMessage());
+  }
+catch (  InterruptedException ie) {
+    logger.warn("Interrupted exception during writing of badKeyFile " + badKeyFileOut + " : "+ ie.getMessage());
+  }
+ finally {
+    try {
+      fileWriter.close();
+    }
+ catch (    IOException ioe) {
+      logger.warn("Interrupted exception during fileWriter.close:" + ioe.getMessage());
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  logger.trace("About to process key " + keyInHexFormat + " ("+ myName()+ ")");
+  Status status=doConsistencyFix(keyInHexFormat);
+  logger.trace("Finished processing key " + keyInHexFormat + " ("+ myName()+ ")");
+  consistencyFix.getStats().incrementCount();
+  if (status != Status.SUCCESS) {
+    try {
+      badKeyQOut.put(consistencyFix.new BadKeyResult(keyInHexFormat,status));
+    }
+ catch (    InterruptedException ie) {
+      logger.warn("Worker thread " + myName() + " interrupted.");
+    }
+    consistencyFix.getStats().incrementFailures();
+  }
+}

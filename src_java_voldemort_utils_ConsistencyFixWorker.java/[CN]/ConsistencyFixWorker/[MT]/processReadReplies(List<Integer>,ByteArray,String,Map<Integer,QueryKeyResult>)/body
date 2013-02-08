@@ -1,0 +1,35 @@
+{
+  List<NodeValue<ByteArray,byte[]>> nodeValues=new ArrayList<NodeValue<ByteArray,byte[]>>();
+  boolean exceptionsEncountered=false;
+  for (  int nodeId : nodeIdList) {
+    QueryKeyResult keyValue;
+    if (nodeIdToKeyValues.containsKey(nodeId)) {
+      keyValue=nodeIdToKeyValues.get(nodeId);
+      if (keyValue.hasException()) {
+        logger.debug("Exception encountered while fetching key " + keyInHexFormat + " from node with nodeId "+ nodeId+ " : "+ keyValue.getException().getMessage());
+        exceptionsEncountered=true;
+      }
+ else {
+        if (keyValue.getValues().isEmpty()) {
+          Versioned<byte[]> versioned=new Versioned<byte[]>(null);
+          nodeValues.add(new NodeValue<ByteArray,byte[]>(nodeId,keyValue.getKey(),versioned));
+        }
+ else {
+          for (          Versioned<byte[]> value : keyValue.getValues()) {
+            nodeValues.add(new NodeValue<ByteArray,byte[]>(nodeId,keyValue.getKey(),value));
+          }
+        }
+      }
+    }
+ else {
+      logger.debug("No key-value returned from node with id:" + nodeId);
+      Versioned<byte[]> versioned=new Versioned<byte[]>(null);
+      nodeValues.add(new NodeValue<ByteArray,byte[]>(nodeId,keyAsByteArray,versioned));
+    }
+  }
+  if (exceptionsEncountered) {
+    logger.info("Aborting fixKey because exceptions were encountered when fetching key-values.");
+    return new ProcessReadRepliesResult(Status.FETCH_EXCEPTION);
+  }
+  return new ProcessReadRepliesResult(nodeValues);
+}

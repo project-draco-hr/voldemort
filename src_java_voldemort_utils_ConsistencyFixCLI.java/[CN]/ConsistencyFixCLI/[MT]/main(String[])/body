@@ -1,37 +1,6 @@
 {
   Options options=parseArgs(args);
-  ConsistencyFix consistencyFix=new ConsistencyFix(options.url,options.storeName);
-  System.out.println("Constructed the consistency fixer..");
-  BlockingQueue<BadKeyInput> badKeyQIn=new ArrayBlockingQueue<BadKeyInput>(1000);
-  badKeyReaderService=Executors.newSingleThreadExecutor();
-  badKeyReaderService.submit(consistencyFix.new BadKeyReader(options.badKeyFileIn,badKeyQIn));
-  System.out.println("Created badKeyReader.");
-  BlockingQueue<BadKeyResult> badKeyQOut=new ArrayBlockingQueue<BadKeyResult>(1000);
-  badKeyWriterService=Executors.newSingleThreadExecutor();
-  badKeyWriterService.submit(consistencyFix.new BadKeyWriter(options.badKeyFileOut,badKeyQOut));
-  System.out.println("Created badKeyWriter.");
-  CountDownLatch latch=new CountDownLatch(options.parallelism);
-  badKeyGetters=Executors.newFixedThreadPool(options.parallelism);
-  repairPutters=Executors.newFixedThreadPool(options.parallelism);
-  System.out.println("Created getters & putters.");
-  for (int i=0; i < options.parallelism; i++) {
-    badKeyGetters.submit(new ConsistencyFixKeyGetter(latch,consistencyFix,repairPutters,badKeyQIn,badKeyQOut,options.verbose));
-  }
-  latch.await();
-  System.out.println("All badKeyGetters have completed.");
-  badKeyReaderService.shutdown();
-  badKeyReaderService.awaitTermination(Long.MAX_VALUE,TimeUnit.NANOSECONDS);
-  System.out.println("Bad key reader service has shutdown.");
-  badKeyGetters.shutdown();
-  badKeyGetters.awaitTermination(Long.MAX_VALUE,TimeUnit.NANOSECONDS);
-  System.out.println("All badKeyGetters have shutdown.");
-  repairPutters.shutdown();
-  repairPutters.awaitTermination(Long.MAX_VALUE,TimeUnit.NANOSECONDS);
-  System.out.println("All repairPutters have shutdown.");
-  badKeyQOut.put(consistencyFix.new BadKeyResult());
-  badKeyWriterService.shutdown();
-  badKeyWriterService.awaitTermination(Long.MAX_VALUE,TimeUnit.NANOSECONDS);
-  System.out.println("Bad key writer service has shutdown.");
-  consistencyFix.stop();
-  System.out.println("Stopped the consistency fixer..");
+  ConsistencyFix consistencyFix=new ConsistencyFix(options.url,options.storeName,options.progressBar);
+  String summary=consistencyFix.execute(options.parallelism,options.badKeyFileIn,options.badKeyFileOut);
+  System.out.println(summary);
 }
