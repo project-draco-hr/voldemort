@@ -7,6 +7,7 @@
   parser.accepts("bad-key-file-out").withRequiredArg().describedAs("Name of bad-key-file-out. " + "Keys that are not mae consistent are output to this file.").ofType(String.class);
   parser.accepts("parallelism").withRequiredArg().describedAs("Number of consistency fix messages outstanding in parallel. " + "[Default value: " + Options.defaultParallelism + "]").ofType(Integer.class);
   parser.accepts("progress-bar").withRequiredArg().describedAs("Number of operations between 'info' progress messages. " + "[Default value: " + Options.defaultProgressBar + "]").ofType(Long.class);
+  parser.accepts("per-server-iops-limit").withRequiredArg().describedAs("Number of operations that the consistency fixer will issue into any individual server in one second. " + "[Default value: " + Options.defaultPerServerIOPSLimit + "]").ofType(Long.class);
   OptionSet optionSet=parser.parse(args);
   if (optionSet.hasArgument("help")) {
     try {
@@ -40,6 +41,9 @@
   }
   if (optionSet.has("progress-bar")) {
     options.progressBar=(Long)optionSet.valueOf("progress-bar");
+  }
+  if (optionSet.has("per-server-iops-limit")) {
+    options.perServerIOPSLimit=(Long)optionSet.valueOf("per-server-iops-limit");
   }
   return options;
 }
