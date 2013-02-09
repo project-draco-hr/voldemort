@@ -1,0 +1,73 @@
+{
+  List<Integer> singlePartition=new ArrayList<Integer>();
+  singlePartition.add(partitionId);
+  nodeEntriesMap=new HashMap<PrefixNode,Iterator<Pair<ByteArray,Versioned<byte[]>>>>();
+  List<AdminClient> adminClients=new ArrayList<AdminClient>(urls.size());
+  int urlId=0;
+  List<PrefixNode> nodeList=new ArrayList<PrefixNode>();
+  for (  String url : this.urls) {
+    if (this.verbose) {
+      System.out.println("Connecting to bootstrap server: " + url);
+    }
+    AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),0);
+    adminClients.add(adminClient);
+    Cluster cluster=adminClient.getAdminClientCluster();
+    Versioned<List<StoreDefinition>> storeDefinitions=adminClient.metadataMgmtOps.getRemoteStoreDefList(0);
+    List<StoreDefinition> StoreDefitions=storeDefinitions.getValue();
+    StoreDefinition storeDefinition=null;
+    for (    StoreDefinition def : StoreDefitions) {
+      if (def.getName().equals(storeName)) {
+        storeDefinition=def;
+        break;
+      }
+    }
+    if (storeDefinition == null) {
+      throw new Exception("No such store found: " + storeName);
+    }
+    int storeRetentionDays=0;
+    if (storeDefinition.getRetentionDays() != null) {
+      storeRetentionDays=storeDefinition.getRetentionDays().intValue();
+    }
+    if ((retentionDays == 0) || (storeRetentionDays != 0 && storeRetentionDays < retentionDays)) {
+      retentionDays=storeRetentionDays;
+    }
+    SortedMap<Integer,Node> partitionToNodeMap=new TreeMap<Integer,Node>();
+    Collection<Node> nodes=cluster.getNodes();
+    for (    Node n : nodes) {
+      for (      Integer partition : n.getPartitionIds()) {
+        if (partitionToNodeMap.containsKey(partition))         throw new IllegalArgumentException("Duplicate partition id " + partition + " in cluster configuration "+ nodes);
+        partitionToNodeMap.put(partition,n);
+      }
+    }
+    List<Integer> partitionList=new RoutingStrategyFactory().updateRoutingStrategy(storeDefinition,cluster).getReplicatingPartitionList(partitionId);
+    List<Integer> nodeIdList=new ArrayList<Integer>(partitionList.size());
+    for (    int partition : partitionList) {
+      Integer nodeId=partitionToNodeMap.get(partition).getId();
+      nodeIdList.add(nodeId);
+      nodeList.add(new PrefixNode(urlId,cluster.getNodeById(nodeId)));
+    }
+    if (verbose) {
+      StringBuilder configInfo=new StringBuilder();
+      configInfo.append("TYPE,Store,PartitionId,Node,ZoneId,BootstrapUrl\n");
+      for (      Integer nodeId : nodeIdList) {
+        configInfo.append("CONFIG,");
+        configInfo.append(storeName + ",");
+        configInfo.append(partitionId + ",");
+        configInfo.append(nodeId + ",");
+        configInfo.append(cluster.getNodeById(nodeId).getZoneId() + ",");
+        configInfo.append(url + "\n");
+      }
+      System.out.println(configInfo);
+    }
+    for (    Integer nodeId : nodeIdList) {
+      Iterator<Pair<ByteArray,Versioned<byte[]>>> entries;
+      entries=adminClient.bulkFetchOps.fetchEntries(nodeId,storeName,singlePartition,null,false);
+      nodeEntriesMap.put(new PrefixNode(urlId,cluster.getNodeById(nodeId)),entries);
+    }
+    replicationFactor+=storeDefinition.getReplicationFactor();
+    if (requiredWrites == 0) {
+      requiredWrites=storeDefinition.getRequiredWrites();
+    }
+    urlId++;
+  }
+}

@@ -1,11 +1,5 @@
 {
-  OptionParser parser=new OptionParser();
-  parser.accepts("help","print help information");
-  parser.accepts("urls","[REQUIRED] bootstrap URLs").withRequiredArg().describedAs("bootstrap-url").withValuesSeparatedBy(',').ofType(String.class);
-  parser.accepts("partitions","partition-id").withRequiredArg().describedAs("partition-id").withValuesSeparatedBy(',').ofType(Integer.class);
-  parser.accepts("store","store name").withRequiredArg().describedAs("store-name").ofType(String.class);
-  parser.accepts("verbose","verbose");
-  OptionSet options=parser.parse(args);
+  OptionSet options=getParser().parse(args);
   boolean verbose=false;
   if (options.hasArgument("help")) {
     printUsage();
@@ -24,7 +18,9 @@
   ConsistencyCheckStats globalStats=new ConsistencyCheckStats();
   Map<Integer,ConsistencyCheckStats> partitionStatsMap=new HashMap<Integer,ConsistencyCheckStats>();
   for (  Integer partitionId : partitionIds) {
-    ConsistencyCheckStats partitionStats=doConsistencyCheck(storeName,partitionId,urls,verbose);
+    ConsistencyCheck checker=new ConsistencyCheck(urls,storeName,partitionId,verbose);
+    checker.connect();
+    ConsistencyCheckStats partitionStats=checker.execute();
     partitionStatsMap.put(partitionId,partitionStats);
     globalStats.append(partitionStats);
   }
@@ -36,17 +32,17 @@
     statsString.append("STATS,");
     statsString.append(storeName + ",");
     statsString.append(partitionId + ",");
-    statsString.append(partitionStats.getConsistentKeys() + ",");
-    statsString.append(partitionStats.getTotalKeys() + ",");
-    statsString.append((double)(partitionStats.getConsistentKeys()) / (double)partitionStats.getTotalKeys());
+    statsString.append(partitionStats.consistentKeys + ",");
+    statsString.append(partitionStats.totalKeys + ",");
+    statsString.append((double)(partitionStats.consistentKeys) / (double)partitionStats.totalKeys);
     statsString.append("\n");
   }
   statsString.append("STATS,");
   statsString.append(storeName + ",");
   statsString.append("aggregate,");
-  statsString.append(globalStats.getConsistentKeys() + ",");
-  statsString.append(globalStats.getTotalKeys() + ",");
-  statsString.append((double)(globalStats.getConsistentKeys()) / (double)globalStats.getTotalKeys());
+  statsString.append(globalStats.consistentKeys + ",");
+  statsString.append(globalStats.totalKeys + ",");
+  statsString.append((double)(globalStats.consistentKeys) / (double)globalStats.totalKeys);
   statsString.append("\n");
   System.out.println();
   System.out.println(statsString.toString());
