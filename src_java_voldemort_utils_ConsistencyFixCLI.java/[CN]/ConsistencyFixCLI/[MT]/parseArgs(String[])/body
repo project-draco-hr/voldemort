@@ -4,6 +4,7 @@
   parser.accepts("url").withRequiredArg().describedAs("The bootstrap url.").ofType(String.class);
   parser.accepts("store").withRequiredArg().describedAs("The store name.").ofType(String.class);
   parser.accepts("bad-key-file-in").withRequiredArg().describedAs("Name of bad-key-file-in. " + "Each key must be in hexadecimal format. " + "Each key must be on a separate line in the file. ").ofType(String.class);
+  parser.accepts("orphan-format","Indicates format of bad-key-file-in is of 'orphan' key-values.");
   parser.accepts("bad-key-file-out").withRequiredArg().describedAs("Name of bad-key-file-out. " + "Keys that are not mae consistent are output to this file.").ofType(String.class);
   parser.accepts("parallelism").withRequiredArg().describedAs("Number of consistency fix messages outstanding in parallel. " + "[Default value: " + Options.defaultParallelism + "]").ofType(Integer.class);
   parser.accepts("progress-bar").withRequiredArg().describedAs("Number of operations between 'info' progress messages. " + "[Default value: " + Options.defaultProgressBar + "]").ofType(Long.class);
@@ -34,8 +35,11 @@
   Options options=new Options();
   options.url=(String)optionSet.valueOf("url");
   options.storeName=(String)optionSet.valueOf("store");
-  options.badKeyFileOut=(String)optionSet.valueOf("bad-key-file-out");
   options.badKeyFileIn=(String)optionSet.valueOf("bad-key-file-in");
+  options.badKeyFileOut=(String)optionSet.valueOf("bad-key-file-out");
+  if (optionSet.has("orphan-format")) {
+    options.badKeyFileInOrphanFormat=true;
+  }
   if (optionSet.has("parallelism")) {
     options.parallelism=(Integer)optionSet.valueOf("parallelism");
   }

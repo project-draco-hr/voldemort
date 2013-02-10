@@ -1,9 +1,18 @@
 {
+  int currentFakeNodeId=fakeNodeID;
+  if (this.orphanedValues != null) {
+    for (    Versioned<byte[]> value : this.orphanedValues.getValues()) {
+      nodeValues.add(new NodeValue<ByteArray,byte[]>(currentFakeNodeId,this.orphanedValues.getKey(),value));
+      currentFakeNodeId++;
+    }
+  }
   ReadRepairer<ByteArray,byte[]> readRepairer=new ReadRepairer<ByteArray,byte[]>();
   List<NodeValue<ByteArray,byte[]>> toReadRepair=Lists.newArrayList();
   for (  NodeValue<ByteArray,byte[]> v : readRepairer.getRepairs(nodeValues)) {
-    Versioned<byte[]> versioned=Versioned.value(v.getVersioned().getValue(),((VectorClock)v.getVersion()).clone());
-    toReadRepair.add(new NodeValue<ByteArray,byte[]>(v.getNodeId(),v.getKey(),versioned));
+    if (v.getNodeId() > currentFakeNodeId) {
+      Versioned<byte[]> versioned=Versioned.value(v.getVersioned().getValue(),((VectorClock)v.getVersion()).clone());
+      toReadRepair.add(new NodeValue<ByteArray,byte[]>(v.getNodeId(),v.getKey(),versioned));
+    }
   }
   if (logger.isDebugEnabled()) {
     for (    NodeValue<ByteArray,byte[]> nodeKeyValue : toReadRepair) {
