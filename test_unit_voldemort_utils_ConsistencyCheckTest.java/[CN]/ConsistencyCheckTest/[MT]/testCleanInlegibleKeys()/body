@@ -1,0 +1,37 @@
+{
+  Node n1=new Node(1,"localhost",10000,10001,10002,0,new ArrayList<Integer>());
+  Node n2=new Node(2,"localhost",10000,10001,10002,0,new ArrayList<Integer>());
+  PrefixNode pn1=new PrefixNode(0,n1);
+  PrefixNode pn2=new PrefixNode(0,n2);
+  Version v1=new VectorClock();
+  ((VectorClock)v1).incrementVersion(1,100000001);
+  ((VectorClock)v1).incrementVersion(2,100000003);
+  Version v2=new VectorClock();
+  ((VectorClock)v2).incrementVersion(1,100000002);
+  Map<ByteArray,Map<Version,Set<PrefixNode>>> map=new HashMap<ByteArray,Map<Version,Set<PrefixNode>>>();
+  Map<Version,Set<PrefixNode>> nodeSetMap=new HashMap<Version,Set<PrefixNode>>();
+  Set<PrefixNode> oneNodeSet=new HashSet<PrefixNode>();
+  oneNodeSet.add(pn1);
+  Set<PrefixNode> twoNodeSet=new HashSet<PrefixNode>();
+  twoNodeSet.add(pn1);
+  twoNodeSet.add(pn2);
+  int requiredWrite=2;
+  byte[] keybytes1={1,2,3,4,5};
+  ByteArray key1=new ByteArray(keybytes1);
+  map.clear();
+  nodeSetMap.clear();
+  nodeSetMap.put(v1,oneNodeSet);
+  map.put(key1,nodeSetMap);
+  assertEquals(1,map.size());
+  ConsistencyCheck.cleanIneligibleKeys(map,requiredWrite);
+  assertEquals(0,map.size());
+  map.clear();
+  nodeSetMap.clear();
+  nodeSetMap.put(v1,oneNodeSet);
+  nodeSetMap.put(v2,twoNodeSet);
+  map.put(key1,nodeSetMap);
+  assertEquals(2,map.get(key1).size());
+  ConsistencyCheck.cleanIneligibleKeys(map,requiredWrite);
+  assertEquals(1,map.size());
+  assertEquals(1,map.get(key1).size());
+}

@@ -1,0 +1,17 @@
+{
+  byte[] value={0,1,2,3,5};
+  long now=System.currentTimeMillis();
+  Version v1=new VectorClock(now - Time.MS_PER_DAY);
+  Version v2=new VectorClock(now);
+  Version v3=new ConsistencyCheck.HashedValue(new Versioned<byte[]>(value));
+  Version v4=new VectorClock(now - Time.MS_PER_HOUR * 24 + 500 * Time.MS_PER_SECOND);
+  ConsistencyCheck.RetentionChecker rc1=new ConsistencyCheck.RetentionChecker(0);
+  ConsistencyCheck.RetentionChecker rc2=new ConsistencyCheck.RetentionChecker(1);
+  assertFalse(rc1.isExpired(v1));
+  assertFalse(rc1.isExpired(v2));
+  assertFalse(rc1.isExpired(v3));
+  assertTrue(rc2.isExpired(v1));
+  assertFalse(rc2.isExpired(v2));
+  assertFalse(rc2.isExpired(v3));
+  assertTrue(rc2.isExpired(v4));
+}

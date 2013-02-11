@@ -1,0 +1,35 @@
+{
+  byte[] keyBytes={0,1,2,17,4};
+  ByteArray key=new ByteArray(keyBytes);
+  byte[] value1={0,1,2,3,4};
+  long now=System.currentTimeMillis();
+  Version v1=new VectorClock(now);
+  Version v2=new VectorClock(now + 1);
+  Versioned<byte[]> versioned=new Versioned<byte[]>(value1,v1);
+  Node n1=new Node(1,"localhost",10000,10001,10002,0,new ArrayList<Integer>());
+  Node n2=new Node(1,"localhost",10000,10001,10002,0,new ArrayList<Integer>());
+  Node n3=new Node(2,"localhost",10000,10001,10002,0,new ArrayList<Integer>());
+  ConsistencyCheck.PrefixNode pn1=new ConsistencyCheck.PrefixNode(0,n1);
+  ConsistencyCheck.PrefixNode pn2=new ConsistencyCheck.PrefixNode(1,n2);
+  ConsistencyCheck.PrefixNode pn3=new ConsistencyCheck.PrefixNode(0,n3);
+  Set<PrefixNode> set=new HashSet<PrefixNode>();
+  set.add(pn1);
+  set.add(pn2);
+  set.add(pn3);
+  Map<Version,Set<PrefixNode>> mapVector=new HashMap<Version,Set<PrefixNode>>();
+  mapVector.put(v1,set);
+  ((VectorClock)v1).incrementVersion(1,now);
+  String sVector=ConsistencyCheck.keyVersionToString(key,mapVector,"testStore",99);
+  assertEquals("BAD_KEY,testStore,99,0001021104," + set.toString().replace(", ",";") + ","+ now+ ",[1:1]\n",sVector);
+  ((VectorClock)v2).incrementVersion(1,now);
+  ((VectorClock)v2).incrementVersion(1,now + 1);
+  mapVector.put(v2,set);
+  String sVector2=ConsistencyCheck.keyVersionToString(key,mapVector,"testStore",99);
+  String s1="BAD_KEY,testStore,99,0001021104," + set.toString().replace(", ",";") + ","+ now+ ",[1:1]\n";
+  String s2="BAD_KEY,testStore,99,0001021104," + set.toString().replace(", ",";") + ","+ (now + 1)+ ",[1:2]\n";
+  assertTrue(sVector2.equals(s1 + s2) || sVector2.equals(s2 + s1));
+  Version v3=new HashedValue(versioned);
+  Map<Version,Set<PrefixNode>> mapHashed=new HashMap<Version,Set<PrefixNode>>();
+  mapHashed.put(v3,set);
+  assertEquals("BAD_KEY,testStore,99,0001021104," + set.toString().replace(", ",";") + ","+ now+ ",[1:1],-1172398097\n",ConsistencyCheck.keyVersionToString(key,mapHashed,"testStore",99));
+}

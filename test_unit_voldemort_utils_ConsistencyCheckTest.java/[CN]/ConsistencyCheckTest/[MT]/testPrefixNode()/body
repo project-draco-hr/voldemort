@@ -1,0 +1,22 @@
+{
+  Node n1=new Node(1,"localhost",10000,10001,10002,0,new ArrayList<Integer>());
+  Node n2=new Node(1,"localhost",10000,10001,10002,0,new ArrayList<Integer>());
+  Node n3=new Node(2,"localhost",10000,10001,10002,0,new ArrayList<Integer>());
+  ConsistencyCheck.PrefixNode pn1=new ConsistencyCheck.PrefixNode(0,n1);
+  ConsistencyCheck.PrefixNode pn1dup=new ConsistencyCheck.PrefixNode(0,n1);
+  ConsistencyCheck.PrefixNode pn2=new ConsistencyCheck.PrefixNode(1,n2);
+  ConsistencyCheck.PrefixNode pn3=new ConsistencyCheck.PrefixNode(0,n3);
+  assertEquals(pn1.getNode(),n1);
+  assertEquals(pn2.getNode(),n2);
+  assertEquals(pn3.getNode(),n3);
+  assertEquals(new Integer(0),pn1.getPrefixId());
+  assertEquals(new Integer(1),pn2.getPrefixId());
+  assertEquals(new Integer(0),pn3.getPrefixId());
+  assertTrue(pn1.equals(pn1dup));
+  assertFalse(pn2.equals(pn1));
+  assertFalse(pn3.equals(pn1));
+  assertFalse(pn3.equals(pn2));
+  assertEquals("0.1",pn1.toString());
+  assertEquals("1.1",pn2.toString());
+  assertEquals("0.2",pn3.toString());
+}
