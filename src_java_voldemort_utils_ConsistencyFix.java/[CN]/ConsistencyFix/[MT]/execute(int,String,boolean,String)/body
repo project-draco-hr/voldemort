@@ -12,7 +12,12 @@
   logger.info("Created ConsistencyFixWorker pool.");
   CountDownLatch allBadKeysReadLatch=new CountDownLatch(1);
   badKeyReaderService=Executors.newSingleThreadExecutor();
-  badKeyReaderService.submit(new BadKeyReader(allBadKeysReadLatch,badKeyFileIn,this,consistencyFixWorkers,badKeyQOut));
+  if (!orphanFormat) {
+    badKeyReaderService.submit(new BadKeyReader(allBadKeysReadLatch,badKeyFileIn,this,consistencyFixWorkers,badKeyQOut));
+  }
+ else {
+    badKeyReaderService.submit(new BadKeyOrphanReader(allBadKeysReadLatch,badKeyFileIn,this,consistencyFixWorkers,badKeyQOut));
+  }
   logger.info("Created badKeyReader.");
   try {
     allBadKeysReadLatch.await();
