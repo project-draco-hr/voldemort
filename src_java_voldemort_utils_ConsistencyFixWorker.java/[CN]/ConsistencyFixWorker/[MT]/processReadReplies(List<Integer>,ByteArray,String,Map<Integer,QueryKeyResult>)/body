@@ -31,5 +31,10 @@
     logger.info("Aborting fixKey because exceptions were encountered when fetching key-values.");
     return new ProcessReadRepliesResult(Status.FETCH_EXCEPTION);
   }
+  if (logger.isDebugEnabled()) {
+    for (    NodeValue<ByteArray,byte[]> nkv : nodeValues) {
+      logger.debug("\tRead NodeKeyValue : " + ByteUtils.toHexString(nkv.getKey().get()) + " on node with id "+ nkv.getNodeId()+ " for version "+ nkv.getVersion());
+    }
+  }
   return new ProcessReadRepliesResult(nodeValues);
 }

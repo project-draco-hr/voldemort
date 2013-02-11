@@ -7,16 +7,26 @@
     }
   }
   ReadRepairer<ByteArray,byte[]> readRepairer=new ReadRepairer<ByteArray,byte[]>();
+  if (logger.isDebugEnabled()) {
+    for (    NodeValue<ByteArray,byte[]> nodeKeyValue : readRepairer.getRepairs(nodeValues)) {
+      logger.debug("\tNodeKeyValue result from readRepairer.getRepairs : " + ByteUtils.toHexString(nodeKeyValue.getKey().get()) + " on node with id "+ nodeKeyValue.getNodeId()+ " for version "+ nodeKeyValue.getVersion());
+    }
+  }
   List<NodeValue<ByteArray,byte[]>> toReadRepair=Lists.newArrayList();
   for (  NodeValue<ByteArray,byte[]> v : readRepairer.getRepairs(nodeValues)) {
     if (v.getNodeId() > currentFakeNodeId) {
       Versioned<byte[]> versioned=Versioned.value(v.getVersioned().getValue(),((VectorClock)v.getVersion()).clone());
       toReadRepair.add(new NodeValue<ByteArray,byte[]>(v.getNodeId(),v.getKey(),versioned));
     }
+ else {
+      if (logger.isDebugEnabled()) {
+        logger.debug("\tIgnoring repair to fake node: " + ByteUtils.toHexString(v.getKey().get()) + " on node with id "+ v.getNodeId()+ " for version "+ v.getVersion());
+      }
+    }
   }
   if (logger.isDebugEnabled()) {
     for (    NodeValue<ByteArray,byte[]> nodeKeyValue : toReadRepair) {
-      logger.debug("\tRepair key " + nodeKeyValue.getKey() + "on node with id "+ nodeKeyValue.getNodeId()+ " for version "+ nodeKeyValue.getVersion());
+      logger.debug("\tRepair key " + ByteUtils.toHexString(nodeKeyValue.getKey().get()) + " on node with id "+ nodeKeyValue.getNodeId()+ " for version "+ nodeKeyValue.getVersion());
     }
   }
   return toReadRepair;
