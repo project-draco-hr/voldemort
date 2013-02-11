@@ -1,4 +1,5 @@
 {
+  commitActionLock.lock();
   if (!storeNames.contains(storeName)) {
     addStoreToSession(storeName);
   }
@@ -52,4 +53,5 @@ catch (      ExecutionException e1) {
     commitToVoldemort();
   }
   throttler.maybeThrottle(1);
+  commitActionLock.unlock();
 }
