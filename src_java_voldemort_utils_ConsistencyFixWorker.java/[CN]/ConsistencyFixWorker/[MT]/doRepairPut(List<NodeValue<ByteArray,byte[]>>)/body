@@ -1,4 +1,8 @@
 {
+  if (this.consistencyFix.isDryRun()) {
+    logger.debug("Returning success from ConsistencyFixWorker.doRepairPut because this is a dry run.");
+    return Status.SUCCESS;
+  }
   boolean allRepairsSuccessful=true;
   for (  NodeValue<ByteArray,byte[]> nodeKeyValue : toReadRepair) {
     try {
