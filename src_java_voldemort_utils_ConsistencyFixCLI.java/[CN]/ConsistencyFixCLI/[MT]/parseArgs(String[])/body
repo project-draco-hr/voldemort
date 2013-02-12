@@ -6,6 +6,7 @@
   parser.accepts("bad-key-file-in","Name of bad-key-file-in. " + "Each key must be in hexadecimal format. " + "Each key must be on a separate line in the file. ").withRequiredArg().describedAs("badKeyFileIn").ofType(String.class);
   parser.accepts("orphan-format","Indicates format of bad-key-file-in is of 'orphan' key-values.");
   parser.accepts("dry-run","Indicates to go through all of the read actions until the point of issuing repair puts. Then, do a 'no-op'.");
+  parser.accepts("parse-only","Indicates to only parse the input file. Does not perform any key queries or repair puts. " + "Does bootstrap though so bootstrapUrl and storeName must be specified.");
   parser.accepts("bad-key-file-out","Name of bad-key-file-out. " + "Keys that are not mae consistent are output to this file.").withRequiredArg().describedAs("badKeyFileOut").ofType(String.class);
   parser.accepts("parallelism","Number of consistency fix messages outstanding in parallel. ").withRequiredArg().describedAs("parallelism [Default value: " + Options.defaultParallelism + "]").ofType(Integer.class);
   parser.accepts("progress-bar","Number of operations between 'info' progress messages. ").withRequiredArg().describedAs("progressBar [Default value: " + Options.defaultProgressBar + "]").ofType(Long.class);
@@ -52,6 +53,9 @@
   }
   if (optionSet.has("dry-run")) {
     options.dryRun=true;
+  }
+  if (optionSet.has("parse-only")) {
+    options.parseOnly=true;
   }
   return options;
 }

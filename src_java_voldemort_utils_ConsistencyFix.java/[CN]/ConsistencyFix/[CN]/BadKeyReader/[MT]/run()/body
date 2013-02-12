@@ -5,7 +5,9 @@
       if (!key.isEmpty()) {
         counter++;
         logger.debug("BadKeyReader read line: key (" + key + ") and counter ("+ counter+ ")");
-        consistencyFixWorkers.submit(new ConsistencyFixWorker(key,consistencyFix,badKeyQOut));
+        if (!consistencyFix.isParseOnly()) {
+          consistencyFixWorkers.submit(new ConsistencyFixWorker(key,consistencyFix,badKeyQOut));
+        }
       }
     }
   }

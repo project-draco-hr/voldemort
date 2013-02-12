@@ -27,7 +27,9 @@
           values.add(new Versioned<byte[]>(value,vectorClock));
         }
         QueryKeyResult queryKeyResult=new QueryKeyResult(keyByteArray,values);
-        consistencyFixWorkers.submit(new ConsistencyFixWorker(key,consistencyFix,badKeyQOut,queryKeyResult));
+        if (!consistencyFix.isParseOnly()) {
+          consistencyFixWorkers.submit(new ConsistencyFixWorker(key,consistencyFix,badKeyQOut,queryKeyResult));
+        }
       }
     }
   }
