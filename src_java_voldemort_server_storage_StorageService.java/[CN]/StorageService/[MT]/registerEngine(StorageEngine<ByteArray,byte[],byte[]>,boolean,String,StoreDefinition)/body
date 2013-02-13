@@ -8,8 +8,8 @@
   if (voldemortConfig.isVerboseLoggingEnabled())   store=new LoggingStore<ByteArray,byte[],byte[]>(store,cluster.getName(),SystemTime.INSTANCE);
   if (!isSlop) {
     if (!isReadOnly && !isMetadata && !isView) {
-      if (voldemortConfig.isEnforceRetentionPolicyOnRead()) {
-        RetentionEnforcingStore retentionEnforcingStore=new RetentionEnforcingStore(store,metadata.getStoreDef(store.getName()),voldemortConfig.isDeleteExpiredValuesOnRead(),SystemTime.INSTANCE);
+      if (voldemortConfig.isEnforceRetentionPolicyOnRead() && storeDef != null) {
+        RetentionEnforcingStore retentionEnforcingStore=new RetentionEnforcingStore(store,storeDef,voldemortConfig.isDeleteExpiredValuesOnRead(),SystemTime.INSTANCE);
         metadata.addMetadataStoreListener(store.getName(),retentionEnforcingStore);
         store=retentionEnforcingStore;
       }

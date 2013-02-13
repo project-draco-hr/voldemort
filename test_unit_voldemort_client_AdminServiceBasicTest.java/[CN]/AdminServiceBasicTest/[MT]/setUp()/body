@@ -4,6 +4,7 @@
   int partitionMap[][]={{0,1,2,3},{4,5,6,7}};
   Properties serverProperties=new Properties();
   serverProperties.setProperty("client.max.connections.per.node","20");
+  serverProperties.setProperty("enforce.retention.policy.on.read",Boolean.toString(onlineRetention));
   cluster=ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,useNio,null,storesXmlfile,serverProperties);
   storeDefs=new StoreDefinitionsMapper().readStoreList(new File(storesXmlfile));
   Properties adminProperties=new Properties();
