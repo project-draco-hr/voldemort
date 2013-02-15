@@ -1,0 +1,16 @@
+{
+  responseContent.writeInt(values.size());
+  for (  Versioned<Object> v : values) {
+    byte[] clock=((VectorClock)v.getVersion()).toBytes();
+    byte[] value=(byte[])v.getValue();
+    responseContent.writeInt(clock.length + value.length);
+    responseContent.writeBytes(clock);
+    responseContent.writeBytes(value);
+  }
+  HttpResponse response=new DefaultHttpResponse(HTTP_1_1,OK);
+  response.setHeader(CONTENT_TYPE,"application/pdf");
+  response.setContent(responseContent);
+  response.setHeader(CONTENT_LENGTH,response.getContent().readableBytes());
+  ChannelFuture future=this.getRequest.getChannel().write(response);
+  future.addListener(ChannelFutureListener.CLOSE);
+}

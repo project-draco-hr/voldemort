@@ -1,15 +1,10 @@
 {
-  String storeName="";
-  List<Versioned<Object>> results=new ArrayList<Versioned<Object>>();
   if (!readingChunks) {
     HttpRequest request=this.request=(HttpRequest)e.getMessage();
     QueryStringDecoder queryStringDecoder=new QueryStringDecoder(request.getUri());
     OP_TYPE operation=getOperationType(queryStringDecoder.getPath());
     Map<String,List<String>> params=queryStringDecoder.getParameters();
-    if (params != null && params.containsKey(STORE_NAME)) {
-      storeName=params.get(STORE_NAME).get(0);
-    }
- else {
+    if (params == null || !params.containsKey(STORE_NAME)) {
       System.err.println("Store Name missing. Critical error");
       this.responseContent=ChannelBuffers.copiedBuffer("Store Name missing. Critical error".getBytes());
       return;
@@ -27,33 +22,19 @@
 switch (operation) {
 case GET:
         ByteArray getKey=readKey(content);
-      Versioned<Object> responseVersioned=this.storeClient.get(getKey);
-    if (responseVersioned == null) {
-      byte[] nullByteArray=new byte[1];
-      nullByteArray[0]=0;
-      responseVersioned=new Versioned<Object>(nullByteArray);
-    }
-  results.add(responseVersioned);
-byte[] responseValue=(byte[])responseVersioned.getValue();
-this.responseContent=ChannelBuffers.dynamicBuffer(responseValue.length);
-writeResults(results);
-break;
+      this.fatClientWrapper.submitGetRequest(getKey,e);
+    break;
 case PUT:
-ByteArray putKey=readKey(content);
+  ByteArray putKey=readKey(content);
 byte[] putValue=readValue(content);
-try {
-Version putVersion=this.storeClient.put(putKey,putValue);
-}
- catch (ObsoleteVersionException oe) {
-}
-this.responseContent=ChannelBuffers.EMPTY_BUFFER;
+this.fatClientWrapper.submitPutRequest(putKey,putValue,e);
 break;
 default :
 System.err.println("Illegal operation.");
 this.responseContent=ChannelBuffers.copiedBuffer("Illegal operation.".getBytes());
+writeResponse(e);
 return;
 }
-writeResponse(e);
 }
 }
  else {
