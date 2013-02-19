@@ -29,31 +29,39 @@
     }
     try {
       if (HdfsFetcher.keytabPath.length() > 0 && !isHftpBasedFetch) {
-        if (!new File(HdfsFetcher.keytabPath).exists()) {
-          logger.error("Invalid keytab file path. Please provide a valid keytab path");
-          return null;
-        }
-        UserGroupInformation.setConfiguration(config);
-        UserGroupInformation.loginUserFromKeytab(HdfsFetcher.kerberosPrincipal,HdfsFetcher.keytabPath);
-        try {
-          logger.info("I've logged in and am now Doasing as " + UserGroupInformation.getCurrentUser().getUserName());
-          fs=UserGroupInformation.getCurrentUser().doAs(new PrivilegedExceptionAction<FileSystem>(){
-            public FileSystem run() throws Exception {
-              FileSystem fs=path.getFileSystem(config);
-              return fs;
+        for (int retryCount=0; retryCount < NUM_RETRIES; retryCount++) {
+          boolean isValidFilesystem=false;
+          if (!new File(HdfsFetcher.keytabPath).exists()) {
+            logger.error("Invalid keytab file path. Please provide a valid keytab path");
+            return null;
+          }
+          UserGroupInformation.setConfiguration(config);
+          UserGroupInformation.loginUserFromKeytab(HdfsFetcher.kerberosPrincipal,HdfsFetcher.keytabPath);
+          try {
+            logger.info("I've logged in and am now Doasing as " + UserGroupInformation.getCurrentUser().getUserName());
+            fs=UserGroupInformation.getCurrentUser().doAs(new PrivilegedExceptionAction<FileSystem>(){
+              public FileSystem run() throws Exception {
+                FileSystem fs=path.getFileSystem(config);
+                return fs;
+              }
+            }
+);
+            isValidFilesystem=true;
+          }
+ catch (          InterruptedException e) {
+            logger.error(e.getMessage());
+          }
+catch (          Exception e) {
+            logger.error("Got an exception while getting the filesystem object: ");
+            logger.error("Exception class : " + e.getClass());
+            e.printStackTrace();
+            for (            StackTraceElement et : e.getStackTrace()) {
+              logger.error(et.toString());
             }
           }
-);
-        }
- catch (        InterruptedException e) {
-          logger.error(e.getMessage());
-        }
-catch (        Exception e) {
-          logger.error("Got an exception while getting the filesystem object: ");
-          logger.error("Exception class : " + e.getClass());
-          e.printStackTrace();
-          for (          StackTraceElement et : e.getStackTrace()) {
-            logger.error(et.toString());
+          if (isValidFilesystem && retryCount < NUM_RETRIES - 1) {
+            logger.error("Could not get a valid Filesystem object. Trying again.");
+            break;
           }
         }
       }
