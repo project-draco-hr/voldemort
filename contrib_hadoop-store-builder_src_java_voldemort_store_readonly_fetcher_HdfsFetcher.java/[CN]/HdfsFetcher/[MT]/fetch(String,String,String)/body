@@ -21,26 +21,26 @@
       if (security == null || !security.equals("kerberos")) {
         logger.error("Security isn't turned on in the conf: " + CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION + " = "+ config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION));
         logger.error("Please make sure that the Hadoop config directory path is valid.");
-        return null;
+        throw new VoldemortException("Error in getting Hadoop filesystem. Invalid Hadoop config directory path.");
       }
  else {
         logger.info("Security is turned on in the conf. Trying to authenticate ...");
       }
     }
-    try {
-      if (HdfsFetcher.keytabPath.length() > 0 && !isHftpBasedFetch) {
-        for (int retryCount=0; retryCount < NUM_RETRIES; retryCount++) {
-          boolean isValidFilesystem=false;
-          if (!new File(HdfsFetcher.keytabPath).exists()) {
-            logger.error("Invalid keytab file path. Please provide a valid keytab path");
-            return null;
-          }
+    if (HdfsFetcher.keytabPath.length() > 0 && !isHftpBasedFetch) {
+      for (int retryCount=0; retryCount < NUM_RETRIES; retryCount++) {
+        boolean isValidFilesystem=false;
+        if (!new File(HdfsFetcher.keytabPath).exists()) {
+          logger.error("Invalid keytab file path. Please provide a valid keytab path");
+          throw new VoldemortException("Error in getting Hadoop filesystem. Invalid keytab file path.");
+        }
+synchronized (this) {
           UserGroupInformation.setConfiguration(config);
           UserGroupInformation.loginUserFromKeytab(HdfsFetcher.kerberosPrincipal,HdfsFetcher.keytabPath);
           try {
             logger.info("I've logged in and am now Doasing as " + UserGroupInformation.getCurrentUser().getUserName());
             fs=UserGroupInformation.getCurrentUser().doAs(new PrivilegedExceptionAction<FileSystem>(){
-              public FileSystem run() throws Exception {
+              @Override public FileSystem run() throws Exception {
                 FileSystem fs=path.getFileSystem(config);
                 return fs;
               }
@@ -59,27 +59,17 @@ catch (          Exception e) {
               logger.error(et.toString());
             }
           }
-          if (isValidFilesystem) {
-            break;
-          }
- else           if (retryCount < NUM_RETRIES - 1) {
-            logger.error("Could not get a valid Filesystem object. Trying again.");
-          }
+        }
+        if (isValidFilesystem) {
+          break;
+        }
+ else         if (retryCount < NUM_RETRIES - 1) {
+          logger.error("Could not get a valid Filesystem object. Trying again.");
         }
       }
+    }
  else {
-        fs=path.getFileSystem(config);
-      }
-    }
- catch (    IOException e) {
-      e.printStackTrace();
-      logger.error("IOException in authenticating or getting the Filesystem object !!!");
-      return null;
-    }
-catch (    Throwable te) {
-      te.printStackTrace();
-      logger.error("Error thrown while trying to get Hadoop filesystem");
-      return null;
+      fs=path.getFileSystem(config);
     }
     CopyStats stats=new CopyStats(sourceFileUrl,sizeOfPath(fs,path));
     jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
@@ -99,8 +89,14 @@ catch (    Throwable te) {
     }
   }
  catch (  IOException e) {
+    e.printStackTrace();
     logger.error("Error while getting Hadoop filesystem : " + e);
-    return null;
+    throw new VoldemortException("Error while getting Hadoop filesystem : " + e);
+  }
+catch (  Throwable te) {
+    te.printStackTrace();
+    logger.error("Error thrown while trying to get Hadoop filesystem");
+    throw new VoldemortException("Error thrown while trying to get Hadoop filesystem : " + te);
   }
  finally {
     if (this.globalThrottleLimit != null) {
