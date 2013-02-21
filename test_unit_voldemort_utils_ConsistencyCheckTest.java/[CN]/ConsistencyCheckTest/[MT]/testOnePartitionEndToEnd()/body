@@ -1,7 +1,5 @@
 {
   long now=System.currentTimeMillis();
-  final String STORE_NAME="consistency-check";
-  final String STORES_XML="test/common/voldemort/config/stores.xml";
   final SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
   VoldemortServer[] servers=new VoldemortServer[4];
   int partitionMap[][]={{0},{1},{2},{3}};
@@ -93,9 +91,9 @@
   List<String> urls=new ArrayList<String>();
   urls.add(bootstrapUrl);
   ConsistencyCheck checker=new ConsistencyCheck(urls,STORE_NAME,0,true);
-  ConsistencyCheckStats partitionStats=null;
+  ProgressReporter reporter=null;
   checker.connect();
-  partitionStats=checker.execute();
-  assertEquals(7 - 2,partitionStats.totalKeys);
-  assertEquals(3,partitionStats.consistentKeys);
+  reporter=checker.execute();
+  assertEquals(7 - 2,reporter.numTotalKeys);
+  assertEquals(3,reporter.numGoodKeys);
 }

@@ -4,6 +4,7 @@
   }
  else {
     long now=System.currentTimeMillis();
-    expiredTimeMs=now - (Time.SECONDS_PER_DAY * days - bufferTimeSeconds) * Time.MS_PER_SECOND;
+    long expirationTimeS=TimeUnit.DAYS.toSeconds(days) - bufferTimeSeconds;
+    expiredTimeMs=now - TimeUnit.SECONDS.toMillis(expirationTimeS);
   }
 }

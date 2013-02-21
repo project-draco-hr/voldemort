@@ -1,0 +1,36 @@
+{
+  Map<Version,Set<ConsistencyCheck.ClusterNode>> versionNodeSetMap=new HashMap<Version,Set<ConsistencyCheck.ClusterNode>>();
+  int replicationFactor=4;
+  Version v1=new VectorClock();
+  ((VectorClock)v1).incrementVersion(1,100000001);
+  ((VectorClock)v1).incrementVersion(2,100000003);
+  Version v2=new VectorClock();
+  ((VectorClock)v2).incrementVersion(1,100000001);
+  ((VectorClock)v2).incrementVersion(3,100000002);
+  Version v3=new VectorClock();
+  ((VectorClock)v3).incrementVersion(1,100000001);
+  ((VectorClock)v3).incrementVersion(4,100000001);
+  versionNodeSetMap.put(v1,setFourNodes);
+  assertEquals(ConsistencyCheck.ConsistencyLevel.FULL,ConsistencyCheck.determineConsistency(versionNodeSetMap,replicationFactor));
+  versionNodeSetMap.clear();
+  versionNodeSetMap.put(v1,setFourNodes);
+  versionNodeSetMap.put(v2,setFourNodes);
+  versionNodeSetMap.put(v3,setFourNodes);
+  assertEquals(ConsistencyCheck.ConsistencyLevel.FULL,ConsistencyCheck.determineConsistency(versionNodeSetMap,replicationFactor));
+  versionNodeSetMap.clear();
+  versionNodeSetMap.put(v1,setFourNodes);
+  versionNodeSetMap.put(v2,setThreeNodes);
+  assertEquals(ConsistencyCheck.ConsistencyLevel.LATEST_CONSISTENT,ConsistencyCheck.determineConsistency(versionNodeSetMap,replicationFactor));
+  versionNodeSetMap.clear();
+  versionNodeSetMap.put(v1,setThreeNodes);
+  assertEquals(ConsistencyCheck.ConsistencyLevel.INCONSISTENT,ConsistencyCheck.determineConsistency(versionNodeSetMap,replicationFactor));
+  versionNodeSetMap.clear();
+  versionNodeSetMap.put(v1,setThreeNodes);
+  versionNodeSetMap.put(v2,setFourNodes);
+  assertEquals(ConsistencyCheck.ConsistencyLevel.INCONSISTENT,ConsistencyCheck.determineConsistency(versionNodeSetMap,replicationFactor));
+  versionNodeSetMap.clear();
+  versionNodeSetMap.put(v1,setThreeNodes);
+  versionNodeSetMap.put(v2,setFourNodes);
+  versionNodeSetMap.put(v3,setThreeNodes);
+  assertEquals(ConsistencyCheck.ConsistencyLevel.INCONSISTENT,ConsistencyCheck.determineConsistency(versionNodeSetMap,replicationFactor));
+}

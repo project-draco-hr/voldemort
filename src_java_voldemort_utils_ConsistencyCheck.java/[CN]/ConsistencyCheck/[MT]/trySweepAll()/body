@@ -1,0 +1,11 @@
+{
+  for (ByteArray finishedKey=keyFetchTracker.nextFinished(); finishedKey != null; finishedKey=keyFetchTracker.nextFinished()) {
+    if (keyVersionNodeSetMap.containsKey(finishedKey)) {
+      ConsistencyLevel level=determineConsistency(keyVersionNodeSetMap.get(finishedKey),replicationFactor);
+      if (level == ConsistencyLevel.FULL || level == ConsistencyLevel.LATEST_CONSISTENT) {
+        keyVersionNodeSetMap.remove(finishedKey);
+        reporter.recordGoodKey(1);
+      }
+    }
+  }
+}

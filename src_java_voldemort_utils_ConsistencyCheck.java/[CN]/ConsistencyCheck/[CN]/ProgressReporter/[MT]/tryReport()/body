@@ -2,13 +2,15 @@
   if (System.currentTimeMillis() > lastReportTimeMs + reportPeriodMs) {
     long currentTimeMs=System.currentTimeMillis();
     StringBuilder s=new StringBuilder();
-    s.append("Progress Report\n");
-    s.append("===============\n");
-    s.append("    Number of records Scanned: " + numRecordsScanned + "\n");
-    s.append("   Records Ignored(Retention): " + numExpiredRecords + "\n");
-    s.append("Recent fetch speed(records/s): " + (numRecordsScanned - numRecordsScannedLast) / ((currentTimeMs - lastReportTimeMs) / 1000) + "\n");
-    System.out.print(s.toString());
+    s.append("=====Progress=====\n");
+    s.append("Records Scanned: " + numRecordsScanned + "\n");
+    s.append("Records Ignored: " + numExpiredRecords + " (Out of Retention)\n");
+    s.append("Last Fetch Rate: " + (numRecordsScanned - numRecordsScannedLast) / ((currentTimeMs - lastReportTimeMs) / 1000) + " (records/s)\n");
     lastReportTimeMs=currentTimeMs;
     numRecordsScannedLast=numRecordsScanned;
+    return s.toString();
+  }
+ else {
+    return null;
   }
 }

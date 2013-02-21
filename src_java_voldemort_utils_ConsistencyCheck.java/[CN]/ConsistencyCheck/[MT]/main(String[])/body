@@ -1,6 +1,6 @@
 {
   OptionSet options=getParser().parse(args);
-  boolean verbose=false;
+  boolean quiet=false;
   if (options.hasArgument("help")) {
     printUsage();
     return;
@@ -9,41 +9,44 @@
     printUsage();
     return;
   }
-  if (options.has("verbose")) {
-    verbose=true;
+  if (options.has("quiet")) {
+    quiet=true;
   }
   List<String> urls=(List<String>)options.valuesOf("urls");
   String storeName=(String)options.valueOf("store");
   List<Integer> partitionIds=(List<Integer>)options.valuesOf("partitions");
-  ConsistencyCheckStats globalStats=new ConsistencyCheckStats();
-  Map<Integer,ConsistencyCheckStats> partitionStatsMap=new HashMap<Integer,ConsistencyCheckStats>();
+  Map<Integer,ProgressReporter> partitionStatsMap=new HashMap<Integer,ProgressReporter>();
+  long numGoodKeys=0;
+  long numTotalKeys=0;
   for (  Integer partitionId : partitionIds) {
-    ConsistencyCheck checker=new ConsistencyCheck(urls,storeName,partitionId,verbose);
+    ConsistencyCheck checker=new ConsistencyCheck(urls,storeName,partitionId,quiet);
     checker.connect();
-    ConsistencyCheckStats partitionStats=checker.execute();
-    partitionStatsMap.put(partitionId,partitionStats);
-    globalStats.append(partitionStats);
+    ProgressReporter reporter=checker.execute();
+    partitionStatsMap.put(partitionId,reporter);
+    numGoodKeys+=reporter.numGoodKeys;
+    numTotalKeys+=reporter.numTotalKeys;
   }
   StringBuilder statsString=new StringBuilder();
   statsString.append("TYPE,Store,ParitionId,KeysConsistent,KeysTotal,Consistency\n");
-  for (  Map.Entry<Integer,ConsistencyCheckStats> entry : partitionStatsMap.entrySet()) {
+  for (  Map.Entry<Integer,ProgressReporter> entry : partitionStatsMap.entrySet()) {
     Integer partitionId=entry.getKey();
-    ConsistencyCheckStats partitionStats=entry.getValue();
+    ProgressReporter reporter=entry.getValue();
     statsString.append("STATS,");
     statsString.append(storeName + ",");
     statsString.append(partitionId + ",");
-    statsString.append(partitionStats.consistentKeys + ",");
-    statsString.append(partitionStats.totalKeys + ",");
-    statsString.append((double)(partitionStats.consistentKeys) / (double)partitionStats.totalKeys);
+    statsString.append(reporter.numGoodKeys + ",");
+    statsString.append(reporter.numTotalKeys + ",");
+    statsString.append((double)(reporter.numGoodKeys) / (double)reporter.numTotalKeys);
     statsString.append("\n");
   }
   statsString.append("STATS,");
   statsString.append(storeName + ",");
   statsString.append("aggregate,");
-  statsString.append(globalStats.consistentKeys + ",");
-  statsString.append(globalStats.totalKeys + ",");
-  statsString.append((double)(globalStats.consistentKeys) / (double)globalStats.totalKeys);
+  statsString.append(numGoodKeys + ",");
+  statsString.append(numTotalKeys + ",");
+  statsString.append((double)(numGoodKeys) / (double)numTotalKeys);
   statsString.append("\n");
-  System.out.println();
-  System.out.println(statsString.toString());
+  for (  String line : statsString.toString().split("\n")) {
+    logger.info(line);
+  }
 }

@@ -1,108 +1,64 @@
 {
-  RetentionChecker retentionChecker=new RetentionChecker(retentionDays);
-  Map<ByteArray,Map<Version,Set<PrefixNode>>> keyVersionNodeSetMap;
-  keyVersionNodeSetMap=new HashMap<ByteArray,Map<Version,Set<PrefixNode>>>();
-  Map<ByteArray,Set<Iterator<Pair<ByteArray,Versioned<byte[]>>>>> fullyFetchedKeys;
-  fullyFetchedKeys=new HashMap<ByteArray,Set<Iterator<Pair<ByteArray,Versioned<byte[]>>>>>();
-  Map<Iterator<Pair<ByteArray,Versioned<byte[]>>>,ByteArray> lastFetchedKey;
-  lastFetchedKey=new HashMap<Iterator<Pair<ByteArray,Versioned<byte[]>>>,ByteArray>();
-  boolean anyNodeHasNext;
-  long consistentKeys=0;
-  ProgressReporter reporter=new ProgressReporter();
+  Map<ClusterNode,Iterator<Pair<ByteArray,Versioned<byte[]>>>> nodeFetchIteratorMap;
+  nodeFetchIteratorMap=new HashMap<ClusterNode,Iterator<Pair<ByteArray,Versioned<byte[]>>>>();
+  for (  ClusterNode clusterNode : clusterNodeList) {
+    AdminClient adminClient=adminClients.get(clusterNode.getPrefixId());
+    List<Integer> singlePartition=new ArrayList<Integer>();
+    singlePartition.add(partitionId);
+    if (logger.isDebugEnabled()) {
+      logger.debug("Start fetch request to Node[" + clusterNode.toString() + "] for partition["+ partitionId+ "] of store["+ storeName+ "]");
+    }
+    Iterator<Pair<ByteArray,Versioned<byte[]>>> fetchIterator;
+    fetchIterator=adminClient.bulkFetchOps.fetchEntries(clusterNode.getNode().getId(),storeName,singlePartition,null,false);
+    nodeFetchIteratorMap.put(clusterNode,fetchIterator);
+  }
+  keyFetchTracker=new KeyFetchTracker(clusterNodeList.size());
+  boolean fetchFinished;
   do {
-    anyNodeHasNext=false;
-    for (    Map.Entry<PrefixNode,Iterator<Pair<ByteArray,Versioned<byte[]>>>> nodeEntriesMapEntry : nodeEntriesMap.entrySet()) {
-      PrefixNode node=nodeEntriesMapEntry.getKey();
-      Iterator<Pair<ByteArray,Versioned<byte[]>>> nodeEntries=nodeEntriesMapEntry.getValue();
-      if (nodeEntries.hasNext()) {
-        anyNodeHasNext=true;
+    fetchFinished=true;
+    for (    Map.Entry<ClusterNode,Iterator<Pair<ByteArray,Versioned<byte[]>>>> nodeFetchIteratorMapEntry : nodeFetchIteratorMap.entrySet()) {
+      ClusterNode clusterNode=nodeFetchIteratorMapEntry.getKey();
+      Iterator<Pair<ByteArray,Versioned<byte[]>>> fetchIterator=nodeFetchIteratorMapEntry.getValue();
+      if (fetchIterator.hasNext()) {
+        fetchFinished=false;
         reporter.recordScans(1);
-        Pair<ByteArray,Versioned<byte[]>> nodeEntry=nodeEntries.next();
-        ByteArray key=nodeEntry.getFirst();
-        Versioned<byte[]> versioned=nodeEntry.getSecond();
-        Version version;
-        if (urls.size() == 1) {
-          version=nodeEntry.getSecond().getVersion();
-        }
- else {
-          version=new HashedValue(versioned);
-        }
-        if (retentionChecker.isExpired(version)) {
-          reporter.recordExpired(1);
-          continue;
-        }
-        if (lastFetchedKey.containsKey(nodeEntries)) {
-          ByteArray lastKey=lastFetchedKey.get(nodeEntries);
-          if (!key.equals(lastKey)) {
-            if (!fullyFetchedKeys.containsKey(lastKey)) {
-              fullyFetchedKeys.put(lastKey,new HashSet<Iterator<Pair<ByteArray,Versioned<byte[]>>>>());
-            }
-            Set<Iterator<Pair<ByteArray,Versioned<byte[]>>>> lastKeyIterSet=fullyFetchedKeys.get(lastKey);
-            lastKeyIterSet.add(nodeEntries);
-            if (lastKeyIterSet.size() == nodeEntriesMap.size()) {
-              ConsistencyLevel level=determineConsistency(keyVersionNodeSetMap.get(lastKey),replicationFactor);
-              if (level == ConsistencyLevel.FULL || level == ConsistencyLevel.LATEST_CONSISTENT) {
-                keyVersionNodeSetMap.remove(lastKey);
-                consistentKeys++;
-              }
-              fullyFetchedKeys.remove(lastKey);
-            }
-          }
-        }
-        lastFetchedKey.put(nodeEntries,key);
-        if (!keyVersionNodeSetMap.containsKey(key)) {
-          keyVersionNodeSetMap.put(key,new HashMap<Version,Set<PrefixNode>>());
-        }
-        Map<Version,Set<PrefixNode>> versionNodeSetMap=keyVersionNodeSetMap.get(key);
-        if (!versionNodeSetMap.containsKey(version)) {
-          Iterator<Version> iter=versionNodeSetMap.keySet().iterator();
-          if (iter.hasNext()) {
-            Version existingVersion=iter.next();
-            if (version.compare(existingVersion) == Occurred.AFTER) {
-              versionNodeSetMap=new HashMap<Version,Set<PrefixNode>>();
-              keyVersionNodeSetMap.put(key,versionNodeSetMap);
-            }
- else             if (existingVersion.compare(version) == Occurred.AFTER) {
-              continue;
-            }
- else             if (existingVersion.compare(version) == Occurred.CONCURRENTLY) {
-            }
- else {
-              System.err.print("[ERROR]Two versions are not after each other nor currently(key, v1, v2)");
-              System.err.print(key + ", " + existingVersion+ ", "+ version);
-            }
-          }
-          versionNodeSetMap.put(version,new HashSet<PrefixNode>());
-        }
-        Set<PrefixNode> nodeSet=versionNodeSetMap.get(version);
-        nodeSet.add(node);
+        Pair<ByteArray,Versioned<byte[]>> fetchedEntry=fetchIterator.next();
+        ByteArray key=fetchedEntry.getFirst();
+        Versioned<byte[]> versioned=fetchedEntry.getSecond();
+        recordFetch(clusterNode,key,versioned);
+        keyFetchTracker.recordFetch(clusterNode,key);
+        System.out.println("fetched " + new String(key.get()));
+        System.out.println("map has keys: " + keyVersionNodeSetMap.size());
+        trySweepAll();
+        System.out.println("sweeped; keys left: " + keyVersionNodeSetMap.size());
       }
     }
-    if (verbose) {
-      reporter.tryReport();
+    if (logger.isInfoEnabled() && !quiet) {
+      String report=reporter.tryReport();
+      if (report != null) {
+        for (        String line : report.split("\n")) {
+          logger.info(line);
+        }
+      }
     }
   }
- while (anyNodeHasNext);
+ while (!fetchFinished);
+  for (  AdminClient adminClient : adminClients) {
+    if (adminClient != null) {
+      adminClient.stop();
+    }
+  }
   cleanIneligibleKeys(keyVersionNodeSetMap,requiredWrites);
-  Set<ByteArray> keysToDelete=new HashSet<ByteArray>();
-  for (  ByteArray key : keyVersionNodeSetMap.keySet()) {
-    ConsistencyLevel level=determineConsistency(keyVersionNodeSetMap.get(key),replicationFactor);
-    if (level == ConsistencyLevel.FULL || level == ConsistencyLevel.LATEST_CONSISTENT) {
-      keysToDelete.add(key);
+  keyFetchTracker.finishAll();
+  trySweepAll();
+  if (!quiet) {
+    logger.warn("TYPE,Store,ParId,Key,ServerSet,VersionTS,VectorClock[,ValueHash]");
+    for (    Map.Entry<ByteArray,Map<Version,Set<ClusterNode>>> entry : keyVersionNodeSetMap.entrySet()) {
+      ByteArray key=entry.getKey();
+      Map<Version,Set<ClusterNode>> versionMap=entry.getValue();
+      logger.warn(keyVersionToString(key,versionMap,storeName,partitionId));
     }
   }
-  for (  ByteArray key : keysToDelete) {
-    keyVersionNodeSetMap.remove(key);
-    consistentKeys++;
-  }
-  System.out.println("TYPE,Store,ParId,Key,ServerSet,VersionTS,VectorClock[,ValueHash]");
-  for (  Map.Entry<ByteArray,Map<Version,Set<PrefixNode>>> entry : keyVersionNodeSetMap.entrySet()) {
-    ByteArray key=entry.getKey();
-    Map<Version,Set<PrefixNode>> versionMap=entry.getValue();
-    System.out.print(keyVersionToString(key,versionMap,storeName,partitionId));
-  }
-  ConsistencyCheckStats stats=new ConsistencyCheckStats();
-  stats.consistentKeys=consistentKeys;
-  stats.totalKeys=keyVersionNodeSetMap.size() + consistentKeys;
-  return stats;
+  reporter.recordInconsistentKey(keyVersionNodeSetMap.size());
+  return reporter;
 }

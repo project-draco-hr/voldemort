@@ -1,14 +1,11 @@
 {
-  byte[] value1={0,1,2,3,4};
-  byte[] value2={0,1,2,3,5};
-  Versioned<byte[]> versioned1=new Versioned<byte[]>(value1);
-  Versioned<byte[]> versioned2=new Versioned<byte[]>(value2);
-  Version v1=new ConsistencyCheck.HashedValue(versioned1);
-  Version v2=new ConsistencyCheck.HashedValue(versioned1);
-  Version v3=new ConsistencyCheck.HashedValue(versioned2);
-  assertTrue(v1.equals(v2));
-  assertEquals(v1.hashCode(),v2.hashCode());
-  assertFalse(v1.hashCode() == v3.hashCode());
-  assertEquals(versioned1.getVersion(),((ConsistencyCheck.HashedValue)v1).getInner());
-  assertEquals(((ConsistencyCheck.HashedValue)v1).getValueHash(),v1.hashCode());
+  assertTrue(hv1.equals(hv1_dup));
+  assertEquals(hv1.hashCode(),hv1_dup.hashCode());
+  assertFalse(hv1.hashCode() == hv2.hashCode());
+  assertFalse(hv1.equals(hv2));
+  assertFalse(hv1.equals(null));
+  assertFalse(hv1.equals(new Versioned<byte[]>(null)));
+  assertFalse(hv1.equals(new Integer(0)));
+  assertEquals(versioned1.getVersion(),((ConsistencyCheck.HashedValue)hv1).getInner());
+  assertEquals(((ConsistencyCheck.HashedValue)hv1).getValueHash(),hv1.hashCode());
 }
