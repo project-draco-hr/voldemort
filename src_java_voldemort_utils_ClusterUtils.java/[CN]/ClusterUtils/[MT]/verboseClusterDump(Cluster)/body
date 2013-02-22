@@ -32,15 +32,22 @@
     builder.append("\tNode ID: " + node.getId() + " - "+ node.getNumberOfPartitions()+ " ("+ node.getHost()+ ")\n");
   }
   builder.append("\n");
-  builder.append("Partitions in each zone:\n");
-  for (  Zone zone : cluster.getZones()) {
-    builder.append("\tZone: " + zone.getId() + " - "+ ClusterUtils.compressedListOfPartitionsInZone(cluster,zone.getId())+ "\n");
+  if (cluster.getZones().size() > 1) {
+    builder.append("ZONE-PARTITION SUMMARY:\n");
+    builder.append("\n");
+    builder.append("Partitions in each zone:\n");
+    for (    Zone zone : cluster.getZones()) {
+      builder.append("\tZone: " + zone.getId() + " - "+ ClusterUtils.compressedListOfPartitionsInZone(cluster,zone.getId())+ "\n");
+    }
+    builder.append("\n");
+    builder.append("Contiguous partition run lengths in each zone ('{run length : count}'):\n");
+    for (    Zone zone : cluster.getZones()) {
+      builder.append("\tZone: " + zone.getId() + " - "+ ClusterUtils.getPrettyMapOfContiguousPartitionRunLengths(cluster,zone.getId())+ "\n");
+    }
+    builder.append("\n");
+    builder.append("The following nodes have hot partitions:\n");
+    builder.append(ClusterUtils.getHotPartitionsDueToContiguity(cluster,5));
+    builder.append("\n");
   }
-  builder.append("\n");
-  builder.append("Contiguous partition run lengths in each zone ('{run length : count}'):\n");
-  for (  Zone zone : cluster.getZones()) {
-    builder.append("\tZone: " + zone.getId() + " - "+ ClusterUtils.getPrettyMapOfContiguousPartitionRunLengths(cluster,zone.getId())+ "\n");
-  }
-  builder.append("\n");
   return builder.toString();
 }
