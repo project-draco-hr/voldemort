@@ -14,6 +14,17 @@
     StoreDefinition storeDefinition=StoreDefinitionUtils.getStoreDefinitionWithName(storeDefinitions.getValue(),storeName);
     storeDefinitionMap.put(url,storeDefinition);
   }
+  Integer partitionCount=null;
+  for (  Entry<String,Cluster> entry : clusterMap.entrySet()) {
+    Integer currentPartitionCount=entry.getValue().getNumberOfPartitions();
+    if (partitionCount == null) {
+      partitionCount=currentPartitionCount;
+    }
+    if (partitionCount != currentPartitionCount) {
+      logger.error("Partition count of different clusters is not the same: " + partitionCount + " vs "+ currentPartitionCount);
+      throw new VoldemortException("Will not connect because partition counts differ among clusters.");
+    }
+  }
   for (  String url : urls) {
     StoreDefinition storeDefinition=storeDefinitionMap.get(url);
     Cluster cluster=clusterMap.get(url);
@@ -25,7 +36,7 @@
       clusterNodeList.add(new ClusterNode(urls.indexOf(url),node));
     }
   }
-  if (!quiet) {
+  if (logger.isInfoEnabled()) {
     StringBuilder configInfo=new StringBuilder();
     configInfo.append("TYPE,Store,PartitionId,Node,ZoneId,BootstrapUrl\n");
     for (    ClusterNode clusterNode : clusterNodeList) {
@@ -60,6 +71,7 @@
   }
   if (replicationFactor != clusterNodeList.size()) {
     logger.error("Replication factor is not consistent with number of nodes routed to.");
+    throw new VoldemortException("Will not connect because replication factor does not accord with number of nodes routed to.");
   }
   retentionChecker=new RetentionChecker(retentionDays);
 }

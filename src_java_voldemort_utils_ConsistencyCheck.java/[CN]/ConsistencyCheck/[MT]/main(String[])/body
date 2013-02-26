@@ -1,36 +1,48 @@
 {
   OptionSet options=getParser().parse(args);
-  boolean quiet=false;
   if (options.hasArgument("help")) {
     printUsage();
     return;
   }
-  if (!options.hasArgument("urls") || !options.hasArgument("partitions") || !options.hasArgument("store")) {
+  if (!options.hasArgument("urls") || !options.hasArgument("partitions") || !options.hasArgument("store")|| !options.hasArgument("bad-key-file")) {
     printUsage();
     return;
-  }
-  if (options.has("quiet")) {
-    quiet=true;
   }
   List<String> urls=(List<String>)options.valuesOf("urls");
   String storeName=(String)options.valueOf("store");
   List<Integer> partitionIds=(List<Integer>)options.valuesOf("partitions");
-  Map<Integer,ProgressReporter> partitionStatsMap=new HashMap<Integer,ProgressReporter>();
-  long numGoodKeys=0;
-  long numTotalKeys=0;
-  for (  Integer partitionId : partitionIds) {
-    ConsistencyCheck checker=new ConsistencyCheck(urls,storeName,partitionId,quiet);
-    checker.connect();
-    ProgressReporter reporter=checker.execute();
-    partitionStatsMap.put(partitionId,reporter);
-    numGoodKeys+=reporter.numGoodKeys;
-    numTotalKeys+=reporter.numTotalKeys;
+  String badKeyFile=(String)options.valueOf("bad-key-file");
+  BufferedWriter badKeyWriter=null;
+  try {
+    badKeyWriter=new BufferedWriter(new FileWriter(badKeyFile));
+  }
+ catch (  IOException e) {
+    Utils.croak("Failure to open output file : " + e.getMessage());
+  }
+  Map<Integer,Reporter> partitionStatsMap=new HashMap<Integer,Reporter>();
+  try {
+    for (    Integer partitionId : partitionIds) {
+      ConsistencyCheck checker=new ConsistencyCheck(urls,storeName,partitionId,badKeyWriter);
+      checker.connect();
+      Reporter reporter=checker.execute();
+      partitionStatsMap.put(partitionId,reporter);
+    }
+  }
+ catch (  Exception e) {
+    Utils.croak("Exception during consistency checking : " + e.getMessage());
+  }
+ finally {
+    badKeyWriter.close();
   }
   StringBuilder statsString=new StringBuilder();
+  long totalGoodKeys=0;
+  long totalTotalKeys=0;
   statsString.append("TYPE,Store,ParitionId,KeysConsistent,KeysTotal,Consistency\n");
-  for (  Map.Entry<Integer,ProgressReporter> entry : partitionStatsMap.entrySet()) {
+  for (  Map.Entry<Integer,Reporter> entry : partitionStatsMap.entrySet()) {
     Integer partitionId=entry.getKey();
-    ProgressReporter reporter=entry.getValue();
+    Reporter reporter=entry.getValue();
+    totalGoodKeys+=reporter.numGoodKeys;
+    totalTotalKeys+=reporter.numTotalKeys;
     statsString.append("STATS,");
     statsString.append(storeName + ",");
     statsString.append(partitionId + ",");
@@ -42,9 +54,9 @@
   statsString.append("STATS,");
   statsString.append(storeName + ",");
   statsString.append("aggregate,");
-  statsString.append(numGoodKeys + ",");
-  statsString.append(numTotalKeys + ",");
-  statsString.append((double)(numGoodKeys) / (double)numTotalKeys);
+  statsString.append(totalGoodKeys + ",");
+  statsString.append(totalTotalKeys + ",");
+  statsString.append((double)(totalGoodKeys) / (double)totalTotalKeys);
   statsString.append("\n");
   for (  String line : statsString.toString().split("\n")) {
     logger.info(line);

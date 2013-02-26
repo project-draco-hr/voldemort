@@ -27,14 +27,18 @@
         Versioned<byte[]> versioned=fetchedEntry.getSecond();
         recordFetch(clusterNode,key,versioned);
         keyFetchTracker.recordFetch(clusterNode,key);
-        System.out.println("fetched " + new String(key.get()));
-        System.out.println("map has keys: " + keyVersionNodeSetMap.size());
+        if (logger.isTraceEnabled()) {
+          logger.trace("fetched " + new String(key.get()));
+          logger.trace("map has keys: " + keyVersionNodeSetMap.size());
+        }
         trySweepAll();
-        System.out.println("sweeped; keys left: " + keyVersionNodeSetMap.size());
+        if (logger.isTraceEnabled()) {
+          logger.trace("sweeped; keys left: " + keyVersionNodeSetMap.size());
+        }
       }
     }
-    if (logger.isInfoEnabled() && !quiet) {
-      String report=reporter.tryReport();
+    if (logger.isInfoEnabled()) {
+      String report=reporter.tryProgressReport();
       if (report != null) {
         for (        String line : report.split("\n")) {
           logger.info(line);
@@ -51,14 +55,6 @@
   cleanIneligibleKeys(keyVersionNodeSetMap,requiredWrites);
   keyFetchTracker.finishAll();
   trySweepAll();
-  if (!quiet) {
-    logger.warn("TYPE,Store,ParId,Key,ServerSet,VersionTS,VectorClock[,ValueHash]");
-    for (    Map.Entry<ByteArray,Map<Version,Set<ClusterNode>>> entry : keyVersionNodeSetMap.entrySet()) {
-      ByteArray key=entry.getKey();
-      Map<Version,Set<ClusterNode>> versionMap=entry.getValue();
-      logger.warn(keyVersionToString(key,versionMap,storeName,partitionId));
-    }
-  }
-  reporter.recordInconsistentKey(keyVersionNodeSetMap.size());
+  reporter.processInconsistentKeys(storeName,partitionId,keyVersionNodeSetMap);
   return reporter;
 }
