@@ -96,5 +96,8 @@
     }
   }
   HadoopUtils.setPropsInJob(conf,getProps());
+  if (System.getenv("HADOOP_TOKEN_FILE_LOCATION") != null) {
+    conf.set("mapreduce.job.credentials.binary",System.getenv("HADOOP_TOKEN_FILE_LOCATION"));
+  }
   return conf;
 }
