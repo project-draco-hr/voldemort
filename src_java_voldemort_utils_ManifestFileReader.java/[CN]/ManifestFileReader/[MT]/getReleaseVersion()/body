@@ -1,12 +1,17 @@
 {
-  String version=null;
-  Properties properties=new Properties();
   try {
-    properties.load(new FileInputStream(MANIFEST_FILE));
-    version=properties.getProperty(RELEASE_VERSION_KEY);
+    Enumeration<URL> resources=ManifestFileReader.class.getClassLoader().getResources(MANIFEST_FILE);
+    while (resources.hasMoreElements()) {
+      Manifest manifest=new Manifest(resources.nextElement().openStream());
+      Attributes mainAttribs=manifest.getMainAttributes();
+      String version=mainAttribs.getValue(RELEASE_VERSION_KEY);
+      if (version != null) {
+        return version;
+      }
+    }
   }
- catch (  IOException e) {
-    logger.warn("Unable to load voldemort release version due to the following error:",e);
+ catch (  IOException IoE) {
+    logger.warn("Unable to load voldemort release version due to the following error:",IoE);
   }
-  return version;
+  return null;
 }
