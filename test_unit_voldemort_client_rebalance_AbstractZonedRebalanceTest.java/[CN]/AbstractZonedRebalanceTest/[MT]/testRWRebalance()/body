@@ -1,0 +1,22 @@
+{
+  logger.info("Starting testRWRebalance");
+  Cluster currentCluster=ServerTestUtils.getLocalZonedCluster(4,2,new int[]{0,0,1,1},new int[][]{{0,2,4,6},{},{1,3,5,7},{}});
+  Cluster targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,3,Lists.newArrayList(2,6));
+  targetCluster=RebalanceUtils.createUpdatedCluster(targetCluster,1,Lists.newArrayList(3,7));
+  List<Integer> serverList=Arrays.asList(0,1,2,3);
+  Map<String,String> configProps=new HashMap<String,String>();
+  configProps.put("admin.max.threads","50");
+  currentCluster=startServers(currentCluster,storeDefFileWithoutReplication,serverList,configProps);
+  targetCluster=updateCluster(targetCluster);
+  RebalanceClientConfig config=new RebalanceClientConfig();
+  config.setDeleteAfterRebalancingEnabled(true);
+  RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(currentCluster,0),config);
+  try {
+    populateData(currentCluster,rwStoreDefWithoutReplication);
+    rebalanceAndCheck(currentCluster,targetCluster,storeDefWithoutReplication,rebalanceClient,Arrays.asList(1,2));
+    checkConsistentMetadata(targetCluster,serverList);
+  }
+  finally {
+    stopServer(serverList);
+  }
+}

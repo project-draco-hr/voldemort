@@ -1,0 +1,35 @@
+{
+  if (!isReadOnly) {
+    Map<Integer,Store<ByteArray,byte[],byte[]>> storeMap=new HashMap<Integer,Store<ByteArray,byte[],byte[]>>();
+    for (    Node node : cluster.getNodes()) {
+      storeMap.put(node.getId(),getSocketStore(storeDef.getName(),node.getHost(),node.getSocketPort()));
+    }
+    RoutingStrategy routing=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+    for (    Entry<String,String> entry : testEntries.entrySet()) {
+      ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(entry.getKey(),"UTF-8"));
+      List<Integer> preferenceNodes=RebalanceUtils.getNodeIds(routing.routeRequest(keyBytes.get()));
+      for (      int nodeId : preferenceNodes) {
+        try {
+          storeMap.get(nodeId).put(keyBytes,new Versioned<byte[]>(ByteUtils.getBytes(entry.getValue(),"UTF-8")),null);
+        }
+ catch (        ObsoleteVersionException e) {
+          System.out.println("Why are we seeing this at all here ?? ");
+          e.printStackTrace();
+        }
+      }
+    }
+    for (    Store<ByteArray,byte[],byte[]> store : storeMap.values()) {
+      store.close();
+    }
+  }
+ else {
+    File baseDir=TestUtils.createTempDir();
+    JsonReader reader=ReadOnlyStorageEngineTestInstance.makeTestDataReader(testEntries,baseDir);
+    RoutingStrategy router=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+    File outputDir=TestUtils.createTempDir(baseDir);
+    JsonStoreBuilder storeBuilder=new JsonStoreBuilder(reader,cluster,storeDef,router,outputDir,null,testEntries.size() / 5,1,NUM_RO_CHUNKS_PER_BUCKET,10000,false);
+    storeBuilder.build(ReadOnlyStorageFormat.READONLY_V2);
+    AdminStoreSwapper swapper=new AdminStoreSwapper(cluster,Executors.newFixedThreadPool(cluster.getNumberOfNodes()),adminClient,100000);
+    swapper.swapStoreData(testStoreNameRO,outputDir.getAbsolutePath(),1L);
+  }
+}
