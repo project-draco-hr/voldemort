@@ -4,17 +4,19 @@
     ByteArrayOutputStream outputBytes=new ByteArrayOutputStream();
     DataOutputStream outputStream=new DataOutputStream(outputBytes);
     writeGetRequest(outputStream,key);
-    RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/get?store_name=test"));
-    rb.setMethod("POST");
+    String base64Key=new String(Base64.encodeBase64(key.get()));
+    RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/test/" + base64Key));
+    rb.setMethod(GET);
     rb.setEntity(outputBytes.toByteArray());
-    rb.setHeader("CONTENT_TYPE","application/pdf");
+    rb.setHeader("Accept","application/json");
     RestRequest request=rb.build();
     Future<RestResponse> f=client.restRequest(request);
     RestResponse response=f.get();
     final ByteString entity=response.getEntity();
+    String eTag=response.getHeader("ETag");
+    String lastModified=response.getHeader("Last-Modified");
     if (entity != null) {
-      DataInputStream inputStream=new DataInputStream(entity.asInputStream());
-      resultList=readResults(inputStream);
+      resultList=readResults(entity,eTag,lastModified);
     }
  else {
       System.out.println("NOTHING!");

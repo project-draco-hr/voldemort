@@ -1,0 +1,13 @@
+{
+  Versioned<Object> responseVersioned=storeClient.get(this.key);
+  logger.info("Get successful !");
+  if (responseVersioned == null) {
+    if (this.defaultValue != null) {
+      responseVersioned=this.defaultValue;
+    }
+ else {
+      RESTErrorHandler.handleError(NOT_FOUND,this.getRequestMessageEvent,false,"Requested Key does not exist");
+    }
+  }
+  writeResponse(responseVersioned);
+}

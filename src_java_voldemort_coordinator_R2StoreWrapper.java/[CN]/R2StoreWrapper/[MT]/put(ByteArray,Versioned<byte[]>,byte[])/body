@@ -2,11 +2,14 @@
   try {
     ByteArrayOutputStream outputBytes=new ByteArrayOutputStream();
     DataOutputStream outputStream=new DataOutputStream(outputBytes);
-    writePutRequest(outputStream,key,value.getValue());
-    RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/put?store_name=test"));
-    rb.setMethod("POST");
+    byte[] payload=value.getValue();
+    outputStream.write(payload);
+    String base64Key=new String(Base64.encodeBase64(key.get()));
+    RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/test/" + base64Key));
+    rb.setMethod(PUT);
     rb.setEntity(outputBytes.toByteArray());
-    rb.setHeader("CONTENT_TYPE","application/pdf");
+    rb.setHeader("Content-Type","application/json");
+    rb.setHeader("Content-Length","" + payload.length);
     RestRequest request=rb.build();
     Future<RestResponse> f=client.restRequest(request);
     RestResponse response=f.get();

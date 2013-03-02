@@ -1,0 +1,34 @@
+{
+  if (args.length < 1) {
+    System.err.println("Missing argument: <Bootstrap URL>");
+    System.exit(-1);
+  }
+  if (args.length == 2) {
+    if (args[1].equals("noop")) {
+      noop=true;
+    }
+  }
+  bootstrapURLs=new String[1];
+  bootstrapURLs[0]=args[0];
+  ClientConfig clientConfig=new ClientConfig();
+  clientConfig.setBootstrapUrls(bootstrapURLs);
+  storeClientFactory=new SocketStoreClientFactory(clientConfig);
+  initializeFatClients();
+  SystemStoreRepository sysRepository=new SystemStoreRepository();
+  String clusterXml=storeClientFactory.bootstrapMetadataWithRetries(MetadataStore.CLUSTER_KEY);
+  sysRepository.createSystemStores(clientConfig,clusterXml,storeClientFactory.getFailureDetector());
+  Callable<Void> rebootstrapCallback=new Callable<Void>(){
+    public Void call() throws Exception {
+      initializeFatClients();
+      return null;
+    }
+  }
+;
+  asyncMetadataManager=new AsyncMetadataVersionManager(sysRepository,rebootstrapCallback,null);
+  schedulerService=new SchedulerService(1,SystemTime.INSTANCE,true);
+  schedulerService.schedule(asyncMetadataManager.getClass().getName(),asyncMetadataManager,new Date(),asyncMetadataCheckIntervalInMs);
+  ServerBootstrap bootstrap=new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),Executors.newCachedThreadPool()));
+  bootstrap.setOption("backlog",1000);
+  bootstrap.setPipelineFactory(new CoordinatorPipelineFactory(fatClientMap,noop));
+  bootstrap.bind(new InetSocketAddress(8080));
+}

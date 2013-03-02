@@ -1,18 +1,14 @@
 {
-  List<Versioned<Object>> results=new ArrayList<Versioned<Object>>();
-  HttpRequest request=this.request=(HttpRequest)e.getMessage();
-  QueryStringDecoder queryStringDecoder=new QueryStringDecoder(request.getUri());
-  OP_TYPE operation=getOperationType(queryStringDecoder.getPath());
+  OP_TYPE operation=getOperationType(this.request.getMethod());
 switch (operation) {
 case GET:
-    Versioned<Object> responseVersioned=null;
-  byte[] nullByteArray=new byte[1];
+    GetRequestExecutor getExecutor=new GetRequestExecutor(null,null,e,null);
+  Versioned<Object> responseVersioned=null;
+byte[] nullByteArray=new byte[1];
 nullByteArray[0]=0;
 responseVersioned=new Versioned<Object>(nullByteArray);
-results.add(responseVersioned);
-byte[] responseValue=(byte[])responseVersioned.getValue();
-this.responseContent=ChannelBuffers.dynamicBuffer(responseValue.length);
-writeResults(results);
+getExecutor.setResponseContent(responseVersioned);
+getExecutor.writeResponse(responseVersioned);
 break;
 case PUT:
 this.responseContent=ChannelBuffers.EMPTY_BUFFER;
@@ -22,5 +18,4 @@ System.err.println("Illegal operation.");
 this.responseContent=ChannelBuffers.copiedBuffer("Illegal operation.".getBytes());
 return;
 }
-writeResponse(e);
 }

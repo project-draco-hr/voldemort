@@ -1,0 +1,13 @@
+{
+  StoreDefinitionsMapper storeMapper=new StoreDefinitionsMapper();
+  String storesXml=storeClientFactory.bootstrapMetadataWithRetries(MetadataStore.STORES_KEY);
+  List<StoreDefinition> storeDefList=storeMapper.readStoreList(new StringReader(storesXml),false);
+  Map<String,ClientConfig> fatClientConfigMap=readClientConfig("/home/csoman/Downloads/clientConfigs.avro",bootstrapURLs);
+  fatClientMap=new HashMap<String,FatClientWrapper>();
+  for (  StoreDefinition storeDef : storeDefList) {
+    String storeName=storeDef.getName();
+    logger.info("Creating a Fat client wrapper for store: " + storeName);
+    logger.info("Using config: " + fatClientConfigMap.get(storeName));
+    fatClientMap.put(storeName,new FatClientWrapper(storeName,bootstrapURLs,fatClientConfigMap.get(storeName)));
+  }
+}

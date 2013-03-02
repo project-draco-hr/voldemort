@@ -1,0 +1,64 @@
+{
+  String storeName="";
+  if (!readingChunks) {
+    HttpRequest request=this.request=(HttpRequest)e.getMessage();
+    OP_TYPE operation=getOperationType(this.request.getMethod());
+    String requestURI=this.request.getUri();
+    logger.info(requestURI);
+    storeName=getStoreName(requestURI);
+    if (storeName == null) {
+      String errorMessage="Invalid store name. Critical error.";
+      logger.error(errorMessage);
+      RESTErrorHandler.handleError(BAD_REQUEST,e,false,errorMessage);
+      return;
+    }
+    if (request.isChunked()) {
+      readingChunks=true;
+    }
+ else {
+switch (operation) {
+case GET:
+        ByteArray getKey=readKey(requestURI);
+      this.fatClientMap.get(storeName).submitGetRequest(getKey,e);
+    break;
+case PUT:
+  ChannelBuffer content=request.getContent();
+if (!content.readable()) {
+  String errorMessage="Contents not readable";
+  logger.error(errorMessage);
+  RESTErrorHandler.handleError(BAD_REQUEST,e,isKeepAlive(request),errorMessage);
+  return;
+}
+ByteArray putKey=readKey(requestURI);
+byte[] putValue=readValue(content);
+this.fatClientMap.get(storeName).submitPutRequest(putKey,putValue,e);
+break;
+default :
+String errorMessage="Illegal operation.";
+logger.error(errorMessage);
+RESTErrorHandler.handleError(BAD_REQUEST,e,isKeepAlive(request),errorMessage);
+return;
+}
+}
+}
+ else {
+HttpChunk chunk=(HttpChunk)e.getMessage();
+if (chunk.isLast()) {
+readingChunks=false;
+buf.append("END OF CONTENT\r\n");
+HttpChunkTrailer trailer=(HttpChunkTrailer)chunk;
+if (!trailer.getHeaderNames().isEmpty()) {
+buf.append("\r\n");
+for (String name : trailer.getHeaderNames()) {
+for (String value : trailer.getHeaders(name)) {
+buf.append("TRAILING HEADER: " + name + " = "+ value+ "\r\n");
+}
+}
+buf.append("\r\n");
+}
+}
+ else {
+buf.append("CHUNK: " + chunk.getContent().toString(CharsetUtil.UTF_8) + "\r\n");
+}
+}
+}
