@@ -40,13 +40,13 @@
   this.bdbLevelBasedEviction=props.getBoolean("bdb.evict.by.level",false);
   this.bdbProactiveBackgroundMigration=props.getBoolean("bdb.proactive.background.migration",false);
   this.bdbCheckpointerOffForBatchWrites=props.getBoolean("bdb.checkpointer.off.batch.writes",false);
-  this.readOnlyBackups=props.getInt("readonly.backups",1);
+  this.numReadOnlyVersions=props.getInt("readonly.backups",1);
   this.readOnlySearchStrategy=props.getString("readonly.search.strategy",BinarySearchStrategy.class.getName());
   this.readOnlyStorageDir=props.getString("readonly.data.directory",this.dataDirectory + File.separator + "read-only");
   this.readOnlyDeleteBackupTimeMs=props.getInt("readonly.delete.backup.ms",0);
-  this.maxBytesPerSecond=props.getBytes("fetcher.max.bytes.per.sec",0);
-  this.minBytesPerSecond=props.getBytes("fetcher.min.bytes.per.sec",0);
-  this.reportingIntervalBytes=props.getBytes("fetcher.reporting.interval.bytes",REPORTING_INTERVAL_BYTES);
+  this.hdfsMaxBytesPerSecond=props.getBytes("fetcher.max.bytes.per.sec",0);
+  this.hdfsMinBytesPerSecond=props.getBytes("fetcher.min.bytes.per.sec",0);
+  this.hdfsReportingIntervalBytes=props.getBytes("fetcher.reporting.interval.bytes",REPORTING_INTERVAL_BYTES);
   this.fetcherBufferSize=(int)props.getBytes("hdfs.fetcher.buffer.size",DEFAULT_BUFFER_SIZE);
   this.readOnlyKeytabPath=props.getString("readonly.keytab.path",this.metadataDirectory + VoldemortConfig.DEFAULT_KEYTAB_PATH);
   this.readOnlyKerberosUser=props.getString("readonly.kerberos.user",VoldemortConfig.DEFAULT_KERBEROS_PRINCIPAL);
@@ -84,7 +84,7 @@
   this.useNioConnector=props.getBoolean("enable.nio.connector",true);
   this.nioConnectorSelectors=props.getInt("nio.connector.selectors",Math.max(8,Runtime.getRuntime().availableProcessors()));
   this.nioAdminConnectorSelectors=props.getInt("nio.admin.connector.selectors",Math.max(8,Runtime.getRuntime().availableProcessors()));
-  this.nioAcceptorBacklog=props.getInt("nio.acceptor.backlog",-1);
+  this.nioAcceptorBacklog=props.getInt("nio.acceptor.backlog",256);
   this.clientSelectors=props.getInt("client.selectors",4);
   this.clientMaxConnectionsPerNode=props.getInt("client.max.connections.per.node",50);
   this.clientConnectionTimeoutMs=props.getInt("client.connection.timeout.ms",500);
@@ -120,7 +120,6 @@
   this.slopMaxReadBytesPerSec=props.getBytes("slop.read.byte.per.sec",10 * 1000 * 1000);
   this.slopStoreType=props.getString("slop.store.engine",BdbStorageConfiguration.TYPE_NAME);
   this.slopFrequencyMs=props.getLong("slop.frequency.ms",5 * 60 * 1000);
-  this.repairStartMs=props.getLong("repair.start.ms",24 * 60 * 60* 1000);
   this.slopBatchSize=props.getInt("slop.batch.size",100);
   this.pusherType=props.getString("pusher.type",StreamingSlopPusherJob.TYPE_NAME);
   this.slopZonesDownToTerminate=props.getInt("slop.zones.terminate",0);
@@ -137,7 +136,6 @@
   this.allProps=props;
   String requestFormatName=props.getString("request.format",RequestFormatType.VOLDEMORT_V1.getCode());
   this.requestFormatType=RequestFormatType.fromCode(requestFormatName);
-  this.maxRebalancingAttempt=props.getInt("max.rebalancing.attempts",3);
   this.rebalancingTimeoutSec=props.getLong("rebalancing.timeout.seconds",10 * 24 * 60* 60);
   this.maxParallelStoresRebalancing=props.getInt("max.parallel.stores.rebalancing",3);
   this.rebalancingOptimization=props.getBoolean("rebalancing.optimization",true);

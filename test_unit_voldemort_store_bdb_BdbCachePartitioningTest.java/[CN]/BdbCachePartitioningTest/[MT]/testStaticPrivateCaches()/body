@@ -21,10 +21,10 @@
     storeB=(BdbStorageEngine)bdbStorage.getStore(defB,TestUtils.makeSingleNodeRoutingStrategy());
     StoreDefinition defC=TestUtils.makeStoreDefinition("storeC");
     storeC=(BdbStorageEngine)bdbStorage.getStore(defC,TestUtils.makeSingleNodeRoutingStrategy());
-    assertTrue(Math.abs(shareA - getCacheSize(defA)) > ByteUtils.BYTES_PER_MB);
-    assertTrue(Math.abs(shareB - getCacheSize(defB)) > ByteUtils.BYTES_PER_MB);
-    assertEquals(0,getStats(bdbStorage.getEnvironment(defA)).getSharedCacheTotalBytes());
-    assertEquals(0,getStats(bdbStorage.getEnvironment(defB)).getSharedCacheTotalBytes());
+    assertTrue("Store A grew without traffic",Math.abs(shareA - getCacheSize(defA)) > ByteUtils.BYTES_PER_MB);
+    assertTrue("Store B grew without traffic",Math.abs(shareB - getCacheSize(defB)) > ByteUtils.BYTES_PER_MB);
+    assertEquals("Store A has non zero shared cache",0,getStats(bdbStorage.getEnvironment(defA)).getSharedCacheTotalBytes());
+    assertEquals("Store B has non zero shared cache",0,getStats(bdbStorage.getEnvironment(defB)).getSharedCacheTotalBytes());
     byte[] value=new byte[ByteUtils.BYTES_PER_MB];
     for (int i=0; i < numRecords; i++) {
       storeA.put(TestUtils.toByteArray("testKey" + i),new Versioned<byte[]>(value),null);
@@ -44,12 +44,9 @@
         cacheSizeC=(cycleCacheSizeC > cacheSizeC) ? cycleCacheSizeC : cacheSizeC;
       }
     }
-    assertTrue(cacheSizeA <= shareA);
-    assertTrue(cacheSizeB <= shareB);
-    assertTrue(cacheSizeC <= shareC);
-    assertTrue(Math.abs(cacheSizeA - shareA) <= ByteUtils.BYTES_PER_MB);
-    assertTrue(Math.abs(cacheSizeB - shareB) <= ByteUtils.BYTES_PER_MB);
-    assertTrue(Math.abs(cacheSizeC - shareC) <= ByteUtils.BYTES_PER_MB);
+    assertTrue("Store A not within limits",cacheSizeA <= (shareA + ByteUtils.BYTES_PER_MB));
+    assertTrue("Store B not within limits",cacheSizeB <= (shareB + ByteUtils.BYTES_PER_MB));
+    assertTrue("Store C not within limits",cacheSizeC <= (shareC + ByteUtils.BYTES_PER_MB));
     long cacheSizeCNow=Long.MIN_VALUE;
     for (int cycle=0; cycle < 10; cycle++) {
       for (int i=0; i < numRecords; i++) {
@@ -57,7 +54,7 @@
         cacheSizeCNow=(cycleCacheSizeCNow > cacheSizeCNow) ? cycleCacheSizeCNow : cacheSizeCNow;
       }
     }
-    assertTrue(cacheSizeCNow <= shareC);
+    assertTrue("Store C not within limits after spike",cacheSizeCNow <= (shareC + ByteUtils.BYTES_PER_MB));
   }
   finally {
     if (storeA != null)     storeA.close();
