@@ -1,6 +1,7 @@
 {
   if (keysPartitionIterator == null) {
-    if (currentIndex == partitionList.size()) {
+    if (currentIndex == partitionList.size() || counter >= maxRecords * skipRecords) {
+      logger.info("Done fetching  store " + storageEngine.getName() + " : "+ counter+ " records processed.");
       return StreamRequestHandlerState.COMPLETE;
     }
     boolean found=false;
@@ -20,8 +21,8 @@
     long startNs=System.nanoTime();
     if (keysPartitionIterator.hasNext()) {
       counter++;
+      ByteArray key=keysPartitionIterator.next();
       if (counter % skipRecords == 0) {
-        ByteArray key=keysPartitionIterator.next();
         if (streamStats != null) {
           streamStats.reportStorageTime(operation,System.nanoTime() - startNs);
           streamStats.reportStreamingScan(operation);
@@ -46,7 +47,7 @@
         logger.info("Fetch entries scanned " + counter + " entries, fetched "+ fetched+ " entries for store '"+ storageEngine.getName()+ "' replicaToPartitionList:"+ replicaToPartitionList+ " in "+ totalTime+ " s");
       }
     }
-    if (!keysPartitionIterator.hasNext()) {
+    if (!keysPartitionIterator.hasNext() || counter >= maxRecords * skipRecords) {
       keysPartitionIterator.close();
       keysPartitionIterator=null;
     }

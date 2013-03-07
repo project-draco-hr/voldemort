@@ -33,7 +33,7 @@
     long totalTime=(System.currentTimeMillis() - startTime) / 1000;
     logger.info("Fetch keys scanned " + counter + " keys, fetched "+ fetched+ " keys for store '"+ storageEngine.getName()+ "' replicaToPartitionList:"+ replicaToPartitionList+ " in "+ totalTime+ " s");
   }
-  if (keyIterator.hasNext())   return StreamRequestHandlerState.WRITING;
+  if (keyIterator.hasNext() && counter < maxRecords * skipRecords)   return StreamRequestHandlerState.WRITING;
  else {
     return StreamRequestHandlerState.COMPLETE;
   }
