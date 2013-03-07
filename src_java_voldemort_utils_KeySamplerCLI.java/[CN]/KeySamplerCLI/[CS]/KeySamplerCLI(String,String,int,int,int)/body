@@ -1,0 +1,16 @@
+{
+  if (logger.isInfoEnabled()) {
+    logger.info("Connecting to bootstrap server: " + url);
+  }
+  this.adminClient=new AdminClient(url,new AdminClientConfig());
+  this.cluster=adminClient.getAdminClientCluster();
+  this.storeDefinitions=adminClient.metadataMgmtOps.getRemoteStoreDefList(0).getValue();
+  this.storeNameToKeyStringsMap=new HashMap<String,StringBuilder>();
+  for (  StoreDefinition storeDefinition : storeDefinitions) {
+    this.storeNameToKeyStringsMap.put(storeDefinition.getName(),new StringBuilder());
+  }
+  this.outDir=outDir;
+  this.nodeSamplerService=Executors.newFixedThreadPool(nodeParallelism);
+  this.maxRecords=maxRecords;
+  this.skipRecords=skipRecords;
+}

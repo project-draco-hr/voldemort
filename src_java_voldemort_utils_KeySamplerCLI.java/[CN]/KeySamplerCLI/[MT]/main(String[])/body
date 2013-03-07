@@ -1,0 +1,48 @@
+{
+  OptionSet options=null;
+  try {
+    options=getParser().parse(args);
+  }
+ catch (  OptionException oe) {
+    printUsageAndDie("Exception when parsing arguments : " + oe.getMessage());
+    return;
+  }
+  if (options.hasArgument("help")) {
+    printUsage();
+    return;
+  }
+  if (!options.hasArgument("url") || !options.hasArgument("out-dir")) {
+    printUsageAndDie("Missing a required argument.");
+    return;
+  }
+  String url=(String)options.valueOf("url");
+  String outDir=(String)options.valueOf("out-dir");
+  Utils.mkdirs(new File(outDir));
+  Integer nodeParallelism=NODE_PARALLELISM;
+  if (options.hasArgument("parallelism")) {
+    nodeParallelism=(Integer)options.valueOf("parallelism");
+  }
+  Integer maxRecords=MAX_RECORDS;
+  if (options.hasArgument("max-records")) {
+    maxRecords=(Integer)options.valueOf("max-records");
+  }
+  Integer skipRecords=SKIP_RECORDS;
+  if (options.hasArgument("skip-records")) {
+    skipRecords=(Integer)options.valueOf("skip-records");
+  }
+  logger.warn("This tool is hard-coded to take advantage of servers that " + "use PID style layout of data in BDB. " + "Use fo this tool against other types of servers is undefined.");
+  try {
+    KeySamplerCLI sampler=new KeySamplerCLI(url,outDir,nodeParallelism,maxRecords,skipRecords);
+    try {
+      if (!sampler.sampleStores()) {
+        logger.error("Some stores were not successfully sampled.");
+      }
+    }
+  finally {
+      sampler.stop();
+    }
+  }
+ catch (  Exception e) {
+    Utils.croak("Exception during key sampling: " + e.getMessage());
+  }
+}

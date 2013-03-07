@@ -1,0 +1,58 @@
+{
+  String storeName=storeDefinition.getName();
+  String fileName=outDir + System.getProperty("file.separator") + storeName+ ".keys";
+  File file=new File(fileName);
+  if (file.exists()) {
+    logger.warn("Key file " + fileName + " already exists. Skipping sampling store "+ storeName+ ".");
+    return true;
+  }
+  Writer keyWriter=null;
+  try {
+    keyWriter=new FileWriter(file);
+    Map<Node,Future<NodeSampleResult>> results=new HashMap<Node,Future<NodeSampleResult>>();
+    for (    Node node : cluster.getNodes()) {
+      Future<NodeSampleResult> future=nodeSamplerService.submit(new NodeSampler(node,storeDefinition));
+      results.put(node,future);
+    }
+    boolean success=true;
+    for (    Node node : cluster.getNodes()) {
+      Future<NodeSampleResult> future=results.get(node);
+      if (!success) {
+        future.cancel(true);
+        continue;
+      }
+      try {
+        NodeSampleResult nodeSampleResult=future.get();
+        if (nodeSampleResult.success) {
+          keyWriter.write(nodeSampleResult.keyString);
+        }
+ else {
+          success=false;
+          logger.error("Sampling on node " + node.getHost() + " of store "+ storeDefinition.getName()+ " failed.");
+        }
+      }
+ catch (      ExecutionException ee) {
+        success=false;
+        logger.error("Encountered an execution exception on node " + node.getHost() + " while sampling "+ storeName+ ": "+ ee.getMessage());
+        ee.printStackTrace();
+      }
+catch (      InterruptedException ie) {
+        success=false;
+        logger.error("Waiting for node " + node.getHost() + " to be sampled for store "+ storeName+ ", but was interrupted: "+ ie.getMessage());
+      }
+    }
+    return success;
+  }
+ catch (  IOException e) {
+    logger.error("IOException encountered for store " + storeName + " : "+ e.getMessage());
+    return false;
+  }
+ finally {
+    try {
+      keyWriter.close();
+    }
+ catch (    IOException e) {
+      logger.error("IOException caught while trying to close keyWriter for store " + storeName + " : "+ e.getMessage());
+    }
+  }
+}

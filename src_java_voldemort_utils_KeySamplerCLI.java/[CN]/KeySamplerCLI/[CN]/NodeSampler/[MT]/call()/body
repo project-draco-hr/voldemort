@@ -1,0 +1,55 @@
+{
+  boolean success=false;
+  String storeName=storeDefinition.getName();
+  StringBuilder hexKeyStrings=new StringBuilder();
+  for (  int partitionId : node.getPartitionIds()) {
+    success=false;
+    try {
+      Thread.sleep(100);
+    }
+ catch (    InterruptedException e) {
+      logger.warn("Sleep throttling interrupted : " + e.getMessage());
+      e.printStackTrace();
+    }
+    String infoTag="store " + storeName + ", partitionID "+ partitionId+ " on node "+ node.getId()+ " ["+ node.getHost()+ "]";
+    logger.info("Starting sample --- " + infoTag);
+    List<Integer> singlePartition=new ArrayList<Integer>();
+    singlePartition.add(partitionId);
+    int attempts=0;
+    int backoffMs=1000;
+    while (attempts < 5 && !success) {
+      try {
+        Iterator<ByteArray> fetchIterator;
+        fetchIterator=adminClient.bulkFetchOps.fetchKeys(node.getId(),storeName,singlePartition,null,false,skipRecords,maxRecords);
+        int keyCount=0;
+        while (fetchIterator.hasNext()) {
+          ByteArray key=fetchIterator.next();
+          String hexKeyString=ByteUtils.toHexString(key.get());
+          hexKeyStrings.append(hexKeyString + "\n");
+          keyCount++;
+        }
+        if (keyCount < maxRecords) {
+          logger.warn("Fewer keys (" + keyCount + ") than requested ("+ maxRecords+ ") returned --- "+ infoTag);
+        }
+        success=true;
+      }
+ catch (      VoldemortException ve) {
+        logger.warn("Caught VoldemortException and will retry (" + infoTag + "): "+ ve.getMessage()+ " --- "+ ve.getCause().getMessage());
+        try {
+          Thread.sleep(backoffMs);
+          backoffMs*=2;
+        }
+ catch (        InterruptedException e) {
+          logger.warn("Backoff-and-retry sleep interrupted : " + e.getMessage());
+          e.printStackTrace();
+          break;
+        }
+      }
+    }
+    if (!success) {
+      logger.error("Failed to sample --- " + infoTag);
+      break;
+    }
+  }
+  return new NodeSampleResult(success,hexKeyStrings.toString());
+}

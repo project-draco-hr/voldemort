@@ -1,0 +1,41 @@
+{
+  OptionSet options=null;
+  try {
+    options=getParser().parse(args);
+  }
+ catch (  OptionException oe) {
+    printUsageAndDie("Exception when parsing arguments : " + oe.getMessage());
+    return;
+  }
+  if (options.hasArgument("help")) {
+    printUsage();
+    return;
+  }
+  if (!options.hasArgument("url") || !options.hasArgument("in-dir") || !options.hasArgument("out-dir")) {
+    printUsageAndDie("Missing a required argument.");
+    return;
+  }
+  String url=(String)options.valueOf("url");
+  String inDir=(String)options.valueOf("in-dir");
+  Utils.mkdirs(new File(inDir));
+  String outDir=(String)options.valueOf("out-dir");
+  Utils.mkdirs(new File(outDir));
+  Integer keyParallelism=KEY_PARALLELISM;
+  if (options.hasArgument("parallelism")) {
+    keyParallelism=(Integer)options.valueOf("parallelism");
+  }
+  try {
+    KeyVersionSamplerCLI sampler=new KeyVersionSamplerCLI(url,inDir,outDir,keyParallelism);
+    try {
+      if (!sampler.sampleStores()) {
+        logger.error("Key-versions were not successfully sampled from some stores.");
+      }
+    }
+  finally {
+      sampler.stop();
+    }
+  }
+ catch (  Exception e) {
+    Utils.croak("Exception during key-version sampling: " + e.getMessage());
+  }
+}

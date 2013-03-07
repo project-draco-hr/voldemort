@@ -1,0 +1,72 @@
+{
+  String storeName=storeDefinition.getName();
+  String keysFileName=inDir + System.getProperty("file.separator") + storeName+ ".keys";
+  File keysFile=new File(keysFileName);
+  if (!keysFile.exists()) {
+    logger.error("Keys file " + keysFileName + "does not exist!");
+    return false;
+  }
+  String kvFileName=outDir + System.getProperty("file.separator") + storeName+ ".kvs";
+  File kvFile=new File(kvFileName);
+  if (kvFile.exists()) {
+    logger.info("Key-Version file " + kvFileName + " exists, so will not sample keys from file "+ keysFileName+ ".");
+    return true;
+  }
+  StoreInstance storeInstance=new StoreInstance(cluster,storeDefinition);
+  BufferedReader keyReader=null;
+  BufferedWriter kvWriter=null;
+  try {
+    keyReader=new BufferedReader(new FileReader(keysFileName));
+    Queue<Future<String>> futureKVs=new LinkedList<Future<String>>();
+    for (String keyLine=keyReader.readLine(); keyLine != null; keyLine=keyReader.readLine()) {
+      byte[] keyInBytes=ByteUtils.fromHexString(keyLine.trim());
+      KeyVersionSampler kvSampler=new KeyVersionSampler(storeInstance,keyInBytes);
+      Future<String> future=kvSamplerService.submit(kvSampler);
+      futureKVs.add(future);
+    }
+    kvWriter=new BufferedWriter(new FileWriter(kvFileName));
+    while (!futureKVs.isEmpty()) {
+      Future<String> future=futureKVs.poll();
+      String keyVersions=future.get();
+      kvWriter.append(keyVersions);
+    }
+    return true;
+  }
+ catch (  DecoderException de) {
+    logger.error("Could not decode key to sample for store " + storeName + " : "+ de.getMessage());
+    return false;
+  }
+catch (  IOException ioe) {
+    logger.error("IOException caught while sampling store " + storeName + " : "+ ioe.getMessage());
+    return false;
+  }
+catch (  InterruptedException ie) {
+    logger.error("InterruptedException caught while sampling store " + storeName + " : "+ ie.getMessage());
+    return false;
+  }
+catch (  ExecutionException ee) {
+    logger.error("Encountered an execution exception while sampling " + storeName + ": "+ ee.getMessage());
+    ee.printStackTrace();
+    return false;
+  }
+ finally {
+    if (keyReader != null) {
+      try {
+        keyReader.close();
+      }
+ catch (      IOException e) {
+        logger.error("IOException caught while trying to close keyReader for store " + storeName + " : "+ e.getMessage());
+        e.printStackTrace();
+      }
+    }
+    if (kvWriter != null) {
+      try {
+        kvWriter.close();
+      }
+ catch (      IOException e) {
+        logger.error("IOException caught while trying to close kvWriter for store " + storeName + " : "+ e.getMessage());
+        e.printStackTrace();
+      }
+    }
+  }
+}
