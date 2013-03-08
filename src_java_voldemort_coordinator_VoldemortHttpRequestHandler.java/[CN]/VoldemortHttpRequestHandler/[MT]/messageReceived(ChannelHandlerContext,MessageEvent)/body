@@ -1,38 +1,24 @@
 {
-  String storeName="";
   if (!readingChunks) {
     HttpRequest request=this.request=(HttpRequest)e.getMessage();
-    OP_TYPE operation=getOperationType(this.request.getMethod());
+    byte operationType=getOperationType(this.request.getMethod());
     String requestURI=this.request.getUri();
     logger.info(requestURI);
-    storeName=getStoreName(requestURI);
-    if (storeName == null) {
-      String errorMessage="Invalid store name. Critical error.";
-      logger.error(errorMessage);
-      RESTErrorHandler.handleError(BAD_REQUEST,e,false,errorMessage);
-      return;
-    }
     if (request.isChunked()) {
       readingChunks=true;
     }
  else {
-switch (operation) {
-case GET:
-        ByteArray getKey=readKey(requestURI);
-      this.fatClientMap.get(storeName).submitGetRequest(getKey,e);
-    break;
-case PUT:
-  ChannelBuffer content=request.getContent();
-if (!content.readable()) {
-  String errorMessage="Contents not readable";
-  logger.error(errorMessage);
-  RESTErrorHandler.handleError(BAD_REQUEST,e,isKeepAlive(request),errorMessage);
-  return;
-}
-ByteArray putKey=readKey(requestURI);
-byte[] putValue=readValue(content);
-this.fatClientMap.get(storeName).submitPutRequest(putKey,putValue,e);
-break;
+      VoldemortRequestWrapper requestObject=parseRequest(requestURI,e,operationType);
+      if (requestObject == null) {
+        return;
+      }
+switch (operationType) {
+case VoldemortOpCode.GET_OP_CODE:
+        this.fatClientWrapper.submitGetRequest(requestObject,e);
+      break;
+case VoldemortOpCode.PUT_OP_CODE:
+    this.fatClientWrapper.submitPutRequest(requestObject,e);
+  break;
 default :
 String errorMessage="Illegal operation.";
 logger.error(errorMessage);

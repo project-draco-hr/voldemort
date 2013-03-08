@@ -1,13 +1,14 @@
 {
   StoreDefinitionsMapper storeMapper=new StoreDefinitionsMapper();
   String storesXml=storeClientFactory.bootstrapMetadataWithRetries(MetadataStore.STORES_KEY);
+  String clusterXml=storeClientFactory.bootstrapMetadataWithRetries(MetadataStore.CLUSTER_KEY);
   List<StoreDefinition> storeDefList=storeMapper.readStoreList(new StringReader(storesXml),false);
-  Map<String,ClientConfig> fatClientConfigMap=readClientConfig("/home/csoman/Downloads/clientConfigs.avro",bootstrapURLs);
+  Map<String,ClientConfig> fatClientConfigMap=readClientConfig(CLIENT_CONFIG_AVRO_FILE_PATH,bootstrapURLs);
   fatClientMap=new HashMap<String,FatClientWrapper>();
   for (  StoreDefinition storeDef : storeDefList) {
     String storeName=storeDef.getName();
     logger.info("Creating a Fat client wrapper for store: " + storeName);
     logger.info("Using config: " + fatClientConfigMap.get(storeName));
-    fatClientMap.put(storeName,new FatClientWrapper(storeName,bootstrapURLs,fatClientConfigMap.get(storeName)));
+    fatClientMap.put(storeName,new FatClientWrapper(storeName,bootstrapURLs,fatClientConfigMap.get(storeName),storesXml,clusterXml));
   }
 }

@@ -1,0 +1,13 @@
+{
+  long startTimeNs=0;
+  boolean succeeded=false;
+  if (logger.isDebugEnabled())   startTimeNs=time.getNanoseconds();
+  try {
+    List<Versioned<V>> l=getInnerStore().get(request);
+    succeeded=true;
+    return l;
+  }
+  finally {
+    printTimedMessage("GET",succeeded,startTimeNs);
+  }
+}

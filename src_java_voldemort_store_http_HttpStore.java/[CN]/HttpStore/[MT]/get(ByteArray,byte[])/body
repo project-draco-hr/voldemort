@@ -4,12 +4,12 @@
   try {
     HttpPost method=new HttpPost(this.storeUrl);
     ByteArrayOutputStream outputBytes=new ByteArrayOutputStream();
-    requestFormat.writeGetRequest(new DataOutputStream(outputBytes),storeName,key,transforms,reroute);
+    requestFormat.writeGetRequest(new DataOutputStream(outputBytes),getName(),key,transforms,reroute);
     input=executeRequest(method,outputBytes);
     return requestFormat.readGetResponse(input);
   }
  catch (  IOException e) {
-    throw new UnreachableStoreException("Could not connect to " + storeUrl + " for "+ storeName,e);
+    throw new UnreachableStoreException("Could not connect to " + storeUrl + " for "+ getName(),e);
   }
  finally {
     IOUtils.closeQuietly(input);

@@ -1,15 +1,16 @@
 {
-  if (args.length < 1) {
-    System.err.println("Missing argument: <Bootstrap URL>");
+  if (args.length < 2) {
+    System.err.println("Missing argument: <Bootstrap URL> <fat client config file path>");
     System.exit(-1);
   }
-  if (args.length == 2) {
-    if (args[1].equals("noop")) {
+  if (args.length == 3) {
+    if (args[2].equals("noop")) {
       noop=true;
     }
   }
   bootstrapURLs=new String[1];
   bootstrapURLs[0]=args[0];
+  CLIENT_CONFIG_AVRO_FILE_PATH=args[1];
   ClientConfig clientConfig=new ClientConfig();
   clientConfig.setBootstrapUrls(bootstrapURLs);
   storeClientFactory=new SocketStoreClientFactory(clientConfig);
@@ -18,7 +19,7 @@
   String clusterXml=storeClientFactory.bootstrapMetadataWithRetries(MetadataStore.CLUSTER_KEY);
   sysRepository.createSystemStores(clientConfig,clusterXml,storeClientFactory.getFailureDetector());
   Callable<Void> rebootstrapCallback=new Callable<Void>(){
-    public Void call() throws Exception {
+    @Override public Void call() throws Exception {
       initializeFatClients();
       return null;
     }

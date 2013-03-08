@@ -1,0 +1,26 @@
+{
+  try {
+    this.storeClient.putWithCustomTimeout(putRequestObject);
+    logger.info("Put successful !");
+  }
+ catch (  IllegalArgumentException illegalArgsException) {
+    String errorDescription="PUT Failed !!! Illegal Arguments : " + illegalArgsException.getMessage();
+    logger.error(errorDescription);
+    RESTErrorHandler.handleError(BAD_REQUEST,this.putRequestMessageEvent,false,errorDescription);
+  }
+catch (  ObsoleteVersionException oe) {
+    String errorDescription="PUT Failed !!! Obsolete version exception: " + oe.getMessage();
+    logger.error(errorDescription);
+    RESTErrorHandler.handleError(PRECONDITION_FAILED,this.putRequestMessageEvent,false,errorDescription);
+  }
+catch (  StoreTimeoutException timeoutException) {
+    String errorDescription="GET Request timed out: " + timeoutException.getMessage();
+    logger.error(errorDescription);
+    RESTErrorHandler.handleError(REQUEST_TIMEOUT,this.putRequestMessageEvent,false,errorDescription);
+  }
+catch (  VoldemortException ve) {
+    String errorDescription="Voldemort Exception: " + ve.getMessage();
+    RESTErrorHandler.handleError(INTERNAL_SERVER_ERROR,this.putRequestMessageEvent,false,errorDescription);
+  }
+  writeResponse();
+}

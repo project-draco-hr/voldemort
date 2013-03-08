@@ -12,7 +12,7 @@
   pipelineData.setStats(stats);
   Pipeline pipeline=new Pipeline(Operation.GET_VERSIONS,timeoutConfig.getOperationTimeout(VoldemortOpCode.GET_VERSION_OP_CODE),TimeUnit.MILLISECONDS);
   StoreRequest<List<Version>> blockingStoreRequest=new StoreRequest<List<Version>>(){
-    public List<Version> request(    Store<ByteArray,byte[],byte[]> store){
+    @Override public List<Version> request(    Store<ByteArray,byte[],byte[]> store){
       return store.getVersions(key);
     }
   }

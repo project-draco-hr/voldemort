@@ -1,0 +1,54 @@
+{
+  VoldemortRequestWrapper requestWrapper=null;
+  long operationTimeoutInMs=1500;
+  boolean resolveConflicts=true;
+  String timeoutValStr=this.request.getHeader(R2Store.X_VOLD_REQUEST_TIMEOUT_MS);
+  if (timeoutValStr != null) {
+    try {
+      Long.parseLong(timeoutValStr);
+    }
+ catch (    NumberFormatException nfe) {
+      handleBadRequest(e,"Incorrect timeout parameter. Cannot parse this to long: " + timeoutValStr + ". Details: "+ nfe.getMessage());
+      return null;
+    }
+  }
+  String inconsistencyResolverOption=this.request.getHeader(R2Store.X_VOLD_INCONSISTENCY_RESOLVER);
+  if (inconsistencyResolverOption != null) {
+    if (inconsistencyResolverOption.equalsIgnoreCase(R2Store.CUSTOM_RESOLVING_STRATEGY)) {
+      resolveConflicts=false;
+    }
+ else     if (!inconsistencyResolverOption.equalsIgnoreCase(R2Store.DEFAULT_RESOLVING_STRATEGY)) {
+      handleBadRequest(e,"Invalid Inconsistency Resolving strategy specified in the Request : " + inconsistencyResolverOption);
+      return null;
+    }
+  }
+  storeName=getStoreName(requestURI);
+  this.fatClientWrapper=null;
+  if (storeName != null) {
+    this.fatClientWrapper=this.fatClientMap.get(storeName);
+  }
+  if (storeName == null || fatClientWrapper == null) {
+    handleBadRequest(e,"Invalid store name. Critical error.");
+    return null;
+  }
+switch (operationType) {
+case VoldemortOpCode.GET_OP_CODE:
+    ByteArray getKey=readKey(requestURI);
+  requestWrapper=new VoldemortRequestWrapper(getKey,operationTimeoutInMs,resolveConflicts);
+break;
+case VoldemortOpCode.PUT_OP_CODE:
+ChannelBuffer content=request.getContent();
+if (!content.readable()) {
+handleBadRequest(e,"Contents not readable");
+return null;
+}
+ByteArray putKey=readKey(requestURI);
+byte[] putValue=readValue(content);
+requestWrapper=new VoldemortRequestWrapper(putKey,putValue,operationTimeoutInMs);
+break;
+default :
+handleBadRequest(e,"Illegal Operation.");
+return null;
+}
+return requestWrapper;
+}

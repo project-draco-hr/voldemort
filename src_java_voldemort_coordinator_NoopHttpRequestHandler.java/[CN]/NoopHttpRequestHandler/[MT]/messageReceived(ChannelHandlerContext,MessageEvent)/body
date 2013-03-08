@@ -1,16 +1,15 @@
 {
-  OP_TYPE operation=getOperationType(this.request.getMethod());
-switch (operation) {
-case GET:
-    GetRequestExecutor getExecutor=new GetRequestExecutor(null,null,e,null);
+  byte operationType=getOperationType(this.request.getMethod());
+switch (operationType) {
+case VoldemortOpCode.GET_OP_CODE:
+    GetRequestExecutor getExecutor=new GetRequestExecutor(new VoldemortRequestWrapper(null,0l,false),e,null);
   Versioned<Object> responseVersioned=null;
 byte[] nullByteArray=new byte[1];
 nullByteArray[0]=0;
 responseVersioned=new Versioned<Object>(nullByteArray);
-getExecutor.setResponseContent(responseVersioned);
 getExecutor.writeResponse(responseVersioned);
 break;
-case PUT:
+case VoldemortOpCode.PUT_OP_CODE:
 this.responseContent=ChannelBuffers.EMPTY_BUFFER;
 break;
 default :

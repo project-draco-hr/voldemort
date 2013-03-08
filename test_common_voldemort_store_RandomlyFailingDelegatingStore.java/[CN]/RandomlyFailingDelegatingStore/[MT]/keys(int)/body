@@ -1,17 +1,17 @@
 {
   return new ClosableIterator<K>(){
     ClosableIterator<K> iterator=innerStorageEngine.keys(partition);
-    public void close(){
+    @Override public void close(){
       iterator.close();
     }
-    public boolean hasNext(){
+    @Override public boolean hasNext(){
       return iterator.hasNext();
     }
-    public K next(){
+    @Override public K next(){
       if (Math.random() > FAIL_PROBABILITY)       return iterator.next();
       throw new VoldemortException("Failing now !!");
     }
-    public void remove(){
+    @Override public void remove(){
     }
   }
 ;
