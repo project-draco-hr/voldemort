@@ -2,7 +2,7 @@
   VoldemortRequestWrapper requestWrapper=null;
   long operationTimeoutInMs=1500;
   boolean resolveConflicts=true;
-  String timeoutValStr=this.request.getHeader(R2Store.X_VOLD_REQUEST_TIMEOUT_MS);
+  String timeoutValStr=this.request.getHeader(X_VOLD_REQUEST_TIMEOUT_MS);
   if (timeoutValStr != null) {
     try {
       Long.parseLong(timeoutValStr);
@@ -12,12 +12,12 @@
       return null;
     }
   }
-  String inconsistencyResolverOption=this.request.getHeader(R2Store.X_VOLD_INCONSISTENCY_RESOLVER);
+  String inconsistencyResolverOption=this.request.getHeader(X_VOLD_INCONSISTENCY_RESOLVER);
   if (inconsistencyResolverOption != null) {
-    if (inconsistencyResolverOption.equalsIgnoreCase(R2Store.CUSTOM_RESOLVING_STRATEGY)) {
+    if (inconsistencyResolverOption.equalsIgnoreCase(CUSTOM_RESOLVING_STRATEGY)) {
       resolveConflicts=false;
     }
- else     if (!inconsistencyResolverOption.equalsIgnoreCase(R2Store.DEFAULT_RESOLVING_STRATEGY)) {
+ else     if (!inconsistencyResolverOption.equalsIgnoreCase(DEFAULT_RESOLVING_STRATEGY)) {
       handleBadRequest(e,"Invalid Inconsistency Resolving strategy specified in the Request : " + inconsistencyResolverOption);
       return null;
     }
