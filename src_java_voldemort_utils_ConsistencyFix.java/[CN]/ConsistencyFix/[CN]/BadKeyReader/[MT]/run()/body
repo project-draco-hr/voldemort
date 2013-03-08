@@ -1,18 +1,20 @@
 {
   try {
     int counter=0;
-    for (String key=fileReader.readLine(); key != null; key=fileReader.readLine()) {
-      if (!key.isEmpty()) {
+    for (String keyLine=fileReader.readLine(); keyLine != null; keyLine=fileReader.readLine()) {
+      BadKey badKey=new BadKey(keyLine.trim(),keyLine);
+      if (!keyLine.isEmpty()) {
         counter++;
-        logger.debug("BadKeyReader read line: key (" + key + ") and counter ("+ counter+ ")");
+        logger.debug("BadKeyReader read line: key (" + keyLine + ") and counter ("+ counter+ ")");
         if (!consistencyFix.isParseOnly()) {
-          consistencyFixWorkers.submit(new ConsistencyFixWorker(key,consistencyFix,badKeyQOut));
+          consistencyFixWorkers.submit(new ConsistencyFixWorker(badKey,consistencyFix,badKeyQOut));
         }
       }
     }
   }
  catch (  IOException ioe) {
-    logger.warn("IO exception reading badKeyFile " + badKeyFileIn + " : "+ ioe.getMessage());
+    logger.error("IO exception reading badKeyFile " + badKeyFileIn + " : "+ ioe.getMessage());
+    hasException=true;
   }
  finally {
     latch.countDown();

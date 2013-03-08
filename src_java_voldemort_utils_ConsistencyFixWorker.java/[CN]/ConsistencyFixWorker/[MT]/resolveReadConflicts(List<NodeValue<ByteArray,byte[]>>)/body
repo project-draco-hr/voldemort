@@ -1,4 +1,13 @@
 {
+  if (logger.isTraceEnabled()) {
+    logger.trace("NodeValues passed into resolveReadConflicts.");
+    if (nodeValues.size() == 0) {
+      logger.trace("Empty nodeValues passed to resolveReadConflicts");
+    }
+    for (    NodeValue<ByteArray,byte[]> nodeValue : nodeValues) {
+      logger.trace("\t" + nodeValue.getNodeId() + " - "+ nodeValue.getKey().toString()+ " - "+ nodeValue.getVersion().toString());
+    }
+  }
   int currentFakeNodeId=fakeNodeID;
   if (this.orphanedValues != null) {
     for (    Versioned<byte[]> value : this.orphanedValues.getValues()) {
@@ -7,13 +16,17 @@
     }
   }
   ReadRepairer<ByteArray,byte[]> readRepairer=new ReadRepairer<ByteArray,byte[]>();
-  if (logger.isDebugEnabled()) {
-    for (    NodeValue<ByteArray,byte[]> nodeKeyValue : readRepairer.getRepairs(nodeValues)) {
-      logger.debug("\tNodeKeyValue result from readRepairer.getRepairs : " + ByteUtils.toHexString(nodeKeyValue.getKey().get()) + " on node with id "+ nodeKeyValue.getNodeId()+ " for version "+ nodeKeyValue.getVersion());
+  List<NodeValue<ByteArray,byte[]>> nodeKeyValues=readRepairer.getRepairs(nodeValues);
+  if (logger.isTraceEnabled()) {
+    if (nodeKeyValues.size() == 0) {
+      logger.trace("\treadRepairer returned an empty list.");
+    }
+    for (    NodeValue<ByteArray,byte[]> nodeKeyValue : nodeKeyValues) {
+      logger.trace("\tNodeKeyValue result from readRepairer.getRepairs : " + ByteUtils.toHexString(nodeKeyValue.getKey().get()) + " on node with id "+ nodeKeyValue.getNodeId()+ " for version "+ nodeKeyValue.getVersion());
     }
   }
   List<NodeValue<ByteArray,byte[]>> toReadRepair=Lists.newArrayList();
-  for (  NodeValue<ByteArray,byte[]> v : readRepairer.getRepairs(nodeValues)) {
+  for (  NodeValue<ByteArray,byte[]> v : nodeKeyValues) {
     if (v.getNodeId() > currentFakeNodeId) {
       Versioned<byte[]> versioned=Versioned.value(v.getVersioned().getValue(),((VectorClock)v.getVersion()).clone());
       toReadRepair.add(new NodeValue<ByteArray,byte[]>(v.getNodeId(),v.getKey(),versioned));
@@ -24,9 +37,12 @@
       }
     }
   }
-  if (logger.isDebugEnabled()) {
+  if (logger.isTraceEnabled()) {
+    if (toReadRepair.size() == 0) {
+      logger.trace("\ttoReadRepair is empty.");
+    }
     for (    NodeValue<ByteArray,byte[]> nodeKeyValue : toReadRepair) {
-      logger.debug("\tRepair key " + ByteUtils.toHexString(nodeKeyValue.getKey().get()) + " on node with id "+ nodeKeyValue.getNodeId()+ " for version "+ nodeKeyValue.getVersion());
+      logger.trace("\tRepair key " + ByteUtils.toHexString(nodeKeyValue.getKey().get()) + " on node with id "+ nodeKeyValue.getNodeId()+ " for version "+ nodeKeyValue.getVersion());
     }
   }
   return toReadRepair;

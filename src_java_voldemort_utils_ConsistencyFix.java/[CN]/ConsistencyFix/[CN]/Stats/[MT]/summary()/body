@@ -5,7 +5,11 @@
   summary.append("-----------------------\n");
   summary.append("Total bad keys processed: " + fixCount + "\n");
   summary.append("Total server-puts issued: " + putCount + "\n");
+  summary.append("Total ObsoleteVersionExceptions encountered: " + oveCount + "\n");
   summary.append("Total keys processed that were not corrected: " + failures + "\n");
+  for (  Status status : failureDistribution.keySet()) {
+    summary.append("\t" + status + " : "+ failureDistribution.get(status)+ "\n");
+  }
   long nowTimeMs=System.currentTimeMillis();
   summary.append("Keys per second processed: " + getPrettyQPS(fixCount,nowTimeMs - startTimeMs) + "\n");
   return summary.toString();

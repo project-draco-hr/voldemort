@@ -1,0 +1,11 @@
+{
+  ConsistencyFix.Stats stats=new Stats(1000);
+  long lastTimeMs=stats.lastTimeMs;
+  TimeUnit.MILLISECONDS.sleep(2);
+  for (int i=0; i < 1001; ++i) {
+    stats.incrementFixCount();
+  }
+  assertTrue(stats.fixCount == 1001);
+  assertTrue(stats.startTimeMs < stats.lastTimeMs);
+  assertTrue(lastTimeMs < System.currentTimeMillis());
+}

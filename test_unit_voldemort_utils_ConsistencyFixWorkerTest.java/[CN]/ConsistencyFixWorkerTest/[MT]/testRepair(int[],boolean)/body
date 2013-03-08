@@ -1,0 +1,64 @@
+{
+  byte[] bKey=TestUtils.randomBytes(10);
+  String hexKey=ByteUtils.toHexString(bKey);
+  ByteArray baKey=new ByteArray(bKey);
+  BadKey badKey;
+  QueryKeyResult queryKeyResult;
+  if (!orphan) {
+    badKey=new BadKey(hexKey,hexKey + "\n");
+    queryKeyResult=null;
+  }
+ else {
+    StringBuilder orphanInput=new StringBuilder();
+    orphanInput.append(hexKey + "," + "1\n");
+    List<Versioned<byte[]>> values=new ArrayList<Versioned<byte[]>>(0);
+    int arbitraryNodeId=2;
+    Versioned<byte[]> versioned=TestUtils.getVersioned(TestUtils.randomBytes(25),arbitraryNodeId);
+    orphanInput.append(ByteUtils.toHexString(versioned.getValue()));
+    orphanInput.append("," + versioned.toString() + "\n");
+    values.add(versioned);
+    badKey=new BadKey(hexKey,orphanInput.toString());
+    queryKeyResult=new QueryKeyResult(baKey,values);
+  }
+  Versioned<byte[]> value=TestUtils.getVersioned(TestUtils.randomBytes(25),0);
+  String url=ConsistencyFixTest.setUpCluster();
+  ConsistencyFix consistencyFix=new ConsistencyFix(url,ConsistencyFixTest.STORE_NAME,100,100,false,false);
+  AdminClient adminClient=consistencyFix.getAdminClient();
+  System.out.println("Initial get");
+  for (int i=0; i < 4; ++i) {
+    List<Versioned<byte[]>> results;
+    results=adminClient.storeOps.getNodeKey(ConsistencyFixTest.STORE_NAME,i,baKey);
+    assertTrue(results.size() == 0);
+  }
+  System.out.println("Puts");
+  for (  int putNode : putNodes) {
+    NodeValue<ByteArray,byte[]> nodeKeyValue;
+    nodeKeyValue=new NodeValue<ByteArray,byte[]>(putNode,baKey,value);
+    adminClient.storeOps.putNodeKeyValue(ConsistencyFixTest.STORE_NAME,nodeKeyValue);
+  }
+  ConsistencyFixWorker consistencyFixWorker=null;
+  if (!orphan) {
+    consistencyFixWorker=new ConsistencyFixWorker(badKey,consistencyFix,null);
+  }
+ else {
+    consistencyFixWorker=new ConsistencyFixWorker(badKey,consistencyFix,null,queryKeyResult);
+  }
+  consistencyFixWorker.run();
+  System.out.println("Second get");
+  int expectedNumVersions=0;
+  if (putNodes.length > 0) {
+    expectedNumVersions++;
+  }
+  if (orphan) {
+    expectedNumVersions++;
+  }
+  for (int i=0; i < 4; ++i) {
+    System.out.println("Node : " + i);
+    List<Versioned<byte[]>> results;
+    results=adminClient.storeOps.getNodeKey(ConsistencyFixTest.STORE_NAME,i,baKey);
+    for (    Versioned<byte[]> v : results) {
+      System.out.println("\t" + v.getVersion());
+    }
+    assertTrue(results.size() == expectedNumVersions);
+  }
+}

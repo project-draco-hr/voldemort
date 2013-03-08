@@ -1,0 +1,39 @@
+{
+  String tmpDir=TestUtils.createTempDir().getAbsolutePath();
+  String fileName=tmpDir + "BadKeyFile";
+  if (orphan) {
+    badKeyReaderWriteOrphanKeys(fileName,true);
+  }
+ else {
+    badKeyReaderWriteBadKeys(fileName,true);
+  }
+  String url=setUpCluster();
+  ConsistencyFix consistencyFix=new ConsistencyFix(url,STORE_NAME,100,100,false,true);
+  int parallelism=1;
+  BlockingQueue<Runnable> blockingQ=new ArrayBlockingQueue<Runnable>(parallelism);
+  RejectedExecutionHandler rejectedExecutionHandler=new ThreadPoolExecutor.CallerRunsPolicy();
+  ExecutorService consistencyFixWorkers=new ThreadPoolExecutor(parallelism,parallelism,0L,TimeUnit.MILLISECONDS,blockingQ,rejectedExecutionHandler);
+  BlockingQueue<BadKeyStatus> badKeyQOut=new ArrayBlockingQueue<BadKeyStatus>(10000);
+  ExecutorService badKeyReaderService=Executors.newSingleThreadExecutor();
+  CountDownLatch allBadKeysReadLatch=new CountDownLatch(1);
+  BadKeyReader bkr=null;
+  if (orphan) {
+    bkr=new BadKeyOrphanReader(allBadKeysReadLatch,fileName,consistencyFix,consistencyFixWorkers,badKeyQOut);
+  }
+ else {
+    bkr=new BadKeyReader(allBadKeysReadLatch,fileName,consistencyFix,consistencyFixWorkers,badKeyQOut);
+  }
+  badKeyReaderService.submit(bkr);
+  try {
+    allBadKeysReadLatch.await();
+    badKeyReaderService.shutdown();
+    consistencyFixWorkers.shutdown();
+  }
+ catch (  InterruptedException e) {
+    e.printStackTrace();
+    fail("Unexpected exception");
+  }
+  consistencyFix.close();
+  assertFalse(bkr.hasException());
+  assertEquals(0,badKeyQOut.size());
+}

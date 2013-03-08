@@ -1,0 +1,32 @@
+{
+  try {
+    BufferedWriter fileWriter=new BufferedWriter(new FileWriter(fileName));
+    if (addWhiteSpace)     fileWriter.write("\n\n\t\t\n\n\t\n");
+    for (int i=0; i < 1000; ++i) {
+      int numValues=(i % 3) + 1;
+      byte[] keyb=TestUtils.randomBytes(10);
+      String keyLine=ByteUtils.toHexString(keyb) + "," + numValues;
+      System.out.println("keyLine: " + keyLine);
+      fileWriter.write(keyLine + "\n");
+      for (int j=0; j < numValues; j++) {
+        int valLength=(j + 10) * (j + 1);
+        String value=ByteUtils.toHexString(TestUtils.randomBytes(valLength));
+        VectorClock vectorClock=TestUtils.getClock(j);
+        String valueLine=value + "," + vectorClock.toString();
+        System.out.println("valueLine: " + valueLine);
+        fileWriter.write(valueLine + "\n");
+      }
+      if (addWhiteSpace) {
+        if (i % 5 == 0) {
+          fileWriter.write("\n\n\t\t\n\n\t\n");
+        }
+      }
+    }
+    if (addWhiteSpace)     fileWriter.write("\n\n\t\t\n\n\t\n");
+    fileWriter.close();
+  }
+ catch (  IOException e) {
+    e.printStackTrace();
+    fail("Unexpected exception");
+  }
+}

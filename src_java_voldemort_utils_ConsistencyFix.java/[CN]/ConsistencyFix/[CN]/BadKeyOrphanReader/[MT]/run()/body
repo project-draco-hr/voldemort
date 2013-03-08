@@ -1,7 +1,9 @@
 {
   try {
     int counter=0;
-    for (String keyNumVals=fileReader.readLine(); keyNumVals != null; keyNumVals=fileReader.readLine()) {
+    for (String keyNumValsLine=fileReader.readLine(); keyNumValsLine != null; keyNumValsLine=fileReader.readLine()) {
+      String badKeyEntry=keyNumValsLine;
+      String keyNumVals=keyNumValsLine.trim();
       if (!keyNumVals.isEmpty()) {
         counter++;
         String parsed[]=keyNumVals.split(",");
@@ -15,7 +17,9 @@
         logger.debug("BadKeyReader read line: key (" + key + ") and counter ("+ counter+ ") and numVals is ("+ numVals+ ")");
         List<Versioned<byte[]>> values=new ArrayList<Versioned<byte[]>>();
         for (int i=0; i < numVals; ++i) {
-          String valueVersion=fileReader.readLine();
+          String valueVersionLine=fileReader.readLine();
+          badKeyEntry.concat(valueVersionLine);
+          String valueVersion=valueVersionLine.trim();
           if (valueVersion.isEmpty()) {
             throw new IOException("ValueVersion line was empty!");
           }
@@ -29,13 +33,15 @@
         }
         QueryKeyResult queryKeyResult=new QueryKeyResult(keyByteArray,values);
         if (!consistencyFix.isParseOnly()) {
-          consistencyFixWorkers.submit(new ConsistencyFixWorker(key,consistencyFix,badKeyQOut,queryKeyResult));
+          BadKey badKey=new BadKey(key,badKeyEntry);
+          consistencyFixWorkers.submit(new ConsistencyFixWorker(badKey,consistencyFix,badKeyQOut,queryKeyResult));
         }
       }
     }
   }
  catch (  Exception e) {
-    logger.warn("Exception reading badKeyFile " + badKeyFileIn + " : "+ e.getMessage());
+    logger.error("Exception reading badKeyFile " + badKeyFileIn + " : "+ e.getMessage());
+    hasException=true;
   }
  finally {
     latch.countDown();

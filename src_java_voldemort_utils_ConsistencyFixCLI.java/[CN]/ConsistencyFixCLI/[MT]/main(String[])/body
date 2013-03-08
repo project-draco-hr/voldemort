@@ -1,6 +1,7 @@
 {
   Options options=parseArgs(args);
-  ConsistencyFix consistencyFix=new ConsistencyFix(options.url,options.storeName,options.progressBar,options.perServerIOPSLimit,options.dryRun,options.parseOnly);
+  ConsistencyFix consistencyFix=new ConsistencyFix(options.url,options.storeName,options.progressPeriodOps,options.perServerQPSLimit,options.dryRun,options.parseOnly);
   String summary=consistencyFix.execute(options.parallelism,options.badKeyFileIn,options.badKeyFileInOrphanFormat,options.badKeyFileOut);
+  consistencyFix.close();
   System.out.println(summary);
 }

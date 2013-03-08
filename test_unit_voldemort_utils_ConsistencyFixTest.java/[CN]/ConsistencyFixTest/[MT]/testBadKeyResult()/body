@@ -1,0 +1,12 @@
+{
+  BadKey badKey=new BadKey("0101","0101\n");
+  ConsistencyFix.BadKeyStatus bkr1=new BadKeyStatus(badKey,ConsistencyFix.Status.SUCCESS);
+  assertFalse(bkr1.isPoison());
+  assertEquals(bkr1.getBadKey().getKeyInHexFormat(),"0101");
+  assertEquals(bkr1.getBadKey().getReaderInput(),"0101\n");
+  assertEquals(bkr1.getStatus(),ConsistencyFix.Status.SUCCESS);
+  ConsistencyFix.BadKeyStatus bkr2=new BadKeyStatus();
+  assertTrue(bkr2.isPoison());
+  assertEquals(bkr2.getBadKey(),null);
+  assertEquals(bkr2.getStatus(),null);
+}
