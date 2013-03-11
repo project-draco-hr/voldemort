@@ -1,13 +1,10 @@
 {
-  Node node=AdminClient.this.getAdminClientCluster().getNodeById(nodeId);
-  ClientConfig clientConfig=new ClientConfig();
   final Store<ByteArray,byte[],byte[]> store;
-  final ClientRequestExecutorPool clientPool=new ClientRequestExecutorPool(clientConfig.getSelectors(),clientConfig.getMaxConnectionsPerNode(),clientConfig.getConnectionTimeout(TimeUnit.MILLISECONDS),clientConfig.getSocketTimeout(TimeUnit.MILLISECONDS),clientConfig.getSocketBufferSize(),clientConfig.getSocketKeepAlive());
   try {
-    store=clientPool.create(storeName,node.getHost(),node.getSocketPort(),clientConfig.getRequestFormatType(),RequestRoutingType.IGNORE_CHECKS);
+    store=adminStoreClient.getSocketStore(nodeId,storeName);
   }
  catch (  Exception e) {
-    clientPool.close();
+    AdminClient.this.close();
     throw new VoldemortException(e);
   }
   return new AbstractIterator<QueryKeyResult>(){
@@ -15,7 +12,7 @@
       ByteArray key;
       List<Versioned<byte[]>> value=null;
       if (!keys.hasNext()) {
-        clientPool.close();
+        AdminClient.this.close();
         return endOfData();
       }
  else {

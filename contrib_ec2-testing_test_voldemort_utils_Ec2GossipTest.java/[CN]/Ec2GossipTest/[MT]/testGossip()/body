@@ -36,7 +36,7 @@
     logger.info("Select a peer node " + peerNodeId);
     for (    String hostname : newHostnames) {
       int nodeId=nodeIds.get(hostname);
-      AdminClient adminClient=new AdminClient("tcp://" + hostname + ":6666",new AdminClientConfig());
+      AdminClient adminClient=new AdminClient("tcp://" + hostname + ":6666",new AdminClientConfig(),new ClientConfig());
       Versioned<String> versioned=adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,MetadataStore.CLUSTER_KEY);
       Version version=versioned.getVersion();
       VectorClock vectorClock=(VectorClock)version;
@@ -51,7 +51,7 @@
     }
     assertWithBackoff(1000,60000,new Attempt(){
       private int count=1;
-      private AdminClient adminClient=new AdminClient("tcp://" + hostNames.get(0) + ":6666",new AdminClientConfig());
+      private AdminClient adminClient=new AdminClient("tcp://" + hostNames.get(0) + ":6666",new AdminClientConfig(),new ClientConfig());
       public void checkCondition() throws Exception, AssertionError {
         logger.info("Attempt " + count++);
         for (        int testNodeId : oldNodeIdSet) {

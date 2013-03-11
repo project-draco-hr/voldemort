@@ -26,7 +26,7 @@
             AdminClient adminClient=null;
             ExecutorService internalExecutor=null;
             try {
-              adminClient=new AdminClient(url,new AdminClientConfig());
+              adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());
               Pair<StoreDefinition,Cluster> metadata=verifySchema(storeName,url,inputDirsPerStore.get(storeName),adminClient);
               urlToCluster.put(url,metadata.getSecond());
               URI uri=new URI(url);
@@ -63,7 +63,7 @@
                 internalExecutor.awaitTermination(10,TimeUnit.SECONDS);
               }
               if (adminClient != null) {
-                adminClient.stop();
+                adminClient.close();
               }
             }
           }
@@ -97,7 +97,7 @@
       Cluster cluster=urlToCluster.get(clusterUrl);
       AdminClient adminClient=null;
       try {
-        adminClient=new AdminClient(cluster,new AdminClientConfig());
+        adminClient=new AdminClient(cluster,new AdminClientConfig(),new ClientConfig());
         for (        final String storeName : storeNames) {
           Pair<String,String> key=Pair.create(clusterUrl,storeName);
           if (nodeDirPerClusterStore.containsKey(key)) {
@@ -120,7 +120,7 @@
       }
   finally {
         if (adminClient != null) {
-          adminClient.stop();
+          adminClient.close();
         }
       }
     }
@@ -144,7 +144,7 @@
     for (int index=0; index < clusterUrls.size(); index++) {
       String url=clusterUrls.get(index);
       Cluster cluster=urlToCluster.get(url);
-      AdminClient adminClient=new AdminClient(cluster,new AdminClientConfig());
+      AdminClient adminClient=new AdminClient(cluster,new AdminClientConfig(),new ClientConfig());
       log.info("Swapping all stores on cluster " + url);
       try {
         for (        Node node : cluster.getNodes()) {
@@ -159,7 +159,7 @@
       }
   finally {
         if (adminClient != null) {
-          adminClient.stop();
+          adminClient.close();
         }
       }
     }
@@ -171,7 +171,7 @@
       String url=clusterStoreTuple.getFirst();
       Cluster cluster=urlToCluster.get(url);
       log.info("Rolling back for cluster " + url + " and store  "+ clusterStoreTuple.getSecond());
-      AdminClient adminClient=new AdminClient(cluster,new AdminClientConfig());
+      AdminClient adminClient=new AdminClient(cluster,new AdminClientConfig(),new ClientConfig());
       try {
         for (        Pair<Integer,String> nodeToPreviousDir : nodeToPreviousDirs) {
           log.info("Rolling back for cluster " + url + " and store "+ clusterStoreTuple.getSecond()+ " and node "+ nodeToPreviousDir.getFirst()+ " to dir "+ nodeToPreviousDir.getSecond());
@@ -181,7 +181,7 @@
       }
   finally {
         if (adminClient != null) {
-          adminClient.stop();
+          adminClient.close();
         }
       }
     }

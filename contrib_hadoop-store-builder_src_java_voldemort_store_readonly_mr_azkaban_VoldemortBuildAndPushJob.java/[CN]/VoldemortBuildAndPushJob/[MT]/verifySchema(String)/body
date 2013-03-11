@@ -24,7 +24,7 @@
   log.info("Verifying store: \n" + newStoreDefXml.toString());
   StoreDefinition newStoreDef=VoldemortUtils.getStoreDef(newStoreDefXml);
   log.info("Getting store definition from: " + url + " (node id "+ this.nodeId+ ")");
-  AdminClient adminClient=new AdminClient(url,new AdminClientConfig());
+  AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());
   try {
     List<StoreDefinition> remoteStoreDefs=adminClient.metadataMgmtOps.getRemoteStoreDefList(this.nodeId).getValue();
     boolean foundStore=false;
@@ -74,6 +74,6 @@
     cluster=adminClient.getAdminClientCluster();
   }
   finally {
-    adminClient.stop();
+    adminClient.close();
   }
 }

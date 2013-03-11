@@ -37,7 +37,7 @@
   AdminClient adminClient=null;
   DefaultHttpClient httpClient=null;
   if (useAdminServices) {
-    adminClient=new AdminClient(cluster,new AdminClientConfig());
+    adminClient=new AdminClient(cluster,new AdminClientConfig(),new ClientConfig());
     swapper=new AdminStoreSwapper(cluster,executor,adminClient,timeoutMs);
   }
  else {
@@ -62,7 +62,7 @@
     logger.info("Succeeded on all nodes in " + ((end - start) / Time.MS_PER_SECOND) + " seconds.");
   }
   finally {
-    if (useAdminServices && adminClient != null)     adminClient.stop();
+    if (useAdminServices && adminClient != null)     adminClient.close();
     executor.shutdownNow();
     executor.awaitTermination(1,TimeUnit.SECONDS);
     VoldemortIOUtils.closeQuietly(httpClient);
