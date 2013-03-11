@@ -4,7 +4,6 @@
     store=adminStoreClient.getSocketStore(nodeId,storeName);
   }
  catch (  Exception e) {
-    AdminClient.this.close();
     throw new VoldemortException(e);
   }
   return new AbstractIterator<QueryKeyResult>(){
@@ -12,7 +11,6 @@
       ByteArray key;
       List<Versioned<byte[]>> value=null;
       if (!keys.hasNext()) {
-        AdminClient.this.close();
         return endOfData();
       }
  else {
