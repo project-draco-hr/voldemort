@@ -41,7 +41,7 @@
     long totalTime=(System.currentTimeMillis() - startTime) / Time.MS_PER_SECOND;
     logger.info("Fetch entries scanned " + counter + " entries, fetched "+ fetched+ " entries for store '"+ storageEngine.getName()+ "' replicaToPartitionList:"+ replicaToPartitionList+ " in "+ totalTime+ " s");
   }
-  if (keyIterator.hasNext() && counter < maxRecords)   return StreamRequestHandlerState.WRITING;
+  if (keyIterator.hasNext() && counter < recordsPerPartition)   return StreamRequestHandlerState.WRITING;
  else {
     return StreamRequestHandlerState.COMPLETE;
   }

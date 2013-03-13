@@ -22,13 +22,13 @@
   if (options.hasArgument("parallelism")) {
     nodeParallelism=(Integer)options.valueOf("parallelism");
   }
-  Integer maxRecords=DEFAULT_MAX_RECORDS;
-  if (options.hasArgument("max-records")) {
-    maxRecords=(Integer)options.valueOf("max-records");
+  Integer recordsPerPartition=DEFAULT_RECORDS_PER_PARTITION;
+  if (options.hasArgument("records-per-partition")) {
+    recordsPerPartition=(Integer)options.valueOf("records-per-partition");
   }
   logger.warn("This tool is hard-coded to take advantage of servers that " + "use PID style layout of data in BDB. " + "Use fo this tool against other types of servers is undefined.");
   try {
-    KeySamplerCLI sampler=new KeySamplerCLI(url,outDir,nodeParallelism,maxRecords);
+    KeySamplerCLI sampler=new KeySamplerCLI(url,outDir,nodeParallelism,recordsPerPartition);
     try {
       if (!sampler.sampleStores()) {
         logger.error("Some stores were not successfully sampled.");

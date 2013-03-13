@@ -1,6 +1,6 @@
 {
   if (entriesPartitionIterator == null) {
-    if (currentIndex == partitionList.size() || counter >= maxRecords) {
+    if (currentIndex == partitionList.size() || counter >= recordsPerPartition) {
       logger.info("Done fetching  store " + storageEngine.getName() + " : "+ counter+ " records processed.");
       return StreamRequestHandlerState.COMPLETE;
     }
@@ -46,7 +46,7 @@
         logger.info("Fetch entries scanned " + counter + " entries, fetched "+ fetched+ " entries for store '"+ storageEngine.getName()+ "' replicaToPartitionList:"+ replicaToPartitionList+ " in "+ totalTime+ " s");
       }
     }
-    if (!entriesPartitionIterator.hasNext() || counter >= maxRecords) {
+    if (!entriesPartitionIterator.hasNext() || counter >= recordsPerPartition) {
       entriesPartitionIterator.close();
       entriesPartitionIterator=null;
     }
