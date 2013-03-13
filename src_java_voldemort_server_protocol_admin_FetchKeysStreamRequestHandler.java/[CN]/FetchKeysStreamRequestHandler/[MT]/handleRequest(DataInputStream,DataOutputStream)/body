@@ -9,7 +9,7 @@
   throttler.maybeThrottle(key.length());
   boolean keyAccepted=false;
   if (!fetchOrphaned) {
-    if (StoreInstance.checkKeyBelongsToPartition(nodeId,key.get(),replicaToPartitionList,initialCluster,storeDef) && filter.accept(key,null) && counter % skipRecords == 0) {
+    if (StoreInstance.checkKeyBelongsToPartition(nodeId,key.get(),replicaToPartitionList,initialCluster,storeDef) && filter.accept(key,null)) {
       keyAccepted=true;
     }
   }
@@ -26,14 +26,16 @@
     Message message=response.build();
     startNs=System.nanoTime();
     ProtoUtils.writeMessage(outputStream,message);
-    if (streamStats != null)     streamStats.reportNetworkTime(operation,System.nanoTime() - startNs);
+    if (streamStats != null) {
+      streamStats.reportNetworkTime(operation,System.nanoTime() - startNs);
+    }
   }
   counter++;
   if (0 == counter % STAT_RECORDS_INTERVAL) {
     long totalTime=(System.currentTimeMillis() - startTime) / 1000;
     logger.info("Fetch keys scanned " + counter + " keys, fetched "+ fetched+ " keys for store '"+ storageEngine.getName()+ "' replicaToPartitionList:"+ replicaToPartitionList+ " in "+ totalTime+ " s");
   }
-  if (keyIterator.hasNext() && counter < maxRecords * skipRecords)   return StreamRequestHandlerState.WRITING;
+  if (keyIterator.hasNext() && (counter < maxRecords))   return StreamRequestHandlerState.WRITING;
  else {
     return StreamRequestHandlerState.COMPLETE;
   }

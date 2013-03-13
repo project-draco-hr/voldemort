@@ -20,7 +20,7 @@
     while (attempts < 5 && !success) {
       try {
         Iterator<ByteArray> fetchIterator;
-        fetchIterator=adminClient.bulkFetchOps.fetchKeys(node.getId(),storeName,singlePartition,null,false,skipRecords,maxRecords);
+        fetchIterator=adminClient.bulkFetchOps.fetchKeys(node.getId(),storeName,singlePartition,null,true,maxRecords);
         int keyCount=0;
         while (fetchIterator.hasNext()) {
           ByteArray key=fetchIterator.next();
@@ -30,6 +30,9 @@
         }
         if (keyCount < maxRecords) {
           logger.warn("Fewer keys (" + keyCount + ") than requested ("+ maxRecords+ ") returned --- "+ infoTag);
+        }
+ else         if (keyCount < maxRecords) {
+          logger.warn("More keys (" + keyCount + ") than requested ("+ maxRecords+ ") returned --- "+ infoTag);
         }
         success=true;
       }
