@@ -20,8 +20,8 @@
     Queue<Future<String>> futureKVs=new LinkedList<Future<String>>();
     for (String keyLine=keyReader.readLine(); keyLine != null; keyLine=keyReader.readLine()) {
       byte[] keyInBytes=ByteUtils.fromHexString(keyLine.trim());
-      KeyVersionSampler kvSampler=new KeyVersionSampler(storeInstance,keyInBytes);
-      Future<String> future=kvSamplerService.submit(kvSampler);
+      KeyVersionFetcher kvFetcher=new KeyVersionFetcher(storeInstance,keyInBytes);
+      Future<String> future=kvFetcherService.submit(kvFetcher);
       futureKVs.add(future);
     }
     kvWriter=new BufferedWriter(new FileWriter(kvFileName));
