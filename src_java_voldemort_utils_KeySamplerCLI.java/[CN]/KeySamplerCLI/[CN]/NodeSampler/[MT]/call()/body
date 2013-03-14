@@ -1,58 +1,47 @@
 {
-  boolean success=false;
   String storeName=storeDefinition.getName();
   StringBuilder hexKeysString=new StringBuilder();
-  for (  int partitionId : node.getPartitionIds()) {
-    success=false;
-    try {
-      Thread.sleep(100);
-    }
- catch (    InterruptedException e) {
-      logger.warn("Sleep throttling interrupted : " + e.getMessage());
-      e.printStackTrace();
-    }
-    String infoTag="store " + storeName + ", partitionID "+ partitionId+ " on node "+ node.getId()+ " ["+ node.getHost()+ "]";
-    logger.info("Starting sample --- " + infoTag);
-    List<Integer> singlePartition=new ArrayList<Integer>();
-    singlePartition.add(partitionId);
-    int attempts=0;
-    int backoffMs=1000;
-    while (attempts < 5 && !success) {
-      try {
-        Iterator<ByteArray> fetchIterator;
-        fetchIterator=adminClient.bulkFetchOps.fetchKeys(node.getId(),storeName,singlePartition,null,true,recordsPerPartition);
-        int keyCount=0;
-        while (fetchIterator.hasNext()) {
-          ByteArray key=fetchIterator.next();
-          String hexKeyString=ByteUtils.toHexString(key.get());
-          hexKeysString.append(hexKeyString + "\n");
-          keyCount++;
-        }
-        if (keyCount < recordsPerPartition) {
-          logger.warn("Fewer keys (" + keyCount + ") than requested ("+ recordsPerPartition+ ") returned --- "+ infoTag);
-        }
- else         if (keyCount < recordsPerPartition) {
-          logger.warn("More keys (" + keyCount + ") than requested ("+ recordsPerPartition+ ") returned --- "+ infoTag);
-        }
-        success=true;
-      }
- catch (      VoldemortException ve) {
-        logger.warn("Caught VoldemortException and will retry (" + infoTag + "): "+ ve.getMessage()+ " --- "+ ve.getCause().getMessage());
-        try {
-          Thread.sleep(backoffMs);
-          backoffMs*=2;
-        }
- catch (        InterruptedException e) {
-          logger.warn("Backoff-and-retry sleep interrupted : " + e.getMessage());
-          e.printStackTrace();
-          break;
-        }
-      }
-    }
-    if (!success) {
-      logger.error("Failed to sample --- " + infoTag);
-      break;
+  String nodeTag=node.getId() + " [" + node.getHost()+ "]";
+  List<Integer> nodePartitionIds=new ArrayList<Integer>(node.getPartitionIds());
+  if (partitionIds != null) {
+    nodePartitionIds.retainAll(partitionIds);
+    if (nodePartitionIds.size() == 0) {
+      logger.info("No partitions to sample for store '" + storeName + "' on node "+ nodeTag);
+      return new NodeSampleResult(true,hexKeysString.toString());
     }
   }
-  return new NodeSampleResult(success,hexKeysString.toString());
+  String infoTag="store " + storeName + ", partitionIDs "+ nodePartitionIds+ " on node "+ nodeTag;
+  logger.info("Starting sample --- " + infoTag);
+  long startTimeMs=System.currentTimeMillis();
+  try {
+    Iterator<ByteArray> fetchIterator;
+    fetchIterator=adminClient.bulkFetchOps.fetchKeys(node.getId(),storeName,nodePartitionIds,null,true,recordsPerPartition);
+    long keyCount=0;
+    while (fetchIterator.hasNext()) {
+      ByteArray key=fetchIterator.next();
+      String hexKeyString=ByteUtils.toHexString(key.get());
+      hexKeysString.append(hexKeyString + "\n");
+      keyCount++;
+      throttler.maybeThrottle(1);
+      if (0 == keyCount % progressPeriodOps) {
+        if (logger.isInfoEnabled()) {
+          long durationS=TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTimeMs);
+          logger.info(infoTag + " --- " + keyCount+ " keys sampled in "+ durationS+ " seconds.");
+        }
+      }
+    }
+    long expectedKeyCount=recordsPerPartition * node.getPartitionIds().size();
+    if (keyCount < expectedKeyCount) {
+      logger.warn("Fewer keys (" + keyCount + ") than expected ("+ expectedKeyCount+ ") returned --- "+ infoTag);
+    }
+ else     if (keyCount < recordsPerPartition) {
+      logger.warn("More keys (" + keyCount + ") than expected ("+ expectedKeyCount+ ") returned --- "+ infoTag);
+    }
+    logger.info("Finished sample --- " + infoTag);
+    return new NodeSampleResult(true,hexKeysString.toString());
+  }
+ catch (  VoldemortException ve) {
+    logger.error("Failed to sample --- " + infoTag + " --- VoldemortException caught ("+ ve.getMessage()+ ") caused by ("+ ve.getCause().getMessage()+ ")");
+    throw ve;
+  }
 }

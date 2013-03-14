@@ -1,17 +1,22 @@
 {
+  OptionParser parser=null;
   OptionSet options=null;
   try {
-    options=getParser().parse(args);
+    parser=getParser();
+    options=parser.parse(args);
   }
  catch (  OptionException oe) {
+    parser.printHelpOn(System.out);
     printUsageAndDie("Exception when parsing arguments : " + oe.getMessage());
     return;
   }
   if (options.hasArgument("help")) {
+    parser.printHelpOn(System.out);
     printUsage();
     return;
   }
   if (!options.hasArgument("url") || !options.hasArgument("in-dir") || !options.hasArgument("out-dir")) {
+    parser.printHelpOn(System.out);
     printUsageAndDie("Missing a required argument.");
     return;
   }
