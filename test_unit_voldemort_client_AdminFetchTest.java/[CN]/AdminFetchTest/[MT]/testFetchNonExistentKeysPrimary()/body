@@ -1,0 +1,7 @@
+{
+  HashMap<Integer,List<Integer>> replicaToPartitionList=new HashMap<Integer,List<Integer>>();
+  replicaToPartitionList.put(0,Arrays.asList(5,7));
+  Iterator<ByteArray> keysItr=adminClient.bulkFetchOps.fetchKeys(0,testStoreName,replicaToPartitionList,null,false,cluster,0);
+  Set<String> fetchedKeys=getKeys(keysItr);
+  assertEquals("Obtained something:" + fetchedKeys,0,fetchedKeys.size());
+}

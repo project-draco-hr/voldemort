@@ -4,7 +4,7 @@
   final int numServers=2;
   servers=new VoldemortServer[numServers];
   int partitionMap[][]={{0,1,2,3},{4,5,6,7}};
-  cluster=ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,this.useNio,null,storesXmlfile,new Properties());
+  cluster=ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,this.useNio,null,storesXmlfile,properties);
   List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new File(storesXmlfile));
   for (  StoreDefinition storeDef : storeDefs)   if (storeDef.getName().equals(testStoreName))   testStoreDef=storeDef;
   routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(testStoreDef,cluster);

@@ -1,7 +1,7 @@
 {
   boolean success=false;
   String storeName=storeDefinition.getName();
-  StringBuilder hexKeyStrings=new StringBuilder();
+  StringBuilder hexKeysString=new StringBuilder();
   for (  int partitionId : node.getPartitionIds()) {
     success=false;
     try {
@@ -25,7 +25,7 @@
         while (fetchIterator.hasNext()) {
           ByteArray key=fetchIterator.next();
           String hexKeyString=ByteUtils.toHexString(key.get());
-          hexKeyStrings.append(hexKeyString + "\n");
+          hexKeysString.append(hexKeyString + "\n");
           keyCount++;
         }
         if (keyCount < recordsPerPartition) {
@@ -54,5 +54,5 @@
       break;
     }
   }
-  return new NodeSampleResult(success,hexKeyStrings.toString());
+  return new NodeSampleResult(success,hexKeysString.toString());
 }

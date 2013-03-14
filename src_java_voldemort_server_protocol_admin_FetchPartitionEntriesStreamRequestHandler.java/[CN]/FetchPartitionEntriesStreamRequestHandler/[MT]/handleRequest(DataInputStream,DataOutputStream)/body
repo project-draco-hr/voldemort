@@ -1,18 +1,18 @@
 {
   if (entriesPartitionIterator == null) {
-    if (currentIndex == partitionList.size() || counter >= recordsPerPartition) {
-      logger.info("Done fetching  store " + storageEngine.getName() + " : "+ counter+ " records processed.");
+    if (currentIndex == partitionList.size()) {
       return StreamRequestHandlerState.COMPLETE;
     }
     boolean found=false;
     while (!found && (currentIndex < partitionList.size())) {
-      Integer currentPartition=partitionList.get(currentIndex);
-      Integer currentReplicaType=replicaTypeList.get(currentIndex);
+      currentPartition=new Integer(partitionList.get(currentIndex));
+      currentReplicaType=new Integer(replicaTypeList.get(currentIndex));
       if (!fetchedPartitions.contains(currentPartition) && StoreInstance.checkPartitionBelongsToNode(currentPartition,currentReplicaType,nodeId,initialCluster,storeDef)) {
-        fetchedPartitions.add(currentPartition);
         found=true;
-        logger.info("Fetching [partition: " + currentPartition + ", replica type:"+ currentReplicaType+ "] for store "+ storageEngine.getName());
+        fetchedPartitions.add(currentPartition);
+        partitionFetched=0;
         entriesPartitionIterator=storageEngine.entries(currentPartition);
+        statusInfoMessage("Starting fetch entries");
       }
       currentIndex++;
     }
@@ -20,35 +20,30 @@
  else {
     long startNs=System.nanoTime();
     if (entriesPartitionIterator.hasNext()) {
-      counter++;
       Pair<ByteArray,Versioned<byte[]>> entry=entriesPartitionIterator.next();
-      if (streamStats != null) {
-        streamStats.reportStorageTime(operation,System.nanoTime() - startNs);
-        streamStats.reportStreamingScan(operation);
-      }
       ByteArray key=entry.getFirst();
       Versioned<byte[]> value=entry.getSecond();
+      reportStorageOpTime(startNs);
       throttler.maybeThrottle(key.length());
       if (filter.accept(key,value)) {
-        fetched++;
-        if (streamStats != null)         streamStats.reportStreamingFetch(operation);
+        recordFetched();
         VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
         VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(key)).setVersioned(ProtoUtils.encodeVersioned(value)).build();
         response.setPartitionEntry(partitionEntry);
         Message message=response.build();
-        startNs=System.nanoTime();
-        ProtoUtils.writeMessage(outputStream,message);
-        if (streamStats != null)         streamStats.reportNetworkTime(operation,System.nanoTime() - startNs);
+        sendMessage(outputStream,message);
         throttler.maybeThrottle(AdminServiceRequestHandler.valueSize(value));
       }
-      if (0 == counter % STAT_RECORDS_INTERVAL) {
-        long totalTime=(System.currentTimeMillis() - startTime) / Time.MS_PER_SECOND;
-        logger.info("Fetch entries scanned " + counter + " entries, fetched "+ fetched+ " entries for store '"+ storageEngine.getName()+ "' replicaToPartitionList:"+ replicaToPartitionList+ " in "+ totalTime+ " s");
+      scanned++;
+      if (0 == scanned % STAT_RECORDS_INTERVAL) {
+        progressInfoMessage("Fetch entries (progress)");
       }
     }
-    if (!entriesPartitionIterator.hasNext() || counter >= recordsPerPartition) {
+    if (!entriesPartitionIterator.hasNext() || fetchedEnough(partitionFetched)) {
       entriesPartitionIterator.close();
       entriesPartitionIterator=null;
+      statusInfoMessage("Finished fetch keys");
+      progressInfoMessage("Fetch entries (end of partition)");
     }
   }
   return StreamRequestHandlerState.WRITING;

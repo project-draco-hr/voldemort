@@ -25,11 +25,13 @@
  else {
     this.filter=new DefaultVoldemortFilter();
   }
-  this.startTime=System.currentTimeMillis();
-  this.counter=0;
-  this.recordsPerPartition=0;
+  this.startTimeMs=System.currentTimeMillis();
+  this.scanned=0;
   if (request.hasRecordsPerPartition() && request.getRecordsPerPartition() > 0) {
     this.recordsPerPartition=request.getRecordsPerPartition();
+  }
+ else {
+    this.recordsPerPartition=0;
   }
   this.fetchOrphaned=request.hasFetchOrphaned() && request.getFetchOrphaned();
 }
