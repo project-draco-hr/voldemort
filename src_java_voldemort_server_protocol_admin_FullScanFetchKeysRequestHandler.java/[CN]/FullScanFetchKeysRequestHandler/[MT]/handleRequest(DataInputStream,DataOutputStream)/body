@@ -1,0 +1,20 @@
+{
+  if (!keyIterator.hasNext()) {
+    return StreamRequestHandlerState.COMPLETE;
+  }
+  long startNs=System.nanoTime();
+  ByteArray key=keyIterator.next();
+  reportStorageOpTime(startNs);
+  throttler.maybeThrottle(key.length());
+  if (isItemAccepted(key.get())) {
+    if (filter.accept(key,null)) {
+      accountForFetchedKey(key.get());
+      VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
+      response.setKey(ProtoUtils.encodeBytes(key));
+      Message message=response.build();
+      sendMessage(outputStream,message);
+    }
+  }
+  accountForScanProgress("keys");
+  return determineRequestHandlerState("keys");
+}

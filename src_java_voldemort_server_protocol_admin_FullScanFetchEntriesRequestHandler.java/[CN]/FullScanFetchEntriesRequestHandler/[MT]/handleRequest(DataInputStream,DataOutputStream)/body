@@ -1,0 +1,29 @@
+{
+  if (!keyIterator.hasNext()) {
+    return StreamRequestHandlerState.COMPLETE;
+  }
+  long startNs=System.nanoTime();
+  ByteArray key=keyIterator.next();
+  if (isItemAccepted(key.get())) {
+    List<Versioned<byte[]>> values=storageEngine.get(key,null);
+    reportStorageOpTime(startNs);
+    throttler.maybeThrottle(key.length());
+    for (    Versioned<byte[]> value : values) {
+      if (filter.accept(key,value)) {
+        accountForFetchedKey(key.get());
+        VAdminProto.FetchPartitionEntriesResponse.Builder response=VAdminProto.FetchPartitionEntriesResponse.newBuilder();
+        VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(key)).setVersioned(ProtoUtils.encodeVersioned(value)).build();
+        response.setPartitionEntry(partitionEntry);
+        Message message=response.build();
+        sendMessage(outputStream,message);
+        throttler.maybeThrottle(AdminServiceRequestHandler.valueSize(value));
+      }
+    }
+  }
+ else {
+    reportStorageOpTime(startNs);
+    throttler.maybeThrottle(key.length());
+  }
+  accountForScanProgress("entries");
+  return determineRequestHandlerState("entries");
+}
