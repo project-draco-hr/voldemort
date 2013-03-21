@@ -1,10 +1,14 @@
 {
+  CheckSum fileCheckSumGenerator=null;
   logger.debug("Starting copy of " + source + " to "+ dest);
   FSDataInputStream input=null;
   OutputStream output=null;
   for (int attempt=0; attempt < NUM_RETRIES; attempt++) {
     boolean success=true;
     try {
+      if (checkSumType != null) {
+        fileCheckSumGenerator=CheckSum.getInstance(checkSumType);
+      }
       input=fs.open(source);
       output=new BufferedOutputStream(new FileOutputStream(dest));
       byte[] buffer=new byte[bufferSize];
@@ -16,8 +20,12 @@
  else {
           output.write(buffer,0,read);
         }
-        if (fileCheckSumGenerator != null)         fileCheckSumGenerator.update(buffer,0,read);
-        if (throttler != null)         throttler.maybeThrottle(read);
+        if (fileCheckSumGenerator != null) {
+          fileCheckSumGenerator.update(buffer,0,read);
+        }
+        if (throttler != null) {
+          throttler.maybeThrottle(read);
+        }
         stats.recordBytes(read);
         if (stats.getBytesSinceLastReport() > reportingIntervalBytes) {
           NumberFormat format=NumberFormat.getNumberInstance();
@@ -51,4 +59,5 @@
     }
     logger.debug("Completed copy of " + source + " to "+ dest);
   }
+  return fileCheckSumGenerator;
 }
