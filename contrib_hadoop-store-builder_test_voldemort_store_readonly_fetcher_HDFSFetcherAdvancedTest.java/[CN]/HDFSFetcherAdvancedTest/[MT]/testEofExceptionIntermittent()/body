@@ -1,0 +1,23 @@
+{
+  File testSourceDirectory=createTempDir();
+  File testDestinationDirectory=createTempDir();
+  File indexFile=new File(testSourceDirectory,"0_0.index");
+  byte[] indexBytes=TestUtils.randomBytes(100);
+  FileUtils.writeByteArrayToFile(indexFile,indexBytes);
+  final Path source=new Path(indexFile.getAbsolutePath());
+  CheckSum fileCheckSumGenerator=CheckSum.getInstance(CheckSumType.MD5);
+  fileCheckSumGenerator.update(indexBytes);
+  byte[] checksumCalculated=calculateCheckSumForFile(source);
+  HdfsFetcher fetcher=new HdfsFetcher();
+  HdfsFetcher spyfetcher=Mockito.spy(fetcher);
+  Configuration config=new Configuration();
+  FileSystem fs=source.getFileSystem(config);
+  FileSystem spyfs=Mockito.spy(fs);
+  CopyStats stats=new CopyStats(testSourceDirectory.getAbsolutePath(),sizeOfPath(fs,source));
+  File destination=new File(testDestinationDirectory.getAbsolutePath() + "1");
+  File copyLocation=new File(destination,"0_0.index");
+  Mockito.doThrow(new IOException()).doAnswer(Mockito.CALLS_REAL_METHODS).when(spyfs).open(source);
+  Object[] params={spyfs,source,copyLocation,stats,CheckSumType.MD5};
+  CheckSum ckSum=(CheckSum)this.invokePrivateMethod(fetcher,"copyFileWithCheckSum",params);
+  assertEquals(Arrays.equals(ckSum.getCheckSum(),checksumCalculated),true);
+}

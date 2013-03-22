@@ -1,0 +1,18 @@
+{
+  CheckSum fileCheckSumGenerator=CheckSum.getInstance(CheckSumType.MD5);
+  byte[] buffer=new byte[VoldemortConfig.DEFAULT_BUFFER_SIZE];
+  FSDataInputStream input=null;
+  Configuration config=new Configuration();
+  FileSystem fs=source.getFileSystem(config);
+  input=fs.open(source);
+  while (true) {
+    int read=input.read(buffer);
+    if (read < 0) {
+      break;
+    }
+    if (fileCheckSumGenerator != null) {
+      fileCheckSumGenerator.update(buffer,0,read);
+    }
+  }
+  return fileCheckSumGenerator.getCheckSum();
+}
