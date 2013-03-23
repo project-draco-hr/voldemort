@@ -1,3 +1,47 @@
 {
-  return null;
+  Map<ByteArray,List<Versioned<byte[]>>> resultMap=new HashMap<ByteArray,List<Versioned<byte[]>>>();
+  try {
+    Iterator<ByteArray> it=keys.iterator();
+    String keyArgs=null;
+    while (it.hasNext()) {
+      ByteArray key=it.next();
+      String base64Key=new String(Base64.encodeBase64(key.get()));
+      if (keyArgs == null) {
+        keyArgs=base64Key;
+      }
+ else {
+        keyArgs+="," + base64Key;
+      }
+    }
+    RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ keyArgs));
+    rb.setMethod(GET);
+    rb.setHeader("Accept",MULTIPART_CONTENT_TYPE);
+    rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,"1000");
+    RestRequest request=rb.build();
+    Future<RestResponse> f=client.restRequest(request);
+    RestResponse response=f.get();
+    final ByteString entity=response.getEntity();
+    String contentType=response.getHeader("Content-Type");
+    if (entity != null) {
+      if (contentType.equalsIgnoreCase(MULTIPART_CONTENT_TYPE)) {
+        resultMap=readResultsGetAll(entity);
+      }
+ else {
+        logger.error("Did not receive a multipart response");
+      }
+    }
+ else {
+      logger.error("Did not get any response!");
+    }
+  }
+ catch (  VoldemortException ve) {
+    ve.printStackTrace();
+    throw ve;
+  }
+catch (  Exception e) {
+    if (!e.getMessage().contains("status=404")) {
+      logger.error("ERROR: " + e);
+    }
+  }
+  return resultMap;
 }

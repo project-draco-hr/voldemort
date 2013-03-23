@@ -1,35 +1,24 @@
 {
-  if (args.length < 2) {
-    System.err.println("Missing argument: <Bootstrap URL> <fat client config file path>");
-    System.exit(-1);
+  CoordinatorConfig config=null;
+  try {
+    if (args.length != 1) {
+      croak("USAGE: java " + VoldemortServer.class.getName() + " [coordinator_config_file]");
+      System.exit(-1);
+    }
+    config=new CoordinatorConfig(new File(args[0]));
   }
-  if (args.length == 3) {
-    if (args[2].equals("noop")) {
-      noop=true;
+ catch (  Exception e) {
+    logger.error(e);
+    Utils.croak("Error while loading configuration: " + e.getMessage());
+  }
+  final CoordinatorService coordinator=new CoordinatorService(config);
+  if (!coordinator.isStarted()) {
+    coordinator.start();
+  }
+  Runtime.getRuntime().addShutdownHook(new Thread(){
+    @Override public void run(){
+      if (coordinator.isStarted())       coordinator.stop();
     }
   }
-  bootstrapURLs=new String[1];
-  bootstrapURLs[0]=args[0];
-  CLIENT_CONFIG_AVRO_FILE_PATH=args[1];
-  ClientConfig clientConfig=new ClientConfig();
-  clientConfig.setBootstrapUrls(bootstrapURLs);
-  storeClientFactory=new SocketStoreClientFactory(clientConfig);
-  initializeFatClients();
-  SystemStoreRepository sysRepository=new SystemStoreRepository();
-  String clusterXml=storeClientFactory.bootstrapMetadataWithRetries(MetadataStore.CLUSTER_KEY);
-  sysRepository.createSystemStores(clientConfig,clusterXml,storeClientFactory.getFailureDetector());
-  Callable<Void> rebootstrapCallback=new Callable<Void>(){
-    @Override public Void call() throws Exception {
-      initializeFatClients();
-      return null;
-    }
-  }
-;
-  asyncMetadataManager=new AsyncMetadataVersionManager(sysRepository,rebootstrapCallback,null);
-  schedulerService=new SchedulerService(1,SystemTime.INSTANCE,true);
-  schedulerService.schedule(asyncMetadataManager.getClass().getName(),asyncMetadataManager,new Date(),asyncMetadataCheckIntervalInMs);
-  ServerBootstrap bootstrap=new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),Executors.newCachedThreadPool()));
-  bootstrap.setOption("backlog",1000);
-  bootstrap.setPipelineFactory(new CoordinatorPipelineFactory(fatClientMap,noop));
-  bootstrap.bind(new InetSocketAddress(8080));
+);
 }

@@ -1,3 +1,10 @@
 {
-  return null;
+  Map<K,List<Versioned<V>>> items=null;
+  items=this.clientStore.getAll(keys,null);
+  Map<K,Versioned<V>> result=Maps.newHashMapWithExpectedSize(items.size());
+  for (  Entry<K,List<Versioned<V>>> mapEntry : items.entrySet()) {
+    Versioned<V> value=getItemOrThrow(mapEntry.getKey(),null,mapEntry.getValue());
+    result.put(mapEntry.getKey(),value);
+  }
+  return result;
 }

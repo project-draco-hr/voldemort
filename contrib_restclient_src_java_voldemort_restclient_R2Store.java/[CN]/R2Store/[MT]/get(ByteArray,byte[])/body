@@ -2,7 +2,7 @@
   List<Versioned<byte[]>> resultList=new ArrayList<Versioned<byte[]>>();
   try {
     String base64Key=new String(Base64.encodeBase64(key.get()));
-    RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/test/" + base64Key));
+    RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
     rb.setMethod(GET);
     rb.setHeader("Accept","application/json");
     rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,"1000");
@@ -25,7 +25,9 @@
     throw ve;
   }
 catch (  Exception e) {
-    e.printStackTrace();
+    if (!e.getMessage().contains("status=404")) {
+      logger.error("ERROR: " + e);
+    }
   }
   return resultList;
 }

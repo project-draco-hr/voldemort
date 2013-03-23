@@ -1,3 +1,25 @@
 {
+  try {
+    String base64Key=new String(Base64.encodeBase64(key.get()));
+    RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
+    rb.setMethod(DELETE);
+    rb.setHeader("Content-Type","application/json");
+    rb.setHeader("Content-Length","0");
+    rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,"1000");
+    RestRequest request=rb.build();
+    Future<RestResponse> f=client.restRequest(request);
+    RestResponse response=f.get();
+    final ByteString entity=response.getEntity();
+    if (entity == null) {
+      logger.error("Empty response !");
+    }
+  }
+ catch (  VoldemortException ve) {
+    ve.printStackTrace();
+    throw ve;
+  }
+catch (  Exception e) {
+    e.printStackTrace();
+  }
   return false;
 }

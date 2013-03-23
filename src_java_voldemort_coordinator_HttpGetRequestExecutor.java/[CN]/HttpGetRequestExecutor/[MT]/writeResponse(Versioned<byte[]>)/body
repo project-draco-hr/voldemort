@@ -1,0 +1,35 @@
+{
+  byte[] value=responseVersioned.getValue();
+  byte[] responseValue=responseVersioned.getValue();
+  this.responseContent=ChannelBuffers.dynamicBuffer(responseValue.length);
+  this.responseContent.writeBytes(value);
+  VectorClock vc=(VectorClock)responseVersioned.getVersion();
+  VectorClockWrapper vcWrapper=new VectorClockWrapper(vc);
+  ObjectMapper mapper=new ObjectMapper();
+  String eTag="";
+  try {
+    eTag=mapper.writeValueAsString(vcWrapper);
+  }
+ catch (  JsonGenerationException e) {
+    e.printStackTrace();
+  }
+catch (  JsonMappingException e) {
+    e.printStackTrace();
+  }
+catch (  IOException e) {
+    e.printStackTrace();
+  }
+  if (logger.isDebugEnabled()) {
+    logger.debug("ETAG : " + eTag);
+  }
+  HttpResponse response=new DefaultHttpResponse(HTTP_1_1,OK);
+  response.setHeader(CONTENT_TYPE,"binary");
+  response.setHeader(CONTENT_TRANSFER_ENCODING,"binary");
+  response.setHeader(ETAG,eTag);
+  response.setContent(responseContent);
+  response.setHeader(CONTENT_LENGTH,response.getContent().readableBytes());
+  if (logger.isDebugEnabled()) {
+    logger.debug("Response = " + response);
+  }
+  this.getRequestMessageEvent.getChannel().write(response);
+}

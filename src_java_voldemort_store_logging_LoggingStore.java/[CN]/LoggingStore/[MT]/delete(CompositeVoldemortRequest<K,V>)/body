@@ -1,0 +1,13 @@
+{
+  long startTimeNs=0;
+  boolean succeeded=false;
+  if (logger.isDebugEnabled())   startTimeNs=time.getNanoseconds();
+  try {
+    boolean deletedSomething=getInnerStore().delete(request);
+    succeeded=true;
+    return deletedSomething;
+  }
+  finally {
+    printTimedMessage("DELETE",succeeded,startTimeNs);
+  }
+}

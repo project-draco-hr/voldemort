@@ -1,0 +1,17 @@
+{
+  if (httpMethod.equals(HttpMethod.POST)) {
+    return VoldemortOpCode.PUT_OP_CODE;
+  }
+ else   if (httpMethod.equals(HttpMethod.GET)) {
+    if (keyList.size() == 1) {
+      return VoldemortOpCode.GET_OP_CODE;
+    }
+ else     if (keyList.size() > 1) {
+      return VoldemortOpCode.GET_ALL_OP_CODE;
+    }
+  }
+ else   if (httpMethod.equals(HttpMethod.DELETE)) {
+    return VoldemortOpCode.DELETE_OP_CODE;
+  }
+  return -1;
+}
