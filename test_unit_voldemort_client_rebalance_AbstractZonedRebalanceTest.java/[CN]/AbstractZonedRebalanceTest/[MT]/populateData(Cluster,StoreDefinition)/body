@@ -2,13 +2,11 @@
   Map<Integer,Store<ByteArray,byte[],byte[]>> storeMap=new HashMap<Integer,Store<ByteArray,byte[],byte[]>>();
   for (  Node node : cluster.getNodes()) {
     storeMap.put(node.getId(),getSocketStore(storeDef.getName(),node.getHost(),node.getSocketPort()));
-    System.err.printf("%d,%s,%s,%s\n",node.getId(),storeDef.getName(),node.getSocketPort(),node.getAdminPort());
   }
   RoutingStrategy routing=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
   for (  Entry<String,String> entry : testEntries.entrySet()) {
     ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(entry.getKey(),"UTF-8"));
     List<Integer> preferenceNodes=RebalanceUtils.getNodeIds(routing.routeRequest(keyBytes.get()));
-    System.err.println(preferenceNodes);
     for (    int nodeId : preferenceNodes) {
       try {
         storeMap.get(nodeId).put(keyBytes,new Versioned<byte[]>(ByteUtils.getBytes(entry.getValue(),"UTF-8")),null);

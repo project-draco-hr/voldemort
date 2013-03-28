@@ -5,11 +5,12 @@
   targetCluster=RebalanceUtils.createUpdatedCluster(targetCluster,1,Lists.newArrayList(3,7));
   List<Integer> serverList=Arrays.asList(0,1,2,3);
   Map<String,String> configProps=new HashMap<String,String>();
-  configProps.put("admin.max.threads","50");
+  configProps.put("admin.max.threads","5");
   currentCluster=startServers(currentCluster,storeDefFileWithoutReplication,serverList,configProps);
   targetCluster=updateCluster(targetCluster);
   RebalanceClientConfig config=new RebalanceClientConfig();
   config.setDeleteAfterRebalancingEnabled(true);
+  config.setStealerBasedRebalancing(!useDonorBased);
   RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(currentCluster,0),config);
   try {
     populateData(currentCluster,rwStoreDefWithoutReplication);

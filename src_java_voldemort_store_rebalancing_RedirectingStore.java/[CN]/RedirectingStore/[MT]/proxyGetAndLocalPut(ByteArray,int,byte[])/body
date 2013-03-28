@@ -1,11 +1,14 @@
 {
+  logger.info("BEGIN PROXY GET LOCAL PUT for donor: " + donorId + " from stealer:"+ metadata.getNodeId()+ " key "+ ByteUtils.toHexString(key.get()));
   List<Versioned<byte[]>> proxyValues=proxyGet(key,donorId,transforms);
   for (  Versioned<byte[]> proxyValue : proxyValues) {
     try {
       getInnerStore().put(key,proxyValue,null);
     }
  catch (    ObsoleteVersionException e) {
+      logger.info("OVE in proxy get local put",e);
     }
   }
+  logger.info("END PROXY GET LOCAL PUT for donor: " + donorId + " from stealer:"+ metadata.getNodeId()+ " key "+ ByteUtils.toHexString(key.get()));
   return proxyValues;
 }

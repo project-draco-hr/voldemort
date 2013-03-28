@@ -1,6 +1,6 @@
 {
   RoutingStrategy routing=new RoutingStrategyFactory().updateRoutingStrategy(def,cluster);
-  for (  Entry<String,String> entry : testEntries.entrySet()) {
+  for (  Entry<String,String> entry : baselineTuples.entrySet()) {
     ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(entry.getKey(),"UTF-8"));
     List<Integer> partitions=routing.getPartitionList(keyBytes.get());
     if (StoreInstance.checkKeyBelongsToPartition(partitions,node.getPartitionIds(),flattenedPresentTuples)) {
@@ -10,7 +10,12 @@
       }
       assertEquals("Expecting exactly one version",1,values.size());
       Versioned<byte[]> value=values.get(0);
-      assertEquals("Value version should match",new VectorClock(),value.getVersion());
+      if (baselineVersions == null) {
+        assertEquals("Value version should match",new VectorClock(),value.getVersion());
+      }
+ else {
+        assertEquals("Value version should match",baselineVersions.get(entry.getKey()),value.getVersion());
+      }
       assertEquals("Value bytes should match",entry.getValue(),ByteUtils.getString(value.getValue(),"UTF-8"));
     }
   }

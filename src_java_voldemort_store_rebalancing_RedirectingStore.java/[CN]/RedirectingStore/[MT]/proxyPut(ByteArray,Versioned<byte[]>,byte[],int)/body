@@ -1,6 +1,7 @@
 {
   Node donorNode=metadata.getCluster().getNodeById(donorNodeId);
   checkNodeAvailable(donorNode);
+  logger.info("BEGIN PROXY PUT for donor: " + donorNodeId + " from stealer:"+ metadata.getNodeId()+ " key "+ ByteUtils.toHexString(key.get()));
   long startNs=System.nanoTime();
   try {
     Store<ByteArray,byte[],byte[]> redirectingStore=getRedirectingSocketStore(getName(),donorNodeId);
@@ -11,4 +12,8 @@
     recordException(donorNode,startNs,e);
     throw new ProxyUnreachableException("Failed to reach proxy node " + donorNode,e);
   }
+catch (  ObsoleteVersionException ove) {
+    logger.error("OVE in proxy put for donor: " + donorNodeId + " from stealer:"+ metadata.getNodeId()+ " key "+ ByteUtils.toHexString(key.get()),ove);
+  }
+  logger.info("END PROXY PUT for donor: " + donorNodeId + " from stealer:"+ metadata.getNodeId()+ " key "+ ByteUtils.toHexString(key.get()));
 }

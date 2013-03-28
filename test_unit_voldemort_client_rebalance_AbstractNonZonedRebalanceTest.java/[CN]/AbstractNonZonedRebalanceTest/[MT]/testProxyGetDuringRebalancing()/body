@@ -4,7 +4,7 @@
   final Cluster targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,1,Lists.newArrayList(2,3));
   final List<Integer> serverList=Arrays.asList(0,1);
   Map<String,String> configProps=new HashMap<String,String>();
-  configProps.put("admin.max.threads","50");
+  configProps.put("admin.max.threads","5");
   final Cluster updatedCurrentCluster=startServers(currentCluster,storeDefFileWithReplication,serverList,configProps);
   final Cluster updatedTargetCluster=updateCluster(targetCluster);
   ExecutorService executors=Executors.newFixedThreadPool(2);
@@ -12,6 +12,7 @@
   final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
   RebalanceClientConfig rebalanceClientConfig=new RebalanceClientConfig();
   rebalanceClientConfig.setMaxParallelRebalancing(2);
+  rebalanceClientConfig.setStealerBasedRebalancing(!useDonorBased);
   final RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCurrentCluster,0),rebalanceClientConfig);
   populateData(updatedCurrentCluster,roStoreDefWithReplication,rebalanceClient.getAdminClient(),true);
   populateData(updatedCurrentCluster,rwStoreDefWithReplication,rebalanceClient.getAdminClient(),false);
@@ -48,7 +49,7 @@
   }
 );
   executors.execute(new Runnable(){
-    public void run(){
+    @Override public void run(){
       try {
         Thread.sleep(500);
         rebalanceAndCheck(updatedCurrentCluster,updatedTargetCluster,storeDefWithReplication,rebalanceClient,Arrays.asList(0,1));

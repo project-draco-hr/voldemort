@@ -1,7 +1,9 @@
 {
   RebalancePartitionsInfo stealInfo=redirectingKey(key);
+  logger.info("BEGIN GETVERSIONS from stealer:" + metadata.getNodeId() + " key "+ ByteUtils.toHexString(key.get()));
   if (stealInfo != null) {
     proxyGetAndLocalPut(key,stealInfo.getDonorId(),null);
   }
+  logger.info("END GETVERSIONS from stealer:" + metadata.getNodeId() + " key "+ ByteUtils.toHexString(key.get()));
   return getInnerStore().getVersions(key);
 }
