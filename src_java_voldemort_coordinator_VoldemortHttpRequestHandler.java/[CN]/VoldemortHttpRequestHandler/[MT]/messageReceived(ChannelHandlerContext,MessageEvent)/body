@@ -9,6 +9,7 @@
       readingChunks=true;
     }
  else {
+      long startTimeStampInNs=System.nanoTime();
       CompositeVoldemortRequest<ByteArray,byte[]> requestObject=parseRequest(requestURI,e,this.request.getMethod());
       String storeName=getStoreName(requestURI);
       FatClientWrapper fatClientWrapper=null;
@@ -16,10 +17,12 @@
         fatClientWrapper=this.fatClientMap.get(storeName);
       }
       if (storeName == null || fatClientWrapper == null) {
+        this.errorStats.reportException(new IllegalArgumentException());
         handleBadRequest(e,"Invalid store name. Critical error.");
         return;
       }
       if (requestObject == null) {
+        this.errorStats.reportException(new IllegalArgumentException());
         handleBadRequest(e,"Illegal request.");
         return;
       }
@@ -28,24 +31,24 @@ case VoldemortOpCode.GET_OP_CODE:
         if (logger.isDebugEnabled()) {
           logger.debug("Incoming get request");
         }
-      fatClientWrapper.submitGetRequest(requestObject,e);
+      fatClientWrapper.submitGetRequest(requestObject,e,startTimeStampInNs);
     break;
 case VoldemortOpCode.GET_ALL_OP_CODE:
-  fatClientWrapper.submitGetAllRequest(requestObject,e,storeName);
+  fatClientWrapper.submitGetAllRequest(requestObject,e,storeName,startTimeStampInNs);
 break;
 case VoldemortOpCode.PUT_OP_CODE:
 if (logger.isDebugEnabled()) {
 logger.debug("Incoming put request");
 }
-fatClientWrapper.submitPutRequest(requestObject,e);
+fatClientWrapper.submitPutRequest(requestObject,e,startTimeStampInNs);
 break;
 case VoldemortOpCode.DELETE_OP_CODE:
-fatClientWrapper.submitDeleteRequest(requestObject,e);
+fatClientWrapper.submitDeleteRequest(requestObject,e,startTimeStampInNs);
 break;
 default :
 String errorMessage="Illegal operation.";
 logger.error(errorMessage);
-RESTErrorHandler.handleError(BAD_REQUEST,e,isKeepAlive(request),errorMessage);
+RESTErrorHandler.handleError(BAD_REQUEST,e,errorMessage);
 return;
 }
 }
@@ -54,20 +57,6 @@ return;
 HttpChunk chunk=(HttpChunk)e.getMessage();
 if (chunk.isLast()) {
 readingChunks=false;
-buf.append("END OF CONTENT\r\n");
-HttpChunkTrailer trailer=(HttpChunkTrailer)chunk;
-if (!trailer.getHeaderNames().isEmpty()) {
-buf.append("\r\n");
-for (String name : trailer.getHeaderNames()) {
-for (String value : trailer.getHeaders(name)) {
-buf.append("TRAILING HEADER: " + name + " = "+ value+ "\r\n");
-}
-}
-buf.append("\r\n");
-}
-}
- else {
-buf.append("CHUNK: " + chunk.getContent().toString(CharsetUtil.UTF_8) + "\r\n");
 }
 }
 }

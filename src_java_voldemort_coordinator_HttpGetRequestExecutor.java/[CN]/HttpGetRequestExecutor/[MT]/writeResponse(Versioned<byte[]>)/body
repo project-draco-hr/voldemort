@@ -31,5 +31,9 @@ catch (  IOException e) {
   if (logger.isDebugEnabled()) {
     logger.debug("Response = " + response);
   }
+  if (this.coordinatorPerfStats != null) {
+    long durationInNs=System.nanoTime() - startTimestampInNs;
+    this.coordinatorPerfStats.recordTime(Tracked.GET,durationInNs);
+  }
   this.getRequestMessageEvent.getChannel().write(response);
 }

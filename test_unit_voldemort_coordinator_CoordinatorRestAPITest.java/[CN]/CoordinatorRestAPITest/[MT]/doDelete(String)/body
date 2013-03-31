@@ -1,0 +1,23 @@
+{
+  try {
+    HttpURLConnection conn=null;
+    String base64Key=new String(Base64.encodeBase64(key.getBytes()));
+    URL url=new URL(this.coordinatorURL + "/" + STORE_NAME+ "/"+ base64Key);
+    conn=(HttpURLConnection)url.openConnection();
+    conn.setRequestMethod("DELETE");
+    conn.setDoInput(true);
+    conn.setRequestProperty(VoldemortHttpRequestHandler.X_VOLD_REQUEST_TIMEOUT_MS,"1000");
+    if (conn.getResponseCode() != 204) {
+      System.err.println("Illegal response during DELETE : " + conn.getResponseMessage());
+      fail("Incorrect response received for a HTTP put request :" + conn.getResponseCode());
+    }
+ else {
+      return true;
+    }
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    fail("Error in sending the REST request");
+  }
+  return false;
+}

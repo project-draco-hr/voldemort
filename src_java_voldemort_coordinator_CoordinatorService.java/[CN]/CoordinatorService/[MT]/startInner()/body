@@ -16,8 +16,15 @@
   asyncMetadataManager=new AsyncMetadataVersionManager(sysRepository,rebootstrapCallback,null);
   schedulerService=new SchedulerService(1,SystemTime.INSTANCE,true);
   schedulerService.schedule(asyncMetadataManager.getClass().getName(),asyncMetadataManager,new Date(),this.config.getMetadataCheckIntervalInMs());
-  ServerBootstrap bootstrap=new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),Executors.newCachedThreadPool()));
-  bootstrap.setOption("backlog",1000);
-  bootstrap.setPipelineFactory(new CoordinatorPipelineFactory(fatClientMap,noop));
-  bootstrap.bind(new InetSocketAddress(8080));
+  this.workerPool=(ThreadPoolExecutor)Executors.newCachedThreadPool();
+  this.bootstrap=new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),workerPool));
+  this.bootstrap.setOption("backlog",1000);
+  this.bootstrap.setOption("child.tcpNoDelay",true);
+  this.bootstrap.setOption("child.keepAlive",true);
+  this.bootstrap.setOption("child.reuseAddress",true);
+  this.bootstrap.setPipelineFactory(new CoordinatorPipelineFactory(this.fatClientMap,this.errorStats,noop));
+  JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass())));
+  JmxUtils.registerMbean(this.errorStats,JmxUtils.createObjectName(JmxUtils.getPackageName(this.errorStats.getClass()),JmxUtils.getClassName(this.errorStats.getClass())));
+  this.nettyServerChannel=this.bootstrap.bind(new InetSocketAddress(this.config.getServerPort()));
+  logger.info("Coordinator service started on port " + this.config.getServerPort());
 }

@@ -1,6 +1,9 @@
 {
-  HttpResponse response=new DefaultHttpResponse(HTTP_1_1,OK);
-  response.setHeader(CONTENT_TYPE,"application/json");
+  HttpResponse response=new DefaultHttpResponse(HTTP_1_1,CREATED);
   response.setHeader(CONTENT_LENGTH,0);
+  if (this.coordinatorPerfStats != null) {
+    long durationInNs=System.nanoTime() - startTimestampInNs;
+    this.coordinatorPerfStats.recordTime(Tracked.PUT,durationInNs);
+  }
   this.putRequestMessageEvent.getChannel().write(response);
 }
