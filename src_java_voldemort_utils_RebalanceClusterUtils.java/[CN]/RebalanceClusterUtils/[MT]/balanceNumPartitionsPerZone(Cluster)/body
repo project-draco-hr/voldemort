@@ -1,0 +1,56 @@
+{
+  System.out.println("Balance number of partitions per zone.");
+  System.out.println("numPartitionsPerZone");
+  for (  int zoneId : targetCluster.getZoneIds()) {
+    System.out.println(zoneId + " : " + targetCluster.getNumberOfPartitionsInZone(zoneId));
+  }
+  System.out.println("numNodesPerZone");
+  for (  int zoneId : targetCluster.getZoneIds()) {
+    System.out.println(zoneId + " : " + targetCluster.getNumberOfNodesInZone(zoneId));
+  }
+  int numPartitions=targetCluster.getNumberOfPartitions();
+  HashMap<Integer,Integer> targetNumPartitionsPerZone=Maps.newHashMap();
+  int numZones=targetCluster.getNumberOfZones();
+  int floorPartitions=numPartitions / numZones;
+  int numZonesWithCeil=numPartitions - (numZones * floorPartitions);
+  int zoneCounter=0;
+  for (  Integer zoneId : targetCluster.getZoneIds()) {
+    int floorPartitionsInZone=floorPartitions - targetCluster.getNumberOfPartitionsInZone(zoneId);
+    if (zoneCounter < numZonesWithCeil) {
+      targetNumPartitionsPerZone.put(zoneId,floorPartitionsInZone + 1);
+    }
+ else {
+      targetNumPartitionsPerZone.put(zoneId,floorPartitionsInZone);
+    }
+    zoneCounter++;
+  }
+  List<Integer> donorZoneIds=new ArrayList<Integer>();
+  List<Integer> stealerZoneIds=new ArrayList<Integer>();
+  for (  Integer zoneId : targetCluster.getZoneIds()) {
+    if (targetNumPartitionsPerZone.get(zoneId) > 0) {
+      stealerZoneIds.add(zoneId);
+    }
+ else     if (targetNumPartitionsPerZone.get(zoneId) < 0) {
+      donorZoneIds.add(zoneId);
+    }
+  }
+  Cluster returnCluster=ClusterUtils.copyCluster(targetCluster);
+  Random r=new Random();
+  for (  Integer stealerZoneId : stealerZoneIds) {
+    while (targetNumPartitionsPerZone.get(stealerZoneId) > 0) {
+      for (      Integer donorZoneId : donorZoneIds) {
+        if (targetNumPartitionsPerZone.get(donorZoneId) < 0) {
+          int stealerNodeOffset=r.nextInt(targetCluster.getNumberOfNodesInZone(stealerZoneId));
+          Integer stealerNodeId=new ArrayList<Integer>(targetCluster.getNodeIdsInZone(stealerZoneId)).get(stealerNodeOffset);
+          List<Integer> partitionsThisZone=new ArrayList<Integer>(targetCluster.getPartitionIdsInZone(donorZoneId));
+          int donorPartitionOffset=r.nextInt(partitionsThisZone.size());
+          int donorPartitionId=partitionsThisZone.get(donorPartitionOffset);
+          targetNumPartitionsPerZone.put(donorZoneId,targetNumPartitionsPerZone.get(donorZoneId) + 1);
+          targetNumPartitionsPerZone.put(stealerZoneId,targetNumPartitionsPerZone.get(stealerZoneId) - 1);
+          returnCluster=RebalanceUtils.createUpdatedCluster(returnCluster,stealerNodeId,Lists.newArrayList(donorPartitionId));
+        }
+      }
+    }
+  }
+  return returnCluster;
+}

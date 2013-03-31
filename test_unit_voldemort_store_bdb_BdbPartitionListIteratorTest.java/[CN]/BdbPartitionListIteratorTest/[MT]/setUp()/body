@@ -1,0 +1,25 @@
+{
+  bdbMasterDir=TestUtils.createTempDir();
+  FileDeleteStrategy.FORCE.delete(bdbMasterDir);
+  Props props=new Props();
+  props.put("node.id",1);
+  props.put("voldemort.home","test/common/voldemort/config");
+  VoldemortConfig voldemortConfig=new VoldemortConfig(props);
+  voldemortConfig.setBdbCacheSize(10 * 1024 * 1024);
+  voldemortConfig.setBdbOneEnvPerStore(true);
+  voldemortConfig.setBdbDataDirectory(bdbMasterDir.toURI().getPath());
+  voldemortConfig.setBdbPrefixKeysWithPartitionId(true);
+  bdbStorage=new BdbStorageConfiguration(voldemortConfig);
+  StoreDefinition defA=TestUtils.makeStoreDefinition("storeA");
+  store=(BdbStorageEngine)bdbStorage.getStore(defA,(strategy=TestUtils.makeSingleNodeRoutingStrategy()));
+  partitionEntries=new HashMap<Integer,Set<String>>();
+  int numEntries=0;
+  while (numEntries++ < 10000) {
+    String key="entry_" + numEntries;
+    int p=strategy.getMasterPartition(key.getBytes());
+    if (p % 2 == 1)     continue;
+    if (!partitionEntries.containsKey(p))     partitionEntries.put(p,new HashSet<String>());
+    store.put(new ByteArray(key.getBytes()),new Versioned<byte[]>(key.getBytes()),null);
+    partitionEntries.get(p).add(key);
+  }
+}

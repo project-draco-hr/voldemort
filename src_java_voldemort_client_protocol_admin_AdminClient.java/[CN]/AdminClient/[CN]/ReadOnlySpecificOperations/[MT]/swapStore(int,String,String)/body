@@ -1,0 +1,9 @@
+{
+  VAdminProto.SwapStoreRequest.Builder swapStoreRequest=VAdminProto.SwapStoreRequest.newBuilder().setStoreDir(storeDir).setStoreName(storeName);
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setSwapStore(swapStoreRequest).setType(VAdminProto.AdminRequestType.SWAP_STORE).build();
+  VAdminProto.SwapStoreResponse.Builder response=rpcOps.sendAndReceive(nodeId,adminRequest,VAdminProto.SwapStoreResponse.newBuilder());
+  if (response.hasError()) {
+    helperOps.throwException(response.getError());
+  }
+  return response.getPreviousStoreDir();
+}

@@ -3,7 +3,7 @@
   for (  Entry<String,String> entry : testEntries.entrySet()) {
     ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(entry.getKey(),"UTF-8"));
     List<Integer> partitions=routing.getPartitionList(keyBytes.get());
-    if (RebalanceUtils.checkKeyBelongsToPartition(partitions,node.getPartitionIds(),flattenedPresentTuples)) {
+    if (StoreInstance.checkKeyBelongsToPartition(partitions,node.getPartitionIds(),flattenedPresentTuples)) {
       List<Versioned<byte[]>> values=store.get(keyBytes,null);
       if (values.size() == 0) {
         fail("unable to find value for key=" + entry.getKey() + " on node="+ node.getId());

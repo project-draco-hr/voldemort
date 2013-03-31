@@ -40,6 +40,7 @@
       pushSlavesExecutor.execute(updatePushSlave);
       logger.info("Started a thread for " + jobName);
     }
-    fetchEntriesForStealers(storageEngine,optimizedStealerNodeToMappingTuples,storeDef,nodeToQueue,storeName);
+    if (usePartitionScan && storageEngine.isPartitionScanSupported())     fetchEntriesForStealersPartitionScan(storageEngine,optimizedStealerNodeToMappingTuples,storeDef,nodeToQueue,storeName);
+ else     fetchEntriesForStealers(storageEngine,optimizedStealerNodeToMappingTuples,storeDef,nodeToQueue,storeName);
   }
 }

@@ -5,14 +5,14 @@
   int shouldFilterCount=0;
   RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(getStoreDef(),getCluster());
   for (  Pair<ByteArray,Versioned<byte[]>> pair : createEntries()) {
-    if (RebalanceUtils.getNodeIds(strategy.routeRequest(pair.getFirst().get())).contains(0)) {
+    if (NodeUtils.getNodeIds(strategy.routeRequest(pair.getFirst().get())).contains(0)) {
       store.put(pair.getFirst(),pair.getSecond(),null);
       if (!filter.accept(pair.getFirst(),pair.getSecond())) {
         shouldFilterCount++;
       }
     }
   }
-  Iterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=getAdminClient().fetchEntries(0,testStoreName,getCluster().getNodeById(0).getPartitionIds(),filter,false);
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> entryIterator=getAdminClient().bulkFetchOps.fetchEntries(0,testStoreName,getCluster().getNodeById(0).getPartitionIds(),filter,false);
   while (entryIterator.hasNext()) {
     Pair<ByteArray,Versioned<byte[]>> entry=entryIterator.next();
     if (!filter.accept(entry.getFirst(),entry.getSecond())) {

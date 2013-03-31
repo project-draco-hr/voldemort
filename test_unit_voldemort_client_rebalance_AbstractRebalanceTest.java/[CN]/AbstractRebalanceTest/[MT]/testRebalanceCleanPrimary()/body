@@ -17,7 +17,7 @@
     movedPartitions.add(3);
     AdminClient admin=rebalanceClient.getAdminClient();
     Iterator<ByteArray> keys=null;
-    keys=admin.fetchKeys(1,rwStoreDefWithReplication.getName(),movedPartitions,null,false);
+    keys=admin.bulkFetchOps.fetchKeys(1,rwStoreDefWithReplication.getName(),movedPartitions,null,false);
     int keyIndex=0;
     while (keys.hasNext() && keyIndex < 20) {
       checkKeysNegative[keyIndex++]=keys.next();
@@ -26,7 +26,7 @@
     List<Integer> stablePartitions=new ArrayList<Integer>();
     stablePartitions.add(1);
     Iterator<ByteArray> keys2=null;
-    keys2=admin.fetchKeys(1,rwStoreDefWithReplication.getName(),stablePartitions,null,false);
+    keys2=admin.bulkFetchOps.fetchKeys(1,rwStoreDefWithReplication.getName(),stablePartitions,null,false);
     int keyIndex2=0;
     while (keys2.hasNext() && keyIndex2 < 20) {
       checkKeysPositive[keyIndex2++]=keys2.next();
@@ -34,7 +34,7 @@
     rebalanceAndCheck(currentCluster,targetCluster,Lists.newArrayList(rwStoreDefWithReplication),rebalanceClient,Arrays.asList(0,1,2));
     checkConsistentMetadata(targetCluster,serverList);
     for (int i=0; i < 3; i++) {
-      admin.repairJob(i);
+      admin.storeMntOps.repairJob(i);
     }
     boolean cleanNode=true;
     for (int i=0; i < keyIndex; i++) {

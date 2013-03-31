@@ -1,0 +1,12 @@
+{
+  HashMap<Integer,List<Integer>> replicaToPartitionList=new HashMap<Integer,List<Integer>>();
+  replicaToPartitionList.put(0,Arrays.asList(0,3));
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesItr=adminClient.bulkFetchOps.fetchEntries(0,testStoreName,replicaToPartitionList,null,false,cluster,0);
+  Set<String> fetchedKeys=getEntries(entriesItr);
+  Set<String> partition0Keys=new HashSet<String>(partitionToKeysMap.get(0));
+  Set<String> partition3Keys=new HashSet<String>(partitionToKeysMap.get(3));
+  partition0Keys.removeAll(fetchedKeys);
+  partition3Keys.removeAll(fetchedKeys);
+  assertEquals("Remainder in partition 0" + partition0Keys,0,partition0Keys.size());
+  assertEquals("Remainder in partition 3" + partition3Keys,0,partition3Keys.size());
+}

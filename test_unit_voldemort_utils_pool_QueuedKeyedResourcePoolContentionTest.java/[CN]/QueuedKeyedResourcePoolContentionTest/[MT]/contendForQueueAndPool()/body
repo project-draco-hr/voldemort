@@ -1,0 +1,29 @@
+{
+  super.config=new ResourcePoolConfig().setMaxPoolSize(POOL_SIZE).setTimeout(TIMEOUT_MS * 100,TimeUnit.MILLISECONDS);
+  this.queuedPool=new QueuedKeyedResourcePool<String,TestResource>(factory,config);
+  super.pool=queuedPool;
+  int numEnqueuers=POOL_SIZE;
+  int numCheckers=POOL_SIZE;
+  int numEnqueues=10 * 1000;
+  String key="Key";
+  float invalidationRate=(float)0.25;
+  CountDownLatch waitForThreadsStart=new CountDownLatch(numEnqueuers + numCheckers);
+  CountDownLatch waitForThreadsEnd=new CountDownLatch(numEnqueuers + numCheckers);
+  for (int i=0; i < numEnqueuers; ++i) {
+    new Thread(new Enqueuers(waitForThreadsStart,waitForThreadsEnd,key,numEnqueues,invalidationRate)).start();
+  }
+  for (int i=0; i < numCheckers; ++i) {
+    new Thread(new Checkers(waitForThreadsStart,waitForThreadsEnd,key,numEnqueues,invalidationRate)).start();
+  }
+  try {
+    waitForThreadsEnd.await();
+    assertEquals(this.queuedPool.getCheckedInResourceCount(),this.queuedPool.getTotalResourceCount());
+    assertEquals(0,this.queuedPool.getRegisteredResourceRequestCount());
+    assertEquals(numEnqueuers * numEnqueues,TestResourceRequest.usedResourceCount.get());
+    assertEquals(0,TestResourceRequest.handledTimeoutCount.get());
+    assertEquals(0,TestResourceRequest.handledExceptionCount.get());
+  }
+ catch (  InterruptedException e) {
+    e.printStackTrace();
+  }
+}

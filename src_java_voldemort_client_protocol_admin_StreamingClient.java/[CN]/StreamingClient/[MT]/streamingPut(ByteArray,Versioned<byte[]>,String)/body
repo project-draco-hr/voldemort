@@ -1,0 +1,55 @@
+{
+  if (!storeNames.contains(storeName)) {
+    addStoreToSession(storeName);
+  }
+  if (MARKED_BAD) {
+    logger.error("Cannot stream more entries since Recovery Callback Failed!");
+    throw new VoldemortException("Cannot stream more entries since Recovery Callback Failed! You Need to restart the session");
+  }
+  List<Node> nodeList=storeToRoutingStrategy.get(storeName).routeRequest(key.get());
+  for (  Node node : nodeList) {
+    if (blackListedNodes != null && blackListedNodes.size() > 0) {
+      if (blackListedNodes.contains(node.getId()))       continue;
+    }
+    VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(key)).setVersioned(ProtoUtils.encodeVersioned(value)).build();
+    VAdminProto.UpdatePartitionEntriesRequest.Builder updateRequest=VAdminProto.UpdatePartitionEntriesRequest.newBuilder().setStore(storeName).setPartitionEntry(partitionEntry);
+    DataOutputStream outputStream=nodeIdStoreToOutputStreamRequest.get(new Pair(storeName,node.getId()));
+    try {
+      if (nodeIdStoreInitialized.get(new Pair(storeName,node.getId()))) {
+        ProtoUtils.writeMessage(outputStream,updateRequest.build());
+      }
+ else {
+        ProtoUtils.writeMessage(outputStream,VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_PARTITION_ENTRIES).setUpdatePartitionEntries(updateRequest).build());
+        outputStream.flush();
+        nodeIdStoreInitialized.put(new Pair(storeName,node.getId()),true);
+      }
+      entriesProcessed++;
+    }
+ catch (    IOException e) {
+      logger.warn("Invoking the Recovery Callback");
+      Future future=streamingresults.submit(recoveryCallback);
+      try {
+        future.get();
+      }
+ catch (      InterruptedException e1) {
+        MARKED_BAD=true;
+        logger.error("Recovery Callback failed");
+        e1.printStackTrace();
+        throw new VoldemortException("Recovery Callback failed");
+      }
+catch (      ExecutionException e1) {
+        MARKED_BAD=true;
+        logger.error("Recovery Callback failed");
+        e1.printStackTrace();
+        throw new VoldemortException("Recovery Callback failed");
+      }
+      e.printStackTrace();
+    }
+  }
+  int secondsTime=calendar.get(Calendar.SECOND);
+  if (entriesProcessed == CHECKPOINT_COMMIT_SIZE || secondsTime % TIME_COMMIT_SIZE == 0) {
+    entriesProcessed=0;
+    commitToVoldemort();
+  }
+  throttler.maybeThrottle(1);
+}

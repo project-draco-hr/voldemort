@@ -2,37 +2,50 @@
   StoreUtils.assertValidKey(key);
   long startTimeNs=-1;
   if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
-  boolean deletedSomething=false;
-  Cursor cursor=null;
   Transaction transaction=null;
   try {
     transaction=this.environment.beginTransaction(null,null);
     DatabaseEntry keyEntry=new DatabaseEntry(key.get());
-    DatabaseEntry valueEntry=new DatabaseEntry();
-    cursor=getBdbDatabase().openCursor(transaction,null);
-    OperationStatus status=cursor.getSearchKey(keyEntry,valueEntry,LockMode.READ_UNCOMMITTED);
-    while (status == OperationStatus.SUCCESS) {
-      if (new VectorClock(valueEntry.getData()).compare(version) == Occurred.BEFORE) {
-        cursor.delete();
-        deletedSomething=true;
-      }
-      status=cursor.getNextDup(keyEntry,valueEntry,LockMode.READ_UNCOMMITTED);
+    if (version == null) {
+      OperationStatus status=getBdbDatabase().delete(transaction,keyEntry);
+      if (OperationStatus.SUCCESS == status)       return true;
+ else       return false;
     }
-    return deletedSomething;
+ else {
+      DatabaseEntry valueEntry=new DatabaseEntry();
+      OperationStatus status=getBdbDatabase().get(transaction,keyEntry,valueEntry,LockMode.RMW);
+      if (OperationStatus.NOTFOUND == status)       return false;
+      List<Versioned<byte[]>> vals=StoreBinaryFormat.fromByteArray(valueEntry.getData());
+      Iterator<Versioned<byte[]>> iter=vals.iterator();
+      int numVersions=vals.size();
+      int numDeletedVersions=0;
+      while (iter.hasNext()) {
+        Versioned<byte[]> curr=iter.next();
+        Version currentVersion=curr.getVersion();
+        if (currentVersion.compare(version) == Occurred.BEFORE) {
+          iter.remove();
+          numDeletedVersions++;
+        }
+      }
+      if (numDeletedVersions < numVersions) {
+        valueEntry.setData(StoreBinaryFormat.toByteArray(vals));
+        getBdbDatabase().put(transaction,keyEntry,valueEntry);
+      }
+ else {
+        getBdbDatabase().delete(transaction,keyEntry);
+      }
+      return numDeletedVersions > 0;
+    }
   }
  catch (  DatabaseException e) {
+    this.bdbEnvironmentStats.reportException(e);
     logger.error(e);
     throw new PersistenceFailureException(e);
   }
  finally {
+    attemptCommit(transaction);
     if (logger.isTraceEnabled()) {
-      logger.trace("Completed DELETE of key " + ByteUtils.toHexString(key.get()) + " (keyRef: "+ System.identityHashCode(key)+ ") in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
-    }
-    try {
-      attemptClose(cursor);
-    }
-  finally {
-      attemptCommit(transaction);
+      logger.trace("Completed DELETE (" + getName() + ") of key "+ ByteUtils.toHexString(key.get())+ " (keyRef: "+ System.identityHashCode(key)+ ") in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
     }
   }
 }

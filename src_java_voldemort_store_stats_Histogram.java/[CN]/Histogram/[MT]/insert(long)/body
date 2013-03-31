@@ -1,9 +1,21 @@
 {
-  int index=findBucket(data);
-  if (index == -1) {
-    logger.error(data + " can't be bucketed, is invalid!");
+  resetIfNeeded();
+  long index=0;
+  if (data >= this.upperBound) {
+    index=nBuckets - 1;
+  }
+ else   if (data < 0) {
+    logger.error(data + " can't be bucketed because it is negative!");
     return;
   }
-  buckets[index]++;
+ else {
+    index=data / step;
+  }
+  if (index < 0 || index >= nBuckets) {
+    logger.error(data + " can't be bucketed because index is not in range [0,nBuckets).");
+    return;
+  }
+  buckets[(int)index]++;
+  sum+=data;
   size++;
 }

@@ -7,20 +7,18 @@
     }
  catch (    EOFException e) {
       if (logger.isTraceEnabled())       logger.trace("Incomplete read for message size");
-      stats.recordNetworkTime(handle,System.nanoTime() - startNs);
+      networkTimeNs+=System.nanoTime() - startNs;
       return StreamRequestHandlerState.INCOMPLETE_READ;
     }
     if (size == -1) {
-      if (logger.isTraceEnabled())       logger.trace("Message size -1, completed partition update");
-      stats.recordNetworkTime(handle,System.nanoTime() - startNs);
-      stats.closeHandle(handle);
+      if (logger.isTraceEnabled())       logger.trace("Message size -1, completed slop update");
       return StreamRequestHandlerState.COMPLETE;
     }
-    if (logger.isTraceEnabled())     logger.trace("UpdatePartitionEntriesRequest message size: " + size);
+    if (logger.isTraceEnabled())     logger.trace("UpdateSlopEntriesRequest message size: " + size);
     byte[] input=new byte[size];
     try {
       ByteUtils.read(inputStream,input);
-      stats.recordNetworkTime(handle,System.nanoTime() - startNs);
+      networkTimeNs+=System.nanoTime() - startNs;
     }
  catch (    EOFException e) {
       if (logger.isTraceEnabled())       logger.trace("Incomplete read for message");
@@ -31,6 +29,12 @@
     request=builder.build();
   }
   StorageEngine<ByteArray,byte[],byte[]> storageEngine=AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
+  StreamingStats streamStats=null;
+  if (isJmxEnabled) {
+    streamStats=storeRepository.getStreamingStats(storageEngine.getName());
+    streamStats.reportNetworkTime(Operation.SLOP_UPDATE,networkTimeNs);
+  }
+  networkTimeNs=0;
   ByteArray key=ProtoUtils.decodeBytes(request.getKey());
   VectorClock vectorClock=ProtoUtils.decodeClock(request.getVersion());
 switch (request.getRequestType()) {
@@ -43,7 +47,7 @@ case PUT:
       byte[] value=ProtoUtils.decodeBytes(request.getValue()).get();
       startNs=System.nanoTime();
       storageEngine.put(key,Versioned.value(value,vectorClock),transforms);
-      stats.recordDiskTime(handle,System.nanoTime() - startNs);
+      if (isJmxEnabled)       streamStats.reportStorageTime(Operation.SLOP_UPDATE,System.nanoTime() - startNs);
       if (logger.isTraceEnabled())       logger.trace("updateSlopEntries (Streaming put) successful");
     }
  catch (    ObsoleteVersionException e) {
@@ -54,7 +58,7 @@ case DELETE:
 try {
   startNs=System.nanoTime();
   storageEngine.delete(key,vectorClock);
-  stats.recordDiskTime(handle,System.nanoTime() - startNs);
+  if (isJmxEnabled)   streamStats.reportStorageTime(Operation.SLOP_UPDATE,System.nanoTime() - startNs);
   if (logger.isTraceEnabled())   logger.trace("updateSlopEntries (Streaming delete) successful");
 }
  catch (ObsoleteVersionException e) {
@@ -65,7 +69,7 @@ default :
 throw new VoldemortException("Unsupported operation ");
 }
 counter++;
-handle.incrementEntriesScanned();
+if (isJmxEnabled) streamStats.reportStreamingPut(Operation.SLOP_UPDATE);
 if (0 == counter % 100000) {
 long totalTime=(System.currentTimeMillis() - startTime) / 1000;
 if (logger.isDebugEnabled()) logger.debug("updateSlopEntries() updated " + counter + " entries in "+ totalTime+ " s");

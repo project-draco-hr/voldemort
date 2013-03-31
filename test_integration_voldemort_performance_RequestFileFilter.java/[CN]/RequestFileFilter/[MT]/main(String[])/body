@@ -24,8 +24,8 @@
   String inputFile=(String)options.valueOf("input");
   String outputFile=(String)options.valueOf("output");
   boolean stringKeys=options.has("string-keys");
-  AdminClient adminClient=new AdminClient(bootstrapURL,new AdminClientConfig());
-  List<StoreDefinition> storeDefinitionList=adminClient.getRemoteStoreDefList(nodeId).getValue();
+  AdminClient adminClient=new AdminClient(bootstrapURL,new AdminClientConfig(),new ClientConfig());
+  List<StoreDefinition> storeDefinitionList=adminClient.metadataMgmtOps.getRemoteStoreDefList(nodeId).getValue();
   StoreDefinition storeDefinition=null;
   for (  StoreDefinition def : storeDefinitionList) {
     if (storeName.equals(def.getName())) {
@@ -35,7 +35,7 @@
   if (storeDefinition == null) {
     Utils.croak("No store found with name\"" + storeName + "\"");
   }
-  Cluster cluster=adminClient.getRemoteCluster(nodeId).getValue();
+  Cluster cluster=adminClient.metadataMgmtOps.getRemoteCluster(nodeId).getValue();
   Node node=null;
   try {
     node=cluster.getNodeById(nodeId);

@@ -5,7 +5,7 @@
       public String call() throws Exception {
         String storeDir=basePath + "/node-" + node.getId();
         logger.info("Invoking fetch for node " + node.getId() + " for "+ storeDir);
-        String response=adminClient.fetchStore(node.getId(),storeName,storeDir,pushVersion,timeoutMs);
+        String response=adminClient.readonlyOps.fetchStore(node.getId(),storeName,storeDir,pushVersion,timeoutMs);
         if (response == null)         throw new VoldemortException("Fetch request on node " + node.getId() + " ("+ node.getHost()+ ") failed");
         logger.info("Fetch succeeded on node " + node.getId());
         return response.trim();
@@ -29,7 +29,7 @@
       for (      int successfulNodeId : results.keySet()) {
         try {
           logger.info("Deleting fetched data from node " + successfulNodeId);
-          adminClient.failedFetchStore(successfulNodeId,storeName,results.get(successfulNodeId));
+          adminClient.readonlyOps.failedFetchStore(successfulNodeId,storeName,results.get(successfulNodeId));
         }
  catch (        Exception e) {
           logger.error("Exception thrown during delete operation on node " + successfulNodeId + " : ",e);

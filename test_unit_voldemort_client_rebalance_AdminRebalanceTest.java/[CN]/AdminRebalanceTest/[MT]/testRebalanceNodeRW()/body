@@ -21,7 +21,7 @@
       }
     }
     try {
-      adminClient.rebalanceNode(plans.get(0));
+      adminClient.rebalanceOps.rebalanceNode(plans.get(0));
       fail("Should have thrown an exception since not in rebalancing state");
     }
  catch (    VoldemortException e) {
@@ -30,14 +30,15 @@
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
     }
     try {
-      adminClient.rebalanceNode(plans.get(0));
+      adminClient.rebalanceOps.rebalanceNode(plans.get(0));
       fail("Should have thrown an exception since no steal info");
     }
  catch (    VoldemortException e) {
     }
-    getServer(plans.get(0).getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(new RebalancePartitionsInfo(100,plans.get(0).getDonorId(),plans.get(0).getStoreToReplicaToAddPartitionList(),plans.get(0).getStoreToReplicaToDeletePartitionList(),plans.get(0).getInitialCluster(),0))));
+    int incorrectStealerId=(plans.get(0).getStealerId() + 1) % 3;
+    getServer(plans.get(0).getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(new RebalancePartitionsInfo(incorrectStealerId,plans.get(0).getDonorId(),plans.get(0).getStoreToReplicaToAddPartitionList(),plans.get(0).getStoreToReplicaToDeletePartitionList(),plans.get(0).getInitialCluster(),0))));
     try {
-      adminClient.rebalanceNode(plans.get(0));
+      adminClient.rebalanceOps.rebalanceNode(plans.get(0));
       fail("Should have thrown an exception since the two plans eventhough have the same donor are different");
     }
  catch (    VoldemortException e) {
@@ -50,15 +51,15 @@
     }
     try {
       for (      RebalancePartitionsInfo currentPlan : plans) {
-        int asyncId=adminClient.rebalanceNode(currentPlan);
+        int asyncId=adminClient.rebalanceOps.rebalanceNode(currentPlan);
         try {
-          adminClient.rebalanceNode(currentPlan);
+          adminClient.rebalanceOps.rebalanceNode(currentPlan);
           fail("Should have thrown an exception since it is already rebalancing");
         }
  catch (        AlreadyRebalancingException e) {
         }
         assertNotSame("Got a valid rebalanceAsyncId",-1,asyncId);
-        getAdminClient().waitForCompletion(currentPlan.getStealerId(),asyncId,300,TimeUnit.SECONDS);
+        getAdminClient().rpcOps.waitForCompletion(currentPlan.getStealerId(),asyncId,300,TimeUnit.SECONDS);
         assertFalse(getServer(currentPlan.getStealerId()).getMetadataStore().getRebalancerState().getAll().contains(currentPlan));
       }
     }

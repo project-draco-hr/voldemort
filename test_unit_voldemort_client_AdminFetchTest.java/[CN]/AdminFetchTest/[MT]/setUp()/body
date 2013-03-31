@@ -1,0 +1,24 @@
+{
+  partitionToKeysMap=new HashMap<Integer,Set<String>>();
+  SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
+  final int numServers=2;
+  servers=new VoldemortServer[numServers];
+  int partitionMap[][]={{0,1,2,3},{4,5,6,7}};
+  cluster=ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,this.useNio,null,storesXmlfile,properties);
+  List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new File(storesXmlfile));
+  for (  StoreDefinition storeDef : storeDefs)   if (storeDef.getName().equals(testStoreName))   testStoreDef=storeDef;
+  routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(testStoreDef,cluster);
+  adminClient=ServerTestUtils.getAdminClient(cluster);
+  Node firstServer=cluster.getNodes().iterator().next();
+  String bootstrapUrl="tcp://" + firstServer.getHost() + ":"+ firstServer.getSocketPort();
+  StoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootstrapUrl).setSelectors(2));
+  StoreClient<String,String> voldClient=factory.getStoreClient("users");
+  for (int i=0; i < TEST_STREAM_KEYS_SIZE; i++) {
+    String key="key" + i;
+    byte[] bkey=key.getBytes("UTF-8");
+    int partition=routingStrategy.getPartitionList(bkey).get(0);
+    if (!partitionToKeysMap.containsKey(partition))     partitionToKeysMap.put(partition,new HashSet<String>());
+    partitionToKeysMap.get(partition).add(key);
+    voldClient.put(key,"value" + i);
+  }
+}

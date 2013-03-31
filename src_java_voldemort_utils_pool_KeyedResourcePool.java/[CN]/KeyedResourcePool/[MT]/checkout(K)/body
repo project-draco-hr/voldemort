@@ -2,11 +2,10 @@
   checkNotClosed();
   long startNs=System.nanoTime();
   Pool<V> resourcePool=getResourcePoolForKey(key);
-  attemptGrow(key,resourcePool);
   V resource=null;
   try {
     checkNotClosed();
-    resource=attemptCheckout(resourcePool);
+    resource=attemptNonBlockingCheckout(key,resourcePool);
     if (resource == null) {
       long timeRemainingNs=resourcePoolConfig.getTimeout(TimeUnit.NANOSECONDS) - (System.nanoTime() - startNs);
       if (timeRemainingNs > 0)       resource=resourcePool.blockingGet(timeRemainingNs);

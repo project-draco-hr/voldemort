@@ -1,0 +1,30 @@
+{
+  Version version;
+  if (urls.size() == 1) {
+    version=versioned.getVersion();
+  }
+ else {
+    version=new HashedValue(versioned);
+  }
+  if (retentionChecker.isExpired(version)) {
+    reporter.recordExpired(1);
+    return;
+  }
+  if (!keyVersionNodeSetMap.containsKey(key)) {
+    keyVersionNodeSetMap.put(key,new HashMap<Version,Set<ClusterNode>>());
+  }
+  Map<Version,Set<ClusterNode>> versionNodeSetMap=keyVersionNodeSetMap.get(key);
+  if (!versionNodeSetMap.containsKey(version) && versionNodeSetMap.size() != 0) {
+    Version oneExistingVersion=versionNodeSetMap.keySet().iterator().next();
+    if (version.compare(oneExistingVersion) == Occurred.AFTER) {
+      versionNodeSetMap.clear();
+    }
+ else     if (oneExistingVersion.compare(version) == Occurred.AFTER) {
+      return;
+    }
+  }
+  if (!versionNodeSetMap.containsKey(version)) {
+    versionNodeSetMap.put(version,new HashSet<ClusterNode>());
+  }
+  versionNodeSetMap.get(version).add(clusterNode);
+}

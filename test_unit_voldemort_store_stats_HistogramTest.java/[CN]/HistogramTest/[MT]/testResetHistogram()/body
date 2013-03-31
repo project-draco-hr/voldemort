@@ -1,0 +1,19 @@
+{
+  Histogram resetingHistogram=new Histogram(10,1,10);
+  for (long data=0; data < 5; data++) {
+    for (int loop=0; loop <= data; loop++) {
+      resetingHistogram.insert(data);
+    }
+  }
+  assertEquals(3,resetingHistogram.getQuantile(0.50));
+  assertEquals(4,resetingHistogram.getQuantile(0.99));
+  assertEquals(2.67,resetingHistogram.getAverage(),0.01);
+  try {
+    Thread.sleep(10);
+  }
+ catch (  InterruptedException ie) {
+  }
+  assertEquals(0,resetingHistogram.getQuantile(0.50));
+  assertEquals(0,resetingHistogram.getQuantile(0.99));
+  assertEquals(0.0,resetingHistogram.getAverage(),0.0);
+}

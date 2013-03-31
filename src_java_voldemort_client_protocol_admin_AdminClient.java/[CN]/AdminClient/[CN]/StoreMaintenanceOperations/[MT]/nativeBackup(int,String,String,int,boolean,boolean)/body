@@ -1,0 +1,10 @@
+{
+  VAdminProto.NativeBackupRequest nativeBackupRequest=VAdminProto.NativeBackupRequest.newBuilder().setStoreName(storeName).setBackupDir(destinationDirPath).setIncremental(isIncremental).setVerifyFiles(verify).build();
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setNativeBackup(nativeBackupRequest).setType(VAdminProto.AdminRequestType.NATIVE_BACKUP).build();
+  VAdminProto.AsyncOperationStatusResponse.Builder response=rpcOps.sendAndReceive(nodeId,adminRequest,VAdminProto.AsyncOperationStatusResponse.newBuilder());
+  if (response.hasError()) {
+    helperOps.throwException(response.getError());
+  }
+  int asyncId=response.getRequestId();
+  rpcOps.waitForCompletion(nodeId,asyncId,timeOut,TimeUnit.MINUTES);
+}

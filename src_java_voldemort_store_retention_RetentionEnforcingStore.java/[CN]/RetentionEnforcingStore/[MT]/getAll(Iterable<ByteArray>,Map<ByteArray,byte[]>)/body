@@ -1,0 +1,11 @@
+{
+  StoreUtils.assertValidKeys(keys);
+  Map<ByteArray,List<Versioned<byte[]>>> results=getInnerStore().getAll(keys,transforms);
+  if (!storeDef.hasRetentionPeriod())   return results;
+  for (  ByteArray key : results.keySet()) {
+    List<Versioned<byte[]>> filteredVals=filterExpiredEntries(key,results.get(key));
+    if (!filteredVals.isEmpty())     results.put(key,filteredVals);
+ else     results.remove(key);
+  }
+  return results;
+}

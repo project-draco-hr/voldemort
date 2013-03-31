@@ -1,0 +1,16 @@
+{
+  long startTimeMs=startTime.getTimeInMillis();
+  GregorianCalendar cal=new GregorianCalendar();
+  cal.setTimeInMillis(startTimeMs);
+  cal.set(Calendar.HOUR_OF_DAY,targetHour);
+  cal.set(Calendar.MINUTE,0);
+  cal.set(Calendar.SECOND,0);
+  cal.set(Calendar.MILLISECOND,0);
+  if (cal.get(Calendar.DAY_OF_WEEK) != targetDay || cal.getTimeInMillis() < startTimeMs) {
+    do {
+      cal.add(Calendar.DAY_OF_YEAR,1);
+    }
+ while (cal.get(Calendar.DAY_OF_WEEK) != targetDay);
+  }
+  return cal;
+}

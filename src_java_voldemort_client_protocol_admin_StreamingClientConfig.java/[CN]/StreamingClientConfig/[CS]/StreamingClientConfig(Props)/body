@@ -1,0 +1,11 @@
+{
+  this.batchSize=props.getInt("streaming.platform.commit.batch",DEFAULT_BATCH_SIZE);
+  this.throttleQPS=props.getInt("streaming.platform.throttle.qps",DEFAULT_THROTTLE_QPS);
+  try {
+    this.bootstrapURL=props.getString("streaming.platform.bootstrapURL");
+  }
+ catch (  UndefinedPropertyException e) {
+    throw new VoldemortException("BootStrap URL Not defined");
+  }
+  validateParams();
+}

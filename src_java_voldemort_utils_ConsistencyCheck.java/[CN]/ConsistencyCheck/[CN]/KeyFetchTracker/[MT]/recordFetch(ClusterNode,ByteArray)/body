@@ -1,0 +1,17 @@
+{
+  if (lastFetchedKey.containsKey(clusterNode)) {
+    ByteArray lastKey=lastFetchedKey.get(clusterNode);
+    if (!key.equals(lastKey)) {
+      if (!fullyFetchedKeyMap.containsKey(lastKey)) {
+        fullyFetchedKeyMap.put(lastKey,new HashSet<ClusterNode>());
+      }
+      Set<ClusterNode> lastKeyIterSet=fullyFetchedKeyMap.get(lastKey);
+      lastKeyIterSet.add(clusterNode);
+      if (lastKeyIterSet.size() == fetcherCount) {
+        fullyFetchedKeys.add(lastKey);
+        fullyFetchedKeyMap.remove(lastKey);
+      }
+    }
+  }
+  lastFetchedKey.put(clusterNode,key);
+}

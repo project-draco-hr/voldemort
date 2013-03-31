@@ -1,0 +1,34 @@
+{
+  byte[] keyInBytes;
+  List<Integer> nodeIdList=null;
+  int masterPartitionId=-1;
+  try {
+    keyInBytes=ByteUtils.fromHexString(badKey.getKeyInHexFormat());
+    masterPartitionId=consistencyFix.getStoreInstance().getMasterPartitionId(keyInBytes);
+    nodeIdList=consistencyFix.getStoreInstance().getReplicationNodeList(masterPartitionId);
+  }
+ catch (  Exception exception) {
+    logger.info("Aborting fixKey due to bad init.");
+    if (logger.isDebugEnabled()) {
+      exception.printStackTrace();
+    }
+    return Status.BAD_INIT;
+  }
+  ByteArray keyAsByteArray=new ByteArray(keyInBytes);
+  Map<Integer,QueryKeyResult> nodeIdToKeyValues=doReads(nodeIdList,keyInBytes,badKey.getKeyInHexFormat());
+  ProcessReadRepliesResult result=processReadReplies(nodeIdList,keyAsByteArray,badKey.getKeyInHexFormat(),nodeIdToKeyValues);
+  if (result.status != Status.SUCCESS) {
+    return result.status;
+  }
+  List<NodeValue<ByteArray,byte[]>> toReadRepair=resolveReadConflicts(result.nodeValues);
+  if (logger.isTraceEnabled()) {
+    if (toReadRepair.size() == 0) {
+      logger.trace("Nothing to repair");
+    }
+    for (    NodeValue<ByteArray,byte[]> nodeValue : toReadRepair) {
+      logger.trace(nodeValue.getNodeId() + " --- " + nodeValue.getKey().toString());
+    }
+  }
+  Status status=doRepairPut(toReadRepair);
+  return status;
+}

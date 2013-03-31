@@ -1,7 +1,13 @@
 {
-  if (logger.isEnabledFor(Level.WARN)) {
-    if (e instanceof StoreTimeoutException)     logger.warn("Error in " + pipeline.getOperation().getSimpleName() + " on node "+ node.getId()+ "("+ node.getHost()+ ") : "+ e.getMessage());
- else     logger.warn("Error in " + pipeline.getOperation().getSimpleName() + " on node "+ node.getId()+ "("+ node.getHost()+ ")",e);
+  if (e instanceof StoreTimeoutException || e instanceof ObsoleteVersionException || e instanceof UnreachableStoreException) {
+    if (logger.isEnabledFor(Level.DEBUG)) {
+      logger.debug("Error in " + pipeline.getOperation().getSimpleName() + " on node "+ node.getId()+ " ("+ node.getHost()+ ") : "+ e.getMessage());
+    }
+  }
+ else {
+    if (logger.isEnabledFor(Level.WARN)) {
+      logger.warn("Error in " + pipeline.getOperation().getSimpleName() + " on node "+ node.getId()+ " ("+ node.getHost()+ ")",e);
+    }
   }
   if (e instanceof UnreachableStoreException) {
     pipelineData.addFailedNode(node);

@@ -1,0 +1,18 @@
+{
+  if (bytes.length < 1)   throw new VoldemortException("Invalid value length: " + bytes.length);
+  if (bytes[0] != VERSION)   throw new VoldemortException("Unexpected version number in value: " + bytes[0]);
+  int pos=1;
+  List<Versioned<byte[]>> vals=new ArrayList<Versioned<byte[]>>(2);
+  while (pos < bytes.length) {
+    VectorClock clock=new VectorClock(bytes,pos);
+    pos+=clock.sizeInBytes();
+    int valueSize=ByteUtils.readInt(bytes,pos);
+    pos+=ByteUtils.SIZE_OF_INT;
+    byte[] val=new byte[valueSize];
+    System.arraycopy(bytes,pos,val,0,valueSize);
+    pos+=valueSize;
+    vals.add(Versioned.value(val,clock));
+  }
+  if (pos != bytes.length)   throw new VoldemortException((bytes.length - pos) + " straggling bytes found in value (this should not be possible)!");
+  return vals;
+}

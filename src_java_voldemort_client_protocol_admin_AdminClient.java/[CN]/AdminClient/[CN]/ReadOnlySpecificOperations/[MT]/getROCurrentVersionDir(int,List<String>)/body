@@ -1,0 +1,14 @@
+{
+  VAdminProto.GetROCurrentVersionDirRequest.Builder getRORequest=VAdminProto.GetROCurrentVersionDirRequest.newBuilder().addAllStoreName(storeNames);
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setGetRoCurrentVersionDir(getRORequest).setType(VAdminProto.AdminRequestType.GET_RO_CURRENT_VERSION_DIR).build();
+  VAdminProto.GetROCurrentVersionDirResponse.Builder response=rpcOps.sendAndReceive(nodeId,adminRequest,VAdminProto.GetROCurrentVersionDirResponse.newBuilder());
+  if (response.hasError()) {
+    helperOps.throwException(response.getError());
+  }
+  Map<String,String> storeToValues=ProtoUtils.encodeROMap(response.getRoStoreVersionsList());
+  if (storeToValues.size() != storeNames.size()) {
+    storeNames.removeAll(storeToValues.keySet());
+    throw new VoldemortException("Did not retrieve values for " + storeNames);
+  }
+  return storeToValues;
+}

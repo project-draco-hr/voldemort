@@ -1,0 +1,19 @@
+{
+  DatabaseEntry keyEntry=new DatabaseEntry();
+  DatabaseEntry valueEntry=new DatabaseEntry();
+  valueEntry.setPartial(true);
+  try {
+    OperationStatus status=cursor.getNext(keyEntry,valueEntry,LockMode.READ_UNCOMMITTED);
+    if (OperationStatus.NOTFOUND == status) {
+      return false;
+    }
+    if (bdbEngine.isPartitionScanSupported())     current=new ByteArray(StoreBinaryFormat.extractKey(keyEntry.getData()));
+ else     current=new ByteArray(keyEntry.getData());
+    return true;
+  }
+ catch (  DatabaseException e) {
+    bdbEngine.bdbEnvironmentStats.reportException(e);
+    logger.error(e);
+    throw new PersistenceFailureException(e);
+  }
+}

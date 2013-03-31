@@ -1,0 +1,36 @@
+{
+  this.environment=environment;
+  this.database=database;
+  this.exposeSpaceStats=exposeSpaceUtil;
+  Callable<EnvironmentStats> fastStatsCallable=new Callable<EnvironmentStats>(){
+    public EnvironmentStats call() throws Exception {
+      return getEnvironmentStats(true);
+    }
+  }
+;
+  fastStats=new CachedCallable<EnvironmentStats>(fastStatsCallable,ttlMs);
+  Callable<SpaceUtilizationStats> fastDbStatsCallable=new Callable<SpaceUtilizationStats>(){
+    public SpaceUtilizationStats call() throws Exception {
+      return getSpaceUtilizationStats();
+    }
+  }
+;
+  fastSpaceStats=new CachedCallable<SpaceUtilizationStats>(fastDbStatsCallable,ttlMs);
+  Callable<Long> entryCountCallable=new Callable<Long>(){
+    public Long call() throws Exception {
+      return getEntryCountUncached();
+    }
+  }
+;
+  entryCount=new CachedCallable<Long>(entryCountCallable,INVASIVE_STATS_TTL_MS);
+  Callable<DatabaseStats> btreeStatsCallable=new Callable<DatabaseStats>(){
+    public DatabaseStats call() throws Exception {
+      return getBtreeStatsUncached();
+    }
+  }
+;
+  btreeStats=new CachedCallable<DatabaseStats>(btreeStatsCallable,INVASIVE_STATS_TTL_MS);
+  numExceptions=new AtomicLong(0);
+  numLockTimeoutExceptions=new AtomicLong(0);
+  numEnvironmentFailureExceptions=new AtomicLong(0);
+}

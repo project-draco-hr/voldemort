@@ -1,0 +1,21 @@
+{
+  if (executed)   return;
+  GroupIOException exc=null;
+  if (cause != null)   exc=new GroupIOException(cause);
+  for (  T current : delegates) {
+    if (current == null)     continue;
+    try {
+      onDelegate(current);
+    }
+ catch (    Throwable t) {
+      if (exc == null) {
+        exc=new GroupIOException(t);
+      }
+ else {
+        exc.addSuppressed(t);
+      }
+    }
+  }
+  executed=true;
+  if (exc != null)   throw exc;
+}

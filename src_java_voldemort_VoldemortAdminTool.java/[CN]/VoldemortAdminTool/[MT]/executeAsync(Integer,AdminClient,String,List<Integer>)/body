@@ -11,10 +11,10 @@
     }
     for (    int currentNodeId : nodeIds) {
       System.out.println("Retrieving async jobs from node " + currentNodeId);
-      List<Integer> asyncIds=adminClient.getAsyncRequestList(currentNodeId);
+      List<Integer> asyncIds=adminClient.rpcOps.getAsyncRequestList(currentNodeId);
       System.out.println("Async Job Ids on node " + currentNodeId + " : "+ asyncIds);
       for (      int asyncId : asyncIds) {
-        System.out.println("Async Job Id " + asyncId + " ] "+ adminClient.getAsyncRequestStatus(currentNodeId,asyncId));
+        System.out.println("Async Job Id " + asyncId + " ] "+ adminClient.rpcOps.getAsyncRequestStatus(currentNodeId,asyncId));
         System.out.println();
       }
     }
@@ -28,7 +28,7 @@
     }
     for (    int asyncId : asyncIdsToStop) {
       System.out.println("Stopping async id " + asyncId);
-      adminClient.stopAsyncRequest(nodeId,asyncId);
+      adminClient.rpcOps.stopAsyncRequest(nodeId,asyncId);
       System.out.println("Stopped async id " + asyncId);
     }
   }

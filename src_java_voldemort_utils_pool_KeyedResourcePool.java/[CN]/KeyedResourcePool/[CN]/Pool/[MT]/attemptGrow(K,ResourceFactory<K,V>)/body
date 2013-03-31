@@ -9,7 +9,13 @@
         if (!nonBlockingPut(resource)) {
           this.size.decrementAndGet();
           objectFactory.destroy(key,resource);
+          if (logger.isInfoEnabled()) {
+            logger.info("attemptGrow established new connection for key " + key.toString() + " and immediately destroyed the new connection "+ "because there were too many connections already established.");
+          }
           return false;
+        }
+        if (logger.isDebugEnabled()) {
+          logger.debug("attemptGrow established new connection for key " + key.toString() + ". "+ " After checking in to KeyedResourcePool, there are "+ queue.size()+ " destinations checked in.");
         }
       }
     }

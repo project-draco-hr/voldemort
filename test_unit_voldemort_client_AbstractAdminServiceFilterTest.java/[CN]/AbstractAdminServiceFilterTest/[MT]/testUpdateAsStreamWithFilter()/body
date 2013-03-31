@@ -1,7 +1,7 @@
 {
   VoldemortFilter filter=new VoldemortFilterImpl();
   Set<Pair<ByteArray,Versioned<byte[]>>> entrySet=createEntries();
-  getAdminClient().updateEntries(0,testStoreName,entrySet.iterator(),filter);
+  getAdminClient().streamingOps.updateEntries(0,testStoreName,entrySet.iterator(),filter);
   Store<ByteArray,byte[],byte[]> store=getStore(0,testStoreName);
   assertNotSame("Store '" + testStoreName + "' should not be null",null,store);
   for (  Pair<ByteArray,Versioned<byte[]>> entry : entrySet) {

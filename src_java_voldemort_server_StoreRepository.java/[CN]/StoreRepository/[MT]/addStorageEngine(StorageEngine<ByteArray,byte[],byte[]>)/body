@@ -1,4 +1,12 @@
 {
   StorageEngine<ByteArray,byte[],byte[]> found=this.storageEngines.putIfAbsent(engine.getName(),engine);
   if (found != null)   throw new VoldemortException("Storage Engine '" + engine.getName() + "' has already been initialized.");
+  if (streamingStatsMap != null) {
+    if (storageEngines.size() == 1) {
+      JmxUtils.registerMbean(aggregatedStreamStats,JmxUtils.createObjectName(this.getClass().getCanonicalName(),"aggregated-streaming-stats"));
+    }
+    StreamingStats stat=new StreamingStats(aggregatedStreamStats);
+    JmxUtils.registerMbean(stat,JmxUtils.createObjectName(this.getClass().getCanonicalName(),engine.getName() + "-streaming-stats"));
+    streamingStatsMap.putIfAbsent(engine.getName(),stat);
+  }
 }

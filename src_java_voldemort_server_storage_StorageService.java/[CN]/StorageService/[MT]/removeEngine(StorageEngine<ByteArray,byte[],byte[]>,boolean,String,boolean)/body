@@ -1,0 +1,35 @@
+{
+  String storeName=engine.getName();
+  Store<ByteArray,byte[],byte[]> store=storeRepository.removeLocalStore(storeName);
+  boolean isSlop=storeType.compareTo("slop") == 0;
+  boolean isView=storeType.compareTo(ViewStorageConfiguration.TYPE_NAME) == 0;
+  boolean isMetadata=storeName.compareTo(MetadataStore.METADATA_STORE_NAME) == 0;
+  if (store != null) {
+    if (voldemortConfig.isJmxEnabled()) {
+      MBeanServer mbeanServer=ManagementFactory.getPlatformMBeanServer();
+      if (!isSlop && voldemortConfig.isEnableRebalanceService() && !isReadOnly&& !isMetadata&& !isView) {
+        ObjectName name=null;
+        if (this.voldemortConfig.isEnableJmxClusterName())         name=JmxUtils.createObjectName(metadata.getCluster().getName() + "." + JmxUtils.getPackageName(RedirectingStore.class),store.getName());
+ else         name=JmxUtils.createObjectName(JmxUtils.getPackageName(RedirectingStore.class),store.getName());
+synchronized (mbeanServer) {
+          if (mbeanServer.isRegistered(name))           JmxUtils.unregisterMbean(mbeanServer,name);
+        }
+      }
+      if (voldemortConfig.isStatTrackingEnabled()) {
+        ObjectName name=null;
+        if (this.voldemortConfig.isEnableJmxClusterName())         name=JmxUtils.createObjectName(metadata.getCluster().getName() + "." + JmxUtils.getPackageName(store.getClass()),store.getName());
+ else         name=JmxUtils.createObjectName(JmxUtils.getPackageName(store.getClass()),store.getName());
+synchronized (mbeanServer) {
+          if (mbeanServer.isRegistered(name))           JmxUtils.unregisterMbean(mbeanServer,name);
+        }
+      }
+    }
+    if (voldemortConfig.isServerRoutingEnabled() && !isSlop) {
+      this.storeRepository.removeRoutedStore(storeName);
+      for (      Node node : metadata.getCluster().getNodes())       this.storeRepository.removeNodeStore(storeName,node.getId());
+    }
+  }
+  storeRepository.removeStorageEngine(storeName);
+  if (truncate)   engine.truncate();
+  engine.close();
+}

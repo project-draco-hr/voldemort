@@ -1,0 +1,44 @@
+{
+  StoreDefinition storedef=TestUtils.makeStoreDefinition("storeA");
+  RoutingStrategy strategy=TestUtils.makeSingleNodeRoutingStrategy();
+  BdbStorageEngine prefixedBdbStore=(BdbStorageEngine)bdbStorage.getStore(storedef,strategy);
+  try {
+    HashMap<Integer,Set<String>> partitionToKeysMap=new HashMap<Integer,Set<String>>();
+    for (int i=0; i < 10000; i++) {
+      String key="key" + i;
+      byte[] bkey=key.getBytes();
+      int partition=strategy.getPartitionList(bkey).get(0);
+      if (!partitionToKeysMap.containsKey(partition))       partitionToKeysMap.put(partition,new HashSet<String>());
+      partitionToKeysMap.get(partition).add(key);
+      prefixedBdbStore.put(new ByteArray(bkey),new Versioned<byte[]>(("value" + i).getBytes()),null);
+    }
+    for (int p=0; p < strategy.getNumReplicas(); p++) {
+      Set<String> keys=getKeys(prefixedBdbStore.keys(p));
+      assertEquals(partitionToKeysMap.get(p).size(),keys.size());
+      assertEquals(partitionToKeysMap.get(p),keys);
+      keys=getEntries(prefixedBdbStore.entries(p));
+      assertEquals(partitionToKeysMap.get(p).size(),keys.size());
+      assertEquals(partitionToKeysMap.get(p),keys);
+    }
+    HashSet<String> allKeys=new HashSet<String>();
+    for (    Integer p : partitionToKeysMap.keySet()) {
+      Set<String> pkeys=partitionToKeysMap.get(p);
+      int originalSize=allKeys.size();
+      allKeys.removeAll(pkeys);
+      assertEquals(allKeys.size(),originalSize);
+      allKeys.addAll(pkeys);
+    }
+    Set<String> keys=getKeys(prefixedBdbStore.keys());
+    assertEquals(allKeys.size(),keys.size());
+    assertEquals(allKeys,keys);
+    keys=getEntries(prefixedBdbStore.entries());
+    assertEquals(allKeys.size(),keys.size());
+    assertEquals(allKeys,keys);
+  }
+ catch (  Exception e) {
+    fail("Should not have thrown any exceptions" + e.getMessage());
+  }
+ finally {
+    prefixedBdbStore.close();
+  }
+}

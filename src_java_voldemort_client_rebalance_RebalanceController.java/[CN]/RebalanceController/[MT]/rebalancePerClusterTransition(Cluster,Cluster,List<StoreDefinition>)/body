@@ -5,6 +5,7 @@
   int numCrossZoneMoves=0;
   int numPrimaryPartitionMoves=0;
   ClusterMapper mapper=new ClusterMapper();
+  if (rebalanceConfig.hasOutputDirectory())   RebalanceUtils.dumpCluster(currentCluster,targetCluster,new File(rebalanceConfig.getOutputDirectory()));
   for (  Node stealerNode : targetCluster.getNodes()) {
     List<Integer> stolenPrimaryPartitions=RebalanceUtils.getStolenPrimaryPartitions(currentCluster,targetCluster,stealerNode.getId());
     if (stolenPrimaryPartitions.size() > 0) {
@@ -36,6 +37,7 @@
   logger.info("Total number of cross zone moves : " + numCrossZoneMoves);
   logger.info("Total number of tasks : " + numTasks);
   int tasksCompleted=0;
+  int batchCounter=0;
   int primaryPartitionId=0;
   double totalTimeMs=0.0;
   while (!stealerToStolenPrimaryPartitions.isEmpty()) {
@@ -48,6 +50,7 @@
       primaryPartitionBatchSize++;
       if (primaryPartitionBatchSize == rebalanceConfig.getPrimaryPartitionBatchSize())       break;
     }
+    batchCounter++;
     StringBuffer buffer=new StringBuffer();
     buffer.append("Partitions being moved : ");
     for (Iterator<Entry<Integer,Integer>> partitionMoved=partitionsMoved.iterator(); partitionMoved.hasNext(); ) {
@@ -60,7 +63,7 @@
     logger.info("----------------");
     RebalanceUtils.printLog(orderedClusterTransition.getId(),logger,buffer.toString());
     RebalanceUtils.printLog(orderedClusterTransition.getId(),logger,orderedClusterTransition.toString());
-    if (rebalanceConfig.hasOutputDirectory())     RebalanceUtils.dumpCluster(currentCluster,transitionCluster,new File(rebalanceConfig.getOutputDirectory()));
+    if (rebalanceConfig.hasOutputDirectory())     RebalanceUtils.dumpCluster(currentCluster,transitionCluster,new File(rebalanceConfig.getOutputDirectory()),"batch-" + Integer.toString(batchCounter) + ".");
     long startTimeMs=System.currentTimeMillis();
     rebalancePerPartitionTransition(orderedClusterTransition);
     totalTimeMs+=(System.currentTimeMillis() - startTimeMs);

@@ -1,0 +1,15 @@
+{
+  if (checkpointerOffForBatchWrites) {
+synchronized (this) {
+      numOutstandingBatchWriteJobs++;
+      if (numOutstandingBatchWriteJobs == 1) {
+        logger.info("Turning checkpointer off for batch writes");
+        EnvironmentMutableConfig mConfig=environment.getMutableConfig();
+        mConfig.setConfigParam(EnvironmentConfig.ENV_RUN_CHECKPOINTER,Boolean.toString(false));
+        environment.setMutableConfig(mConfig);
+        return true;
+      }
+    }
+  }
+  return false;
+}

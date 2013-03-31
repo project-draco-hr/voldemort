@@ -1,10 +1,5 @@
 {
-  GregorianCalendar cal=new GregorianCalendar();
-  cal.add(Calendar.DAY_OF_YEAR,1);
-  cal.set(Calendar.HOUR_OF_DAY,voldemortConfig.getRetentionCleanupFirstStartTimeInHour());
-  cal.set(Calendar.MINUTE,0);
-  cal.set(Calendar.SECOND,0);
-  cal.set(Calendar.MILLISECOND,0);
+  GregorianCalendar cal=Utils.getCalendarForNextRun(new GregorianCalendar(),voldemortConfig.getRetentionCleanupFirstStartDayOfWeek(),voldemortConfig.getRetentionCleanupFirstStartTimeInHour());
   Date startTime=cal.getTime();
   int maxReadRate=storeDef.hasRetentionScanThrottleRate() ? storeDef.getRetentionScanThrottleRate() : Integer.MAX_VALUE;
   logger.info("Scheduling data retention cleanup job for store '" + storeDef.getName() + "' at "+ startTime+ " with retention scan throttle rate:"+ maxReadRate+ " Entries/second.");
@@ -14,5 +9,5 @@
     JmxUtils.registerMbean("DataCleanupJob-" + engine.getName(),cleanupJob);
   }
   long retentionFreqHours=storeDef.hasRetentionFrequencyDays() ? (storeDef.getRetentionFrequencyDays() * Time.HOURS_PER_DAY) : voldemortConfig.getRetentionCleanupScheduledPeriodInHour();
-  this.scheduler.schedule("cleanup-" + storeDef.getName(),cleanupJob,startTime,retentionFreqHours * Time.MS_PER_HOUR);
+  this.scheduler.schedule("cleanup-" + storeDef.getName(),cleanupJob,startTime,retentionFreqHours * Time.MS_PER_HOUR,voldemortConfig.getRetentionCleanupPinStartTime());
 }

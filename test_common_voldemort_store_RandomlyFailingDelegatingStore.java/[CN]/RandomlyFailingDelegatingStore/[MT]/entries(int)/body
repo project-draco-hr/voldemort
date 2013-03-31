@@ -1,0 +1,18 @@
+{
+  return new ClosableIterator<Pair<K,Versioned<V>>>(){
+    ClosableIterator<Pair<K,Versioned<V>>> iterator=innerStorageEngine.entries(partition);
+    @Override public void close(){
+      iterator.close();
+    }
+    @Override public boolean hasNext(){
+      return iterator.hasNext();
+    }
+    @Override public Pair<K,Versioned<V>> next(){
+      if (Math.random() > FAIL_PROBABILITY)       return iterator.next();
+      throw new VoldemortException("Failing now !!");
+    }
+    @Override public void remove(){
+    }
+  }
+;
+}

@@ -1,0 +1,52 @@
+{
+  System.out.println("Balance number of contiguous partitions within a zone.");
+  System.out.println("numPartitionsPerZone");
+  for (  int zoneId : targetCluster.getZoneIds()) {
+    System.out.println(zoneId + " : " + targetCluster.getNumberOfPartitionsInZone(zoneId));
+  }
+  System.out.println("numNodesPerZone");
+  for (  int zoneId : targetCluster.getZoneIds()) {
+    System.out.println(zoneId + " : " + targetCluster.getNumberOfNodesInZone(zoneId));
+  }
+  HashMap<Integer,List<Integer>> partitionsToRemoveFromZone=Maps.newHashMap();
+  System.out.println("Contiguous partitions");
+  for (  Integer zoneId : targetCluster.getZoneIds()) {
+    System.out.println("\tZone: " + zoneId);
+    List<Integer> partitions=new ArrayList<Integer>(targetCluster.getPartitionIdsInZone(zoneId));
+    List<Integer> partitionsToRemoveFromThisZone=new ArrayList<Integer>();
+    List<Integer> contiguousPartitions=new ArrayList<Integer>();
+    int lastPartitionId=partitions.get(0);
+    for (int i=1; i < partitions.size(); ++i) {
+      if (partitions.get(i) == lastPartitionId + 1) {
+        contiguousPartitions.add(partitions.get(i));
+      }
+ else {
+        if (contiguousPartitions.size() > maxContiguousPartitionsPerZone) {
+          System.out.println("Contiguous partitions: " + contiguousPartitions);
+          partitionsToRemoveFromThisZone.addAll(removeItemsToSplitListEvenly(contiguousPartitions,maxContiguousPartitionsPerZone));
+        }
+        contiguousPartitions.clear();
+      }
+      lastPartitionId=partitions.get(i);
+    }
+    partitionsToRemoveFromZone.put(zoneId,partitionsToRemoveFromThisZone);
+    System.out.println("\t\tPartitions to remove: " + partitionsToRemoveFromThisZone);
+  }
+  Cluster returnCluster=ClusterUtils.copyCluster(targetCluster);
+  Random r=new Random();
+  for (  int zoneId : returnCluster.getZoneIds()) {
+    for (    int partitionId : partitionsToRemoveFromZone.get(zoneId)) {
+      List<Integer> otherZoneIds=new ArrayList<Integer>();
+      for (      int otherZoneId : returnCluster.getZoneIds()) {
+        if (otherZoneId != zoneId) {
+          otherZoneIds.add(otherZoneId);
+        }
+      }
+      int whichOtherZoneId=otherZoneIds.get(r.nextInt(otherZoneIds.size()));
+      int whichNodeOffset=r.nextInt(returnCluster.getNumberOfNodesInZone(whichOtherZoneId));
+      int whichNodeId=new ArrayList<Integer>(returnCluster.getNodeIdsInZone(whichOtherZoneId)).get(whichNodeOffset);
+      returnCluster=RebalanceUtils.createUpdatedCluster(returnCluster,whichNodeId,Lists.newArrayList(partitionId));
+    }
+  }
+  return returnCluster;
+}

@@ -1,0 +1,21 @@
+{
+  validateTimeout(requestWrapper.getRoutingTimeoutInMs());
+  Map<K,List<Versioned<V>>> items=null;
+  for (int attempts=0; ; attempts++) {
+    if (attempts >= this.metadataRefreshAttempts)     throw new VoldemortException(this.metadataRefreshAttempts + " metadata refresh attempts failed.");
+    try {
+      items=store.getAll(requestWrapper);
+      break;
+    }
+ catch (    InvalidMetadataException e) {
+      logger.info("Received invalid metadata exception during getAll [  " + e.getMessage() + " ] on store '"+ storeName+ "'. Rebootstrapping");
+      bootStrap();
+    }
+  }
+  Map<K,Versioned<V>> result=Maps.newHashMapWithExpectedSize(items.size());
+  for (  Entry<K,List<Versioned<V>>> mapEntry : items.entrySet()) {
+    Versioned<V> value=getItemOrThrow(mapEntry.getKey(),null,mapEntry.getValue());
+    result.put(mapEntry.getKey(),value);
+  }
+  return result;
+}

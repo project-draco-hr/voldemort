@@ -1,0 +1,24 @@
+{
+  List<Versioned<byte[]>> result=null;
+  long start=System.nanoTime();
+  try {
+    result=super.get(request);
+    return result;
+  }
+ catch (  VoldemortException e) {
+    stats.recordTime(Tracked.EXCEPTION,System.nanoTime() - start);
+    throw e;
+  }
+ finally {
+    long duration=System.nanoTime() - start;
+    long totalBytes=0;
+    boolean returningEmpty=true;
+    if (result != null) {
+      returningEmpty=result.size() == 0;
+      for (      Versioned<byte[]> bytes : result) {
+        totalBytes+=bytes.getValue().length;
+      }
+    }
+    stats.recordGetTime(duration,returningEmpty,totalBytes);
+  }
+}

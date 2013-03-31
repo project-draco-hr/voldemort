@@ -1,0 +1,29 @@
+{
+  final Store<ByteArray,byte[],byte[]> store;
+  try {
+    store=adminStoreClient.getSocketStore(nodeId,storeName);
+  }
+ catch (  Exception e) {
+    throw new VoldemortException(e);
+  }
+  return new AbstractIterator<QueryKeyResult>(){
+    @Override public QueryKeyResult computeNext(){
+      ByteArray key;
+      List<Versioned<byte[]>> value=null;
+      if (!keys.hasNext()) {
+        return endOfData();
+      }
+ else {
+        key=keys.next();
+      }
+      try {
+        value=store.get(key,null);
+        return new QueryKeyResult(key,value);
+      }
+ catch (      Exception e) {
+        return new QueryKeyResult(key,e);
+      }
+    }
+  }
+;
+}

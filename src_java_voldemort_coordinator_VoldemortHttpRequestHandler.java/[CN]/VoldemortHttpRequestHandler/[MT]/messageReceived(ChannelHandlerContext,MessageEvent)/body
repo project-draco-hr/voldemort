@@ -1,0 +1,73 @@
+{
+  if (!readingChunks) {
+    HttpRequest request=this.request=(HttpRequest)e.getMessage();
+    String requestURI=this.request.getUri();
+    if (logger.isDebugEnabled()) {
+      logger.debug("Request URI: " + requestURI);
+    }
+    if (request.isChunked()) {
+      readingChunks=true;
+    }
+ else {
+      CompositeVoldemortRequest<ByteArray,byte[]> requestObject=parseRequest(requestURI,e,this.request.getMethod());
+      String storeName=getStoreName(requestURI);
+      FatClientWrapper fatClientWrapper=null;
+      if (storeName != null) {
+        fatClientWrapper=this.fatClientMap.get(storeName);
+      }
+      if (storeName == null || fatClientWrapper == null) {
+        handleBadRequest(e,"Invalid store name. Critical error.");
+        return;
+      }
+      if (requestObject == null) {
+        handleBadRequest(e,"Illegal request.");
+        return;
+      }
+switch (requestObject.getOperationType()) {
+case VoldemortOpCode.GET_OP_CODE:
+        if (logger.isDebugEnabled()) {
+          logger.debug("Incoming get request");
+        }
+      fatClientWrapper.submitGetRequest(requestObject,e);
+    break;
+case VoldemortOpCode.GET_ALL_OP_CODE:
+  fatClientWrapper.submitGetAllRequest(requestObject,e,storeName);
+break;
+case VoldemortOpCode.PUT_OP_CODE:
+if (logger.isDebugEnabled()) {
+logger.debug("Incoming put request");
+}
+fatClientWrapper.submitPutRequest(requestObject,e);
+break;
+case VoldemortOpCode.DELETE_OP_CODE:
+fatClientWrapper.submitDeleteRequest(requestObject,e);
+break;
+default :
+String errorMessage="Illegal operation.";
+logger.error(errorMessage);
+RESTErrorHandler.handleError(BAD_REQUEST,e,isKeepAlive(request),errorMessage);
+return;
+}
+}
+}
+ else {
+HttpChunk chunk=(HttpChunk)e.getMessage();
+if (chunk.isLast()) {
+readingChunks=false;
+buf.append("END OF CONTENT\r\n");
+HttpChunkTrailer trailer=(HttpChunkTrailer)chunk;
+if (!trailer.getHeaderNames().isEmpty()) {
+buf.append("\r\n");
+for (String name : trailer.getHeaderNames()) {
+for (String value : trailer.getHeaders(name)) {
+buf.append("TRAILING HEADER: " + name + " = "+ value+ "\r\n");
+}
+}
+buf.append("\r\n");
+}
+}
+ else {
+buf.append("CHUNK: " + chunk.getContent().toString(CharsetUtil.UTF_8) + "\r\n");
+}
+}
+}

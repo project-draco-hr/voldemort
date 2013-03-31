@@ -1,0 +1,33 @@
+{
+  List<Versioned<byte[]>> resultList=new ArrayList<Versioned<byte[]>>();
+  try {
+    String base64Key=new String(Base64.encodeBase64(key.get()));
+    RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
+    rb.setMethod(GET);
+    rb.setHeader("Accept","application/json");
+    rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,"1000");
+    rb.setHeader(X_VOLD_INCONSISTENCY_RESOLVER,"custom");
+    RestRequest request=rb.build();
+    Future<RestResponse> f=client.restRequest(request);
+    RestResponse response=f.get();
+    final ByteString entity=response.getEntity();
+    String eTag=response.getHeader(ETAG);
+    String lastModified=response.getHeader(LAST_MODIFIED);
+    if (entity != null) {
+      resultList=readResults(entity,eTag,lastModified);
+    }
+ else {
+      logger.error("Did not get any response!");
+    }
+  }
+ catch (  VoldemortException ve) {
+    ve.printStackTrace();
+    throw ve;
+  }
+catch (  Exception e) {
+    if (!e.getMessage().contains("status=404")) {
+      logger.error("ERROR: " + e);
+    }
+  }
+  return resultList;
+}

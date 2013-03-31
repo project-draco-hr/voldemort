@@ -1,0 +1,60 @@
+{
+  Map<ClusterNode,Iterator<Pair<ByteArray,Versioned<byte[]>>>> nodeFetchIteratorMap;
+  nodeFetchIteratorMap=new HashMap<ClusterNode,Iterator<Pair<ByteArray,Versioned<byte[]>>>>();
+  for (  ClusterNode clusterNode : clusterNodeList) {
+    AdminClient adminClient=adminClients.get(clusterNode.getPrefixId());
+    List<Integer> singlePartition=new ArrayList<Integer>();
+    singlePartition.add(partitionId);
+    if (logger.isDebugEnabled()) {
+      logger.debug("Start fetch request to Node[" + clusterNode.toString() + "] for partition["+ partitionId+ "] of store["+ storeName+ "]");
+    }
+    Iterator<Pair<ByteArray,Versioned<byte[]>>> fetchIterator;
+    fetchIterator=adminClient.bulkFetchOps.fetchEntries(clusterNode.getNode().getId(),storeName,singlePartition,null,false);
+    nodeFetchIteratorMap.put(clusterNode,fetchIterator);
+  }
+  keyFetchTracker=new KeyFetchTracker(clusterNodeList.size());
+  boolean fetchFinished;
+  do {
+    fetchFinished=true;
+    for (    Map.Entry<ClusterNode,Iterator<Pair<ByteArray,Versioned<byte[]>>>> nodeFetchIteratorMapEntry : nodeFetchIteratorMap.entrySet()) {
+      ClusterNode clusterNode=nodeFetchIteratorMapEntry.getKey();
+      Iterator<Pair<ByteArray,Versioned<byte[]>>> fetchIterator=nodeFetchIteratorMapEntry.getValue();
+      if (fetchIterator.hasNext()) {
+        fetchFinished=false;
+        reporter.recordScans(1);
+        Pair<ByteArray,Versioned<byte[]>> fetchedEntry=fetchIterator.next();
+        ByteArray key=fetchedEntry.getFirst();
+        Versioned<byte[]> versioned=fetchedEntry.getSecond();
+        recordFetch(clusterNode,key,versioned);
+        keyFetchTracker.recordFetch(clusterNode,key);
+        if (logger.isTraceEnabled()) {
+          logger.trace("fetched " + new String(key.get()));
+          logger.trace("map has keys: " + keyVersionNodeSetMap.size());
+        }
+        trySweepAll();
+        if (logger.isTraceEnabled()) {
+          logger.trace("sweeped; keys left: " + keyVersionNodeSetMap.size());
+        }
+      }
+    }
+    if (logger.isInfoEnabled()) {
+      String report=reporter.tryProgressReport();
+      if (report != null) {
+        for (        String line : report.split("\n")) {
+          logger.info(line);
+        }
+      }
+    }
+  }
+ while (!fetchFinished);
+  for (  AdminClient adminClient : adminClients) {
+    if (adminClient != null) {
+      adminClient.close();
+    }
+  }
+  cleanIneligibleKeys(keyVersionNodeSetMap,requiredWrites);
+  keyFetchTracker.finishAll();
+  trySweepAll();
+  reporter.processInconsistentKeys(storeName,partitionId,keyVersionNodeSetMap);
+  return reporter;
+}

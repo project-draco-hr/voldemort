@@ -1,0 +1,24 @@
+{
+  CoordinatorConfig config=null;
+  try {
+    if (args.length != 1) {
+      croak("USAGE: java " + VoldemortServer.class.getName() + " [coordinator_config_file]");
+      System.exit(-1);
+    }
+    config=new CoordinatorConfig(new File(args[0]));
+  }
+ catch (  Exception e) {
+    logger.error(e);
+    Utils.croak("Error while loading configuration: " + e.getMessage());
+  }
+  final CoordinatorService coordinator=new CoordinatorService(config);
+  if (!coordinator.isStarted()) {
+    coordinator.start();
+  }
+  Runtime.getRuntime().addShutdownHook(new Thread(){
+    @Override public void run(){
+      if (coordinator.isStarted())       coordinator.stop();
+    }
+  }
+);
+}

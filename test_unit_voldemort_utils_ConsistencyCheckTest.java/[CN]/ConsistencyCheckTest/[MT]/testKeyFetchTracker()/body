@@ -1,0 +1,29 @@
+{
+  KeyFetchTracker tracker=new KeyFetchTracker(4);
+  tracker.recordFetch(cn0_1,new ByteArray(value1));
+  tracker.recordFetch(cn0_2,new ByteArray(value1));
+  tracker.recordFetch(cn0_3,new ByteArray(value1));
+  tracker.recordFetch(cn0_4,new ByteArray(value1));
+  tracker.recordFetch(cn0_1,new ByteArray(value2));
+  tracker.recordFetch(cn0_2,new ByteArray(value2));
+  tracker.recordFetch(cn0_3,new ByteArray(value2));
+  assertNull(tracker.nextFinished());
+  tracker.recordFetch(cn0_4,new ByteArray(value2));
+  assertEquals(new ByteArray(value1),tracker.nextFinished());
+  assertNull(tracker.nextFinished());
+  tracker.recordFetch(cn0_1,new ByteArray(value3));
+  tracker.recordFetch(cn0_2,new ByteArray(value3));
+  tracker.recordFetch(cn0_3,new ByteArray(value3));
+  tracker.recordFetch(cn0_4,new ByteArray(value3));
+  tracker.recordFetch(cn0_4,new ByteArray(value3));
+  tracker.recordFetch(cn0_4,new ByteArray(value3));
+  assertEquals(new ByteArray(value2),tracker.nextFinished());
+  tracker.recordFetch(cn0_1,new ByteArray(value4));
+  tracker.recordFetch(cn0_2,new ByteArray(value4));
+  tracker.recordFetch(cn0_3,new ByteArray(value4));
+  assertNull(tracker.nextFinished());
+  tracker.finishAll();
+  assertEquals(new ByteArray(value3),tracker.nextFinished());
+  assertEquals(new ByteArray(value4),tracker.nextFinished());
+  assertNull(tracker.nextFinished());
+}

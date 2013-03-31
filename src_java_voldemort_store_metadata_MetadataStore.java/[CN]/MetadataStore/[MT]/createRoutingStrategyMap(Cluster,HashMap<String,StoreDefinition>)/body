@@ -1,0 +1,8 @@
+{
+  HashMap<String,RoutingStrategy> map=new HashMap<String,RoutingStrategy>();
+  for (  StoreDefinition store : storeDefs.values()) {
+    map.put(store.getName(),routingFactory.updateRoutingStrategy(store,cluster));
+  }
+  map.put(METADATA_STORE_NAME,new RouteToAllStrategy(getCluster().getNodes()));
+  return map;
+}

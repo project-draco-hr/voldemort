@@ -22,8 +22,11 @@
 catch (      ObsoleteVersionException e) {
         logger.debug(e,e);
       }
-      if (logger.isDebugEnabled())       logger.debug("Slop write of key " + slop.getKey() + " (keyRef: "+ System.identityHashCode(slop.getKey())+ " for "+ failedNode+ " to node "+ node+ " succeeded in "+ (System.nanoTime() - startNs)+ " ns");
+      if (logger.isDebugEnabled())       logger.debug("Slop write of key " + slop.getKey() + " (keyRef: "+ System.identityHashCode(slop.getKey())+ ") for "+ failedNode+ " to node "+ node+ " succeeded in "+ (System.nanoTime() - startNs)+ " ns");
     }
+  }
+  if (!persisted) {
+    logger.error("Slop write of key " + slop.getKey() + " (keyRef: "+ System.identityHashCode(slop.getKey())+ ") for "+ failedNode+ " was not written.");
   }
   return persisted;
 }

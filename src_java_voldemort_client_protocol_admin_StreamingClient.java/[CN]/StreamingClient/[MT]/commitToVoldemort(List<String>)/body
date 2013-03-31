@@ -1,0 +1,75 @@
+{
+  if (logger.isDebugEnabled()) {
+    logger.debug("Trying to commit to Voldemort");
+  }
+  for (  Node node : nodesToStream) {
+    for (    String store : storeNamesToCommit) {
+      if (!nodeIdStoreInitialized.get(new Pair(store,node.getId())))       continue;
+      nodeIdStoreInitialized.put(new Pair(store,node.getId()),false);
+      DataOutputStream outputStream=nodeIdStoreToOutputStreamRequest.get(new Pair(store,node.getId()));
+      try {
+        ProtoUtils.writeEndOfStream(outputStream);
+        outputStream.flush();
+        DataInputStream inputStream=nodeIdStoreToInputStreamRequest.get(new Pair(store,node.getId()));
+        VAdminProto.UpdatePartitionEntriesResponse.Builder updateResponse=ProtoUtils.readToBuilder(inputStream,VAdminProto.UpdatePartitionEntriesResponse.newBuilder());
+        if (updateResponse.hasError()) {
+          logger.warn("Invoking the Recovery Callback");
+          Future future=streamingresults.submit(recoveryCallback);
+          try {
+            future.get();
+          }
+ catch (          InterruptedException e1) {
+            MARKED_BAD=true;
+            logger.error("Recovery Callback failed");
+            e1.printStackTrace();
+            throw new VoldemortException("Recovery Callback failed");
+          }
+catch (          ExecutionException e1) {
+            MARKED_BAD=true;
+            logger.error("Recovery Callback failed");
+            e1.printStackTrace();
+            throw new VoldemortException("Recovery Callback failed");
+          }
+        }
+ else {
+          if (logger.isDebugEnabled()) {
+            logger.debug("Commit successful");
+            logger.debug("calling checkpoint callback");
+          }
+          Future future=streamingresults.submit(checkpointCallback);
+          try {
+            future.get();
+          }
+ catch (          InterruptedException e1) {
+            logger.warn("Checkpoint callback failed!");
+            e1.printStackTrace();
+          }
+catch (          ExecutionException e1) {
+            logger.warn("Checkpoint callback failed!");
+            e1.printStackTrace();
+          }
+        }
+      }
+ catch (      IOException e) {
+        logger.warn("Invoking the Recovery Callback");
+        Future future=streamingresults.submit(recoveryCallback);
+        try {
+          future.get();
+        }
+ catch (        InterruptedException e1) {
+          MARKED_BAD=true;
+          logger.error("Recovery Callback failed");
+          e1.printStackTrace();
+          throw new VoldemortException("Recovery Callback failed");
+        }
+catch (        ExecutionException e1) {
+          MARKED_BAD=true;
+          logger.error("Recovery Callback failed");
+          e1.printStackTrace();
+          throw new VoldemortException("Recovery Callback failed");
+        }
+        e.printStackTrace();
+      }
+    }
+  }
+}

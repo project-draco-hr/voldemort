@@ -1,0 +1,17 @@
+{
+  this.storeName=storeName;
+  logger.info("Connecting to bootstrap server: " + url);
+  this.adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig(),0);
+  Cluster cluster=adminClient.getAdminClientCluster();
+  logger.info("Cluster determined to be: " + cluster.getName());
+  Versioned<List<StoreDefinition>> storeDefinitions=adminClient.metadataMgmtOps.getRemoteStoreDefList(0);
+  List<StoreDefinition> storeDefs=storeDefinitions.getValue();
+  StoreDefinition storeDefinition=StoreDefinitionUtils.getStoreDefinitionWithName(storeDefs,storeName);
+  logger.info("Store definition for store " + storeName + " has been determined.");
+  storeInstance=new StoreInstance(cluster,storeDefinition);
+  stats=new Stats(progressBar);
+  this.perServerQPSLimit=perServerQPSLimit;
+  this.putThrottlers=new ConcurrentHashMap<Integer,EventThrottler>();
+  this.dryRun=dryRun;
+  this.parseOnly=parseOnly;
+}

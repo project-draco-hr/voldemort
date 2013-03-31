@@ -1,0 +1,17 @@
+{
+  int numOpers=numPutters + numGetters;
+  CountDownLatch waitForStart=new CountDownLatch(numOpers);
+  CountDownLatch waitForDone=new CountDownLatch(numOpers);
+  for (int i=0; i < numPutters; ++i) {
+    new Thread(new Putter(waitForStart,waitForDone,numOps)).start();
+  }
+  for (int i=0; i < numGetters; ++i) {
+    new Thread(new Getter(waitForStart,waitForDone,numOps)).start();
+  }
+  try {
+    waitForDone.await();
+  }
+ catch (  InterruptedException e) {
+    e.printStackTrace();
+  }
+}

@@ -37,6 +37,9 @@
   parser.accepts("synchronize-metadata-version","Synchronize the metadata versions across all the nodes.");
   parser.accepts("reserve-memory","Memory in MB to reserve for the store").withRequiredArg().describedAs("size-in-mb").ofType(Long.class);
   parser.accepts("query-keys","Get values of keys on specific nodes").withRequiredArg().describedAs("query-keys").withValuesSeparatedBy(',').ofType(String.class);
+  parser.accepts("mirror-from-url","Cluster url to mirror data from").withRequiredArg().describedAs("mirror-cluster-bootstrap-url").ofType(String.class);
+  parser.accepts("mirror-node","Node id in the mirror cluster to mirror from").withRequiredArg().describedAs("id-of-mirror-node").ofType(Integer.class);
+  parser.accepts("fetch-orphaned","Fetch any orphaned keys/entries in the node");
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     printHelp(System.out,parser);
@@ -55,59 +58,53 @@
   int parallelism=CmdUtils.valueOf(options,"restore",5);
   Integer zoneId=CmdUtils.valueOf(options,"zone",-1);
   int zone=zoneId == -1 ? 0 : zoneId;
-  AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),zone);
+  AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig(),zone);
   if (options.has("verify-metadata-version")) {
     checkMetadataVersion(adminClient);
     return;
   }
   String ops="";
-  if (options.has("delete-partitions")) {
-    ops+="d";
-  }
-  if (options.has("fetch-keys")) {
-    ops+="k";
-  }
-  if (options.has("fetch-entries")) {
-    ops+="v";
-  }
-  if (options.has("restore")) {
-    ops+="r";
-  }
   if (options.has("add-stores")) {
     ops+="a";
-  }
-  if (options.has("update-entries")) {
-    ops+="u";
-  }
-  if (options.has("delete-store")) {
-    ops+="s";
-  }
-  if (options.has("get-metadata")) {
-    ops+="g";
-  }
-  if (options.has("ro-metadata")) {
-    ops+="e";
-  }
-  if (options.has("truncate")) {
-    ops+="t";
-  }
-  if (options.has("set-metadata")) {
-    ops+="m";
-  }
-  if (options.has("check-metadata")) {
-    ops+="c";
-  }
-  if (options.has("key-distribution")) {
-    ops+="y";
-  }
-  if (options.has("clear-rebalancing-metadata")) {
-    ops+="i";
   }
   if (options.has("async")) {
     ops+="b";
   }
+  if (options.has("check-metadata")) {
+    ops+="c";
+  }
+  if (options.has("delete-partitions")) {
+    ops+="d";
+  }
+  if (options.has("ro-metadata")) {
+    ops+="e";
+  }
+  if (options.has("reserve-memory")) {
+    if (!options.has("stores")) {
+      Utils.croak("Specify the list of stores to reserve memory");
+    }
+    ops+="f";
+  }
+  if (options.has("get-metadata")) {
+    ops+="g";
+  }
+  if (options.has("mirror-from-url")) {
+    if (!options.has("mirror-node")) {
+      Utils.croak("Specify the mirror node to fetch from");
+    }
+    ops+="h";
+  }
+  if (options.has("clear-rebalancing-metadata")) {
+    ops+="i";
+  }
+  if (options.has("fetch-keys")) {
+    ops+="k";
+  }
   if (options.has("repair-job")) {
     ops+="l";
+  }
+  if (options.has("set-metadata")) {
+    ops+="m";
   }
   if (options.has("native-backup")) {
     if (!options.has("backup-dir")) {
@@ -121,20 +118,32 @@
     }
     ops+="o";
   }
-  if (options.has("synchronize-metadata-version")) {
-    ops+="z";
-  }
-  if (options.has("reserve-memory")) {
-    if (!options.has("stores")) {
-      Utils.croak("Specify the list of stores to reserve memory");
-    }
-    ops+="f";
-  }
   if (options.has("query-keys")) {
     ops+="q";
   }
+  if (options.has("restore")) {
+    ops+="r";
+  }
+  if (options.has("delete-store")) {
+    ops+="s";
+  }
+  if (options.has("truncate")) {
+    ops+="t";
+  }
+  if (options.has("update-entries")) {
+    ops+="u";
+  }
+  if (options.has("fetch-entries")) {
+    ops+="v";
+  }
+  if (options.has("key-distribution")) {
+    ops+="y";
+  }
+  if (options.has("synchronize-metadata-version")) {
+    ops+="z";
+  }
   if (ops.length() < 1) {
-    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, key-distribution, clear-rebalancing-metadata, async, "+ "repair-job, native-backup, rollback, reserve-memory, verify-metadata-version) must be specified");
+    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, key-distribution, clear-rebalancing-metadata, async, "+ "repair-job, native-backup, rollback, reserve-memory, mirror-url, verify-metadata-version) must be specified");
   }
   List<String> storeNames=null;
   if (options.has("stores")) {
@@ -158,7 +167,7 @@
         System.exit(1);
       }
       System.out.println("Starting restore");
-      adminClient.restoreDataFromReplications(nodeId,parallelism,zoneId);
+      adminClient.restoreOps.restoreDataFromReplications(nodeId,parallelism,zoneId);
       System.out.println("Finished restore");
     }
     if (ops.contains("k")) {
@@ -166,14 +175,14 @@
       System.out.println("Starting fetch keys");
       List<Integer> partitionIdList=null;
       if (options.hasArgument("fetch-keys"))       partitionIdList=(List<Integer>)options.valuesOf("fetch-keys");
-      executeFetchKeys(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
+      executeFetchKeys(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii,options.has("fetch-orphaned"));
     }
     if (ops.contains("v")) {
       boolean useAscii=options.has("ascii");
       System.out.println("Starting fetch entries");
       List<Integer> partitionIdList=null;
       if (options.hasArgument("fetch-entries"))       partitionIdList=(List<Integer>)options.valuesOf("fetch-entries");
-      executeFetchEntries(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii);
+      executeFetchEntries(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii,options.has("fetch-orphaned"));
     }
     if (ops.contains("a")) {
       String storesXml=(String)options.valueOf("add-stores");
@@ -243,7 +252,7 @@
             System.out.println("Updating metadata version for the following stores: " + storeNames);
             try {
               for (              String name : storeNames) {
-                adminClient.updateMetadataversion(name);
+                adminClient.metadataMgmtOps.updateMetadataversion(name);
               }
             }
  catch (            Exception e) {
@@ -281,7 +290,7 @@
       String backupDir=(String)options.valueOf("backup-dir");
       String storeName=(String)options.valueOf("native-backup");
       int timeout=CmdUtils.valueOf(options,"backup-timeout",30);
-      adminClient.nativeBackup(nodeId,storeName,backupDir,timeout,options.has("backup-verify"),options.has("backup-incremental"));
+      adminClient.storeMntOps.nativeBackup(nodeId,storeName,backupDir,timeout,options.has("backup-verify"),options.has("backup-incremental"));
     }
     if (ops.contains("o")) {
       String storeName=(String)options.valueOf("rollback");
@@ -293,7 +302,7 @@
     }
     if (ops.contains("f")) {
       long reserveMB=(Long)options.valueOf("reserve-memory");
-      adminClient.reserveMemory(nodeId,storeNames,reserveMB);
+      adminClient.storeMntOps.reserveMemory(nodeId,storeNames,reserveMB);
     }
     if (ops.contains("q")) {
       List<String> keyList=(List<String>)options.valuesOf("query-keys");
@@ -301,6 +310,18 @@
         throw new VoldemortException("Must specify store name using --stores option");
       }
       executeQueryKeys(nodeId,adminClient,storeNames,keyList);
+    }
+    if (ops.contains("h")) {
+      if (nodeId == -1) {
+        System.err.println("Cannot run mirroring without node id");
+        System.exit(1);
+      }
+      Integer mirrorNodeId=CmdUtils.valueOf(options,"mirror-node",-1);
+      if (mirrorNodeId == -1) {
+        System.err.println("Cannot run mirroring without mirror node id");
+        System.exit(1);
+      }
+      adminClient.restoreOps.mirrorData(nodeId,mirrorNodeId,(String)options.valueOf("mirror-from-url"),storeNames);
     }
   }
  catch (  Exception e) {

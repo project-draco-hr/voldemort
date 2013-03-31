@@ -1,0 +1,18 @@
+{
+  int numCheckers=POOL_SIZE * 2;
+  int numChecks=10 * 1000;
+  String key="Key";
+  float invalidationRate=(float)0.25;
+  CountDownLatch waitForThreads=new CountDownLatch(numCheckers);
+  CountDownLatch waitForCheckers=new CountDownLatch(numCheckers);
+  for (int i=0; i < numCheckers; ++i) {
+    new Thread(new Checkers(waitForThreads,waitForCheckers,key,numChecks,invalidationRate)).start();
+  }
+  try {
+    waitForCheckers.await();
+    assertEquals(this.pool.getCheckedInResourceCount(),this.pool.getTotalResourceCount());
+  }
+ catch (  InterruptedException e) {
+    e.printStackTrace();
+  }
+}

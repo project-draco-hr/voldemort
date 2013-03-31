@@ -83,27 +83,10 @@
       DistributedCache.addCacheArchive(new URI(archiveFile),conf);
     }
   }
-  String hadoopCacheJarDir=_props.getString("hdfs.default.classpath.dir",null);
-  if (hadoopCacheJarDir != null) {
-    FileSystem fs=FileSystem.get(conf);
-    if (fs != null) {
-      FileStatus[] status=fs.listStatus(new Path(hadoopCacheJarDir));
-      if (status != null) {
-        for (int i=0; i < status.length; ++i) {
-          if (!status[i].isDir()) {
-            Path path=new Path(hadoopCacheJarDir,status[i].getPath().getName());
-            info("Adding Jar to Distributed Cache Archive File:" + path);
-            DistributedCache.addFileToClassPath(path,conf);
-          }
-        }
-      }
- else {
-        info("hdfs.default.classpath.dir " + hadoopCacheJarDir + " is empty.");
-      }
-    }
- else {
-      info("hdfs.default.classpath.dir " + hadoopCacheJarDir + " filesystem doesn't exist");
-    }
+  addToDistributedCache(voldemortLibPath,conf);
+  boolean isAddFiles=_props.getBoolean("hdfs.default.classpath.dir.enable",false);
+  if (isAddFiles) {
+    addToDistributedCache(hadoopLibPath,conf);
   }
   for (  String key : getProps().keySet()) {
     String lowerCase=key.toLowerCase();
@@ -113,5 +96,8 @@
     }
   }
   HadoopUtils.setPropsInJob(conf,getProps());
+  if (System.getenv("HADOOP_TOKEN_FILE_LOCATION") != null) {
+    conf.set("mapreduce.job.credentials.binary",System.getenv("HADOOP_TOKEN_FILE_LOCATION"));
+  }
   return conf;
 }

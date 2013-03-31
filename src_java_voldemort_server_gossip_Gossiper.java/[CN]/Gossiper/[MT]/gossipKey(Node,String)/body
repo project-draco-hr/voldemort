@@ -2,13 +2,13 @@
   if (logger.isDebugEnabled()) {
     logger.debug("Gossiping key " + key);
   }
-  Versioned<String> remoteVersioned=adminClient.getRemoteMetadata(node.getId(),key);
-  Versioned<String> localVersioned=adminClient.getRemoteMetadata(metadataStore.getNodeId(),key);
+  Versioned<String> remoteVersioned=adminClient.metadataMgmtOps.getRemoteMetadata(node.getId(),key);
+  Versioned<String> localVersioned=adminClient.metadataMgmtOps.getRemoteMetadata(metadataStore.getNodeId(),key);
 switch (remoteVersioned.getVersion().compare(localVersioned.getVersion())) {
 case AFTER:
 {
       logger.info("Updating key " + key + " from "+ node);
-      adminClient.updateRemoteMetadata(metadataStore.getNodeId(),key,remoteVersioned);
+      adminClient.metadataMgmtOps.updateRemoteMetadata(metadataStore.getNodeId(),key,remoteVersioned);
       if (logger.isDebugEnabled()) {
         logger.debug("Updated key " + key + ": "+ remoteVersioned);
       }

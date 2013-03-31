@@ -1,0 +1,77 @@
+{
+  adminClients=new ArrayList<AdminClient>(urls.size());
+  Map<String,Cluster> clusterMap=new HashMap<String,Cluster>(urls.size());
+  Map<String,StoreDefinition> storeDefinitionMap=new HashMap<String,StoreDefinition>(urls.size());
+  for (  String url : urls) {
+    if (logger.isInfoEnabled()) {
+      logger.info("Connecting to bootstrap server: " + url);
+    }
+    AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig(),0);
+    adminClients.add(adminClient);
+    Cluster cluster=adminClient.getAdminClientCluster();
+    clusterMap.put(url,cluster);
+    Versioned<List<StoreDefinition>> storeDefinitions=adminClient.metadataMgmtOps.getRemoteStoreDefList(0);
+    StoreDefinition storeDefinition=StoreDefinitionUtils.getStoreDefinitionWithName(storeDefinitions.getValue(),storeName);
+    storeDefinitionMap.put(url,storeDefinition);
+  }
+  Integer partitionCount=null;
+  for (  Entry<String,Cluster> entry : clusterMap.entrySet()) {
+    Integer currentPartitionCount=entry.getValue().getNumberOfPartitions();
+    if (partitionCount == null) {
+      partitionCount=currentPartitionCount;
+    }
+    if (partitionCount != currentPartitionCount) {
+      logger.error("Partition count of different clusters is not the same: " + partitionCount + " vs "+ currentPartitionCount);
+      throw new VoldemortException("Will not connect because partition counts differ among clusters.");
+    }
+  }
+  for (  String url : urls) {
+    StoreDefinition storeDefinition=storeDefinitionMap.get(url);
+    Cluster cluster=clusterMap.get(url);
+    Map<Integer,Integer> partitionToNodeMap=ClusterUtils.getCurrentPartitionMapping(cluster);
+    List<Integer> partitionList=new RoutingStrategyFactory().updateRoutingStrategy(storeDefinition,cluster).getReplicatingPartitionList(partitionId);
+    for (    int partition : partitionList) {
+      Integer nodeId=partitionToNodeMap.get(partition);
+      Node node=cluster.getNodeById(nodeId);
+      clusterNodeList.add(new ClusterNode(urls.indexOf(url),node));
+    }
+  }
+  if (logger.isInfoEnabled()) {
+    StringBuilder configInfo=new StringBuilder();
+    configInfo.append("TYPE,Store,PartitionId,Node,ZoneId,BootstrapUrl\n");
+    for (    ClusterNode clusterNode : clusterNodeList) {
+      configInfo.append("CONFIG,");
+      configInfo.append(storeName + ",");
+      configInfo.append(partitionId + ",");
+      configInfo.append(clusterNode.getNode().getId() + ",");
+      configInfo.append(clusterNode.getNode().getZoneId() + ",");
+      configInfo.append(urls.get(clusterNode.getPrefixId()) + "\n");
+    }
+    for (    String line : configInfo.toString().split("\n")) {
+      logger.info(line);
+    }
+  }
+  for (  String url : urls) {
+    StoreDefinition storeDefinition=storeDefinitionMap.get(url);
+    int storeRetentionDays=0;
+    if (storeDefinition.getRetentionDays() != null) {
+      storeRetentionDays=storeDefinition.getRetentionDays().intValue();
+    }
+    if (retentionDays == null) {
+      retentionDays=storeRetentionDays;
+    }
+    if (retentionDays != storeRetentionDays) {
+      if (storeRetentionDays != 0 && (storeRetentionDays < retentionDays)) {
+        retentionDays=storeRetentionDays;
+      }
+      logger.warn("Retention-days is not consistent between clusters by urls. Will use the shorter.");
+    }
+    replicationFactor+=storeDefinition.getReplicationFactor();
+    requiredWrites+=storeDefinition.getRequiredWrites();
+  }
+  if (replicationFactor != clusterNodeList.size()) {
+    logger.error("Replication factor is not consistent with number of nodes routed to.");
+    throw new VoldemortException("Will not connect because replication factor does not accord with number of nodes routed to.");
+  }
+  retentionChecker=new RetentionChecker(retentionDays);
+}

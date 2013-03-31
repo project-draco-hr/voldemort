@@ -5,7 +5,7 @@
     try {
       String dir=fetchFiles.get(nodeId);
       logger.info("Attempting swap for node " + nodeId + " dir = "+ dir);
-      previousDirs.put(nodeId,adminClient.swapStore(nodeId,storeName,dir));
+      previousDirs.put(nodeId,adminClient.readonlyOps.swapStore(nodeId,storeName,dir));
       logger.info("Swap succeeded for node " + nodeId);
     }
  catch (    Exception e) {
@@ -17,7 +17,7 @@
       for (      int successfulNodeId : previousDirs.keySet()) {
         try {
           logger.info("Rolling back data on successful node " + successfulNodeId);
-          adminClient.rollbackStore(successfulNodeId,storeName,ReadOnlyUtils.getVersionId(new File(previousDirs.get(successfulNodeId))));
+          adminClient.readonlyOps.rollbackStore(successfulNodeId,storeName,ReadOnlyUtils.getVersionId(new File(previousDirs.get(successfulNodeId))));
           logger.info("Rollback succeeded for node " + successfulNodeId);
         }
  catch (        Exception e) {

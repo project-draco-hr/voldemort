@@ -1,0 +1,30 @@
+{
+  StringBuilder builder=new StringBuilder();
+  Set<Integer> nodeIds=cluster.getNodeIds();
+  builder.append("\n" + title + "\n");
+  int minVal=Integer.MAX_VALUE;
+  int maxVal=Integer.MIN_VALUE;
+  int aggCount=0;
+  for (  Integer nodeId : nodeIds) {
+    int curCount=nodeIdToPartitionCount.get(nodeId);
+    builder.append("\tNode ID: " + nodeId + " : "+ curCount+ " ("+ cluster.getNodeById(nodeId).getHost()+ ")\n");
+    aggCount+=curCount;
+    if (curCount > maxVal)     maxVal=curCount;
+    if (curCount < minVal)     minVal=curCount;
+  }
+  int avgVal=aggCount / nodeIdToPartitionCount.size();
+  double maxAvgRatio=maxVal * 1.0 / avgVal;
+  if (avgVal == 0) {
+    maxAvgRatio=maxVal;
+  }
+  double maxMinRatio=maxVal * 1.0 / minVal;
+  if (minVal == 0) {
+    maxMinRatio=maxVal;
+  }
+  builder.append("\tMin: " + minVal + "\n");
+  builder.append("\tAvg: " + avgVal + "\n");
+  builder.append("\tMax: " + maxVal + "\n");
+  builder.append("\t\tMax/Avg: " + maxAvgRatio + "\n");
+  builder.append("\t\tMax/Min: " + maxMinRatio + "\n");
+  return Pair.create(maxMinRatio,builder.toString());
+}

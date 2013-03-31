@@ -1,0 +1,20 @@
+{
+  DatabaseEntry keyEntry=new DatabaseEntry();
+  DatabaseEntry valueEntry=new DatabaseEntry();
+  try {
+    OperationStatus status=cursor.getNext(keyEntry,valueEntry,LockMode.READ_UNCOMMITTED);
+    if (OperationStatus.NOTFOUND == status) {
+      return false;
+    }
+    ByteArray key=null;
+    if (bdbEngine.isPartitionScanSupported())     key=new ByteArray(StoreBinaryFormat.extractKey(keyEntry.getData()));
+ else     key=new ByteArray(keyEntry.getData());
+    for (    Versioned<byte[]> val : StoreBinaryFormat.fromByteArray(valueEntry.getData()))     this.cache.add(Pair.create(key,val));
+    return true;
+  }
+ catch (  DatabaseException e) {
+    bdbEngine.bdbEnvironmentStats.reportException(e);
+    logger.error(e);
+    throw new PersistenceFailureException(e);
+  }
+}

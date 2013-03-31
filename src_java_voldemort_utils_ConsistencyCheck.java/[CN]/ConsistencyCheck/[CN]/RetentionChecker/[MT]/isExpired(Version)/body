@@ -1,0 +1,12 @@
+{
+  if (v instanceof VectorClock) {
+    return ((VectorClock)v).getTimestamp() < expiredTimeMs;
+  }
+ else   if (v instanceof HashedValue) {
+    return false;
+  }
+ else {
+    logger.error("Version type is not supported for checking expiration");
+    throw new VoldemortException("Version type is not supported for checking expiration" + v.getClass().getCanonicalName());
+  }
+}

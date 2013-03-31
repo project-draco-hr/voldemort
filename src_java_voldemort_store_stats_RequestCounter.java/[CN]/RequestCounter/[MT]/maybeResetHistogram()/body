@@ -2,9 +2,16 @@
   if (!this.useHistogram)   return;
   Accumulator accum=values.get();
   long now=time.getMilliseconds();
-  if (now - accum.startTimeMS > durationMS) {
+  if (now - accum.startTimeMS > durationMs) {
+    long startTimeNs=0;
+    if (logger.isDebugEnabled()) {
+      startTimeNs=System.nanoTime();
+    }
     q95LatencyMs=histogram.getQuantile(0.95);
     q99LatencyMs=histogram.getQuantile(0.99);
     histogram.reset();
+    if (logger.isDebugEnabled()) {
+      logger.debug("Histogram (" + System.identityHashCode(histogram) + ") : reset, Q95, & Q99 took "+ (System.nanoTime() - startTimeNs)+ " ns.");
+    }
   }
 }

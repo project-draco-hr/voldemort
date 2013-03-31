@@ -1,8 +1,8 @@
 {
   File temporaryDir=createTempROFolder();
-  long currentVersion=adminClient.getROCurrentVersion(0,Lists.newArrayList(STORE_NAME)).get(STORE_NAME);
+  long currentVersion=adminClient.readonlyOps.getROCurrentVersion(0,Lists.newArrayList(STORE_NAME)).get(STORE_NAME);
   for (int nodeId=1; nodeId < NUM_NODES; nodeId++) {
-    long newVersion=adminClient.getROCurrentVersion(nodeId,Lists.newArrayList(STORE_NAME)).get(STORE_NAME);
+    long newVersion=adminClient.readonlyOps.getROCurrentVersion(nodeId,Lists.newArrayList(STORE_NAME)).get(STORE_NAME);
     if (newVersion != currentVersion)     fail("Current version (on " + nodeId + ") = "+ newVersion+ " is not equal to others");
   }
   swapper.swapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 1);
@@ -21,7 +21,7 @@
  catch (  VoldemortException e) {
   }
   for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
-    long maxVersion=adminClient.getROMaxVersion(nodeId,Lists.newArrayList(STORE_NAME)).get(STORE_NAME);
+    long maxVersion=adminClient.readonlyOps.getROMaxVersion(nodeId,Lists.newArrayList(STORE_NAME)).get(STORE_NAME);
     assertTrue(maxVersion == (currentVersion + 3));
   }
 }

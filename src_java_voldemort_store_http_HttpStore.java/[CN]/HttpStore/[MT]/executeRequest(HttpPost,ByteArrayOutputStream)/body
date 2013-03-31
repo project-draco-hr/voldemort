@@ -7,12 +7,12 @@
     if (statusCode != HttpURLConnection.HTTP_OK) {
       String message=response.getStatusLine().getReasonPhrase();
       VoldemortIOUtils.closeQuietly(response);
-      throw new UnreachableStoreException("HTTP request to store " + storeName + " returned status code "+ statusCode+ " "+ message);
+      throw new UnreachableStoreException("HTTP request to store " + getName() + " returned status code "+ statusCode+ " "+ message);
     }
     return new DataInputStream(response.getEntity().getContent());
   }
  catch (  IOException e) {
     VoldemortIOUtils.closeQuietly(response);
-    throw new UnreachableStoreException("Could not connect to " + storeUrl + " for "+ storeName,e);
+    throw new UnreachableStoreException("Could not connect to " + storeUrl + " for "+ getName(),e);
   }
 }

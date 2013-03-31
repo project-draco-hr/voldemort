@@ -1,0 +1,44 @@
+{
+  String tmpDir=TestUtils.createTempDir().getAbsolutePath();
+  String fileName=tmpDir + "BadKeyFile";
+  BlockingQueue<BadKeyStatus> bq=new ArrayBlockingQueue<BadKeyStatus>(5);
+  ExecutorService badKeyWriterService=Executors.newSingleThreadExecutor();
+  BadKeyWriter badKeyWriter=new BadKeyWriter(fileName,bq);
+  badKeyWriterService.submit(badKeyWriter);
+  try {
+    for (int i=0; i < 100; ++i) {
+      BadKey badKey=new BadKey(Integer.toHexString(i),Integer.toHexString(i) + "\n");
+      bq.put(new BadKeyStatus(badKey,ConsistencyFix.Status.REPAIR_EXCEPTION));
+    }
+    bq.put(new BadKeyStatus());
+  }
+ catch (  InterruptedException e) {
+    e.printStackTrace();
+    fail("Unexpected exception");
+  }
+  badKeyWriterService.shutdown();
+  try {
+    badKeyWriterService.awaitTermination(Long.MAX_VALUE,TimeUnit.NANOSECONDS);
+  }
+ catch (  InterruptedException e) {
+    e.printStackTrace();
+    fail("Unexpected exception");
+  }
+  assertFalse(badKeyWriter.hasException());
+  try {
+    BufferedReader fileReader=new BufferedReader(new FileReader(fileName));
+    int i=0;
+    for (String keyLine=fileReader.readLine(); keyLine != null; keyLine=fileReader.readLine()) {
+      assertEquals(keyLine,Integer.toHexString(i));
+      i++;
+    }
+  }
+ catch (  FileNotFoundException fnfe) {
+    fnfe.printStackTrace();
+    fail("Unexpected exception");
+  }
+catch (  IOException ioe) {
+    ioe.printStackTrace();
+    fail("Unexpected exception");
+  }
+}

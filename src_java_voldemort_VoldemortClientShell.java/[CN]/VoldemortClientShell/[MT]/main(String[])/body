@@ -33,7 +33,7 @@
     try {
       factory=new SocketStoreClientFactory(clientConfig);
       client=(DefaultStoreClient<Object,Object>)factory.getStoreClient(storeName);
-      adminClient=new AdminClient(bootstrapUrl,new AdminClientConfig());
+      adminClient=new AdminClient(bootstrapUrl,new AdminClientConfig(),new ClientConfig());
     }
  catch (    Exception e) {
       Utils.croak("Could not connect to server: " + e.getMessage());
@@ -47,7 +47,7 @@
     processCommands(factory,adminClient,inputReader,false);
   }
   finally {
-    if (adminClient != null)     adminClient.stop();
+    if (adminClient != null)     adminClient.close();
     if (factory != null)     factory.close();
   }
 }

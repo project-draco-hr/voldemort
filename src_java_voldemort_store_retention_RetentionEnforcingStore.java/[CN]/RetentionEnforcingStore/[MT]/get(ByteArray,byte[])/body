@@ -1,0 +1,6 @@
+{
+  StoreUtils.assertValidKey(key);
+  List<Versioned<byte[]>> vals=getInnerStore().get(key,transforms);
+  if (!storeDef.hasRetentionPeriod())   return vals;
+  return filterExpiredEntries(key,vals);
+}

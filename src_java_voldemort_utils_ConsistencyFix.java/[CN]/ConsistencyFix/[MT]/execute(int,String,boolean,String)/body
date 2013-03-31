@@ -1,0 +1,66 @@
+{
+  ExecutorService badKeyReaderService;
+  ExecutorService badKeyWriterService;
+  ExecutorService consistencyFixWorkers;
+  BlockingQueue<BadKeyStatus> badKeyQOut=new ArrayBlockingQueue<BadKeyStatus>(parallelism * 10);
+  badKeyWriterService=Executors.newSingleThreadExecutor();
+  badKeyWriterService.submit(new BadKeyWriter(badKeyFileOut,badKeyQOut));
+  logger.info("Created badKeyWriter.");
+  BlockingQueue<Runnable> blockingQ=new ArrayBlockingQueue<Runnable>(parallelism);
+  RejectedExecutionHandler rejectedExecutionHandler=new ThreadPoolExecutor.CallerRunsPolicy();
+  consistencyFixWorkers=new ThreadPoolExecutor(parallelism,parallelism,0L,TimeUnit.MILLISECONDS,blockingQ,rejectedExecutionHandler);
+  logger.info("Created ConsistencyFixWorker pool.");
+  CountDownLatch allBadKeysReadLatch=new CountDownLatch(1);
+  badKeyReaderService=Executors.newSingleThreadExecutor();
+  BadKeyReader badKeyReader=null;
+  if (!orphanFormat) {
+    badKeyReader=new BadKeyReader(allBadKeysReadLatch,badKeyFileIn,this,consistencyFixWorkers,badKeyQOut);
+  }
+ else {
+    badKeyReader=new BadKeyOrphanReader(allBadKeysReadLatch,badKeyFileIn,this,consistencyFixWorkers,badKeyQOut);
+  }
+  badKeyReaderService.submit(badKeyReader);
+  logger.info("Created badKeyReader.");
+  try {
+    allBadKeysReadLatch.await();
+    badKeyReaderService.shutdown();
+    badKeyReaderService.awaitTermination(Long.MAX_VALUE,TimeUnit.NANOSECONDS);
+    logger.info("Bad key reader service has shutdown.");
+    consistencyFixWorkers.shutdown();
+    consistencyFixWorkers.awaitTermination(Long.MAX_VALUE,TimeUnit.NANOSECONDS);
+    logger.info("All workers have shutdown.");
+    badKeyQOut.put(new BadKeyStatus());
+    badKeyWriterService.shutdown();
+    badKeyWriterService.awaitTermination(Long.MAX_VALUE,TimeUnit.NANOSECONDS);
+    logger.info("Bad key writer service has shutdown.");
+  }
+ catch (  InterruptedException e) {
+    logger.error("InterruptedException caught.");
+    if (logger.isDebugEnabled()) {
+      e.printStackTrace();
+    }
+  }
+ finally {
+    adminClient.close();
+  }
+  StringBuilder sb=new StringBuilder();
+  sb.append("\n\n");
+  sb.append("Exit statuses of various threads:\n");
+  sb.append("\tBadKeyReader: ");
+  if (badKeyReader.hasException()) {
+    sb.append("Had exception!\n");
+  }
+ else {
+    sb.append("OK.\n");
+  }
+  sb.append("\tBadKeyWriter: ");
+  if (badKeyReader.hasException()) {
+    sb.append("Had exception!\n");
+  }
+ else {
+    sb.append("OK.\n");
+  }
+  sb.append("\n\n");
+  sb.append(stats.summary());
+  return sb.toString();
+}

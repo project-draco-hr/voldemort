@@ -9,8 +9,22 @@
     parser.accepts("current-stores","Path to store definition xml").withRequiredArg().describedAs("stores.xml");
     parser.accepts("url","Url to bootstrap from ").withRequiredArg().describedAs("url");
     parser.accepts("parallelism","Number of rebalances to run in parallel [ Default:" + RebalanceClientConfig.MAX_PARALLEL_REBALANCING + " ]").withRequiredArg().ofType(Integer.class).describedAs("parallelism");
-    parser.accepts("tries","(1) Tries during rebalance [ Default: " + RebalanceClientConfig.MAX_TRIES + " ] (2) Number of tries while generating new metadata").withRequiredArg().ofType(Integer.class).describedAs("num-tries");
+    parser.accepts("tries","(1) Tries during rebalance [ Default: " + RebalanceClientConfig.MAX_TRIES_REBALANCING + " ] (2) Number of tries while generating new metadata").withRequiredArg().ofType(Integer.class).describedAs("num-tries");
     parser.accepts("generate","Optimize the target cluster which has new nodes with empty partitions");
+    parser.accepts("generate-disable-primary-balancing","Make sure that all nodes within every zone have the same (within one) number of primary partitions [default: enabled]");
+    parser.accepts("generate-enable-xzone-primary-moves","Allow primary partitions to move across zones [Default: disabled]");
+    parser.accepts("generate-enable-any-xzone-nary-moves","Allow non-primary partitions to move across zones at any time (i.e., does not check for xzone moves) [Default: disabled]");
+    parser.accepts("generate-enable-last-resort-xzone-nary-moves","Allow non-primary partitions to move across zones as a last resort (i.e., checks for xzone moves and prefers to avoid them, unless a xzone move is required to achieve balance) [Default: disabled]");
+    parser.accepts("generate-enable-xzone-shuffle","Allows non-primary partitions to move across zones in random or greedy shuffles. [Default: disabled]");
+    parser.accepts("generate-enable-random-swaps","Enable attempts to improve balance by random partition swaps within a zone. [Default: disabled]");
+    parser.accepts("generate-random-swap-attempts","Number of random swaps to attempt. [Default:" + DEFAULT_GENERATE_RANDOM_SWAP_ATTEMPTS + " ]").withRequiredArg().ofType(Integer.class).describedAs("num-attempts");
+    parser.accepts("generate-random-swap-successes","Number of successful random swaps to permit exit before completing all swap attempts. [Default:" + DEFAULT_GENERATE_RANDOM_SWAP_SUCCESSES + " ]").withRequiredArg().ofType(Integer.class).describedAs("num-successes");
+    parser.accepts("generate-enable-greedy-swaps","Enable attempts to improve balance by greedily swapping (random) partitions within a zone. [Default: disabled]");
+    parser.accepts("generate-greedy-swap-attempts","Number of greedy (random) swaps to attempt. [Default:" + DEFAULT_GENERATE_GREEDY_SWAP_ATTEMPTS + " ]").withRequiredArg().ofType(Integer.class).describedAs("num-attempts");
+    parser.accepts("generate-greedy-max-partitions-per-node","Max number of partitions per-node to evaluate swapping with other partitions within the zone. [Default:" + DEFAULT_GENERATE_GREEDY_MAX_PARTITIONS_PER_NODE + " ]").withRequiredArg().ofType(Integer.class).describedAs("max-partitions-per-node");
+    parser.accepts("generate-greedy-max-partitions-per-zone","Max number of (random) partitions per-zone to evaluate swapping with partitions from node being evaluated. [Default:" + DEFAULT_GENERATE_GREEDY_MAX_PARTITIONS_PER_ZONE + " ]").withRequiredArg().ofType(Integer.class).describedAs("max-partitions-per-zone");
+    parser.accepts("generate-max-contiguous-partitions","Limit the number of contiguous partition IDs allowed within a zone. [Default:" + DEFAULT_GENERATE_MAX_CONTIGUOUS_PARTITIONS + " (indicating no limit)]").withRequiredArg().ofType(Integer.class).describedAs("num-contiguous");
+    parser.accepts("analyze","Analyze how balanced given cluster is.");
     parser.accepts("entropy","True - if we want to run the entropy calculator. False - if we want to store keys").withRequiredArg().ofType(Boolean.class);
     parser.accepts("output-dir","Specify the output directory for (1) dumping metadata" + "(b) dumping entropy keys").withRequiredArg().ofType(String.class).describedAs("path");
     parser.accepts("delete","Delete after rebalancing (Valid only for RW Stores) [ Default : false ] ");
@@ -27,11 +41,24 @@
     }
     boolean deleteAfterRebalancing=options.has("delete");
     int parallelism=CmdUtils.valueOf(options,"parallelism",RebalanceClientConfig.MAX_PARALLEL_REBALANCING);
-    int maxTriesRebalancing=CmdUtils.valueOf(options,"tries",RebalanceClientConfig.MAX_TRIES);
+    int maxTriesRebalancing=CmdUtils.valueOf(options,"tries",RebalanceClientConfig.MAX_TRIES_REBALANCING);
     boolean enabledShowPlan=options.has("show-plan");
     long rebalancingTimeoutSeconds=CmdUtils.valueOf(options,"timeout",RebalanceClientConfig.REBALANCING_CLIENT_TIMEOUT_SEC);
     int primaryPartitionBatchSize=CmdUtils.valueOf(options,"batch",RebalanceClientConfig.PRIMARY_PARTITION_BATCH_SIZE);
     boolean stealerBasedRebalancing=CmdUtils.valueOf(options,"stealer-based",RebalanceClientConfig.STEALER_BASED_REBALANCING);
+    boolean generateDisablePrimaryBalancing=options.has("generate-disable-primary-balancing");
+    boolean generateEnableXzonePrimary=options.has("generate-enable-xzone-primary-moves");
+    boolean generateEnableAllXzoneNary=options.has("generate-enable-any-xzone-nary-moves");
+    boolean generateEnableLastResortXzoneNary=options.has("generate-enable-last-resort-xzone-nary-moves");
+    boolean generateEnableXzoneShuffle=options.has("generate-enable-xzone-shuffle");
+    boolean generateEnableRandomSwaps=options.has("generate-enable-random-swaps");
+    int generateRandomSwapAttempts=CmdUtils.valueOf(options,"generate-random-swap-attempts",DEFAULT_GENERATE_RANDOM_SWAP_ATTEMPTS);
+    int generateRandomSwapSuccesses=CmdUtils.valueOf(options,"generate-random-swap-successes",DEFAULT_GENERATE_RANDOM_SWAP_SUCCESSES);
+    boolean generateEnableGreedySwaps=options.has("generate-enable-greedy-swaps");
+    int generateGreedySwapAttempts=CmdUtils.valueOf(options,"generate-greedy-swap-attempts",DEFAULT_GENERATE_GREEDY_SWAP_ATTEMPTS);
+    int generateGreedyMaxPartitionsPerNode=CmdUtils.valueOf(options,"generate-greedy-max-partitions-per-node",DEFAULT_GENERATE_GREEDY_MAX_PARTITIONS_PER_NODE);
+    int generateGreedyMaxPartitionsPerZone=CmdUtils.valueOf(options,"generate-greedy-max-partitions-per-zone",DEFAULT_GENERATE_GREEDY_MAX_PARTITIONS_PER_ZONE);
+    int generateMaxContiguousPartitionsPerZone=CmdUtils.valueOf(options,"generate-max-contiguous-partitions",DEFAULT_GENERATE_MAX_CONTIGUOUS_PARTITIONS);
     RebalanceClientConfig config=new RebalanceClientConfig();
     config.setMaxParallelRebalancing(parallelism);
     config.setDeleteAfterRebalancingEnabled(deleteAfterRebalancing);
@@ -79,6 +106,11 @@
         generator.generateEntropy(currentCluster,storeDefs,new File(config.getOutputDirectory()),entropy);
         return;
       }
+      if (options.has("analyze")) {
+        Pair<Double,String> analysis=new ClusterInstance(currentCluster,storeDefs).analyzeBalanceVerbose();
+        System.out.println(analysis.getSecond());
+        return;
+      }
       if (!options.has("target-cluster")) {
         System.err.println("Missing required arguments: target-cluster");
         printHelp(System.err,parser);
@@ -87,7 +119,37 @@
       String targetClusterXML=(String)options.valueOf("target-cluster");
       Cluster targetCluster=new ClusterMapper().readCluster(new File(targetClusterXML));
       if (options.has("generate")) {
-        RebalanceUtils.generateMinCluster(currentCluster,targetCluster,storeDefs,config.getOutputDirectory(),config.getMaxTriesRebalancing());
+        if (generateDisablePrimaryBalancing && !generateEnableRandomSwaps && !generateEnableGreedySwaps&& generateMaxContiguousPartitionsPerZone == 0) {
+          System.err.println("Specified generate but did not enable any forms for generation (balance primary partitoins, greedy swaps, random swaps, max contiguous partitions).");
+          printHelp(System.err,parser);
+          System.exit(ERROR_EXIT_CODE);
+        }
+        if ((options.has("generate-random-swap-attempts") || options.has("generate-random-swap-successes")) && !generateEnableRandomSwaps) {
+          System.err.println("Provided arguments for generate random swaps but disabled the feature");
+          printHelp(System.err,parser);
+          System.exit(ERROR_EXIT_CODE);
+        }
+        if ((options.has("generate-greedy-swap-attempts") || options.has("generate-greedy-max-partitions-per-node") || options.has("generate-greedy-max-partitions-per-zone")) && !generateEnableGreedySwaps) {
+          System.err.println("Provided arguments for generate greedy swaps but disabled the feature");
+          printHelp(System.err,parser);
+          System.exit(ERROR_EXIT_CODE);
+        }
+        if (generateEnableAllXzoneNary && generateEnableLastResortXzoneNary) {
+          System.err.println("Specified both generate-enable-any-xzone-nary-moves and generate-enable-last-resort-xzone-nary-moves. Please specify at most one of these mutually exclusive options.");
+          printHelp(System.err,parser);
+          System.exit(ERROR_EXIT_CODE);
+        }
+        if (generateDisablePrimaryBalancing && (generateEnableAllXzoneNary || generateEnableLastResortXzoneNary)) {
+          System.err.println("Specified generate-disable-primary-balancing but also specified either generate-enable-any-xzone-nary-moves or generate-enable-last-resort-xzone-nary-moves which will have no effect.");
+          printHelp(System.err,parser);
+          System.exit(ERROR_EXIT_CODE);
+        }
+        if (generateEnableXzoneShuffle && !(generateEnableRandomSwaps || generateEnableGreedySwaps)) {
+          System.err.println("Specified generate-enable-xzone-shuffle but did not specify one of generate-enable-random-swaps or generate-enable-greedy-swaps.");
+          printHelp(System.err,parser);
+          System.exit(ERROR_EXIT_CODE);
+        }
+        RebalanceClusterUtils.balanceTargetCluster(currentCluster,targetCluster,storeDefs,config.getOutputDirectory(),config.getMaxTriesRebalancing(),generateDisablePrimaryBalancing,generateEnableXzonePrimary,generateEnableAllXzoneNary,generateEnableLastResortXzoneNary,generateEnableXzoneShuffle,generateEnableRandomSwaps,generateRandomSwapAttempts,generateRandomSwapSuccesses,generateEnableGreedySwaps,generateGreedySwapAttempts,generateGreedyMaxPartitionsPerNode,generateGreedyMaxPartitionsPerZone,generateMaxContiguousPartitionsPerZone);
         return;
       }
       rebalanceController=new RebalanceController(currentCluster,config);

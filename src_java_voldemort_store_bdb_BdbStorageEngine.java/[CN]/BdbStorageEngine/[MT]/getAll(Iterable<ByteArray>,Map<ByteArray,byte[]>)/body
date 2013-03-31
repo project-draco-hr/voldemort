@@ -1,25 +1,20 @@
 {
+  StoreUtils.assertValidKeys(keys);
+  Map<ByteArray,List<Versioned<byte[]>>> results=null;
   long startTimeNs=-1;
   if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
-  StoreUtils.assertValidKeys(keys);
-  Map<ByteArray,List<Versioned<byte[]>>> result=StoreUtils.newEmptyHashMap(keys);
-  Cursor cursor=null;
-  String keyStr="";
   try {
-    cursor=getBdbDatabase().openCursor(null,null);
-    for (    ByteArray key : keys) {
-      if (logger.isTraceEnabled())       keyStr+=ByteUtils.toHexString(key.get()) + " ";
-      List<Versioned<byte[]>> values=get(cursor,key,readLockMode,versionedSerializer);
-      if (!values.isEmpty())       result.put(key,values);
-    }
+    results=StoreUtils.getAll(this,keys,transforms);
   }
- catch (  DatabaseException e) {
-    logger.error(e);
-    throw new PersistenceFailureException(e);
+ catch (  PersistenceFailureException pfe) {
+    throw pfe;
   }
  finally {
-    attemptClose(cursor);
+    if (logger.isTraceEnabled()) {
+      String keyStr="";
+      for (      ByteArray key : keys)       keyStr+=key + " ";
+      logger.trace("Completed GETALL (" + getName() + ") from keys "+ keyStr+ " in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
+    }
   }
-  if (logger.isTraceEnabled())   logger.trace("Completed GETALL from keys " + keyStr + " in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
-  return result;
+  return results;
 }

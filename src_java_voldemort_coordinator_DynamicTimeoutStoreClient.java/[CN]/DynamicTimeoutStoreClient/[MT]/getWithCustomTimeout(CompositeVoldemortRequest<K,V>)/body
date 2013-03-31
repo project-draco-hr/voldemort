@@ -1,0 +1,14 @@
+{
+  validateTimeout(requestWrapper.getRoutingTimeoutInMs());
+  for (int attempts=0; attempts < this.metadataRefreshAttempts; attempts++) {
+    try {
+      List<Versioned<V>> items=store.get(requestWrapper);
+      return getItemOrThrow(requestWrapper.getKey(),requestWrapper.getValue(),items);
+    }
+ catch (    InvalidMetadataException e) {
+      logger.info("Received invalid metadata exception during get [  " + e.getMessage() + " ] on store '"+ storeName+ "'. Rebootstrapping");
+      bootStrap();
+    }
+  }
+  throw new VoldemortException(this.metadataRefreshAttempts + " metadata refresh attempts failed.");
+}

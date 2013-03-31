@@ -1,9 +1,10 @@
 {
-  if (null == servers) {
+  if (cluster == null) {
     servers=new VoldemortServer[TOTAL_SERVERS];
+    int partitionMap[][]={{0,1,2,3},{4,5,6,7}};
+    cluster=ServerTestUtils.startVoldemortCluster(TOTAL_SERVERS,servers,partitionMap,socketStoreFactory,true,null,STORES_XML_FILE,new Properties());
     serverPorts=new int[TOTAL_SERVERS];
     for (int i=0; i < TOTAL_SERVERS; i++) {
-      servers[i]=ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(true,i,TestUtils.createTempDir().getAbsolutePath(),null,STORES_XML_FILE,new Properties()),cluster);
       serverPorts[i]=servers[i].getIdentityNode().getSocketPort();
     }
     adminClient=ServerTestUtils.getAdminClient(cluster);

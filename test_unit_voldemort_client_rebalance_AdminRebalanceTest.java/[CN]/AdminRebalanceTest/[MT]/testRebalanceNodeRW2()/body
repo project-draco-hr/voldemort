@@ -34,9 +34,9 @@
     }
     try {
       for (      RebalancePartitionsInfo currentPlan : plans) {
-        int asyncId=adminClient.rebalanceNode(currentPlan);
+        int asyncId=adminClient.rebalanceOps.rebalanceNode(currentPlan);
         assertNotSame("Got a valid rebalanceAsyncId",-1,asyncId);
-        getAdminClient().waitForCompletion(currentPlan.getStealerId(),asyncId,300,TimeUnit.SECONDS);
+        getAdminClient().rpcOps.waitForCompletion(currentPlan.getStealerId(),asyncId,300,TimeUnit.SECONDS);
         assertFalse(getServer(currentPlan.getStealerId()).getMetadataStore().getRebalancerState().getAll().contains(currentPlan));
       }
     }

@@ -1,0 +1,41 @@
+{
+  int scanned=0;
+  int[] fetched=new int[targetCluster.getNumberOfNodes()];
+  long startTime=System.currentTimeMillis();
+  Set<Integer> partitionsToDonate=new HashSet<Integer>();
+  for (  Pair<Integer,HashMap<Integer,List<Integer>>> nodePartitionMapPair : optimizedStealerNodeToMappingTuples) {
+    HashMap<Integer,List<Integer>> replicaToPartitionMap=nodePartitionMapPair.getSecond();
+    if (replicaToPartitionMap != null && replicaToPartitionMap.values() != null) {
+      for (      List<Integer> partitions : replicaToPartitionMap.values())       if (partitions != null)       partitionsToDonate.addAll(partitions);
+    }
+  }
+  for (  Integer partition : partitionsToDonate) {
+    if (!StoreInstance.checkPartitionBelongsToNode(partition,voldemortConfig.getNodeId(),initialCluster,storeDef)) {
+      logger.info("Node " + voldemortConfig.getNodeId() + " does not seem to contain partition "+ partition+ " as primary/secondary");
+    }
+  }
+  PartitionListIterator entries=new PartitionListIterator(storageEngine,new ArrayList<Integer>(partitionsToDonate));
+  try {
+    while (running.get() && entries.hasNext()) {
+      Pair<ByteArray,Versioned<byte[]>> entry=entries.next();
+      ByteArray key=entry.getFirst();
+      Versioned<byte[]> value=entry.getSecond();
+      scanned++;
+      List<Integer> nodeIds=StoreInstance.checkKeyBelongsToPartition(key.get(),optimizedStealerNodeToMappingTuples,targetCluster,storeDef);
+      if (nodeIds.size() > 0) {
+        putValue(nodeIds,key,value,nodeToQueue,fetched);
+      }
+      if (0 == scanned % SCAN_PROGRESS_COUNT) {
+        printProgress(scanned,fetched,startTime,storeName);
+      }
+    }
+    terminateAllSlaves(storeName);
+  }
+ catch (  InterruptedException e) {
+    logger.info("InterruptedException received while sending entries to remote nodes, the process is terminating...");
+    terminateAllSlavesAsync(storeName);
+  }
+ finally {
+    close(entries,storeName,scanned,fetched,startTime);
+  }
+}

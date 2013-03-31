@@ -1,60 +1,59 @@
 {
   int numCreated=created.incrementAndGet();
   if (logger.isDebugEnabled())   logger.debug("Creating socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " using protocol "+ dest.getRequestFormatType().getCode());
-  SocketChannel socketChannel=SocketChannel.open();
-  socketChannel.socket().setReceiveBufferSize(this.socketBufferSize);
-  socketChannel.socket().setSendBufferSize(this.socketBufferSize);
-  socketChannel.socket().setTcpNoDelay(true);
-  socketChannel.socket().setSoTimeout(soTimeoutMs);
-  socketChannel.socket().setKeepAlive(this.socketKeepAlive);
-  socketChannel.configureBlocking(false);
-  socketChannel.connect(new InetSocketAddress(dest.getHost(),dest.getPort()));
-  long startTime=System.currentTimeMillis();
-  long duration=0;
-  long currWaitTime=1;
-  long prevWaitTime=1;
-  while (!socketChannel.finishConnect()) {
-    duration=System.currentTimeMillis() - startTime;
-    long remaining=this.connectTimeoutMs - duration;
-    if (remaining < 0) {
-      try {
-        socketChannel.close();
+  SocketChannel socketChannel=null;
+  ClientRequestExecutor clientRequestExecutor=null;
+  try {
+    socketChannel=SocketChannel.open();
+    socketChannel.socket().setReceiveBufferSize(this.socketBufferSize);
+    socketChannel.socket().setSendBufferSize(this.socketBufferSize);
+    socketChannel.socket().setTcpNoDelay(true);
+    socketChannel.socket().setSoTimeout(soTimeoutMs);
+    socketChannel.socket().setKeepAlive(this.socketKeepAlive);
+    socketChannel.configureBlocking(false);
+    socketChannel.connect(new InetSocketAddress(dest.getHost(),dest.getPort()));
+    long startTimeMs=System.currentTimeMillis();
+    long durationMs=0;
+    long currWaitTimeMs=1;
+    long prevWaitTimeMS=1;
+    while (!socketChannel.finishConnect()) {
+      durationMs=System.currentTimeMillis() - startTimeMs;
+      long remaining=this.connectTimeoutMs - durationMs;
+      if (remaining < 0) {
+        throw new ConnectException("Cannot connect socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " after "+ durationMs+ " ms");
       }
- catch (      Exception e) {
+      if (logger.isTraceEnabled())       logger.trace("Still creating socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ ", "+ remaining+ " ms. remaining to connect");
+      try {
+        Thread.sleep(Math.min(remaining,currWaitTimeMs));
+        currWaitTimeMs=Math.min(currWaitTimeMs + prevWaitTimeMS,50);
+        prevWaitTimeMS=currWaitTimeMs - prevWaitTimeMS;
+      }
+ catch (      InterruptedException e) {
         if (logger.isEnabledFor(Level.WARN))         logger.warn(e,e);
       }
-      throw new ConnectException("Cannot connect socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " after "+ duration+ " ms");
     }
-    if (logger.isTraceEnabled())     logger.trace("Still creating socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ ", "+ remaining+ " ms. remaining to connect");
-    try {
-      Thread.sleep(Math.min(remaining,currWaitTime));
-      currWaitTime=Math.min(currWaitTime + prevWaitTime,50);
-      prevWaitTime=currWaitTime - prevWaitTime;
-    }
- catch (    InterruptedException e) {
-      if (logger.isEnabledFor(Level.WARN))       logger.warn(e,e);
-    }
-  }
-  if (logger.isDebugEnabled())   logger.debug("Created socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " using protocol "+ dest.getRequestFormatType().getCode()+ " after "+ duration+ " ms.");
-  if (socketChannel.socket().getReceiveBufferSize() != this.socketBufferSize)   logger.debug("Requested socket receive buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getReceiveBufferSize()+ " bytes.");
-  if (socketChannel.socket().getSendBufferSize() != this.socketBufferSize)   logger.debug("Requested socket send buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getSendBufferSize()+ " bytes.");
-  ClientRequestSelectorManager selectorManager=selectorManagers[counter.getAndIncrement() % selectorManagers.length];
-  Selector selector=selectorManager.getSelector();
-  ClientRequestExecutor clientRequestExecutor=new ClientRequestExecutor(selector,socketChannel,socketBufferSize);
-  BlockingClientRequest<String> clientRequest=new BlockingClientRequest<String>(new ProtocolNegotiatorClientRequest(dest.getRequestFormatType()),this.getTimeout());
-  clientRequestExecutor.addClientRequest(clientRequest);
-  selectorManager.registrationQueue.add(clientRequestExecutor);
-  selector.wakeup();
-  clientRequest.await();
-  try {
+    durationMs=System.currentTimeMillis() - startTimeMs;
+    if (logger.isDebugEnabled())     logger.debug("Created socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " using protocol "+ dest.getRequestFormatType().getCode()+ " after "+ durationMs+ " ms.");
+    if (socketChannel.socket().getReceiveBufferSize() != this.socketBufferSize)     logger.debug("Requested socket receive buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getReceiveBufferSize()+ " bytes.");
+    if (socketChannel.socket().getSendBufferSize() != this.socketBufferSize)     logger.debug("Requested socket send buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getSendBufferSize()+ " bytes.");
+    ClientRequestSelectorManager selectorManager=selectorManagers[counter.getAndIncrement() % selectorManagers.length];
+    Selector selector=selectorManager.getSelector();
+    clientRequestExecutor=new ClientRequestExecutor(selector,socketChannel,socketBufferSize);
+    BlockingClientRequest<String> clientRequest=new BlockingClientRequest<String>(new ProtocolNegotiatorClientRequest(dest.getRequestFormatType()),this.getTimeout());
+    clientRequestExecutor.addClientRequest(clientRequest);
+    selectorManager.registrationQueue.add(clientRequestExecutor);
+    selector.wakeup();
+    clientRequest.await();
     clientRequest.getResult();
   }
  catch (  Exception e) {
-    try {
-      socketChannel.close();
-    }
- catch (    Exception ex) {
-      if (logger.isEnabledFor(Level.WARN))       logger.warn(ex,ex);
+    if (socketChannel != null) {
+      try {
+        socketChannel.close();
+      }
+ catch (      Exception ex) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(ex,ex);
+      }
     }
     throw e;
   }

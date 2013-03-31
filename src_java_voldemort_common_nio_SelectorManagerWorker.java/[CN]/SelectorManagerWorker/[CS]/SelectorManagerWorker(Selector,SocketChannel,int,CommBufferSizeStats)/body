@@ -1,0 +1,11 @@
+{
+  this.selector=selector;
+  this.socketChannel=socketChannel;
+  this.socketBufferSize=socketBufferSize;
+  this.resizeThreshold=socketBufferSize * 2;
+  this.inputStream=new ByteBufferBackedInputStream(ByteBuffer.allocate(socketBufferSize),commBufferStats.getCommReadBufferSizeTracker());
+  this.outputStream=new ByteBufferBackedOutputStream(ByteBuffer.allocate(socketBufferSize),commBufferStats.getCommWriteBufferSizeTracker());
+  this.createTimestamp=System.nanoTime();
+  this.isClosed=new AtomicBoolean(false);
+  if (logger.isDebugEnabled())   logger.debug("Accepting remote connection from " + socketChannel.socket());
+}

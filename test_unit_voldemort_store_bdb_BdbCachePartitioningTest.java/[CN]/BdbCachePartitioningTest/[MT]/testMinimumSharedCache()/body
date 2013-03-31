@@ -9,27 +9,28 @@
   voldemortConfig.setBdbOneEnvPerStore(true);
   voldemortConfig.setBdbDataDirectory(bdbMasterDir.toURI().getPath());
   voldemortConfig.setBdbMinimumSharedCache(15 * ByteUtils.BYTES_PER_MB);
+  voldemortConfig.setBdbPrefixKeysWithPartitionId(prefixPartitionId);
   BdbStorageEngine storeA=null;
   bdbStorage=new BdbStorageConfiguration(voldemortConfig);
-  assertEquals(0,bdbStorage.getReservedCacheSize());
+  assertEquals("Reserved cache size not zero",0,bdbStorage.getReservedCacheSize());
   try {
     StoreDefinition defA=TestUtils.makeStoreDefinition("storeA",shareA / ByteUtils.BYTES_PER_MB);
-    storeA=(BdbStorageEngine)bdbStorage.getStore(defA);
+    storeA=(BdbStorageEngine)bdbStorage.getStore(defA,TestUtils.makeSingleNodeRoutingStrategy());
     fail("Should have thrown exception since minSharedCache will be violated");
   }
  catch (  StorageInitializationException sie) {
   }
-  assertEquals(0,bdbStorage.getReservedCacheSize());
+  assertEquals("failure somehow altered the reservedCacheSize",0,bdbStorage.getReservedCacheSize());
   voldemortConfig.setBdbMinimumSharedCache(10 * ByteUtils.BYTES_PER_MB);
   bdbStorage=new BdbStorageConfiguration(voldemortConfig);
   try {
     StoreDefinition defA=TestUtils.makeStoreDefinition("storeA",shareA / ByteUtils.BYTES_PER_MB);
-    storeA=(BdbStorageEngine)bdbStorage.getStore(defA);
+    storeA=(BdbStorageEngine)bdbStorage.getStore(defA,TestUtils.makeSingleNodeRoutingStrategy());
   }
  catch (  StorageInitializationException sie) {
     fail("minSharedCache should n't have been violated");
   }
-  assertEquals(shareA,bdbStorage.getReservedCacheSize());
+  assertEquals("store A's share does not match up with reserved cache size",shareA,bdbStorage.getReservedCacheSize());
   long reserveCacheSize=bdbStorage.getReservedCacheSize();
   try {
     StoreDefinition defA=TestUtils.makeStoreDefinition("storeA",15);
@@ -38,6 +39,7 @@
   }
  catch (  StorageInitializationException sie) {
   }
-  assertEquals(reserveCacheSize,bdbStorage.getReservedCacheSize());
+  assertEquals("failure somehow altered the reservedCacheSize",reserveCacheSize,bdbStorage.getReservedCacheSize());
   if (storeA != null)   storeA.close();
+  bdbStorage.close();
 }

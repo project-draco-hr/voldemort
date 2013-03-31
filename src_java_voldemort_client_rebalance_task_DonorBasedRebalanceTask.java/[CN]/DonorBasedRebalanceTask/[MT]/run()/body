@@ -4,8 +4,8 @@
     RebalanceUtils.printLog(taskId,logger,"Acquiring donor permit for node " + donorNodeId + " for "+ stealInfos);
     donorPermit.acquire();
     RebalanceUtils.printLog(taskId,logger,"Starting on node " + donorNodeId + " rebalancing task "+ stealInfos);
-    rebalanceAsyncId=adminClient.rebalanceNode(stealInfos);
-    adminClient.waitForCompletion(donorNodeId,rebalanceAsyncId,config.getRebalancingClientTimeoutSeconds(),TimeUnit.SECONDS);
+    rebalanceAsyncId=adminClient.rebalanceOps.rebalanceNode(stealInfos);
+    adminClient.rpcOps.waitForCompletion(donorNodeId,rebalanceAsyncId,config.getRebalancingClientTimeoutSeconds(),TimeUnit.SECONDS);
     RebalanceUtils.printLog(taskId,logger,"Succesfully finished rebalance for async operation id " + rebalanceAsyncId);
   }
  catch (  UnreachableStoreException e) {

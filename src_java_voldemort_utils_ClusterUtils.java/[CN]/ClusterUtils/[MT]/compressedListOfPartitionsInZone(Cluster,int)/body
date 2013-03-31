@@ -1,0 +1,35 @@
+{
+  Set<Integer> partitionIds=cluster.getPartitionIdsInZone(zoneId);
+  if (partitionIds.size() == 0) {
+    return "[]";
+  }
+  int curLastPartitionId=-1;
+  int curInitPartitionId=-1;
+  String compressedList="[";
+  for (  int partitionId : partitionIds) {
+    if (curInitPartitionId == -1) {
+      curInitPartitionId=partitionId;
+      curLastPartitionId=partitionId;
+      continue;
+    }
+    if (partitionId == curLastPartitionId + 1) {
+      curLastPartitionId=partitionId;
+      continue;
+    }
+    if (curInitPartitionId == curLastPartitionId) {
+      compressedList+=curLastPartitionId + ", ";
+    }
+ else {
+      compressedList+=curInitPartitionId + "-" + curLastPartitionId+ ", ";
+    }
+    curInitPartitionId=partitionId;
+    curLastPartitionId=partitionId;
+  }
+  if (curInitPartitionId == curLastPartitionId) {
+    compressedList+=curLastPartitionId + "]";
+  }
+ else {
+    compressedList+=curInitPartitionId + "-" + curLastPartitionId+ "]";
+  }
+  return compressedList;
+}

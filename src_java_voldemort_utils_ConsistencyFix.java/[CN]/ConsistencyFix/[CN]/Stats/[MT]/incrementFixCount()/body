@@ -1,0 +1,14 @@
+{
+  fixCount++;
+  if (fixCount % progressPeriodOps == 0) {
+    long nowTimeMs=System.currentTimeMillis();
+    StringBuilder sb=new StringBuilder();
+    sb.append("\nConsistencyFix Progress\n");
+    sb.append("\tBad keys processed : " + fixCount + " (during this progress period of "+ progressPeriodOps+ " ops)\n");
+    sb.append("\tBad key processing rate : " + getPrettyQPS(progressPeriodOps,nowTimeMs - lastTimeMs) + " bad keys/second)\n");
+    sb.append("\tServer-puts issued : " + putCount + " (since fixer started)\n");
+    sb.append("\tObsoleteVersionExceptions encountered : " + oveCount + " (since fixer started)\n");
+    logger.info(sb.toString());
+    lastTimeMs=nowTimeMs;
+  }
+}

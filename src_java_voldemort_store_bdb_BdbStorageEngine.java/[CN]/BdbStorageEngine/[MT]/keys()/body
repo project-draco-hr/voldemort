@@ -1,9 +1,11 @@
 {
   try {
     Cursor cursor=getBdbDatabase().openCursor(null,null);
-    return new BdbKeysIterator(cursor);
+    if (this.minimizeScanImpact)     cursor.setCacheMode(CacheMode.EVICT_BIN);
+    return new BdbKeysIterator(cursor,this);
   }
  catch (  DatabaseException e) {
+    this.bdbEnvironmentStats.reportException(e);
     logger.error(e);
     throw new PersistenceFailureException(e);
   }

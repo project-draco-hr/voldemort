@@ -25,10 +25,19 @@
   environmentConfig.setConfigParam(EnvironmentConfig.CLEANER_MAX_BATCH_FILES,Integer.toString(config.getBdbCleanerMaxBatchFiles()));
   environmentConfig.setConfigParam(EnvironmentConfig.LOG_FAULT_READ_SIZE,Integer.toString(config.getBdbLogFaultReadSize()));
   environmentConfig.setConfigParam(EnvironmentConfig.LOG_ITERATOR_READ_SIZE,Integer.toString(config.getBdbLogIteratorReadSize()));
+  environmentConfig.setConfigParam(EnvironmentConfig.CLEANER_LAZY_MIGRATION,Boolean.toString(config.getBdbCleanerLazyMigration()));
+  environmentConfig.setConfigParam(EnvironmentConfig.CLEANER_BACKGROUND_PROACTIVE_MIGRATION,Boolean.toString(config.getBdbProactiveBackgroundMigration()));
+  environmentConfig.setConfigParam(EnvironmentConfig.CLEANER_BYTES_INTERVAL,Long.toString(config.getBdbCleanerBytesInterval()));
   environmentConfig.setLockTimeout(config.getBdbLockTimeoutMs(),TimeUnit.MILLISECONDS);
+  if (config.getBdbCacheModeEvictLN()) {
+    environmentConfig.setCacheMode(CacheMode.EVICT_LN);
+  }
+  if (config.isBdbLevelBasedEviction()) {
+    environmentConfig.setConfigParam(EnvironmentConfig.EVICTOR_LRU_ONLY,Boolean.toString(false));
+  }
   databaseConfig=new DatabaseConfig();
   databaseConfig.setAllowCreate(true);
-  databaseConfig.setSortedDuplicates(config.isBdbSortedDuplicatesEnabled());
+  databaseConfig.setSortedDuplicates(false);
   databaseConfig.setNodeMaxEntries(config.getBdbBtreeFanout());
   databaseConfig.setTransactional(true);
   bdbMasterDir=config.getBdbDataDirectory();

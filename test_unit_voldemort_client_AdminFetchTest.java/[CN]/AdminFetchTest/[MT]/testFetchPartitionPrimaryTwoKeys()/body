@@ -1,0 +1,15 @@
+{
+  HashMap<Integer,List<Integer>> replicaToPartitionList=new HashMap<Integer,List<Integer>>();
+  replicaToPartitionList.put(0,Arrays.asList(0,3));
+  Iterator<ByteArray> keysItr=adminClient.bulkFetchOps.fetchKeys(0,testStoreName,replicaToPartitionList,null,false,cluster,2);
+  Set<String> fetchedKeys=getKeys(keysItr);
+  Set<String> partition0Keys=new HashSet<String>(partitionToKeysMap.get(0));
+  int numPartition0Keys=partition0Keys.size();
+  partition0Keys.removeAll(fetchedKeys);
+  assertEquals("Remainder in partition 0 should be two less.",numPartition0Keys - 2,partition0Keys.size());
+  Set<String> partition3Keys=new HashSet<String>(partitionToKeysMap.get(3));
+  int numPartition3Keys=partition3Keys.size();
+  partition3Keys.removeAll(fetchedKeys);
+  assertEquals("Remainder in partition 3 should be two less.",numPartition3Keys - 2,partition3Keys.size());
+  assertEquals("Total of four keys fetched.",4,fetchedKeys.size());
+}

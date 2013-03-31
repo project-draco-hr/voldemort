@@ -19,7 +19,9 @@
               if (!failedNodes.contains(node))               failedNodes.add(node);
               if (response.getValue() instanceof UnreachableStoreException) {
                 UnreachableStoreException use=(UnreachableStoreException)response.getValue();
-                if (logger.isDebugEnabled())                 logger.debug("Write of key " + slop.getKey() + " for "+ failedNode+ " to node "+ node+ " failed due to unreachable: "+ use.getMessage());
+                if (logger.isDebugEnabled()) {
+                  logger.debug("Write of key " + slop.getKey() + " for "+ failedNode+ " to node "+ node+ " failed due to unreachable: "+ use.getMessage());
+                }
                 failureDetector.recordException(node,(System.nanoTime() - startNs) / Time.NS_PER_MS,use);
               }
               sendHintSerial(failedNode,version,slop);

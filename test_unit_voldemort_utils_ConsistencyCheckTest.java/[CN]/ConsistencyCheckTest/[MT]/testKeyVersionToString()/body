@@ -1,0 +1,28 @@
+{
+  byte[] keyBytes={0,1,2,17,4};
+  ByteArray key=new ByteArray(keyBytes);
+  long now=System.currentTimeMillis();
+  Version v1=new VectorClock(now);
+  Version v2=new VectorClock(now + 1);
+  Versioned<byte[]> versioned=new Versioned<byte[]>(value1,v1);
+  Set<ClusterNode> set=new HashSet<ClusterNode>();
+  set.add(cn0_1);
+  set.add(cn1_2);
+  set.add(cn0_3);
+  Map<Version,Set<ClusterNode>> mapVector=new HashMap<Version,Set<ClusterNode>>();
+  mapVector.put(v1,set);
+  ((VectorClock)v1).incrementVersion(1,now);
+  String sVector=ConsistencyCheck.keyVersionToString(key,mapVector,"testStore",99);
+  assertEquals("BAD_KEY,testStore,99,0001021104," + set.toString().replace(", ",";") + ","+ now+ ",[1:1]",sVector);
+  ((VectorClock)v2).incrementVersion(1,now);
+  ((VectorClock)v2).incrementVersion(1,now + 1);
+  mapVector.put(v2,set);
+  String sVector2=ConsistencyCheck.keyVersionToString(key,mapVector,"testStore",99);
+  String s1="BAD_KEY,testStore,99,0001021104," + set.toString().replace(", ",";") + ","+ now+ ",[1:1]";
+  String s2="BAD_KEY,testStore,99,0001021104," + set.toString().replace(", ",";") + ","+ (now + 1)+ ",[1:2]";
+  assertTrue(sVector2.equals(s1 + s2) || sVector2.equals(s2 + s1));
+  Version v3=new HashedValue(versioned);
+  Map<Version,Set<ClusterNode>> mapHashed=new HashMap<Version,Set<ClusterNode>>();
+  mapHashed.put(v3,set);
+  assertEquals("BAD_KEY,testStore,99,0001021104," + set.toString().replace(", ",";") + ","+ now+ ",[1:1],-1172398097",ConsistencyCheck.keyVersionToString(key,mapHashed,"testStore",99));
+}

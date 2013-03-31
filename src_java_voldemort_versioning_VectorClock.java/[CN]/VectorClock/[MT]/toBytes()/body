@@ -1,15 +1,5 @@
 {
   byte[] serialized=new byte[sizeInBytes()];
-  ByteUtils.writeShort(serialized,(short)versions.size(),0);
-  byte versionSize=ByteUtils.numberOfBytesRequired(getMaxVersion());
-  serialized[2]=versionSize;
-  int clockEntrySize=ByteUtils.SIZE_OF_SHORT + versionSize;
-  int start=3;
-  for (  ClockEntry v : versions) {
-    ByteUtils.writeShort(serialized,v.getNodeId(),start);
-    ByteUtils.writeBytes(serialized,v.getVersion(),start + ByteUtils.SIZE_OF_SHORT,versionSize);
-    start+=clockEntrySize;
-  }
-  ByteUtils.writeLong(serialized,this.timestamp,start);
+  toBytes(serialized,0);
   return serialized;
 }

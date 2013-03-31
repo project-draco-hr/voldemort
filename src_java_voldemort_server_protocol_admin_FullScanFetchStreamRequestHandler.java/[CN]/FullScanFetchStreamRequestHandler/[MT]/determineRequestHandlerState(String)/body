@@ -1,0 +1,10 @@
+{
+  if (keyIterator.hasNext() && !fetchedEnoughForAllPartitions()) {
+    return StreamRequestHandlerState.WRITING;
+  }
+ else {
+    logger.info("Finished fetch " + itemTag + " for store '"+ storageEngine.getName()+ "' with replica to partition mapping "+ replicaToPartitionList);
+    progressInfoMessage("Fetch " + itemTag + " (end of scan)");
+    return StreamRequestHandlerState.COMPLETE;
+  }
+}

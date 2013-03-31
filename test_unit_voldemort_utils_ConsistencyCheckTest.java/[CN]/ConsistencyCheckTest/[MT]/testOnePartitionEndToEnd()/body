@@ -1,0 +1,99 @@
+{
+  long now=System.currentTimeMillis();
+  final SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
+  VoldemortServer[] servers=new VoldemortServer[4];
+  int partitionMap[][]={{0},{1},{2},{3}};
+  Cluster cluster=ServerTestUtils.startVoldemortCluster(4,servers,partitionMap,socketStoreFactory,true,null,STORES_XML,new Properties());
+  Node node=cluster.getNodeById(0);
+  String bootstrapUrl="tcp://" + node.getHost() + ":"+ node.getSocketPort();
+  AdminClient adminClient=new AdminClient(bootstrapUrl,new AdminClientConfig(),new ClientConfig());
+  byte[] value={1,2,3,4,5,6,7,8,9};
+  VectorClock vc1=new VectorClock();
+  VectorClock vc2=new VectorClock();
+  VectorClock vc3=new VectorClock();
+  vc1.incrementVersion(0,now);
+  vc2.incrementVersion(1,now - 5000);
+  vc3.incrementVersion(0,now - 89000000);
+  ArrayList<Pair<ByteArray,Versioned<byte[]>>> n0store=new ArrayList<Pair<ByteArray,Versioned<byte[]>>>();
+  ArrayList<Pair<ByteArray,Versioned<byte[]>>> n1store=new ArrayList<Pair<ByteArray,Versioned<byte[]>>>();
+  ArrayList<Pair<ByteArray,Versioned<byte[]>>> n2store=new ArrayList<Pair<ByteArray,Versioned<byte[]>>>();
+  ArrayList<Pair<ByteArray,Versioned<byte[]>>> n3store=new ArrayList<Pair<ByteArray,Versioned<byte[]>>>();
+  ArrayList<ByteArray> keysHashedToPar0=new ArrayList<ByteArray>();
+  Versioned<List<StoreDefinition>> storeDefinitions=adminClient.metadataMgmtOps.getRemoteStoreDefList(0);
+  List<StoreDefinition> StoreDefitions=storeDefinitions.getValue();
+  StoreDefinition storeDefinition=null;
+  for (  StoreDefinition def : StoreDefitions) {
+    if (def.getName().equals(STORE_NAME)) {
+      storeDefinition=def;
+      break;
+    }
+  }
+  assertNotNull("No such store found: " + STORE_NAME,storeDefinition);
+  RoutingStrategy router=new RoutingStrategyFactory().updateRoutingStrategy(storeDefinition,cluster);
+  while (keysHashedToPar0.size() < 7) {
+    Map<ByteArray,byte[]> map=ServerTestUtils.createRandomKeyValuePairs(1);
+    ByteArray key=map.keySet().iterator().next();
+    key.get()[0]=(byte)keysHashedToPar0.size();
+    Integer masterPartition=router.getMasterPartition(key.get());
+    if (masterPartition == 0) {
+      keysHashedToPar0.add(key);
+    }
+ else {
+      continue;
+    }
+  }
+  ByteArray k6=keysHashedToPar0.get(6);
+  ByteArray k5=keysHashedToPar0.get(5);
+  ByteArray k4=keysHashedToPar0.get(4);
+  ByteArray k3=keysHashedToPar0.get(3);
+  ByteArray k2=keysHashedToPar0.get(2);
+  ByteArray k1=keysHashedToPar0.get(1);
+  ByteArray k0=keysHashedToPar0.get(0);
+  Versioned<byte[]> v6=new Versioned<byte[]>(value,vc1);
+  n0store.add(Pair.create(k6,v6));
+  n1store.add(Pair.create(k6,v6));
+  n2store.add(Pair.create(k6,v6));
+  Versioned<byte[]> v6ConflictEarly=new Versioned<byte[]>(value,vc2);
+  n0store.add(Pair.create(k6,v6ConflictEarly));
+  n1store.add(Pair.create(k6,v6ConflictEarly));
+  n2store.add(Pair.create(k6,v6ConflictEarly));
+  n3store.add(Pair.create(k6,v6ConflictEarly));
+  Versioned<byte[]> v5=new Versioned<byte[]>(value,vc1);
+  Versioned<byte[]> v4=new Versioned<byte[]>(value,vc1);
+  n0store.add(Pair.create(k5,v5));
+  n1store.add(Pair.create(k5,v5));
+  n2store.add(Pair.create(k5,v5));
+  n3store.add(Pair.create(k5,v5));
+  n0store.add(Pair.create(k4,v4));
+  n1store.add(Pair.create(k4,v4));
+  n2store.add(Pair.create(k4,v4));
+  n3store.add(Pair.create(k4,v4));
+  Versioned<byte[]> v3=new Versioned<byte[]>(value,vc2);
+  n0store.add(Pair.create(k3,v3));
+  n1store.add(Pair.create(k3,v3));
+  n2store.add(Pair.create(k3,v3));
+  Versioned<byte[]> v3ConflictLate=new Versioned<byte[]>(value,vc1);
+  n0store.add(Pair.create(k3,v3ConflictLate));
+  n1store.add(Pair.create(k3,v3ConflictLate));
+  n2store.add(Pair.create(k3,v3ConflictLate));
+  n3store.add(Pair.create(k3,v3ConflictLate));
+  Versioned<byte[]> v2=new Versioned<byte[]>(value,vc1);
+  n0store.add(Pair.create(k2,v2));
+  n1store.add(Pair.create(k2,v2));
+  Versioned<byte[]> v1=new Versioned<byte[]>(value,vc1);
+  n0store.add(Pair.create(k1,v1));
+  Versioned<byte[]> v0=new Versioned<byte[]>(value,vc3);
+  n0store.add(Pair.create(k0,v0));
+  adminClient.streamingOps.updateEntries(0,STORE_NAME,n0store.iterator(),null);
+  adminClient.streamingOps.updateEntries(1,STORE_NAME,n1store.iterator(),null);
+  adminClient.streamingOps.updateEntries(2,STORE_NAME,n2store.iterator(),null);
+  adminClient.streamingOps.updateEntries(3,STORE_NAME,n3store.iterator(),null);
+  List<String> urls=new ArrayList<String>();
+  urls.add(bootstrapUrl);
+  ConsistencyCheck checker=new ConsistencyCheck(urls,STORE_NAME,0,null);
+  Reporter reporter=null;
+  checker.connect();
+  reporter=checker.execute();
+  assertEquals(7 - 2,reporter.numTotalKeys);
+  assertEquals(3,reporter.numGoodKeys);
+}

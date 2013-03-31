@@ -1,0 +1,38 @@
+{
+  List<Integer> nodeIdsInZone=new ArrayList<Integer>(targetCluster.getNodeIdsInZone(zoneId));
+  Cluster returnCluster=ClusterUtils.copyCluster(targetCluster);
+  double currentMaxMinRatio=new ClusterInstance(returnCluster,storeDefs).analyzeBalance();
+  int nodeIdA=-1;
+  int nodeIdB=-1;
+  int partitionIdA=-1;
+  int partitionIdB=-1;
+  int progressCounter=0;
+  for (  int nodeIdEh : nodeIdsInZone) {
+    List<Integer> partitionIdsEh=returnCluster.getNodeById(nodeIdEh).getPartitionIds();
+    for (    Integer partitionIdEh : partitionIdsEh) {
+      for (      int nodeIdBee : nodeIdsInZone) {
+        if (nodeIdBee == nodeIdEh)         continue;
+        List<Integer> partitionIdsBee=returnCluster.getNodeById(nodeIdBee).getPartitionIds();
+        for (        Integer partitionIdBee : partitionIdsBee) {
+          progressCounter++;
+          if (progressCounter % 500 == 0)           System.out.println("o");
+ else           if (progressCounter % 25 == 0)           System.out.println(".");
+          Cluster swapResult=swapPartitions(returnCluster,nodeIdEh,partitionIdEh,nodeIdBee,partitionIdBee);
+          double swapMaxMinRatio=new ClusterInstance(swapResult,storeDefs).analyzeBalance();
+          if (swapMaxMinRatio < currentMaxMinRatio) {
+            currentMaxMinRatio=swapMaxMinRatio;
+            System.out.println(" -> " + currentMaxMinRatio);
+            nodeIdA=nodeIdEh;
+            partitionIdA=partitionIdEh;
+            nodeIdB=nodeIdBee;
+            partitionIdB=partitionIdBee;
+          }
+        }
+      }
+    }
+  }
+  if (nodeIdA == -1) {
+    return returnCluster;
+  }
+  return swapPartitions(returnCluster,nodeIdA,partitionIdA,nodeIdB,partitionIdB);
+}

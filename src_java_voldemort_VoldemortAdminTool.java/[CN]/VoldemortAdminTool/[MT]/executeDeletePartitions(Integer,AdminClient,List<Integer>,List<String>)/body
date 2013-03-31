@@ -2,13 +2,13 @@
   List<String> stores=storeNames;
   if (stores == null) {
     stores=Lists.newArrayList();
-    List<StoreDefinition> storeDefinitionList=adminClient.getRemoteStoreDefList(nodeId).getValue();
+    List<StoreDefinition> storeDefinitionList=adminClient.metadataMgmtOps.getRemoteStoreDefList(nodeId).getValue();
     for (    StoreDefinition storeDefinition : storeDefinitionList) {
       stores.add(storeDefinition.getName());
     }
   }
   for (  String store : stores) {
     System.out.println("Deleting partitions " + Joiner.on(", ").join(partitionIdList) + " of "+ store);
-    adminClient.deletePartitions(nodeId,store,partitionIdList,null);
+    adminClient.storeMntOps.deletePartitions(nodeId,store,partitionIdList,null);
   }
 }

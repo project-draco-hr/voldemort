@@ -26,7 +26,7 @@
             AdminClient adminClient=null;
             ExecutorService internalExecutor=null;
             try {
-              adminClient=new AdminClient(url,new AdminClientConfig());
+              adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());
               Pair<StoreDefinition,Cluster> metadata=verifySchema(storeName,url,inputDirsPerStore.get(storeName),adminClient);
               urlToCluster.put(url,metadata.getSecond());
               URI uri=new URI(url);
@@ -37,7 +37,7 @@
               long storePushVersion=pushVersion;
               if (storePushVersion == -1L) {
                 log.info("Retrieving version number for store '" + storeName + "' and cluster '"+ url+ "'");
-                Map<String,Long> pushVersions=adminClient.getROMaxVersion(Lists.newArrayList(storeName));
+                Map<String,Long> pushVersions=adminClient.readonlyOps.getROMaxVersion(Lists.newArrayList(storeName));
                 if (pushVersions == null || !pushVersions.containsKey(storeName)) {
                   throw new RuntimeException("Could not retrieve version for store '" + storeName + "'");
                 }
@@ -63,7 +63,7 @@
                 internalExecutor.awaitTermination(10,TimeUnit.SECONDS);
               }
               if (adminClient != null) {
-                adminClient.stop();
+                adminClient.close();
               }
             }
           }
@@ -97,7 +97,7 @@
       Cluster cluster=urlToCluster.get(clusterUrl);
       AdminClient adminClient=null;
       try {
-        adminClient=new AdminClient(cluster,new AdminClientConfig());
+        adminClient=new AdminClient(cluster,new AdminClientConfig(),new ClientConfig());
         for (        final String storeName : storeNames) {
           Pair<String,String> key=Pair.create(clusterUrl,storeName);
           if (nodeDirPerClusterStore.containsKey(key)) {
@@ -107,7 +107,7 @@
             for (            String nodeDir : nodeDirs) {
               try {
                 log.info("Deleting data ( " + nodeDir + " ) for successful pushes to '"+ clusterUrl+ "' and store '"+ storeName+ "' and node "+ nodeId);
-                adminClient.failedFetchStore(nodeId,storeName,nodeDir);
+                adminClient.readonlyOps.failedFetchStore(nodeId,storeName,nodeDir);
                 log.info("Successfully deleted data for successful pushes to '" + clusterUrl + "' and store '"+ storeName+ "' and node "+ nodeId);
               }
  catch (              Exception e) {
@@ -120,7 +120,7 @@
       }
   finally {
         if (adminClient != null) {
-          adminClient.stop();
+          adminClient.close();
         }
       }
     }
@@ -144,7 +144,7 @@
     for (int index=0; index < clusterUrls.size(); index++) {
       String url=clusterUrls.get(index);
       Cluster cluster=urlToCluster.get(url);
-      AdminClient adminClient=new AdminClient(cluster,new AdminClientConfig());
+      AdminClient adminClient=new AdminClient(cluster,new AdminClientConfig(),new ClientConfig());
       log.info("Swapping all stores on cluster " + url);
       try {
         for (        Node node : cluster.getNodes()) {
@@ -152,14 +152,14 @@
           for (          String storeName : storeNames) {
             Pair<String,String> key=Pair.create(url,storeName);
             log.info("Swapping '" + storeName + "' store on cluster "+ url+ " and node "+ node.getId()+ " - "+ nodeDirPerClusterStore.get(key).get(node.getId()));
-            previousNodeDirPerClusterStore.put(key,Pair.create(node.getId(),adminClient.swapStore(node.getId(),storeName,nodeDirPerClusterStore.get(key).get(node.getId()))));
+            previousNodeDirPerClusterStore.put(key,Pair.create(node.getId(),adminClient.readonlyOps.swapStore(node.getId(),storeName,nodeDirPerClusterStore.get(key).get(node.getId()))));
             log.info("Successfully swapped '" + storeName + "' store on cluster "+ url+ " and node "+ node.getId());
           }
         }
       }
   finally {
         if (adminClient != null) {
-          adminClient.stop();
+          adminClient.close();
         }
       }
     }
@@ -171,17 +171,17 @@
       String url=clusterStoreTuple.getFirst();
       Cluster cluster=urlToCluster.get(url);
       log.info("Rolling back for cluster " + url + " and store  "+ clusterStoreTuple.getSecond());
-      AdminClient adminClient=new AdminClient(cluster,new AdminClientConfig());
+      AdminClient adminClient=new AdminClient(cluster,new AdminClientConfig(),new ClientConfig());
       try {
         for (        Pair<Integer,String> nodeToPreviousDir : nodeToPreviousDirs) {
           log.info("Rolling back for cluster " + url + " and store "+ clusterStoreTuple.getSecond()+ " and node "+ nodeToPreviousDir.getFirst()+ " to dir "+ nodeToPreviousDir.getSecond());
-          adminClient.rollbackStore(nodeToPreviousDir.getFirst(),nodeToPreviousDir.getSecond(),ReadOnlyUtils.getVersionId(new File(nodeToPreviousDir.getSecond())));
+          adminClient.readonlyOps.rollbackStore(nodeToPreviousDir.getFirst(),nodeToPreviousDir.getSecond(),ReadOnlyUtils.getVersionId(new File(nodeToPreviousDir.getSecond())));
           log.info("Successfully rolled back for cluster " + url + " and store "+ clusterStoreTuple.getSecond()+ " and node "+ nodeToPreviousDir.getFirst()+ " to dir "+ nodeToPreviousDir.getSecond());
         }
       }
   finally {
         if (adminClient != null) {
-          adminClient.stop();
+          adminClient.close();
         }
       }
     }

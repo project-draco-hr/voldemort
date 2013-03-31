@@ -1,0 +1,23 @@
+{
+  NodeStore nodeStore=new NodeStore(nodeId,storeName);
+  SocketStore socketStore=nodeStoreSocketCache.get(nodeStore);
+  if (socketStore == null) {
+    Node node=getAdminClientCluster().getNodeById(nodeId);
+    SocketStore newSocketStore=null;
+    try {
+      newSocketStore=clientPool.create(storeName,node.getHost(),node.getSocketPort(),clientConfig.getRequestFormatType(),RequestRoutingType.IGNORE_CHECKS);
+    }
+ catch (    Exception e) {
+      clientPool.close();
+      throw new VoldemortException(e);
+    }
+    socketStore=nodeStoreSocketCache.putIfAbsent(nodeStore,newSocketStore);
+    if (socketStore == null) {
+      socketStore=newSocketStore;
+    }
+ else {
+      newSocketStore.close();
+    }
+  }
+  return socketStore;
+}

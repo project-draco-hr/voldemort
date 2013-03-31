@@ -1,0 +1,15 @@
+{
+  final SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
+  VoldemortServer[] servers=new VoldemortServer[4];
+  int partitionMap[][]={{0},{1},{2},{3}};
+  try {
+    Cluster cluster=ServerTestUtils.startVoldemortCluster(4,servers,partitionMap,socketStoreFactory,true,null,STORES_XML,new Properties());
+    Node node=cluster.getNodeById(0);
+    return "tcp://" + node.getHost() + ":"+ node.getSocketPort();
+  }
+ catch (  IOException e) {
+    e.printStackTrace();
+    fail("Unexpected exception");
+  }
+  return null;
+}

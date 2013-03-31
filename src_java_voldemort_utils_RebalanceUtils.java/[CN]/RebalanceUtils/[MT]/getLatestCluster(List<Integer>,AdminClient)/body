@@ -4,7 +4,7 @@
   clusterList.add(latestCluster);
   for (  Node node : adminClient.getAdminClientCluster().getNodes()) {
     try {
-      Versioned<Cluster> versionedCluster=adminClient.getRemoteCluster(node.getId());
+      Versioned<Cluster> versionedCluster=adminClient.metadataMgmtOps.getRemoteCluster(node.getId());
       VectorClock newClock=(VectorClock)versionedCluster.getVersion();
       if (null != newClock && !clusterList.contains(versionedCluster)) {
         checkNotConcurrent(clusterList,newClock);

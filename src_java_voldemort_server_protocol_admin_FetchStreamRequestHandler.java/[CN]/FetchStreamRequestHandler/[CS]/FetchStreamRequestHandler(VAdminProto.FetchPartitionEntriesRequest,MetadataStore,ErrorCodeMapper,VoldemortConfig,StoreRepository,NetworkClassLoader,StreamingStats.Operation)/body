@@ -1,0 +1,38 @@
+{
+  this.nodeId=metadataStore.getNodeId();
+  this.request=request;
+  this.errorCodeMapper=errorCodeMapper;
+  if (request.getReplicaToPartitionList() != null)   this.replicaToPartitionList=ProtoUtils.decodePartitionTuple(request.getReplicaToPartitionList());
+  this.storageEngine=AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
+  if (voldemortConfig.isJmxEnabled()) {
+    this.streamStats=storeRepository.getStreamingStats(this.storageEngine.getName());
+  }
+ else {
+    this.streamStats=null;
+  }
+  this.operation=operation;
+  this.storeDef=getStoreDef(request.getStore(),metadataStore);
+  if (request.hasInitialCluster()) {
+    this.initialCluster=new ClusterMapper().readCluster(new StringReader(request.getInitialCluster()));
+  }
+ else {
+    this.initialCluster=metadataStore.getCluster();
+  }
+  this.storeInstance=new StoreInstance(this.initialCluster,this.storeDef);
+  this.throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
+  if (request.hasFilter()) {
+    this.filter=AdminServiceRequestHandler.getFilterFromRequest(request.getFilter(),voldemortConfig,networkClassLoader);
+  }
+ else {
+    this.filter=new DefaultVoldemortFilter();
+  }
+  this.startTimeMs=System.currentTimeMillis();
+  this.scanned=0;
+  if (request.hasRecordsPerPartition() && request.getRecordsPerPartition() > 0) {
+    this.recordsPerPartition=request.getRecordsPerPartition();
+  }
+ else {
+    this.recordsPerPartition=0;
+  }
+  this.fetchOrphaned=request.hasFetchOrphaned() && request.getFetchOrphaned();
+}

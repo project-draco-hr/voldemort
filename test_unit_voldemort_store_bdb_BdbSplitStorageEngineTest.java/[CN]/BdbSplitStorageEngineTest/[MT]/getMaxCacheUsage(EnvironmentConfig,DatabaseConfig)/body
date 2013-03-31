@@ -5,14 +5,14 @@
   }
   Environment environmentA=new Environment(dirA,environmentConfig);
   Database databaseA=environmentA.openDatabase(null,"storeA",databaseConfig);
-  BdbStorageEngine storeA=new BdbStorageEngine("storeA",environmentA,databaseA,new BdbRuntimeConfig());
+  BdbStorageEngine storeA=BdbStorageEngineTest.makeBdbStorageEngine("storeA",environmentA,databaseA,new BdbRuntimeConfig(),this.prefixPartitionId);
   File dirB=new File(bdbMasterDir + "/" + "storeB");
   if (!dirB.exists()) {
     dirB.mkdirs();
   }
   Environment environmentB=new Environment(dirB,environmentConfig);
   Database databaseB=environmentB.openDatabase(null,"storeB",databaseConfig);
-  BdbStorageEngine storeB=new BdbStorageEngine("storeB",environmentB,databaseB,new BdbRuntimeConfig());
+  BdbStorageEngine storeB=BdbStorageEngineTest.makeBdbStorageEngine("storeB",environmentB,databaseB,new BdbRuntimeConfig(),this.prefixPartitionId);
   long maxCacheUsage=0;
   for (int i=0; i <= 4; i++) {
     byte[] value=new byte[(int)(CACHE_SIZE / 4)];

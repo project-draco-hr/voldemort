@@ -1,0 +1,55 @@
+{
+  OptionParser parser=null;
+  OptionSet options=null;
+  try {
+    parser=getParser();
+    options=parser.parse(args);
+  }
+ catch (  OptionException oe) {
+    parser.printHelpOn(System.out);
+    printUsageAndDie("Exception when parsing arguments : " + oe.getMessage());
+    return;
+  }
+  if (options.hasArgument("help")) {
+    parser.printHelpOn(System.out);
+    printUsage();
+    return;
+  }
+  if (!options.hasArgument("url") || !options.hasArgument("in-dir") || !options.hasArgument("out-dir")) {
+    parser.printHelpOn(System.out);
+    printUsageAndDie("Missing a required argument.");
+    return;
+  }
+  String url=(String)options.valueOf("url");
+  String inDir=(String)options.valueOf("in-dir");
+  Utils.mkdirs(new File(inDir));
+  String outDir=(String)options.valueOf("out-dir");
+  Utils.mkdirs(new File(outDir));
+  List<String> storeNames=null;
+  if (options.hasArgument("store-names")) {
+    @SuppressWarnings("unchecked") List<String> list=(List<String>)options.valuesOf("store-names");
+    storeNames=list;
+  }
+  Integer keyParallelism=DEFAULT_KEY_PARALLELISM;
+  if (options.hasArgument("parallelism")) {
+    keyParallelism=(Integer)options.valueOf("parallelism");
+  }
+  Integer progressPeriodOps=DEFAULT_PROGRESS_PERIOD_OPS;
+  if (options.hasArgument("progress-period-ops")) {
+    progressPeriodOps=(Integer)options.valueOf("progress-period-ops");
+  }
+  try {
+    KeyVersionFetcherCLI sampler=new KeyVersionFetcherCLI(url,inDir,outDir,storeNames,keyParallelism,progressPeriodOps);
+    try {
+      if (!sampler.sampleStores()) {
+        logger.error("Key-versions were not successfully sampled from some stores.");
+      }
+    }
+  finally {
+      sampler.stop();
+    }
+  }
+ catch (  Exception e) {
+    Utils.croak("Exception during key-version sampling: " + e.getMessage());
+  }
+}

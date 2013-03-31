@@ -25,9 +25,9 @@
   log.info("Verifying store: \n" + newStoreDefXml.toString());
   StoreDefinition newStoreDef=VoldemortUtils.getStoreDef(newStoreDefXml);
   log.info("Getting store definition from: " + url + " (node id "+ this.nodeId+ ")");
-  AdminClient adminClient=new AdminClient(url,new AdminClientConfig());
+  AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());
   try {
-    List<StoreDefinition> remoteStoreDefs=adminClient.getRemoteStoreDefList(this.nodeId).getValue();
+    List<StoreDefinition> remoteStoreDefs=adminClient.metadataMgmtOps.getRemoteStoreDefList(this.nodeId).getValue();
     boolean foundStore=false;
     for (    StoreDefinition remoteStoreDef : remoteStoreDefs) {
       if (remoteStoreDef.getName().equals(storeName)) {
@@ -92,12 +92,12 @@
         throw new RuntimeException("Owner field missing in store definition. " + "Please add \"push.store.owners\" with value being comma-separated list of LinkedIn email ids");
       }
       log.info("Could not find store " + storeName + " on Voldemort. Adding it to all nodes ");
-      adminClient.addStore(newStoreDef);
+      adminClient.storeMgmtOps.addStore(newStoreDef);
     }
     storeDefs=ImmutableList.of(VoldemortUtils.getStoreDef(VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,props.containsKey("build.preferred.reads") ? props.getInt("build.preferred.reads") : null,props.containsKey("build.preferred.writes") ? props.getInt("build.preferred.writes") : null,keySchema,valSchema)));
     cluster=adminClient.getAdminClientCluster();
   }
   finally {
-    adminClient.stop();
+    adminClient.close();
   }
 }
