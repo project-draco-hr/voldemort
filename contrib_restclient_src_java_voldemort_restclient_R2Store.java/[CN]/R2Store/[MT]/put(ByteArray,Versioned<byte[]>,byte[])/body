@@ -6,15 +6,17 @@
     outputStream.write(payload);
     String base64Key=new String(Base64.encodeBase64(key.get()));
     RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
+    String serializedVC=CoordinatorUtils.getSerializedVectorClock((VectorClock)value.getVersion());
     rb.setMethod(POST);
     rb.setEntity(outputBytes.toByteArray());
     rb.setHeader("Content-Type","application/json");
     rb.setHeader("Content-Length","" + payload.length);
     rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,"1000");
-    rb.setHeader(X_VOLD_INCONSISTENCY_RESOLVER,"custom");
+    rb.setHeader(X_VOLD_VECTOR_CLOCK,serializedVC);
     RestRequest request=rb.build();
     Future<RestResponse> f=client.restRequest(request);
     RestResponse response=f.get();
+    String eTag=response.getHeader(ETAG);
     final ByteString entity=response.getEntity();
     if (entity == null) {
       logger.error("Empty response !");

@@ -1,5 +1,6 @@
 {
   String response=null;
+  TestVersionedValue responseObj=null;
   try {
     HttpURLConnection conn=null;
     String base64Key=new String(Base64.encodeBase64(key.getBytes()));
@@ -24,10 +25,12 @@
     rd.close();
     conn.disconnect();
     response=sb.toString();
+    VectorClock vc=CoordinatorUtils.deserializeVectorClock(conn.getHeaderField("ETag"));
+    responseObj=new TestVersionedValue(response,vc);
   }
  catch (  Exception e) {
     e.printStackTrace();
     fail("Error in sending the REST request");
   }
-  return response;
+  return responseObj;
 }

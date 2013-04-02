@@ -1,4 +1,5 @@
 {
+  VectorClock successfulPutVC=null;
   try {
     HttpURLConnection conn=null;
     String base64Key=new String(Base64.encodeBase64(key.getBytes()));
@@ -10,6 +11,10 @@
     conn.setRequestProperty("Content-Type","binary");
     conn.setRequestProperty("Content-Length","" + payload.length());
     conn.setRequestProperty(VoldemortHttpRequestHandler.X_VOLD_REQUEST_TIMEOUT_MS,"1000");
+    if (vc != null) {
+      String eTag=CoordinatorUtils.getSerializedVectorClock(vc);
+      conn.setRequestProperty("ETag",eTag);
+    }
     OutputStream out=conn.getOutputStream();
     out.write(payload.getBytes());
     out.close();
@@ -22,4 +27,5 @@
     e.printStackTrace();
     fail("Error in sending the REST request");
   }
+  return successfulPutVC;
 }

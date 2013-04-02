@@ -50,11 +50,17 @@ handleBadRequest(e,"Cannot have multiple keys in a put operation");
 return null;
 }
 byte[] putValue=readValue(content);
+VectorClock putOpVectorClock=getVectorClock(this.request.getHeader(X_VOLD_VECTOR_CLOCK));
+if (putOpVectorClock != null && putOpVectorClock.getEntries().size() > 0) {
+requestWrapper=new CompositeVersionedPutVoldemortRequest<ByteArray,byte[]>(putKey,new Versioned<byte[]>(putValue,putOpVectorClock),operationTimeoutInMs);
+}
+ else {
 requestWrapper=new CompositePutVoldemortRequest<ByteArray,byte[]>(putKey,putValue,operationTimeoutInMs);
+}
 break;
 case VoldemortOpCode.DELETE_OP_CODE:
-VectorClock vc=getVectorClock(this.request.getHeader(X_VOLD_VECTOR_CLOCK));
-requestWrapper=new CompositeDeleteVoldemortRequest<ByteArray,byte[]>(keyList.get(0),vc,operationTimeoutInMs);
+VectorClock deleteOpVectorClock=getVectorClock(this.request.getHeader(X_VOLD_VECTOR_CLOCK));
+requestWrapper=new CompositeDeleteVoldemortRequest<ByteArray,byte[]>(keyList.get(0),deleteOpVectorClock,operationTimeoutInMs);
 break;
 default :
 handleBadRequest(e,"Illegal Operation.");

@@ -1,5 +1,10 @@
 {
   HttpResponse response=new DefaultHttpResponse(HTTP_1_1,CREATED);
+  String eTag=CoordinatorUtils.getSerializedVectorClock(successfulPutVC);
+  if (logger.isDebugEnabled()) {
+    logger.debug("ETAG : " + eTag);
+  }
+  response.setHeader(ETAG,eTag);
   response.setHeader(CONTENT_LENGTH,0);
   if (this.coordinatorPerfStats != null) {
     long durationInNs=System.nanoTime() - startTimestampInNs;

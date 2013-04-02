@@ -1,10 +1,16 @@
 {
   try {
-    this.storeClient.putWithCustomTimeout(putRequestObject);
+    VectorClock successfulPutVC=null;
+    if (putRequestObject.getValue() != null) {
+      successfulPutVC=(VectorClock)this.storeClient.putVersionedWithCustomTimeout(putRequestObject);
+    }
+ else {
+      successfulPutVC=(VectorClock)this.storeClient.putWithCustomTimeout(putRequestObject);
+    }
     if (logger.isDebugEnabled()) {
       logger.debug("PUT successful !");
     }
-    writeResponse();
+    writeResponse(successfulPutVC);
   }
  catch (  IllegalArgumentException illegalArgsException) {
     String errorDescription="PUT Failed !!! Illegal Arguments : " + illegalArgsException.getMessage();
