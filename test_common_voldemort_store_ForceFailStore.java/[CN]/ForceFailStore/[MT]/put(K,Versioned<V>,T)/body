@@ -1,4 +1,9 @@
 {
-  if (fail)   throw e;
+  if (fail) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("PUT key " + key + " was forced to fail");
+    }
+    throw e;
+  }
   getInnerStore().put(key,value,transform);
 }

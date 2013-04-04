@@ -25,6 +25,7 @@
       pipelineData.setMaster(node);
       pipelineData.setVersionedCopy(versionedCopy);
       pipelineData.getZoneResponses().add(node.getZoneId());
+      currentNode++;
       break;
     }
  catch (    Exception e) {
@@ -33,13 +34,15 @@
       if (handleResponseError(e,node,requestTime,pipeline,failureDetector))       return;
     }
   }
+  if (logger.isTraceEnabled()) {
+    logger.trace("PUT {key:" + key + "} currentNode="+ currentNode+ " nodes.size()="+ nodes.size());
+  }
   if (pipelineData.getSuccesses() < 1) {
     List<Exception> failures=pipelineData.getFailures();
     pipelineData.setFatalError(new InsufficientOperationalNodesException("No master node succeeded!",failures.size() > 0 ? failures.get(0) : null));
     pipeline.abort();
     return;
   }
-  currentNode++;
   if (currentNode == nodes.size()) {
     if (pipelineData.getSuccesses() < required) {
       pipelineData.setFatalError(new InsufficientOperationalNodesException(required + " " + pipeline.getOperation().getSimpleName()+ "s required, but only "+ pipelineData.getSuccesses()+ " succeeded",new ArrayList<Node>(pipelineData.getReplicationSet()),new ArrayList<Node>(pipelineData.getNodes()),new ArrayList<Node>(pipelineData.getFailedNodes()),pipelineData.getFailures()));

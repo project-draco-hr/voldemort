@@ -2,7 +2,7 @@
   boolean persisted=false;
   for (  Node node : handoffStrategy.routeHint(failedNode)) {
     int nodeId=node.getId();
-    if (logger.isDebugEnabled())     logger.debug("Trying to send hint to " + nodeId);
+    if (logger.isDebugEnabled())     logger.debug("Trying to send hint to " + nodeId + " for key "+ slop.getKey());
     if (!failedNodes.contains(node) && failureDetector.isAvailable(node)) {
       Store<ByteArray,Slop,byte[]> slopStore=slopStores.get(nodeId);
       Utils.notNull(slopStore);
@@ -22,7 +22,7 @@
 catch (      ObsoleteVersionException e) {
         logger.debug(e,e);
       }
-      if (logger.isDebugEnabled())       logger.debug("Slop write of key " + slop.getKey() + " (keyRef: "+ System.identityHashCode(slop.getKey())+ ") for "+ failedNode+ " to node "+ node+ " succeeded in "+ (System.nanoTime() - startNs)+ " ns");
+      if (logger.isDebugEnabled())       logger.debug("Slop write of key " + slop.getKey() + " (keyRef: "+ System.identityHashCode(slop.getKey())+ ") for "+ failedNode+ " to node "+ node+ (persisted ? " succeeded" : " failed")+ " in "+ (System.nanoTime() - startNs)+ " ns");
     }
   }
   if (!persisted) {
