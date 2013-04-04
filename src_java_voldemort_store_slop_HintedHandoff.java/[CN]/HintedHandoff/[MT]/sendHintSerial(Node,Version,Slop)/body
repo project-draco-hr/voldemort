@@ -17,10 +17,16 @@
       }
  catch (      UnreachableStoreException e) {
         failureDetector.recordException(node,(System.nanoTime() - startNs) / Time.NS_PER_MS,e);
-        logger.warn("Error during hinted handoff",e);
+        logger.warn("Error during hinted handoff. Will try another node",e);
+      }
+catch (      IllegalStateException e) {
+        logger.warn("Error during hinted handoff. Will try another node",e);
       }
 catch (      ObsoleteVersionException e) {
         logger.debug(e,e);
+      }
+catch (      Exception e) {
+        logger.error("Unknown exception. Will try another node" + e);
       }
       if (logger.isDebugEnabled())       logger.debug("Slop write of key " + slop.getKey() + " (keyRef: "+ System.identityHashCode(slop.getKey())+ ") for "+ failedNode+ " to node "+ node+ (persisted ? " succeeded" : " failed")+ " in "+ (System.nanoTime() - startNs)+ " ns");
     }
