@@ -1,0 +1,33 @@
+{
+  cluster=getTwoNodeCluster();
+  storeDef=getStoreDef(STORE_NAME,REPLICATION_FACTOR,P_READS,R_READS,P_WRITES,R_WRITES,RoutingStrategyType.CONSISTENT_STRATEGY);
+  VoldemortException e=new UnreachableStoreException("Node down");
+  InMemoryStorageEngine<ByteArray,byte[],byte[]> inMemoryStorageEngine=new InMemoryStorageEngine<ByteArray,byte[],byte[]>(STORE_NAME);
+  LoggingStore<ByteArray,byte[],byte[]> loggingStore=new LoggingStore<ByteArray,byte[],byte[]>(inMemoryStorageEngine);
+  subStores.put(1,loggingStore);
+  SleepyForceFailStore<ByteArray,byte[],byte[]> failureStore=new SleepyForceFailStore<ByteArray,byte[],byte[]>(loggingStore,e,sleepBeforeFailingInMs);
+  failureStore.setFail(true);
+  subStores.put(0,failureStore);
+  setFailureDetector(subStores);
+  routedStoreThreadPool=Executors.newFixedThreadPool(NUM_THREADS);
+  routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,new TimeoutConfig(routingTimeoutInMs,false));
+  new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+  Map<Integer,NonblockingStore> nonblockingSlopStores=Maps.newHashMap();
+  for (  Node node : cluster.getNodes()) {
+    int nodeId=node.getId();
+    StoreRepository storeRepo=new StoreRepository();
+    storeRepo.addLocalStore(subStores.get(nodeId));
+    for (int i=0; i < NUM_NODES_TOTAL; i++)     storeRepo.addNodeStore(i,subStores.get(i));
+    SlopStorageEngine slopStorageEngine=new SlopStorageEngine(new InMemoryStorageEngine<ByteArray,byte[],byte[]>(SLOP_STORE_NAME),cluster);
+    StorageEngine<ByteArray,Slop,byte[]> storageEngine=slopStorageEngine.asSlopStore();
+    storeRepo.setSlopStore(slopStorageEngine);
+    nonblockingSlopStores.put(nodeId,routedStoreFactory.toNonblockingStore(slopStorageEngine));
+    slopStores.put(nodeId,storageEngine);
+    MetadataStore metadataStore=ServerTestUtils.createMetadataStore(cluster,Lists.newArrayList(storeDef));
+    StreamingSlopPusherJob pusher=new StreamingSlopPusherJob(storeRepo,metadataStore,failureDetector,ServerTestUtils.createServerConfigWithDefs(false,nodeId,TestUtils.createTempDir().getAbsolutePath(),cluster,Lists.newArrayList(storeDef),new Properties()),new ScanPermitWrapper(1));
+    slopPusherJobs.add(pusher);
+  }
+  Map<Integer,NonblockingStore> nonblockingStores=Maps.newHashMap();
+  for (  Map.Entry<Integer,Store<ByteArray,byte[],byte[]>> entry : subStores.entrySet())   nonblockingStores.put(entry.getKey(),routedStoreFactory.toNonblockingStore(entry.getValue()));
+  store=new DelayedPutPipelineRoutedStore(subStores,nonblockingStores,slopStores,nonblockingSlopStores,cluster,storeDef,failureDetector);
+}

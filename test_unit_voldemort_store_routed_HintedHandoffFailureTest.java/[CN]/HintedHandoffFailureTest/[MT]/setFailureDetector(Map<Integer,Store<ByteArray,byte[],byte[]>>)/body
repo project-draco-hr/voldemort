@@ -1,0 +1,8 @@
+{
+  if (failureDetector != null)   failureDetector.destroy();
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig();
+  failureDetectorConfig.setImplementationClassName(ThresholdFailureDetector.class.getName());
+  failureDetectorConfig.setCluster(cluster);
+  failureDetectorConfig.setStoreVerifier(MutableStoreVerifier.create(subStores));
+  failureDetector=FailureDetectorUtils.create(failureDetectorConfig,false);
+}
