@@ -1,0 +1,33 @@
+{
+  for (  Integer nodeId : failedNodeSet) {
+    forceFailStores.get(nodeId).setFail(true);
+  }
+  Multimap<Integer,ByteArray> nodeToFailedKeys=ArrayListMultimap.create();
+  for (  ByteArray key : keysToNodes.keySet()) {
+    List<Node> nodes=strategy.routeRequest(key.get());
+    List<Node> failedNodes=new ArrayList<Node>();
+    for (    Node node : nodes) {
+      if (failedNodeSet != null && failedNodeSet.contains(node.getId())) {
+        failedNodes.add(node);
+      }
+    }
+    if ((nodes.size() - failedNodes.size()) >= R_WRITES) {
+      for (      Node node : failedNodes) {
+        nodeToFailedKeys.put(node.getId(),key);
+        logger.debug("[key:" + key + "] to [nodeId:"+ node.getId()+ "] should fail");
+      }
+    }
+ else {
+      logger.debug("[key:" + key + "] should fail overall due to insufficient nodes");
+    }
+    try {
+      Versioned<byte[]> versioned=new Versioned<byte[]>(keyValues.get(key).get());
+      if (logger.isTraceEnabled())       logger.trace("PUT key [" + key + "] to store");
+      routedStore.put(key,versioned,null);
+    }
+ catch (    Exception e) {
+      if (logger.isTraceEnabled())       logger.trace(e,e);
+    }
+  }
+  return nodeToFailedKeys;
+}
