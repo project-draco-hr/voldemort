@@ -1,0 +1,43 @@
+{
+  String key="a";
+  String val="xyz";
+  Versioned<byte[]> versionedVal=new Versioned<byte[]>(val.getBytes());
+  ByteArray keyByteArray=new ByteArray(key.getBytes());
+  REPLICATION_FACTOR=2;
+  P_READS=1;
+  R_READS=1;
+  P_WRITES=1;
+  R_WRITES=1;
+  try {
+    customSetup(keyByteArray);
+  }
+ catch (  Exception e) {
+    fail("Error in setup.");
+  }
+  delayBeforeHintedHandoff=0;
+  this.store.put(keyByteArray,versionedVal,null);
+  try {
+    logger.info("Sleeping for 5 seconds to wait for the serial hint to finish");
+    Thread.sleep(5000);
+  }
+ catch (  Exception e) {
+  }
+  Set<ByteArray> failedKeys=Sets.newHashSet();
+  failedKeys.add(keyByteArray);
+  Set<ByteArray> slopKeys=makeSlopKeys(failedKeys);
+  Set<Slop> registeredSlops=Sets.newHashSet();
+  for (  Store<ByteArray,Slop,byte[]> slopStore : slopStores.values()) {
+    Map<ByteArray,List<Versioned<Slop>>> res=slopStore.getAll(slopKeys,null);
+    for (    Map.Entry<ByteArray,List<Versioned<Slop>>> entry : res.entrySet()) {
+      Slop slop=entry.getValue().get(0).getValue();
+      registeredSlops.add(slop);
+      logger.info(slop);
+    }
+  }
+  if (registeredSlops.size() == 0) {
+    fail("Should have seen some slops. But could not find any.");
+  }
+ else   if (registeredSlops.size() != 1) {
+    fail("Number of slops registered != 1");
+  }
+}

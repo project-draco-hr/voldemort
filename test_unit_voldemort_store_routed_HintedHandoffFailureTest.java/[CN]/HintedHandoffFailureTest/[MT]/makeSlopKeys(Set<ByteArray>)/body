@@ -3,10 +3,10 @@
   for (  ByteArray failedKey : failedKeys) {
     byte[] opCode=new byte[]{Slop.Operation.PUT.getOpCode()};
     byte[] spacer=new byte[]{(byte)0};
-    byte[] storeName=ByteUtils.getBytes(STORE_NAME,"UTF-8");
+    byte[] storeNameBytes=ByteUtils.getBytes(STORE_NAME,"UTF-8");
     byte[] nodeIdBytes=new byte[ByteUtils.SIZE_OF_INT];
     ByteUtils.writeInt(nodeIdBytes,FAILED_NODE_ID,0);
-    ByteArray slopKey=new ByteArray(ByteUtils.cat(opCode,spacer,storeName,spacer,nodeIdBytes,spacer,failedKey.get()));
+    ByteArray slopKey=new ByteArray(ByteUtils.cat(opCode,spacer,storeNameBytes,spacer,nodeIdBytes,spacer,failedKey.get()));
     slopKeys.add(slopKey);
   }
   return slopKeys;

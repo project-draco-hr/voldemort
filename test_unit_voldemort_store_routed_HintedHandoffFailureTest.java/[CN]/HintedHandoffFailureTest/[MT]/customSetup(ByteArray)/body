@@ -1,23 +1,35 @@
 {
-  cluster=getTwoNodeCluster();
+  cluster=getThreeNodeCluster();
   storeDef=getStoreDef(STORE_NAME,REPLICATION_FACTOR,P_READS,R_READS,P_WRITES,R_WRITES,RoutingStrategyType.CONSISTENT_STRATEGY);
-  VoldemortException e=new UnreachableStoreException("Node down");
+  strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
   InMemoryStorageEngine<ByteArray,byte[],byte[]> inMemoryStorageEngine=new InMemoryStorageEngine<ByteArray,byte[],byte[]>(STORE_NAME);
   LoggingStore<ByteArray,byte[],byte[]> loggingStore=new LoggingStore<ByteArray,byte[],byte[]>(inMemoryStorageEngine);
-  subStores.put(1,loggingStore);
-  SleepyForceFailStore<ByteArray,byte[],byte[]> failureStore=new SleepyForceFailStore<ByteArray,byte[],byte[]>(loggingStore,e,sleepBeforeFailingInMs);
+  VoldemortException e=new UnreachableStoreException("Node down");
+  ForceFailStore<ByteArray,byte[],byte[]> failureStore=new ForceFailStore<ByteArray,byte[],byte[]>(loggingStore,e);
+  SleepyStore<ByteArray,byte[],byte[]> sleepyFailureStore=new SleepyStore<ByteArray,byte[],byte[]>(sleepBeforeFailingInMs,failureStore);
   failureStore.setFail(true);
-  subStores.put(0,failureStore);
+  Node failingNode=strategy.routeRequest(key.get()).get(1);
+  FAILED_NODE_ID=failingNode.getId();
+  subStores.clear();
+  for (int i=0; i < NUM_NODES_TOTAL; i++) {
+    if (i == FAILED_NODE_ID) {
+      subStores.put(i,sleepyFailureStore);
+    }
+ else {
+      subStores.put(i,loggingStore);
+    }
+  }
   setFailureDetector(subStores);
   routedStoreThreadPool=Executors.newFixedThreadPool(NUM_THREADS);
   routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,new TimeoutConfig(routingTimeoutInMs,false));
-  new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
   Map<Integer,NonblockingStore> nonblockingSlopStores=Maps.newHashMap();
   for (  Node node : cluster.getNodes()) {
     int nodeId=node.getId();
     StoreRepository storeRepo=new StoreRepository();
     storeRepo.addLocalStore(subStores.get(nodeId));
-    for (int i=0; i < NUM_NODES_TOTAL; i++)     storeRepo.addNodeStore(i,subStores.get(i));
+    for (int i=0; i < NUM_NODES_TOTAL; i++) {
+      storeRepo.addNodeStore(i,subStores.get(i));
+    }
     SlopStorageEngine slopStorageEngine=new SlopStorageEngine(new InMemoryStorageEngine<ByteArray,byte[],byte[]>(SLOP_STORE_NAME),cluster);
     StorageEngine<ByteArray,Slop,byte[]> storageEngine=slopStorageEngine.asSlopStore();
     storeRepo.setSlopStore(slopStorageEngine);
