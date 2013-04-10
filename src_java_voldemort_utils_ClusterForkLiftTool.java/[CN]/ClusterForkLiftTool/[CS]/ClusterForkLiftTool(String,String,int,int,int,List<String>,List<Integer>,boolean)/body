@@ -1,0 +1,28 @@
+{
+  this.srcAdminClient=new AdminClient(srcBootstrapUrl,new AdminClientConfig(),new ClientConfig());
+  Props property=new Props();
+  property.put("streaming.platform.bootstrapURL",dstBootstrapUrl);
+  property.put("streaming.platform.throttle.qps",maxPutsPerSecond);
+  StreamingClientConfig config=new StreamingClientConfig(property);
+  this.dstStreamingClient=new StreamingClient(config);
+  if (storesList != null) {
+    this.storesList=storesList;
+  }
+ else {
+    this.storesList=StoreUtils.getStoreNames(srcAdminClient.metadataMgmtOps.getRemoteStoreDefList(0).getValue(),true);
+  }
+  this.srcStoreDefMap=checkStoresOnBothSides();
+  if (partitions != null) {
+    this.partitionList=partitions;
+  }
+ else {
+    this.partitionList=new ArrayList<Integer>(srcAdminClient.getAdminClientCluster().getNumberOfPartitions());
+    for (    Node node : srcAdminClient.getAdminClientCluster().getNodes())     this.partitionList.addAll(node.getPartitionIds());
+    if (this.partitionList.size() > srcAdminClient.getAdminClientCluster().getNumberOfPartitions()) {
+      throw new VoldemortException("Incorrect partition mapping in source cluster");
+    }
+  }
+  this.workerPool=Executors.newFixedThreadPool(partitionParallelism);
+  this.progressOps=progressOps;
+  this.globalResolution=globalResolution;
+}

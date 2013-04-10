@@ -1,0 +1,40 @@
+{
+  String storeName=this.storeInstance.getStoreDefinition().getName();
+  long entriesForkLifted=0;
+  try {
+    logger.info(workName + "Starting processing");
+    ChainedResolver<Versioned<byte[]>> resolver=new ChainedResolver<Versioned<byte[]>>(new VectorClockInconsistencyResolver<byte[]>(),new TimeBasedInconsistencyResolver<byte[]>());
+    Iterator<ByteArray> keyItr=srcAdminClient.bulkFetchOps.fetchKeys(storeInstance.getNodeIdForPartitionId(this.partitionId),storeName,Lists.newArrayList(this.partitionId),null,true);
+    List<Integer> nodeList=storeInstance.getReplicationNodeList(this.partitionId);
+    while (keyItr.hasNext()) {
+      ByteArray keyToResolve=keyItr.next();
+      Map<Integer,QueryKeyResult> valuesMap=doReads(nodeList,keyToResolve.get());
+      List<Versioned<byte[]>> values=new ArrayList<Versioned<byte[]>>(valuesMap.size());
+      for (      Map.Entry<Integer,QueryKeyResult> entry : valuesMap.entrySet()) {
+        int nodeId=entry.getKey();
+        QueryKeyResult result=entry.getValue();
+        if (result.hasException()) {
+          logger.error(workName + "key fetch failed for key " + ByteUtils.toHexString(keyToResolve.get())+ " on node "+ nodeId,result.getException());
+          break;
+        }
+        values.addAll(result.getValues());
+      }
+      List<Versioned<byte[]>> resolvedVersions=resolver.resolveConflicts(values);
+      if (resolvedVersions.size() > 1) {
+        throw new VoldemortException("More than one resolved versions, key: " + ByteUtils.toHexString(keyToResolve.get()) + " vals:"+ resolvedVersions);
+      }
+      dstStreamingClient.streamingPut(keyToResolve,new Versioned<byte[]>(resolvedVersions.get(0).getValue()));
+      entriesForkLifted++;
+      if (entriesForkLifted % progressOps == 0) {
+        logger.info(workName + " fork lifted " + entriesForkLifted+ " entries successfully");
+      }
+    }
+    logger.info(workName + "Completed processing " + entriesForkLifted+ " records");
+  }
+ catch (  Exception e) {
+    logger.error(workName + "Error forklifting data ",e);
+  }
+ finally {
+    latch.countDown();
+  }
+}
