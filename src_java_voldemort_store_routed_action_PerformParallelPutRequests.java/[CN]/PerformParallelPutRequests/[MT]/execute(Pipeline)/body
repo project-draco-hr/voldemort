@@ -3,58 +3,49 @@
   final List<Node> nodes=pipelineData.getNodes();
   final Versioned<byte[]> versionedCopy=pipelineData.getVersionedCopy();
   final Integer numNodesTouchedInSerialPut=nodes.indexOf(masterNode) + 1;
-  Integer numNodesToWait=nodes.size() - numNodesTouchedInSerialPut;
-  Integer numResponsedGot=0;
-  final BlockingQueue<Response<ByteArray,Object>> responseQueue=new LinkedBlockingQueue<Response<ByteArray,Object>>();
-  final AtomicBoolean parallelPutSuccess=new AtomicBoolean(false);
-  final AtomicBoolean parallelPutFinish=new AtomicBoolean(false);
-  if (logger.isDebugEnabled())   logger.debug("PUT {key:" + key + "} MasterNode={id:"+ masterNode.getId()+ "} totalNodesToAsyncPut="+ numNodesToWait);
+  numNodesPendingResponse=nodes.size() - numNodesTouchedInSerialPut;
+  if (logger.isDebugEnabled())   logger.debug("PUT {key:" + key + "} MasterNode={id:"+ masterNode.getId()+ "} totalNodesToAsyncPut="+ numNodesPendingResponse);
   for (int i=numNodesTouchedInSerialPut; i < nodes.size(); i++) {
     final Node node=nodes.get(i);
     pipelineData.incrementNodeIndex();
     NonblockingStoreCallback callback=new NonblockingStoreCallback(){
       @Override public void requestComplete(      Object result,      long requestTime){
-        boolean willSendSlop=false;
+        boolean responseHandledByMaster=false;
         if (logger.isDebugEnabled())         logger.debug("PUT {key:" + key + "} response received from node={id:"+ node.getId()+ "} in "+ requestTime+ " ms)");
         Response<ByteArray,Object> response;
         response=new Response<ByteArray,Object>(node,key,result,requestTime);
-        responseQueue.add(response);
         if (logger.isDebugEnabled()) {
-          logger.debug("PUT {key:" + key + "} Parallel put thread returned result to main thread");
+          logger.debug("PUT {key:" + key + "} Parallel put thread trying to return result to main thread");
         }
-        Object responseObject=response.getValue();
-        if (responseObject instanceof Exception) {
-          if (responseObject instanceof InvalidMetadataException) {
-            pipelineData.reportException((InvalidMetadataException)response.getValue());
-            logger.warn("PUT {key:" + key + "} Received invalid metadata problem after a successful "+ pipeline.getOperation().getSimpleName()+ " call on node "+ node.getId()+ ", store '"+ pipelineData.getStoreName()+ "'");
-          }
- else           if (responseObject instanceof UnreachableStoreException) {
-synchronized (parallelPutFinish) {
-              boolean finished=parallelPutFinish.get();
-              boolean success=parallelPutSuccess.get();
-              if (!finished) {
-                pipelineData.addSlopOwnerNode(node);
-              }
- else {
-                if (success) {
-                  willSendSlop=true;
-                }
-              }
-            }
+        responseHandledByMaster=pipelineData.getSynchronizer().tryDelegateResponseHandling(response);
+        if (logger.isDebugEnabled()) {
+          logger.debug("PUT {key:" + key + "} Master thread accepted the response: "+ responseHandledByMaster);
+        }
+        if (!responseHandledByMaster) {
+          if (result instanceof UnreachableStoreException) {
             if (logger.isDebugEnabled())             logger.debug("PUT {key:" + key + "} failed on node={id:"+ node.getId()+ ",host:"+ node.getHost()+ "}");
-            if (isHintedHandoffEnabled() && willSendSlop) {
-              Slop slop=new Slop(pipelineData.getStoreName(),Slop.Operation.PUT,key,versionedCopy.getValue(),transforms,node.getId(),new Date());
-              pipelineData.addFailedNode(node);
-              if (logger.isDebugEnabled())               logger.debug("PUT {key:" + key + "} Start registering Slop(node:"+ node.getId()+ ",host:"+ node.getHost()+ ")");
-              hintedHandoff.sendHintSerial(node,versionedCopy.getVersion(),slop);
-              if (logger.isDebugEnabled())               logger.debug("PUT {key:" + key + "} Finished registering Slop(node:"+ node.getId()+ ",host:"+ node.getHost()+ ")");
+            if (isHintedHandoffEnabled()) {
+              boolean triedDelegateSlop=pipelineData.getSynchronizer().tryDelegateSlop(node);
+              if (logger.isDebugEnabled()) {
+                logger.debug("PUT {key:" + key + "} triedDelegateSlop: "+ triedDelegateSlop);
+              }
+              if (!triedDelegateSlop) {
+                Slop slop=new Slop(pipelineData.getStoreName(),Slop.Operation.PUT,key,versionedCopy.getValue(),transforms,node.getId(),new Date());
+                pipelineData.addFailedNode(node);
+                if (logger.isDebugEnabled())                 logger.debug("PUT {key:" + key + "} Start registering Slop(node:"+ node.getId()+ ",host:"+ node.getHost()+ ")");
+                hintedHandoff.sendHintSerial(node,versionedCopy.getVersion(),slop);
+                if (logger.isDebugEnabled())                 logger.debug("PUT {key:" + key + "} Finished registering Slop(node:"+ node.getId()+ ",host:"+ node.getHost()+ ")");
+              }
             }
-            handleResponseError(response,pipeline,failureDetector);
           }
- else           if (responseObject instanceof ObsoleteVersionException) {
-          }
+          if (result instanceof Exception && !(result instanceof ObsoleteVersionException)) {
+            if (response.getValue() instanceof InvalidMetadataException) {
+              pipelineData.reportException((InvalidMetadataException)response.getValue());
+              logger.warn("Received invalid metadata problem after a successful " + pipeline.getOperation().getSimpleName() + " call on node "+ node.getId()+ ", store '"+ pipelineData.getStoreName()+ "'");
+            }
  else {
-            handleResponseError(response,pipeline,failureDetector);
+              handleResponseError(response,pipeline,failureDetector);
+            }
           }
         }
       }
@@ -66,71 +57,49 @@ synchronized (parallelPutFinish) {
   }
   try {
     boolean preferredSatisfied=false;
-    boolean quorumSatisfied=false;
-    boolean zonesSatisfied=false;
     while (true) {
       long ellapsedNs=System.nanoTime() - pipelineData.getStartTimeNs();
       long remainingNs=(timeoutMs * Time.NS_PER_MS) - ellapsedNs;
       remainingNs=Math.max(0,remainingNs);
-      if (!preferredSatisfied) {
-        if (numResponsedGot >= preferred - 1) {
-          preferredSatisfied=true;
-        }
+      if (numResponsesGot >= preferred - 1) {
+        preferredSatisfied=true;
       }
-      if (!quorumSatisfied) {
-        if (pipelineData.getSuccesses() >= required) {
-          quorumSatisfied=true;
-        }
+      if (pipelineData.getSuccesses() >= required) {
+        quorumSatisfied=true;
       }
-      if (!zonesSatisfied) {
-        if (pipelineData.getZonesRequired() == null) {
+      if (pipelineData.getZonesRequired() == null) {
+        zonesSatisfied=true;
+      }
+ else {
+        int numZonesSatisfied=pipelineData.getZoneResponses().size();
+        if (numZonesSatisfied >= (pipelineData.getZonesRequired() + 1)) {
           zonesSatisfied=true;
         }
- else {
-          int numZonesSatisfied=pipelineData.getZoneResponses().size();
-          if (numZonesSatisfied >= (pipelineData.getZonesRequired() + 1)) {
-            zonesSatisfied=true;
-          }
-        }
       }
-      if (quorumSatisfied && zonesSatisfied && preferredSatisfied || remainingNs <= 0 || numNodesToWait <= 0) {
+      if (quorumSatisfied && zonesSatisfied && preferredSatisfied || remainingNs <= 0 || numNodesPendingResponse <= 0) {
+        pipelineData.getSynchronizer().cutoffHandling();
         break;
       }
  else {
-        Response<ByteArray,Object> response=responseQueue.poll(remainingNs,TimeUnit.NANOSECONDS);
-        if (response != null) {
-          numNodesToWait--;
-          numResponsedGot++;
-          if (response.getValue() instanceof Exception && !(response.getValue() instanceof ObsoleteVersionException)) {
-            if (logger.isDebugEnabled()) {
-              logger.debug("PUT {key:" + key + "} handling async put error");
-            }
-            if (handleResponseError(response,pipeline,failureDetector)) {
-              if (logger.isDebugEnabled()) {
-                logger.debug("PUT {key:" + key + "} severe async put error, exiting parallel put stage");
-              }
-              return;
-            }
-            if (logger.isDebugEnabled()) {
-              logger.debug("PUT {key:" + key + "} handled async put error");
-            }
-          }
- else {
-            pipelineData.incrementSuccesses();
-            failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
-            pipelineData.getZoneResponses().add(response.getNode().getZoneId());
-          }
+        if (logger.isTraceEnabled()) {
+          logger.trace("PUT {key:" + key + "} trying to poll from queue");
         }
- else {
-          logger.warn("RoutingTimedout on waiting for async ops; parellelResponseToWait: " + numNodesToWait + "; preferred-1: "+ (preferred - 1)+ "; quromOK: "+ quorumSatisfied+ "; zoneOK: "+ zonesSatisfied);
+        Response<ByteArray,Object> response=pipelineData.getSynchronizer().responseQueuePoll(remainingNs,TimeUnit.NANOSECONDS);
+        processResponse(response,pipeline);
+        if (logger.isTraceEnabled()) {
+          logger.trace("PUT {key:" + key + "} tried to poll from queue. Null?: "+ (response == null)+ " numResponsesGot:"+ numResponsesGot+ " parellelResponseToWait: "+ numNodesPendingResponse+ "; preferred-1: "+ (preferred - 1)+ "; preferredOK: "+ preferredSatisfied+ " quromOK: "+ quorumSatisfied+ "; zoneOK: "+ zonesSatisfied);
         }
       }
     }
+    while (!pipelineData.getSynchronizer().responseQueueIsEmpty()) {
+      Response<ByteArray,Object> response=pipelineData.getSynchronizer().responseQueuePoll(0,TimeUnit.NANOSECONDS);
+      processResponse(response,pipeline);
+    }
     if (quorumSatisfied && zonesSatisfied) {
       if (logger.isDebugEnabled()) {
-        logger.debug("PUT {key:" + key + "} successed at parellel put stage");
+        logger.debug("PUT {key:" + key + "} succeeded at parellel put stage");
       }
-      parallelPutSuccess.set(true);
+      pipelineData.getSynchronizer().disallowDelegateSlop();
       pipeline.addEvent(completeEvent);
     }
  else {
@@ -149,7 +118,6 @@ synchronized (parallelPutFinish) {
         fatalError=new InsufficientZoneResponsesException((pipelineData.getZonesRequired() + 1) + " " + pipeline.getOperation().getSimpleName()+ "s required zone, but only "+ zonesSatisfied+ " succeeded. Failing nodes : "+ pipelineData.getFailedNodes());
         pipelineData.setFatalError(fatalError);
       }
-      parallelPutSuccess.set(false);
       pipeline.abort();
     }
   }
@@ -162,9 +130,6 @@ catch (  NoSuchElementException e) {
  finally {
     if (logger.isDebugEnabled()) {
       logger.debug("PUT {key:" + key + "} marking parallel put stage finished");
-    }
-synchronized (parallelPutFinish) {
-      parallelPutFinish.set(true);
     }
   }
 }
