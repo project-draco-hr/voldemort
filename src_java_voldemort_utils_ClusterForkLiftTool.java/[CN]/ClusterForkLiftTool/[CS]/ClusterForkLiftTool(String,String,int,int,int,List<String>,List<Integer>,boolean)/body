@@ -18,6 +18,7 @@
  else {
     this.partitionList=new ArrayList<Integer>(srcAdminClient.getAdminClientCluster().getNumberOfPartitions());
     for (    Node node : srcAdminClient.getAdminClientCluster().getNodes())     this.partitionList.addAll(node.getPartitionIds());
+    Collections.shuffle(this.partitionList);
     if (this.partitionList.size() > srcAdminClient.getAdminClientCluster().getNumberOfPartitions()) {
       throw new VoldemortException("Incorrect partition mapping in source cluster");
     }
