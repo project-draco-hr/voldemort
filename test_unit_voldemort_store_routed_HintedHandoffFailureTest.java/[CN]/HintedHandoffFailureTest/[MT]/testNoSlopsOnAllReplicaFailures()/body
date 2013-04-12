@@ -1,0 +1,38 @@
+{
+  String key="a";
+  String val="xyz";
+  final Versioned<byte[]> versionedVal=new Versioned<byte[]>(val.getBytes());
+  final ByteArray keyByteArray=new ByteArray(key.getBytes());
+  List<Integer> failingNodeIdList=null;
+  REPLICATION_FACTOR=3;
+  R_READS=2;
+  R_WRITES=2;
+  sleepBeforeFailingInMs=10000;
+  delayBeforeHintedHandoff=0;
+  try {
+    failingNodeIdList=customSetup(keyByteArray,FAILURE_MODE.FAIL_ALL_REPLICAS);
+  }
+ catch (  Exception e) {
+    logger.info(e.getMessage());
+    fail("Error in setup.");
+  }
+  PerformAsyncPut asyncPutThread=new PerformAsyncPut(this.store,keyByteArray,versionedVal);
+  Executors.newFixedThreadPool(1).submit(asyncPutThread);
+  try {
+    logger.info("Sleeping for " + (routingTimeoutInMs + 2000) / 1000 + " seconds to wait for the put to finish");
+    Thread.sleep(routingTimeoutInMs + 2000);
+    if (!asyncPutThread.isDone) {
+      fail("The main thread for put did not finish.");
+    }
+  }
+ catch (  Exception e) {
+    fail("Unknown error while doing a put: " + e);
+  }
+  Set<ByteArray> failedKeys=Sets.newHashSet();
+  failedKeys.add(keyByteArray);
+  Set<ByteArray> slopKeys=makeSlopKeys(keyByteArray,failingNodeIdList);
+  Set<Slop> registeredSlops=getAllSlops(slopKeys);
+  if (registeredSlops.size() != 0) {
+    fail("Should not have seen any slops.");
+  }
+}

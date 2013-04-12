@@ -3,30 +3,24 @@
   String val="xyz";
   Versioned<byte[]> versionedVal=new Versioned<byte[]>(val.getBytes());
   ByteArray keyByteArray=new ByteArray(key.getBytes());
+  List<Integer> failingNodeIdList=null;
   REPLICATION_FACTOR=3;
   P_READS=2;
   R_READS=2;
   P_WRITES=2;
   R_WRITES=2;
   try {
-    customSetup(keyByteArray);
+    failingNodeIdList=customSetup(keyByteArray);
   }
  catch (  Exception e) {
+    logger.info(e.getMessage());
     fail("Error in setup.");
   }
   this.store.put(keyByteArray,versionedVal,null);
   Set<ByteArray> failedKeys=Sets.newHashSet();
   failedKeys.add(keyByteArray);
-  Set<ByteArray> slopKeys=makeSlopKeys(failedKeys);
-  Set<Slop> registeredSlops=Sets.newHashSet();
-  for (  Store<ByteArray,Slop,byte[]> slopStore : slopStores.values()) {
-    Map<ByteArray,List<Versioned<Slop>>> res=slopStore.getAll(slopKeys,null);
-    for (    Map.Entry<ByteArray,List<Versioned<Slop>>> entry : res.entrySet()) {
-      Slop slop=entry.getValue().get(0).getValue();
-      registeredSlops.add(slop);
-      logger.info(slop);
-    }
-  }
+  Set<ByteArray> slopKeys=makeSlopKeys(keyByteArray,failingNodeIdList);
+  Set<Slop> registeredSlops=getAllSlops(slopKeys);
   if (registeredSlops.size() == 0) {
     fail("Should have seen some slops. But could not find any.");
   }
