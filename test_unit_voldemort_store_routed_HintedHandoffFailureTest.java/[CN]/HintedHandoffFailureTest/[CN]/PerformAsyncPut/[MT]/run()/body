@@ -3,8 +3,11 @@
     asyncPutStore.put(keyByteArray,versionedVal,null);
     fail("A put with required writes 2 should've failed for this setup");
   }
- catch (  Exception ve) {
+ catch (  VoldemortException ve) {
     logger.info("Error occured as expected : " + ve.getMessage());
+  }
+catch (  Exception e) {
+    fail("Should've got a Voldemort exception. But got this: " + e);
   }
   markAsDone(true);
 }
