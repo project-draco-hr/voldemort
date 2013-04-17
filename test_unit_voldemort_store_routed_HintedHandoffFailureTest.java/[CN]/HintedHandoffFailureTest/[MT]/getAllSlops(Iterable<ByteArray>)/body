@@ -1,0 +1,12 @@
+{
+  Set<Slop> registeredSlops=Sets.newHashSet();
+  for (  Store<ByteArray,Slop,byte[]> slopStore : slopStores.values()) {
+    Map<ByteArray,List<Versioned<Slop>>> res=slopStore.getAll(slopKeys,null);
+    for (    Map.Entry<ByteArray,List<Versioned<Slop>>> entry : res.entrySet()) {
+      Slop slop=entry.getValue().get(0).getValue();
+      registeredSlops.add(slop);
+      logger.info(slop);
+    }
+  }
+  return registeredSlops;
+}

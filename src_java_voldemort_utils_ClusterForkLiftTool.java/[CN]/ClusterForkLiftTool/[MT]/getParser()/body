@@ -1,0 +1,13 @@
+{
+  OptionParser parser=new OptionParser();
+  parser.accepts("help","print help information");
+  parser.accepts("src-url","[REQUIRED] bootstrap URL of source cluster").withRequiredArg().describedAs("source-bootstrap-url").ofType(String.class);
+  parser.accepts("dst-url","[REQUIRED] bootstrap URL of destination cluster").withRequiredArg().describedAs("destination-bootstrap-url").ofType(String.class);
+  parser.accepts("stores","Store names to forklift. Comma delimited list or singleton. [Default: ALL SOURCE STORES]").withRequiredArg().describedAs("stores").withValuesSeparatedBy(',').ofType(String.class);
+  parser.accepts("partitions","partitions to forklift. Comma delimited list or singleton. [Default: ALL SOURCE PARTITIONS]").withRequiredArg().describedAs("partitions").withValuesSeparatedBy(',').ofType(Integer.class);
+  parser.accepts("max-puts-per-second","Maximum number of put(...) operations issued against destination cluster per second. [Default: " + DEFAULT_MAX_PUTS_PER_SEC + " ]").withRequiredArg().describedAs("maxPutsPerSecond").ofType(Integer.class);
+  parser.accepts("progress-period-ops","Number of operations between progress info is displayed. [Default: " + DEFAULT_PROGRESS_PERIOD_OPS + " ]").withRequiredArg().describedAs("progressPeriodOps").ofType(Integer.class);
+  parser.accepts("parallelism","Number of partitions to fetch in parallel. [Default: " + DEFAULT_PARTITION_PARALLELISM + " ]").withRequiredArg().describedAs("partitionParallelism").ofType(Integer.class);
+  parser.accepts("global-resolution","Determines if a thorough global resolution needs to be done, by comparing all replicas. [Default: Fetch from primary alone ]");
+  return parser;
+}

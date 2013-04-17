@@ -1,0 +1,20 @@
+{
+  List<StoreDefinition> srcStoreDefs=srcAdminClient.metadataMgmtOps.getRemoteStoreDefList(0).getValue();
+  HashMap<String,StoreDefinition> srcStoreDefMap=StoreUtils.getStoreDefsAsMap(srcStoreDefs);
+  List<StoreDefinition> dstStoreDefs=dstStreamingClient.getAdminClient().metadataMgmtOps.getRemoteStoreDefList(0).getValue();
+  HashMap<String,StoreDefinition> dstStoreDefMap=StoreUtils.getStoreDefsAsMap(dstStoreDefs);
+  Set<String> storesToSkip=new HashSet<String>();
+  for (  String store : storesList) {
+    if (!srcStoreDefMap.containsKey(store)) {
+      logger.warn("Store " + store + " does not exist in source cluster ");
+      storesToSkip.add(store);
+    }
+    if (!dstStoreDefMap.containsKey(store)) {
+      logger.warn("Store " + store + " does not exist in destination cluster ");
+      storesToSkip.add(store);
+    }
+  }
+  logger.warn("List of stores that will be skipped :" + storesToSkip);
+  storesList.removeAll(storesToSkip);
+  return srcStoreDefMap;
+}

@@ -1,0 +1,30 @@
+{
+  PutPipelineData pipelineData=new PutPipelineData();
+  pipelineData.setZonesRequired(null);
+  pipelineData.setStartTimeNs(System.nanoTime());
+  pipelineData.setStoreName(getName());
+  long putOpTimeoutInMs=routingTimeoutInMs;
+  Pipeline pipeline=new Pipeline(Operation.PUT,putOpTimeoutInMs,TimeUnit.MILLISECONDS);
+  pipeline.setEnableHintedHandoff(true);
+  HintedHandoff hintedHandoff=null;
+  AbstractConfigureNodes<ByteArray,Void,PutPipelineData> configureNodes=new ConfigureNodesDefault<Void,PutPipelineData>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key);
+  hintedHandoff=new HintedHandoff(failureDetector,slopStores,nonblockingSlopStores,handoffStrategy,pipelineData.getFailedNodes(),putOpTimeoutInMs);
+  pipeline.addEventAction(Event.STARTED,configureNodes);
+  pipeline.addEventAction(Event.CONFIGURED,new PerformSerialPutRequests(pipelineData,isHintedHandoffEnabled() ? Event.RESPONSES_RECEIVED : Event.COMPLETED,key,transforms,failureDetector,innerStores,storeDef.getRequiredWrites(),versioned,time,Event.MASTER_DETERMINED));
+  pipeline.addEventAction(Event.MASTER_DETERMINED,new PerformParallelPutRequests(pipelineData,Event.RESPONSES_RECEIVED,key,transforms,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),putOpTimeoutInMs,nonblockingStores,hintedHandoff));
+  pipeline.addEventAction(Event.ABORTED,new PerformPutHintedHandoff(pipelineData,Event.ERROR,key,versioned,transforms,hintedHandoff,time));
+  pipeline.addEventAction(Event.RESPONSES_RECEIVED,new DelayAction(pipelineData,Event.INSUFFICIENT_SUCCESSES,delayBeforeHintedHandoff));
+  pipeline.addEventAction(Event.INSUFFICIENT_SUCCESSES,new PerformPutHintedHandoff(pipelineData,Event.HANDOFF_FINISHED,key,versioned,transforms,hintedHandoff,time));
+  pipeline.addEventAction(Event.HANDOFF_FINISHED,new IncrementClock(pipelineData,Event.COMPLETED,versioned,time));
+  pipeline.addEvent(Event.STARTED);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Operation " + pipeline.getOperation().getSimpleName() + " Key "+ ByteUtils.toHexString(key.get()));
+  }
+  try {
+    pipeline.execute();
+  }
+ catch (  VoldemortException e) {
+    throw e;
+  }
+  if (pipelineData.getFatalError() != null)   throw pipelineData.getFatalError();
+}

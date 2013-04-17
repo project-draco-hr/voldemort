@@ -1,0 +1,37 @@
+{
+  final SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
+  try {
+    int srcPartitionMap[][]={{0},{1},{2},{3}};
+    srcServers=new VoldemortServer[4];
+    srcCluster=ServerTestUtils.startVoldemortCluster(4,srcServers,srcPartitionMap,socketStoreFactory,true,null,STORES_XML,new Properties());
+    Node node=srcCluster.getNodeById(0);
+    srcBootStrapUrl="tcp://" + node.getHost() + ":"+ node.getSocketPort();
+    int dstPartitionMap[][]={{0},{1},{2}};
+    dstServers=new VoldemortServer[3];
+    dstCluster=ServerTestUtils.startVoldemortCluster(3,dstServers,dstPartitionMap,socketStoreFactory,true,null,STORES_XML,new Properties());
+    node=dstCluster.getNodeById(0);
+    dstBootStrapUrl="tcp://" + node.getHost() + ":"+ node.getSocketPort();
+    kvPairs=ServerTestUtils.createRandomKeyValueString(100);
+    int keyCount=0;
+    for (    String key : kvPairs.keySet()) {
+      if (keyCount == 0)       firstKey=key;
+      if (keyCount == kvPairs.size() - 1)       lastKey=key;
+      if (keyCount == kvPairs.size() / 2)       conflictKey=key;
+      keyCount++;
+    }
+    srcAdminClient=new AdminClient(srcCluster,new AdminClientConfig(),new ClientConfig());
+    List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new File(STORES_XML));
+    primaryResolvingStoreDef=StoreUtils.getStoreDef(storeDefs,PRIMARY_RESOLVING_STORE_NAME);
+    globallyResolvingStoreDef=StoreUtils.getStoreDef(storeDefs,GLOBALLY_RESOLVING_STORE_NAME);
+    srcfactory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(srcBootStrapUrl).setSelectors(1).setRoutingTimeout(1000,java.util.concurrent.TimeUnit.MILLISECONDS).setSocketTimeout(1000,java.util.concurrent.TimeUnit.MILLISECONDS).setConnectionTimeout(1000,java.util.concurrent.TimeUnit.MILLISECONDS).setMaxConnectionsPerNode(1));
+    srcPrimaryResolvingStoreClient=srcfactory.getStoreClient(PRIMARY_RESOLVING_STORE_NAME);
+    srcGloballyResolvingStoreClient=srcfactory.getStoreClient(GLOBALLY_RESOLVING_STORE_NAME);
+    dstfactory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(dstBootStrapUrl).setSelectors(1).setRoutingTimeout(1000,java.util.concurrent.TimeUnit.MILLISECONDS).setSocketTimeout(1000,java.util.concurrent.TimeUnit.MILLISECONDS).setConnectionTimeout(1000,java.util.concurrent.TimeUnit.MILLISECONDS).setMaxConnectionsPerNode(1));
+    dstPrimaryResolvingStoreClient=dstfactory.getStoreClient(PRIMARY_RESOLVING_STORE_NAME);
+    dstGloballyResolvingStoreClient=dstfactory.getStoreClient(GLOBALLY_RESOLVING_STORE_NAME);
+  }
+ catch (  IOException e) {
+    e.printStackTrace();
+    fail("Unexpected exception");
+  }
+}

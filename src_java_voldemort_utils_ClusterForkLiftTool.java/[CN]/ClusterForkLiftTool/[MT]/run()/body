@@ -1,0 +1,48 @@
+{
+  final Cluster srcCluster=srcAdminClient.getAdminClientCluster();
+  try {
+    for (    String store : storesList) {
+      logger.info("Processing store " + store);
+      dstStreamingClient.initStreamingSession(store,new Callable<Object>(){
+        @Override public Object call() throws Exception {
+          return null;
+        }
+      }
+,new Callable<Object>(){
+        @Override public Object call() throws Exception {
+          return null;
+        }
+      }
+,true);
+      final CountDownLatch latch=new CountDownLatch(srcCluster.getNumberOfPartitions());
+      StoreInstance storeInstance=new StoreInstance(srcCluster,srcStoreDefMap.get(store));
+      for (      Integer partitionId : partitionList) {
+        if (this.globalResolution) {
+          SinglePartitionGloballyResolvingForkLiftTask work=new SinglePartitionGloballyResolvingForkLiftTask(storeInstance,partitionId,latch);
+          workerPool.submit(work);
+        }
+ else {
+          SinglePartitionPrimaryResolvingForkLiftTask work=new SinglePartitionPrimaryResolvingForkLiftTask(storeInstance,partitionId,latch);
+          workerPool.submit(work);
+        }
+      }
+      latch.await();
+      dstStreamingClient.closeStreamingSession();
+      logger.info("Finished processing store " + store);
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Exception running forklift tool",e);
+  }
+ finally {
+    workerPool.shutdown();
+    try {
+      workerPool.awaitTermination(DEFAULT_WORKER_POOL_SHUTDOWN_WAIT_MINS,TimeUnit.MINUTES);
+    }
+ catch (    InterruptedException ie) {
+      logger.error("InterruptedException while waiting for worker pool to shutdown",ie);
+    }
+    srcAdminClient.close();
+    dstStreamingClient.getAdminClient().close();
+  }
+}

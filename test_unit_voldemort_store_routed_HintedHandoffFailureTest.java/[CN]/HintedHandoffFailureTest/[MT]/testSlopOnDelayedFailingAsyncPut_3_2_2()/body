@@ -1,0 +1,30 @@
+{
+  String key="a";
+  String val="xyz";
+  Versioned<byte[]> versionedVal=new Versioned<byte[]>(val.getBytes());
+  ByteArray keyByteArray=new ByteArray(key.getBytes());
+  List<Integer> failingNodeIdList=null;
+  REPLICATION_FACTOR=3;
+  P_READS=2;
+  R_READS=2;
+  P_WRITES=2;
+  R_WRITES=2;
+  try {
+    failingNodeIdList=customSetup(keyByteArray);
+  }
+ catch (  Exception e) {
+    logger.info(e.getMessage());
+    fail("Error in setup.");
+  }
+  this.store.put(keyByteArray,versionedVal,null);
+  Set<ByteArray> failedKeys=Sets.newHashSet();
+  failedKeys.add(keyByteArray);
+  Set<ByteArray> slopKeys=makeSlopKeys(keyByteArray,failingNodeIdList);
+  Set<Slop> registeredSlops=getAllSlops(slopKeys);
+  if (registeredSlops.size() == 0) {
+    fail("Should have seen some slops. But could not find any.");
+  }
+ else   if (registeredSlops.size() != 1) {
+    fail("Number of slops registered != 1");
+  }
+}

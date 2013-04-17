@@ -1,0 +1,45 @@
+{
+  OptionParser parser=null;
+  OptionSet options=null;
+  try {
+    parser=getParser();
+    options=parser.parse(args);
+  }
+ catch (  Exception oe) {
+    logger.error("Exception processing command line options",oe);
+    parser.printHelpOn(System.out);
+    return;
+  }
+  if (options.has("help")) {
+    parser.printHelpOn(System.out);
+    return;
+  }
+  if (!options.has("src-url") || !options.has("dst-url")) {
+    logger.error("Both 'src-url' and 'dst-url' options are mandatory");
+    parser.printHelpOn(System.out);
+    return;
+  }
+  String srcBootstrapUrl=(String)options.valueOf("src-url");
+  String dstBootstrapUrl=(String)options.valueOf("dst-url");
+  int maxPutsPerSecond=DEFAULT_MAX_PUTS_PER_SEC;
+  if (options.has("max-puts-per-second"))   maxPutsPerSecond=(Integer)options.valueOf("max-puts-per-second");
+  List<String> storesList=null;
+  if (options.has("stores")) {
+    storesList=new ArrayList<String>((List<String>)options.valuesOf("stores"));
+  }
+  List<Integer> partitions=null;
+  if (options.has("partitions")) {
+    partitions=(List<Integer>)options.valuesOf("partitions");
+  }
+  int partitionParallelism=DEFAULT_PARTITION_PARALLELISM;
+  if (options.has("parallelism")) {
+    partitionParallelism=(Integer)options.valueOf("parallelism");
+  }
+  int progressOps=DEFAULT_PROGRESS_PERIOD_OPS;
+  if (options.has("progress-period-ops")) {
+    progressOps=(Integer)options.valueOf("progress-period-ops");
+  }
+  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootstrapUrl,dstBootstrapUrl,maxPutsPerSecond,partitionParallelism,progressOps,storesList,partitions,options.has("global-resolution"));
+  forkLiftTool.run();
+  System.exit(0);
+}
