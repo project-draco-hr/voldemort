@@ -1,8 +1,13 @@
 {
   RebalancePartitionsInfo stealInfo=redirectingKey(key);
-  logger.info("BEGIN PUT from stealer:" + metadata.getNodeId() + " key "+ ByteUtils.toHexString(key.get())+ " value "+ value);
-  if (stealInfo != null)   proxyGetAndLocalPut(key,stealInfo.getDonorId(),transforms);
-  if (stealInfo != null)   proxyPut(key,value,transforms,stealInfo.getDonorId());
-  logger.info("END PUT from stealer:" + metadata.getNodeId() + " key "+ ByteUtils.toHexString(key.get())+ " value "+ value);
+  if (stealInfo != null) {
+    if (logger.isTraceEnabled()) {
+      logger.trace("Proxying GET (before PUT) on stealer:" + metadata.getNodeId() + " for  key "+ ByteUtils.toHexString(key.get())+ " to donor:"+ stealInfo.getDonorId());
+    }
+    proxyGetAndLocalPut(key,stealInfo.getDonorId(),transforms);
+  }
   getInnerStore().put(key,value,transforms);
+  if (isProxyPutEnabled && stealInfo != null) {
+    proxyPut(key,value,transforms,stealInfo.getDonorId());
+  }
 }

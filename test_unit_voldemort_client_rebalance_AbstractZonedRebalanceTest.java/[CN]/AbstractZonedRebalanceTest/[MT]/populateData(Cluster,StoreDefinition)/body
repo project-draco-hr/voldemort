@@ -4,15 +4,16 @@
     storeMap.put(node.getId(),getSocketStore(storeDef.getName(),node.getHost(),node.getSocketPort()));
   }
   RoutingStrategy routing=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+  StoreInstance storeInstance=new StoreInstance(cluster,storeDef);
   for (  Entry<String,String> entry : testEntries.entrySet()) {
     ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(entry.getKey(),"UTF-8"));
-    List<Integer> preferenceNodes=RebalanceUtils.getNodeIds(routing.routeRequest(keyBytes.get()));
+    List<Integer> preferenceNodes=storeInstance.getReplicationNodeList(keyBytes.get());
     for (    int nodeId : preferenceNodes) {
       try {
         storeMap.get(nodeId).put(keyBytes,new Versioned<byte[]>(ByteUtils.getBytes(entry.getValue(),"UTF-8")),null);
       }
  catch (      ObsoleteVersionException e) {
-        System.out.println("Why are we seeing this at all here ?? ");
+        logger.info("Why are we seeing this at all here ?? ");
         e.printStackTrace();
       }
     }

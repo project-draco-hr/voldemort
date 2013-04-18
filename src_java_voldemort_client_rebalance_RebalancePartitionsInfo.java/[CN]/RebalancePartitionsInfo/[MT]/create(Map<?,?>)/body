@@ -12,9 +12,9 @@
     HashMap<Integer,List<Integer>> replicaToDeletePartitionList=Maps.newHashMap();
     for (int replicaNo=0; replicaNo <= maxReplicas; replicaNo++) {
       List<Integer> partitionList=Utils.uncheckedCast(map.get(unbalancedStore + "replicaToAddPartitionList" + Integer.toString(replicaNo)));
-      if (partitionList.size() > 0)       replicaToAddPartition.put(replicaNo,partitionList);
+      if (partitionList != null && partitionList.size() > 0)       replicaToAddPartition.put(replicaNo,partitionList);
       List<Integer> deletePartitionList=Utils.uncheckedCast(map.get(unbalancedStore + "replicaToDeletePartitionList" + Integer.toString(replicaNo)));
-      if (deletePartitionList.size() > 0)       replicaToDeletePartitionList.put(replicaNo,deletePartitionList);
+      if (deletePartitionList != null && deletePartitionList.size() > 0)       replicaToDeletePartitionList.put(replicaNo,deletePartitionList);
     }
     if (replicaToAddPartition.size() > 0)     storeToReplicaToAddPartition.put(unbalancedStore,replicaToAddPartition);
     if (replicaToDeletePartitionList.size() > 0)     storeToReplicaToDeletePartition.put(unbalancedStore,replicaToDeletePartitionList);

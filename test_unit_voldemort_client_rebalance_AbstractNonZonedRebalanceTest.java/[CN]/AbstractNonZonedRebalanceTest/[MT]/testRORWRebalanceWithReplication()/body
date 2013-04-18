@@ -1,22 +1,28 @@
 {
   logger.info("Starting testRORWRebalanceWithReplication");
-  Cluster currentCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{0,1,2,3,4,5,6},{7,8}});
-  Cluster targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,1,Lists.newArrayList(2,3));
-  List<Integer> serverList=Arrays.asList(0,1);
-  Map<String,String> configProps=new HashMap<String,String>();
-  configProps.put("admin.max.threads","5");
-  currentCluster=startServers(currentCluster,storeDefFileWithReplication,serverList,configProps);
-  targetCluster=updateCluster(targetCluster);
-  RebalanceClientConfig config=new RebalanceClientConfig();
-  config.setDeleteAfterRebalancingEnabled(true);
-  RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(currentCluster,0),config);
   try {
-    populateData(currentCluster,roStoreDefWithReplication,rebalanceClient.getAdminClient(),true);
-    populateData(currentCluster,rwStoreDefWithReplication,rebalanceClient.getAdminClient(),false);
-    rebalanceAndCheck(currentCluster,targetCluster,storeDefWithReplication,rebalanceClient,Arrays.asList(0,1));
-    checkConsistentMetadata(targetCluster,serverList);
-  }
+    Cluster currentCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{0,1,2,3,4,5,6},{7,8}});
+    Cluster targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,1,Lists.newArrayList(2,3));
+    List<Integer> serverList=Arrays.asList(0,1);
+    Map<String,String> configProps=new HashMap<String,String>();
+    configProps.put("admin.max.threads","5");
+    currentCluster=startServers(currentCluster,storeDefFileWithReplication,serverList,configProps);
+    targetCluster=updateCluster(targetCluster);
+    RebalanceClientConfig config=new RebalanceClientConfig();
+    config.setDeleteAfterRebalancingEnabled(true);
+    RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(currentCluster,0),config);
+    try {
+      populateData(currentCluster,roStoreDefWithReplication,rebalanceClient.getAdminClient(),true);
+      populateData(currentCluster,rwStoreDefWithReplication,rebalanceClient.getAdminClient(),false);
+      rebalanceAndCheck(currentCluster,targetCluster,storeDefWithReplication,rebalanceClient,Arrays.asList(0,1));
+      checkConsistentMetadata(targetCluster,serverList);
+    }
   finally {
-    stopServer(serverList);
+      stopServer(serverList);
+    }
+  }
+ catch (  AssertionError ae) {
+    logger.error("Assertion broken in testRORWRebalanceWithReplication ",ae);
+    throw ae;
   }
 }

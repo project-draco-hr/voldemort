@@ -1,7 +1,13 @@
 {
   Node donorNode=metadata.getCluster().getNodeById(donorNodeId);
+  RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(metadata.getStoreDef(getName()),metadata.getCluster());
+  if (routingStrategy.routeRequest(key.get()).contains(donorNode)) {
+    if (logger.isTraceEnabled()) {
+      logger.trace("Donor " + donorNode.getId() + " still a replica in the updated cluster for the key "+ ByteUtils.toHexString(key.get())+ ". Skipping proxy put");
+    }
+    return;
+  }
   checkNodeAvailable(donorNode);
-  logger.info("BEGIN PROXY PUT for donor: " + donorNodeId + " from stealer:"+ metadata.getNodeId()+ " key "+ ByteUtils.toHexString(key.get()));
   long startNs=System.nanoTime();
   try {
     Store<ByteArray,byte[],byte[]> redirectingStore=getRedirectingSocketStore(getName(),donorNodeId);
@@ -10,10 +16,14 @@
   }
  catch (  UnreachableStoreException e) {
     recordException(donorNode,startNs,e);
-    throw new ProxyUnreachableException("Failed to reach proxy node " + donorNode,e);
+    logger.error("Failed to reach proxy node " + donorNode,e);
   }
 catch (  ObsoleteVersionException ove) {
-    logger.error("OVE in proxy put for donor: " + donorNodeId + " from stealer:"+ metadata.getNodeId()+ " key "+ ByteUtils.toHexString(key.get()),ove);
+    if (logger.isTraceEnabled()) {
+      logger.trace("OVE in proxy put for donor: " + donorNodeId + " from stealer:"+ metadata.getNodeId()+ " key "+ ByteUtils.toHexString(key.get()),ove);
+    }
   }
-  logger.info("END PROXY PUT for donor: " + donorNodeId + " from stealer:"+ metadata.getNodeId()+ " key "+ ByteUtils.toHexString(key.get()));
+catch (  Exception e) {
+    logger.error("Unexpected exception in proxy put for key:" + ByteUtils.toHexString(key.get()) + " against donor node "+ donorNodeId,e);
+  }
 }

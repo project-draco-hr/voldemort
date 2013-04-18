@@ -7,6 +7,11 @@
     }
   }
   if (!rebalancePartitionsInfoPerKey.isEmpty()) {
+    if (logger.isTraceEnabled()) {
+      String keyStr="";
+      for (      ByteArray key : keys)       keyStr+=key + " ";
+      logger.trace("Proxying GETALL on stealer:" + metadata.getNodeId() + " for  keys "+ keyStr);
+    }
     proxyGetAllAndLocalPut(rebalancePartitionsInfoPerKey,transforms);
   }
   return getInnerStore().getAll(keys,transforms);
