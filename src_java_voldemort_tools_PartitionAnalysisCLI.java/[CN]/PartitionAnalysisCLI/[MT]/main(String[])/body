@@ -1,0 +1,10 @@
+{
+  setupParser();
+  OptionSet options=getValidOptions(args);
+  String clusterXML=(String)options.valueOf("cluster");
+  String storesXML=(String)options.valueOf("stores");
+  Cluster currentCluster=new ClusterMapper().readCluster(new File(clusterXML));
+  List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new File(storesXML));
+  PartitionBalance partitionBalance=new ClusterInstance(currentCluster,storeDefs).getPartitionBalance();
+  System.out.println(partitionBalance);
+}

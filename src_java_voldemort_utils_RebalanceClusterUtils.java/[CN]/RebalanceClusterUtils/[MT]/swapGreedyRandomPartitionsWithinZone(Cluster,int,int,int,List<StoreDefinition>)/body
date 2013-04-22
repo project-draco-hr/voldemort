@@ -2,7 +2,7 @@
   List<Integer> nodeIdsInZone=new ArrayList<Integer>(targetCluster.getNodeIdsInZone(zoneId));
   System.out.println("GreedyRandom : nodeIdsInZone:" + nodeIdsInZone);
   Cluster returnCluster=ClusterUtils.copyCluster(targetCluster);
-  double currentMaxMinRatio=new ClusterInstance(returnCluster,storeDefs).analyzeBalance();
+  double currentMaxMinRatio=new ClusterInstance(returnCluster,storeDefs).getPartitionBalance().getNaryMaxMin();
   int nodeIdA=-1;
   int nodeIdB=-1;
   int partitionIdA=-1;
@@ -28,7 +28,7 @@
         Integer nodeIdBee=partitionIdsZone.get(offsetZone).getFirst();
         Integer partitionIdBee=partitionIdsZone.get(offsetZone).getSecond();
         Cluster swapResult=swapPartitions(returnCluster,nodeIdEh,partitionIdEh,nodeIdBee,partitionIdBee);
-        double swapMaxMinRatio=new ClusterInstance(swapResult,storeDefs).analyzeBalance();
+        double swapMaxMinRatio=new ClusterInstance(swapResult,storeDefs).getPartitionBalance().getNaryMaxMin();
         if (swapMaxMinRatio < currentMaxMinRatio) {
           currentMaxMinRatio=swapMaxMinRatio;
           System.out.println(" -> " + currentMaxMinRatio);

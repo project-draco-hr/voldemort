@@ -1,6 +1,6 @@
 {
-  Pair<Double,String> analysis=new ClusterInstance(currentCluster,storeDefs).analyzeBalanceVerbose();
-  dumpAnalysisToFile(outputDir,RebalanceUtils.initialClusterFileName + ".analysis",analysis.getSecond());
+  PartitionBalance partitionBalance=new ClusterInstance(currentCluster,storeDefs).getPartitionBalance();
+  dumpAnalysisToFile(outputDir,RebalanceUtils.initialClusterFileName + ".analysis",partitionBalance.toString());
   Cluster minCluster=targetCluster;
   double minMaxMinRatio=Double.MAX_VALUE;
   for (int numTries=0; numTries < maxTriesRebalancing; numTries++) {
@@ -22,22 +22,22 @@
       nextCluster=currentCluster;
     }
     System.out.println("-------------------------\n");
-    analysis=new ClusterInstance(nextCluster,storeDefs).analyzeBalanceVerbose();
-    double currentMaxMinRatio=analysis.getFirst();
+    partitionBalance=new ClusterInstance(nextCluster,storeDefs).getPartitionBalance();
+    double currentMaxMinRatio=partitionBalance.getNaryMaxMin();
     System.out.println("Optimization number " + numTries + ": "+ currentMaxMinRatio+ " max/min ratio");
     if (currentMaxMinRatio <= minMaxMinRatio) {
       minMaxMinRatio=currentMaxMinRatio;
       minCluster=nextCluster;
       dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName + numTries,minCluster);
-      dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName + numTries + ".analysis",analysis.getSecond());
+      dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName + numTries + ".analysis",partitionBalance.toString());
     }
     System.out.println("-------------------------\n");
   }
   System.out.println("\n==========================");
   System.out.println("Final distribution");
-  analysis=new ClusterInstance(minCluster,storeDefs).analyzeBalanceVerbose();
-  System.out.println(analysis.getSecond());
+  partitionBalance=new ClusterInstance(minCluster,storeDefs).getPartitionBalance();
+  System.out.println(partitionBalance);
   dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName,minCluster);
-  dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName + ".analysis",analysis.getSecond());
+  dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName + ".analysis",partitionBalance.toString());
   return;
 }
