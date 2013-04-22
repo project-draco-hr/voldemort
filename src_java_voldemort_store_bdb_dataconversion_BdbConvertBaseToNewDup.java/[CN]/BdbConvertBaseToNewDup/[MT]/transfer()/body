@@ -9,7 +9,7 @@
   int keyCount=0;
   while (cursor.getNext(keyEntry,valueEntry,LockMode.READ_UNCOMMITTED) == OperationStatus.SUCCESS) {
     scanCount++;
-    if (scanCount % 1000000 == 0)     logger.info("Converted " + scanCount + "entries in "+ (System.currentTimeMillis() - startTime) / 1000 + " secs");
+    if (scanCount % 1000000 == 0)     logger.info("Converted " + scanCount + " entries in "+ (System.currentTimeMillis() - startTime) / 1000 + " secs");
     VectorClock clock=new VectorClock(valueEntry.getData());
     byte[] bytes=ByteUtils.copy(valueEntry.getData(),clock.sizeInBytes(),valueEntry.getData().length);
     Versioned<byte[]> value=new Versioned<byte[]>(bytes,clock);
@@ -36,5 +36,5 @@
     }
     keyCount++;
   }
-  logger.info("Completed " + scanCount + "entries and "+ keyCount+ " keys in "+ (System.currentTimeMillis() - startTime) / 1000 + " secs");
+  logger.info("Completed " + scanCount + " entries and "+ keyCount+ " keys in "+ (System.currentTimeMillis() - startTime) / 1000 + " secs");
 }
