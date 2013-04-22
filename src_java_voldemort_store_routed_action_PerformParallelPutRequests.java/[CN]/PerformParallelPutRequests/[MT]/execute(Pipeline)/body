@@ -22,7 +22,7 @@
           logger.debug("PUT {key:" + key + "} Master thread accepted the response: "+ responseHandledByMaster);
         }
         if (!responseHandledByMaster) {
-          if (result instanceof UnreachableStoreException) {
+          if (isSlopableFailure(response.getValue())) {
             if (logger.isDebugEnabled())             logger.debug("PUT {key:" + key + "} failed on node={id:"+ node.getId()+ ",host:"+ node.getHost()+ "}");
             if (isHintedHandoffEnabled()) {
               boolean triedDelegateSlop=pipelineData.getSynchronizer().tryDelegateSlop(node);

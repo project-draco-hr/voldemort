@@ -15,7 +15,7 @@
         }
         return;
       }
-      if (response.getValue() instanceof UnreachableStoreException) {
+      if (isSlopableFailure(response.getValue())) {
         pipelineData.getSynchronizer().tryDelegateSlop(response.getNode());
       }
       if (logger.isDebugEnabled()) {
