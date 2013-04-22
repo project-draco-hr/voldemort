@@ -48,7 +48,7 @@ case PUT:
       startNs=System.nanoTime();
       storageEngine.put(key,Versioned.value(value,vectorClock),transforms);
       if (isJmxEnabled)       streamStats.reportStorageTime(Operation.SLOP_UPDATE,System.nanoTime() - startNs);
-      if (logger.isTraceEnabled())       logger.trace("updateSlopEntries (Streaming put) successful");
+      if (logger.isTraceEnabled())       logger.trace("updateSlopEntries (Streaming put) successful on key:" + key + " of store: "+ request.getStore());
     }
  catch (    ObsoleteVersionException e) {
       if (logger.isDebugEnabled())       logger.debug("updateSlopEntries (Streaming put) threw ObsoleteVersionException, Ignoring.");

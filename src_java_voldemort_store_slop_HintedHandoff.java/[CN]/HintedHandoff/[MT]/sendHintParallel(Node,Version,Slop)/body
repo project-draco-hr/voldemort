@@ -1,10 +1,19 @@
 {
+  boolean slopAsyncSent=false;
   final ByteArray slopKey=slop.makeKey();
   Versioned<byte[]> slopVersioned=new Versioned<byte[]>(slopSerializer.toBytes(slop),version);
-  for (  final Node node : handoffStrategy.routeHint(failedNode)) {
+  List<Node> nodes=handoffStrategy.routeHint(failedNode);
+  if (logger.isTraceEnabled()) {
+    List<Integer> nodeIds=new ArrayList<Integer>();
+    for (    Node node : nodes) {
+      nodeIds.add(node.getId());
+    }
+    logger.debug("Hint preference list: " + nodeIds.toString());
+  }
+  for (  final Node node : nodes) {
     int nodeId=node.getId();
-    if (logger.isDebugEnabled())     logger.debug("Sending an async hint to " + nodeId);
     if (!failedNodes.contains(node) && failureDetector.isAvailable(node)) {
+      if (logger.isDebugEnabled())       logger.debug("Sending an async hint to " + nodeId);
       NonblockingStore nonblockingStore=nonblockingSlopStores.get(nodeId);
       Utils.notNull(nonblockingStore);
       final long startNs=System.nanoTime();
@@ -35,7 +44,16 @@
       }
 ;
       nonblockingStore.submitPutRequest(slopKey,slopVersioned,null,callback,timeoutMs);
+      slopAsyncSent=true;
       break;
     }
+ else {
+      if (logger.isDebugEnabled()) {
+        logger.debug("Skipping node " + nodeId);
+      }
+    }
+  }
+  if (logger.isDebugEnabled() && !slopAsyncSent) {
+    logger.warn("Skipped all nodes. Did not send hint for key: " + slop.getKey());
   }
 }
