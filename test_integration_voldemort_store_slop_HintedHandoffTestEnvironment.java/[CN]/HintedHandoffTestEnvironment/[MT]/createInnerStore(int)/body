@@ -1,0 +1,8 @@
+{
+  Store<ByteArray,byte[],byte[]> realStore=new InMemoryPutAssertionStorageEngine<ByteArray,byte[],byte[]>(STORE_NAME);
+  ForceFailStore<ByteArray,byte[],byte[]> forceFailStore=new ForceFailStore<ByteArray,byte[],byte[]>(realStore,new PersistenceFailureException("Force failed"));
+  SleepyStore<ByteArray,byte[],byte[]> sleepyStore=new SleepyStore<ByteArray,byte[],byte[]>(0,forceFailStore);
+  realStores.put(nodeId,realStore);
+  forceFailStores.put(nodeId,forceFailStore);
+  sleepyStores.put(nodeId,sleepyStore);
+}

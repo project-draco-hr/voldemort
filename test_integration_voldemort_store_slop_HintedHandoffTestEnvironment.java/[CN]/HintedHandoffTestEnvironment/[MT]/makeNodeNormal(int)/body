@@ -1,0 +1,27 @@
+{
+  NodeStatus status=nodesStatus.get(nodeId);
+  if (status == null) {
+    nodesStatus.put(nodeId,NodeStatus.NORMAL);
+    status=NodeStatus.NORMAL;
+  }
+  if (status != NodeStatus.NORMAL) {
+    if (logger.isInfoEnabled()) {
+      logger.info("Setting Node[" + nodeId + "] to status [NORMAL]");
+    }
+  }
+  if (status == NodeStatus.DOWN) {
+    try {
+      startServer(nodeId);
+    }
+ catch (    IOException e) {
+      logger.error("Server " + nodeId + "failed to start",e);
+    }
+  }
+ else   if (status == NodeStatus.SLOW) {
+    sleepyStores.get(nodeId).setSleepTimeMs(0);
+  }
+ else   if (status == NodeStatus.BDB_ERROR) {
+    forceFailStores.get(nodeId).setFail(false);
+  }
+  nodesStatus.put(nodeId,NodeStatus.NORMAL);
+}

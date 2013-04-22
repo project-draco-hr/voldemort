@@ -1,0 +1,29 @@
+{
+  if (logger.isInfoEnabled()) {
+    logger.info("Waiting for wrap up");
+  }
+  wrapUpRequestLatch.countDown();
+  wrapUpFinishLatch.await();
+  if (logger.isInfoEnabled()) {
+    logger.info("Finished waiting for wrap up");
+    logger.info("Wait for slopPusherJob");
+  }
+  List<SlopStorageEngine> nonEmptySlopStorageEngines=new ArrayList<SlopStorageEngine>();
+  nonEmptySlopStorageEngines.addAll(slopStorageEngines.values());
+  while (nonEmptySlopStorageEngines.size() != 0) {
+    SlopStorageEngine slopEngine=nonEmptySlopStorageEngines.get(0);
+    ClosableIterator<ByteArray> it=slopEngine.keys();
+    if (it.hasNext()) {
+      Thread.sleep(100);
+    }
+ else {
+      nonEmptySlopStorageEngines.remove(0);
+      if (logger.isDebugEnabled()) {
+        logger.debug("One slop has been emptied. Waiting for " + nonEmptySlopStorageEngines.size() + " slopStores");
+      }
+    }
+  }
+  if (logger.isInfoEnabled()) {
+    logger.info("Finished waiting for slopPusherJob");
+  }
+}

@@ -1,0 +1,15 @@
+{
+  StoreUtils.assertValidKey(key);
+  List<Versioned<V>> result=super.getInnerMap().remove(key);
+  if (result == null || result.size() == 0) {
+    assertionMap.put(key,true);
+    if (logger.isDebugEnabled()) {
+      logger.debug("PUT Assertion added (not yet fulfilled) for key: " + key + " assertionMap size: "+ assertionMap.size());
+    }
+  }
+ else {
+    if (logger.isTraceEnabled()) {
+      logger.trace("PUT Assertion added (immediately fulfilled) for key: " + key + " assertionMap size: "+ assertionMap.size());
+    }
+  }
+}
