@@ -10,7 +10,7 @@
   forkLiftTool.run();
   AdminClient dstAdminClient=new AdminClient(dstBootStrapUrl,new AdminClientConfig(),new ClientConfig());
   for (  Node node : dstAdminClient.getAdminClientCluster().getNodes()) {
-    Iterator<Pair<ByteArray,Versioned<byte[]>>> entryItr=srcAdminClient.bulkFetchOps.fetchEntries(node.getId(),MULTIPLE_VERSIONS_STORE_NAME,node.getPartitionIds(),null,true);
+    Iterator<Pair<ByteArray,Versioned<byte[]>>> entryItr=dstAdminClient.bulkFetchOps.fetchEntries(node.getId(),MULTIPLE_VERSIONS_STORE_NAME,node.getPartitionIds(),null,true);
     while (entryItr.hasNext()) {
       Pair<ByteArray,Versioned<byte[]>> record=entryItr.next();
       ByteArray key=record.getFirst();
