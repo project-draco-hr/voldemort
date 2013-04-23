@@ -17,12 +17,16 @@
       final CountDownLatch latch=new CountDownLatch(srcCluster.getNumberOfPartitions());
       StoreInstance storeInstance=new StoreInstance(srcCluster,srcStoreDefMap.get(store));
       for (      Integer partitionId : partitionList) {
-        if (this.globalResolution) {
+        if (this.mode == ForkLiftTaskMode.global_resolution) {
           SinglePartitionGloballyResolvingForkLiftTask work=new SinglePartitionGloballyResolvingForkLiftTask(storeInstance,partitionId,latch);
           workerPool.submit(work);
         }
- else {
+ else         if (this.mode == ForkLiftTaskMode.primary_resolution) {
           SinglePartitionPrimaryResolvingForkLiftTask work=new SinglePartitionPrimaryResolvingForkLiftTask(storeInstance,partitionId,latch);
+          workerPool.submit(work);
+        }
+ else         if (this.mode == ForkLiftTaskMode.no_resolution) {
+          SinglePartitionNoResolutionForkLiftTask work=new SinglePartitionNoResolutionForkLiftTask(storeInstance,partitionId,latch);
           workerPool.submit(work);
         }
       }

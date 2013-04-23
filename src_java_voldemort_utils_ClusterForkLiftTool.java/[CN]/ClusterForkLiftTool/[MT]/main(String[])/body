@@ -39,7 +39,10 @@
   if (options.has("progress-period-ops")) {
     progressOps=(Integer)options.valueOf("progress-period-ops");
   }
-  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootstrapUrl,dstBootstrapUrl,maxPutsPerSecond,partitionParallelism,progressOps,storesList,partitions,options.has("global-resolution"));
+  ForkLiftTaskMode mode;
+  mode=options.has("global-resolution") ? ForkLiftTaskMode.global_resolution : ForkLiftTaskMode.primary_resolution;
+  mode=options.has("bypass-resolution") ? ForkLiftTaskMode.no_resolution : ForkLiftTaskMode.primary_resolution;
+  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootstrapUrl,dstBootstrapUrl,maxPutsPerSecond,partitionParallelism,progressOps,storesList,partitions,mode);
   forkLiftTool.run();
   System.exit(0);
 }

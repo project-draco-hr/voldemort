@@ -1,0 +1,25 @@
+{
+  String storeName=this.storeInstance.getStoreDefinition().getName();
+  long entriesForkLifted=0;
+  try {
+    logger.info(workName + "Starting processing");
+    Iterator<Pair<ByteArray,Versioned<byte[]>>> entryItr=srcAdminClient.bulkFetchOps.fetchEntries(storeInstance.getNodeIdForPartitionId(this.partitionId),storeName,Lists.newArrayList(this.partitionId),null,true);
+    while (entryItr.hasNext()) {
+      Pair<ByteArray,Versioned<byte[]>> record=entryItr.next();
+      ByteArray key=record.getFirst();
+      Versioned<byte[]> versioned=record.getSecond();
+      dstStreamingClient.streamingPut(key,versioned);
+      entriesForkLifted++;
+      if (entriesForkLifted % progressOps == 0) {
+        logger.info(workName + " fork lifted " + entriesForkLifted+ " entries successfully");
+      }
+    }
+    logger.info(workName + "Completed processing " + entriesForkLifted+ " records");
+  }
+ catch (  Exception e) {
+    logger.error(workName + "Error forklifting data ",e);
+  }
+ finally {
+    latch.countDown();
+  }
+}
