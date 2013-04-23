@@ -33,8 +33,8 @@
                 Slop slop=new Slop(pipelineData.getStoreName(),Slop.Operation.PUT,key,versionedCopy.getValue(),transforms,node.getId(),new Date());
                 pipelineData.addFailedNode(node);
                 if (logger.isDebugEnabled())                 logger.debug("PUT {key:" + key + "} Start registering Slop(node:"+ node.getId()+ ",host:"+ node.getHost()+ ")");
-                hintedHandoff.sendHintSerial(node,versionedCopy.getVersion(),slop);
-                if (logger.isDebugEnabled())                 logger.debug("PUT {key:" + key + "} Finished registering Slop(node:"+ node.getId()+ ",host:"+ node.getHost()+ ")");
+                hintedHandoff.sendHintParallel(node,versionedCopy.getVersion(),slop);
+                if (logger.isDebugEnabled())                 logger.debug("PUT {key:" + key + "} Sent out request to register Slop(node: "+ node.getId()+ ",host:"+ node.getHost()+ ")");
               }
             }
           }
