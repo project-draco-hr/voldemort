@@ -1,0 +1,27 @@
+{
+  HashMap<Node,Integer> donorNodes=Maps.newHashMap();
+  HashMap<Node,Integer> stealerNodes=Maps.newHashMap();
+  HashMap<Integer,Integer> numNodesAssignedInZone=Maps.newHashMap();
+  for (  Integer zoneId : targetCluster.getZoneIds()) {
+    numNodesAssignedInZone.put(zoneId,0);
+  }
+  for (  Node node : targetCluster.getNodes()) {
+    int zoneId=node.getZoneId();
+    int offset=numNodesAssignedInZone.get(zoneId);
+    numNodesAssignedInZone.put(zoneId,offset + 1);
+    int numPartitions=numPartitionsPerNodePerZone.get(zoneId).get(offset);
+    if (numPartitions < node.getNumberOfPartitions()) {
+      donorNodes.put(node,numPartitions);
+    }
+ else     if (numPartitions > node.getNumberOfPartitions()) {
+      stealerNodes.put(node,numPartitions);
+    }
+  }
+  for (  Node node : donorNodes.keySet()) {
+    System.out.println("Donor Node: " + node.getId() + ", zoneId "+ node.getZoneId()+ ", numPartitions "+ node.getNumberOfPartitions()+ ", target number of partitions "+ donorNodes.get(node));
+  }
+  for (  Node node : stealerNodes.keySet()) {
+    System.out.println("Stealer Node: " + node.getId() + ", zoneId "+ node.getZoneId()+ ", numPartitions "+ node.getNumberOfPartitions()+ ", target number of partitions "+ stealerNodes.get(node));
+  }
+  return new Pair<HashMap<Node,Integer>,HashMap<Node,Integer>>(donorNodes,stealerNodes);
+}

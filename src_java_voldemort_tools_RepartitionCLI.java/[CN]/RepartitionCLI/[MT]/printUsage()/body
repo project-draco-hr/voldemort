@@ -1,28 +1,26 @@
 {
   StringBuilder help=new StringBuilder();
   help.append("RepartitionCLI\n");
-  help.append("  Given the current cluster and target cluster, moves primary partitions among nodes" + " to balance capacity and load evenly among all nodes.\n");
+  help.append("  Moves partitions to achieve better balance. This can be done for rebalancing (improve balance among existing nodes)," + " cluster expansion (adding nodes to some zones), and zone expansion (adding an entire new zone).\n");
   help.append("Options:\n");
   help.append("  Required:\n");
   help.append("    --current-cluster <clusterXML>\n");
   help.append("    --current-stores <storesXML>\n");
-  help.append("    --target-cluster <clusterXML>\n");
   help.append("  Optional:\n");
+  help.append("    --target-cluster <clusterXML> [ Needed for cluster or zone expansion ]\n");
+  help.append("    --target-stores <storesXML> [ Needed for zone expansion ]\n");
   help.append("    --output-dir [ Output directory is where we store the optimized cluster ]\n");
-  help.append("    --tries [ Number of optimization cycles ]\n ");
-  help.append("    --generate-disable-primary-balancing [ Do not balance number of primary partitions across nodes within each zone ] \n");
-  help.append("    --generate-enable-xzone-primary-moves [ Allow primary partitions to move across zones ] \n");
-  help.append("    --generate-enable-any-xzone-nary-moves [ Allow non-primary partitions to move across zones. ]\n");
-  help.append("    --generate-enable-last-resort-xzone-nary-moves [ Allow non-primary partitions to move across zones as a last resort --- Will only do such a move if all possible moves result in xzone move.] \n");
-  help.append("    --generate-enable-xzone-shuffle [ Allow non-primary partitions to move across zones for random swaps or greedy swaps.] \n");
-  help.append("    --generate-enable-random-swaps [ Attempt to randomly swap partitions within a zone to improve balance ] \n");
-  help.append("    --generate-random-swap-attempts num-attempts [ Number of random swaps to attempt in hopes of improving balance ] \n");
-  help.append("    --generate-random-swap-successes num-successes [ Stop after num-successes successful random swap atttempts ] \n");
-  help.append("    --generate-enable-greedy-swaps [ Attempt to greedily (randomly) swap partitions within a zone to improve balance. Greedily/randomly means sample many swaps for each node and choose best swap. ] \n");
-  help.append("    --generate-greedy-swap-attempts num-attempts [ Number of greedy swap passes to attempt. Each pass can be fairly expensive. ] \n");
-  help.append("    --generate-greedy-max-partitions-per-node num-partitions [ num-partitions per node to consider in each greedy pass. Partitions selected randomly from each node.  ] \n");
-  help.append("    --generate-greedy-max-partitions-per-zone num-partitions [ num-partitions per zone to consider in each greedy pass. Partitions selected randomly from all partitions in zone not on node being considered. ] \n");
-  help.append("    --generate-max-contiguous-partitions num-contiguous [ Max allowed contiguous partition IDs within a zone ] \n");
+  help.append("    --attempts [ Number of distinct cycles of repartitioning ]\n");
+  help.append("    --disable-node-balancing [ Do not balance number of primary partitions among nodes within each zone ] \n");
+  help.append("    --disable-zone-balancing [ Do not balance number of primary partitions per zone ] \n");
+  help.append("    --enable-random-swaps [ Attempt to randomly swap partitions to improve balance ] \n");
+  help.append("    --random-swap-attempts num-attempts [ Number of random swaps to attempt in hopes of improving balance ] \n");
+  help.append("    --random-swap-successes num-successes [ Stop after num-successes successful random swap atttempts ] \n");
+  help.append("    --enable-greedy-swaps [ Attempt to greedily (randomly) swap partitions to improve balance. Greedily/randomly means sample many swaps for each node and choose best swap. ] \n");
+  help.append("    --greedy-swap-attempts num-attempts [ Number of greedy swap passes to attempt. Each pass can be fairly expensive. ] \n");
+  help.append("    --greedy-max-partitions-per-node num-partitions [ num-partitions per node to consider in each greedy pass. Partitions selected randomly from each node.  ] \n");
+  help.append("    --greedy-max-partitions-per-zone num-partitions [ num-partitions per zone to consider in each greedy pass. Partitions selected randomly from all partitions in zone not on node being considered. ] \n");
+  help.append("    --max-contiguous-partitions num-contiguous [ Max allowed contiguous partition IDs within a zone ] \n");
   try {
     parser.printHelpOn(System.out);
   }

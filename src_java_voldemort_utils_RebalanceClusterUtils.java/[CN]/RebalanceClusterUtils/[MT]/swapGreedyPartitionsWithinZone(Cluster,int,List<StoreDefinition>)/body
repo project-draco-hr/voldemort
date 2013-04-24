@@ -1,7 +1,7 @@
 {
   List<Integer> nodeIdsInZone=new ArrayList<Integer>(targetCluster.getNodeIdsInZone(zoneId));
   Cluster returnCluster=ClusterUtils.copyCluster(targetCluster);
-  double currentMaxMinRatio=new ClusterInstance(returnCluster,storeDefs).getPartitionBalance().getNaryMaxMin();
+  double currentUtility=new ClusterInstance(returnCluster,storeDefs).getPartitionBalance().getUtility();
   int nodeIdA=-1;
   int nodeIdB=-1;
   int partitionIdA=-1;
@@ -18,10 +18,10 @@
           if (progressCounter % 500 == 0)           System.out.println("o");
  else           if (progressCounter % 25 == 0)           System.out.println(".");
           Cluster swapResult=swapPartitions(returnCluster,nodeIdEh,partitionIdEh,nodeIdBee,partitionIdBee);
-          double swapMaxMinRatio=new ClusterInstance(swapResult,storeDefs).getPartitionBalance().getNaryMaxMin();
-          if (swapMaxMinRatio < currentMaxMinRatio) {
-            currentMaxMinRatio=swapMaxMinRatio;
-            System.out.println(" -> " + currentMaxMinRatio);
+          double swapUtility=new ClusterInstance(swapResult,storeDefs).getPartitionBalance().getUtility();
+          if (swapUtility < currentUtility) {
+            currentUtility=swapUtility;
+            System.out.println(" -> " + currentUtility);
             nodeIdA=nodeIdEh;
             partitionIdA=partitionIdEh;
             nodeIdB=nodeIdBee;

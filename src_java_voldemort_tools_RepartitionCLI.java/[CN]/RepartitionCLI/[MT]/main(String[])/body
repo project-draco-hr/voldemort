@@ -1,48 +1,43 @@
 {
   setupParser();
   OptionSet options=getValidOptions(args);
-  int maxTriesRebalancing=CmdUtils.valueOf(options,"tries",RebalanceClientConfig.MAX_TRIES_REBALANCING);
-  boolean generateDisablePrimaryBalancing=options.has("generate-disable-primary-balancing");
-  boolean generateEnableXzonePrimary=options.has("generate-enable-xzone-primary-moves");
-  boolean generateEnableAllXzoneNary=options.has("generate-enable-any-xzone-nary-moves");
-  boolean generateEnableLastResortXzoneNary=options.has("generate-enable-last-resort-xzone-nary-moves");
-  boolean generateEnableXzoneShuffle=options.has("generate-enable-xzone-shuffle");
-  boolean generateEnableRandomSwaps=options.has("generate-enable-random-swaps");
-  int generateRandomSwapAttempts=CmdUtils.valueOf(options,"generate-random-swap-attempts",DEFAULT_GENERATE_RANDOM_SWAP_ATTEMPTS);
-  int generateRandomSwapSuccesses=CmdUtils.valueOf(options,"generate-random-swap-successes",DEFAULT_GENERATE_RANDOM_SWAP_SUCCESSES);
-  boolean generateEnableGreedySwaps=options.has("generate-enable-greedy-swaps");
-  int generateGreedySwapAttempts=CmdUtils.valueOf(options,"generate-greedy-swap-attempts",DEFAULT_GENERATE_GREEDY_SWAP_ATTEMPTS);
-  int generateGreedyMaxPartitionsPerNode=CmdUtils.valueOf(options,"generate-greedy-max-partitions-per-node",DEFAULT_GENERATE_GREEDY_MAX_PARTITIONS_PER_NODE);
-  int generateGreedyMaxPartitionsPerZone=CmdUtils.valueOf(options,"generate-greedy-max-partitions-per-zone",DEFAULT_GENERATE_GREEDY_MAX_PARTITIONS_PER_ZONE);
-  int generateMaxContiguousPartitionsPerZone=CmdUtils.valueOf(options,"generate-max-contiguous-partitions",DEFAULT_GENERATE_MAX_CONTIGUOUS_PARTITIONS);
-  RebalanceClientConfig config=new RebalanceClientConfig();
-  config.setMaxTriesRebalancing(maxTriesRebalancing);
-  if (options.has("output-dir")) {
-    config.setOutputDirectory((String)options.valueOf("output-dir"));
-  }
   String currentClusterXML=(String)options.valueOf("current-cluster");
   String currentStoresXML=(String)options.valueOf("current-stores");
-  String targetClusterXML=(String)options.valueOf("target-cluster");
+  String targetClusterXML=new String(currentClusterXML);
+  if (options.has("target-cluster")) {
+    targetClusterXML=(String)options.valueOf("target-cluster");
+  }
+  String targetStoresXML=new String(currentStoresXML);
+  if (options.has("target-stores")) {
+    targetStoresXML=(String)options.valueOf("target-stores");
+  }
   Cluster currentCluster=new ClusterMapper().readCluster(new File(currentClusterXML));
-  List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new File(currentStoresXML));
+  List<StoreDefinition> currentStoreDefs=new StoreDefinitionsMapper().readStoreList(new File(currentStoresXML));
   Cluster targetCluster=new ClusterMapper().readCluster(new File(targetClusterXML));
-  if (generateDisablePrimaryBalancing && !generateEnableRandomSwaps && !generateEnableGreedySwaps&& generateMaxContiguousPartitionsPerZone == 0) {
-    printUsageAndDie("Specified generate but did not enable any forms for generation (balance primary partitoins, greedy swaps, random swaps, max contiguous partitions).");
+  List<StoreDefinition> targetStoreDefs=new StoreDefinitionsMapper().readStoreList(new File(targetStoresXML));
+  int attempts=CmdUtils.valueOf(options,"attempts",DEFAULT_REPARTITION_ATTEMPTS);
+  String outputDir=null;
+  if (options.has("output-dir")) {
+    outputDir=(String)options.valueOf("output-dir");
   }
-  if ((options.has("generate-random-swap-attempts") || options.has("generate-random-swap-successes")) && !generateEnableRandomSwaps) {
-    printUsageAndDie("Provided arguments for generate random swaps but disabled the feature");
+  boolean disableNodeBalancing=options.has("disable-node-balancing");
+  boolean disableZoneBalancing=options.has("disable-zone-balancing");
+  boolean enableRandomSwaps=options.has("enable-random-swaps");
+  int randomSwapAttempts=CmdUtils.valueOf(options,"random-swap-attempts",DEFAULT_RANDOM_SWAP_ATTEMPTS);
+  int randomSwapSuccesses=CmdUtils.valueOf(options,"random-swap-successes",DEFAULT_RANDOM_SWAP_SUCCESSES);
+  boolean enableGreedySwaps=options.has("enable-greedy-swaps");
+  int greedySwapAttempts=CmdUtils.valueOf(options,"greedy-swap-attempts",DEFAULT_GREEDY_SWAP_ATTEMPTS);
+  int greedyMaxPartitionsPerNode=CmdUtils.valueOf(options,"greedy-max-partitions-per-node",DEFAULT_GREEDY_MAX_PARTITIONS_PER_NODE);
+  int greedyMaxPartitionsPerZone=CmdUtils.valueOf(options,"greedy-max-partitions-per-zone",DEFAULT_GREEDY_MAX_PARTITIONS_PER_ZONE);
+  int maxContiguousPartitionsPerZone=CmdUtils.valueOf(options,"max-contiguous-partitions",DEFAULT_MAX_CONTIGUOUS_PARTITIONS);
+  if (disableNodeBalancing && !enableRandomSwaps && !enableGreedySwaps&& maxContiguousPartitionsPerZone == 0) {
+    printUsageAndDie("Did not enable any forms for repartitioning.");
   }
-  if ((options.has("generate-greedy-swap-attempts") || options.has("generate-greedy-max-partitions-per-node") || options.has("generate-greedy-max-partitions-per-zone")) && !generateEnableGreedySwaps) {
-    printUsageAndDie("Provided arguments for generate greedy swaps but disabled the feature");
+  if ((options.has("random-swap-attempts") || options.has("random-swap-successes")) && !enableRandomSwaps) {
+    printUsageAndDie("Provided arguments for generate random swaps but did not enable the feature");
   }
-  if (generateEnableAllXzoneNary && generateEnableLastResortXzoneNary) {
-    printUsageAndDie("Specified both generate-enable-any-xzone-nary-moves and generate-enable-last-resort-xzone-nary-moves. Please specify at most one of these mutually exclusive options.");
+  if ((options.has("greedy-swap-attempts") || options.has("greedy-max-partitions-per-node") || options.has("greedy-max-partitions-per-zone")) && !enableGreedySwaps) {
+    printUsageAndDie("Provided arguments for generate greedy swaps but did not enable the feature");
   }
-  if (generateDisablePrimaryBalancing && (generateEnableAllXzoneNary || generateEnableLastResortXzoneNary)) {
-    printUsageAndDie("Specified generate-disable-primary-balancing but also specified either generate-enable-any-xzone-nary-moves or generate-enable-last-resort-xzone-nary-moves which will have no effect.");
-  }
-  if (generateEnableXzoneShuffle && !(generateEnableRandomSwaps || generateEnableGreedySwaps)) {
-    printUsageAndDie("Specified generate-enable-xzone-shuffle but did not specify one of generate-enable-random-swaps or generate-enable-greedy-swaps.");
-  }
-  RebalanceClusterUtils.balanceTargetCluster(currentCluster,targetCluster,storeDefs,config.getOutputDirectory(),config.getMaxTriesRebalancing(),generateDisablePrimaryBalancing,generateEnableXzonePrimary,generateEnableAllXzoneNary,generateEnableLastResortXzoneNary,generateEnableXzoneShuffle,generateEnableRandomSwaps,generateRandomSwapAttempts,generateRandomSwapSuccesses,generateEnableGreedySwaps,generateGreedySwapAttempts,generateGreedyMaxPartitionsPerNode,generateGreedyMaxPartitionsPerZone,generateMaxContiguousPartitionsPerZone);
+  RebalanceClusterUtils.balanceTargetCluster(currentCluster,currentStoreDefs,targetCluster,targetStoreDefs,outputDir,attempts,disableNodeBalancing,disableZoneBalancing,enableRandomSwaps,randomSwapAttempts,randomSwapSuccesses,enableGreedySwaps,greedySwapAttempts,greedyMaxPartitionsPerNode,greedyMaxPartitionsPerZone,maxContiguousPartitionsPerZone);
 }

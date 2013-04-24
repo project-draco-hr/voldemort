@@ -1,0 +1,55 @@
+{
+  System.out.println("Balance number of partitions across all nodes and zones.");
+  Map<Integer,Integer> targetPartitionsPerZone;
+  if (balanceZones) {
+    targetPartitionsPerZone=peanutButterMap(targetCluster.getZoneIds(),targetCluster.getNumberOfPartitions());
+    System.out.println("numPartitionsPerZone");
+    for (    int zoneId : targetCluster.getZoneIds()) {
+      System.out.println(zoneId + " : " + targetCluster.getNumberOfPartitionsInZone(zoneId)+ " -> "+ targetPartitionsPerZone.get(zoneId));
+    }
+    System.out.println("numNodesPerZone");
+    for (    int zoneId : targetCluster.getZoneIds()) {
+      System.out.println(zoneId + " : " + targetCluster.getNumberOfNodesInZone(zoneId));
+    }
+  }
+ else {
+    targetPartitionsPerZone=new HashMap<Integer,Integer>();
+    for (    int zoneId : targetCluster.getZoneIds()) {
+      targetPartitionsPerZone.put(zoneId,targetCluster.getNumberOfPartitionsInZone(zoneId));
+    }
+  }
+  HashMap<Integer,List<Integer>> numPartitionsPerNodeByZone=getBalancedNumberOfPrimaryPartitionsPerNode(targetCluster,targetPartitionsPerZone);
+  Pair<HashMap<Node,Integer>,HashMap<Node,Integer>> donorsAndStealers=getDonorsAndStealersForBalance(targetCluster,numPartitionsPerNodeByZone);
+  HashMap<Node,Integer> donorNodes=donorsAndStealers.getFirst();
+  List<Node> donorNodeKeys=new ArrayList<Node>(donorNodes.keySet());
+  HashMap<Node,Integer> stealerNodes=donorsAndStealers.getSecond();
+  List<Node> stealerNodeKeys=new ArrayList<Node>(stealerNodes.keySet());
+  Cluster returnCluster=ClusterUtils.copyCluster(targetCluster);
+  Collections.shuffle(stealerNodeKeys,new Random(System.currentTimeMillis()));
+  for (  Node stealerNode : stealerNodeKeys) {
+    int partitionsToSteal=stealerNodes.get(stealerNode) - stealerNode.getNumberOfPartitions();
+    System.out.println("Node (" + stealerNode.getId() + ") in zone ("+ stealerNode.getZoneId()+ ") has partitionsToSteal of "+ partitionsToSteal);
+    while (partitionsToSteal > 0) {
+      Collections.shuffle(donorNodeKeys,new Random(System.currentTimeMillis()));
+      for (      Node donorNode : donorNodeKeys) {
+        Node currentDonorNode=returnCluster.getNodeById(donorNode.getId());
+        int partitionsToDonate=currentDonorNode.getNumberOfPartitions() - donorNodes.get(donorNode);
+        if (partitionsToDonate <= 0) {
+          continue;
+        }
+        List<Integer> donorPartitions=Lists.newArrayList(currentDonorNode.getPartitionIds());
+        Collections.shuffle(donorPartitions,new Random(System.currentTimeMillis()));
+        for (        int donorPartition : donorPartitions) {
+          Cluster intermediateCluster=RebalanceUtils.createUpdatedCluster(returnCluster,stealerNode.getId(),Lists.newArrayList(donorPartition));
+          returnCluster=intermediateCluster;
+          partitionsToSteal--;
+          partitionsToDonate--;
+          System.out.println("Stealer node " + stealerNode.getId() + ", donor node "+ currentDonorNode.getId()+ ", partition stolen "+ donorPartition);
+          if (partitionsToSteal == 0 || partitionsToDonate == 0)           break;
+        }
+        if (partitionsToSteal == 0)         break;
+      }
+    }
+  }
+  return returnCluster;
+}
