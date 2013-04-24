@@ -18,7 +18,7 @@
         }
       }
  catch (      IOException e) {
-        e.printStackTrace();
+        logger.error("Exception during commit",e);
         hasError=true;
       }
     }
@@ -31,14 +31,12 @@
     }
  catch (    InterruptedException e1) {
       MARKED_BAD=true;
-      logger.error("Recovery Callback failed");
-      e1.printStackTrace();
+      logger.error("Recovery Callback failed",e1);
       throw new VoldemortException("Recovery Callback failed");
     }
 catch (    ExecutionException e1) {
       MARKED_BAD=true;
-      logger.error("Recovery Callback failed");
-      e1.printStackTrace();
+      logger.error("Recovery Callback failed",e1);
       throw new VoldemortException("Recovery Callback failed");
     }
   }
@@ -52,12 +50,10 @@ catch (    ExecutionException e1) {
       future.get();
     }
  catch (    InterruptedException e1) {
-      logger.warn("Checkpoint callback failed!");
-      e1.printStackTrace();
+      logger.warn("Checkpoint callback failed!",e1);
     }
 catch (    ExecutionException e1) {
-      logger.warn("Checkpoint callback failed!");
-      e1.printStackTrace();
+      logger.warn("Checkpoint callback failed!",e1);
     }
   }
 }
