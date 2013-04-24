@@ -4,7 +4,7 @@
     for (    Node node : cluster.getNodes()) {
       storeMap.put(node.getId(),getSocketStore(storeDef.getName(),node.getHost(),node.getSocketPort()));
     }
-    StoreInstance storeInstance=new StoreInstance(cluster,storeDef);
+    StoreRoutingPlan storeInstance=new StoreRoutingPlan(cluster,storeDef);
     for (    Entry<String,String> entry : testEntries.entrySet()) {
       ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(entry.getKey(),"UTF-8"));
       List<Integer> preferenceNodes=storeInstance.getReplicationNodeList(keyBytes.get());
