@@ -1,0 +1,33 @@
+{
+  int numberOfZones=2;
+  int nodesPerZone[]=new int[]{3,3};
+  int partitionMap[][]=new int[][]{{0,6,12,16,17},{1,7,15},{2,8,14},{3,9,13},{4,10},{5,11}};
+  Cluster cluster=ServerTestUtils.getLocalZonedCluster(numberOfZones,nodesPerZone,partitionMap);
+  Map<Integer,Integer> iiMap;
+  iiMap=ClusterUtils.getMapOfContiguousPartitions(cluster,0);
+  assertTrue(iiMap.containsKey(6));
+  assertTrue(iiMap.get(6) == 3);
+  assertTrue(iiMap.containsKey(12));
+  assertTrue(iiMap.get(12) == 1);
+  assertTrue(iiMap.containsKey(14));
+  assertTrue(iiMap.get(14) == 7);
+  iiMap=ClusterUtils.getMapOfContiguousPartitionRunLengths(cluster,0);
+  assertTrue(iiMap.containsKey(1));
+  assertTrue(iiMap.get(1) == 1);
+  assertTrue(iiMap.containsKey(3));
+  assertTrue(iiMap.get(3) == 1);
+  assertTrue(iiMap.containsKey(7));
+  assertTrue(iiMap.get(7) == 1);
+  iiMap=ClusterUtils.getMapOfContiguousPartitions(cluster,1);
+  assertTrue(iiMap.containsKey(3));
+  assertTrue(iiMap.get(3) == 3);
+  assertTrue(iiMap.containsKey(9));
+  assertTrue(iiMap.get(9) == 3);
+  assertTrue(iiMap.containsKey(13));
+  assertTrue(iiMap.get(13) == 1);
+  iiMap=ClusterUtils.getMapOfContiguousPartitionRunLengths(cluster,1);
+  assertTrue(iiMap.containsKey(1));
+  assertTrue(iiMap.get(1) == 1);
+  assertTrue(iiMap.containsKey(3));
+  assertTrue(iiMap.get(3) == 2);
+}

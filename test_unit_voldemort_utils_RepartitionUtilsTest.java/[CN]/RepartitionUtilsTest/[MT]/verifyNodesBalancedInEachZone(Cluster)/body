@@ -1,0 +1,14 @@
+{
+  for (  Integer zoneId : cluster.getZoneIds()) {
+    int maxPartitions=Integer.MIN_VALUE;
+    int minPartitions=Integer.MAX_VALUE;
+    for (    Integer nodeId : cluster.getNodeIdsInZone(zoneId)) {
+      int numPartitions=cluster.getNodeById(nodeId).getNumberOfPartitions();
+      if (numPartitions > maxPartitions)       maxPartitions=numPartitions;
+      if (numPartitions < minPartitions)       minPartitions=numPartitions;
+    }
+    int partitionsDiff=maxPartitions - minPartitions;
+    if (partitionsDiff > 1 || partitionsDiff < 0)     return false;
+  }
+  return true;
+}

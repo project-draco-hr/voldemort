@@ -1,0 +1,30 @@
+{
+  assertFalse(verifyNodesBalancedInEachZone(currentCluster));
+  assertFalse(verifyZonesBalanced(currentCluster));
+  PartitionBalance currentPb=new PartitionBalance(currentCluster,currentStores);
+  boolean disableNodeBalancing=true;
+  boolean disableZoneBalancing=true;
+  boolean enableGreedySwaps=true;
+  List<Integer> greedyZones=new ArrayList<Integer>(currentCluster.getZoneIds());
+  int swapAttempts=1;
+  int swapsPerNode=100;
+  int swapsPerZone=100;
+  Cluster repartitionedCluster=RepartitionUtils.repartition(currentCluster,currentStores,currentCluster,currentStores,null,1,disableNodeBalancing,disableZoneBalancing,false,0,0,enableGreedySwaps,greedyZones,swapAttempts,swapsPerNode,swapsPerZone,0);
+  assertFalse(verifyNodesBalancedInEachZone(repartitionedCluster));
+  assertFalse(verifyZonesBalanced(repartitionedCluster));
+  PartitionBalance repartitionedPb=new PartitionBalance(repartitionedCluster,currentStores);
+  assertTrue(repartitionedPb.getUtility() < currentPb.getUtility());
+  greedyZones=new ArrayList<Integer>();
+  greedyZones.add(currentCluster.getZoneIds().iterator().next());
+  repartitionedCluster=RepartitionUtils.repartition(currentCluster,currentStores,currentCluster,currentStores,null,1,disableNodeBalancing,disableZoneBalancing,false,0,0,enableGreedySwaps,greedyZones,swapAttempts,swapsPerNode,swapsPerZone,0);
+  assertFalse(verifyNodesBalancedInEachZone(repartitionedCluster));
+  assertFalse(verifyZonesBalanced(repartitionedCluster));
+  repartitionedPb=new PartitionBalance(repartitionedCluster,currentStores);
+  assertTrue(repartitionedPb.getUtility() < currentPb.getUtility());
+  greedyZones=null;
+  repartitionedCluster=RepartitionUtils.repartition(currentCluster,currentStores,currentCluster,currentStores,null,1,disableNodeBalancing,disableZoneBalancing,false,0,0,enableGreedySwaps,greedyZones,swapAttempts,swapsPerNode,swapsPerZone,0);
+  assertFalse(verifyNodesBalancedInEachZone(repartitionedCluster));
+  assertFalse(verifyZonesBalanced(repartitionedCluster));
+  repartitionedPb=new PartitionBalance(repartitionedCluster,currentStores);
+  assertTrue(repartitionedPb.getUtility() < currentPb.getUtility());
+}

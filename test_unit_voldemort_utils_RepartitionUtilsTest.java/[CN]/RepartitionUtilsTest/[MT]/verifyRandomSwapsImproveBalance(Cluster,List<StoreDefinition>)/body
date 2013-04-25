@@ -1,0 +1,15 @@
+{
+  assertFalse(verifyNodesBalancedInEachZone(currentCluster));
+  assertFalse(verifyZonesBalanced(currentCluster));
+  PartitionBalance currentPb=new PartitionBalance(currentCluster,currentStores);
+  boolean disableNodeBalancing=true;
+  boolean disableZoneBalancing=true;
+  boolean enableRandomSwaps=true;
+  int swapAttempts=100;
+  int swapSuccesses=1;
+  Cluster repartitionedCluster=RepartitionUtils.repartition(currentCluster,currentStores,currentCluster,currentStores,null,1,disableNodeBalancing,disableZoneBalancing,enableRandomSwaps,swapAttempts,swapSuccesses,false,null,0,0,0,0);
+  assertFalse(verifyNodesBalancedInEachZone(repartitionedCluster));
+  assertFalse(verifyZonesBalanced(repartitionedCluster));
+  PartitionBalance repartitionedPb=new PartitionBalance(repartitionedCluster,currentStores);
+  assertTrue(repartitionedPb.getUtility() < currentPb.getUtility());
+}

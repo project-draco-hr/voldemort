@@ -1,13 +1,12 @@
 {
-  List<Integer> nodeIdsInZone=new ArrayList<Integer>(targetCluster.getNodeIdsInZone(zoneId));
-  System.out.println("GreedyRandom : nodeIdsInZone:" + nodeIdsInZone);
+  System.out.println("GreedyRandom : nodeIds:" + nodeIds);
   Cluster returnCluster=ClusterUtils.copyCluster(targetCluster);
   double currentUtility=new ClusterInstance(returnCluster,storeDefs).getPartitionBalance().getUtility();
   int nodeIdA=-1;
   int nodeIdB=-1;
   int partitionIdA=-1;
   int partitionIdB=-1;
-  for (  int nodeIdEh : nodeIdsInZone) {
+  for (  int nodeIdEh : nodeIds) {
     System.out.println("GreedyRandom : processing nodeId:" + nodeIdEh);
     List<Integer> partitionIdsEh=new ArrayList<Integer>();
     partitionIdsEh.addAll(returnCluster.getNodeById(nodeIdEh).getPartitionIds());
@@ -16,7 +15,7 @@
     for (int offsetEh=0; offsetEh < maxPartitionsInEh; ++offsetEh) {
       Integer partitionIdEh=partitionIdsEh.get(offsetEh);
       List<Pair<Integer,Integer>> partitionIdsZone=new ArrayList<Pair<Integer,Integer>>();
-      for (      int nodeIdBee : nodeIdsInZone) {
+      for (      int nodeIdBee : nodeIds) {
         if (nodeIdBee == nodeIdEh)         continue;
         for (        Integer partitionIdBee : returnCluster.getNodeById(nodeIdBee).getPartitionIds()) {
           partitionIdsZone.add(new Pair<Integer,Integer>(nodeIdBee,partitionIdBee));
