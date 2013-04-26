@@ -1,6 +1,6 @@
 {
   ClientConfig clientConfig=new ClientConfig();
-  clientConfig.setBootstrapUrls(this.config.getBootstrapURLs());
+  clientConfig.setBootstrapUrls(this.coordinatorConfig.getBootstrapURLs());
   storeClientFactory=new SocketStoreClientFactory(clientConfig);
   initializeFatClients();
   SystemStoreRepository sysRepository=new SystemStoreRepository();
@@ -15,16 +15,16 @@
 ;
   asyncMetadataManager=new AsyncMetadataVersionManager(sysRepository,rebootstrapCallback,null);
   schedulerService=new SchedulerService(1,SystemTime.INSTANCE,true);
-  schedulerService.schedule(asyncMetadataManager.getClass().getName(),asyncMetadataManager,new Date(),this.config.getMetadataCheckIntervalInMs());
+  schedulerService.schedule(asyncMetadataManager.getClass().getName(),asyncMetadataManager,new Date(),this.coordinatorConfig.getMetadataCheckIntervalInMs());
   this.workerPool=(ThreadPoolExecutor)Executors.newCachedThreadPool();
   this.bootstrap=new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),workerPool));
-  this.bootstrap.setOption("backlog",1000);
+  this.bootstrap.setOption("backlog",this.coordinatorConfig.getNettyServerBacklog());
   this.bootstrap.setOption("child.tcpNoDelay",true);
   this.bootstrap.setOption("child.keepAlive",true);
   this.bootstrap.setOption("child.reuseAddress",true);
   this.bootstrap.setPipelineFactory(new CoordinatorPipelineFactory(this.fatClientMap,this.errorStats,noop));
   JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass())));
   JmxUtils.registerMbean(this.errorStats,JmxUtils.createObjectName(JmxUtils.getPackageName(this.errorStats.getClass()),JmxUtils.getClassName(this.errorStats.getClass())));
-  this.nettyServerChannel=this.bootstrap.bind(new InetSocketAddress(this.config.getServerPort()));
-  logger.info("Coordinator service started on port " + this.config.getServerPort());
+  this.nettyServerChannel=this.bootstrap.bind(new InetSocketAddress(this.coordinatorConfig.getServerPort()));
+  logger.info("Coordinator service started on port " + this.coordinatorConfig.getServerPort());
 }
