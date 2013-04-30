@@ -19,7 +19,7 @@
     allAggNodeIdToPartitionCount.put(nodeId,0);
   }
   for (  StoreDefinition storeDefinition : uniqueStores.keySet()) {
-    StoreInstance storeInstance=new StoreInstance(cluster,storeDefinition);
+    StoreRoutingPlan storeRoutingPlan=new StoreRoutingPlan(cluster,storeDefinition);
     builder.append("\n");
     builder.append("Store exemplar: " + storeDefinition.getName() + "\n");
     builder.append("\tReplication factor: " + storeDefinition.getReplicationFactor() + "\n");
@@ -72,7 +72,7 @@
     }
     for (int partitionId=0; partitionId < cluster.getNumberOfPartitions(); partitionId++) {
       for (      int zoneId : zoneIds) {
-        for (        int nodeId : storeInstance.getReplicationNodeList(partitionId)) {
+        for (        int nodeId : storeRoutingPlan.getReplicationNodeList(partitionId)) {
           if (cluster.getNodeById(nodeId).getZoneId() == zoneId) {
             nodeIdToZonePrimaryCount.put(nodeId,nodeIdToZonePrimaryCount.get(nodeId) + 1);
             break;
