@@ -1,0 +1,21 @@
+{
+  for (  Node currentNode : currentCluster.getNodes()) {
+    if (targetCluster.getNodeIds().contains(currentNode.getId())) {
+      Node targetNode=targetCluster.getNodeById(currentNode.getId());
+      if (!currentNode.getPartitionIds().containsAll(targetNode.getPartitionIds()) || targetNode.getPartitionIds().containsAll(currentNode.getPartitionIds())) {
+        throw new VoldemortRebalancingException("For node " + currentNode.getId() + " partitions are not exactly the same on node in current cluster ("+ currentNode.getPartitionIds()+ ") and in target cluster ("+ targetNode.getPartitionIds()+ ").");
+      }
+    }
+ else {
+      throw new VoldemortRebalancingException("Target cluster does not contain node " + currentNode.getId() + " from current cluster");
+    }
+  }
+  for (  Node targetNode : targetCluster.getNodes()) {
+    if (!currentCluster.getNodeIds().contains(targetNode.getId())) {
+      if (!targetNode.getPartitionIds().isEmpty()) {
+        throw new VoldemortRebalancingException("New node " + targetNode.getId() + " in target cluster already has partitions: "+ targetNode.getPartitionIds());
+      }
+    }
+  }
+  return;
+}

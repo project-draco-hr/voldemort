@@ -1,0 +1,27 @@
+{
+  Set<Integer> ids=new HashSet<Integer>();
+  for (int i=0; i < 10; ++i) {
+    ids.add(i);
+  }
+  MoveMap mm1=new MoveMap(ids);
+  MoveMap mm2=new MoveMap(ids);
+  for (int from=0; from < 10; ++from) {
+    for (int to=0; to < 10; ++to) {
+      mm1.increment(from,to);
+      mm2.increment(from,to);
+      mm2.increment(from,to);
+    }
+  }
+  for (int from=0; from < 10; ++from) {
+    for (int to=0; to < 10; ++to) {
+      assertTrue(mm1.get(from,to) == 1);
+      assertTrue(mm2.get(from,to) == 2);
+    }
+  }
+  mm1.add(mm2);
+  for (int from=0; from < 10; ++from) {
+    for (int to=0; to < 10; ++to) {
+      assertTrue(mm1.get(from,to) == 3);
+    }
+  }
+}

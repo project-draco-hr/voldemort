@@ -1,0 +1,11 @@
+{
+  int xzonePartitionStoreMoves=0;
+  for (  RebalancePartitionsInfo info : batchPlan) {
+    Node donorNode=targetCluster.getNodeById(info.getDonorId());
+    Node stealerNode=targetCluster.getNodeById(info.getStealerId());
+    if (donorNode.getZoneId() != stealerNode.getZoneId()) {
+      xzonePartitionStoreMoves+=info.getPartitionStoreMoves();
+    }
+  }
+  return xzonePartitionStoreMoves;
+}

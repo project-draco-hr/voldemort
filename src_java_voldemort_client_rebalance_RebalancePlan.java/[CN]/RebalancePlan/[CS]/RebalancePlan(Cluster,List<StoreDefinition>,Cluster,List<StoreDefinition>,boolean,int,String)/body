@@ -1,0 +1,14 @@
+{
+  this.currentCluster=currentCluster;
+  this.currentStores=RebalanceUtils.validateRebalanceStore(currentStores);
+  this.finalCluster=finalCluster;
+  this.finalStores=RebalanceUtils.validateRebalanceStore(finalStores);
+  this.stealerBased=stealerBased;
+  this.batchSize=batchSize;
+  this.outputDir=outputDir;
+  RebalanceUtils.validateFinalCluster(this.currentCluster,this.finalCluster);
+  this.targetCluster=RebalanceUtils.getClusterWithNewNodes(this.currentCluster,this.finalCluster);
+  RebalanceUtils.validateClusterStores(this.currentCluster,this.currentStores);
+  RebalanceUtils.validateClusterStores(this.finalCluster,this.finalStores);
+  RebalanceUtils.validateClusterStores(this.targetCluster,this.finalStores);
+}

@@ -1,0 +1,14 @@
+{
+  super(currentCluster,targetCluster,storeDefs,enabledDeletePartition);
+  HashMap<Integer,List<RebalancePartitionsInfo>> donorToBatchPlan=new HashMap<Integer,List<RebalancePartitionsInfo>>();
+  for (  RebalancePartitionsInfo info : batchPlan) {
+    int donorId=info.getDonorId();
+    if (!donorToBatchPlan.containsKey(donorId)) {
+      donorToBatchPlan.put(donorId,new ArrayList<RebalancePartitionsInfo>());
+    }
+    donorToBatchPlan.get(donorId).add(info);
+  }
+  for (  int donorId : donorToBatchPlan.keySet()) {
+    rebalanceTaskQueue.offer(new RebalanceNodePlan(donorId,Lists.newArrayList(donorToBatchPlan.get(donorId)),false));
+  }
+}

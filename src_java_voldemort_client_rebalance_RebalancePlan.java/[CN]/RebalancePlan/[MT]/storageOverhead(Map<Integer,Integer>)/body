@@ -1,0 +1,27 @@
+{
+  double maxOverhead=Double.MIN_VALUE;
+  PartitionBalance pb=new PartitionBalance(currentCluster,currentStores);
+  StringBuilder sb=new StringBuilder();
+  sb.append("Per-node store-overhead:\n");
+  DecimalFormat doubleDf=new DecimalFormat("####.##");
+  for (  int nodeId : finalCluster.getNodeIds()) {
+    Node node=finalCluster.getNodeById(nodeId);
+    String nodeTag="Node " + String.format("%4d",nodeId) + " ("+ node.getHost()+ ")";
+    int initialLoad=0;
+    if (currentCluster.getNodeIds().contains(nodeId)) {
+      initialLoad=pb.getNaryPartitionCount(nodeId);
+    }
+    int toLoad=0;
+    if (finalNodeToOverhead.containsKey(nodeId)) {
+      toLoad=finalNodeToOverhead.get(nodeId);
+    }
+    double overhead=(initialLoad + toLoad) / (double)initialLoad;
+    if (initialLoad > 0 && maxOverhead < overhead) {
+      maxOverhead=overhead;
+    }
+    String loadTag=String.format("%6d",initialLoad) + " + " + String.format("%6d",toLoad)+ " -> "+ String.format("%6d",initialLoad + toLoad)+ " ("+ doubleDf.format(overhead)+ " X)";
+    sb.append(nodeTag + " : " + loadTag+ "\n");
+  }
+  sb.append("\n\tMax per-node storage overhead: " + doubleDf.format(maxOverhead) + " X.\n");
+  return (sb.toString());
+}

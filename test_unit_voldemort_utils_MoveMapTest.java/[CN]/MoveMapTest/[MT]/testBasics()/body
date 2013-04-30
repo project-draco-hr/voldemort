@@ -1,0 +1,25 @@
+{
+  Set<Integer> ids=new HashSet<Integer>();
+  for (int i=0; i < 10; ++i) {
+    ids.add(i * i);
+  }
+  MoveMap mm=new MoveMap(ids);
+  for (int from=0; from < 10; ++from) {
+    for (int to=0; to < 10; ++to) {
+      assertTrue(mm.get(from * from,to * to) == 0);
+    }
+  }
+  for (int from=0; from < 1000; from+=3) {
+    int fromId=(from % 10) * (from % 10);
+    for (int to=0; to < 1000; to+=7) {
+      int toId=((from + to) % 10) * ((from + to) % 10);
+      mm.increment(fromId,toId);
+    }
+  }
+  for (int from=0; from < 10; ++from) {
+    for (int to=0; to < 10; ++to) {
+      assertTrue(mm.get(from * from,to * to) > 0);
+    }
+  }
+  System.out.println(mm);
+}

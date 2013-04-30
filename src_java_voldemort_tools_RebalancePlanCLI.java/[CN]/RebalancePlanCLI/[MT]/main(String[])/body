@@ -1,0 +1,31 @@
+{
+  setupParser();
+  OptionSet options=getValidOptions(args);
+  String currentClusterXML=(String)options.valueOf("current-cluster");
+  String currentStoresXML=(String)options.valueOf("current-stores");
+  String targetClusterXML=new String(currentClusterXML);
+  if (options.has("target-cluster")) {
+    targetClusterXML=(String)options.valueOf("target-cluster");
+  }
+  String targetStoresXML=new String(currentStoresXML);
+  if (options.has("target-stores")) {
+    targetStoresXML=(String)options.valueOf("target-stores");
+  }
+  Cluster currentCluster=new ClusterMapper().readCluster(new File(currentClusterXML));
+  List<StoreDefinition> currentStoreDefs=new StoreDefinitionsMapper().readStoreList(new File(currentStoresXML));
+  Cluster targetCluster=new ClusterMapper().readCluster(new File(targetClusterXML));
+  List<StoreDefinition> targetStoreDefs=new StoreDefinitionsMapper().readStoreList(new File(targetStoresXML));
+  int batchSize=CmdUtils.valueOf(options,"batch",RebalanceClientConfig.PRIMARY_PARTITION_BATCH_SIZE);
+  String outputDir=null;
+  if (options.has("output-dir")) {
+    outputDir=(String)options.valueOf("output-dir");
+  }
+  boolean stealerBased=true;
+  if (options.has("donor-based")) {
+    stealerBased=false;
+  }
+  RebalanceClientConfig config=new RebalanceClientConfig();
+  config.setPrimaryPartitionBatchSize(batchSize);
+  RebalancePlan rebalancePlanner=new RebalancePlan(currentCluster,currentStoreDefs,targetCluster,targetStoreDefs,stealerBased,batchSize,outputDir);
+  rebalancePlanner.plan();
+}

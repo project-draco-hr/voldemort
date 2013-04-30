@@ -1,0 +1,28 @@
+{
+  Set<Integer> ids=new HashSet<Integer>();
+  for (int i=0; i < 10; ++i) {
+    ids.add(i);
+  }
+  MoveMap mm=new MoveMap(ids);
+  for (int from=0; from < 10; ++from) {
+    for (int to=0; to < 10; ++to) {
+      for (int inc=0; inc < to; ++inc) {
+        mm.increment(from,to);
+      }
+    }
+  }
+  for (int from=0; from < 10; ++from) {
+    for (int to=0; to < 10; ++to) {
+      assertTrue(mm.get(from,to) == to);
+    }
+  }
+  Map<Integer,Integer> groupByFrom=mm.groupByFrom();
+  for (  int id : ids) {
+    assertTrue(groupByFrom.get(id) == 45);
+  }
+  Map<Integer,Integer> groupByTo=mm.groupByTo();
+  for (  int id : ids) {
+    assertTrue(groupByTo.get(id) == id * 10);
+  }
+  System.out.println(mm.toFlowString());
+}

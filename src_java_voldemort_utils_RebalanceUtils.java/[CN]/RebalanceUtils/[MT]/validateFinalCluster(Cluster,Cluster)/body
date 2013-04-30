@@ -1,0 +1,14 @@
+{
+  for (  Node currentNode : currentCluster.getNodes()) {
+    if (finalCluster.getNodeIds().contains(currentNode.getId())) {
+      Node finalNode=finalCluster.getNodeById(currentNode.getId());
+      if (!finalNode.isEqualState(currentNode)) {
+        throw new VoldemortRebalancingException("Node " + currentNode.getId() + " does not have same state in final cluster + ("+ finalNode.getStateString()+ ") as in current cluster ("+ currentNode.getStateString()+ ").");
+      }
+    }
+ else {
+      throw new VoldemortRebalancingException("Final cluster does not contain node " + currentNode.getId() + " from current cluster");
+    }
+  }
+  return;
+}

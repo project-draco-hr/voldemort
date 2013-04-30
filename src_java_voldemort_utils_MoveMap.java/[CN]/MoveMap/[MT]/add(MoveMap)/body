@@ -1,0 +1,11 @@
+{
+  if (!idKeySet.containsAll(rhs.idKeySet) || !rhs.idKeySet.containsAll(idKeySet)) {
+    throw new VoldemortException("MoveMap objects cannot be added! They have incompatible id sets (" + idKeySet + " vs. "+ rhs.idKeySet+ ").");
+  }
+  for (  Integer fromId : idKeySet) {
+    for (    Integer toId : idKeySet) {
+      int moves=get(fromId,toId) + rhs.get(fromId,toId);
+      fromToMoves.get(fromId).put(toId,moves);
+    }
+  }
+}
