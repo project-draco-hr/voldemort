@@ -7,8 +7,19 @@
   this.batchSize=batchSize;
   this.outputDir=outputDir;
   RebalanceUtils.validateFinalCluster(this.currentCluster,this.finalCluster);
-  this.targetCluster=RebalanceUtils.getClusterWithNewNodes(this.currentCluster,this.finalCluster);
+  this.targetCluster=RebalanceUtils.getTargetCluster(this.currentCluster,this.finalCluster);
   RebalanceUtils.validateClusterStores(this.currentCluster,this.currentStores);
   RebalanceUtils.validateClusterStores(this.finalCluster,this.finalStores);
   RebalanceUtils.validateClusterStores(this.targetCluster,this.finalStores);
+  logger.info("Current cluster : " + currentCluster);
+  logger.info("Target cluster : " + targetCluster);
+  logger.info("Final cluster : " + finalCluster);
+  logger.info("Batch size : " + batchSize);
+  batchPlans=new ArrayList<RebalanceClusterPlan>();
+  numPrimaryPartitionMoves=0;
+  numPartitionStoreMoves=0;
+  numXZonePartitionStoreMoves=0;
+  nodeMoveMap=new MoveMap(targetCluster.getNodeIds());
+  zoneMoveMap=new MoveMap(targetCluster.getZoneIds());
+  plan();
 }
