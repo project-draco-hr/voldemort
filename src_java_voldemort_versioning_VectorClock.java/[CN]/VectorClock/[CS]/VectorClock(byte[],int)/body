@@ -5,12 +5,12 @@
   int entrySize=ByteUtils.SIZE_OF_SHORT + versionSize;
   int minimumBytes=offset + ByteUtils.SIZE_OF_SHORT + 1+ numEntries * entrySize + ByteUtils.SIZE_OF_LONG;
   if (bytes.length < minimumBytes)   throw new IllegalArgumentException("Too few bytes: expected at least " + minimumBytes + " but found only "+ bytes.length+ ".");
-  this.versions=new ArrayList<ClockEntry>(numEntries);
+  this.versionMap=new HashMap<Short,Long>(numEntries);
   int index=3 + offset;
   for (int i=0; i < numEntries; i++) {
     short nodeId=ByteUtils.readShort(bytes,index);
     long version=ByteUtils.readBytes(bytes,index + ByteUtils.SIZE_OF_SHORT,versionSize);
-    this.versions.add(new ClockEntry(nodeId,version));
+    this.versionMap.put(nodeId,version);
     index+=entrySize;
   }
   this.timestamp=ByteUtils.readLong(bytes,index);

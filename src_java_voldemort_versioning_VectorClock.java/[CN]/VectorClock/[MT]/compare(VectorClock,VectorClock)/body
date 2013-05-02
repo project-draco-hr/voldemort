@@ -2,28 +2,23 @@
   if (v1 == null || v2 == null)   throw new IllegalArgumentException("Can't compare null vector clocks!");
   boolean v1Bigger=false;
   boolean v2Bigger=false;
-  int p1=0;
-  int p2=0;
-  while (p1 < v1.versions.size() && p2 < v2.versions.size()) {
-    ClockEntry ver1=v1.versions.get(p1);
-    ClockEntry ver2=v2.versions.get(p2);
-    if (ver1.getNodeId() == ver2.getNodeId()) {
-      if (ver1.getVersion() > ver2.getVersion())       v1Bigger=true;
- else       if (ver2.getVersion() > ver1.getVersion())       v2Bigger=true;
-      p1++;
-      p2++;
-    }
- else     if (ver1.getNodeId() > ver2.getNodeId()) {
+  Map<Short,Long> v1MapCopy=Maps.newHashMap(v1.versionMap);
+  for (  Map.Entry<Short,Long> v2Entry : v2.versionMap.entrySet()) {
+    Long v1Version=v1MapCopy.remove(v2Entry.getKey());
+    Long v2Version=v2Entry.getValue();
+    if (v1Version == null) {
       v2Bigger=true;
-      p2++;
     }
- else {
+ else     if (v1Version < v2Version) {
+      v2Bigger=true;
+    }
+ else     if (v1Version > v2Version) {
       v1Bigger=true;
-      p1++;
     }
   }
-  if (p1 < v1.versions.size())   v1Bigger=true;
- else   if (p2 < v2.versions.size())   v2Bigger=true;
+  if (v1MapCopy.size() > 0) {
+    v1Bigger=true;
+  }
   if (!v1Bigger && !v2Bigger)   return Occurred.BEFORE;
  else   if (v1Bigger && !v2Bigger)   return Occurred.AFTER;
  else   if (!v1Bigger && v2Bigger)   return Occurred.BEFORE;
