@@ -1,0 +1,11 @@
+{
+  if (!supersetCluster.getNodeIds().containsAll(subsetCluster.getNodeIds())) {
+    throw new VoldemortException("Superset cluster does not contain all nodes from subset cluster[ subset cluster node ids (" + subsetCluster.getNodeIds() + ") are not a subset of superset cluster node ids ("+ supersetCluster.getNodeIds()+ ") ]");
+  }
+  for (  Node subsetNode : subsetCluster.getNodes()) {
+    Node supersetNode=supersetCluster.getNodeById(subsetNode.getId());
+    if (!subsetNode.isEqualState(supersetNode)) {
+      throw new VoldemortException("Nodes do not have same state[ subset node state (" + subsetNode.getStateString() + ") not equal to superset node state ("+ supersetNode.getStateString()+ ") ]");
+    }
+  }
+}

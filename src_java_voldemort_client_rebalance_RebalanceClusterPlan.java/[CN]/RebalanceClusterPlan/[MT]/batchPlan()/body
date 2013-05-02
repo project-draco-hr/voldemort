@@ -1,0 +1,35 @@
+{
+  HashMap<String,StoreRoutingPlan> targetStoreRoutingPlans=new HashMap<String,StoreRoutingPlan>();
+  HashMap<String,StoreRoutingPlan> finalStoreRoutingPlans=new HashMap<String,StoreRoutingPlan>();
+  for (  StoreDefinition storeDef : storeDefs) {
+    targetStoreRoutingPlans.put(storeDef.getName(),new StoreRoutingPlan(targetCluster,storeDef));
+    finalStoreRoutingPlans.put(storeDef.getName(),new StoreRoutingPlan(finalCluster,storeDef));
+  }
+  UnnecessarilyComplicatedDataStructure ucds=new UnnecessarilyComplicatedDataStructure();
+  for (  Node stealerNode : finalCluster.getNodes()) {
+    int stealerZoneId=stealerNode.getZoneId();
+    int stealerNodeId=stealerNode.getId();
+    for (    StoreDefinition storeDef : storeDefs) {
+      StoreRoutingPlan targetSRP=targetStoreRoutingPlans.get(storeDef.getName());
+      StoreRoutingPlan finalSRP=finalStoreRoutingPlans.get(storeDef.getName());
+      for (      int stealerPartitionId : finalSRP.getNaryPartitionIds(stealerNodeId)) {
+        if (targetSRP.getReplicationNodeList(stealerPartitionId).contains(stealerNodeId)) {
+          continue;
+        }
+        int stealerZoneReplicaType=finalSRP.getZoneReplicaType(stealerZoneId,stealerNodeId,stealerPartitionId);
+        int donorZoneId;
+        if (targetSRP.hasZoneReplicaType(stealerZoneId,stealerPartitionId)) {
+          donorZoneId=stealerZoneId;
+        }
+ else {
+          int targetMasterNodeId=targetSRP.getNodeIdForPartitionId(stealerPartitionId);
+          donorZoneId=targetCluster.getNodeById(targetMasterNodeId).getZoneId();
+        }
+        int donorNodeId=targetSRP.getZoneReplicaNodeId(donorZoneId,stealerZoneReplicaType,stealerPartitionId);
+        int donorReplicaType=targetSRP.getReplicaType(donorNodeId,stealerPartitionId);
+        ucds.shovelCrapIn(stealerNodeId,donorNodeId,storeDef.getName(),donorReplicaType,stealerPartitionId);
+      }
+    }
+  }
+  return ucds.shovelCrapOut();
+}

@@ -1,0 +1,20 @@
+{
+  if (!supersetCluster.getNodeIds().containsAll(subsetCluster.getNodeIds())) {
+    throw new VoldemortException("Superset cluster does not contain all nodes from subset cluster[ subset cluster node ids (" + subsetCluster.getNodeIds() + ") are not a subset of superset cluster node ids ("+ supersetCluster.getNodeIds()+ ") ]");
+  }
+  for (  int nodeId : subsetCluster.getNodeIds()) {
+    Node supersetNode=supersetCluster.getNodeById(nodeId);
+    Node subsetNode=subsetCluster.getNodeById(nodeId);
+    if (!supersetNode.getPartitionIds().equals(subsetNode.getPartitionIds())) {
+      throw new VoldemortRebalancingException("Partition IDs do not match between clusters for nodes with id " + nodeId + " : subset cluster has "+ subsetNode.getPartitionIds()+ " and superset cluster has "+ supersetNode.getPartitionIds());
+    }
+  }
+  Set<Integer> nodeIds=supersetCluster.getNodeIds();
+  nodeIds.removeAll(subsetCluster.getNodeIds());
+  for (  int nodeId : nodeIds) {
+    Node supersetNode=supersetCluster.getNodeById(nodeId);
+    if (!supersetNode.getPartitionIds().isEmpty()) {
+      throw new VoldemortRebalancingException("New node " + nodeId + " in superset cluster already has partitions: "+ supersetNode.getPartitionIds());
+    }
+  }
+}

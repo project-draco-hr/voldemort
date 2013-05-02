@@ -1,8 +1,8 @@
 {
-  MoveMap moveMap=new MoveMap(targetCluster.getZoneIds());
+  MoveMap moveMap=new MoveMap(finalCluster.getZoneIds());
   for (  RebalancePartitionsInfo info : batchPlan) {
-    int fromZoneId=targetCluster.getNodeById(info.getDonorId()).getZoneId();
-    int toZoneId=targetCluster.getNodeById(info.getStealerId()).getZoneId();
+    int fromZoneId=finalCluster.getNodeById(info.getDonorId()).getZoneId();
+    int toZoneId=finalCluster.getNodeById(info.getStealerId()).getZoneId();
     moveMap.add(fromZoneId,toZoneId,info.getPartitionStoreMoves());
   }
   return moveMap;

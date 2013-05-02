@@ -2,16 +2,16 @@
   final HashMap<Integer,HashMap<String,HashMap<Integer,List<Integer>>>> donorNodeToStoreToStealPartition=Maps.newHashMap();
   final HashMap<Integer,HashMap<String,HashMap<Integer,List<Integer>>>> donorNodeToStoreToDeletePartition=Maps.newHashMap();
   for (  StoreDefinition storeDef : storeDefs) {
-    Map<Integer,Set<Pair<Integer,Integer>>> currentNodeIdToAllPartitionTuples=RebalanceUtils.getNodeIdToAllPartitions(currentCluster,storeDef,true);
+    Map<Integer,Set<Pair<Integer,Integer>>> currentNodeIdToAllPartitionTuples=RebalanceUtils.getNodeIdToAllPartitions(targetCluster,storeDef,true);
     RebalanceUtils.combinePartitionTuples(currentAllStoresNodeIdToAllPartitionTuples,currentNodeIdToAllPartitionTuples);
-    Map<Integer,Set<Pair<Integer,Integer>>> targetNodeIdToAllPartitionTuples=RebalanceUtils.getNodeIdToAllPartitions(targetCluster,storeDef,true);
+    Map<Integer,Set<Pair<Integer,Integer>>> targetNodeIdToAllPartitionTuples=RebalanceUtils.getNodeIdToAllPartitions(finalCluster,storeDef,true);
     RebalanceUtils.combinePartitionTuples(targetAllStoresNodeIdToAllPartitionTuples,targetNodeIdToAllPartitionTuples);
-    Map<Integer,Set<Pair<Integer,Integer>>> stealerNodeIdToStolenPartitionTuples=RebalanceUtils.getStolenPartitionTuples(currentCluster,targetCluster,storeDef);
+    Map<Integer,Set<Pair<Integer,Integer>>> stealerNodeIdToStolenPartitionTuples=RebalanceUtils.getStolenPartitionTuples(targetCluster,finalCluster,storeDef);
     if (stealerNodeIdToStolenPartitionTuples.get(stealerNodeId) == null) {
       continue;
     }
     final Set<Pair<Integer,Integer>> haveToStealTuples=Sets.newHashSet(stealerNodeIdToStolenPartitionTuples.get(stealerNodeId));
-    for (    Node donorNode : currentCluster.getNodes()) {
+    for (    Node donorNode : targetCluster.getNodes()) {
       if (donorNode.getId() == stealerNodeId)       continue;
       if (haveFinishedPartitions(haveToStealTuples)) {
         break;
@@ -32,7 +32,7 @@
   for (  int donorNodeId : donorNodeToStoreToStealPartition.keySet()) {
     HashMap<String,HashMap<Integer,List<Integer>>> storeToStealPartition=donorNodeToStoreToStealPartition.get(donorNodeId);
     HashMap<String,HashMap<Integer,List<Integer>>> storeToDeletePartition=donorNodeToStoreToDeletePartition.containsKey(donorNodeId) ? donorNodeToStoreToDeletePartition.get(donorNodeId) : new HashMap<String,HashMap<Integer,List<Integer>>>();
-    result.add(new RebalancePartitionsInfo(stealerNodeId,donorNodeId,storeToStealPartition,storeToDeletePartition,currentCluster,0));
+    result.add(new RebalancePartitionsInfo(stealerNodeId,donorNodeId,storeToStealPartition,storeToDeletePartition,targetCluster,0));
   }
   return result;
 }

@@ -1,0 +1,19 @@
+{
+  List<Integer> replicatingNodeIds=getReplicationNodeList(partitionId);
+  int zoneReplicaTypeCounter=-1;
+  for (  int replicatingNodeId : replicatingNodeIds) {
+    Node replicatingNode=cluster.getNodeById(replicatingNodeId);
+    if (replicatingNode.getZoneId() == zoneId) {
+      zoneReplicaTypeCounter++;
+    }
+    if (zoneReplicaTypeCounter == zoneReplicaType) {
+      return replicatingNode.getId();
+    }
+  }
+  if (zoneReplicaTypeCounter == 0) {
+    throw new VoldemortException("Could not find any replicas for the partition " + partitionId + " in given zone "+ zoneId);
+  }
+ else {
+    throw new VoldemortException("Could not find " + zoneReplicaType + " replicas for the partition "+ partitionId+ " in given zone "+ zoneId+ ". Only found "+ zoneReplicaTypeCounter);
+  }
+}
