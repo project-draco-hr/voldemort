@@ -1,5 +1,5 @@
 {
-  String valueStr=value.getValue().toString();
+  String valueStr="";
   if (CLUSTER_KEY.equals(key)) {
     valueStr=clusterMapper.writeCluster((Cluster)value.getValue());
   }
@@ -12,6 +12,11 @@
   }
  else   if (SERVER_STATE_KEY.equals(key) || NODE_ID_KEY.equals(key)) {
     valueStr=value.getValue().toString();
+  }
+ else   if (REBALANCING_SOURCE_CLUSTER_XML.equals(key)) {
+    if (value.getValue() != null) {
+      valueStr=clusterMapper.writeCluster((Cluster)value.getValue());
+    }
   }
  else {
     throw new VoldemortException("Unhandled key:'" + key + "' for Object to String serialization.");

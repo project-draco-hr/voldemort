@@ -15,11 +15,11 @@
   parser.accepts("delete-store","Delete store").withRequiredArg().describedAs("store-name").ofType(String.class);
   parser.accepts("update-entries","Insert or update entries").withRequiredArg().describedAs("input-directory").ofType(String.class);
   parser.accepts("get-metadata","retreive metadata information " + MetadataStore.METADATA_KEYS).withOptionalArg().describedAs("metadata-key").ofType(String.class);
-  parser.accepts("check-metadata","retreive metadata information from all nodes and checks if they are consistent across [ " + MetadataStore.CLUSTER_KEY + " | "+ MetadataStore.STORES_KEY+ " | "+ MetadataStore.SERVER_STATE_KEY+ " ]").withRequiredArg().describedAs("metadata-key").ofType(String.class);
+  parser.accepts("check-metadata","retreive metadata information from all nodes and checks if they are consistent across [ " + MetadataStore.CLUSTER_KEY + " | "+ MetadataStore.STORES_KEY+ " | "+ MetadataStore.REBALANCING_SOURCE_CLUSTER_XML+ " | "+ MetadataStore.SERVER_STATE_KEY+ " ]").withRequiredArg().describedAs("metadata-key").ofType(String.class);
   parser.accepts("ro-metadata","retrieve version information [current | max | storage-format]").withRequiredArg().describedAs("type").ofType(String.class);
   parser.accepts("truncate","truncate a store").withRequiredArg().describedAs("store-name").ofType(String.class);
-  parser.accepts("set-metadata","Forceful setting of metadata [ " + MetadataStore.CLUSTER_KEY + " | "+ MetadataStore.STORES_KEY+ " | "+ MetadataStore.SERVER_STATE_KEY+ " | "+ MetadataStore.REBALANCING_STEAL_INFO+ " ]").withRequiredArg().describedAs("metadata-key").ofType(String.class);
-  parser.accepts("set-metadata-value","The value for the set-metadata [ " + MetadataStore.CLUSTER_KEY + " | "+ MetadataStore.STORES_KEY+ ", "+ MetadataStore.REBALANCING_STEAL_INFO+ " ] - xml file location, [ "+ MetadataStore.SERVER_STATE_KEY+ " ] - "+ MetadataStore.VoldemortState.NORMAL_SERVER+ ","+ MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER).withRequiredArg().describedAs("metadata-value").ofType(String.class);
+  parser.accepts("set-metadata","Forceful setting of metadata [ " + MetadataStore.CLUSTER_KEY + " | "+ MetadataStore.STORES_KEY+ " | "+ MetadataStore.SERVER_STATE_KEY+ " | "+ MetadataStore.REBALANCING_SOURCE_CLUSTER_XML+ " | "+ MetadataStore.REBALANCING_STEAL_INFO+ " ]").withRequiredArg().describedAs("metadata-key").ofType(String.class);
+  parser.accepts("set-metadata-value","The value for the set-metadata [ " + MetadataStore.CLUSTER_KEY + " | "+ MetadataStore.STORES_KEY+ ", "+ MetadataStore.REBALANCING_SOURCE_CLUSTER_XML+ ", "+ MetadataStore.REBALANCING_STEAL_INFO+ " ] - xml file location, [ "+ MetadataStore.SERVER_STATE_KEY+ " ] - "+ MetadataStore.VoldemortState.NORMAL_SERVER+ ","+ MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER).withRequiredArg().describedAs("metadata-value").ofType(String.class);
   parser.accepts("key-distribution","Prints the current key distribution of the cluster");
   parser.accepts("clear-rebalancing-metadata","Remove the metadata related to rebalancing");
   parser.accepts("async","a) Get a list of async job ids [get] b) Stop async job ids [stop] ").withRequiredArg().describedAs("op-type").ofType(String.class);
@@ -222,11 +222,11 @@
       }
  else {
         String metadataValue=(String)options.valueOf("set-metadata-value");
-        if (metadataKey.compareTo(MetadataStore.CLUSTER_KEY) == 0) {
+        if (metadataKey.compareTo(MetadataStore.CLUSTER_KEY) == 0 || metadataKey.compareTo(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML) == 0) {
           if (!Utils.isReadableFile(metadataValue))           throw new VoldemortException("Cluster xml file path incorrect");
           ClusterMapper mapper=new ClusterMapper();
           Cluster newCluster=mapper.readCluster(new File(metadataValue));
-          executeSetMetadata(nodeId,adminClient,MetadataStore.CLUSTER_KEY,mapper.writeCluster(newCluster));
+          executeSetMetadata(nodeId,adminClient,metadataKey,mapper.writeCluster(newCluster));
         }
  else         if (metadataKey.compareTo(MetadataStore.SERVER_STATE_KEY) == 0) {
           VoldemortState newState=VoldemortState.valueOf(metadataValue);

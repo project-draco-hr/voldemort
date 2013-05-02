@@ -1,18 +1,18 @@
 {
-  Map<ByteArray,RebalancePartitionsInfo> rebalancePartitionsInfoPerKey=Maps.newHashMapWithExpectedSize(Iterables.size(keys));
+  Map<ByteArray,Integer> keyToProxyNodeMap=Maps.newHashMapWithExpectedSize(Iterables.size(keys));
   for (  ByteArray key : keys) {
-    RebalancePartitionsInfo info=redirectingKey(key);
-    if (info != null) {
-      rebalancePartitionsInfoPerKey.put(key,info);
+    Integer redirectNode=getProxyNode(key.get());
+    if (redirectNode != null) {
+      keyToProxyNodeMap.put(key,redirectNode);
     }
   }
-  if (!rebalancePartitionsInfoPerKey.isEmpty()) {
+  if (!keyToProxyNodeMap.isEmpty()) {
     if (logger.isTraceEnabled()) {
       String keyStr="";
       for (      ByteArray key : keys)       keyStr+=key + " ";
       logger.trace("Proxying GETALL on stealer:" + metadata.getNodeId() + " for  keys "+ keyStr);
     }
-    proxyGetAllAndLocalPut(rebalancePartitionsInfoPerKey,transforms);
+    proxyGetAllAndLocalPut(keyToProxyNodeMap,transforms);
   }
   return getInnerStore().getAll(keys,transforms);
 }

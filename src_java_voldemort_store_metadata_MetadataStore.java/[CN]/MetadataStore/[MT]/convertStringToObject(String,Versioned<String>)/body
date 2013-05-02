@@ -21,6 +21,11 @@
       valueObject=new RebalancerState(Arrays.asList(RebalancePartitionsInfo.create(valueString)));
     }
   }
+ else   if (REBALANCING_SOURCE_CLUSTER_XML.equals(key)) {
+    if (value.getValue() != null && value.getValue().length() > 0) {
+      valueObject=clusterMapper.readCluster(new StringReader(value.getValue()));
+    }
+  }
  else {
     throw new VoldemortException("Unhandled key:'" + key + "' for String to Object serialization.");
   }

@@ -4,9 +4,12 @@
   List<RebalancePartitionsInfo> completedRebalancePartitionsInfo=Lists.newArrayList();
   List<String> swappedStoreNames=Lists.newArrayList();
   boolean completedClusterChange=false;
+  boolean completedRebalanceSourceClusterChange=false;
+  Cluster previousRebalancingSourceCluster=null;
   try {
     if (changeClusterMetadata) {
-      changeCluster(cluster);
+      logger.info("Switching metadata from " + currentCluster + " to "+ cluster);
+      changeCluster(MetadataStore.CLUSTER_KEY,cluster);
       completedClusterChange=true;
     }
     if (swapRO) {
@@ -14,13 +17,18 @@
     }
     if (changeRebalanceState) {
       try {
+        previousRebalancingSourceCluster=metadataStore.getRebalancingSourceCluster();
         if (!rollback) {
+          changeCluster(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,currentCluster);
+          completedRebalanceSourceClusterChange=true;
           for (          RebalancePartitionsInfo info : rebalancePartitionsInfo) {
             metadataStore.addRebalancingState(info);
             completedRebalancePartitionsInfo.add(info);
           }
         }
  else {
+          changeCluster(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,null);
+          completedRebalanceSourceClusterChange=true;
           for (          RebalancePartitionsInfo info : rebalancePartitionsInfo) {
             metadataStore.deleteRebalancingState(info);
             completedRebalancePartitionsInfo.add(info);
@@ -36,7 +44,8 @@
     logger.error("Got exception while changing state, now rolling back changes",e);
     if (completedClusterChange) {
       try {
-        changeCluster(currentCluster);
+        logger.info("Rolling back cluster.xml to " + currentCluster);
+        changeCluster(MetadataStore.CLUSTER_KEY,currentCluster);
       }
  catch (      Exception exception) {
         logger.error("Error while rolling back cluster metadata to " + currentCluster,exception);
@@ -71,6 +80,10 @@
           }
         }
       }
+    }
+    if (completedRebalanceSourceClusterChange) {
+      logger.info("Reverting the REBALANCING_SOURCE_CLUSTER_XML back to " + previousRebalancingSourceCluster);
+      changeCluster(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,previousRebalancingSourceCluster);
     }
     throw e;
   }

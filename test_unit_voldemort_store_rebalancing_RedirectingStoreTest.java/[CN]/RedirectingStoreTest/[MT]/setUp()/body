@@ -15,6 +15,8 @@
   StoreClient<Object,Object> storeClient=factory.getStoreClient("test");
   this.primaryEntriesMoved=Maps.newHashMap();
   this.secondaryEntriesMoved=Maps.newHashMap();
+  this.proxyPutTestPrimaryEntries=Maps.newHashMap();
+  this.proxyPutTestSecondaryEntries=Maps.newHashMap();
   RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,currentCluster);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
     storeClient.put(new String(entry.getKey().get()),new String(entry.getValue()));
@@ -27,11 +29,32 @@
     }
   }
   Thread.sleep(500);
+  int cnt=0;
+  for (  Entry<ByteArray,byte[]> entry : primaryEntriesMoved.entrySet()) {
+    if (cnt > 3)     break;
+    this.proxyPutTestPrimaryEntries.put(entry.getKey(),entry.getValue());
+    cnt++;
+  }
+  for (  ByteArray key : this.proxyPutTestPrimaryEntries.keySet()) {
+    this.primaryEntriesMoved.remove(key);
+  }
+  assertTrue("Not enough primary entries",primaryEntriesMoved.size() > 1);
+  cnt=0;
+  for (  Entry<ByteArray,byte[]> entry : secondaryEntriesMoved.entrySet()) {
+    if (cnt > 3)     break;
+    this.proxyPutTestSecondaryEntries.put(entry.getKey(),entry.getValue());
+    cnt++;
+  }
+  for (  ByteArray key : this.proxyPutTestSecondaryEntries.keySet()) {
+    this.secondaryEntriesMoved.remove(key);
+  }
+  assertTrue("Not enough secondary entries",primaryEntriesMoved.size() > 1);
   RebalanceClusterPlan plan=new RebalanceClusterPlan(currentCluster,targetCluster,Lists.newArrayList(storeDef),true);
   List<RebalancePartitionsInfo> plans=RebalanceUtils.flattenNodePlans(Lists.newArrayList(plan.getRebalancingTaskQueue()));
   for (  RebalancePartitionsInfo partitionPlan : plans) {
     servers[partitionPlan.getStealerId()].getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
     servers[partitionPlan.getStealerId()].getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(partitionPlan)));
+    servers[partitionPlan.getStealerId()].getMetadataStore().put(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,currentCluster);
   }
   for (  VoldemortServer server : servers) {
     server.getMetadataStore().put(MetadataStore.CLUSTER_KEY,targetCluster);

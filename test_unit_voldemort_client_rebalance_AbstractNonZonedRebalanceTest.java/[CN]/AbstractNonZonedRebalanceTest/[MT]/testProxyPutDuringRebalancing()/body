@@ -26,6 +26,7 @@
     for (    String key : baselineTuples.keySet()) {
       baselineVersions.put(key,new VectorClock());
     }
+    final CountDownLatch latch=new CountDownLatch(2);
     executors.execute(new Runnable(){
       @Override public void run(){
         SocketStoreClientFactory factory=null;
@@ -72,6 +73,7 @@
         }
  finally {
           if (factory != null)           factory.close();
+          latch.countDown();
         }
       }
     }
@@ -87,10 +89,12 @@
         }
  finally {
           rebalancingComplete.set(true);
+          latch.countDown();
         }
       }
     }
 );
+    latch.await();
     executors.shutdown();
     executors.awaitTermination(300,TimeUnit.SECONDS);
     assertEquals("Client did not see all server transition into rebalancing state",rebalancingStarted.get(),true);

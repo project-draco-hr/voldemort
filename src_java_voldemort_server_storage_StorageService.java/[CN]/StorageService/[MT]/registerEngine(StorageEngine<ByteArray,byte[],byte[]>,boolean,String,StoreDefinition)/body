@@ -14,7 +14,11 @@
         store=retentionEnforcingStore;
       }
       if (voldemortConfig.isEnableRebalanceService()) {
-        store=new RedirectingStore(store,metadata,storeRepository,failureDetector,storeFactory,voldemortConfig.getProxyPutsDuringRebalance());
+        ProxyPutStats proxyPutStats=new ProxyPutStats(aggregatedProxyPutStats);
+        if (voldemortConfig.isJmxEnabled()) {
+          JmxUtils.registerMbean(proxyPutStats,JmxUtils.createObjectName("voldemort.store.rebalancing",engine.getName() + "-proxy-puts"));
+        }
+        store=new RedirectingStore(store,metadata,storeRepository,failureDetector,storeFactory,voldemortConfig.getProxyPutsDuringRebalance(),proxyPutWorkerPool,proxyPutStats);
         if (voldemortConfig.isJmxEnabled()) {
           MBeanServer mbeanServer=ManagementFactory.getPlatformMBeanServer();
           ObjectName name=null;

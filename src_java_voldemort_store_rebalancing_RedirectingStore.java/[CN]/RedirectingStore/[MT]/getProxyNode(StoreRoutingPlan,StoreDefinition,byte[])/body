@@ -1,0 +1,27 @@
+{
+  if (!VoldemortState.REBALANCING_MASTER_SERVER.equals(metadata.getServerState()) || !isRedirectingStoreEnabled.get()) {
+    return null;
+  }
+  Cluster sourceCluster=metadata.getRebalancingSourceCluster();
+  if (sourceCluster == null) {
+    if (logger.isTraceEnabled()) {
+      logger.trace("Old Cluster is null.. bail");
+    }
+    return null;
+  }
+  Integer nodeId=metadata.getNodeId();
+  Integer zoneId=currentRoutingPlan.getCluster().getNodeById(nodeId).getZoneId();
+  StoreRoutingPlan oldRoutingPlan=new StoreRoutingPlan(sourceCluster,storeDef);
+  int zoneReplicaType=currentRoutingPlan.getZoneReplicaType(zoneId,nodeId,key);
+  Integer redirectNodeId;
+  try {
+    redirectNodeId=oldRoutingPlan.getZoneReplicaNode(zoneId,zoneReplicaType,key);
+  }
+ catch (  VoldemortException ve) {
+    return null;
+  }
+  if (redirectNodeId == nodeId) {
+    return null;
+  }
+  return redirectNodeId;
+}
