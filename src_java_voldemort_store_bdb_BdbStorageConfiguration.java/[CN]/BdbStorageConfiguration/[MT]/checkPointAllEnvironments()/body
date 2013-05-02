@@ -1,0 +1,14 @@
+{
+synchronized (lock) {
+    try {
+      for (      Environment environment : environments.values()) {
+        CheckpointConfig checkPointConfig=new CheckpointConfig();
+        checkPointConfig.setForce(true);
+        environment.checkpoint(checkPointConfig);
+      }
+    }
+ catch (    DatabaseException e) {
+      throw new VoldemortException(e);
+    }
+  }
+}
