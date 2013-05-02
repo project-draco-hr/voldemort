@@ -1,0 +1,26 @@
+{
+  Map<ByteArray,List<Versioned<byte[]>>> localVals=getInnerStore().getAll(keys,transforms);
+  Map<ByteArray,Integer> keyToProxyNodeMap=Maps.newHashMapWithExpectedSize(Iterables.size(keys));
+  for (  ByteArray key : keys) {
+    if (localVals.containsKey(key)) {
+      continue;
+    }
+    Integer redirectNode=getProxyNode(key.get());
+    if (redirectNode != null) {
+      keyToProxyNodeMap.put(key,redirectNode);
+    }
+  }
+  if (!keyToProxyNodeMap.isEmpty()) {
+    if (logger.isTraceEnabled()) {
+      String keyStr="";
+      for (      ByteArray key : keys)       keyStr+=key + " ";
+      logger.trace("Proxying GETALL on stealer:" + metadata.getNodeId() + " for  keys "+ keyStr);
+    }
+    proxyGetAllAndLocalPut(keyToProxyNodeMap,transforms);
+    Map<ByteArray,List<Versioned<byte[]>>> proxyFetchedVals=getInnerStore().getAll(keyToProxyNodeMap.keySet(),transforms);
+    for (    Map.Entry<ByteArray,List<Versioned<byte[]>>> entry : proxyFetchedVals.entrySet()) {
+      localVals.put(entry.getKey(),entry.getValue());
+    }
+  }
+  return localVals;
+}

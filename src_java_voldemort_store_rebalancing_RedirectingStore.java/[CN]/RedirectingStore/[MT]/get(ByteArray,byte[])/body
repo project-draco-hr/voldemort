@@ -1,10 +1,8 @@
 {
-  Integer redirectNode=getProxyNode(key.get());
-  if (redirectNode != null) {
-    if (logger.isTraceEnabled()) {
-      logger.trace("Proxying GET on stealer:" + metadata.getNodeId() + " for  key "+ ByteUtils.toHexString(key.get())+ " to node:"+ redirectNode);
-    }
-    proxyGetAndLocalPut(key,redirectNode,transforms);
+  if (isServerRebalancing()) {
+    return redirectingGet(key,transforms);
   }
-  return getInnerStore().get(key,transforms);
+ else {
+    return getInnerStore().get(key,transforms);
+  }
 }

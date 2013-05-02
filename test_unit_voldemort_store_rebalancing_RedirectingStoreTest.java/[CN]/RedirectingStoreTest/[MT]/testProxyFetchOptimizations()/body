@@ -1,0 +1,78 @@
+{
+  List<ByteArray> testPrimaryKeys=new ArrayList<ByteArray>(this.proxyPutTestPrimaryEntries.keySet());
+  List<ByteArray> testSecondaryKeys=new ArrayList<ByteArray>(this.proxyPutTestSecondaryEntries.keySet());
+  final RedirectingStore redirectingStoreNode2=getRedirectingStore(2,servers[2].getMetadataStore(),"test");
+  final RedirectingStore redirectingStoreNode0=getRedirectingStore(0,servers[0].getMetadataStore(),"test");
+  final Store<ByteArray,byte[],byte[]> socketStoreNode2=redirectingStoreNode2.getRedirectingSocketStore("test",2);
+  final Store<ByteArray,byte[],byte[]> socketStoreNode0=redirectingStoreNode0.getRedirectingSocketStore("test",0);
+  long time=System.currentTimeMillis();
+  ByteArray primaryKey1=testPrimaryKeys.get(1);
+  assertTrue("Originally key should not exist on Node 2",socketStoreNode2.get(primaryKey1,null).size() == 0);
+  assertTrue("get on Node 2 should return a valid value by proxy fetching from Node 0",redirectingStoreNode2.get(primaryKey1,null).size() > 0);
+  socketStoreNode0.delete(primaryKey1,makeSuperClock(time++));
+  assertTrue("Still should be able to serve it locally from Node 2",redirectingStoreNode2.get(primaryKey1,null).size() > 0);
+  ByteArray secondaryKey1=testSecondaryKeys.get(1);
+  VectorClock writeClock=makeSuperClock(time++);
+  socketStoreNode0.put(secondaryKey1,new Versioned<byte[]>("value-win".getBytes(),writeClock),null);
+  try {
+    redirectingStoreNode2.put(secondaryKey1,new Versioned<byte[]>("value-ove".getBytes(),writeClock),null);
+    fail("Missing OVE.. put should be based on remote version");
+  }
+ catch (  ObsoleteVersionException ove) {
+  }
+  assertEquals("Value not moved over from Node 0","value-win",new String(socketStoreNode2.get(secondaryKey1,null).get(0).getValue()));
+  socketStoreNode0.delete(secondaryKey1,makeSuperClock(time++));
+  redirectingStoreNode2.put(secondaryKey1,new Versioned<byte[]>("value-final".getBytes(),makeSuperClock(time++)),null);
+  assertEquals("Final value not found on node 2","value-final",new String(socketStoreNode2.get(secondaryKey1,null).get(0).getValue()));
+  assertEquals("Final value not found on node 0","value-final",new String(socketStoreNode0.get(secondaryKey1,null).get(0).getValue()));
+  for (  ByteArray key : testPrimaryKeys) {
+    socketStoreNode0.delete(key,makeSuperClock(time++));
+    socketStoreNode2.delete(key,makeSuperClock(time++));
+    socketStoreNode0.put(key,new Versioned<byte[]>("normal".getBytes(),makeSuperClock(time++)),null);
+  }
+  for (  ByteArray key : testSecondaryKeys) {
+    socketStoreNode0.delete(key,makeSuperClock(time++));
+    socketStoreNode2.delete(key,makeSuperClock(time++));
+    socketStoreNode0.put(key,new Versioned<byte[]>("normal".getBytes(),makeSuperClock(time++)),null);
+  }
+  List<ByteArray> keyList=new ArrayList<ByteArray>();
+  keyList.addAll(testPrimaryKeys);
+  keyList.addAll(testSecondaryKeys);
+  keyList.add(new ByteArray("non-existent-key".getBytes()));
+  VectorClock smallerClock=makeSuperClock(time++);
+  VectorClock biggerClock=makeSuperClock(time++);
+  socketStoreNode0.put(testPrimaryKeys.get(0),new Versioned<byte[]>("loser".getBytes(),smallerClock),null);
+  socketStoreNode2.put(testPrimaryKeys.get(0),new Versioned<byte[]>("winner".getBytes(),biggerClock),null);
+  socketStoreNode0.put(testSecondaryKeys.get(0),new Versioned<byte[]>("loser".getBytes(),smallerClock),null);
+  socketStoreNode2.put(testSecondaryKeys.get(0),new Versioned<byte[]>("winner".getBytes(),biggerClock),null);
+  Map<ByteArray,List<Versioned<byte[]>>> vals=redirectingStoreNode2.getAll(keyList,null);
+  assertEquals("Should contain exactly as many keys as the primary + secondary keys",testPrimaryKeys.size() + testSecondaryKeys.size(),vals.size());
+  assertFalse("Should not contain non existent key",vals.containsKey(new ByteArray("non-existent-key".getBytes())));
+  for (  Entry<ByteArray,List<Versioned<byte[]>>> entry : vals.entrySet()) {
+    String valueStr=new String(entry.getValue().get(0).getValue());
+    if (entry.getKey().equals(testPrimaryKeys.get(0)) || entry.getKey().equals(testSecondaryKeys.get(0))) {
+      assertEquals("Value should be 'winner'","winner",valueStr);
+    }
+ else {
+      assertEquals("Value should be 'normal'","normal",valueStr);
+    }
+  }
+  for (  ByteArray key : testPrimaryKeys) {
+    socketStoreNode0.delete(key,makeSuperClock(time++));
+  }
+  for (  ByteArray key : testSecondaryKeys) {
+    socketStoreNode0.delete(key,makeSuperClock(time++));
+  }
+  vals=redirectingStoreNode2.getAll(keyList,null);
+  assertEquals("Should contain exactly as many keys as the primary + secondary keys",testPrimaryKeys.size() + testSecondaryKeys.size(),vals.size());
+  assertFalse("Should not contain non existent key",vals.containsKey(new ByteArray("non-existent-key".getBytes())));
+  for (  Entry<ByteArray,List<Versioned<byte[]>>> entry : vals.entrySet()) {
+    String valueStr=new String(entry.getValue().get(0).getValue());
+    if (entry.getKey().equals(testPrimaryKeys.get(0)) || entry.getKey().equals(testSecondaryKeys.get(0))) {
+      assertEquals("Value should be 'winner'","winner",valueStr);
+    }
+ else {
+      assertEquals("Value should be 'normal'","normal",valueStr);
+    }
+  }
+}

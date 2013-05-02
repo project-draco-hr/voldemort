@@ -1,22 +1,8 @@
 {
-  Cluster currentCluster=metadata.getCluster();
-  StoreDefinition storeDef=metadata.getStoreDef(getName());
-  if (storeDef.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0) {
-    throw new UnsupportedOperationException("put() not supported on read-only store");
+  if (isServerRebalancing()) {
+    redirectingPut(key,value,transforms);
   }
-  StoreRoutingPlan currentRoutingPlan=new StoreRoutingPlan(currentCluster,storeDef);
-  Integer redirectNode=getProxyNode(currentRoutingPlan,storeDef,key.get());
-  if (redirectNode != null) {
-    if (logger.isTraceEnabled()) {
-      logger.trace("Proxying GET (before PUT) on stealer:" + metadata.getNodeId() + " for  key "+ ByteUtils.toHexString(key.get())+ " to node:"+ redirectNode);
-    }
-    proxyGetAndLocalPut(key,redirectNode,transforms);
-  }
-  getInnerStore().put(key,value,transforms);
-  if (isProxyPutEnabled && redirectNode != null && !currentRoutingPlan.getReplicationNodeList(key.get()).contains(redirectNode)) {
-    AsyncProxyPutTask asyncProxyPutTask=new AsyncProxyPutTask(this,key,value,transforms,redirectNode);
-    proxyPutStats.reportProxyPutSubmission();
-    proxyPutWorkerPool.submit(asyncProxyPutTask);
-    asyncProxyPutTask.run();
+ else {
+    getInnerStore().put(key,value,transforms);
   }
 }

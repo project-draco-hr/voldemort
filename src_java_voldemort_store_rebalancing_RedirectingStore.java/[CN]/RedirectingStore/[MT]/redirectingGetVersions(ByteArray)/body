@@ -1,0 +1,14 @@
+{
+  Integer redirectNode=getProxyNode(key.get());
+  if (redirectNode != null) {
+    List<Version> versions=getInnerStore().getVersions(key);
+    if (!versions.isEmpty()) {
+      return versions;
+    }
+    if (logger.isTraceEnabled()) {
+      logger.trace("Proxying GETVERSIONS on stealer:" + metadata.getNodeId() + " for  key "+ ByteUtils.toHexString(key.get())+ " to node:"+ redirectNode);
+    }
+    proxyGetAndLocalPut(key,redirectNode,null);
+  }
+  return getInnerStore().getVersions(key);
+}
