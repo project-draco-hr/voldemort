@@ -2,7 +2,8 @@
   try {
     final List<RebalancePartitionsInfo> rebalancePartitionsInfoList=orderedClusterTransition.getOrderedRebalancePartitionsInfoList();
     if (rebalancePartitionsInfoList.isEmpty()) {
-      RebalanceUtils.printLog(orderedClusterTransition.getId(),logger,"Skipping rebalance task id " + orderedClusterTransition.getId() + " since it is empty");
+      RebalanceUtils.printLog(orderedClusterTransition.getId(),logger,"Skipping rebalance task id " + orderedClusterTransition.getId() + " since it is empty.");
+      adminClient.rebalanceOps.rebalanceStateChange(orderedClusterTransition.getCurrentCluster(),orderedClusterTransition.getTargetCluster(),rebalancePartitionsInfoList,false,true,false,false,true);
       return;
     }
     RebalanceUtils.printLog(orderedClusterTransition.getId(),logger,"Starting rebalance task id " + orderedClusterTransition.getId());
