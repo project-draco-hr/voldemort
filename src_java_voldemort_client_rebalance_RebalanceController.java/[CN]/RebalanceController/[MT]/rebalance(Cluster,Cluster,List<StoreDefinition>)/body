@@ -9,7 +9,7 @@
   Cluster newCurrentCluster=RebalanceUtils.getClusterWithNewNodes(currentCluster,targetCluster);
   adminClient.setAdminClientCluster(newCurrentCluster);
   if (!rebalanceConfig.isShowPlanEnabled()) {
-    RebalanceUtils.validateClusterState(newCurrentCluster,adminClient);
+    RebalanceUtils.validateProdClusterStateIsNormal(newCurrentCluster,adminClient);
     RebalanceUtils.validateReadOnlyStores(newCurrentCluster,storeDefs,adminClient);
     logger.info("Propagating new cluster " + newCurrentCluster + " to all nodes");
     RebalanceUtils.propagateCluster(adminClient,newCurrentCluster);

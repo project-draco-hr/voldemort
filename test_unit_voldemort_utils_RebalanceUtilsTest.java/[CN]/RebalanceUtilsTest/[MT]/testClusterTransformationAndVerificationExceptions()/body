@@ -1,0 +1,43 @@
+{
+  boolean excepted;
+  excepted=false;
+  try {
+    doClusterTransformation(ClusterInstanceTest.getZZCluster(),ClusterInstanceTest.getZZClusterWithExtraPartitions(),ClusterInstanceTest.getZZClusterWithSwappedPartitions());
+  }
+ catch (  VoldemortException ve) {
+    excepted=true;
+  }
+  assertTrue(excepted);
+  excepted=false;
+  try {
+    doClusterTransformation(ClusterInstanceTest.getZZCluster(),ClusterInstanceTest.getZZCluster(),ClusterInstanceTest.getZZClusterWithExtraPartitions());
+  }
+ catch (  VoldemortException ve) {
+    excepted=true;
+  }
+  assertTrue(excepted);
+  excepted=false;
+  try {
+    doClusterTransformation(ClusterInstanceTest.getZZCluster(),ClusterInstanceTest.getZZClusterWithNNWithSwappedNodeIds(),ClusterInstanceTest.getZZClusterWithPP());
+  }
+ catch (  VoldemortException ve) {
+    excepted=true;
+  }
+  assertTrue(excepted);
+  excepted=false;
+  try {
+    doClusterTransformation(ClusterInstanceTest.getZZCluster(),ClusterInstanceTest.getZZClusterWithNN(),ClusterInstanceTest.getZZClusterWithPPWithSwappedNodeIds());
+  }
+ catch (  VoldemortException ve) {
+    excepted=true;
+  }
+  assertFalse(excepted);
+  excepted=false;
+  try {
+    doClusterTransformation(ClusterInstanceTest.getZZCluster(),ClusterInstanceTest.getZZClusterWithNN(),ClusterInstanceTest.getZZClusterWithPPWithTooManyNodes());
+  }
+ catch (  VoldemortException ve) {
+    excepted=true;
+  }
+  assertTrue(excepted);
+}
