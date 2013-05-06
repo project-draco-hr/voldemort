@@ -1,0 +1,23 @@
+{
+  List<Versioned<V>> obsoleteVals=new ArrayList<Versioned<V>>(multiPutValues.size());
+  for (  Versioned<V> value : multiPutValues) {
+    Iterator<Versioned<V>> iter=valuesInStorage.iterator();
+    boolean obsolete=false;
+    while (iter.hasNext()) {
+      Versioned<V> curr=iter.next();
+      Occurred occurred=value.getVersion().compare(curr.getVersion());
+      if (occurred == Occurred.BEFORE) {
+        obsolete=true;
+        break;
+      }
+ else       if (occurred == Occurred.AFTER)       iter.remove();
+    }
+    if (obsolete) {
+      obsoleteVals.add(value);
+    }
+ else {
+      valuesInStorage.add(value);
+    }
+  }
+  return obsoleteVals;
+}

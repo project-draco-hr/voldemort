@@ -1,0 +1,26 @@
+{
+  StoreUtils.assertValidKey(key);
+  List<Versioned<V>> obsoleteVals=null;
+  boolean success=false;
+  while (!success) {
+    List<Versioned<V>> valuesInStorage=null;
+    boolean insert=false;
+    valuesInStorage=map.get(key);
+    if (valuesInStorage == null) {
+      valuesInStorage=new ArrayList<Versioned<V>>(values.size());
+      insert=true;
+    }
+synchronized (valuesInStorage) {
+      if (!insert && map.get(key) != valuesInStorage)       continue;
+      obsoleteVals=computeVersionsToStore(valuesInStorage,values);
+      if (insert) {
+        List<Versioned<V>> previousVersion=map.putIfAbsent(key,valuesInStorage);
+        if (previousVersion != null) {
+          continue;
+        }
+      }
+      success=true;
+    }
+  }
+  return obsoleteVals;
+}
