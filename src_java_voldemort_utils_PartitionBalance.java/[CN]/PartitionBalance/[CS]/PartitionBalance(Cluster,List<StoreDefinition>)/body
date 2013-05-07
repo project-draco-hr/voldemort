@@ -4,7 +4,6 @@
   builder.append(ClusterUtils.verboseClusterDump(cluster));
   HashMap<StoreDefinition,Integer> uniqueStores=KeyDistributionGenerator.getUniqueStoreDefinitionsWithCounts(storeDefs);
   Set<Integer> nodeIds=cluster.getNodeIds();
-  Set<Integer> zoneIds=cluster.getZoneIds();
   builder.append("PARTITION DUMP\n");
   this.primaryAggNodeIdToPartitionCount=Maps.newHashMap();
   for (  Integer nodeId : nodeIds) {
@@ -20,77 +19,23 @@
   }
   for (  StoreDefinition storeDefinition : uniqueStores.keySet()) {
     StoreRoutingPlan storeRoutingPlan=new StoreRoutingPlan(cluster,storeDefinition);
-    builder.append("\n");
-    builder.append("Store exemplar: " + storeDefinition.getName() + "\n");
-    builder.append("\tReplication factor: " + storeDefinition.getReplicationFactor() + "\n");
-    builder.append("\tRouting strategy: " + storeDefinition.getRoutingStrategyType() + "\n");
-    builder.append("\tThere are " + uniqueStores.get(storeDefinition) + " other similar stores.\n");
-    Map<Integer,Set<Pair<Integer,Integer>>> nodeIdToAllPartitions=RebalanceUtils.getNodeIdToAllPartitions(cluster,storeDefinition,true);
-    Map<Integer,Integer> primaryNodeIdToPartitionCount=Maps.newHashMap();
-    Map<Integer,Integer> nodeIdToZonePrimaryCount=Maps.newHashMap();
-    Map<Integer,Integer> allNodeIdToPartitionCount=Maps.newHashMap();
-    builder.append("\n");
-    builder.append("\tDetailed Dump:\n");
+    builder.append(Utils.NEWLINE).append("Store exemplar: " + storeDefinition.getName()).append(Utils.NEWLINE).append("\tReplication factor: " + storeDefinition.getReplicationFactor()).append(Utils.NEWLINE).append("\tRouting strategy: " + storeDefinition.getRoutingStrategyType()).append(Utils.NEWLINE).append("\tThere are " + uniqueStores.get(storeDefinition) + " other similar stores.").append(Utils.NEWLINE).append(Utils.NEWLINE);
+    builder.append(dumpZoneNAryDetails(storeRoutingPlan));
+    builder.append(Utils.NEWLINE);
+    builder.append(dumpReplicaTypeDetails(cluster,storeDefinition));
+    builder.append(Utils.NEWLINE);
+    Map<Integer,Integer> nodeIdToPrimaryCount=getNodeIdToPrimaryCount(cluster);
+    Map<Integer,Integer> nodeIdToZonePrimaryCount=getNodeIdToZonePrimaryCount(cluster,storeRoutingPlan);
+    Map<Integer,Integer> nodeIdToNaryCount=getNodeIdToNaryCount(cluster,storeRoutingPlan);
+    builder.append("\tSummary of NAry counts:").append(Utils.NEWLINE);
     for (    Integer nodeId : nodeIds) {
-      builder.append("\tNode ID: " + nodeId + "in zone "+ cluster.getNodeById(nodeId).getZoneId()+ "\n");
-      primaryNodeIdToPartitionCount.put(nodeId,0);
-      nodeIdToZonePrimaryCount.put(nodeId,0);
-      allNodeIdToPartitionCount.put(nodeId,0);
-      Set<Pair<Integer,Integer>> partitionPairs=nodeIdToAllPartitions.get(nodeId);
-      int replicaType=0;
-      while (partitionPairs.size() > 0) {
-        List<Pair<Integer,Integer>> replicaPairs=new ArrayList<Pair<Integer,Integer>>();
-        for (        Pair<Integer,Integer> pair : partitionPairs) {
-          if (pair.getFirst() == replicaType) {
-            replicaPairs.add(pair);
-          }
-        }
-        List<Integer> partitions=new ArrayList<Integer>();
-        for (        Pair<Integer,Integer> pair : replicaPairs) {
-          partitionPairs.remove(pair);
-          partitions.add(pair.getSecond());
-        }
-        java.util.Collections.sort(partitions);
-        builder.append("\t\t" + replicaType);
-        for (        int zoneId : zoneIds) {
-          builder.append(" : z" + zoneId + " : ");
-          List<Integer> zonePartitions=new ArrayList<Integer>();
-          for (          int partitionId : partitions) {
-            if (cluster.getPartitionIdsInZone(zoneId).contains(partitionId)) {
-              zonePartitions.add(partitionId);
-            }
-          }
-          builder.append(zonePartitions.toString());
-        }
-        builder.append("\n");
-        if (replicaType == 0) {
-          primaryNodeIdToPartitionCount.put(nodeId,primaryNodeIdToPartitionCount.get(nodeId) + partitions.size());
-        }
-        allNodeIdToPartitionCount.put(nodeId,allNodeIdToPartitionCount.get(nodeId) + partitions.size());
-        replicaType++;
-      }
-    }
-    for (int partitionId=0; partitionId < cluster.getNumberOfPartitions(); partitionId++) {
-      for (      int zoneId : zoneIds) {
-        for (        int nodeId : storeRoutingPlan.getReplicationNodeList(partitionId)) {
-          if (cluster.getNodeById(nodeId).getZoneId() == zoneId) {
-            nodeIdToZonePrimaryCount.put(nodeId,nodeIdToZonePrimaryCount.get(nodeId) + 1);
-            break;
-          }
-        }
-      }
-    }
-    builder.append("\n");
-    builder.append("\tSummary Dump:\n");
-    for (    Integer nodeId : nodeIds) {
-      builder.append("\tNode ID: " + nodeId + " : "+ allNodeIdToPartitionCount.get(nodeId)+ "\n");
-      primaryAggNodeIdToPartitionCount.put(nodeId,primaryAggNodeIdToPartitionCount.get(nodeId) + (primaryNodeIdToPartitionCount.get(nodeId) * uniqueStores.get(storeDefinition)));
+      builder.append("\tNode ID: " + nodeId + " : "+ nodeIdToNaryCount.get(nodeId)+ "\n");
+      primaryAggNodeIdToPartitionCount.put(nodeId,primaryAggNodeIdToPartitionCount.get(nodeId) + (nodeIdToPrimaryCount.get(nodeId) * uniqueStores.get(storeDefinition)));
       aggNodeIdToZonePrimaryCount.put(nodeId,aggNodeIdToZonePrimaryCount.get(nodeId) + nodeIdToZonePrimaryCount.get(nodeId) * uniqueStores.get(storeDefinition));
-      allAggNodeIdToPartitionCount.put(nodeId,allAggNodeIdToPartitionCount.get(nodeId) + (allNodeIdToPartitionCount.get(nodeId) * uniqueStores.get(storeDefinition)));
+      allAggNodeIdToPartitionCount.put(nodeId,allAggNodeIdToPartitionCount.get(nodeId) + (nodeIdToNaryCount.get(nodeId) * uniqueStores.get(storeDefinition)));
     }
   }
-  builder.append("\n");
-  builder.append("\n");
+  builder.append(Utils.NEWLINE).append(Utils.NEWLINE);
   Pair<Double,String> summary=summarizeBalance(primaryAggNodeIdToPartitionCount,"AGGREGATE PRIMARY-PARTITION COUNT (across all stores)");
   builder.append(summary.getSecond());
   this.primaryMaxMin=summary.getFirst();

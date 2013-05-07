@@ -4,14 +4,20 @@
   this.partitionIdToNodeIdMap=ClusterUtils.getCurrentPartitionMapping(cluster);
   this.routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDefinition,cluster);
   this.nodeIdToNaryPartitionMap=new HashMap<Integer,List<Integer>>();
+  this.nodeIdToZonePrimaryMap=new HashMap<Integer,List<Integer>>();
   for (  int nodeId : cluster.getNodeIds()) {
     this.nodeIdToNaryPartitionMap.put(nodeId,new ArrayList<Integer>());
+    this.nodeIdToZonePrimaryMap.put(nodeId,new ArrayList<Integer>());
   }
   for (int masterPartitionId=0; masterPartitionId < cluster.getNumberOfPartitions(); ++masterPartitionId) {
     List<Integer> naryPartitionIds=getReplicatingPartitionList(masterPartitionId);
     for (    int naryPartitionId : naryPartitionIds) {
       int naryNodeId=getNodeIdForPartitionId(naryPartitionId);
       nodeIdToNaryPartitionMap.get(naryNodeId).add(masterPartitionId);
+      int naryZoneId=cluster.getNodeById(naryNodeId).getZoneId();
+      if (getZoneReplicaType(naryZoneId,naryNodeId,naryPartitionId) == 0) {
+        nodeIdToZonePrimaryMap.get(naryNodeId).add(masterPartitionId);
+      }
     }
   }
 }

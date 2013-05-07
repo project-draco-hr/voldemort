@@ -5,16 +5,16 @@
   parser.accepts("target-cluster","Path to target cluster xml").withRequiredArg().describedAs("cluster.xml");
   parser.accepts("current-stores","Path to current store definition xml. Needed for cluster and zone expansion.").withRequiredArg().describedAs("stores.xml");
   parser.accepts("target-stores","Path to target store definition xml. Needed for zone expansion.").withRequiredArg().describedAs("stores.xml");
-  parser.accepts("attempts","Number of attempts at repartitioning. [ Default: " + DEFAULT_REPARTITION_ATTEMPTS + " ]").withRequiredArg().ofType(Integer.class).describedAs("num-attempts");
+  parser.accepts("attempts","Number of attempts at repartitioning. [ Default: " + RepartitionUtils.DEFAULT_REPARTITION_ATTEMPTS + " ]").withRequiredArg().ofType(Integer.class).describedAs("num-attempts");
   parser.accepts("output-dir","Specify the output directory for the repartitioned cluster.xml and the analysis files.").withRequiredArg().ofType(String.class).describedAs("path");
   parser.accepts("disable-node-balancing","Make sure that all nodes within every zone have the same (within one) number of primary partitions [default: enabled]");
   parser.accepts("disable-zone-balancing","Make sure that all zones have the same (within one) number of primary partitions [default: enabled]");
   parser.accepts("enable-random-swaps","Enable attempts to improve balance by random partition swaps within a zone. [Default: disabled]");
-  parser.accepts("random-swap-attempts","Number of random swaps to attempt. [Default:" + DEFAULT_RANDOM_SWAP_ATTEMPTS + " ]").withRequiredArg().ofType(Integer.class).describedAs("num-attempts");
-  parser.accepts("random-swap-successes","Number of successful random swaps to permit exit before completing all swap attempts. [Default:" + DEFAULT_RANDOM_SWAP_SUCCESSES + " ]").withRequiredArg().ofType(Integer.class).describedAs("num-successes");
+  parser.accepts("random-swap-attempts","Number of random swaps to attempt. [Default:" + RepartitionUtils.DEFAULT_RANDOM_SWAP_ATTEMPTS + " ]").withRequiredArg().ofType(Integer.class).describedAs("num-attempts");
+  parser.accepts("random-swap-successes","Number of successful random swaps to permit exit before completing all swap attempts. [Default:" + RepartitionUtils.DEFAULT_RANDOM_SWAP_SUCCESSES + " ]").withRequiredArg().ofType(Integer.class).describedAs("num-successes");
   parser.accepts("enable-greedy-swaps","Enable attempts to improve balance by greedily swapping (random) partitions within a zone. [Default: disabled]");
-  parser.accepts("greedy-swap-attempts","Number of greedy (random) swaps to attempt. [Default:" + DEFAULT_GREEDY_SWAP_ATTEMPTS + " ]").withRequiredArg().ofType(Integer.class).describedAs("num-attempts");
-  parser.accepts("greedy-max-partitions-per-node","Max number of partitions per-node to evaluate swapping with other partitions within the zone. [Default:" + DEFAULT_GREEDY_MAX_PARTITIONS_PER_NODE + " ]").withRequiredArg().ofType(Integer.class).describedAs("max-partitions-per-node");
-  parser.accepts("greedy-max-partitions-per-zone","Max number of (random) partitions per-zone to evaluate swapping with partitions from node being evaluated. [Default:" + DEFAULT_GREEDY_MAX_PARTITIONS_PER_ZONE + " ]").withRequiredArg().ofType(Integer.class).describedAs("max-partitions-per-zone");
-  parser.accepts("max-contiguous-partitions","Limit the number of contiguous partition IDs allowed within a zone. [Default:" + DEFAULT_MAX_CONTIGUOUS_PARTITIONS + " (indicating no limit)]").withRequiredArg().ofType(Integer.class).describedAs("num-contiguous");
+  parser.accepts("greedy-swap-attempts","Number of greedy (random) swaps to attempt. [Default:" + RepartitionUtils.DEFAULT_GREEDY_SWAP_ATTEMPTS + " ]").withRequiredArg().ofType(Integer.class).describedAs("num-attempts");
+  parser.accepts("greedy-max-partitions-per-node","Max number of partitions per-node to evaluate swapping with other partitions within the zone. [Default:" + RepartitionUtils.DEFAULT_GREEDY_MAX_PARTITIONS_PER_NODE + " ]").withRequiredArg().ofType(Integer.class).describedAs("max-partitions-per-node");
+  parser.accepts("greedy-max-partitions-per-zone","Max number of (random) partitions per-zone to evaluate swapping with partitions from node being evaluated. [Default:" + RepartitionUtils.DEFAULT_GREEDY_MAX_PARTITIONS_PER_ZONE + " ]").withRequiredArg().ofType(Integer.class).describedAs("max-partitions-per-zone");
+  parser.accepts("max-contiguous-partitions","Limit the number of contiguous partition IDs allowed within a zone. [Default:" + RepartitionUtils.DEFAULT_MAX_CONTIGUOUS_PARTITIONS + " (indicating no limit)]").withRequiredArg().ofType(Integer.class).describedAs("num-contiguous");
 }

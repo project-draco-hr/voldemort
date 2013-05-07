@@ -2,7 +2,7 @@
   ClusterMapper mapper=new ClusterMapper();
   Cluster updatedCluster=mapper.readCluster(new StringReader(mapper.writeCluster(currentCluster)));
   for (  int donatedPartition : donatedPartitions) {
-    Node donorNode=ClusterUtils.getNodeByPartitionId(updatedCluster,donatedPartition);
+    Node donorNode=updatedCluster.getNodeForPartitionId(donatedPartition);
     Node stealerNode=updatedCluster.getNodeById(stealerNodeId);
     if (donorNode == stealerNode) {
       continue;

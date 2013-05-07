@@ -1,0 +1,26 @@
+{
+  StringBuilder sb=new StringBuilder();
+  sb.append("Dump of invalid metadata rates per zone").append(Utils.NEWLINE);
+  HashMap<StoreDefinition,Integer> uniqueStores=KeyDistributionGenerator.getUniqueStoreDefinitionsWithCounts(currentStoreDefs);
+  for (  StoreDefinition currentStoreDef : uniqueStores.keySet()) {
+    sb.append("Store exemplar: " + currentStoreDef.getName()).append(Utils.NEWLINE).append("\tThere are " + uniqueStores.get(currentStoreDef) + " other similar stores.").append(Utils.NEWLINE);
+    StoreRoutingPlan currentSRP=new StoreRoutingPlan(currentCluster,currentStoreDef);
+    StoreDefinition targetStoreDef=StoreUtils.getStoreDef(targetStoreDefs,currentStoreDef.getName());
+    StoreRoutingPlan targetSRP=new StoreRoutingPlan(targetCluster,targetStoreDef);
+    for (    int zoneId : currentCluster.getZoneIds()) {
+      int zoneLocalPrimaries=0;
+      int invalidMetadata=0;
+      for (      int nodeId : currentCluster.getNodeIdsInZone(zoneId)) {
+        for (        int partitionId : targetSRP.getZonePrimaryPartitionIds(nodeId)) {
+          zoneLocalPrimaries++;
+          if (!currentSRP.getNaryPartitionIds(nodeId).contains(partitionId)) {
+            invalidMetadata++;
+          }
+        }
+      }
+      float rate=invalidMetadata / (float)zoneLocalPrimaries;
+      sb.append("\tZone " + zoneId).append(" : total zone primaries " + zoneLocalPrimaries).append(", # that trigger invalid metadata " + invalidMetadata).append(" => " + rate).append(Utils.NEWLINE);
+    }
+  }
+  return sb.toString();
+}
