@@ -5,7 +5,7 @@
   int entrySize=ByteUtils.SIZE_OF_SHORT + versionSize;
   int minimumBytes=offset + ByteUtils.SIZE_OF_SHORT + 1+ numEntries * entrySize + ByteUtils.SIZE_OF_LONG;
   if (bytes.length < minimumBytes)   throw new IllegalArgumentException("Too few bytes: expected at least " + minimumBytes + " but found only "+ bytes.length+ ".");
-  this.versionMap=new HashMap<Short,Long>(numEntries);
+  this.versionMap=new TreeMap<Short,Long>();
   int index=3 + offset;
   for (int i=0; i < numEntries; i++) {
     short nodeId=ByteUtils.readShort(bytes,index);

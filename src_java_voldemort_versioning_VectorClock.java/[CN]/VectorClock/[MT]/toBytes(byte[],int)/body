@@ -5,9 +5,11 @@
   buf[offset]=versionSize;
   offset++;
   int clockEntrySize=ByteUtils.SIZE_OF_SHORT + versionSize;
-  for (  Map.Entry<Short,Long> entry : versionMap.entrySet()) {
-    ByteUtils.writeShort(buf,entry.getKey(),offset);
-    ByteUtils.writeBytes(buf,entry.getValue(),offset + ByteUtils.SIZE_OF_SHORT,versionSize);
+  SortedSet<Short> nodeIds=versionMap.navigableKeySet();
+  for (  Short nodeId : nodeIds) {
+    Long version=versionMap.get(nodeId);
+    ByteUtils.writeShort(buf,nodeId,offset);
+    ByteUtils.writeBytes(buf,version,offset + ByteUtils.SIZE_OF_SHORT,versionSize);
     offset+=clockEntrySize;
   }
   ByteUtils.writeLong(buf,this.timestamp,offset);
