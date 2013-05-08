@@ -1,6 +1,6 @@
 {
   PartitionBalance partitionBalance=new ClusterInstance(currentCluster,currentStoreDefs).getPartitionBalance();
-  dumpAnalysisToFile(outputDir,RebalanceUtils.initialClusterFileName + ".analysis",partitionBalance.toString());
+  RebalanceUtils.dumpAnalysisToFile(outputDir,RebalanceUtils.currentClusterFileName,partitionBalance);
   Cluster minCluster=targetCluster;
   double minUtility=Double.MAX_VALUE;
   for (int attempt=0; attempt < attempts; attempt++) {
@@ -17,21 +17,18 @@
     if (enableGreedySwaps) {
       nextCluster=greedyShufflePartitions(nextCluster,greedySwapAttempts,greedySwapMaxPartitionsPerNode,greedySwapMaxPartitionsPerZone,new ArrayList<Integer>(targetCluster.getZoneIds()),targetStoreDefs);
     }
-    if (!validateClusterUpdate(currentCluster,nextCluster)) {
-      System.err.println("The modified cluster does not pass validation. Reverting to initial cluster...");
-      nextCluster=currentCluster;
-    }
+    RebalanceUtils.validateCurrentFinalCluster(currentCluster,nextCluster);
     System.out.println("-------------------------\n");
     partitionBalance=new ClusterInstance(nextCluster,targetStoreDefs).getPartitionBalance();
     double currentUtility=partitionBalance.getUtility();
     System.out.println("Optimization number " + attempt + ": "+ currentUtility+ " max/min ratio");
     System.out.println("-------------------------\n");
-    System.out.println(dumpInvalidMetadataRate(targetCluster,currentStoreDefs,nextCluster,currentStoreDefs));
+    System.out.println(RebalanceUtils.analyzeInvalidMetadataRate(targetCluster,currentStoreDefs,nextCluster,currentStoreDefs));
     if (currentUtility <= minUtility) {
       minUtility=currentUtility;
       minCluster=nextCluster;
-      dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName + attempt,minCluster);
-      dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName + attempt + ".analysis",partitionBalance.toString());
+      RebalanceUtils.dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName + attempt,minCluster);
+      RebalanceUtils.dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName + attempt,partitionBalance);
     }
     System.out.println("-------------------------\n");
   }
@@ -39,7 +36,7 @@
   System.out.println("Final distribution");
   partitionBalance=new ClusterInstance(minCluster,targetStoreDefs).getPartitionBalance();
   System.out.println(partitionBalance);
-  dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName,minCluster);
-  dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName + ".analysis",partitionBalance.toString());
+  RebalanceUtils.dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName,minCluster);
+  RebalanceUtils.dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName,partitionBalance);
   return minCluster;
 }

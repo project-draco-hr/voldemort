@@ -1,7 +1,7 @@
 {
   HashMap<Integer,List<Integer>> numPartitionsPerNode=Maps.newHashMap();
   for (  Integer zoneId : targetCluster.getZoneIds()) {
-    List<Integer> partitionsOnNode=peanutButterList(targetCluster.getNumberOfNodesInZone(zoneId),targetPartitionsPerZone.get(zoneId));
+    List<Integer> partitionsOnNode=Utils.distributeEvenlyIntoList(targetCluster.getNumberOfNodesInZone(zoneId),targetPartitionsPerZone.get(zoneId));
     numPartitionsPerNode.put(zoneId,partitionsOnNode);
   }
   return numPartitionsPerNode;

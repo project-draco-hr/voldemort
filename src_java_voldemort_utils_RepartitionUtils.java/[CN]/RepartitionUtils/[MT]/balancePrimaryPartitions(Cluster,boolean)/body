@@ -2,7 +2,7 @@
   System.out.println("Balance number of partitions across all nodes and zones.");
   Map<Integer,Integer> targetPartitionsPerZone;
   if (balanceZones) {
-    targetPartitionsPerZone=peanutButterMap(targetCluster.getZoneIds(),targetCluster.getNumberOfPartitions());
+    targetPartitionsPerZone=Utils.distributeEvenlyIntoMap(targetCluster.getZoneIds(),targetCluster.getNumberOfPartitions());
     System.out.println("numPartitionsPerZone");
     for (    int zoneId : targetCluster.getZoneIds()) {
       System.out.println(zoneId + " : " + targetCluster.getNumberOfPartitionsInZone(zoneId)+ " -> "+ targetPartitionsPerZone.get(zoneId));

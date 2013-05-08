@@ -1,7 +1,7 @@
 {
   final TreeMultimap<Integer,Integer> stealerToStolenPrimaryPartitions=TreeMultimap.create();
   ClusterMapper mapper=new ClusterMapper();
-  if (outputDir != null)   RebalanceUtils.dumpCluster(targetCluster,finalCluster,new File(outputDir));
+  if (outputDir != null)   RebalanceUtils.dumpClusters(targetCluster,finalCluster,outputDir);
   for (  Node stealerNode : finalCluster.getNodes()) {
     List<Integer> stolenPrimaryPartitions=RebalanceUtils.getStolenPrimaryPartitions(targetCluster,finalCluster,stealerNode.getId());
     if (stolenPrimaryPartitions.size() > 0) {
@@ -25,7 +25,7 @@
       Entry<Integer,Integer> entry=partitionMoved.next();
       stealerToStolenPrimaryPartitions.remove(entry.getKey(),entry.getValue());
     }
-    if (outputDir != null)     RebalanceUtils.dumpCluster(batchTargetCluster,batchFinalCluster,new File(outputDir),"batch-" + Integer.toString(batches) + ".");
+    if (outputDir != null)     RebalanceUtils.dumpClusters(batchTargetCluster,batchFinalCluster,outputDir,"batch-" + Integer.toString(batches) + ".");
     boolean deleteEnabled=false;
     final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(batchTargetCluster,batchFinalCluster,finalStores,deleteEnabled,stealerBased);
     batchPlans.add(rebalanceClusterPlan);
