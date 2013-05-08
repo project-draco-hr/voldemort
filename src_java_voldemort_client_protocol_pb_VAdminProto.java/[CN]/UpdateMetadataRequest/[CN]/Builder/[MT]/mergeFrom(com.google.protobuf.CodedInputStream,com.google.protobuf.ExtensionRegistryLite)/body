@@ -16,18 +16,10 @@ default :
   }
 case 10:
 {
-  setKey(input.readBytes());
+  voldemort.client.protocol.pb.VProto.KeyedVersions.Builder subBuilder=voldemort.client.protocol.pb.VProto.KeyedVersions.newBuilder();
+  input.readMessage(subBuilder,extensionRegistry);
+  addKeyValue(subBuilder.buildPartial());
   break;
-}
-case 18:
-{
-voldemort.client.protocol.pb.VProto.Versioned.Builder subBuilder=voldemort.client.protocol.pb.VProto.Versioned.newBuilder();
-if (hasVersioned()) {
-  subBuilder.mergeFrom(getVersioned());
-}
-input.readMessage(subBuilder,extensionRegistry);
-setVersioned(subBuilder.buildPartial());
-break;
 }
 }
 }
