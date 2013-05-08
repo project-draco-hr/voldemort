@@ -59,6 +59,14 @@
     }
   }
   logger.info("Closed failure detector.");
+  this.proxyPutWorkerPool.shutdown();
+  try {
+    if (!this.proxyPutWorkerPool.awaitTermination(10,TimeUnit.SECONDS))     this.proxyPutWorkerPool.shutdownNow();
+  }
+ catch (  InterruptedException e) {
+    this.proxyPutWorkerPool.shutdownNow();
+  }
+  logger.info("Closed proxy put thread pool.");
   if (lastException instanceof VoldemortException)   throw (VoldemortException)lastException;
  else   if (lastException != null)   throw new VoldemortException(lastException);
 }

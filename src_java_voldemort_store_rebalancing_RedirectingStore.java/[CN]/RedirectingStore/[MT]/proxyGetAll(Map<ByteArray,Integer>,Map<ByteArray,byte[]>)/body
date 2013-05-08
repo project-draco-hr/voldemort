@@ -1,25 +1,25 @@
 {
-  Multimap<Integer,ByteArray> donorNodeToKeys=HashMultimap.create();
+  Multimap<Integer,ByteArray> proxyNodeToKeys=HashMultimap.create();
   int numKeys=0;
   for (  Map.Entry<ByteArray,Integer> entry : keyToProxyNodeMap.entrySet()) {
     numKeys++;
-    donorNodeToKeys.put(entry.getValue(),entry.getKey());
+    proxyNodeToKeys.put(entry.getValue(),entry.getKey());
   }
   Map<ByteArray,List<Versioned<byte[]>>> gatherMap=Maps.newHashMapWithExpectedSize(numKeys);
-  for (  int donorNodeId : donorNodeToKeys.keySet()) {
-    Node donorNode=metadata.getCluster().getNodeById(donorNodeId);
-    checkNodeAvailable(donorNode);
+  for (  int proxyNodeId : proxyNodeToKeys.keySet()) {
+    Node proxyNode=metadata.getCluster().getNodeById(proxyNodeId);
+    checkNodeAvailable(proxyNode);
     long startNs=System.nanoTime();
     try {
-      Map<ByteArray,List<Versioned<byte[]>>> resultsForNode=getRedirectingSocketStore(getName(),donorNodeId).getAll(donorNodeToKeys.get(donorNodeId),transforms);
-      recordSuccess(donorNode,startNs);
+      Map<ByteArray,List<Versioned<byte[]>>> resultsForNode=getRedirectingSocketStore(getName(),proxyNodeId).getAll(proxyNodeToKeys.get(proxyNodeId),transforms);
+      recordSuccess(proxyNode,startNs);
       for (      Map.Entry<ByteArray,List<Versioned<byte[]>>> entry : resultsForNode.entrySet()) {
         gatherMap.put(entry.getKey(),entry.getValue());
       }
     }
  catch (    UnreachableStoreException e) {
-      recordException(donorNode,startNs,e);
-      throw new ProxyUnreachableException("Failed to reach proxy node " + donorNode,e);
+      recordException(proxyNode,startNs,e);
+      throw new ProxyUnreachableException("Failed to reach proxy node " + proxyNode,e);
     }
   }
   return gatherMap;
