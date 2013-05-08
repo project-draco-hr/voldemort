@@ -18,7 +18,7 @@
   List<StoreDefinition> targetStoreDefs=new StoreDefinitionsMapper().readStoreList(new File(targetStoresXML));
   RebalanceUtils.validateClusterStores(targetCluster,targetStoreDefs);
   RebalanceUtils.validateCurrentTargetCluster(currentCluster,targetCluster);
-  int attempts=CmdUtils.valueOf(options,"attempts",RepartitionUtils.DEFAULT_REPARTITION_ATTEMPTS);
+  int attempts=CmdUtils.valueOf(options,"attempts",Repartitioner.DEFAULT_REPARTITION_ATTEMPTS);
   String outputDir=null;
   if (options.has("output-dir")) {
     outputDir=(String)options.valueOf("output-dir");
@@ -26,13 +26,13 @@
   boolean disableNodeBalancing=options.has("disable-node-balancing");
   boolean disableZoneBalancing=options.has("disable-zone-balancing");
   boolean enableRandomSwaps=options.has("enable-random-swaps");
-  int randomSwapAttempts=CmdUtils.valueOf(options,"random-swap-attempts",RepartitionUtils.DEFAULT_RANDOM_SWAP_ATTEMPTS);
-  int randomSwapSuccesses=CmdUtils.valueOf(options,"random-swap-successes",RepartitionUtils.DEFAULT_RANDOM_SWAP_SUCCESSES);
+  int randomSwapAttempts=CmdUtils.valueOf(options,"random-swap-attempts",Repartitioner.DEFAULT_RANDOM_SWAP_ATTEMPTS);
+  int randomSwapSuccesses=CmdUtils.valueOf(options,"random-swap-successes",Repartitioner.DEFAULT_RANDOM_SWAP_SUCCESSES);
   boolean enableGreedySwaps=options.has("enable-greedy-swaps");
-  int greedySwapAttempts=CmdUtils.valueOf(options,"greedy-swap-attempts",RepartitionUtils.DEFAULT_GREEDY_SWAP_ATTEMPTS);
-  int greedyMaxPartitionsPerNode=CmdUtils.valueOf(options,"greedy-max-partitions-per-node",RepartitionUtils.DEFAULT_GREEDY_MAX_PARTITIONS_PER_NODE);
-  int greedyMaxPartitionsPerZone=CmdUtils.valueOf(options,"greedy-max-partitions-per-zone",RepartitionUtils.DEFAULT_GREEDY_MAX_PARTITIONS_PER_ZONE);
-  int maxContiguousPartitionsPerZone=CmdUtils.valueOf(options,"max-contiguous-partitions",RepartitionUtils.DEFAULT_MAX_CONTIGUOUS_PARTITIONS);
+  int greedySwapAttempts=CmdUtils.valueOf(options,"greedy-swap-attempts",Repartitioner.DEFAULT_GREEDY_SWAP_ATTEMPTS);
+  int greedyMaxPartitionsPerNode=CmdUtils.valueOf(options,"greedy-max-partitions-per-node",Repartitioner.DEFAULT_GREEDY_MAX_PARTITIONS_PER_NODE);
+  int greedyMaxPartitionsPerZone=CmdUtils.valueOf(options,"greedy-max-partitions-per-zone",Repartitioner.DEFAULT_GREEDY_MAX_PARTITIONS_PER_ZONE);
+  int maxContiguousPartitionsPerZone=CmdUtils.valueOf(options,"max-contiguous-partitions",Repartitioner.DEFAULT_MAX_CONTIGUOUS_PARTITIONS);
   if (disableNodeBalancing && !enableRandomSwaps && !enableGreedySwaps&& maxContiguousPartitionsPerZone == 0) {
     printUsageAndDie("Did not enable any forms for repartitioning.");
   }
@@ -42,6 +42,6 @@
   if ((options.has("greedy-swap-attempts") || options.has("greedy-max-partitions-per-node") || options.has("greedy-max-partitions-per-zone")) && !enableGreedySwaps) {
     printUsageAndDie("Provided arguments for generate greedy swaps but did not enable the feature");
   }
-  List<Integer> greedyZoneIds=RepartitionUtils.DEFAULT_GREEDY_ZONE_IDS;
-  RepartitionUtils.repartition(currentCluster,currentStoreDefs,targetCluster,targetStoreDefs,outputDir,attempts,disableNodeBalancing,disableZoneBalancing,enableRandomSwaps,randomSwapAttempts,randomSwapSuccesses,enableGreedySwaps,greedyZoneIds,greedySwapAttempts,greedyMaxPartitionsPerNode,greedyMaxPartitionsPerZone,maxContiguousPartitionsPerZone);
+  List<Integer> greedyZoneIds=Repartitioner.DEFAULT_GREEDY_ZONE_IDS;
+  Repartitioner.repartition(currentCluster,currentStoreDefs,targetCluster,targetStoreDefs,outputDir,attempts,disableNodeBalancing,disableZoneBalancing,enableRandomSwaps,randomSwapAttempts,randomSwapSuccesses,enableGreedySwaps,greedyZoneIds,greedySwapAttempts,greedyMaxPartitionsPerNode,greedyMaxPartitionsPerZone,maxContiguousPartitionsPerZone);
 }
