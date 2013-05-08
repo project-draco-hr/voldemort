@@ -1,5 +1,5 @@
 {
-  PartitionBalance partitionBalance=new ClusterInstance(currentCluster,currentStoreDefs).getPartitionBalance();
+  PartitionBalance partitionBalance=new PartitionBalance(currentCluster,currentStoreDefs);
   RebalanceUtils.dumpAnalysisToFile(outputDir,RebalanceUtils.currentClusterFileName,partitionBalance);
   Cluster minCluster=targetCluster;
   double minUtility=Double.MAX_VALUE;
@@ -19,7 +19,7 @@
     }
     RebalanceUtils.validateCurrentFinalCluster(currentCluster,nextCluster);
     System.out.println("-------------------------\n");
-    partitionBalance=new ClusterInstance(nextCluster,targetStoreDefs).getPartitionBalance();
+    partitionBalance=new PartitionBalance(nextCluster,targetStoreDefs);
     double currentUtility=partitionBalance.getUtility();
     System.out.println("Optimization number " + attempt + ": "+ currentUtility+ " max/min ratio");
     System.out.println("-------------------------\n");
@@ -34,7 +34,7 @@
   }
   System.out.println("\n==========================");
   System.out.println("Final distribution");
-  partitionBalance=new ClusterInstance(minCluster,targetStoreDefs).getPartitionBalance();
+  partitionBalance=new PartitionBalance(minCluster,targetStoreDefs);
   System.out.println(partitionBalance);
   RebalanceUtils.dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName,minCluster);
   RebalanceUtils.dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName,partitionBalance);

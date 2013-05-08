@@ -9,7 +9,7 @@
     logger.warn("greedyShufflePartitions invoked with empty list of zone IDs.");
     return returnCluster;
   }
-  double currentUtility=new ClusterInstance(returnCluster,storeDefs).getPartitionBalance().getUtility();
+  double currentUtility=new PartitionBalance(returnCluster,storeDefs).getUtility();
   for (int i=0; i < greedyAttempts; i++) {
     Collections.shuffle(zoneIds,new Random(System.currentTimeMillis()));
     for (    Integer zoneId : zoneIds) {
@@ -22,7 +22,7 @@
         nodeIds=new ArrayList<Integer>(targetCluster.getNodeIdsInZone(zoneId));
       }
       Cluster shuffleResults=swapGreedyRandomPartitions(returnCluster,nodeIds,greedySwapMaxPartitionsPerNode,greedySwapMaxPartitionsPerZone,storeDefs);
-      double nextUtility=new ClusterInstance(shuffleResults,storeDefs).getPartitionBalance().getUtility();
+      double nextUtility=new PartitionBalance(shuffleResults,storeDefs).getUtility();
       if (nextUtility == currentUtility) {
         System.out.println("Not improving for zone: " + zoneId);
       }

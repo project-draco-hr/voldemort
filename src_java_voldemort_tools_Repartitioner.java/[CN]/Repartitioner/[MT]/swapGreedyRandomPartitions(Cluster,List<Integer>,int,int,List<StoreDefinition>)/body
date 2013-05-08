@@ -1,7 +1,7 @@
 {
   System.out.println("GreedyRandom : nodeIds:" + nodeIds);
   Cluster returnCluster=ClusterUtils.copyCluster(targetCluster);
-  double currentUtility=new ClusterInstance(returnCluster,storeDefs).getPartitionBalance().getUtility();
+  double currentUtility=new PartitionBalance(returnCluster,storeDefs).getUtility();
   int nodeIdA=-1;
   int nodeIdB=-1;
   int partitionIdA=-1;
@@ -27,7 +27,7 @@
         Integer nodeIdBee=partitionIdsZone.get(offsetZone).getFirst();
         Integer partitionIdBee=partitionIdsZone.get(offsetZone).getSecond();
         Cluster swapResult=swapPartitions(returnCluster,nodeIdEh,partitionIdEh,nodeIdBee,partitionIdBee);
-        double swapUtility=new ClusterInstance(swapResult,storeDefs).getPartitionBalance().getUtility();
+        double swapUtility=new PartitionBalance(swapResult,storeDefs).getUtility();
         if (swapUtility < currentUtility) {
           currentUtility=swapUtility;
           System.out.println(" -> " + currentUtility);
