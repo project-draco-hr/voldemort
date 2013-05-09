@@ -1,0 +1,20 @@
+{
+  logger.info("Starting rebalancing!");
+  int batchCount=0;
+  int partitionStoreCount=0;
+  long totalTimeMs=0;
+  List<RebalanceClusterPlan> plan=rebalancePlan.getPlan();
+  int numBatches=plan.size();
+  int numPartitionStores=rebalancePlan.getPartitionStoresMoved();
+  for (  RebalanceClusterPlan batch : plan) {
+    logger.info("========  REBALANCING BATCH " + (batchCount + 1) + "  ========");
+    final OrderedClusterTransition orderedClusterTransition=new OrderedClusterTransition(batch);
+    RebalanceUtils.printLog(orderedClusterTransition.getId(),logger,orderedClusterTransition.toString());
+    long startTimeMs=System.currentTimeMillis();
+    executeBatch(orderedClusterTransition);
+    totalTimeMs+=(System.currentTimeMillis() - startTimeMs);
+    batchCount++;
+    partitionStoreCount+=batch.getPartitionStoreMoves();
+    batchStatusLog(orderedClusterTransition.getId(),batchCount,numBatches,partitionStoreCount,numPartitionStores,totalTimeMs);
+  }
+}
