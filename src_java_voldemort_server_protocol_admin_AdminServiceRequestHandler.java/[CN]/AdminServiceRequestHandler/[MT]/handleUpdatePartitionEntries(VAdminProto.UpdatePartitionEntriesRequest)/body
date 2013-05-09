@@ -1,6 +1,6 @@
 {
   StorageEngine<ByteArray,byte[],byte[]> storageEngine=AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
-  if (storageEngine instanceof MysqlStorageEngine) {
+  if (!voldemortConfig.getMultiVersionStreamingPutsEnabled() || storageEngine instanceof MysqlStorageEngine) {
     return new UpdatePartitionEntriesStreamRequestHandler(request,errorCodeMapper,voldemortConfig,storageEngine,storeRepository,networkClassLoader);
   }
  else {

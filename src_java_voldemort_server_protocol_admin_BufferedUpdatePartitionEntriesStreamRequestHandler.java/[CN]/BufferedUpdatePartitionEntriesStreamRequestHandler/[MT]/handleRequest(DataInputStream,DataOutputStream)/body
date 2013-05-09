@@ -7,7 +7,7 @@
     }
  catch (    EOFException e) {
       if (logger.isTraceEnabled())       logger.trace("Incomplete read for message size");
-      if (streamStats != null)       streamStats.reportNetworkTime(Operation.UPDATE_ENTRIES,System.nanoTime() - startNs);
+      if (streamStats != null)       streamStats.reportNetworkTime(Operation.UPDATE_ENTRIES,Utils.elapsedTimeNs(startNs,System.nanoTime()));
       return StreamRequestHandlerState.INCOMPLETE_READ;
     }
     if (size == -1) {
@@ -15,7 +15,7 @@
       logger.info("Update entries successfully updated " + counter + " entries for store '"+ storageEngine.getName()+ "' in "+ totalTime+ " s");
       writeBufferedValsToStorage();
       if (logger.isTraceEnabled())       logger.trace("Message size -1, completed partition update");
-      if (streamStats != null)       streamStats.reportNetworkTime(Operation.UPDATE_ENTRIES,System.nanoTime() - startNs);
+      if (streamStats != null)       streamStats.reportNetworkTime(Operation.UPDATE_ENTRIES,Utils.elapsedTimeNs(startNs,System.nanoTime()));
       return StreamRequestHandlerState.COMPLETE;
     }
     if (logger.isTraceEnabled())     logger.trace("UpdatePartitionEntriesRequest message size: " + size);
@@ -28,7 +28,7 @@
       return StreamRequestHandlerState.INCOMPLETE_READ;
     }
  finally {
-      if (streamStats != null)       streamStats.reportNetworkTime(Operation.UPDATE_ENTRIES,System.nanoTime() - startNs);
+      if (streamStats != null)       streamStats.reportNetworkTime(Operation.UPDATE_ENTRIES,Utils.elapsedTimeNs(startNs,System.nanoTime()));
     }
     VAdminProto.UpdatePartitionEntriesRequest.Builder builder=VAdminProto.UpdatePartitionEntriesRequest.newBuilder();
     builder.mergeFrom(input);

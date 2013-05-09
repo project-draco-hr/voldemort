@@ -3,7 +3,7 @@
   List<Versioned<byte[]>> obsoleteVals=storageEngine.multiVersionPut(currBufferedKey,currBufferedVals);
   currBufferedVals=new ArrayList<Versioned<byte[]>>(VALS_BUFFER_EXPECTED_SIZE);
   if (streamStats != null) {
-    streamStats.reportStorageTime(Operation.UPDATE_ENTRIES,System.nanoTime() - startNs);
+    streamStats.reportStorageTime(Operation.UPDATE_ENTRIES,Utils.elapsedTimeNs(startNs,System.nanoTime()));
     streamStats.reportStreamingPut(Operation.UPDATE_ENTRIES);
   }
   if (logger.isTraceEnabled())   logger.trace("updateEntries (Streaming multi-version-put) successful");
