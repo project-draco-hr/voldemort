@@ -13,9 +13,8 @@
     int maxTries=RebalanceController.MAX_TRIES_REBALANCING;
     long timeout=RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC;
     boolean stealerBased=!useDonorBased;
-    boolean deleteAfter=false;
-    RebalanceController rebalanceClient=new RebalanceController(bootstrapUrl,maxParallel,maxTries,timeout,stealerBased,deleteAfter);
-    int batchSize=RebalanceClientConfig.PRIMARY_PARTITION_BATCH_SIZE;
+    RebalanceController rebalanceClient=new RebalanceController(bootstrapUrl,maxParallel,maxTries,timeout,stealerBased);
+    int batchSize=RebalancePlan.PRIMARY_PARTITION_BATCH_SIZE;
     RebalancePlan rebalancePlan=rebalanceClient.getPlan(targetCluster,batchSize);
     try {
       populateData(currentCluster,rwStoreDefWithReplication,rebalanceClient.getAdminClient(),false);

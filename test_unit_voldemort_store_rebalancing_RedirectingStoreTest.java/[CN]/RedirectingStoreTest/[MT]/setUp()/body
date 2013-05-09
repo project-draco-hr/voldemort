@@ -49,7 +49,8 @@
     this.secondaryEntriesMoved.remove(key);
   }
   assertTrue("Not enough secondary entries",primaryEntriesMoved.size() > 1);
-  RebalanceClusterPlan plan=new RebalanceClusterPlan(currentCluster,targetCluster,Lists.newArrayList(storeDef),true);
+  RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(currentCluster,targetCluster,Lists.newArrayList(storeDef));
+  RebalanceTypedBatchPlan plan=new RebalanceStealerBasedBatchPlan(rebalanceClusterPlan);
   List<RebalancePartitionsInfo> plans=RebalanceUtils.flattenNodePlans(Lists.newArrayList(plan.getRebalancingTaskQueue()));
   for (  RebalancePartitionsInfo partitionPlan : plans) {
     servers[partitionPlan.getStealerId()].getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);

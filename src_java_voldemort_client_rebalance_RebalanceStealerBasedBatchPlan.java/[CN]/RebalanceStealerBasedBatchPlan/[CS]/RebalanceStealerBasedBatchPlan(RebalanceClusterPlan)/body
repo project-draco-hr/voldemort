@@ -1,0 +1,14 @@
+{
+  super(rebalanceClusterPlan);
+  HashMap<Integer,List<RebalancePartitionsInfo>> stealerToBatchPlan=new HashMap<Integer,List<RebalancePartitionsInfo>>();
+  for (  RebalancePartitionsInfo info : batchPlan) {
+    int stealerId=info.getStealerId();
+    if (!stealerToBatchPlan.containsKey(stealerId)) {
+      stealerToBatchPlan.put(stealerId,new ArrayList<RebalancePartitionsInfo>());
+    }
+    stealerToBatchPlan.get(stealerId).add(info);
+  }
+  for (  int stealerId : stealerToBatchPlan.keySet()) {
+    rebalanceTaskQueue.offer(new RebalanceNodePlan(stealerId,Lists.newArrayList(stealerToBatchPlan.get(stealerId)),true));
+  }
+}

@@ -4,12 +4,11 @@
   parser.accepts("url","Url to bootstrap from ").withRequiredArg().describedAs("url");
   parser.accepts("donor-based","Execute donor-based rebalancing.");
   parser.accepts("stealer-based","Execute stealer-based rebalancing (default).");
-  parser.accepts("tries","(1) Tries during rebalance [ Default: " + RebalanceClientConfig.MAX_TRIES_REBALANCING + " ] (2) Number of tries while generating new metadata").withRequiredArg().ofType(Integer.class).describedAs("num-tries");
-  parser.accepts("delete","Delete after rebalancing (Valid only for RW Stores) [ Default : false ] ");
-  parser.accepts("timeout","Time-out in seconds for rebalancing of a single task ( stealer - donor tuple ) [ Default : " + RebalanceClientConfig.REBALANCING_CLIENT_TIMEOUT_SEC + " ]").withRequiredArg().ofType(Long.class).describedAs("sec");
-  parser.accepts("parallelism","Number of rebalances to run in parallel [ Default:" + RebalanceClientConfig.MAX_PARALLEL_REBALANCING + " ]").withRequiredArg().ofType(Integer.class).describedAs("parallelism");
+  parser.accepts("tries","(1) Tries during rebalance [ Default: " + RebalanceController.MAX_TRIES_REBALANCING + " ] (2) Number of tries while generating new metadata").withRequiredArg().ofType(Integer.class).describedAs("num-tries");
+  parser.accepts("timeout","Time-out in seconds for rebalancing of a single task ( stealer - donor tuple ) [ Default : " + RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC + " ]").withRequiredArg().ofType(Long.class).describedAs("sec");
+  parser.accepts("parallelism","Number of rebalances to run in parallel [ Default:" + RebalanceController.MAX_PARALLEL_REBALANCING + " ]").withRequiredArg().ofType(Integer.class).describedAs("parallelism");
   parser.accepts("final-cluster","Path to target cluster xml").withRequiredArg().describedAs("cluster.xml");
   parser.accepts("final-stores","Path to target store definition xml. Needed for zone expansion.").withRequiredArg().describedAs("stores.xml");
-  parser.accepts("batch","Number of primary partitions to move together [ Default : " + RebalanceClientConfig.PRIMARY_PARTITION_BATCH_SIZE + " ]").withRequiredArg().ofType(Integer.class).describedAs("num-primary-partitions");
+  parser.accepts("batch","Number of primary partitions to move together [ Default : " + RebalancePlan.PRIMARY_PARTITION_BATCH_SIZE + " ]").withRequiredArg().ofType(Integer.class).describedAs("num-primary-partitions");
   parser.accepts("output-dir","Output directory in which to dump per-batch metadata").withRequiredArg().ofType(String.class).describedAs("path");
 }

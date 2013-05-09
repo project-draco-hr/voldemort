@@ -15,14 +15,10 @@
   List<StoreDefinition> currentStoreDefs=new StoreDefinitionsMapper().readStoreList(new File(currentStoresXML));
   Cluster targetCluster=new ClusterMapper().readCluster(new File(targetClusterXML));
   List<StoreDefinition> targetStoreDefs=new StoreDefinitionsMapper().readStoreList(new File(targetStoresXML));
-  int batchSize=CmdUtils.valueOf(options,"batch",RebalanceClientConfig.PRIMARY_PARTITION_BATCH_SIZE);
+  int batchSize=CmdUtils.valueOf(options,"batch",RebalancePlan.PRIMARY_PARTITION_BATCH_SIZE);
   String outputDir=null;
   if (options.has("output-dir")) {
     outputDir=(String)options.valueOf("output-dir");
   }
-  boolean stealerBased=true;
-  if (options.has("donor-based")) {
-    stealerBased=false;
-  }
-  new RebalancePlan(currentCluster,currentStoreDefs,targetCluster,targetStoreDefs,stealerBased,batchSize,outputDir);
+  new RebalancePlan(currentCluster,currentStoreDefs,targetCluster,targetStoreDefs,batchSize,outputDir);
 }

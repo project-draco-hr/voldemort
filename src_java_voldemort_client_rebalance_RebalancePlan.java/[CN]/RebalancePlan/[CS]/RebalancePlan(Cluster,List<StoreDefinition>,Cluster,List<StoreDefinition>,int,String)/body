@@ -1,0 +1,25 @@
+{
+  this.currentCluster=currentCluster;
+  this.currentStores=RebalanceUtils.validateRebalanceStore(currentStores);
+  this.finalCluster=finalCluster;
+  this.finalStores=RebalanceUtils.validateRebalanceStore(finalStores);
+  this.batchSize=batchSize;
+  this.outputDir=outputDir;
+  RebalanceUtils.validateCurrentFinalCluster(this.currentCluster,this.finalCluster);
+  this.targetCluster=RebalanceUtils.getTargetCluster(this.currentCluster,this.finalCluster);
+  RebalanceUtils.validateClusterStores(this.currentCluster,this.currentStores);
+  RebalanceUtils.validateClusterStores(this.finalCluster,this.finalStores);
+  RebalanceUtils.validateClusterStores(this.targetCluster,this.finalStores);
+  logger.info("Current cluster : " + currentCluster);
+  logger.info("Target cluster : " + targetCluster);
+  logger.info("Final cluster : " + finalCluster);
+  logger.info("Batch size : " + batchSize);
+  logger.info(RebalanceUtils.analyzeInvalidMetadataRate(currentCluster,currentStores,finalCluster,finalStores));
+  batchPlans=new ArrayList<RebalanceClusterPlan>();
+  numPrimaryPartitionMoves=0;
+  numPartitionStoreMoves=0;
+  numXZonePartitionStoreMoves=0;
+  nodeMoveMap=new MoveMap(targetCluster.getNodeIds());
+  zoneMoveMap=new MoveMap(targetCluster.getZoneIds());
+  plan();
+}
