@@ -11,10 +11,15 @@
     ExecutorService executors=Executors.newFixedThreadPool(2);
     final AtomicBoolean rebalancingComplete=new AtomicBoolean(false);
     final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
-    RebalanceClientConfig rebalanceClientConfig=new RebalanceClientConfig();
-    rebalanceClientConfig.setMaxParallelRebalancing(2);
-    rebalanceClientConfig.setStealerBasedRebalancing(true);
-    final RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCurrentCluster,0),rebalanceClientConfig);
+    String bootstrapUrl=getBootstrapUrl(updatedCurrentCluster,0);
+    int maxParallel=2;
+    int maxTries=RebalanceController.MAX_TRIES_REBALANCING;
+    long timeout=RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC;
+    boolean stealerBased=true;
+    boolean deleteAfter=true;
+    final RebalanceController rebalanceClient=new RebalanceController(bootstrapUrl,maxParallel,maxTries,timeout,stealerBased,deleteAfter);
+    int batchSize=RebalanceClientConfig.PRIMARY_PARTITION_BATCH_SIZE;
+    final RebalancePlan rebalancePlan=rebalanceClient.getPlan(updatedTargetCluster,batchSize);
     populateData(updatedCurrentCluster,roStoreDefWithReplication,rebalanceClient.getAdminClient(),true);
     populateData(updatedCurrentCluster,rwStoreDefWithReplication,rebalanceClient.getAdminClient(),false);
     final SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(getBootstrapUrl(updatedCurrentCluster,0)).setEnableLazy(false).setSocketTimeout(120,TimeUnit.SECONDS));
@@ -58,7 +63,7 @@
       @Override public void run(){
         try {
           Thread.sleep(500);
-          rebalanceAndCheck(updatedCurrentCluster,updatedTargetCluster,storeDefWithReplication,rebalanceClient,Arrays.asList(0,1));
+          rebalanceAndCheck(rebalancePlan,rebalanceClient,Arrays.asList(0,1));
           Thread.sleep(500);
           rebalancingComplete.set(true);
           checkConsistentMetadata(updatedTargetCluster,serverList);

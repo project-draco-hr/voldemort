@@ -8,13 +8,19 @@
     configProps.put("admin.max.threads","5");
     currentCluster=startServers(currentCluster,storeDefFileWithReplication,serverList,configProps);
     targetCluster=updateCluster(targetCluster);
-    RebalanceClientConfig config=new RebalanceClientConfig();
-    config.setDeleteAfterRebalancingEnabled(true);
-    RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(currentCluster,0),config);
+    String bootstrapUrl=getBootstrapUrl(currentCluster,0);
+    int maxParallel=RebalanceController.MAX_PARALLEL_REBALANCING;
+    int maxTries=RebalanceController.MAX_TRIES_REBALANCING;
+    long timeout=RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC;
+    boolean stealerBased=!useDonorBased;
+    boolean deleteAfter=true;
+    RebalanceController rebalanceClient=new RebalanceController(bootstrapUrl,maxParallel,maxTries,timeout,stealerBased,deleteAfter);
+    int batchSize=RebalanceClientConfig.PRIMARY_PARTITION_BATCH_SIZE;
+    RebalancePlan rebalancePlan=rebalanceClient.getPlan(targetCluster,batchSize);
     try {
       populateData(currentCluster,roStoreDefWithReplication,rebalanceClient.getAdminClient(),true);
       populateData(currentCluster,rwStoreDefWithReplication,rebalanceClient.getAdminClient(),false);
-      rebalanceAndCheck(currentCluster,targetCluster,storeDefWithReplication,rebalanceClient,Arrays.asList(0,1));
+      rebalanceAndCheck(rebalancePlan,rebalanceClient,Arrays.asList(0,1));
       checkConsistentMetadata(targetCluster,serverList);
     }
   finally {

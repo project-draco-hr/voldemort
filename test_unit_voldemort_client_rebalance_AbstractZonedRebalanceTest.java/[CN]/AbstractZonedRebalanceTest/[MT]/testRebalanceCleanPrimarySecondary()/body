@@ -9,10 +9,15 @@
     configProps.put("enable.repair","true");
     currentCluster=startServers(currentCluster,rwStoreDefFileWithReplication,serverList,configProps);
     targetCluster=updateCluster(targetCluster);
-    RebalanceClientConfig config=new RebalanceClientConfig();
-    config.setDeleteAfterRebalancingEnabled(false);
-    config.setStealerBasedRebalancing(!useDonorBased);
-    RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(currentCluster,0),config);
+    String bootstrapUrl=getBootstrapUrl(currentCluster,0);
+    int maxParallel=RebalanceController.MAX_PARALLEL_REBALANCING;
+    int maxTries=RebalanceController.MAX_TRIES_REBALANCING;
+    long timeout=RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC;
+    boolean stealerBased=!useDonorBased;
+    boolean deleteAfter=false;
+    RebalanceController rebalanceClient=new RebalanceController(bootstrapUrl,maxParallel,maxTries,timeout,stealerBased,deleteAfter);
+    int batchSize=RebalanceClientConfig.PRIMARY_PARTITION_BATCH_SIZE;
+    RebalancePlan rebalancePlan=rebalanceClient.getPlan(targetCluster,batchSize);
     try {
       populateData(currentCluster,rwStoreDefWithReplication);
       AdminClient admin=rebalanceClient.getAdminClient();
@@ -21,7 +26,7 @@
       List<ByteArray> p3KeySamples=sampleKeysFromPartition(admin,0,rwStoreDefWithReplication.getName(),Arrays.asList(3),20);
       List<ByteArray> p2KeySamples=sampleKeysFromPartition(admin,1,rwStoreDefWithReplication.getName(),Arrays.asList(2),20);
       List<ByteArray> p7KeySamples=sampleKeysFromPartition(admin,4,rwStoreDefWithReplication.getName(),Arrays.asList(7),20);
-      rebalanceAndCheck(currentCluster,targetCluster,Lists.newArrayList(rwStoreDefWithReplication),rebalanceClient,Arrays.asList(0,1,2,3));
+      rebalanceAndCheck(rebalancePlan,rebalanceClient,Arrays.asList(0,1,2,3));
       checkConsistentMetadata(targetCluster,serverList);
       for (int i=0; i < 6; i++) {
         admin.storeMntOps.repairJob(i);
@@ -30,9 +35,7 @@
         ServerTestUtils.waitForAsyncOperationOnServer(serverMap.get(i),"Repair",5000);
       }
       checkForKeyExistence(admin,2,rwStoreDefWithReplication.getName(),p6KeySamples);
-      checkForKeyNonExistence(admin,1,rwStoreDefWithReplication.getName(),p6KeySamples);
       checkForKeyExistence(admin,0,rwStoreDefWithReplication.getName(),p2KeySamples);
-      checkForKeyNonExistence(admin,1,rwStoreDefWithReplication.getName(),p2KeySamples);
       checkForKeyExistence(admin,1,rwStoreDefWithReplication.getName(),p1KeySamples);
       checkForKeyExistence(admin,0,rwStoreDefWithReplication.getName(),p3KeySamples);
       checkForKeyExistence(admin,4,rwStoreDefWithReplication.getName(),p7KeySamples);

@@ -12,11 +12,15 @@
     ExecutorService executors=Executors.newFixedThreadPool(2);
     final AtomicBoolean rebalancingComplete=new AtomicBoolean(false);
     final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
-    RebalanceClientConfig rebalanceClientConfig=new RebalanceClientConfig();
-    rebalanceClientConfig.setMaxParallelRebalancing(2);
-    rebalanceClientConfig.setPrimaryPartitionBatchSize(Integer.MAX_VALUE);
-    rebalanceClientConfig.setStealerBasedRebalancing(!useDonorBased);
-    final RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCurrentCluster,0),rebalanceClientConfig);
+    String bootstrapUrl=getBootstrapUrl(updatedCurrentCluster,0);
+    int maxParallel=2;
+    int maxTries=RebalanceController.MAX_TRIES_REBALANCING;
+    long timeout=RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC;
+    boolean stealerBased=!useDonorBased;
+    boolean deleteAfter=false;
+    final RebalanceController rebalanceClient=new RebalanceController(bootstrapUrl,maxParallel,maxTries,timeout,stealerBased,deleteAfter);
+    int batchSize=RebalanceClientConfig.PRIMARY_PARTITION_BATCH_SIZE;
+    final RebalancePlan rebalancePlan=rebalanceClient.getPlan(updatedTargetCluster,batchSize);
     populateData(currentCluster,rwStoreDefWithReplication);
     final AdminClient adminClient=rebalanceClient.getAdminClient();
     final List<ByteArray> movingKeysList=sampleKeysFromPartition(adminClient,1,rwStoreDefWithReplication.getName(),Arrays.asList(6),20);
@@ -83,7 +87,7 @@
     executors.execute(new Runnable(){
       @Override public void run(){
         try {
-          rebalanceClient.rebalance(updatedTargetCluster);
+          rebalanceClient.rebalance(rebalancePlan);
         }
  catch (        Exception e) {
           logger.error("Error in rebalancing... ",e);

@@ -11,9 +11,15 @@
     ExecutorService executors=Executors.newFixedThreadPool(2);
     final AtomicBoolean rebalancingToken=new AtomicBoolean(false);
     final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
-    RebalanceClientConfig rebalanceClientConfig=new RebalanceClientConfig();
-    rebalanceClientConfig.setMaxParallelRebalancing(2);
-    final RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCurrentCluster,0),rebalanceClientConfig);
+    String bootstrapUrl=getBootstrapUrl(updatedCurrentCluster,0);
+    int maxParallel=2;
+    int maxTries=RebalanceController.MAX_TRIES_REBALANCING;
+    long timeout=RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC;
+    boolean stealerBased=!useDonorBased;
+    boolean deleteAfter=true;
+    final RebalanceController rebalanceClient=new RebalanceController(bootstrapUrl,maxParallel,maxTries,timeout,stealerBased,deleteAfter);
+    int batchSize=RebalanceClientConfig.PRIMARY_PARTITION_BATCH_SIZE;
+    final RebalancePlan rebalancePlan=rebalanceClient.getPlan(updatedTargetCluster,batchSize);
     populateData(updatedCurrentCluster,roStoreDefWithReplication,rebalanceClient.getAdminClient(),true);
     populateData(updatedCurrentCluster,rwStoreDefWithReplication,rebalanceClient.getAdminClient(),false);
     Node node=updatedCurrentCluster.getNodeById(1);
@@ -21,7 +27,7 @@
     final Store<ByteArray,byte[],byte[]> serverSideRoutingStoreRO=getSocketStore(testStoreNameRO,node.getHost(),node.getSocketPort(),true);
     final CountDownLatch latch=new CountDownLatch(1);
     executors.execute(new Runnable(){
-      public void run(){
+      @Override public void run(){
         try {
           List<String> keys=new ArrayList<String>(testEntries.keySet());
           while (!rebalancingToken.get()) {
@@ -49,10 +55,10 @@ catch (            Exception e) {
     }
 );
     executors.execute(new Runnable(){
-      public void run(){
+      @Override public void run(){
         try {
           Thread.sleep(500);
-          rebalanceAndCheck(updatedCurrentCluster,updatedTargetCluster,storeDefWithReplication,rebalanceClient,Arrays.asList(0,1));
+          rebalanceAndCheck(rebalancePlan,rebalanceClient,Arrays.asList(0,1));
           Thread.sleep(500);
           rebalancingToken.set(true);
           checkConsistentMetadata(targetCluster,serverList);

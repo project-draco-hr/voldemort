@@ -1,6 +1,10 @@
 {
-  double rate=partitionStoreCount / numPartitionStores;
-  long estimatedTimeMs=(long)(totalTimeMs / rate) - totalTimeMs;
+  double rate=1;
+  long estimatedTimeMs=0;
+  if (numPartitionStores > 0) {
+    rate=partitionStoreCount / numPartitionStores;
+    estimatedTimeMs=(long)(totalTimeMs / rate) - totalTimeMs;
+  }
   StringBuilder sb=new StringBuilder();
   sb.append("Batch Complete!").append(Utils.NEWLINE).append("\tbatches moved: ").append(batchCount).append(" out of ").append(numBatches).append(Utils.NEWLINE).append("\tPartition stores moved: ").append(partitionStoreCount).append(" out of ").append(numPartitionStores).append(Utils.NEWLINE).append("\tPercent done: ").append(decimalFormatter.format(rate * 100.0)).append(Utils.NEWLINE).append("\tEstimated time left: ").append(estimatedTimeMs).append(" ms (").append(TimeUnit.MILLISECONDS.toHours(estimatedTimeMs)).append(" hours)");
   RebalanceUtils.printLog(id,logger,sb.toString());

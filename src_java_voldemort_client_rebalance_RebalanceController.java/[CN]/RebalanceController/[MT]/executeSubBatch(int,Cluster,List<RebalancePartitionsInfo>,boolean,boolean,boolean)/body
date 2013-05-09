@@ -1,9 +1,6 @@
 {
   RebalanceUtils.printLog(taskId,logger,"Submitting rebalance tasks ");
-  if (rebalanceConfig.isShowPlanEnabled()) {
-    return;
-  }
-  ExecutorService service=RebalanceUtils.createExecutors(rebalanceConfig.getMaxParallelRebalancing());
+  ExecutorService service=RebalanceUtils.createExecutors(maxParallelRebalancing);
   final List<RebalanceTask> failedTasks=Lists.newArrayList();
   final List<RebalanceTask> incompleteTasks=Lists.newArrayList();
   Semaphore[] donorPermits=new Semaphore[currentCluster.getNumberOfNodes()];
@@ -11,9 +8,9 @@
     donorPermits[node.getId()]=new Semaphore(1);
   }
   try {
-    List<RebalanceTask> allTasks=executeTasksOLD(taskId,service,rebalancePartitionPlanList,donorPermits);
-    RebalanceUtils.printLog(taskId,logger,"All rebalance tasks were submitted ( shutting down in " + rebalanceConfig.getRebalancingClientTimeoutSeconds() + " sec )");
-    RebalanceUtils.executorShutDown(service,rebalanceConfig.getRebalancingClientTimeoutSeconds());
+    List<RebalanceTask> allTasks=executeTasks(taskId,service,rebalancePartitionPlanList,donorPermits);
+    RebalanceUtils.printLog(taskId,logger,"All rebalance tasks were submitted ( shutting down in " + this.rebalancingClientTimeoutSeconds + " sec )");
+    RebalanceUtils.executorShutDown(service,this.rebalancingClientTimeoutSeconds);
     RebalanceUtils.printLog(taskId,logger,"Finished waiting for executors");
     List<Exception> failures=Lists.newArrayList();
     for (    RebalanceTask task : allTasks) {
@@ -35,10 +32,10 @@
  catch (  VoldemortRebalancingException e) {
     logger.error("Failure while migrating partitions for rebalance task " + taskId);
     if (hasReadOnlyStores && hasReadWriteStores && finishedReadOnlyStores) {
-      adminClient.rebalanceOps.rebalanceStateChange(null,currentCluster,null,null,null,true,true,false,false,false);
+      adminClient.rebalanceOps.rebalanceStateChange(null,currentCluster,null,true,true,false,false,false);
     }
  else     if (hasReadWriteStores && finishedReadOnlyStores) {
-      adminClient.rebalanceOps.rebalanceStateChange(null,currentCluster,null,null,null,false,true,false,false,false);
+      adminClient.rebalanceOps.rebalanceStateChange(null,currentCluster,null,false,true,false,false,false);
     }
     throw e;
   }
