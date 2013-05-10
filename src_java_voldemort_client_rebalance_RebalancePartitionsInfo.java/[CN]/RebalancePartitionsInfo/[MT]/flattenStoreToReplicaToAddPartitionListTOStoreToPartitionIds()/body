@@ -1,0 +1,12 @@
+{
+  this.storeToPartitionIds=new HashMap<String,List<Integer>>();
+  for (  Entry<String,HashMap<Integer,List<Integer>>> entry : storeToReplicaToAddPartitionList.entrySet()) {
+    if (!this.storeToPartitionIds.containsKey(entry.getKey())) {
+      this.storeToPartitionIds.put(entry.getKey(),new LinkedList<Integer>());
+    }
+    List<Integer> storesPartitionIds=this.storeToPartitionIds.get(entry.getKey());
+    for (    List<Integer> replicaTypesPartitionIds : entry.getValue().values()) {
+      storesPartitionIds.addAll(replicaTypesPartitionIds);
+    }
+  }
+}
