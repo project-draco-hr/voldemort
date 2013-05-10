@@ -9,7 +9,6 @@
   cluster=ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,useNio,null,tempStoreXml.getAbsolutePath(),new Properties());
   targetCluster=RebalanceUtils.createUpdatedCluster(cluster,2,Lists.newArrayList(0));
   RebalanceClusterPlan plan=new RebalanceClusterPlan(cluster,targetCluster,Lists.newArrayList(storeDef1,storeDef2));
-  RebalanceStealerBasedBatchPlan rsbbp=new RebalanceStealerBasedBatchPlan(plan);
-  plans=RebalanceUtils.flattenNodePlans(Lists.newArrayList(rsbbp.getRebalancingTaskQueue()));
+  plans=Lists.newArrayList(plan.getBatchPlan());
   adminClient=ServerTestUtils.getAdminClient(cluster);
 }

@@ -1,6 +1,9 @@
 {
+  final Cluster batchCurrentCluster=batchPlan.getCurrentCluster();
+  final Cluster batchFinalCluster=batchPlan.getFinalCluster();
+  final List<StoreDefinition> batchStoreDefs=batchPlan.getStoreDefs();
   try {
-    final List<RebalancePartitionsInfo> rebalancePartitionsInfoList=executableBatch.getRebalancingTasks();
+    final List<RebalancePartitionsInfo> rebalancePartitionsInfoList=batchPlan.getBatchPlan();
     if (rebalancePartitionsInfoList.isEmpty()) {
       RebalanceUtils.printLog(batchCount,logger,"Skipping batch " + batchCount + " since it is empty.");
       adminClient.rebalanceOps.rebalanceStateChange(batchCurrentCluster,batchFinalCluster,rebalancePartitionsInfoList,false,true,false,false,true);

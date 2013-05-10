@@ -8,16 +8,9 @@
   int numPartitionStores=rebalancePlan.getPartitionStoresMoved();
   for (  RebalanceClusterPlan batchPlan : entirePlan) {
     logger.info("========  REBALANCING BATCH " + (batchCount + 1) + "  ========");
-    RebalanceTypedBatchPlan executableBatch=null;
-    if (stealerBasedRebalancing) {
-      executableBatch=new RebalanceStealerBasedBatchPlan(batchPlan);
-    }
- else {
-      executableBatch=new RebalanceDonorBasedBatchPlan(batchPlan);
-    }
-    RebalanceUtils.printLog(batchCount,logger,executableBatch.toString());
+    RebalanceUtils.printLog(batchCount,logger,batchPlan.toString());
     long startTimeMs=System.currentTimeMillis();
-    executeBatch(batchCount,batchPlan.getCurrentCluster(),batchPlan.getFinalCluster(),batchPlan.getStoreDefs(),executableBatch);
+    executeBatch(batchCount,batchPlan);
     totalTimeMs+=(System.currentTimeMillis() - startTimeMs);
     batchCount++;
     partitionStoreCount+=batchPlan.getPartitionStoreMoves();
