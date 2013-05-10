@@ -4,14 +4,8 @@
   for (  String unbalancedStore : storeToReplicaToAddPartitionList.keySet()) {
     sb.append("\n\t- Store '" + unbalancedStore + "' move ");
     HashMap<Integer,List<Integer>> replicaToAddPartition=storeToReplicaToAddPartitionList.get(unbalancedStore);
-    HashMap<Integer,List<Integer>> replicaToDeletePartition=storeToReplicaToDeletePartitionList.get(unbalancedStore);
     for (int replicaNum=0; replicaNum <= maxReplica; replicaNum++) {
       if (replicaToAddPartition != null && replicaToAddPartition.containsKey(replicaNum))       sb.append(" - " + replicaToAddPartition.get(replicaNum));
- else       sb.append(" - []");
-    }
-    sb.append(", delete ");
-    for (int replicaNum=0; replicaNum <= maxReplica; replicaNum++) {
-      if (replicaToDeletePartition != null && replicaToDeletePartition.containsKey(replicaNum))       sb.append(" - " + replicaToDeletePartition.get(replicaNum));
  else       sb.append(" - []");
     }
   }

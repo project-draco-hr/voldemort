@@ -7,7 +7,7 @@
   try {
     for (    final String storeName : ImmutableList.copyOf(stealInfo.getUnbalancedStoreList())) {
       executors.submit(new Runnable(){
-        public void run(){
+        @Override public void run(){
           try {
             boolean isReadOnlyStore=metadataStore.getStoreDef(storeName).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
             storesRebalancing.add(storeName);

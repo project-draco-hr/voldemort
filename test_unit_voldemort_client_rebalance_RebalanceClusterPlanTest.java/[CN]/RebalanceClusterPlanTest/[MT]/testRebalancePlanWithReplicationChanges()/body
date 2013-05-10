@@ -9,10 +9,8 @@
   assertEquals("Stealer 1 should have 1 entry",1,this.getStealerNodePartitionInfoCount(1,orderedRebalancePartitionInfoList));
   checkOrderedPartitionInfo(orderedRebalancePartitionInfoList);
   HashMap<String,HashMap<Integer,List<Integer>>> storeToPartitionsToMove[]=new HashMap[5];
-  HashMap<String,HashMap<Integer,List<Integer>>> storeToPartitionsToDelete[]=new HashMap[5];
   for (int numPlan=0; numPlan < 5; numPlan++) {
     storeToPartitionsToMove[numPlan]=new HashMap<String,HashMap<Integer,List<Integer>>>();
-    storeToPartitionsToDelete[numPlan]=new HashMap<String,HashMap<Integer,List<Integer>>>();
   }
   for (  StoreDefinition storeDef : storeDefList) {
     if (storeDef.getReplicationFactor() == 2) {
@@ -32,18 +30,6 @@
       partitions=Maps.newHashMap();
       partitions.put(1,Lists.newArrayList(5));
       storeToPartitionsToMove[4].put(storeDef.getName(),partitions);
-      partitions=Maps.newHashMap();
-      partitions.put(1,Lists.newArrayList(0));
-      storeToPartitionsToDelete[1].put(storeDef.getName(),partitions);
-      partitions=Maps.newHashMap();
-      partitions.put(1,Lists.newArrayList(4));
-      storeToPartitionsToDelete[2].put(storeDef.getName(),partitions);
-      partitions=Maps.newHashMap();
-      partitions.put(1,Lists.newArrayList(1));
-      storeToPartitionsToDelete[3].put(storeDef.getName(),partitions);
-      partitions=Maps.newHashMap();
-      partitions.put(1,Lists.newArrayList(5));
-      storeToPartitionsToDelete[4].put(storeDef.getName(),partitions);
     }
  else     if (storeDef.getReplicationFactor() == 1) {
       HashMap<Integer,List<Integer>> partitions=Maps.newHashMap();
@@ -52,18 +38,12 @@
       partitions=Maps.newHashMap();
       partitions.put(0,Lists.newArrayList(5));
       storeToPartitionsToMove[1].put(storeDef.getName(),partitions);
-      partitions=Maps.newHashMap();
-      partitions.put(0,Lists.newArrayList(1));
-      storeToPartitionsToDelete[0].put(storeDef.getName(),partitions);
-      partitions=Maps.newHashMap();
-      partitions.put(0,Lists.newArrayList(5));
-      storeToPartitionsToDelete[1].put(storeDef.getName(),partitions);
     }
  else {
       throw new VoldemortException("Change in store definitions file found");
     }
   }
-  checkAllRebalanceInfoPresent(getStealerNodePartitionInfoList(3,orderedRebalancePartitionInfoList),Arrays.asList(new RebalancePartitionsInfo(3,0,storeToPartitionsToMove[0],storeToPartitionsToDelete[0],currentCluster,0),new RebalancePartitionsInfo(3,1,storeToPartitionsToMove[1],storeToPartitionsToDelete[1],currentCluster,0),new RebalancePartitionsInfo(3,2,storeToPartitionsToMove[2],storeToPartitionsToDelete[2],currentCluster,0)));
-  checkAllRebalanceInfoPresent(getStealerNodePartitionInfoList(0,orderedRebalancePartitionInfoList),Arrays.asList(new RebalancePartitionsInfo(0,1,storeToPartitionsToMove[3],storeToPartitionsToDelete[3],currentCluster,0)));
-  checkAllRebalanceInfoPresent(getStealerNodePartitionInfoList(1,orderedRebalancePartitionInfoList),Arrays.asList(new RebalancePartitionsInfo(1,2,storeToPartitionsToMove[4],storeToPartitionsToDelete[4],currentCluster,0)));
+  checkAllRebalanceInfoPresent(getStealerNodePartitionInfoList(3,orderedRebalancePartitionInfoList),Arrays.asList(new RebalancePartitionsInfo(3,0,storeToPartitionsToMove[0],currentCluster),new RebalancePartitionsInfo(3,1,storeToPartitionsToMove[1],currentCluster),new RebalancePartitionsInfo(3,2,storeToPartitionsToMove[2],currentCluster)));
+  checkAllRebalanceInfoPresent(getStealerNodePartitionInfoList(0,orderedRebalancePartitionInfoList),Arrays.asList(new RebalancePartitionsInfo(0,1,storeToPartitionsToMove[3],currentCluster)));
+  checkAllRebalanceInfoPresent(getStealerNodePartitionInfoList(1,orderedRebalancePartitionInfoList),Arrays.asList(new RebalancePartitionsInfo(1,2,storeToPartitionsToMove[4],currentCluster)));
 }

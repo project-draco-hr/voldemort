@@ -3,8 +3,8 @@
   ExecutorService service=RebalanceUtils.createExecutors(maxParallelRebalancing);
   final List<RebalanceTask> failedTasks=Lists.newArrayList();
   final List<RebalanceTask> incompleteTasks=Lists.newArrayList();
-  Semaphore[] donorPermits=new Semaphore[currentCluster.getNumberOfNodes()];
-  for (  Node node : currentCluster.getNodes()) {
+  Semaphore[] donorPermits=new Semaphore[batchCurrentCluster.getNumberOfNodes()];
+  for (  Node node : batchCurrentCluster.getNodes()) {
     donorPermits[node.getId()]=new Semaphore(1);
   }
   try {
@@ -32,10 +32,10 @@
  catch (  VoldemortRebalancingException e) {
     logger.error("Failure while migrating partitions for rebalance task " + taskId);
     if (hasReadOnlyStores && hasReadWriteStores && finishedReadOnlyStores) {
-      adminClient.rebalanceOps.rebalanceStateChange(null,currentCluster,null,true,true,false,false,false);
+      adminClient.rebalanceOps.rebalanceStateChange(null,batchCurrentCluster,null,true,true,false,false,false);
     }
  else     if (hasReadWriteStores && finishedReadOnlyStores) {
-      adminClient.rebalanceOps.rebalanceStateChange(null,currentCluster,null,false,true,false,false,false);
+      adminClient.rebalanceOps.rebalanceStateChange(null,batchCurrentCluster,null,false,true,false,false,false);
     }
     throw e;
   }

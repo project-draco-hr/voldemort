@@ -8,19 +8,19 @@
     }
  else     if (!hasReadOnlyStores && hasReadWriteStores && finishedReadOnlyStores) {
       RebalanceUtils.printLog(taskId,logger,"Cluster metadata change + rebalance state change");
-      adminClient.rebalanceOps.rebalanceStateChange(currentCluster,transitionCluster,rebalancePartitionPlanList,false,true,true,true,true);
+      adminClient.rebalanceOps.rebalanceStateChange(batchCurrentCluster,batchFinalCluster,rebalancePartitionPlanList,false,true,true,true,true);
     }
  else     if (hasReadOnlyStores && !finishedReadOnlyStores) {
       RebalanceUtils.printLog(taskId,logger,"Rebalance state change");
-      adminClient.rebalanceOps.rebalanceStateChange(currentCluster,transitionCluster,rebalancePartitionPlanList,false,false,true,true,true);
+      adminClient.rebalanceOps.rebalanceStateChange(batchCurrentCluster,batchFinalCluster,rebalancePartitionPlanList,false,false,true,true,true);
     }
  else     if (hasReadOnlyStores && !hasReadWriteStores && finishedReadOnlyStores) {
       RebalanceUtils.printLog(taskId,logger,"Swap + Cluster metadata change");
-      adminClient.rebalanceOps.rebalanceStateChange(currentCluster,transitionCluster,rebalancePartitionPlanList,true,true,false,true,true);
+      adminClient.rebalanceOps.rebalanceStateChange(batchCurrentCluster,batchFinalCluster,rebalancePartitionPlanList,true,true,false,true,true);
     }
  else {
       RebalanceUtils.printLog(taskId,logger,"Swap + Cluster metadata change + rebalance state change");
-      adminClient.rebalanceOps.rebalanceStateChange(currentCluster,transitionCluster,rebalancePartitionPlanList,true,true,true,true,true);
+      adminClient.rebalanceOps.rebalanceStateChange(batchCurrentCluster,batchFinalCluster,rebalancePartitionPlanList,true,true,true,true,true);
     }
   }
  catch (  VoldemortRebalancingException e) {

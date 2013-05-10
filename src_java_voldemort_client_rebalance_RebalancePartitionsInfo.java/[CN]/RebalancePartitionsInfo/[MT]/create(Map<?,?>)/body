@@ -2,7 +2,6 @@
   int stealerId=(Integer)map.get("stealerId");
   int donorId=(Integer)map.get("donorId");
   List<String> unbalancedStoreList=Utils.uncheckedCast(map.get("unbalancedStores"));
-  int attempt=(Integer)map.get("attempt");
   int maxReplicas=(Integer)map.get("maxReplicas");
   Cluster initialCluster=new ClusterMapper().readCluster(new StringReader((String)map.get("initialCluster")));
   HashMap<String,HashMap<Integer,List<Integer>>> storeToReplicaToAddPartition=Maps.newHashMap();
@@ -19,5 +18,5 @@
     if (replicaToAddPartition.size() > 0)     storeToReplicaToAddPartition.put(unbalancedStore,replicaToAddPartition);
     if (replicaToDeletePartitionList.size() > 0)     storeToReplicaToDeletePartition.put(unbalancedStore,replicaToDeletePartitionList);
   }
-  return new RebalancePartitionsInfo(stealerId,donorId,storeToReplicaToAddPartition,storeToReplicaToDeletePartition,initialCluster,attempt);
+  return new RebalancePartitionsInfo(stealerId,donorId,storeToReplicaToAddPartition,initialCluster);
 }

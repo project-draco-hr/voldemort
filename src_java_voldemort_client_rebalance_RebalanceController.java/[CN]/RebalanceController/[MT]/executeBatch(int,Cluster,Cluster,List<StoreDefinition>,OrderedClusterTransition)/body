@@ -1,0 +1,33 @@
+{
+  try {
+    final List<RebalancePartitionsInfo> rebalancePartitionsInfoList=orderedClusterTransition.getOrderedRebalancePartitionsInfoList();
+    if (rebalancePartitionsInfoList.isEmpty()) {
+      RebalanceUtils.printLog(batchCount,logger,"Skipping batch " + batchCount + " since it is empty.");
+      adminClient.rebalanceOps.rebalanceStateChange(batchCurrentCluster,batchFinalCluster,rebalancePartitionsInfoList,false,true,false,false,true);
+      return;
+    }
+    RebalanceUtils.printLog(batchCount,logger,"Starting batch " + batchCount + ".");
+    List<RebalancePartitionsInfo> rebalancePartitionPlanList=rebalancePartitionsInfoList;
+    List<StoreDefinition> readOnlyStoreDefs=StoreDefinitionUtils.filterStores(batchStoreDefs,true);
+    List<StoreDefinition> readWriteStoreDefs=StoreDefinitionUtils.filterStores(batchStoreDefs,false);
+    boolean hasReadOnlyStores=readOnlyStoreDefs != null && readOnlyStoreDefs.size() > 0;
+    boolean hasReadWriteStores=readWriteStoreDefs != null && readWriteStoreDefs.size() > 0;
+    boolean finishedReadOnlyPhase=false;
+    List<RebalancePartitionsInfo> filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionPlanList,readOnlyStoreDefs);
+    rebalanceStateChange(batchCount,batchCurrentCluster,batchFinalCluster,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
+    if (hasReadOnlyStores) {
+      executeSubBatch(batchCount,batchCurrentCluster,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
+    }
+    finishedReadOnlyPhase=true;
+    filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionPlanList,readWriteStoreDefs);
+    rebalanceStateChange(batchCount,batchCurrentCluster,batchFinalCluster,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
+    if (hasReadWriteStores) {
+      executeSubBatch(batchCount,batchCurrentCluster,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
+    }
+    RebalanceUtils.printLog(batchCount,logger,"Successfully terminated batch " + batchCount + ".");
+  }
+ catch (  Exception e) {
+    RebalanceUtils.printErrorLog(batchCount,logger,"Error in batch " + batchCount + " - "+ e.getMessage(),e);
+    throw new VoldemortException("Rebalance failed on batch " + batchCount,e);
+  }
+}

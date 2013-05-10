@@ -3,25 +3,25 @@
   int batchCount=0;
   int partitionStoreCount=0;
   long totalTimeMs=0;
-  List<RebalanceClusterPlan> plan=rebalancePlan.getPlan();
-  int numBatches=plan.size();
+  List<RebalanceClusterPlan> entirePlan=rebalancePlan.getPlan();
+  int numBatches=entirePlan.size();
   int numPartitionStores=rebalancePlan.getPartitionStoresMoved();
-  for (  RebalanceClusterPlan batch : plan) {
+  for (  RebalanceClusterPlan batchPlan : entirePlan) {
     logger.info("========  REBALANCING BATCH " + (batchCount + 1) + "  ========");
     RebalanceTypedBatchPlan executableBatch=null;
     if (stealerBasedRebalancing) {
-      executableBatch=new RebalanceStealerBasedBatchPlan(batch);
+      executableBatch=new RebalanceStealerBasedBatchPlan(batchPlan);
     }
  else {
-      executableBatch=new RebalanceDonorBasedBatchPlan(batch);
+      executableBatch=new RebalanceDonorBasedBatchPlan(batchPlan);
     }
     final OrderedClusterTransition orderedClusterTransition=new OrderedClusterTransition(executableBatch);
-    RebalanceUtils.printLog(orderedClusterTransition.getId(),logger,orderedClusterTransition.toString());
+    RebalanceUtils.printLog(batchCount,logger,orderedClusterTransition.toString());
     long startTimeMs=System.currentTimeMillis();
-    executeBatch(orderedClusterTransition);
+    executeBatch(batchCount,batchPlan.getCurrentCluster(),batchPlan.getFinalCluster(),batchPlan.getStoreDefs(),orderedClusterTransition);
     totalTimeMs+=(System.currentTimeMillis() - startTimeMs);
     batchCount++;
-    partitionStoreCount+=batch.getPartitionStoreMoves();
-    batchStatusLog(orderedClusterTransition.getId(),batchCount,numBatches,partitionStoreCount,numPartitionStores,totalTimeMs);
+    partitionStoreCount+=batchPlan.getPartitionStoreMoves();
+    batchStatusLog(batchCount,numBatches,partitionStoreCount,numPartitionStores,totalTimeMs);
   }
 }
