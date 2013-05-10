@@ -1,7 +1,7 @@
 {
   currentCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{0,1,2,3},{4,5,6},{7,8,9},{}});
   targetCluster=ServerTestUtils.getLocalCluster(4,new int[][]{{0,2,3},{4,6},{7,8,9},{1,5}});
-  List<RebalancePartitionsInfo> orderedRebalancePartitionInfoList=createOrderedClusterTransition(currentCluster,targetCluster,storeDefList).getOrderedRebalancePartitionsInfoList();
+  List<RebalancePartitionsInfo> orderedRebalancePartitionInfoList=getExecutableTasks(currentCluster,targetCluster,storeDefList);
   assertEquals("There should have exactly 3 rebalancing node",3,this.getUniqueNodeCount(orderedRebalancePartitionInfoList,false));
   assertEquals("There should have exactly 5 rebalancing partition info",5,orderedRebalancePartitionInfoList.size());
   assertEquals("Stealer 3 should have 3 entry",3,this.getStealerNodePartitionInfoCount(3,orderedRebalancePartitionInfoList));

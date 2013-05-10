@@ -1,7 +1,7 @@
 {
   currentCluster=ServerTestUtils.getLocalCluster(3,new int[][]{{0,1,2,3},{4,5,6,7},{}});
   targetCluster=ServerTestUtils.getLocalCluster(3,new int[][]{{1,2,3},{4,5,6,7},{0}});
-  List<RebalancePartitionsInfo> orderedRebalancePartitionInfoList=createOrderedClusterTransition(currentCluster,targetCluster,Lists.newArrayList(ServerTestUtils.getStoreDef("test",2,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY))).getOrderedRebalancePartitionsInfoList();
+  List<RebalancePartitionsInfo> orderedRebalancePartitionInfoList=getExecutableTasks(currentCluster,targetCluster,Lists.newArrayList(ServerTestUtils.getStoreDef("test",2,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY)));
   assertEquals("There should have exactly 2 rebalancing node",2,getUniqueNodeCount(orderedRebalancePartitionInfoList,false));
   assertEquals("There should be exactly 2 rebalancing partition info",2,orderedRebalancePartitionInfoList.size());
   assertEquals("Stealer 2 should have 1 entry",1,getStealerNodePartitionInfoCount(2,orderedRebalancePartitionInfoList));
@@ -20,7 +20,7 @@
   checkAllRebalanceInfoPresent(getStealerNodePartitionInfoList(0,orderedRebalancePartitionInfoList),Arrays.asList(new RebalancePartitionsInfo(0,1,storeToPartitionsToMove,currentCluster)));
   currentCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{0,1,2,3},{4,5,6,7}});
   targetCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{1,2,3},{4,5,6,7,0}});
-  orderedRebalancePartitionInfoList=createOrderedClusterTransition(currentCluster,targetCluster,Lists.newArrayList(ServerTestUtils.getStoreDef("test",2,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY))).getOrderedRebalancePartitionsInfoList();
+  orderedRebalancePartitionInfoList=getExecutableTasks(currentCluster,targetCluster,Lists.newArrayList(ServerTestUtils.getStoreDef("test",2,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY)));
   assertEquals("There should have exactly 2 rebalancing node",2,getUniqueNodeCount(orderedRebalancePartitionInfoList,false));
   assertEquals("There should be exactly 2 rebalance partition info",2,orderedRebalancePartitionInfoList.size());
   assertEquals("Stealer 1 should have 1 entry",1,getStealerNodePartitionInfoCount(1,orderedRebalancePartitionInfoList));

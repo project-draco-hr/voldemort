@@ -15,10 +15,9 @@
  else {
       executableBatch=new RebalanceDonorBasedBatchPlan(batchPlan);
     }
-    final OrderedClusterTransition orderedClusterTransition=new OrderedClusterTransition(executableBatch);
-    RebalanceUtils.printLog(batchCount,logger,orderedClusterTransition.toString());
+    RebalanceUtils.printLog(batchCount,logger,executableBatch.toString());
     long startTimeMs=System.currentTimeMillis();
-    executeBatch(batchCount,batchPlan.getCurrentCluster(),batchPlan.getFinalCluster(),batchPlan.getStoreDefs(),orderedClusterTransition);
+    executeBatch(batchCount,batchPlan.getCurrentCluster(),batchPlan.getFinalCluster(),batchPlan.getStoreDefs(),executableBatch);
     totalTimeMs+=(System.currentTimeMillis() - startTimeMs);
     batchCount++;
     partitionStoreCount+=batchPlan.getPartitionStoreMoves();
