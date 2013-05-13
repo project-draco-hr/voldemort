@@ -6,7 +6,19 @@
   if (options.has("donor-based")) {
     stealerBased=false;
   }
-  RebalanceController rebalanceController=new RebalanceController(bootstrapURL,1,2,TimeUnit.DAYS.toSeconds(30),stealerBased);
+  int parallelism=RebalanceController.MAX_PARALLEL_REBALANCING;
+  if (options.has("parallelism")) {
+    parallelism=(Integer)options.valueOf("parallelism");
+  }
+  int tries=RebalanceController.MAX_TRIES_REBALANCING;
+  if (options.has("tries")) {
+    tries=(Integer)options.valueOf("tries");
+  }
+  long timeout=RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC;
+  if (options.has("timeout")) {
+    timeout=(Integer)options.valueOf("timeout");
+  }
+  RebalanceController rebalanceController=new RebalanceController(bootstrapURL,parallelism,tries,timeout,stealerBased);
   Cluster currentCluster=rebalanceController.getCurrentCluster();
   List<StoreDefinition> currentStoreDefs=rebalanceController.getCurrentStoreDefs();
   RebalanceUtils.validateClusterStores(currentCluster,currentStoreDefs);
@@ -19,11 +31,10 @@
   }
   RebalanceUtils.validateClusterStores(finalCluster,finalStoreDefs);
   RebalanceUtils.validateCurrentFinalCluster(currentCluster,finalCluster);
-  int batchSize=CmdUtils.valueOf(options,"batch",RebalancePlan.PRIMARY_PARTITION_BATCH_SIZE);
+  int batchSize=CmdUtils.valueOf(options,"batch",RebalancePlan.BATCH_SIZE);
   String outputDir=null;
   if (options.has("output-dir")) {
     outputDir=(String)options.valueOf("output-dir");
   }
-  RebalancePlan rebalancePlan=new RebalancePlan(currentCluster,currentStoreDefs,finalCluster,finalStoreDefs,batchSize,outputDir);
-  rebalanceController.rebalance(rebalancePlan);
+  rebalanceController.rebalance(new RebalancePlan(currentCluster,currentStoreDefs,finalCluster,finalStoreDefs,batchSize,outputDir));
 }
