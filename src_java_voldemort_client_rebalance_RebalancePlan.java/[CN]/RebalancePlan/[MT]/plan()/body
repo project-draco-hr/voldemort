@@ -26,12 +26,12 @@
       stealerToStolenPrimaryPartitions.remove(entry.getKey(),entry.getValue());
     }
     if (outputDir != null)     RebalanceUtils.dumpClusters(batchTargetCluster,batchFinalCluster,outputDir,"batch-" + Integer.toString(batches) + ".");
-    final RebalanceClusterPlan rebalanceClusterPlan=new RebalanceClusterPlan(batchTargetCluster,batchFinalCluster,finalStores);
-    batchPlans.add(rebalanceClusterPlan);
-    numXZonePartitionStoreMoves+=rebalanceClusterPlan.getCrossZonePartitionStoreMoves();
-    numPartitionStoreMoves+=rebalanceClusterPlan.getPartitionStoreMoves();
-    nodeMoveMap.add(rebalanceClusterPlan.getNodeMoveMap());
-    zoneMoveMap.add(rebalanceClusterPlan.getZoneMoveMap());
+    final RebalanceBatchPlan RebalanceBatchPlan=new RebalanceBatchPlan(batchTargetCluster,batchFinalCluster,finalStores);
+    batchPlans.add(RebalanceBatchPlan);
+    numXZonePartitionStoreMoves+=RebalanceBatchPlan.getCrossZonePartitionStoreMoves();
+    numPartitionStoreMoves+=RebalanceBatchPlan.getPartitionStoreMoves();
+    nodeMoveMap.add(RebalanceBatchPlan.getNodeMoveMap());
+    zoneMoveMap.add(RebalanceBatchPlan.getZoneMoveMap());
     batches++;
     batchTargetCluster=mapper.readCluster(new StringReader(mapper.writeCluster(batchFinalCluster)));
   }

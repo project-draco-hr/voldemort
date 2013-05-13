@@ -5,7 +5,7 @@
     targetStoreRoutingPlans.put(storeDef.getName(),new StoreRoutingPlan(targetCluster,storeDef));
     finalStoreRoutingPlans.put(storeDef.getName(),new StoreRoutingPlan(finalCluster,storeDef));
   }
-  UnnecessarilyComplicatedDataStructure ucds=new UnnecessarilyComplicatedDataStructure();
+  RebalancePartitionsInfoBuilder rpiBuilder=new RebalancePartitionsInfoBuilder();
   for (  Node stealerNode : finalCluster.getNodes()) {
     int stealerZoneId=stealerNode.getZoneId();
     int stealerNodeId=stealerNode.getId();
@@ -27,9 +27,9 @@
         }
         int donorNodeId=targetSRP.getZoneReplicaNodeId(donorZoneId,stealerZoneReplicaType,stealerPartitionId);
         int donorReplicaType=targetSRP.getReplicaType(donorNodeId,stealerPartitionId);
-        ucds.shovelCrapIn(stealerNodeId,donorNodeId,storeDef.getName(),donorReplicaType,stealerPartitionId);
+        rpiBuilder.addPartitionStoreMove(stealerNodeId,donorNodeId,storeDef.getName(),donorReplicaType,stealerPartitionId);
       }
     }
   }
-  return ucds.shovelCrapOut();
+  return rpiBuilder.buildRebalancePartitionsInfos();
 }
