@@ -7,18 +7,11 @@
   boolean completedRebalanceSourceClusterChange=false;
   Cluster previousRebalancingSourceCluster=null;
   try {
-    if (changeClusterMetadata) {
-      logger.info("Switching metadata from " + currentCluster + " to "+ cluster);
-      changeCluster(MetadataStore.CLUSTER_KEY,cluster);
-      completedClusterChange=true;
-    }
-    if (swapRO) {
-      swapROStores(swappedStoreNames,false);
-    }
     if (changeRebalanceState) {
       try {
         previousRebalancingSourceCluster=metadataStore.getRebalancingSourceCluster();
         if (!rollback) {
+          logger.info("Setting rebalancing source cluster xml from " + previousRebalancingSourceCluster + "to "+ currentCluster);
           changeCluster(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,currentCluster);
           completedRebalanceSourceClusterChange=true;
           for (          RebalancePartitionsInfo info : rebalancePartitionsInfo) {
@@ -27,6 +20,7 @@
           }
         }
  else {
+          logger.info("Resetting rebalancing source cluster xml from " + previousRebalancingSourceCluster + "to null");
           changeCluster(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,null);
           completedRebalanceSourceClusterChange=true;
           for (          RebalancePartitionsInfo info : rebalancePartitionsInfo) {
@@ -38,6 +32,14 @@
  catch (      Exception e) {
         throw new VoldemortException(e);
       }
+    }
+    if (changeClusterMetadata) {
+      logger.info("Switching metadata from " + currentCluster + " to "+ cluster);
+      changeCluster(MetadataStore.CLUSTER_KEY,cluster);
+      completedClusterChange=true;
+    }
+    if (swapRO) {
+      swapROStores(swappedStoreNames,false);
     }
   }
  catch (  VoldemortException e) {
