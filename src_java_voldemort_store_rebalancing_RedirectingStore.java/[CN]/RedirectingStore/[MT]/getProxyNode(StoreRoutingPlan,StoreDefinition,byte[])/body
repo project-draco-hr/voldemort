@@ -21,10 +21,10 @@
   Integer nodeId=metadata.getNodeId();
   Integer zoneId=currentRoutingPlan.getCluster().getNodeById(nodeId).getZoneId();
   StoreRoutingPlan oldRoutingPlan=new StoreRoutingPlan(sourceCluster,sourceStoreDef);
-  int zoneReplicaType=currentRoutingPlan.getZoneReplicaType(zoneId,nodeId,key);
+  int zoneNAry=currentRoutingPlan.getZoneNAry(zoneId,nodeId,key);
   Integer redirectNodeId;
   try {
-    redirectNodeId=oldRoutingPlan.getZoneReplicaNode(zoneId,zoneReplicaType,key);
+    redirectNodeId=oldRoutingPlan.getNodeIdForZoneNary(zoneId,zoneNAry,key);
   }
  catch (  VoldemortException ve) {
     return null;

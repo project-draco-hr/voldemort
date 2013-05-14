@@ -1,6 +1,5 @@
 {
   final TreeMultimap<Integer,Integer> stealerToStolenPrimaryPartitions=TreeMultimap.create();
-  ClusterMapper mapper=new ClusterMapper();
   if (outputDir != null)   RebalanceUtils.dumpClusters(targetCluster,finalCluster,outputDir);
   for (  Node stealerNode : finalCluster.getNodes()) {
     List<Integer> stolenPrimaryPartitions=RebalanceUtils.getStolenPrimaryPartitions(targetCluster,finalCluster,stealerNode.getId());
@@ -10,9 +9,9 @@
     }
   }
   int batches=0;
-  Cluster batchTargetCluster=mapper.readCluster(new StringReader(mapper.writeCluster(targetCluster)));
+  Cluster batchTargetCluster=cloneCluster(targetCluster);
   while (!stealerToStolenPrimaryPartitions.isEmpty()) {
-    Cluster batchFinalCluster=mapper.readCluster(new StringReader(mapper.writeCluster(batchTargetCluster)));
+    Cluster batchFinalCluster=cloneCluster(batchTargetCluster);
     int partitions=0;
     List<Entry<Integer,Integer>> partitionsMoved=Lists.newArrayList();
     for (    Entry<Integer,Integer> stealerToPartition : stealerToStolenPrimaryPartitions.entries()) {
@@ -33,7 +32,7 @@
     nodeMoveMap.add(RebalanceBatchPlan.getNodeMoveMap());
     zoneMoveMap.add(RebalanceBatchPlan.getZoneMoveMap());
     batches++;
-    batchTargetCluster=mapper.readCluster(new StringReader(mapper.writeCluster(batchFinalCluster)));
+    batchTargetCluster=cloneCluster(batchFinalCluster);
   }
   logger.info(this);
 }

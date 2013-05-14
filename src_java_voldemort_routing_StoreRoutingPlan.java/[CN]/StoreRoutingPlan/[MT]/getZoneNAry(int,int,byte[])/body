@@ -3,16 +3,16 @@
     throw new VoldemortException("Node " + nodeId + " is not in zone "+ zoneId+ "! The node is in zone "+ cluster.getNodeById(nodeId).getZoneId());
   }
   List<Node> replicatingNodes=this.routingStrategy.routeRequest(key);
-  int zoneReplicaType=-1;
+  int zoneNAry=-1;
   for (  Node node : replicatingNodes) {
     if (node.getZoneId() == zoneId) {
-      zoneReplicaType++;
+      zoneNAry++;
     }
     if (node.getId() == nodeId) {
-      return zoneReplicaType;
+      return zoneNAry;
     }
   }
-  if (zoneReplicaType > -1) {
+  if (zoneNAry > -1) {
     throw new VoldemortException("Node " + nodeId + " not a replica for the key "+ ByteUtils.toHexString(key)+ " in given zone "+ zoneId);
   }
  else {

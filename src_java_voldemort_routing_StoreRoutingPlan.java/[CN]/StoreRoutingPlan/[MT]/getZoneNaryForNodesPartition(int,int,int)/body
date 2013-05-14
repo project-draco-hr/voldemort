@@ -3,17 +3,17 @@
     throw new VoldemortException("Node " + nodeId + " is not in zone "+ zoneId+ "! The node is in zone "+ cluster.getNodeById(nodeId).getZoneId());
   }
   List<Integer> replicatingNodeIds=getReplicationNodeList(partitionId);
-  int zoneReplicaType=-1;
+  int zoneNAry=-1;
   for (  int replicatingNodeId : replicatingNodeIds) {
     Node replicatingNode=cluster.getNodeById(replicatingNodeId);
     if (replicatingNode.getZoneId() == zoneId) {
-      zoneReplicaType++;
+      zoneNAry++;
     }
     if (replicatingNode.getId() == nodeId) {
-      return zoneReplicaType;
+      return zoneNAry;
     }
   }
-  if (zoneReplicaType > 0) {
+  if (zoneNAry > 0) {
     throw new VoldemortException("Node " + nodeId + " not a replica for partition "+ partitionId+ " in given zone "+ zoneId);
   }
  else {

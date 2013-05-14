@@ -1,0 +1,12 @@
+{
+  int donorZoneId;
+  if (targetSRP.zoneHasReplica(stealerZoneId,stealerPartitionId)) {
+    donorZoneId=stealerZoneId;
+  }
+ else {
+    int targetMasterNodeId=targetSRP.getNodeIdForPartitionId(stealerPartitionId);
+    donorZoneId=targetCluster.getNodeById(targetMasterNodeId).getZoneId();
+  }
+  int stealerZoneNAry=finalSRP.getZoneNaryForNodesPartition(stealerZoneId,stealerNodeId,stealerPartitionId);
+  return targetSRP.getNodeIdForZoneNary(donorZoneId,stealerZoneNAry,stealerPartitionId);
+}
