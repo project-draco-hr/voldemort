@@ -1,0 +1,20 @@
+{
+  for (int i=0; i < 30; i++) {
+    Cluster cluster;
+    StoreDefinition storeDef;
+    if ((i % 2) == 0) {
+      cluster=currentCluster;
+      storeDef=rwStoreDefWithReplication;
+    }
+ else {
+      cluster=targetCluster;
+      storeDef=rwStoreDefWithReplication2;
+    }
+    ThreadWriter tw=new ThreadWriter(cluster,storeDef);
+    Thread writer=new Thread(tw);
+    writer.start();
+    ThreadReader tr=new ThreadReader();
+    Thread reader=new Thread(tr);
+    reader.start();
+  }
+}

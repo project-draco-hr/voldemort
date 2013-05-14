@@ -1,5 +1,6 @@
 {
   logger.info("metadata init().");
+  writeLock.lock();
   initCache(CLUSTER_KEY);
   initCache(STORES_KEY);
   initSystemCache();
@@ -9,5 +10,7 @@
   initCache(REBALANCING_STEAL_INFO,new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
   initCache(SERVER_STATE_KEY,VoldemortState.NORMAL_SERVER.toString());
   initCache(REBALANCING_SOURCE_CLUSTER_XML,null);
+  initCache(REBALANCING_SOURCE_STORES_XML,null);
   updateRoutingStrategies(getCluster(),getStoreDefList());
+  writeLock.unlock();
 }

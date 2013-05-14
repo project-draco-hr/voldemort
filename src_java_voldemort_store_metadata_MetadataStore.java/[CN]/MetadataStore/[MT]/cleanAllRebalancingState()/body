@@ -1,6 +1,12 @@
 {
-  for (  String key : OPTIONAL_KEYS) {
-    if (!key.equals(NODE_ID_KEY))     innerStore.delete(key,getVersions(new ByteArray(ByteUtils.getBytes(key,"UTF-8"))).get(0));
+  writeLock.lock();
+  try {
+    for (    String key : OPTIONAL_KEYS) {
+      if (!key.equals(NODE_ID_KEY))       innerStore.delete(key,getVersions(new ByteArray(ByteUtils.getBytes(key,"UTF-8"))).get(0));
+    }
+    init(getNodeId());
   }
-  init(getNodeId());
+  finally {
+    writeLock.unlock();
+  }
 }

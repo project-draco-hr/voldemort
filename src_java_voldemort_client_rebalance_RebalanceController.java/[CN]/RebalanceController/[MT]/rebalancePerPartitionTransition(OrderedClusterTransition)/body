@@ -7,19 +7,20 @@
     }
     RebalanceUtils.printLog(orderedClusterTransition.getId(),logger,"Starting rebalance task id " + orderedClusterTransition.getId());
     List<RebalancePartitionsInfo> rebalancePartitionPlanList=rebalancePartitionsInfoList;
+    List<StoreDefinition> allStoreDefs=orderedClusterTransition.getStoreDefs();
     List<StoreDefinition> readOnlyStoreDefs=StoreDefinitionUtils.filterStores(orderedClusterTransition.getStoreDefs(),true);
     List<StoreDefinition> readWriteStoreDefs=StoreDefinitionUtils.filterStores(orderedClusterTransition.getStoreDefs(),false);
     boolean hasReadOnlyStores=readOnlyStoreDefs != null && readOnlyStoreDefs.size() > 0;
     boolean hasReadWriteStores=readWriteStoreDefs != null && readWriteStoreDefs.size() > 0;
     boolean finishedReadOnlyPhase=false;
     List<RebalancePartitionsInfo> filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionPlanList,readOnlyStoreDefs);
-    rebalanceStateChange(orderedClusterTransition.getId(),orderedClusterTransition.getCurrentCluster(),orderedClusterTransition.getTargetCluster(),filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
+    rebalanceStateChange(orderedClusterTransition.getId(),orderedClusterTransition.getCurrentCluster(),orderedClusterTransition.getTargetCluster(),allStoreDefs,allStoreDefs,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     if (hasReadOnlyStores) {
       rebalancePerTaskTransition(orderedClusterTransition.getId(),orderedClusterTransition.getCurrentCluster(),filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     }
     finishedReadOnlyPhase=true;
     filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionPlanList,readWriteStoreDefs);
-    rebalanceStateChange(orderedClusterTransition.getId(),orderedClusterTransition.getCurrentCluster(),orderedClusterTransition.getTargetCluster(),filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
+    rebalanceStateChange(orderedClusterTransition.getId(),orderedClusterTransition.getCurrentCluster(),orderedClusterTransition.getTargetCluster(),allStoreDefs,allStoreDefs,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     if (hasReadWriteStores) {
       rebalancePerTaskTransition(orderedClusterTransition.getId(),orderedClusterTransition.getCurrentCluster(),filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     }

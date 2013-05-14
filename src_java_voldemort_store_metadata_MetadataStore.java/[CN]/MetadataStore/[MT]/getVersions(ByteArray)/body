@@ -1,8 +1,14 @@
 {
-  List<Versioned<byte[]>> values=get(key,null);
-  List<Version> versions=new ArrayList<Version>(values.size());
-  for (  Versioned<?> value : values) {
-    versions.add(value.getVersion());
+  readLock.lock();
+  try {
+    List<Versioned<byte[]>> values=get(key,null);
+    List<Version> versions=new ArrayList<Version>(values.size());
+    for (    Versioned<?> value : values) {
+      versions.add(value.getVersion());
+    }
+    return versions;
   }
-  return versions;
+  finally {
+    readLock.unlock();
+  }
 }

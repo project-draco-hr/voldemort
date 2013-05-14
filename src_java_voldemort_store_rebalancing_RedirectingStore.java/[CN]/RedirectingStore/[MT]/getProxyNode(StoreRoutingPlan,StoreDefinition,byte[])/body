@@ -3,15 +3,26 @@
     return null;
   }
   Cluster sourceCluster=metadata.getRebalancingSourceCluster();
+  List<StoreDefinition> sourceStoreDefs=metadata.getRebalancingSourceStores();
   if (sourceCluster == null) {
     if (logger.isTraceEnabled()) {
       logger.trace("Old Cluster is null.. bail");
     }
     return null;
   }
+  if (sourceStoreDefs == null) {
+    if (logger.isTraceEnabled()) {
+      logger.trace("Old stores def is null.. bail");
+    }
+    return null;
+  }
+  StoreDefinition sourceStoreDef=null;
+  for (  StoreDefinition sourceStoreDefIt : sourceStoreDefs) {
+    if (storeDef.getName().equals(sourceStoreDefIt.getName()))     sourceStoreDef=storeDef;
+  }
   Integer nodeId=metadata.getNodeId();
   Integer zoneId=currentRoutingPlan.getCluster().getNodeById(nodeId).getZoneId();
-  StoreRoutingPlan oldRoutingPlan=new StoreRoutingPlan(sourceCluster,storeDef);
+  StoreRoutingPlan oldRoutingPlan=new StoreRoutingPlan(sourceCluster,sourceStoreDef);
   int zoneReplicaType=currentRoutingPlan.getZoneReplicaType(zoneId,nodeId,key);
   Integer redirectNodeId;
   try {

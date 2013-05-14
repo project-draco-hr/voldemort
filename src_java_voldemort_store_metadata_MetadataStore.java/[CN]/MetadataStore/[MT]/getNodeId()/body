@@ -1,3 +1,9 @@
 {
-  return (Integer)(metadataCache.get(NODE_ID_KEY).getValue());
+  readLock.lock();
+  try {
+    return (Integer)(metadataCache.get(NODE_ID_KEY).getValue());
+  }
+  finally {
+    readLock.unlock();
+  }
 }

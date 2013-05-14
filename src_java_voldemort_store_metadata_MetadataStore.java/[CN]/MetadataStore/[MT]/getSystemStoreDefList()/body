@@ -1,3 +1,9 @@
 {
-  return (List<StoreDefinition>)metadataCache.get(SYSTEM_STORES_KEY).getValue();
+  readLock.lock();
+  try {
+    return (List<StoreDefinition>)metadataCache.get(SYSTEM_STORES_KEY).getValue();
+  }
+  finally {
+    readLock.unlock();
+  }
 }
