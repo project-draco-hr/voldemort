@@ -9,9 +9,9 @@
     }
   }
   int batches=0;
-  Cluster batchTargetCluster=cloneCluster(targetCluster);
+  Cluster batchTargetCluster=Cluster.cloneCluster(targetCluster);
   while (!stealerToStolenPrimaryPartitions.isEmpty()) {
-    Cluster batchFinalCluster=cloneCluster(batchTargetCluster);
+    Cluster batchFinalCluster=Cluster.cloneCluster(batchTargetCluster);
     int partitions=0;
     List<Entry<Integer,Integer>> partitionsMoved=Lists.newArrayList();
     for (    Entry<Integer,Integer> stealerToPartition : stealerToStolenPrimaryPartitions.entries()) {
@@ -32,7 +32,7 @@
     nodeMoveMap.add(RebalanceBatchPlan.getNodeMoveMap());
     zoneMoveMap.add(RebalanceBatchPlan.getZoneMoveMap());
     batches++;
-    batchTargetCluster=cloneCluster(batchFinalCluster);
+    batchTargetCluster=Cluster.cloneCluster(batchFinalCluster);
   }
   logger.info(this);
 }
