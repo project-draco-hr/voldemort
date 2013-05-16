@@ -1,17 +1,15 @@
 {
-  Iterator it=keyValueMap.entrySet().iterator();
-  ArrayList<KeyedVersions> allKeyVersions=new ArrayList();
-  while (it.hasNext()) {
-    Map.Entry pairs=(Map.Entry)it.next();
-    String key=(String)pairs.getKey();
-    Versioned<String> value=(Versioned<String>)pairs.getValue();
+  ArrayList<KeyedVersions> allKeyVersions=new ArrayList<KeyedVersions>();
+  for (  Entry<String,Versioned<String>> entry : keyValueMap.entrySet()) {
+    String key=entry.getKey();
+    Versioned<String> value=entry.getValue();
     ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(key,"UTF-8"));
     Versioned<byte[]> valueBytes=new Versioned<byte[]>(ByteUtils.getBytes(value.getValue(),"UTF-8"),value.getVersion());
     VProto.KeyedVersions.Builder keyedVersion=VProto.KeyedVersions.newBuilder().setKey(ProtoUtils.encodeBytes(keyBytes));
     keyedVersion.addVersions(ProtoUtils.encodeVersioned(valueBytes));
     allKeyVersions.add(keyedVersion.build());
   }
-  VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_METADATA).setUpdateMetadata(VAdminProto.UpdateMetadataRequest.newBuilder().addAllKeyValue(allKeyVersions).build()).build();
+  VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_METADATA).setUpdateMetadata(VAdminProto.UpdateMetadataRequest.newBuilder().addAllMetadataEntry(allKeyVersions).build()).build();
   VAdminProto.UpdateMetadataResponse.Builder response=rpcOps.sendAndReceive(remoteNodeId,request,VAdminProto.UpdateMetadataResponse.newBuilder());
   if (response.hasError())   helperOps.throwException(response.getError());
 }

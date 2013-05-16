@@ -1,10 +1,10 @@
 {
   Cluster currentCluster=metadataStore.getCluster();
   List<StoreDefinition> currentStoreDefs=metadataStore.getStoreDefList();
-  logger.info("Server doing rebalance state change with options [ cluster metadata change - " + changeClusterMetadata + " ], [ changing rebalancing state - "+ changeRebalanceState+ " ], [ changing swapping RO - "+ swapRO+ " ], [ rollback - "+ rollback+ " ]");
+  logger.info("Server doing rebalance state change with options [ cluster metadata change - " + changeClusterAndStoresMetadata + " ], [ changing rebalancing state - "+ changeRebalanceState+ " ], [ changing swapping RO - "+ swapRO+ " ], [ rollback - "+ rollback+ " ]");
   List<RebalancePartitionsInfo> completedRebalancePartitionsInfo=Lists.newArrayList();
   List<String> swappedStoreNames=Lists.newArrayList();
-  boolean completedClusterChange=false;
+  boolean completedClusterAndStoresChange=false;
   boolean completedRebalanceSourceClusterChange=false;
   Cluster previousRebalancingSourceCluster=null;
   List<StoreDefinition> previousRebalancingSourceStores=null;
@@ -34,11 +34,11 @@
         throw new VoldemortException(e);
       }
     }
-    if (changeClusterMetadata) {
+    if (changeClusterAndStoresMetadata) {
       logger.info("Switching cluster metadata from " + currentCluster + " to "+ cluster);
       logger.info("Switching stores metadata from " + currentStoreDefs + " to "+ storeDefs);
       changeClusterAndStores(MetadataStore.CLUSTER_KEY,cluster,MetadataStore.STORES_KEY,storeDefs);
-      completedClusterChange=true;
+      completedClusterAndStoresChange=true;
     }
     if (swapRO) {
       swapROStores(swappedStoreNames,false);
@@ -46,14 +46,14 @@
   }
  catch (  VoldemortException e) {
     logger.error("Got exception while changing state, now rolling back changes",e);
-    if (completedClusterChange) {
+    if (completedClusterAndStoresChange) {
       try {
         logger.info("Rolling back cluster.xml to " + currentCluster);
         logger.info("Rolling back stores.xml to " + currentStoreDefs);
         changeClusterAndStores(MetadataStore.CLUSTER_KEY,currentCluster,MetadataStore.STORES_KEY,currentStoreDefs);
       }
  catch (      Exception exception) {
-        logger.error("Error while rolling back cluster metadata to " + currentCluster,exception);
+        logger.error("Error while rolling back cluster metadata to " + currentCluster + " Stores metadata to "+ currentStoreDefs,exception);
       }
     }
     if (swappedStoreNames.size() > 0) {
