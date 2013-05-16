@@ -1,7 +1,12 @@
 {
   List<Integer> targetList=new ArrayList<Integer>(targetCluster.getNodeById(stealNodeId).getPartitionIds());
   List<Integer> currentList=new ArrayList<Integer>();
-  if (ClusterUtils.containsNode(currentCluster,stealNodeId))   currentList=currentCluster.getNodeById(stealNodeId).getPartitionIds();
+  if (ClusterUtils.containsNode(currentCluster,stealNodeId)) {
+    currentList=currentCluster.getNodeById(stealNodeId).getPartitionIds();
+  }
+ else {
+    throw new VoldemortException("Current cluster does not contain stealer node (cluster : [[[" + currentCluster + "]]], node id "+ stealNodeId+ ")");
+  }
   targetList.removeAll(currentList);
   return targetList;
 }

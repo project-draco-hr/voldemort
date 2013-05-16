@@ -10,19 +10,18 @@
       return;
     }
     RebalanceUtils.printLog(batchCount,logger,"Starting batch " + batchCount + ".");
-    List<RebalancePartitionsInfo> rebalancePartitionPlanList=rebalancePartitionsInfoList;
     List<StoreDefinition> readOnlyStoreDefs=StoreDefinitionUtils.filterStores(batchStoreDefs,true);
     List<StoreDefinition> readWriteStoreDefs=StoreDefinitionUtils.filterStores(batchStoreDefs,false);
     boolean hasReadOnlyStores=readOnlyStoreDefs != null && readOnlyStoreDefs.size() > 0;
     boolean hasReadWriteStores=readWriteStoreDefs != null && readWriteStoreDefs.size() > 0;
     boolean finishedReadOnlyPhase=false;
-    List<RebalancePartitionsInfo> filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionPlanList,readOnlyStoreDefs);
+    List<RebalancePartitionsInfo> filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionsInfoList,readOnlyStoreDefs);
     rebalanceStateChange(batchCount,batchCurrentCluster,batchFinalCluster,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     if (hasReadOnlyStores) {
       executeSubBatch(batchCount,batchCurrentCluster,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     }
     finishedReadOnlyPhase=true;
-    filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionPlanList,readWriteStoreDefs);
+    filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionsInfoList,readWriteStoreDefs);
     rebalanceStateChange(batchCount,batchCurrentCluster,batchFinalCluster,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     if (hasReadWriteStores) {
       executeSubBatch(batchCount,batchCurrentCluster,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
