@@ -1,16 +1,16 @@
 {
   Node nodeToHostHint=null;
-  while (routeNodes.size() > 0) {
-    nodeToHostHint=routeNodes.remove(0);
+  boolean foundNode=false;
+  while (nodesToTry.size() > 0) {
+    nodeToHostHint=nodesToTry.remove(0);
     if (!failedNodes.contains(nodeToHostHint) && failureDetector.isAvailable(nodeToHostHint)) {
+      foundNode=true;
       break;
     }
- else {
-      nodeToHostHint=null;
-    }
   }
-  if (nodeToHostHint == null) {
-    logger.error("trying to send an async hint but used up all nodes");
+  if (!foundNode) {
+    Slop slop=slopSerializer.toObject(slopVersioned.getValue());
+    logger.error("Trying to send an async hint but used up all nodes. key: " + slop.getKey() + " version: "+ slopVersioned.getVersion().toString());
     return;
   }
   final Node node=nodeToHostHint;
@@ -35,7 +35,7 @@
           }
           failureDetector.recordException(node,(System.nanoTime() - startNs) / Time.NS_PER_MS,use);
         }
-        sendOneAsyncHint(slopKey,slopVersioned,routeNodes);
+        sendOneAsyncHint(slopKey,slopVersioned,nodesToTry);
       }
       if (loggerDebugEnabled)       logger.debug("Slop write of key " + slop.getKey() + " for node "+ slop.getNodeId()+ " to node "+ node+ " succeeded in "+ (System.nanoTime() - startNs)+ " ns");
       failureDetector.recordSuccess(node,(System.nanoTime() - startNs) / Time.NS_PER_MS);

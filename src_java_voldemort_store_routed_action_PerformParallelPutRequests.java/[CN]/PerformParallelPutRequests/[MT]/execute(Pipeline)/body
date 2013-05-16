@@ -22,7 +22,10 @@
           logger.debug("PUT {key:" + key + "} Master thread accepted the response: "+ responseHandledByMaster);
         }
         if (!responseHandledByMaster) {
-          if (isSlopableFailure(response.getValue())) {
+          if (logger.isDebugEnabled()) {
+            logger.debug("PUT {key:" + key + "} Master thread did not accept the response: will handle in worker thread");
+          }
+          if (PipelineRoutedStore.isSlopableFailure(response.getValue())) {
             if (logger.isDebugEnabled())             logger.debug("PUT {key:" + key + "} failed on node={id:"+ node.getId()+ ",host:"+ node.getHost()+ "}");
             if (isHintedHandoffEnabled()) {
               boolean triedDelegateSlop=pipelineData.getSynchronizer().tryDelegateSlop(node);
@@ -44,7 +47,7 @@
                 logger.debug("PUT {key:" + key + "} will not send hint. Response is ignorable exception: "+ result.getClass().toString());
               }
  else {
-                logger.debug("PUT {key:" + key + "} will not send hint. Response is normal");
+                logger.debug("PUT {key:" + key + "} will not send hint. Response is success");
               }
             }
           }

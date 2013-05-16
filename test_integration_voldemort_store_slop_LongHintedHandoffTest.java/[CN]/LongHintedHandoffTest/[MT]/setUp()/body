@@ -1,5 +1,11 @@
 {
   testEnv=new HintedHandoffTestEnvironment();
-  testEnv.setReplicationFactor(replicationFactor).setPreferredWrite(preferredWrites).setRequiredWrite(requiredWrites);
+  testEnv.setPreferredWrite(preferredWrites).setRequiredWrite(requiredWrites);
+  if (this.zoned) {
+    testEnv.setReplicationFactor(replicationFactor);
+  }
+ else {
+    testEnv.setZonedReplicationFactor(replicationFactor);
+  }
   testEnv.start();
 }
