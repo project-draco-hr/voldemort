@@ -32,7 +32,7 @@
     for (    VoldemortServer server : servers) {
       if (server.getMetadataStore().getNodeId() != 3) {
         assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
-        assertEquals(server.getMetadataStore().getServerState(),MetadataStore.VoldemortState.NORMAL_SERVER);
+        assertEquals(server.getMetadataStore().getServerStateUnlocked(),MetadataStore.VoldemortState.NORMAL_SERVER);
       }
       assertEquals(server.getMetadataStore().getCluster(),cluster);
     }
@@ -48,7 +48,7 @@
     Thread.sleep(1000);
     for (    VoldemortServer server : servers) {
       assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
-      assertEquals(server.getMetadataStore().getServerState(),MetadataStore.VoldemortState.NORMAL_SERVER);
+      assertEquals(server.getMetadataStore().getServerStateUnlocked(),MetadataStore.VoldemortState.NORMAL_SERVER);
       assertEquals(server.getMetadataStore().getCluster(),cluster);
     }
     checkRO(cluster);
@@ -59,14 +59,14 @@
     for (    RebalancePartitionsInfo plan : plans) {
       nodesChecked.add(plan.getStealerId());
       assertEquals(servers[plan.getStealerId()].getMetadataStore().getRebalancerState(),new RebalancerState(Lists.newArrayList(plan)));
-      assertEquals(servers[plan.getStealerId()].getMetadataStore().getServerState(),MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
+      assertEquals(servers[plan.getStealerId()].getMetadataStore().getServerStateUnlocked(),MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
       assertEquals(servers[plan.getStealerId()].getMetadataStore().getCluster(),targetCluster);
     }
     List<Integer> allNodes=Lists.newArrayList(NodeUtils.getNodeIds(Lists.newArrayList(cluster.getNodes())));
     allNodes.removeAll(nodesChecked);
     for (    int nodeId : allNodes) {
       assertEquals(servers[nodeId].getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
-      assertEquals(servers[nodeId].getMetadataStore().getServerState(),MetadataStore.VoldemortState.NORMAL_SERVER);
+      assertEquals(servers[nodeId].getMetadataStore().getServerStateUnlocked(),MetadataStore.VoldemortState.NORMAL_SERVER);
       assertEquals(servers[nodeId].getMetadataStore().getCluster(),targetCluster);
     }
     checkRO(targetCluster);
