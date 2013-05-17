@@ -15,19 +15,14 @@
     serverProps.put("max.parallel.stores.rebalancing",String.valueOf(1));
     List<Integer> serverList=Arrays.asList(0,1,2,3);
     currentCluster=startServers(currentCluster,rwTwoStoreDefFileWithReplication,serverList,serverProps);
-    targetCluster=updateCluster(targetCluster);
     String bootstrapUrl=getBootstrapUrl(currentCluster,0);
     int maxParallel=5;
-    int maxTries=RebalanceController.MAX_TRIES_REBALANCING;
-    long timeout=RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC;
     boolean stealerBased=!useDonorBased;
-    RebalanceController rebalanceClient=new RebalanceController(bootstrapUrl,maxParallel,maxTries,timeout,stealerBased);
-    int batchSize=100;
-    RebalancePlan rebalancePlan=rebalanceClient.getPlan(targetCluster,batchSize);
+    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,stealerBased,targetCluster);
     try {
-      populateData(currentCluster,rwStoreDefWithReplication,rebalanceClient.getAdminClient(),false);
-      populateData(currentCluster,rwStoreDefWithReplication2,rebalanceClient.getAdminClient(),false);
-      rebalanceAndCheck(rebalancePlan,rebalanceClient,serverList);
+      populateData(currentCluster,rwStoreDefWithReplication,rebalanceKit.controller.getAdminClient(),false);
+      populateData(currentCluster,rwStoreDefWithReplication2,rebalanceKit.controller.getAdminClient(),false);
+      rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,serverList);
       checkConsistentMetadata(targetCluster,serverList);
     }
  catch (    Exception e) {

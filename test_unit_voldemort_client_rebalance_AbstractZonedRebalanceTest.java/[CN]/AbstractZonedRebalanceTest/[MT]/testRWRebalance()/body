@@ -8,18 +8,12 @@
     Map<String,String> configProps=new HashMap<String,String>();
     configProps.put("admin.max.threads","5");
     currentCluster=startServers(currentCluster,storeDefFileWithoutReplication,serverList,configProps);
-    targetCluster=updateCluster(targetCluster);
     String bootstrapUrl=getBootstrapUrl(currentCluster,0);
-    int maxParallel=RebalanceController.MAX_PARALLEL_REBALANCING;
-    int maxTries=RebalanceController.MAX_TRIES_REBALANCING;
-    long timeout=RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC;
     boolean stealerBased=!useDonorBased;
-    RebalanceController rebalanceClient=new RebalanceController(bootstrapUrl,maxParallel,maxTries,timeout,stealerBased);
-    int batchSize=RebalancePlan.BATCH_SIZE;
-    RebalancePlan rebalancePlan=rebalanceClient.getPlan(targetCluster,batchSize);
+    ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,targetCluster);
     try {
       populateData(currentCluster,rwStoreDefWithoutReplication);
-      rebalanceAndCheck(rebalancePlan,rebalanceClient,Arrays.asList(1,2));
+      rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,Arrays.asList(1,2));
       checkConsistentMetadata(targetCluster,serverList);
     }
   finally {

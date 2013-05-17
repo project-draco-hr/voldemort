@@ -2,24 +2,19 @@
   logger.info("Starting testProxyGetDuringRebalancing");
   try {
     Cluster currentCluster=ServerTestUtils.getLocalZonedCluster(4,2,new int[]{0,0,1,1},new int[][]{{0,2,4},{6},{1,3,5},{7}});
-    Cluster targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,3,Lists.newArrayList(2));
-    targetCluster=RebalanceUtils.createUpdatedCluster(targetCluster,1,Lists.newArrayList(3));
+    Cluster tmpTargetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,3,Lists.newArrayList(2));
+    final Cluster targetCluster=RebalanceUtils.createUpdatedCluster(tmpTargetCluster,1,Lists.newArrayList(3));
     final List<Integer> serverList=Arrays.asList(0,1,2,3);
     Map<String,String> configProps=new HashMap<String,String>();
     configProps.put("admin.max.threads","5");
     final Cluster updatedCurrentCluster=startServers(currentCluster,storeDefFileWithReplication,serverList,configProps);
-    final Cluster updatedTargetCluster=updateCluster(targetCluster);
     ExecutorService executors=Executors.newFixedThreadPool(2);
     final AtomicBoolean rebalancingComplete=new AtomicBoolean(false);
     final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
     String bootstrapUrl=getBootstrapUrl(updatedCurrentCluster,0);
     int maxParallel=2;
-    int maxTries=RebalanceController.MAX_TRIES_REBALANCING;
-    long timeout=RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC;
     boolean stealerBased=true;
-    final RebalanceController rebalanceClient=new RebalanceController(bootstrapUrl,maxParallel,maxTries,timeout,stealerBased);
-    int batchSize=RebalancePlan.BATCH_SIZE;
-    final RebalancePlan rebalancePlan=rebalanceClient.getPlan(targetCluster,batchSize);
+    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,stealerBased,targetCluster);
     try {
       populateData(currentCluster,rwStoreDefWithReplication);
       final SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(getBootstrapUrl(currentCluster,0)).setEnableLazy(false).setSocketTimeout(120,TimeUnit.SECONDS));
@@ -58,10 +53,10 @@
         @Override public void run(){
           try {
             Thread.sleep(500);
-            rebalanceAndCheck(rebalancePlan,rebalanceClient,Arrays.asList(0,1,2,3));
+            rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,Arrays.asList(0,1,2,3));
             Thread.sleep(500);
             rebalancingComplete.set(true);
-            checkConsistentMetadata(updatedTargetCluster,serverList);
+            checkConsistentMetadata(targetCluster,serverList);
           }
  catch (          Exception e) {
             exceptions.add(e);

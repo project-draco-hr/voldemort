@@ -1,0 +1,28 @@
+{
+  RebalancePlan rebalancePlan;
+  rebalancePlan=ClusterTestUtils.makePlan(zzCurrent,zzStores,zzShuffle,zzStores);
+  assertEquals(rebalancePlan.getPlan().size(),1);
+  assertTrue(rebalancePlan.getPrimariesMoved() > 0);
+  assertTrue(rebalancePlan.getPartitionStoresMoved() > 0);
+  assertEquals(rebalancePlan.getPartitionStoresMovedXZone(),0);
+  MoveMap zoneMoves=rebalancePlan.getZoneMoveMap();
+  assertTrue(zoneMoves.get(0,0) > 0);
+  assertTrue(zoneMoves.get(0,1) == 0);
+  assertTrue(zoneMoves.get(1,0) == 0);
+  assertTrue(zoneMoves.get(1,1) > 0);
+  rebalancePlan=ClusterTestUtils.makePlan(zzzCurrent,zzzStores,zzzShuffle,zzzStores);
+  assertEquals(rebalancePlan.getPlan().size(),1);
+  assertTrue(rebalancePlan.getPrimariesMoved() > 0);
+  assertTrue(rebalancePlan.getPartitionStoresMoved() > 0);
+  assertEquals(rebalancePlan.getPartitionStoresMovedXZone(),0);
+  zoneMoves=rebalancePlan.getZoneMoveMap();
+  assertTrue(zoneMoves.get(0,0) > 0);
+  assertTrue(zoneMoves.get(0,1) == 0);
+  assertTrue(zoneMoves.get(0,2) == 0);
+  assertTrue(zoneMoves.get(1,0) == 0);
+  assertTrue(zoneMoves.get(1,1) > 0);
+  assertTrue(zoneMoves.get(1,2) == 0);
+  assertTrue(zoneMoves.get(2,0) == 0);
+  assertTrue(zoneMoves.get(2,1) == 0);
+  assertTrue(zoneMoves.get(2,2) > 0);
+}

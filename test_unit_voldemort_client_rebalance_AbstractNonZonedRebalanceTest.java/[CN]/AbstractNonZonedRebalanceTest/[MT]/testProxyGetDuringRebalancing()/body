@@ -7,20 +7,15 @@
     Map<String,String> configProps=new HashMap<String,String>();
     configProps.put("admin.max.threads","5");
     final Cluster updatedCurrentCluster=startServers(currentCluster,storeDefFileWithReplication,serverList,configProps);
-    final Cluster updatedTargetCluster=updateCluster(targetCluster);
     ExecutorService executors=Executors.newFixedThreadPool(2);
     final AtomicBoolean rebalancingComplete=new AtomicBoolean(false);
     final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
-    String bootstrapUrl=getBootstrapUrl(updatedCurrentCluster,0);
+    String bootstrapUrl=getBootstrapUrl(currentCluster,0);
     int maxParallel=2;
-    int maxTries=RebalanceController.MAX_TRIES_REBALANCING;
-    long timeout=RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC;
     boolean stealerBased=true;
-    final RebalanceController rebalanceClient=new RebalanceController(bootstrapUrl,maxParallel,maxTries,timeout,stealerBased);
-    int batchSize=RebalancePlan.BATCH_SIZE;
-    final RebalancePlan rebalancePlan=rebalanceClient.getPlan(updatedTargetCluster,batchSize);
-    populateData(updatedCurrentCluster,roStoreDefWithReplication,rebalanceClient.getAdminClient(),true);
-    populateData(updatedCurrentCluster,rwStoreDefWithReplication,rebalanceClient.getAdminClient(),false);
+    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,stealerBased,targetCluster);
+    populateData(updatedCurrentCluster,roStoreDefWithReplication,rebalanceKit.controller.getAdminClient(),true);
+    populateData(updatedCurrentCluster,rwStoreDefWithReplication,rebalanceKit.controller.getAdminClient(),false);
     final SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(getBootstrapUrl(updatedCurrentCluster,0)).setEnableLazy(false).setSocketTimeout(120,TimeUnit.SECONDS));
     final StoreClient<String,String> storeClientRW=new DefaultStoreClient<String,String>(testStoreNameRW,null,factory,3);
     final StoreClient<String,String> storeClientRO=new DefaultStoreClient<String,String>(testStoreNameRO,null,factory,3);
@@ -62,10 +57,10 @@
       @Override public void run(){
         try {
           Thread.sleep(500);
-          rebalanceAndCheck(rebalancePlan,rebalanceClient,Arrays.asList(0,1));
+          rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,Arrays.asList(0,1));
           Thread.sleep(500);
           rebalancingComplete.set(true);
-          checkConsistentMetadata(updatedTargetCluster,serverList);
+          checkConsistentMetadata(targetCluster,serverList);
         }
  catch (        Exception e) {
           exceptions.add(e);

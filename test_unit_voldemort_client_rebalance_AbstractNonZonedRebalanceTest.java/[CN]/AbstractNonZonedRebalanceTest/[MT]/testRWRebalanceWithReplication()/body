@@ -5,18 +5,12 @@
     Cluster targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,1,Lists.newArrayList(2,3));
     List<Integer> serverList=Arrays.asList(0,1);
     currentCluster=startServers(currentCluster,rwStoreDefFileWithReplication,serverList,null);
-    targetCluster=updateCluster(targetCluster);
     String bootstrapUrl=getBootstrapUrl(currentCluster,0);
-    int maxParallel=RebalanceController.MAX_PARALLEL_REBALANCING;
-    int maxTries=RebalanceController.MAX_TRIES_REBALANCING;
-    long timeout=RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC;
     boolean stealerBased=!useDonorBased;
-    RebalanceController rebalanceClient=new RebalanceController(bootstrapUrl,maxParallel,maxTries,timeout,stealerBased);
-    int batchSize=RebalancePlan.BATCH_SIZE;
-    RebalancePlan rebalancePlan=rebalanceClient.getPlan(targetCluster,batchSize);
+    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,targetCluster);
     try {
-      populateData(currentCluster,rwStoreDefWithReplication,rebalanceClient.getAdminClient(),false);
-      rebalanceAndCheck(rebalancePlan,rebalanceClient,Arrays.asList(0,1));
+      populateData(currentCluster,rwStoreDefWithReplication,rebalanceKit.controller.getAdminClient(),false);
+      rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,Arrays.asList(0,1));
       checkConsistentMetadata(targetCluster,serverList);
     }
   finally {

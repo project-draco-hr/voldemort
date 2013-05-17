@@ -8,24 +8,18 @@
     Map<String,String> configProps=new HashMap<String,String>();
     configProps.put("enable.repair","true");
     currentCluster=startServers(currentCluster,rwStoreDefFileWithReplication,serverList,configProps);
-    targetCluster=updateCluster(targetCluster);
     String bootstrapUrl=getBootstrapUrl(currentCluster,0);
-    int maxParallel=RebalanceController.MAX_PARALLEL_REBALANCING;
-    int maxTries=RebalanceController.MAX_TRIES_REBALANCING;
-    long timeout=RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC;
     boolean stealerBased=!useDonorBased;
-    RebalanceController rebalanceClient=new RebalanceController(bootstrapUrl,maxParallel,maxTries,timeout,stealerBased);
-    int batchSize=RebalancePlan.BATCH_SIZE;
-    RebalancePlan rebalancePlan=rebalanceClient.getPlan(targetCluster,batchSize);
+    ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,targetCluster);
     try {
       populateData(currentCluster,rwStoreDefWithReplication);
-      AdminClient admin=rebalanceClient.getAdminClient();
+      AdminClient admin=rebalanceKit.controller.getAdminClient();
       List<ByteArray> p6KeySamples=sampleKeysFromPartition(admin,1,rwStoreDefWithReplication.getName(),Arrays.asList(6),20);
       List<ByteArray> p1KeySamples=sampleKeysFromPartition(admin,1,rwStoreDefWithReplication.getName(),Arrays.asList(1),20);
       List<ByteArray> p3KeySamples=sampleKeysFromPartition(admin,0,rwStoreDefWithReplication.getName(),Arrays.asList(3),20);
       List<ByteArray> p2KeySamples=sampleKeysFromPartition(admin,1,rwStoreDefWithReplication.getName(),Arrays.asList(2),20);
       List<ByteArray> p7KeySamples=sampleKeysFromPartition(admin,4,rwStoreDefWithReplication.getName(),Arrays.asList(7),20);
-      rebalanceAndCheck(rebalancePlan,rebalanceClient,Arrays.asList(0,1,2,3));
+      rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,Arrays.asList(0,1,2,3));
       checkConsistentMetadata(targetCluster,serverList);
       for (int i=0; i < 6; i++) {
         admin.storeMntOps.repairJob(i);

@@ -8,20 +8,15 @@
     Map<String,String> configProps=new HashMap<String,String>();
     configProps.put("admin.max.threads","5");
     final Cluster updatedCurrentCluster=startServers(currentCluster,rwStoreDefFileWithReplication,serverList,configProps);
-    final Cluster updatedTargetCluster=updateCluster(targetCluster);
     ExecutorService executors=Executors.newFixedThreadPool(2);
     final AtomicBoolean rebalancingComplete=new AtomicBoolean(false);
     final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
     String bootstrapUrl=getBootstrapUrl(updatedCurrentCluster,0);
     int maxParallel=2;
-    int maxTries=RebalanceController.MAX_TRIES_REBALANCING;
-    long timeout=RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC;
     boolean stealerBased=!useDonorBased;
-    final RebalanceController rebalanceClient=new RebalanceController(bootstrapUrl,maxParallel,maxTries,timeout,stealerBased);
-    int batchSize=RebalancePlan.BATCH_SIZE;
-    final RebalancePlan rebalancePlan=rebalanceClient.getPlan(updatedTargetCluster,batchSize);
+    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,stealerBased,targetCluster);
     populateData(currentCluster,rwStoreDefWithReplication);
-    final AdminClient adminClient=rebalanceClient.getAdminClient();
+    final AdminClient adminClient=rebalanceKit.controller.getAdminClient();
     final List<ByteArray> movingKeysList=sampleKeysFromPartition(adminClient,1,rwStoreDefWithReplication.getName(),Arrays.asList(6),20);
     assertTrue("Empty list of moving keys...",movingKeysList.size() > 0);
     final AtomicBoolean rebalancingStarted=new AtomicBoolean(false);
@@ -86,7 +81,7 @@
     executors.execute(new Runnable(){
       @Override public void run(){
         try {
-          rebalanceClient.rebalance(rebalancePlan);
+          rebalanceKit.rebalance();
         }
  catch (        Exception e) {
           logger.error("Error in rebalancing... ",e);
@@ -104,8 +99,8 @@
     executors.awaitTermination(300,TimeUnit.SECONDS);
     assertEquals("Client did not see all server transition into rebalancing state",rebalancingStarted.get(),true);
     assertEquals("Not enough time to begin proxy writing",proxyWritesDone.get(),true);
-    checkEntriesPostRebalance(updatedCurrentCluster,updatedTargetCluster,Lists.newArrayList(rwStoreDefWithReplication),Arrays.asList(0,1,2,3,4,5),baselineTuples,baselineVersions);
-    checkConsistentMetadata(updatedTargetCluster,serverList);
+    checkEntriesPostRebalance(updatedCurrentCluster,targetCluster,Lists.newArrayList(rwStoreDefWithReplication),Arrays.asList(0,1,2,3,4,5),baselineTuples,baselineVersions);
+    checkConsistentMetadata(targetCluster,serverList);
     if (exceptions.size() > 0) {
       for (      Exception e : exceptions) {
         e.printStackTrace();
