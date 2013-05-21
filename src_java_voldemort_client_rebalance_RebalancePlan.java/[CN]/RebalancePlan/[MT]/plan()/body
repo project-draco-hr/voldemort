@@ -1,17 +1,19 @@
 {
   final TreeMultimap<Integer,Integer> stealerToStolenPrimaryPartitions=TreeMultimap.create();
-  if (outputDir != null)   RebalanceUtils.dumpClusters(targetCluster,finalCluster,outputDir);
+  if (outputDir != null)   RebalanceUtils.dumpClusters(currentCluster,finalCluster,outputDir);
   for (  Node stealerNode : finalCluster.getNodes()) {
-    List<Integer> stolenPrimaryPartitions=RebalanceUtils.getStolenPrimaryPartitions(targetCluster,finalCluster,stealerNode.getId());
+    List<Integer> stolenPrimaryPartitions=RebalanceUtils.getStolenPrimaryPartitions(currentCluster,finalCluster,stealerNode.getId());
     if (stolenPrimaryPartitions.size() > 0) {
       numPrimaryPartitionMoves+=stolenPrimaryPartitions.size();
       stealerToStolenPrimaryPartitions.putAll(stealerNode.getId(),stolenPrimaryPartitions);
     }
   }
   int batches=0;
-  Cluster batchTargetCluster=Cluster.cloneCluster(targetCluster);
+  Cluster batchCurrentCluster=Cluster.cloneCluster(currentCluster);
+  List<StoreDefinition> batchCurrentStoreDefs=this.currentStoreDefs;
+  List<StoreDefinition> batchFinalStoreDefs=this.finalStoreDefs;
+  Cluster batchFinalCluster=RebalanceUtils.getInterimCluster(this.currentCluster,this.finalCluster);
   while (!stealerToStolenPrimaryPartitions.isEmpty()) {
-    Cluster batchFinalCluster=Cluster.cloneCluster(batchTargetCluster);
     int partitions=0;
     List<Entry<Integer,Integer>> partitionsMoved=Lists.newArrayList();
     for (    Entry<Integer,Integer> stealerToPartition : stealerToStolenPrimaryPartitions.entries()) {
@@ -24,15 +26,16 @@
       Entry<Integer,Integer> entry=partitionMoved.next();
       stealerToStolenPrimaryPartitions.remove(entry.getKey(),entry.getValue());
     }
-    if (outputDir != null)     RebalanceUtils.dumpClusters(batchTargetCluster,batchFinalCluster,outputDir,"batch-" + Integer.toString(batches) + ".");
-    final RebalanceBatchPlan RebalanceBatchPlan=new RebalanceBatchPlan(batchTargetCluster,batchFinalCluster,finalStores);
+    if (outputDir != null)     RebalanceUtils.dumpClusters(batchCurrentCluster,batchFinalCluster,outputDir,"batch-" + Integer.toString(batches) + ".");
+    final RebalanceBatchPlan RebalanceBatchPlan=new RebalanceBatchPlan(batchCurrentCluster,batchCurrentStoreDefs,batchFinalCluster,batchFinalStoreDefs);
     batchPlans.add(RebalanceBatchPlan);
     numXZonePartitionStoreMoves+=RebalanceBatchPlan.getCrossZonePartitionStoreMoves();
     numPartitionStoreMoves+=RebalanceBatchPlan.getPartitionStoreMoves();
     nodeMoveMap.add(RebalanceBatchPlan.getNodeMoveMap());
     zoneMoveMap.add(RebalanceBatchPlan.getZoneMoveMap());
     batches++;
-    batchTargetCluster=Cluster.cloneCluster(batchFinalCluster);
+    batchCurrentCluster=Cluster.cloneCluster(batchFinalCluster);
+    batchCurrentStoreDefs=batchFinalStoreDefs;
   }
   logger.info(this);
 }
