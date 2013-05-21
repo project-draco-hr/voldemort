@@ -6,13 +6,19 @@
     outputStream.write(payload);
     String base64Key=new String(Base64.encodeBase64(key.get()));
     RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
-    String serializedVC=CoordinatorUtils.getSerializedVectorClock((VectorClock)value.getVersion());
+    VectorClock vc=(VectorClock)value.getVersion();
+    String serializedVC=null;
+    if (!vc.getEntries().isEmpty()) {
+      serializedVC=CoordinatorUtils.getSerializedVectorClock(vc);
+    }
     rb.setMethod(POST);
     rb.setEntity(outputBytes.toByteArray());
-    rb.setHeader("Content-Type","application/json");
-    rb.setHeader("Content-Length","" + payload.length);
+    rb.setHeader(CONTENT_TYPE,"binary");
+    rb.setHeader(CONTENT_LENGTH,"" + payload.length);
     rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,"1000");
-    rb.setHeader(X_VOLD_VECTOR_CLOCK,serializedVC);
+    if (serializedVC != null && serializedVC.length() > 0) {
+      rb.setHeader(X_VOLD_VECTOR_CLOCK,serializedVC);
+    }
     RestRequest request=rb.build();
     Future<RestResponse> f=client.restRequest(request);
     RestResponse response=f.get();
@@ -27,6 +33,8 @@
     throw ve;
   }
 catch (  Exception e) {
-    logger.error("ERROR: " + e);
+    if (!e.getMessage().contains("status=412")) {
+      logger.error("Specified version of the value is Obsolete.",e);
+    }
   }
 }
