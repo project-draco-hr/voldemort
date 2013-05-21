@@ -1,9 +1,5 @@
 {
-  Cluster finalCluster=rebalancePlan.getFinalCluster();
-  List<StoreDefinition> finalStores=rebalancePlan.getFinalStores();
-  validatePlan(rebalancePlan);
-  prepareForRebalance(finalCluster,finalStores);
-  logger.info("Propagating cluster " + finalCluster + " to all nodes");
-  RebalanceUtils.propagateCluster(adminClient,finalCluster);
+  validateRebalancePlanState(rebalancePlan);
+  validateClusterForRebalance(rebalancePlan);
   executePlan(rebalancePlan);
 }

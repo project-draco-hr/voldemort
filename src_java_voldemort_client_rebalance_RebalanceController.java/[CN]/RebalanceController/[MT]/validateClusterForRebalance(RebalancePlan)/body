@@ -1,0 +1,8 @@
+{
+  logger.info("Validating state of deployed cluster to confirm its ready for rebalance.");
+  Cluster finalCluster=rebalancePlan.getFinalCluster();
+  List<StoreDefinition> finalStoreDefs=rebalancePlan.getFinalStores();
+  adminClient.setAdminClientCluster(finalCluster);
+  RebalanceUtils.checkEachServerInNormalState(finalCluster,adminClient);
+  RebalanceUtils.validateReadOnlyStores(finalCluster,finalStoreDefs,adminClient);
+}
