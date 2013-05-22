@@ -9,8 +9,8 @@
   }
   try {
     List<RebalanceTask> allTasks=executeTasks(taskId,service,rebalancePartitionPlanList,donorPermits);
-    RebalanceUtils.printLog(taskId,logger,"All rebalance tasks were submitted ( shutting down in " + this.rebalancingClientTimeoutSeconds + " sec )");
-    RebalanceUtils.executorShutDown(service,this.rebalancingClientTimeoutSeconds);
+    RebalanceUtils.printLog(taskId,logger,"All rebalance tasks submitted");
+    RebalanceUtils.executorShutDown(service,Long.MAX_VALUE);
     RebalanceUtils.printLog(taskId,logger,"Finished waiting for executors");
     List<Exception> failures=Lists.newArrayList();
     for (    RebalanceTask task : allTasks) {

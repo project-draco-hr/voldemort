@@ -2,7 +2,7 @@
   List<RebalanceTask> taskList=Lists.newArrayList();
   if (stealerBasedRebalancing) {
     for (    RebalancePartitionsInfo partitionsInfo : rebalancePartitionPlanList) {
-      StealerBasedRebalanceTask rebalanceTask=new StealerBasedRebalanceTask(taskId,partitionsInfo,rebalancingClientTimeoutSeconds,maxTriesRebalancing,donorPermits[partitionsInfo.getDonorId()],adminClient);
+      StealerBasedRebalanceTask rebalanceTask=new StealerBasedRebalanceTask(taskId,partitionsInfo,maxTriesRebalancing,donorPermits[partitionsInfo.getDonorId()],adminClient);
       taskList.add(rebalanceTask);
       service.execute(rebalanceTask);
     }
@@ -10,7 +10,7 @@
  else {
     HashMap<Integer,List<RebalancePartitionsInfo>> donorNodeBasedPartitionsInfo=RebalanceUtils.groupPartitionsInfoByNode(rebalancePartitionPlanList,false);
     for (    Entry<Integer,List<RebalancePartitionsInfo>> entries : donorNodeBasedPartitionsInfo.entrySet()) {
-      DonorBasedRebalanceTask rebalanceTask=new DonorBasedRebalanceTask(taskId,entries.getValue(),rebalancingClientTimeoutSeconds,donorPermits[entries.getValue().get(0).getDonorId()],adminClient);
+      DonorBasedRebalanceTask rebalanceTask=new DonorBasedRebalanceTask(taskId,entries.getValue(),donorPermits[entries.getValue().get(0).getDonorId()],adminClient);
       taskList.add(rebalanceTask);
       service.execute(rebalanceTask);
     }

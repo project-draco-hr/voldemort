@@ -14,11 +14,7 @@
   if (options.has("tries")) {
     tries=(Integer)options.valueOf("tries");
   }
-  long timeout=RebalanceController.REBALANCING_CLIENT_TIMEOUT_SEC;
-  if (options.has("timeout")) {
-    timeout=(Integer)options.valueOf("timeout");
-  }
-  RebalanceController rebalanceController=new RebalanceController(bootstrapURL,parallelism,tries,timeout,stealerBased);
+  RebalanceController rebalanceController=new RebalanceController(bootstrapURL,parallelism,tries,stealerBased);
   Cluster currentCluster=rebalanceController.getCurrentCluster();
   List<StoreDefinition> currentStoreDefs=rebalanceController.getCurrentStoreDefs();
   RebalanceUtils.validateClusterStores(currentCluster,currentStoreDefs);
