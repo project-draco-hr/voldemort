@@ -1,29 +1,3 @@
 {
-  logger.info("Starting " + testTag);
-  Thread.sleep(TimeUnit.SECONDS.toMillis(2));
-  try {
-    Cluster currentCluster=cCluster;
-    Cluster targetCluster=fCluster;
-    List<Integer> serverList=new ArrayList<Integer>(currentCluster.getNodeIds());
-    Map<String,String> configProps=new HashMap<String,String>();
-    configProps.put("admin.max.threads","5");
-    currentCluster=startServers(currentCluster,storesXml,serverList,configProps);
-    String bootstrapUrl=getBootstrapUrl(currentCluster,0);
-    boolean stealerBased=!useDonorBased;
-    ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,targetCluster);
-    try {
-      for (      StoreDefinition storeDef : storeDefs) {
-        populateData(currentCluster,storeDef);
-      }
-      rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,serverList);
-      checkConsistentMetadata(targetCluster,serverList);
-    }
-  finally {
-      stopServer(serverList);
-    }
-  }
- catch (  AssertionError ae) {
-    logger.error("Assertion broken in " + testTag + " : ",ae);
-    throw ae;
-  }
+  testZonedRebalance(testTag,cCluster,fCluster,storesXml,storesXml,storeDefs,storeDefs);
 }
