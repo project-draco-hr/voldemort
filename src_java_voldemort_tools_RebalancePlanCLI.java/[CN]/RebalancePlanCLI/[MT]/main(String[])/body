@@ -3,22 +3,22 @@
   OptionSet options=getValidOptions(args);
   String currentClusterXML=(String)options.valueOf("current-cluster");
   String currentStoresXML=(String)options.valueOf("current-stores");
-  String targetClusterXML=new String(currentClusterXML);
-  if (options.has("target-cluster")) {
-    targetClusterXML=(String)options.valueOf("target-cluster");
+  String finalClusterXML=new String(currentClusterXML);
+  if (options.has("final-cluster")) {
+    finalClusterXML=(String)options.valueOf("final-cluster");
   }
-  String targetStoresXML=new String(currentStoresXML);
-  if (options.has("target-stores")) {
-    targetStoresXML=(String)options.valueOf("target-stores");
+  String finalStoresXML=new String(currentStoresXML);
+  if (options.has("final-stores")) {
+    finalStoresXML=(String)options.valueOf("final-stores");
   }
   Cluster currentCluster=new ClusterMapper().readCluster(new File(currentClusterXML));
   List<StoreDefinition> currentStoreDefs=new StoreDefinitionsMapper().readStoreList(new File(currentStoresXML));
-  Cluster targetCluster=new ClusterMapper().readCluster(new File(targetClusterXML));
-  List<StoreDefinition> targetStoreDefs=new StoreDefinitionsMapper().readStoreList(new File(targetStoresXML));
+  Cluster finalCluster=new ClusterMapper().readCluster(new File(finalClusterXML));
+  List<StoreDefinition> finalStoreDefs=new StoreDefinitionsMapper().readStoreList(new File(finalStoresXML));
   int batchSize=CmdUtils.valueOf(options,"batch-size",RebalancePlan.BATCH_SIZE);
   String outputDir=null;
   if (options.has("output-dir")) {
     outputDir=(String)options.valueOf("output-dir");
   }
-  new RebalancePlan(currentCluster,currentStoreDefs,targetCluster,targetStoreDefs,batchSize,outputDir);
+  new RebalancePlan(currentCluster,currentStoreDefs,finalCluster,finalStoreDefs,batchSize,outputDir);
 }
