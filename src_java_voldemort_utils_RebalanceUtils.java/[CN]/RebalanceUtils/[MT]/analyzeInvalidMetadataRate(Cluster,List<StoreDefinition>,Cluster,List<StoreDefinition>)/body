@@ -5,21 +5,21 @@
   for (  StoreDefinition currentStoreDef : uniqueStores.keySet()) {
     sb.append("Store exemplar: " + currentStoreDef.getName()).append(Utils.NEWLINE).append("\tThere are " + uniqueStores.get(currentStoreDef) + " other similar stores.").append(Utils.NEWLINE);
     StoreRoutingPlan currentSRP=new StoreRoutingPlan(currentCluster,currentStoreDef);
-    StoreDefinition targetStoreDef=StoreUtils.getStoreDef(targetStoreDefs,currentStoreDef.getName());
-    StoreRoutingPlan targetSRP=new StoreRoutingPlan(targetCluster,targetStoreDef);
+    StoreDefinition finalStoreDef=StoreUtils.getStoreDef(finalStoreDefs,currentStoreDef.getName());
+    StoreRoutingPlan finalSRP=new StoreRoutingPlan(finalCluster,finalStoreDef);
     for (    int zoneId : currentCluster.getZoneIds()) {
-      int zoneLocalPrimaries=0;
+      int zonePrimariesCount=0;
       int invalidMetadata=0;
       for (      int nodeId : currentCluster.getNodeIdsInZone(zoneId)) {
-        for (        int partitionId : targetSRP.getZonePrimaryPartitionIds(nodeId)) {
-          zoneLocalPrimaries++;
-          if (!currentSRP.getZoneNAryPartitionIds(nodeId).contains(partitionId)) {
+        for (        int zonePrimaryPartitionId : currentSRP.getZonePrimaryPartitionIds(nodeId)) {
+          zonePrimariesCount++;
+          if (!finalSRP.getZoneNAryPartitionIds(nodeId).contains(zonePrimaryPartitionId)) {
             invalidMetadata++;
           }
         }
       }
-      float rate=invalidMetadata / (float)zoneLocalPrimaries;
-      sb.append("\tZone " + zoneId).append(" : total zone primaries " + zoneLocalPrimaries).append(", # that trigger invalid metadata " + invalidMetadata).append(" => " + rate).append(Utils.NEWLINE);
+      float rate=invalidMetadata / (float)zonePrimariesCount;
+      sb.append("\tZone " + zoneId).append(" : total zone primaries " + zonePrimariesCount).append(", # that trigger invalid metadata " + invalidMetadata).append(" => " + rate).append(Utils.NEWLINE);
     }
   }
   return sb.toString();
