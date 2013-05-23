@@ -19,12 +19,16 @@
     List<RebalancePartitionsInfo> filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionsInfoList,readOnlyStoreDefs);
     rebalanceStateChange(batchCount,batchCurrentCluster,batchCurrentStoreDefs,batchFinalCluster,batchFinalStoreDefs,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     if (hasReadOnlyStores) {
+      proxyPause();
       executeSubBatch(batchCount,batchCurrentCluster,batchCurrentStoreDefs,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     }
     finishedReadOnlyPhase=true;
     filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionsInfoList,readWriteStoreDefs);
     rebalanceStateChange(batchCount,batchCurrentCluster,batchCurrentStoreDefs,batchFinalCluster,batchFinalStoreDefs,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     if (hasReadWriteStores) {
+      if (!hasReadOnlyStores) {
+        proxyPause();
+      }
       executeSubBatch(batchCount,batchCurrentCluster,batchCurrentStoreDefs,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     }
     RebalanceUtils.printLog(batchCount,logger,"Successfully terminated batch " + batchCount + ".");
