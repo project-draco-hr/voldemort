@@ -1,6 +1,9 @@
 {
   long delay=INITIAL_DELAY;
-  long waitUntil=System.currentTimeMillis() + timeUnit.toMillis(maxWait);
+  long waitUntil=Long.MAX_VALUE;
+  if (maxWait > 0) {
+    waitUntil=System.currentTimeMillis() + timeUnit.toMillis(maxWait);
+  }
   while (System.currentTimeMillis() < waitUntil) {
     String currentValue=metadataMgmtOps.getRemoteMetadata(nodeId,key).getValue();
     if (value.equals(currentValue))     return;
