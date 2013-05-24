@@ -1,0 +1,19 @@
+{
+  StringBuilder sb=new StringBuilder();
+  double taskRate=numTasks / (double)taskCount;
+  double partitionStoreRate=numPartitionStores / (double)partitionStoreCount;
+  long deltaTimeMs=System.currentTimeMillis() - startTimeMs;
+  long taskTimeRemainingMs=Long.MAX_VALUE;
+  if (taskRate > 0) {
+    taskTimeRemainingMs=(long)(deltaTimeMs * ((1.0 / taskRate) - 1.0));
+  }
+  long partitionStoreTimeRemainingMs=Long.MAX_VALUE;
+  if (partitionStoreRate > 0) {
+    partitionStoreTimeRemainingMs=(long)(deltaTimeMs * ((1.0 / partitionStoreRate) - 1.0));
+  }
+  sb.append("Progess update on rebalancing batch " + batchId).append(Utils.NEWLINE);
+  sb.append("There are currently " + tasksInFlight.size() + " rebalance tasks executing: ").append(tasksInFlight).append(".").append(Utils.NEWLINE);
+  sb.append("\t" + numTasks + " out of "+ taskCount+ " rebalance tasks complete.").append(Utils.NEWLINE).append("\t").append(decimalFormatter.format(taskRate * 100.0)).append("% done, estimate ").append(taskTimeRemainingMs).append(" ms (").append(TimeUnit.MILLISECONDS.toMinutes(taskTimeRemainingMs)).append(" minutes) remaining.").append(Utils.NEWLINE);
+  sb.append("\t" + numPartitionStores + " out of "+ partitionStoreCount+ " partition-stores migrated.").append(Utils.NEWLINE).append("\t").append(decimalFormatter.format(partitionStoreRate * 100.0)).append("% done, estimate ").append(partitionStoreTimeRemainingMs).append(" ms (").append(TimeUnit.MILLISECONDS.toMinutes(partitionStoreTimeRemainingMs)).append(" minutes) remaining.").append(Utils.NEWLINE);
+  return sb.toString();
+}

@@ -1,10 +1,11 @@
 {
-  super(rebalancer,voldemortConfig,metadataStore,requestId,"Donor based rebalance : " + stealInfos);
+  super(rebalancer,voldemortConfig,metadataStore,requestId,"Donor based rebalance of " + RebalanceUtils.countPartitionStores(stealInfos) + " partition-stores.");
   this.storeRepository=storeRepository;
   this.stealInfos=stealInfos;
   this.targetCluster=metadataStore.getCluster();
   this.initialCluster=stealInfos.get(0).getInitialCluster();
   this.usePartitionScan=usePartitionScan;
+  this.partitionStoreCount=RebalanceUtils.countPartitionStores(stealInfos);
   this.storeToNodePartitionMapping=groupByStores(stealInfos);
   updatePushSlavePool=Collections.synchronizedMap(new HashMap<String,Pair<ExecutorService,List<DonorBasedRebalancePusherSlave>>>());
 }

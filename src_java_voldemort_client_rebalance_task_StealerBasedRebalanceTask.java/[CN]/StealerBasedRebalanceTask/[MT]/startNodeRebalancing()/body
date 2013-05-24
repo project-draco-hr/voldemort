@@ -4,12 +4,13 @@
   while (nTries < maxTries) {
     nTries++;
     try {
-      RebalanceUtils.printLog(taskId,logger,"Starting on node " + stealerNodeId + " rebalancing task "+ stealInfos.get(0));
+      taskLog("Trying to start async rebalance task on stealer node " + stealerNodeId);
       int asyncOperationId=adminClient.rebalanceOps.rebalanceNode(stealInfos.get(0));
+      taskLog("Started async rebalance task on stealer node " + stealerNodeId);
       return asyncOperationId;
     }
  catch (    AlreadyRebalancingException e) {
-      RebalanceUtils.printLog(taskId,logger,"Node " + stealerNodeId + " is currently rebalancing. Waiting till completion");
+      taskLog("Node " + stealerNodeId + " is currently rebalancing. Waiting till completion");
       adminClient.rpcOps.waitForCompletion(stealerNodeId,MetadataStore.SERVER_STATE_KEY,VoldemortState.NORMAL_SERVER.toString());
       rebalanceException=e;
     }

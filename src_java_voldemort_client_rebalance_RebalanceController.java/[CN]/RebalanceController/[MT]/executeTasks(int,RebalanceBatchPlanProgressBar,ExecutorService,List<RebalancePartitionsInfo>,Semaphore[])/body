@@ -1,0 +1,22 @@
+{
+  List<RebalanceTask> taskList=Lists.newArrayList();
+  int taskId=0;
+  if (stealerBasedRebalancing) {
+    for (    RebalancePartitionsInfo partitionsInfo : rebalancePartitionPlanList) {
+      StealerBasedRebalanceTask rebalanceTask=new StealerBasedRebalanceTask(batchId,taskId,partitionsInfo,maxTriesRebalancing,donorPermits[partitionsInfo.getDonorId()],adminClient,progressBar);
+      taskList.add(rebalanceTask);
+      service.execute(rebalanceTask);
+      taskId++;
+    }
+  }
+ else {
+    HashMap<Integer,List<RebalancePartitionsInfo>> donorNodeBasedPartitionsInfo=RebalanceUtils.groupPartitionsInfoByNode(rebalancePartitionPlanList,false);
+    for (    Entry<Integer,List<RebalancePartitionsInfo>> entries : donorNodeBasedPartitionsInfo.entrySet()) {
+      DonorBasedRebalanceTask rebalanceTask=new DonorBasedRebalanceTask(batchId,taskId,entries.getValue(),donorPermits[entries.getValue().get(0).getDonorId()],adminClient,progressBar);
+      taskList.add(rebalanceTask);
+      service.execute(rebalanceTask);
+      taskId++;
+    }
+  }
+  return taskList;
+}
