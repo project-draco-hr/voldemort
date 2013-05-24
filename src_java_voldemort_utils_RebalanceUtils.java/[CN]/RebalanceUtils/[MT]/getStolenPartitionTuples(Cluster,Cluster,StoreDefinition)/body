@@ -1,11 +1,11 @@
 {
   Map<Integer,Set<Pair<Integer,Integer>>> currentNodeIdToReplicas=getNodeIdToAllPartitions(currentCluster,storeDef,true);
-  Map<Integer,Set<Pair<Integer,Integer>>> targetNodeIdToReplicas=getNodeIdToAllPartitions(targetCluster,storeDef,true);
+  Map<Integer,Set<Pair<Integer,Integer>>> finalNodeIdToReplicas=getNodeIdToAllPartitions(finalCluster,storeDef,true);
   Map<Integer,Set<Pair<Integer,Integer>>> stealerNodeToStolenPartitionTuples=Maps.newHashMap();
-  for (  int stealerId : NodeUtils.getNodeIds(Lists.newArrayList(targetCluster.getNodes()))) {
+  for (  int stealerId : NodeUtils.getNodeIds(Lists.newArrayList(finalCluster.getNodes()))) {
     Set<Pair<Integer,Integer>> clusterStealerReplicas=currentNodeIdToReplicas.get(stealerId);
-    Set<Pair<Integer,Integer>> targetStealerReplicas=targetNodeIdToReplicas.get(stealerId);
-    Set<Pair<Integer,Integer>> diff=Utils.getAddedInTarget(clusterStealerReplicas,targetStealerReplicas);
+    Set<Pair<Integer,Integer>> finalStealerReplicas=finalNodeIdToReplicas.get(stealerId);
+    Set<Pair<Integer,Integer>> diff=Utils.getAddedInTarget(clusterStealerReplicas,finalStealerReplicas);
     if (diff != null && diff.size() > 0) {
       stealerNodeToStolenPartitionTuples.put(stealerId,diff);
     }

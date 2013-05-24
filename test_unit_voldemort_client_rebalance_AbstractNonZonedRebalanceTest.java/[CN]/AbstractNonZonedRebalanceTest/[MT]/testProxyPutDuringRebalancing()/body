@@ -2,7 +2,7 @@
   logger.info("Starting testProxyPutDuringRebalancing");
   try {
     Cluster currentCluster=ServerTestUtils.getLocalCluster(3,new int[][]{{0},{1,3},{2}});
-    Cluster targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,2,Lists.newArrayList(3));
+    Cluster finalCluster=RebalanceUtils.createUpdatedCluster(currentCluster,2,Lists.newArrayList(3));
     final List<Integer> serverList=Arrays.asList(0,1,2);
     Map<String,String> configProps=new HashMap<String,String>();
     configProps.put("admin.max.threads","5");
@@ -13,7 +13,7 @@
     String bootstrapUrl=getBootstrapUrl(currentCluster,0);
     int maxParallel=2;
     boolean stealerBased=!useDonorBased;
-    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,stealerBased,targetCluster);
+    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,stealerBased,finalCluster);
     populateData(updatedCurrentCluster,rwStoreDefWithReplication,rebalanceKit.controller.getAdminClient(),false);
     final AdminClient adminClient=rebalanceKit.controller.getAdminClient();
     final List<ByteArray> movingKeysList=sampleKeysFromPartition(adminClient,1,rwStoreDefWithReplication.getName(),Arrays.asList(2,3),20);
@@ -98,8 +98,8 @@
     executors.awaitTermination(300,TimeUnit.SECONDS);
     assertEquals("Client did not see all server transition into rebalancing state",rebalancingStarted.get(),true);
     assertEquals("Not enough time to begin proxy writing",proxyWritesDone.get(),true);
-    checkEntriesPostRebalance(updatedCurrentCluster,targetCluster,Lists.newArrayList(rwStoreDefWithReplication),Arrays.asList(0,1,2),baselineTuples,baselineVersions);
-    checkConsistentMetadata(targetCluster,serverList);
+    checkEntriesPostRebalance(updatedCurrentCluster,finalCluster,Lists.newArrayList(rwStoreDefWithReplication),Arrays.asList(0,1,2),baselineTuples,baselineVersions);
+    checkConsistentMetadata(finalCluster,serverList);
     if (exceptions.size() > 0) {
       for (      Exception e : exceptions) {
         e.printStackTrace();

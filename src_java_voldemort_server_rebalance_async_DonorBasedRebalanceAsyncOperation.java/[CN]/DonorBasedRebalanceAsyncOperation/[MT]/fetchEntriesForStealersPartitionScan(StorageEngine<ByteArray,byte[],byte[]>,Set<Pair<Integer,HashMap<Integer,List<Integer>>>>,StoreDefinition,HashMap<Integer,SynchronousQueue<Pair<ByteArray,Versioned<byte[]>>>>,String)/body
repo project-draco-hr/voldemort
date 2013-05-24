@@ -1,6 +1,6 @@
 {
   int scanned=0;
-  int[] fetched=new int[targetCluster.getNumberOfNodes()];
+  int[] fetched=new int[finalCluster.getNumberOfNodes()];
   long startTime=System.currentTimeMillis();
   Set<Integer> partitionsToDonate=new HashSet<Integer>();
   for (  Pair<Integer,HashMap<Integer,List<Integer>>> nodePartitionMapPair : optimizedStealerNodeToMappingTuples) {
@@ -10,7 +10,7 @@
     }
   }
   for (  Integer partition : partitionsToDonate) {
-    if (!StoreRoutingPlan.checkPartitionBelongsToNode(partition,voldemortConfig.getNodeId(),initialCluster,storeDef)) {
+    if (!StoreRoutingPlan.checkPartitionBelongsToNode(partition,voldemortConfig.getNodeId(),currentCluster,storeDef)) {
       logger.info("Node " + voldemortConfig.getNodeId() + " does not seem to contain partition "+ partition+ " as primary/secondary");
     }
   }
@@ -21,7 +21,7 @@
       ByteArray key=entry.getFirst();
       Versioned<byte[]> value=entry.getSecond();
       scanned++;
-      List<Integer> nodeIds=StoreRoutingPlan.checkKeyBelongsToPartition(key.get(),optimizedStealerNodeToMappingTuples,targetCluster,storeDef);
+      List<Integer> nodeIds=StoreRoutingPlan.checkKeyBelongsToPartition(key.get(),optimizedStealerNodeToMappingTuples,finalCluster,storeDef);
       if (nodeIds.size() > 0) {
         putValue(nodeIds,key,value,nodeToQueue,fetched);
       }

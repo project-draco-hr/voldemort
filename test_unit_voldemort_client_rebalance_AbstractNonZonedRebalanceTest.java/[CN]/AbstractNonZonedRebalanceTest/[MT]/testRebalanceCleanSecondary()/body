@@ -2,20 +2,20 @@
   logger.info("Starting testRebalanceCleanSecondary");
   try {
     Cluster currentCluster=ServerTestUtils.getLocalCluster(3,new int[][]{{0,3},{1},{2}});
-    Cluster targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,2,Lists.newArrayList(3));
+    Cluster finalCluster=RebalanceUtils.createUpdatedCluster(currentCluster,2,Lists.newArrayList(3));
     Map<String,String> configProps=new HashMap<String,String>();
     configProps.put("enable.repair","true");
     List<Integer> serverList=Arrays.asList(0,1,2);
     currentCluster=startServers(currentCluster,rwStoreDefFileWithReplication,serverList,configProps);
     String bootstrapUrl=getBootstrapUrl(currentCluster,0);
     boolean stealerBased=!useDonorBased;
-    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,targetCluster);
+    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,finalCluster);
     try {
       AdminClient adminClient=rebalanceKit.controller.getAdminClient();
       populateData(currentCluster,rwStoreDefWithReplication,adminClient,false);
       List<ByteArray> positiveTestKeyList=sampleKeysFromPartition(adminClient,0,rwStoreDefWithReplication.getName(),Arrays.asList(3),20);
       rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,Arrays.asList(0,1,2));
-      checkConsistentMetadata(targetCluster,serverList);
+      checkConsistentMetadata(finalCluster,serverList);
       for (int i=0; i < 3; i++) {
         adminClient.storeMntOps.repairJob(i);
       }

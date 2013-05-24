@@ -1,13 +1,13 @@
 {
   int scanned=0;
-  int[] fetched=new int[targetCluster.getNumberOfNodes()];
+  int[] fetched=new int[finalCluster.getNumberOfNodes()];
   long startTime=System.currentTimeMillis();
   ClosableIterator<ByteArray> keys=storageEngine.keys();
   try {
     while (running.get() && keys.hasNext()) {
       ByteArray key=keys.next();
       scanned++;
-      List<Integer> nodeIds=StoreRoutingPlan.checkKeyBelongsToPartition(key.get(),optimizedStealerNodeToMappingTuples,targetCluster,storeDef);
+      List<Integer> nodeIds=StoreRoutingPlan.checkKeyBelongsToPartition(key.get(),optimizedStealerNodeToMappingTuples,finalCluster,storeDef);
       if (nodeIds.size() > 0) {
         List<Versioned<byte[]>> values=storageEngine.get(key,null);
         putAll(nodeIds,key,values,nodeToQueue,fetched);

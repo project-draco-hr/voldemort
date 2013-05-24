@@ -1,10 +1,10 @@
 {
   PartitionBalance partitionBalance=new PartitionBalance(currentCluster,currentStoreDefs);
   RebalanceUtils.dumpAnalysisToFile(outputDir,RebalanceUtils.currentClusterFileName,partitionBalance);
-  Cluster minCluster=targetCluster;
+  Cluster minCluster=interimCluster;
   double minUtility=Double.MAX_VALUE;
   for (int attempt=0; attempt < attempts; attempt++) {
-    Cluster nextCluster=targetCluster;
+    Cluster nextCluster=interimCluster;
     if (maxContiguousPartitionsPerZone > 0) {
       nextCluster=repeatedlyBalanceContiguousPartitionsPerZone(nextCluster,maxContiguousPartitionsPerZone);
     }
@@ -12,18 +12,18 @@
       nextCluster=balancePrimaryPartitions(nextCluster,!disableZoneBalancing);
     }
     if (enableRandomSwaps) {
-      nextCluster=randomShufflePartitions(nextCluster,randomSwapAttempts,randomSwapSuccesses,targetStoreDefs);
+      nextCluster=randomShufflePartitions(nextCluster,randomSwapAttempts,randomSwapSuccesses,finalStoreDefs);
     }
     if (enableGreedySwaps) {
-      nextCluster=greedyShufflePartitions(nextCluster,greedySwapAttempts,greedySwapMaxPartitionsPerNode,greedySwapMaxPartitionsPerZone,new ArrayList<Integer>(targetCluster.getZoneIds()),targetStoreDefs);
+      nextCluster=greedyShufflePartitions(nextCluster,greedySwapAttempts,greedySwapMaxPartitionsPerNode,greedySwapMaxPartitionsPerZone,new ArrayList<Integer>(interimCluster.getZoneIds()),finalStoreDefs);
     }
     RebalanceUtils.validateCurrentFinalCluster(currentCluster,nextCluster);
     System.out.println("-------------------------\n");
-    partitionBalance=new PartitionBalance(nextCluster,targetStoreDefs);
+    partitionBalance=new PartitionBalance(nextCluster,finalStoreDefs);
     double currentUtility=partitionBalance.getUtility();
     System.out.println("Optimization number " + attempt + ": "+ currentUtility+ " max/min ratio");
     System.out.println("-------------------------\n");
-    System.out.println(RebalanceUtils.analyzeInvalidMetadataRate(targetCluster,currentStoreDefs,nextCluster,currentStoreDefs));
+    System.out.println(RebalanceUtils.analyzeInvalidMetadataRate(interimCluster,currentStoreDefs,nextCluster,currentStoreDefs));
     if (currentUtility <= minUtility) {
       minUtility=currentUtility;
       minCluster=nextCluster;
@@ -34,7 +34,7 @@
   }
   System.out.println("\n==========================");
   System.out.println("Final distribution");
-  partitionBalance=new PartitionBalance(minCluster,targetStoreDefs);
+  partitionBalance=new PartitionBalance(minCluster,finalStoreDefs);
   System.out.println(partitionBalance);
   RebalanceUtils.dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName,minCluster);
   RebalanceUtils.dumpAnalysisToFile(outputDir,RebalanceUtils.finalClusterFileName,partitionBalance);

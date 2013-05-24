@@ -2,16 +2,16 @@
   logger.info("Starting testRWRebalanceWithReplication");
   try {
     Cluster currentCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{0,1,2,3,4,5,6},{7,8}});
-    Cluster targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,1,Lists.newArrayList(2,3));
+    Cluster finalCluster=RebalanceUtils.createUpdatedCluster(currentCluster,1,Lists.newArrayList(2,3));
     List<Integer> serverList=Arrays.asList(0,1);
     currentCluster=startServers(currentCluster,rwStoreDefFileWithReplication,serverList,null);
     String bootstrapUrl=getBootstrapUrl(currentCluster,0);
     boolean stealerBased=!useDonorBased;
-    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,targetCluster);
+    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,finalCluster);
     try {
       populateData(currentCluster,rwStoreDefWithReplication,rebalanceKit.controller.getAdminClient(),false);
       rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,Arrays.asList(0,1));
-      checkConsistentMetadata(targetCluster,serverList);
+      checkConsistentMetadata(finalCluster,serverList);
     }
   finally {
       stopServer(serverList);

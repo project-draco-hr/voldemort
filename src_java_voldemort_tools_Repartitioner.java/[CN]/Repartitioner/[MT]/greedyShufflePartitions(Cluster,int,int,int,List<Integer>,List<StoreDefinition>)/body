@@ -4,7 +4,7 @@
     zoneIds=new ArrayList<Integer>();
     zoneIds.add(specialZoneId);
   }
-  Cluster returnCluster=ClusterUtils.copyCluster(targetCluster);
+  Cluster returnCluster=ClusterUtils.copyCluster(nextCluster);
   if (zoneIds.isEmpty()) {
     logger.warn("greedyShufflePartitions invoked with empty list of zone IDs.");
     return returnCluster;
@@ -16,10 +16,10 @@
       System.out.println("Greedy swap attempt: zone " + zoneId + " , attempt "+ i+ " of "+ greedyAttempts);
       List<Integer> nodeIds;
       if (zoneId == specialZoneId) {
-        nodeIds=new ArrayList<Integer>(targetCluster.getNodeIds());
+        nodeIds=new ArrayList<Integer>(nextCluster.getNodeIds());
       }
  else {
-        nodeIds=new ArrayList<Integer>(targetCluster.getNodeIdsInZone(zoneId));
+        nodeIds=new ArrayList<Integer>(nextCluster.getNodeIdsInZone(zoneId));
       }
       Cluster shuffleResults=swapGreedyRandomPartitions(returnCluster,nodeIds,greedySwapMaxPartitionsPerNode,greedySwapMaxPartitionsPerZone,storeDefs);
       double nextUtility=new PartitionBalance(shuffleResults,storeDefs).getUtility();

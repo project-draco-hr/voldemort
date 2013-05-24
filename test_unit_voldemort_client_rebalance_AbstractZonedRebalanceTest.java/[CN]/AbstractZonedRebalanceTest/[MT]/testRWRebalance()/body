@@ -2,19 +2,19 @@
   logger.info("Starting testRWRebalance");
   try {
     Cluster currentCluster=ServerTestUtils.getLocalZonedCluster(4,2,new int[]{0,0,1,1},new int[][]{{0,2,4,6},{},{1,3,5,7},{}});
-    Cluster targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,3,Lists.newArrayList(2,6));
-    targetCluster=RebalanceUtils.createUpdatedCluster(targetCluster,1,Lists.newArrayList(3,7));
+    Cluster finalCluster=RebalanceUtils.createUpdatedCluster(currentCluster,3,Lists.newArrayList(2,6));
+    finalCluster=RebalanceUtils.createUpdatedCluster(finalCluster,1,Lists.newArrayList(3,7));
     List<Integer> serverList=Arrays.asList(0,1,2,3);
     Map<String,String> configProps=new HashMap<String,String>();
     configProps.put("admin.max.threads","5");
     currentCluster=startServers(currentCluster,storeDefFileWithoutReplication,serverList,configProps);
     String bootstrapUrl=getBootstrapUrl(currentCluster,0);
     boolean stealerBased=!useDonorBased;
-    ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,targetCluster);
+    ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,finalCluster);
     try {
       populateData(currentCluster,rwStoreDefWithoutReplication);
       rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,Arrays.asList(1,2));
-      checkConsistentMetadata(targetCluster,serverList);
+      checkConsistentMetadata(finalCluster,serverList);
     }
   finally {
       stopServer(serverList);

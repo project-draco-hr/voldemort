@@ -1,12 +1,12 @@
 {
   int stealerZoneNAry=finalSRP.getZoneNaryForNodesPartition(stealerZoneId,stealerNodeId,stealerPartitionId);
   int donorZoneId;
-  if (targetSRP.zoneNAryExists(stealerZoneId,stealerZoneNAry,stealerPartitionId)) {
+  if (currentSRP.zoneNAryExists(stealerZoneId,stealerZoneNAry,stealerPartitionId)) {
     donorZoneId=stealerZoneId;
   }
  else {
-    int targetMasterNodeId=targetSRP.getNodeIdForPartitionId(stealerPartitionId);
-    donorZoneId=currentCluster.getNodeById(targetMasterNodeId).getZoneId();
+    int currentMasterNodeId=currentSRP.getNodeIdForPartitionId(stealerPartitionId);
+    donorZoneId=currentCluster.getNodeById(currentMasterNodeId).getZoneId();
   }
-  return targetSRP.getNodeIdForZoneNary(donorZoneId,stealerZoneNAry,stealerPartitionId);
+  return currentSRP.getNodeIdForZoneNary(donorZoneId,stealerZoneNAry,stealerPartitionId);
 }

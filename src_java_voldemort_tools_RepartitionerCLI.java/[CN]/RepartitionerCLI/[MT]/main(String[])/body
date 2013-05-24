@@ -3,21 +3,21 @@
   OptionSet options=getValidOptions(args);
   String currentClusterXML=(String)options.valueOf("current-cluster");
   String currentStoresXML=(String)options.valueOf("current-stores");
-  String targetClusterXML=new String(currentClusterXML);
-  if (options.has("target-cluster")) {
-    targetClusterXML=(String)options.valueOf("target-cluster");
+  String interimClusterXML=new String(currentClusterXML);
+  if (options.has("interim-cluster")) {
+    interimClusterXML=(String)options.valueOf("interim-cluster");
   }
-  String targetStoresXML=new String(currentStoresXML);
-  if (options.has("target-stores")) {
-    targetStoresXML=(String)options.valueOf("target-stores");
+  String finalStoresXML=new String(currentStoresXML);
+  if (options.has("final-stores")) {
+    finalStoresXML=(String)options.valueOf("final-stores");
   }
   Cluster currentCluster=new ClusterMapper().readCluster(new File(currentClusterXML));
   List<StoreDefinition> currentStoreDefs=new StoreDefinitionsMapper().readStoreList(new File(currentStoresXML));
   RebalanceUtils.validateClusterStores(currentCluster,currentStoreDefs);
-  Cluster targetCluster=new ClusterMapper().readCluster(new File(targetClusterXML));
-  List<StoreDefinition> targetStoreDefs=new StoreDefinitionsMapper().readStoreList(new File(targetStoresXML));
-  RebalanceUtils.validateClusterStores(targetCluster,targetStoreDefs);
-  RebalanceUtils.validateCurrentInterimCluster(currentCluster,targetCluster);
+  Cluster interimCluster=new ClusterMapper().readCluster(new File(interimClusterXML));
+  List<StoreDefinition> finalStoreDefs=new StoreDefinitionsMapper().readStoreList(new File(finalStoresXML));
+  RebalanceUtils.validateClusterStores(interimCluster,finalStoreDefs);
+  RebalanceUtils.validateCurrentInterimCluster(currentCluster,interimCluster);
   int attempts=CmdUtils.valueOf(options,"attempts",Repartitioner.DEFAULT_REPARTITION_ATTEMPTS);
   String outputDir=null;
   if (options.has("output-dir")) {
@@ -43,5 +43,5 @@
     printUsageAndDie("Provided arguments for generate greedy swaps but did not enable the feature");
   }
   List<Integer> greedyZoneIds=Repartitioner.DEFAULT_GREEDY_ZONE_IDS;
-  Repartitioner.repartition(currentCluster,currentStoreDefs,targetCluster,targetStoreDefs,outputDir,attempts,disableNodeBalancing,disableZoneBalancing,enableRandomSwaps,randomSwapAttempts,randomSwapSuccesses,enableGreedySwaps,greedyZoneIds,greedySwapAttempts,greedyMaxPartitionsPerNode,greedyMaxPartitionsPerZone,maxContiguousPartitionsPerZone);
+  Repartitioner.repartition(currentCluster,currentStoreDefs,interimCluster,finalStoreDefs,outputDir,attempts,disableNodeBalancing,disableZoneBalancing,enableRandomSwaps,randomSwapAttempts,randomSwapSuccesses,enableGreedySwaps,greedyZoneIds,greedySwapAttempts,greedyMaxPartitionsPerNode,greedyMaxPartitionsPerZone,maxContiguousPartitionsPerZone);
 }

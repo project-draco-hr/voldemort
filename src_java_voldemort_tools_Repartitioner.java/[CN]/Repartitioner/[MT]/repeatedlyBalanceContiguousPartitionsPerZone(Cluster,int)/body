@@ -1,11 +1,11 @@
 {
   System.out.println("Looping to evenly balance partitions across zones while limiting contiguous partitions");
   int repeatContigBalance=10;
-  Cluster nextCluster=targetCluster;
+  Cluster returnCluster=nextCluster;
   for (int i=0; i < repeatContigBalance; i++) {
-    nextCluster=balanceContiguousPartitionsPerZone(nextCluster,maxContiguousPartitionsPerZone);
-    nextCluster=balancePrimaryPartitions(nextCluster,false);
+    returnCluster=balanceContiguousPartitionsPerZone(returnCluster,maxContiguousPartitionsPerZone);
+    returnCluster=balancePrimaryPartitions(returnCluster,false);
     System.out.println("Completed round of balancing contiguous partitions: round " + (i + 1) + " of "+ repeatContigBalance);
   }
-  return nextCluster;
+  return returnCluster;
 }

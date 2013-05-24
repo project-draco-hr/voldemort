@@ -19,7 +19,7 @@
     Set<Pair<Integer,HashMap<Integer,List<Integer>>>> optimizedStealerNodeToMappingTuples=Sets.newHashSet();
     if (voldemortConfig.getRebalancingOptimization() && !storageEngine.isPartitionAware()) {
       for (      Pair<Integer,HashMap<Integer,List<Integer>>> entry : stealerNodeToMappingTuples) {
-        HashMap<Integer,List<Integer>> optimizedReplicaToPartition=RebalanceUtils.getOptimizedReplicaToPartitionList(entry.getFirst(),initialCluster,storeDef,entry.getSecond());
+        HashMap<Integer,List<Integer>> optimizedReplicaToPartition=RebalanceUtils.getOptimizedReplicaToPartitionList(entry.getFirst(),currentCluster,storeDef,entry.getSecond());
         if (optimizedReplicaToPartition.size() > 0) {
           optimizedStealerNodeToMappingTuples.add(Pair.create(entry.getFirst(),optimizedReplicaToPartition));
         }

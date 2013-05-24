@@ -1,7 +1,7 @@
 {
-  HashMap<String,StoreRoutingPlan> targetStoreRoutingPlans=new HashMap<String,StoreRoutingPlan>();
+  HashMap<String,StoreRoutingPlan> currentStoreRoutingPlans=new HashMap<String,StoreRoutingPlan>();
   for (  StoreDefinition storeDef : currentStoreDefs) {
-    targetStoreRoutingPlans.put(storeDef.getName(),new StoreRoutingPlan(currentCluster,storeDef));
+    currentStoreRoutingPlans.put(storeDef.getName(),new StoreRoutingPlan(currentCluster,storeDef));
   }
   HashMap<String,StoreRoutingPlan> finalStoreRoutingPlans=new HashMap<String,StoreRoutingPlan>();
   for (  StoreDefinition storeDef : finalStoreDefs) {
@@ -12,14 +12,14 @@
     int stealerZoneId=stealerNode.getZoneId();
     int stealerNodeId=stealerNode.getId();
     for (    StoreDefinition storeDef : finalStoreDefs) {
-      StoreRoutingPlan targetSRP=targetStoreRoutingPlans.get(storeDef.getName());
+      StoreRoutingPlan currentSRP=currentStoreRoutingPlans.get(storeDef.getName());
       StoreRoutingPlan finalSRP=finalStoreRoutingPlans.get(storeDef.getName());
       for (      int stealerPartitionId : finalSRP.getZoneNAryPartitionIds(stealerNodeId)) {
-        if (targetSRP.getReplicationNodeList(stealerPartitionId).contains(stealerNodeId)) {
+        if (currentSRP.getReplicationNodeList(stealerPartitionId).contains(stealerNodeId)) {
           continue;
         }
-        int donorNodeId=getDonorId(targetSRP,finalSRP,stealerZoneId,stealerNodeId,stealerPartitionId);
-        int donorReplicaType=targetSRP.getReplicaType(donorNodeId,stealerPartitionId);
+        int donorNodeId=getDonorId(currentSRP,finalSRP,stealerZoneId,stealerNodeId,stealerPartitionId);
+        int donorReplicaType=currentSRP.getReplicaType(donorNodeId,stealerPartitionId);
         rpiBuilder.addPartitionStoreMove(stealerNodeId,donorNodeId,storeDef.getName(),donorReplicaType,stealerPartitionId);
       }
     }

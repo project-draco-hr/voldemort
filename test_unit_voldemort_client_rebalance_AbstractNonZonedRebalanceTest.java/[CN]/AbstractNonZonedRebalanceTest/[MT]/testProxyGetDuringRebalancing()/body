@@ -2,7 +2,7 @@
   logger.info("Starting testProxyGetDuringRebalancing");
   try {
     final Cluster currentCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{0,1,2,3,4,5,6},{7,8}});
-    final Cluster targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,1,Lists.newArrayList(2,3));
+    final Cluster finalCluster=RebalanceUtils.createUpdatedCluster(currentCluster,1,Lists.newArrayList(2,3));
     final List<Integer> serverList=Arrays.asList(0,1);
     Map<String,String> configProps=new HashMap<String,String>();
     configProps.put("admin.max.threads","5");
@@ -13,7 +13,7 @@
     String bootstrapUrl=getBootstrapUrl(currentCluster,0);
     int maxParallel=2;
     boolean stealerBased=true;
-    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,stealerBased,targetCluster);
+    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,stealerBased,finalCluster);
     populateData(updatedCurrentCluster,roStoreDefWithReplication,rebalanceKit.controller.getAdminClient(),true);
     populateData(updatedCurrentCluster,rwStoreDefWithReplication,rebalanceKit.controller.getAdminClient(),false);
     final SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(getBootstrapUrl(updatedCurrentCluster,0)).setEnableLazy(false).setSocketTimeout(120,TimeUnit.SECONDS));
@@ -60,7 +60,7 @@
           rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,Arrays.asList(0,1));
           Thread.sleep(500);
           rebalancingComplete.set(true);
-          checkConsistentMetadata(targetCluster,serverList);
+          checkConsistentMetadata(finalCluster,serverList);
         }
  catch (        Exception e) {
           exceptions.add(e);

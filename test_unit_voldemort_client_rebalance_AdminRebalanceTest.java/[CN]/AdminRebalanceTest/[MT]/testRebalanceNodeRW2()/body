@@ -2,7 +2,7 @@
   try {
     startFourNodeRW();
     HashMap<ByteArray,byte[]> entrySet=ServerTestUtils.createRandomKeyValuePairs(TEST_SIZE);
-    SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(Lists.newArrayList("tcp://" + cluster.getNodeById(0).getHost() + ":"+ cluster.getNodeById(0).getSocketPort())));
+    SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(Lists.newArrayList("tcp://" + currentCluster.getNodeById(0).getHost() + ":"+ currentCluster.getNodeById(0).getSocketPort())));
     StoreClient<Object,Object> storeClient1=factory.getStoreClient("test"), storeClient2=factory.getStoreClient("test2");
     List<Integer> primaryPartitionsMoved=Lists.newArrayList(0);
     List<Integer> secondaryPartitionsMoved=Lists.newArrayList(8,9,10,11);
@@ -10,7 +10,7 @@
     HashMap<ByteArray,byte[]> primaryEntriesMoved=Maps.newHashMap();
     HashMap<ByteArray,byte[]> secondaryEntriesMoved=Maps.newHashMap();
     HashMap<ByteArray,byte[]> tertiaryEntriesMoved=Maps.newHashMap();
-    RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef2,cluster);
+    RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef2,currentCluster);
     for (    Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
       storeClient1.put(new String(entry.getKey().get()),new String(entry.getValue()));
       storeClient2.put(new String(entry.getKey().get()),new String(entry.getValue()));
@@ -31,7 +31,7 @@
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,partitionPlan.getInitialCluster());
     }
     for (    VoldemortServer server : servers) {
-      server.getMetadataStore().put(MetadataStore.CLUSTER_KEY,targetCluster);
+      server.getMetadataStore().put(MetadataStore.CLUSTER_KEY,finalCluster);
     }
     try {
       for (      RebalancePartitionsInfo currentPlan : plans) {

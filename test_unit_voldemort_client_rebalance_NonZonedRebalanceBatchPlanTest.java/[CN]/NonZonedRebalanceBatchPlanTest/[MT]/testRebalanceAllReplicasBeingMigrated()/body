@@ -2,8 +2,8 @@
   int numServers=4;
   int ports[]=ServerTestUtils.findFreePorts(3 * numServers);
   currentCluster=ServerTestUtils.getLocalCluster(numServers,ports,new int[][]{{0,4},{2,3},{1,5},{}});
-  targetCluster=ServerTestUtils.getLocalCluster(numServers,ports,new int[][]{{4},{2,3},{1,5},{0}});
-  List<RebalancePartitionsInfo> orderedRebalancePartitionInfoList=ClusterTestUtils.getBatchPlan(currentCluster,targetCluster,storeDefList2);
+  finalCluster=ServerTestUtils.getLocalCluster(numServers,ports,new int[][]{{4},{2,3},{1,5},{0}});
+  List<RebalancePartitionsInfo> orderedRebalancePartitionInfoList=ClusterTestUtils.getBatchPlan(currentCluster,finalCluster,storeDefList2);
   assertEquals("There should have exactly 1 rebalancing node",1,this.getUniqueNodeCount(orderedRebalancePartitionInfoList,false));
   assertEquals("There should have exactly 2 rebalancing partition info",2,orderedRebalancePartitionInfoList.size());
   assertEquals("Stealer 3 should have 2 entry",2,this.getStealerNodePartitionInfoCount(3,orderedRebalancePartitionInfoList));

@@ -2,8 +2,8 @@
   super(rebalancer,voldemortConfig,metadataStore,requestId,"Donor based rebalance of " + RebalanceUtils.countPartitionStores(stealInfos) + " partition-stores.");
   this.storeRepository=storeRepository;
   this.stealInfos=stealInfos;
-  this.targetCluster=metadataStore.getCluster();
-  this.initialCluster=stealInfos.get(0).getInitialCluster();
+  this.finalCluster=metadataStore.getCluster();
+  this.currentCluster=stealInfos.get(0).getInitialCluster();
   this.usePartitionScan=usePartitionScan;
   this.partitionStoreCount=RebalanceUtils.countPartitionStores(stealInfos);
   this.storeToNodePartitionMapping=groupByStores(stealInfos);

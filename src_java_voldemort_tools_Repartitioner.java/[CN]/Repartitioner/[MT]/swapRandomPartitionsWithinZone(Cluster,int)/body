@@ -1,7 +1,7 @@
 {
-  Cluster returnCluster=ClusterUtils.copyCluster(targetCluster);
+  Cluster returnCluster=ClusterUtils.copyCluster(nextCluster);
   Random r=new Random();
-  List<Integer> nodeIdsInZone=new ArrayList<Integer>(targetCluster.getNodeIdsInZone(zoneId));
+  List<Integer> nodeIdsInZone=new ArrayList<Integer>(nextCluster.getNodeIdsInZone(zoneId));
   if (nodeIdsInZone.size() == 0) {
     return returnCluster;
   }
@@ -9,7 +9,7 @@
   Integer stealerNodeId=nodeIdsInZone.get(stealerNodeOffset);
   List<Integer> stealerPartitions=returnCluster.getNodeById(stealerNodeId).getPartitionIds();
   if (stealerPartitions.size() == 0) {
-    return targetCluster;
+    return nextCluster;
   }
   int stealerPartitionOffset=r.nextInt(stealerPartitions.size());
   int stealerPartitionId=stealerPartitions.get(stealerPartitionOffset);

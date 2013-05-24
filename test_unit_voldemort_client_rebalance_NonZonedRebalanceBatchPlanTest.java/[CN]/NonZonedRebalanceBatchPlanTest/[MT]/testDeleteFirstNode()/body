@@ -2,12 +2,12 @@
   int numServers=4;
   int ports[]=ServerTestUtils.findFreePorts(3 * numServers);
   currentCluster=ServerTestUtils.getLocalCluster(numServers,ports,new int[][]{{0,4},{1,5},{2,6},{3,7}});
-  targetCluster=ServerTestUtils.getLocalCluster(numServers,ports,new int[][]{{4},{0,1,5},{2,6},{3,7}});
-  List<RebalancePartitionsInfo> batchPlan=ClusterTestUtils.getBatchPlan(currentCluster,targetCluster,storeDefList2);
+  finalCluster=ServerTestUtils.getLocalCluster(numServers,ports,new int[][]{{4},{0,1,5},{2,6},{3,7}});
+  List<RebalancePartitionsInfo> batchPlan=ClusterTestUtils.getBatchPlan(currentCluster,finalCluster,storeDefList2);
   assertFalse("Batch plan should not be empty.",batchPlan.isEmpty());
   currentCluster=ServerTestUtils.getLocalCluster(numServers,ports,new int[][]{{4},{0,1,5},{2},{3,6,7}});
-  targetCluster=ServerTestUtils.getLocalCluster(numServers,ports,new int[][]{{},{0,1,5},{4,2},{3,6,7}});
-  batchPlan=ClusterTestUtils.getBatchPlan(currentCluster,targetCluster,storeDefList2);
+  finalCluster=ServerTestUtils.getLocalCluster(numServers,ports,new int[][]{{},{0,1,5},{4,2},{3,6,7}});
+  batchPlan=ClusterTestUtils.getBatchPlan(currentCluster,finalCluster,storeDefList2);
   assertFalse("Batch plan should not be empty.",batchPlan.isEmpty());
   assertFalse("Batch plan for server 2 should not be empty.",getStealerNodePartitionInfoList(2,batchPlan).isEmpty());
   boolean hasTheMove=false;
