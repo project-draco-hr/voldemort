@@ -1,8 +1,20 @@
 {
-  Serializer<String> serializer=new StringSerializer();
   List<ByteArray> listKeys=new ArrayList<ByteArray>();
+  Serializer<String> serializer=new StringSerializer();
   for (  String key : keys) {
-    listKeys.add(new ByteArray(serializer.toBytes(key)));
+    try {
+      if (useAscii) {
+        listKeys.add(new ByteArray(serializer.toBytes(key)));
+      }
+ else {
+        listKeys.add(new ByteArray(ByteUtils.fromHexString(key)));
+      }
+    }
+ catch (    DecoderException de) {
+      System.err.println("Error decoding key " + key);
+      de.printStackTrace();
+      return;
+    }
   }
   for (  final String storeName : storeNames) {
     final Iterator<QueryKeyResult> iterator=adminClient.streamingOps.queryKeys(nodeId.intValue(),storeName,listKeys.iterator());

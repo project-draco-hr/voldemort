@@ -1,13 +1,12 @@
 {
   String storeName=storeDefinition.getName();
-  StringBuilder hexKeysString=new StringBuilder();
   String nodeTag=node.getId() + " [" + node.getHost()+ "]";
   List<Integer> nodePartitionIds=new ArrayList<Integer>(node.getPartitionIds());
   if (partitionIds != null) {
     nodePartitionIds.retainAll(partitionIds);
     if (nodePartitionIds.size() == 0) {
       logger.info("No partitions to sample for store '" + storeName + "' on node "+ nodeTag);
-      return new NodeSampleResult(true,hexKeysString.toString());
+      return new NodeSampleResult(true,null);
     }
   }
   String infoTag="store " + storeName + ", partitionIDs "+ nodePartitionIds+ " on node "+ nodeTag;
@@ -20,7 +19,9 @@
     while (fetchIterator.hasNext()) {
       ByteArray key=fetchIterator.next();
       String hexKeyString=ByteUtils.toHexString(key.get());
-      hexKeysString.append(hexKeyString + "\n");
+synchronized (this.writer) {
+        writer.append(hexKeyString + "\n");
+      }
       keyCount++;
       throttler.maybeThrottle(1);
       if (0 == keyCount % progressPeriodOps) {
@@ -38,10 +39,10 @@
       logger.warn("More keys (" + keyCount + ") than expected ("+ expectedKeyCount+ ") returned --- "+ infoTag);
     }
     logger.info("Finished sample --- " + infoTag);
-    return new NodeSampleResult(true,hexKeysString.toString());
+    return new NodeSampleResult(true,null);
   }
  catch (  VoldemortException ve) {
-    logger.error("Failed to sample --- " + infoTag + " --- VoldemortException caught ("+ ve.getMessage()+ ") caused by ("+ ve.getCause().getMessage()+ ")");
-    throw ve;
+    logger.error("Failed to sample --- " + infoTag + " --- VoldemortException caught ("+ ve.getMessage()+ ") caused by ("+ ve.getCause().getMessage()+ ")",ve);
+    return new NodeSampleResult(false,ve);
   }
 }

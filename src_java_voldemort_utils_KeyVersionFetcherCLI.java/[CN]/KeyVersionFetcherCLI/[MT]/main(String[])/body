@@ -38,8 +38,12 @@
   if (options.hasArgument("progress-period-ops")) {
     progressPeriodOps=(Integer)options.valueOf("progress-period-ops");
   }
+  Integer outputBatchSize=DEFAULT_OUTPUT_BATCH_SIZE;
+  if (options.hasArgument("output-batch-size")) {
+    outputBatchSize=(Integer)options.valueOf("output-batch-size");
+  }
   try {
-    KeyVersionFetcherCLI sampler=new KeyVersionFetcherCLI(url,inDir,outDir,storeNames,keyParallelism,progressPeriodOps);
+    KeyVersionFetcherCLI sampler=new KeyVersionFetcherCLI(url,inDir,outDir,storeNames,keyParallelism,progressPeriodOps,outputBatchSize);
     try {
       if (!sampler.sampleStores()) {
         logger.error("Key-versions were not successfully sampled from some stores.");
@@ -50,6 +54,6 @@
     }
   }
  catch (  Exception e) {
-    Utils.croak("Exception during key-version sampling: " + e.getMessage());
+    logger.error("Exception during key-version sampling: ",e);
   }
 }

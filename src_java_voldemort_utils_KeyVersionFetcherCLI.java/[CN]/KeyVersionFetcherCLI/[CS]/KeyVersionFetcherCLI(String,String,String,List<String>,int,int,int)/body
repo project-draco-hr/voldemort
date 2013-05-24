@@ -5,7 +5,7 @@
   this.adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());
   this.cluster=adminClient.getAdminClientCluster();
   this.storeDefinitions=adminClient.metadataMgmtOps.getRemoteStoreDefList(0).getValue();
-  this.storeNameToKeyStringsMap=new HashMap<String,StringBuilder>();
+  this.storeNamesSet=new HashSet<String>();
   for (  StoreDefinition storeDefinition : storeDefinitions) {
     String storeName=storeDefinition.getName();
     if (storeNames != null) {
@@ -14,12 +14,12 @@
         continue;
       }
     }
-    this.storeNameToKeyStringsMap.put(storeName,new StringBuilder());
+    this.storeNamesSet.add(storeName);
   }
   if (storeNames != null) {
     List<String> badStoreNames=new LinkedList<String>();
     for (    String storeName : storeNames) {
-      if (!this.storeNameToKeyStringsMap.keySet().contains(storeName)) {
+      if (!this.storeNamesSet.contains(storeName)) {
         badStoreNames.add(storeName);
       }
     }
@@ -31,5 +31,6 @@
   this.outDir=outDir;
   this.kvFetcherService=Executors.newFixedThreadPool(keyParallelism);
   this.progressPeriodOps=progressPeriodOps;
+  this.outputBatchSize=outputBatchSize;
   this.startTimeMs=System.currentTimeMillis();
 }
