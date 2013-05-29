@@ -12,7 +12,7 @@
     logger.info("Key-Version file " + kvFileName + " exists, so will not sample keys from file "+ keysFileName+ ".");
     return true;
   }
-  StoreRoutingPlan storeInstance=new StoreRoutingPlan(cluster,storeDefinition);
+  StoreRoutingPlan storeRoutingPlan=new StoreRoutingPlan(cluster,storeDefinition);
   BufferedReader keyReader=null;
   BufferedWriter kvWriter=null;
   try {
@@ -28,7 +28,7 @@
           break;
         }
         byte[] keyInBytes=ByteUtils.fromHexString(keyLine.trim());
-        FetchKeyVersionsTask kvFetcher=new FetchKeyVersionsTask(storeInstance,keyInBytes);
+        FetchKeyVersionsTask kvFetcher=new FetchKeyVersionsTask(storeRoutingPlan,keyInBytes);
         Future<String> future=kvFetcherService.submit(kvFetcher);
         futureKVs.add(future);
       }

@@ -1,18 +1,19 @@
 {
-  String storeName=storeInstance.getStoreDefinition().getName();
-  int masterPartitionId=storeInstance.getMasterPartitionId(key);
-  List<Integer> replicatingNodeIds=storeInstance.getReplicationNodeList(masterPartitionId);
-  int replicationOffset=0;
-  StringBuilder sb=new StringBuilder();
+  String storeName=storeRoutingPlan.getStoreDefinition().getName();
+  int masterPartitionId=storeRoutingPlan.getMasterPartitionId(key);
+  List<Integer> replicatingNodeIds=storeRoutingPlan.getReplicationNodeList(masterPartitionId);
+  ZoneToNaryToString zoneToNaryToString=new ZoneToNaryToString();
   for (  int replicatingNodeId : replicatingNodeIds) {
     List<Versioned<byte[]>> values=adminClient.storeOps.getNodeKey(storeName,replicatingNodeId,new ByteArray(key));
-    sb.append(replicationOffset + " : " + ByteUtils.toHexString(key)+ "\t");
+    int zoneId=storeRoutingPlan.getCluster().getNodeById(replicatingNodeId).getZoneId();
+    int zoneNAry=storeRoutingPlan.getZoneNAry(zoneId,replicatingNodeId,key);
+    StringBuilder sb=new StringBuilder();
+    sb.append(ByteUtils.toHexString(key));
     for (    Versioned<byte[]> value : values) {
-      sb.append(value.getVersion().toString() + "\t");
+      sb.append(" : ").append(value.getVersion().toString());
     }
-    sb.append("\n");
-    replicationOffset++;
+    zoneToNaryToString.addZoneNaryString(zoneId,zoneNAry,sb.toString());
   }
   updateFetchProgress(storeName);
-  return sb.toString();
+  return zoneToNaryToString.toString();
 }
