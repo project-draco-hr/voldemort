@@ -1,11 +1,9 @@
 {
   if (!zoneToNaryToString.containsKey(zoneId)) {
-    zoneToNaryToString.put(zoneId,new HashMap<Integer,String>());
+    zoneToNaryToString.put(zoneId,new HashMap<Integer,Set<String>>());
   }
-  if (zoneToNaryToString.get(zoneId).containsKey(zoneNAry)) {
-    throw new VoldemortException("ZoneToNaryToString already contains zoneNary " + zoneNAry);
+  if (!zoneToNaryToString.get(zoneId).containsKey(zoneNAry)) {
+    zoneToNaryToString.get(zoneId).put(zoneNAry,new TreeSet<String>());
   }
- else {
-    zoneToNaryToString.get(zoneId).put(zoneNAry,string);
-  }
+  zoneToNaryToString.get(zoneId).get(zoneNAry).add(string);
 }
