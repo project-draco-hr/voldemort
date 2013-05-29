@@ -1,24 +1,24 @@
 {
   System.out.println("Balance number of contiguous partitions within a zone.");
   System.out.println("numPartitionsPerZone");
-  for (  int zoneId : nextCluster.getZoneIds()) {
-    System.out.println(zoneId + " : " + nextCluster.getNumberOfPartitionsInZone(zoneId));
+  for (  int zoneId : nextCandidateCluster.getZoneIds()) {
+    System.out.println(zoneId + " : " + nextCandidateCluster.getNumberOfPartitionsInZone(zoneId));
   }
   System.out.println("numNodesPerZone");
-  for (  int zoneId : nextCluster.getZoneIds()) {
-    System.out.println(zoneId + " : " + nextCluster.getNumberOfNodesInZone(zoneId));
+  for (  int zoneId : nextCandidateCluster.getZoneIds()) {
+    System.out.println(zoneId + " : " + nextCandidateCluster.getNumberOfNodesInZone(zoneId));
   }
   HashMap<Integer,List<Integer>> partitionsToRemoveFromZone=Maps.newHashMap();
   System.out.println("Contiguous partitions");
-  for (  Integer zoneId : nextCluster.getZoneIds()) {
+  for (  Integer zoneId : nextCandidateCluster.getZoneIds()) {
     System.out.println("\tZone: " + zoneId);
-    Map<Integer,Integer> partitionToRunLength=ClusterUtils.getMapOfContiguousPartitions(nextCluster,zoneId);
+    Map<Integer,Integer> partitionToRunLength=ClusterUtils.getMapOfContiguousPartitions(nextCandidateCluster,zoneId);
     List<Integer> partitionsToRemoveFromThisZone=new ArrayList<Integer>();
     for (    Map.Entry<Integer,Integer> entry : partitionToRunLength.entrySet()) {
       if (entry.getValue() > maxContiguousPartitionsPerZone) {
         List<Integer> contiguousPartitions=new ArrayList<Integer>(entry.getValue());
         for (int partitionId=entry.getKey(); partitionId < entry.getKey() + entry.getValue(); partitionId++) {
-          contiguousPartitions.add(partitionId % nextCluster.getNumberOfPartitions());
+          contiguousPartitions.add(partitionId % nextCandidateCluster.getNumberOfPartitions());
         }
         System.out.println("Contiguous partitions: " + contiguousPartitions);
         partitionsToRemoveFromThisZone.addAll(Utils.removeItemsToSplitListEvenly(contiguousPartitions,maxContiguousPartitionsPerZone));
@@ -27,7 +27,7 @@
     partitionsToRemoveFromZone.put(zoneId,partitionsToRemoveFromThisZone);
     System.out.println("\t\tPartitions to remove: " + partitionsToRemoveFromThisZone);
   }
-  Cluster returnCluster=ClusterUtils.copyCluster(nextCluster);
+  Cluster returnCluster=ClusterUtils.copyCluster(nextCandidateCluster);
   Random r=new Random();
   for (  int zoneId : returnCluster.getZoneIds()) {
     for (    int partitionId : partitionsToRemoveFromZone.get(zoneId)) {

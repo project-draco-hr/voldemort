@@ -19,7 +19,6 @@
     List<RebalancePartitionsInfo> filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionsInfoList,readOnlyStoreDefs);
     rebalanceStateChange(batchId,batchCurrentCluster,batchCurrentStoreDefs,batchFinalCluster,batchFinalStoreDefs,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     if (hasReadOnlyStores) {
-      proxyPause();
       RebalanceBatchPlanProgressBar progressBar=batchPlan.getProgressBar(batchId);
       executeSubBatch(batchId,progressBar,batchCurrentCluster,batchCurrentStoreDefs,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     }
@@ -27,9 +26,7 @@
     filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionsInfoList,readWriteStoreDefs);
     rebalanceStateChange(batchId,batchCurrentCluster,batchCurrentStoreDefs,batchFinalCluster,batchFinalStoreDefs,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     if (hasReadWriteStores) {
-      if (!hasReadOnlyStores) {
-        proxyPause();
-      }
+      proxyPause();
       RebalanceBatchPlanProgressBar progressBar=batchPlan.getProgressBar(batchId);
       executeSubBatch(batchId,progressBar,batchCurrentCluster,batchCurrentStoreDefs,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     }

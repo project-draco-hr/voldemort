@@ -1,7 +1,7 @@
 {
   StringBuilder sb=new StringBuilder();
-  double taskRate=numTasks / (double)taskCount;
-  double partitionStoreRate=numPartitionStores / (double)partitionStoreCount;
+  double taskRate=numTasksCompleted / (double)totalTaskCount;
+  double partitionStoreRate=numPartitionStoresMigrated / (double)totalPartitionStoreCount;
   long deltaTimeMs=System.currentTimeMillis() - startTimeMs;
   long taskTimeRemainingMs=Long.MAX_VALUE;
   if (taskRate > 0) {
@@ -13,7 +13,7 @@
   }
   sb.append("Progress update on rebalancing batch " + batchId).append(Utils.NEWLINE);
   sb.append("There are currently " + tasksInFlight.size() + " rebalance tasks executing: ").append(tasksInFlight).append(".").append(Utils.NEWLINE);
-  sb.append("\t" + numTasks + " out of "+ taskCount+ " rebalance tasks complete.").append(Utils.NEWLINE).append("\t").append(decimalFormatter.format(taskRate * 100.0)).append("% done, estimate ").append(taskTimeRemainingMs).append(" ms (").append(TimeUnit.MILLISECONDS.toMinutes(taskTimeRemainingMs)).append(" minutes) remaining.").append(Utils.NEWLINE);
-  sb.append("\t" + numPartitionStores + " out of "+ partitionStoreCount+ " partition-stores migrated.").append(Utils.NEWLINE).append("\t").append(decimalFormatter.format(partitionStoreRate * 100.0)).append("% done, estimate ").append(partitionStoreTimeRemainingMs).append(" ms (").append(TimeUnit.MILLISECONDS.toMinutes(partitionStoreTimeRemainingMs)).append(" minutes) remaining.").append(Utils.NEWLINE);
+  sb.append("\t" + numTasksCompleted + " out of "+ totalTaskCount+ " rebalance tasks complete.").append(Utils.NEWLINE).append("\t").append(decimalFormatter.format(taskRate * 100.0)).append("% done, estimate ").append(taskTimeRemainingMs).append(" ms (").append(TimeUnit.MILLISECONDS.toMinutes(taskTimeRemainingMs)).append(" minutes) remaining.").append(Utils.NEWLINE);
+  sb.append("\t" + numPartitionStoresMigrated + " out of "+ totalPartitionStoreCount+ " partition-stores migrated.").append(Utils.NEWLINE).append("\t").append(decimalFormatter.format(partitionStoreRate * 100.0)).append("% done, estimate ").append(partitionStoreTimeRemainingMs).append(" ms (").append(TimeUnit.MILLISECONDS.toMinutes(partitionStoreTimeRemainingMs)).append(" minutes) remaining.").append(Utils.NEWLINE);
   return sb.toString();
 }

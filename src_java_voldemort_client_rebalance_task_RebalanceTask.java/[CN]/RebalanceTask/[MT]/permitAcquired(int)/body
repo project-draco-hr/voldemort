@@ -1,5 +1,9 @@
 {
-  long durationMs=System.currentTimeMillis() - timeMs;
-  timeMs=0;
-  taskLog("Acquired donor permit for node " + nodeId + " in "+ TimeUnit.MILLISECONDS.toSeconds(durationMs)+ " seconds.");
+  String durationString="";
+  if (permitAcquisitionTimeMs >= 0) {
+    long durationMs=System.currentTimeMillis() - permitAcquisitionTimeMs;
+    permitAcquisitionTimeMs=-1;
+    durationString=" in " + TimeUnit.MILLISECONDS.toSeconds(durationMs) + " seconds.";
+  }
+  taskLog("Acquired donor permit for node " + nodeId + durationString);
 }

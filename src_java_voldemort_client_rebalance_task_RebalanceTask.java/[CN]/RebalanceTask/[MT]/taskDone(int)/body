@@ -1,6 +1,10 @@
 {
-  long durationMs=System.currentTimeMillis() - timeMs;
-  timeMs=0;
-  taskLog("Successfully finished rebalance of " + partitionStoreCount + " for async operation id "+ rebalanceAsyncId+ " in "+ TimeUnit.MILLISECONDS.toSeconds(durationMs)+ " seconds.");
+  String durationString="";
+  if (taskCompletionTimeMs >= 0) {
+    long durationMs=System.currentTimeMillis() - taskCompletionTimeMs;
+    taskCompletionTimeMs=-1;
+    durationString=" in " + TimeUnit.MILLISECONDS.toSeconds(durationMs) + " seconds.";
+  }
+  taskLog("Successfully finished rebalance of " + partitionStoreCount + " for async operation id "+ rebalanceAsyncId+ durationString);
   progressBar.completeTask(taskId,partitionStoreCount);
 }
