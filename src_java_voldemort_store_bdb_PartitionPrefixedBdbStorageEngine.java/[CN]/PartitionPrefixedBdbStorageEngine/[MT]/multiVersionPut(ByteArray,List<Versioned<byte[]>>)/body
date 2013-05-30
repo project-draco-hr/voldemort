@@ -1,0 +1,6 @@
+{
+  StoreUtils.assertValidKey(key);
+  int partition=routingStrategy.getMasterPartition(key.get());
+  ByteArray prefixedKey=new ByteArray(StoreBinaryFormat.makePrefixedKey(key.get(),partition));
+  return super.multiVersionPut(prefixedKey,values);
+}

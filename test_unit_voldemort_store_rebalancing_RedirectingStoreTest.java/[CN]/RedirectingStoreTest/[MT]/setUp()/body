@@ -3,7 +3,7 @@
   targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,2,Arrays.asList(0));
   this.primaryPartitionsMoved=Lists.newArrayList(0);
   this.secondaryPartitionsMoved=Lists.newArrayList(2,3);
-  this.storeDef=new StoreDefinitionBuilder().setName("test").setType(InMemoryStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.SERVER).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).build();
+  this.storeDef=new StoreDefinitionBuilder().setName("test").setType(BdbStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).build();
   File tempStoreXml=new File(TestUtils.createTempDir(),"stores.xml");
   FileUtils.writeStringToFile(tempStoreXml,new StoreDefinitionsMapper().writeStoreList(Lists.newArrayList(storeDef)));
   this.servers=new VoldemortServer[3];
@@ -15,6 +15,8 @@
   StoreClient<Object,Object> storeClient=factory.getStoreClient("test");
   this.primaryEntriesMoved=Maps.newHashMap();
   this.secondaryEntriesMoved=Maps.newHashMap();
+  this.proxyPutTestPrimaryEntries=Maps.newHashMap();
+  this.proxyPutTestSecondaryEntries=Maps.newHashMap();
   RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,currentCluster);
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet()) {
     storeClient.put(new String(entry.getKey().get()),new String(entry.getValue()));
@@ -27,11 +29,33 @@
     }
   }
   Thread.sleep(500);
+  int cnt=0;
+  for (  Entry<ByteArray,byte[]> entry : primaryEntriesMoved.entrySet()) {
+    if (cnt > 3)     break;
+    this.proxyPutTestPrimaryEntries.put(entry.getKey(),entry.getValue());
+    cnt++;
+  }
+  for (  ByteArray key : this.proxyPutTestPrimaryEntries.keySet()) {
+    this.primaryEntriesMoved.remove(key);
+  }
+  assertTrue("Not enough primary entries",primaryEntriesMoved.size() > 1);
+  cnt=0;
+  for (  Entry<ByteArray,byte[]> entry : secondaryEntriesMoved.entrySet()) {
+    if (cnt > 3)     break;
+    this.proxyPutTestSecondaryEntries.put(entry.getKey(),entry.getValue());
+    cnt++;
+  }
+  for (  ByteArray key : this.proxyPutTestSecondaryEntries.keySet()) {
+    this.secondaryEntriesMoved.remove(key);
+  }
+  assertTrue("Not enough secondary entries",primaryEntriesMoved.size() > 1);
   RebalanceClusterPlan plan=new RebalanceClusterPlan(currentCluster,targetCluster,Lists.newArrayList(storeDef),true);
   List<RebalancePartitionsInfo> plans=RebalanceUtils.flattenNodePlans(Lists.newArrayList(plan.getRebalancingTaskQueue()));
   for (  RebalancePartitionsInfo partitionPlan : plans) {
     servers[partitionPlan.getStealerId()].getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
     servers[partitionPlan.getStealerId()].getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(partitionPlan)));
+    servers[partitionPlan.getStealerId()].getMetadataStore().put(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,currentCluster);
+    servers[partitionPlan.getStealerId()].getMetadataStore().put(MetadataStore.REBALANCING_SOURCE_STORES_XML,Lists.newArrayList(storeDef));
   }
   for (  VoldemortServer server : servers) {
     server.getMetadataStore().put(MetadataStore.CLUSTER_KEY,targetCluster);

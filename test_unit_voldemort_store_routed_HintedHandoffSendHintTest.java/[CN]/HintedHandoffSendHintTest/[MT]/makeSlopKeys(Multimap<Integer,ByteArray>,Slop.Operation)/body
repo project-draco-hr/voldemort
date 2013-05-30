@@ -1,0 +1,13 @@
+{
+  Set<ByteArray> slopKeys=Sets.newHashSet();
+  for (  Map.Entry<Integer,ByteArray> entry : failedKeys.entries()) {
+    byte[] opCode=new byte[]{operation.getOpCode()};
+    byte[] spacer=new byte[]{(byte)0};
+    byte[] storeName=ByteUtils.getBytes(STORE_NAME,"UTF-8");
+    byte[] nodeIdBytes=new byte[ByteUtils.SIZE_OF_INT];
+    ByteUtils.writeInt(nodeIdBytes,entry.getKey(),0);
+    ByteArray slopKey=new ByteArray(ByteUtils.cat(opCode,spacer,storeName,spacer,nodeIdBytes,spacer,entry.getValue().get()));
+    slopKeys.add(slopKey);
+  }
+  return slopKeys;
+}

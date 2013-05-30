@@ -5,17 +5,17 @@
       writeResponse();
     }
  else {
-      RESTErrorHandler.handleError(NOT_FOUND,this.deleteRequestMessageEvent,false,"Requested Key with the specified version does not exist");
+      RESTErrorHandler.handleError(NOT_FOUND,this.deleteRequestMessageEvent,"Requested Key with the specified version does not exist");
     }
   }
  catch (  StoreTimeoutException timeoutException) {
     String errorDescription="DELETE Request timed out: " + timeoutException.getMessage();
     logger.error(errorDescription);
-    RESTErrorHandler.handleError(REQUEST_TIMEOUT,this.deleteRequestMessageEvent,false,errorDescription);
+    RESTErrorHandler.handleError(REQUEST_TIMEOUT,this.deleteRequestMessageEvent,errorDescription);
   }
 catch (  VoldemortException ve) {
     ve.printStackTrace();
     String errorDescription="Voldemort Exception: " + ve.getMessage();
-    RESTErrorHandler.handleError(INTERNAL_SERVER_ERROR,this.deleteRequestMessageEvent,false,errorDescription);
+    RESTErrorHandler.handleError(INTERNAL_SERVER_ERROR,this.deleteRequestMessageEvent,errorDescription);
   }
 }

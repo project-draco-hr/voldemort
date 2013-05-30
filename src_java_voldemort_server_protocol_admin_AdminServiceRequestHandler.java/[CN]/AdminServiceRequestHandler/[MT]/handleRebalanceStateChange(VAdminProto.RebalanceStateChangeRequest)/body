@@ -7,11 +7,12 @@ synchronized (rebalancer) {
         rebalancePartitionsInfo.add(ProtoUtils.decodeRebalancePartitionInfoMap(map));
       }
       Cluster cluster=new ClusterMapper().readCluster(new StringReader(request.getClusterString()));
+      List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new StringReader(request.getStoresString()));
       boolean swapRO=request.getSwapRo();
       boolean changeClusterMetadata=request.getChangeClusterMetadata();
       boolean changeRebalanceState=request.getChangeRebalanceState();
       boolean rollback=request.getRollback();
-      rebalancer.rebalanceStateChange(cluster,rebalancePartitionsInfo,swapRO,changeClusterMetadata,changeRebalanceState,rollback);
+      rebalancer.rebalanceStateChange(cluster,storeDefs,rebalancePartitionsInfo,swapRO,changeClusterMetadata,changeRebalanceState,rollback);
     }
  catch (    VoldemortException e) {
       response.setError(ProtoUtils.encodeError(errorCodeMapper,e));

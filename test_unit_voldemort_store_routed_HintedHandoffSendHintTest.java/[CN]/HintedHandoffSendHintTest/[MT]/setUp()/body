@@ -1,0 +1,68 @@
+{
+  if (logger.isDebugEnabled()) {
+    logger.debug("Test Started: replication[" + REPLICATION_FACTOR + "], preferredW["+ P_WRITES+ "], requiredW["+ R_WRITES+ "]");
+  }
+  cluster=getNineNodeCluster();
+  storeDef=getStoreDef();
+  for (Integer nodeId=0; nodeId < NUM_NODES_TOTAL; nodeId++) {
+    SocketStoreFactory socketStoreFactory;
+    socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,1024);
+    List<StoreDefinition> stores=new ArrayList<StoreDefinition>();
+    stores.add(storeDef);
+    VoldemortConfig config=ServerTestUtils.createServerConfigWithDefs(true,nodeId,TestUtils.createTempDir().getAbsolutePath(),cluster,stores,new Properties());
+    config.setNioAdminConnectorSelectors(1);
+    config.setNioConnectorSelectors(2);
+    VoldemortServer vs=ServerTestUtils.startVoldemortServer(socketStoreFactory,config);
+    VoldemortService vsrv=vs.getService(ServiceType.STORAGE);
+    StorageService ss=(StorageService)vsrv;
+    voldemortServers.put(nodeId,vs);
+    slopStorageEngines.put(nodeId,ss.getStoreRepository().getSlopStore());
+    slopStores.put(nodeId,SerializingStore.wrap(ss.getStoreRepository().getSlopStore(),new ByteArraySerializer(),new SlopSerializer(),new IdentitySerializer()));
+    Store<ByteArray,byte[],byte[]> store=ss.getStoreRepository().removeLocalStore(STORE_NAME);
+    UnreachableStoreException exception=new UnreachableStoreException("Force failed");
+    ForceFailStore<ByteArray,byte[],byte[]> forceFailStore=new ForceFailStore<ByteArray,byte[],byte[]>(store,exception);
+    forceFailStores.put(nodeId,forceFailStore);
+    ss.getStoreRepository().addLocalStore(forceFailStore);
+  }
+  strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+  SocketStoreClientFactoryForTest clientSocketStoreFactory=new SocketStoreClientFactoryForTest(STORE_NAME,SLOP_STORE_NAME);
+  Serializer<ByteArray> slopKeySerializer=new ByteArraySerializer();
+  Serializer<Slop> slopValueSerializer=new SlopSerializer();
+  Map<Integer,Store<ByteArray,byte[],byte[]>> testStores=subStores;
+  Map<Integer,Store<ByteArray,Slop,byte[]>> slopStores=new HashMap<Integer,Store<ByteArray,Slop,byte[]>>();
+  for (  Node node : cluster.getNodes()) {
+    SocketStore socketTestStore=clientSocketStoreFactory.getSocketTestStoreByNode(node);
+    socketTestStores.put(node.getId(),socketTestStore);
+    testStores.put(node.getId(),socketTestStore);
+    SocketStore socketSlopStore=clientSocketStoreFactory.getSocketSlopStoreByNode(node);
+    Store<ByteArray,Slop,byte[]> slopStore=SerializingStore.wrap(socketSlopStore,slopKeySerializer,slopValueSerializer,new IdentitySerializer());
+    socketSlopStores.put(node.getId(),socketSlopStore);
+    slopStores.put(node.getId(),slopStore);
+  }
+  if (failureDetector != null)   failureDetector.destroy();
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig();
+  failureDetectorConfig.setImplementationClassName(failureDetectorCls.getName());
+  failureDetectorConfig.setThreshold(50);
+  failureDetectorConfig.setCluster(cluster);
+  failureDetectorConfig.setStoreVerifier(MutableStoreVerifier.create(subStores));
+  failureDetector=FailureDetectorUtils.create(failureDetectorConfig,false);
+  routedStore=new PipelineRoutedStore(STORE_NAME,testStores,socketTestStores,slopStores,socketSlopStores,cluster,storeDef,false,Zone.DEFAULT_ZONE_ID,new TimeoutConfig(1500L,false),failureDetector,false,0);
+  for (int i=0; i < 5; i++) {
+    Set<Integer> nodesCovered=Sets.newHashSet();
+    while (nodesCovered.size() < NUM_NODES_TOTAL) {
+      ByteArray randomKey=new ByteArray(TestUtils.randomBytes(KEY_LENGTH));
+      byte[] randomValue=TestUtils.randomBytes(VALUE_LENGTH);
+      if (randomKey.length() > 0 && randomValue.length > 0) {
+        if (!keyList.contains(randomKey)) {
+          for (          Node node : strategy.routeRequest(randomKey.get())) {
+            keysToNodes.put(randomKey,node.getId());
+            nodesCovered.add(node.getId());
+          }
+          logger.info("Inserting key [" + randomKey + "] to key list as id:"+ keyList.size());
+          keyList.add(randomKey);
+          keyValues.put(randomKey,new ByteArray(randomValue));
+        }
+      }
+    }
+  }
+}

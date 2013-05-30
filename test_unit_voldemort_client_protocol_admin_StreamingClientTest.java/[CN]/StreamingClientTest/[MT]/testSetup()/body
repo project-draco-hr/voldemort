@@ -2,7 +2,7 @@
   if (null == servers) {
     servers=new VoldemortServer[TOTAL_SERVERS];
     serverPorts=new int[TOTAL_SERVERS];
-    storeDef=new StoreDefinitionBuilder().setName(TEST_STORE_NAME).setType(InMemoryStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.SERVER).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(2).setRequiredWrites(2).build();
+    storeDef=new StoreDefinitionBuilder().setName(TEST_STORE_NAME).setType(BdbStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(2).setRequiredWrites(2).build();
     File tempStoreXml=new File(TestUtils.createTempDir(),"stores.xml");
     try {
       FileUtils.writeStringToFile(tempStoreXml,new StoreDefinitionsMapper().writeStoreList(Lists.newArrayList(storeDef)));

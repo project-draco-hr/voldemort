@@ -1,0 +1,14 @@
+{
+  Iterator<QueryKeyResult> positiveTestResultsItr=admin.streamingOps.queryKeys(serverId,store,keyList.iterator());
+  while (positiveTestResultsItr.hasNext()) {
+    QueryKeyResult item=positiveTestResultsItr.next();
+    ByteArray key=item.getKey();
+    List<Versioned<byte[]>> vals=item.getValues();
+    Exception e=item.getException();
+    assertEquals("Error fetching key " + key,null,e);
+    assertEquals("Value not found for key " + key,true,vals != null & vals.size() != 0);
+    String keyStr=ByteUtils.getString(key.get(),"UTF-8");
+    if (baselineTuples != null)     assertEquals("Value does not match up ",baselineTuples.get(keyStr),ByteUtils.getString(vals.get(0).getValue(),"UTF-8"));
+    if (baselineVersions != null)     assertEquals("Version does not match up",baselineVersions.get(keyStr),vals.get(0).getVersion());
+  }
+}

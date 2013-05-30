@@ -1,0 +1,12 @@
+{
+  metadataStore.cleanAllRebalancingState();
+  assertTrue("Should be null",null == metadataStore.getRebalancingSourceCluster());
+  Cluster dummyCluster=ServerTestUtils.getLocalCluster(2);
+  metadataStore.put(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,dummyCluster);
+  assertEquals("Should be equal",dummyCluster,metadataStore.getRebalancingSourceCluster());
+  metadataStore.put(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,(Object)null);
+  assertTrue("Should be null",null == metadataStore.getRebalancingSourceCluster());
+  List<Versioned<byte[]>> sourceClusterVersions=metadataStore.get(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,null);
+  assertTrue("Just one version expected",1 == sourceClusterVersions.size());
+  assertEquals("Empty string should map to null","",new String(sourceClusterVersions.get(0).getValue()));
+}

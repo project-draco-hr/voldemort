@@ -1,0 +1,21 @@
+{
+  String key="Which_sour_beer_do_I_want_to_drink";
+  String payload="Duchesse De Bourgogne";
+  doPut(key,payload,null);
+  TestVersionedValue response=doGet(key);
+  if (response == null) {
+    fail("key does not exist after a put. ");
+  }
+  System.out.println("Received value: " + response.getValue());
+  if (!response.getValue().equals(payload)) {
+    fail("Received value is incorrect ! Expected : " + payload + " but got : "+ response.getValue());
+  }
+  boolean isDeleted=doDelete(key);
+  if (!isDeleted) {
+    fail("Could not delete the key. Error !");
+  }
+  response=doGet(key);
+  if (response != null) {
+    fail("key still exists after deletion. ");
+  }
+}

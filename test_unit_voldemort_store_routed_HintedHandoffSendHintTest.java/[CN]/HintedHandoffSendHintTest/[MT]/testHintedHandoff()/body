@@ -1,0 +1,47 @@
+{
+  Set<Integer> failedNodeSet=chooseFailedNodeSet(NUM_NODES_FAILED);
+  Multimap<Integer,ByteArray> nodeToFailedKeysMap=doBatchPut(failedNodeSet);
+  logger.debug("Sleep for async operations to finish");
+  Thread.sleep(Math.max(2000,SOCKET_TIMEOUT_MS * 2));
+  Map<Integer,Map<ByteArray,byte[]>> nodeToSlopData=new HashMap<Integer,Map<ByteArray,byte[]>>();
+  Set<ByteArray> slopKeys=makeSlopKeys(nodeToFailedKeysMap,Slop.Operation.PUT);
+  for (  Store<ByteArray,Slop,byte[]> slopStore : slopStores.values()) {
+    Map<ByteArray,List<Versioned<Slop>>> getAllResult=slopStore.getAll(slopKeys,null);
+    for (    Map.Entry<ByteArray,List<Versioned<Slop>>> entry : getAllResult.entrySet()) {
+      Slop slop=entry.getValue().get(0).getValue();
+      Integer nodeId=slop.getNodeId();
+      if (!nodeToSlopData.containsKey(nodeId)) {
+        nodeToSlopData.put(nodeId,new HashMap<ByteArray,byte[]>());
+      }
+      Map<ByteArray,byte[]> perNodeSlopMap=nodeToSlopData.get(nodeId);
+      perNodeSlopMap.put(slop.getKey(),slop.getValue());
+      if (logger.isTraceEnabled())       logger.trace(slop);
+    }
+  }
+  int errorCount=0;
+  for (  Map.Entry<Integer,ByteArray> failedKey : nodeToFailedKeysMap.entries()) {
+    Integer nodeId=failedKey.getKey();
+    ByteArray key=failedKey.getValue();
+    byte[] expected=keyValues.get(key).get();
+    Integer id=keyList.indexOf(key);
+    Map<ByteArray,byte[]> perNodeSlopMap=nodeToSlopData.get(nodeId);
+    if (perNodeSlopMap == null) {
+      logger.error("Slop does not have key[" + key + "][id:"+ id+ "]");
+      errorCount++;
+      continue;
+    }
+    byte[] actual=perNodeSlopMap.get(key);
+    if (actual == null) {
+      logger.error("Slop does not have key[" + key + "][nodeId:"+ nodeId+ "]");
+      errorCount++;
+    }
+ else     if (ByteUtils.compare(actual,expected) != 0) {
+      logger.error("Slop key[" + key + "][nodeId:"+ nodeId+ "] does not have the correct value");
+      errorCount++;
+    }
+ else {
+      logger.debug("Slop has key[" + key + "][nodeId:"+ nodeId+ "] with value["+ actual+ "]");
+    }
+  }
+  assertTrue(errorCount + " Slop(s) incorrect. See log for more info",errorCount == 0);
+}

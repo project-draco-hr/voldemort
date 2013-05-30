@@ -33,21 +33,18 @@
       }
  catch (      InterruptedException e1) {
         MARKED_BAD=true;
-        logger.error("Recovery Callback failed");
-        e1.printStackTrace();
+        logger.error("Recovery Callback failed",e1);
         throw new VoldemortException("Recovery Callback failed");
       }
 catch (      ExecutionException e1) {
         MARKED_BAD=true;
-        logger.error("Recovery Callback failed");
-        e1.printStackTrace();
-        throw new VoldemortException("Recovery Callback failed");
+        logger.error("Recovery Callback failed during execution",e1);
+        throw new VoldemortException("Recovery Callback failed during execution");
       }
       e.printStackTrace();
     }
   }
-  int secondsTime=calendar.get(Calendar.SECOND);
-  if (entriesProcessed == CHECKPOINT_COMMIT_SIZE || secondsTime % TIME_COMMIT_SIZE == 0) {
+  if (entriesProcessed == CHECKPOINT_COMMIT_SIZE) {
     entriesProcessed=0;
     commitToVoldemort();
   }

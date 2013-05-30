@@ -1,6 +1,12 @@
 {
-  String key=ByteUtils.getString(keyBytes.get(),"UTF-8");
-  Versioned<String> value=new Versioned<String>(ByteUtils.getString(valueBytes.getValue(),"UTF-8"),valueBytes.getVersion());
-  Versioned<Object> valueObject=convertStringToObject(key,value);
-  this.put(key,valueObject);
+  writeLock.lock();
+  try {
+    String key=ByteUtils.getString(keyBytes.get(),"UTF-8");
+    Versioned<String> value=new Versioned<String>(ByteUtils.getString(valueBytes.getValue(),"UTF-8"),valueBytes.getVersion());
+    Versioned<Object> valueObject=convertStringToObject(key,value);
+    this.put(key,valueObject);
+  }
+  finally {
+    writeLock.unlock();
+  }
 }

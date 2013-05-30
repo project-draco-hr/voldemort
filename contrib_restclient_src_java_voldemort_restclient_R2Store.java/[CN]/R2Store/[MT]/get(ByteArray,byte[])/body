@@ -4,9 +4,8 @@
     String base64Key=new String(Base64.encodeBase64(key.get()));
     RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
     rb.setMethod(GET);
-    rb.setHeader("Accept","application/json");
+    rb.setHeader("Accept","binary");
     rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,"1000");
-    rb.setHeader(X_VOLD_INCONSISTENCY_RESOLVER,"custom");
     RestRequest request=rb.build();
     Future<RestResponse> f=client.restRequest(request);
     RestResponse response=f.get();
@@ -26,7 +25,7 @@
   }
 catch (  Exception e) {
     if (!e.getMessage().contains("status=404")) {
-      logger.error("ERROR: " + e);
+      logger.error("Specified key does not exist." + e);
     }
   }
   return resultList;

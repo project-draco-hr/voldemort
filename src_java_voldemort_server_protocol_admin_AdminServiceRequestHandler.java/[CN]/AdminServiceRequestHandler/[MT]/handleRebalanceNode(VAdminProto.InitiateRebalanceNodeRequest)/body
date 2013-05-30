@@ -2,7 +2,7 @@
   VAdminProto.AsyncOperationStatusResponse.Builder response=VAdminProto.AsyncOperationStatusResponse.newBuilder();
   try {
     if (!voldemortConfig.isEnableRebalanceService())     throw new VoldemortException("Rebalance service is not enabled for node: " + metadataStore.getNodeId());
-    if (!metadataStore.getServerState().equals(MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER)) {
+    if (!metadataStore.getServerStateUnlocked().equals(MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER)) {
       response.setError(ProtoUtils.encodeError(errorCodeMapper,new VoldemortException("Voldemort server " + metadataStore.getNodeId() + " not in rebalancing state")));
       return response.build();
     }

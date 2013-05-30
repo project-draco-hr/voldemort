@@ -1,0 +1,46 @@
+{
+  Node nodeToHostHint=null;
+  boolean foundNode=false;
+  while (nodesToTry.size() > 0) {
+    nodeToHostHint=nodesToTry.remove(0);
+    if (!failedNodes.contains(nodeToHostHint) && failureDetector.isAvailable(nodeToHostHint)) {
+      foundNode=true;
+      break;
+    }
+  }
+  if (!foundNode) {
+    Slop slop=slopSerializer.toObject(slopVersioned.getValue());
+    logger.error("Trying to send an async hint but used up all nodes. key: " + slop.getKey() + " version: "+ slopVersioned.getVersion().toString());
+    return;
+  }
+  final Node node=nodeToHostHint;
+  int nodeId=node.getId();
+  NonblockingStore nonblockingStore=nonblockingSlopStores.get(nodeId);
+  Utils.notNull(nonblockingStore);
+  final Long startNs=System.nanoTime();
+  NonblockingStoreCallback callback=new NonblockingStoreCallback(){
+    @Override public void requestComplete(    Object result,    long requestTime){
+      Slop slop=null;
+      boolean loggerDebugEnabled=logger.isDebugEnabled();
+      if (loggerDebugEnabled) {
+        slop=slopSerializer.toObject(slopVersioned.getValue());
+      }
+      Response<ByteArray,Object> response=new Response<ByteArray,Object>(node,slopKey,result,requestTime);
+      if (response.getValue() instanceof Exception && !(response.getValue() instanceof ObsoleteVersionException)) {
+        if (!failedNodes.contains(node))         failedNodes.add(node);
+        if (response.getValue() instanceof UnreachableStoreException) {
+          UnreachableStoreException use=(UnreachableStoreException)response.getValue();
+          if (loggerDebugEnabled) {
+            logger.debug("Write of key " + slop.getKey() + " for "+ slop.getNodeId()+ " to node "+ node+ " failed due to unreachable: "+ use.getMessage());
+          }
+          failureDetector.recordException(node,(System.nanoTime() - startNs) / Time.NS_PER_MS,use);
+        }
+        sendOneAsyncHint(slopKey,slopVersioned,nodesToTry);
+      }
+      if (loggerDebugEnabled)       logger.debug("Slop write of key " + slop.getKey() + " for node "+ slop.getNodeId()+ " to node "+ node+ " succeeded in "+ (System.nanoTime() - startNs)+ " ns");
+      failureDetector.recordSuccess(node,(System.nanoTime() - startNs) / Time.NS_PER_MS);
+    }
+  }
+;
+  nonblockingStore.submitPutRequest(slopKey,slopVersioned,null,callback,timeoutMs);
+}

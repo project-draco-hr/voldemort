@@ -3,14 +3,14 @@
   int attempts=Math.min(preferred,nodes.size());
   final Map<Integer,Response<ByteArray,Object>> responses=new ConcurrentHashMap<Integer,Response<ByteArray,Object>>();
   final CountDownLatch latch=new CountDownLatch(attempts);
-  if (logger.isTraceEnabled())   logger.trace("Attempting " + attempts + " "+ pipeline.getOperation().getSimpleName()+ " operations in parallel");
+  if (logger.isTraceEnabled())   logger.trace("Attempting " + attempts + " "+ pipeline.getOperation().getSimpleName()+ " operations in parallel for key "+ key);
   for (int i=0; i < attempts; i++) {
     final Node node=nodes.get(i);
     pipelineData.incrementNodeIndex();
     final long startMs=logger.isDebugEnabled() ? System.currentTimeMillis() : -1;
     NonblockingStoreCallback callback=new NonblockingStoreCallback(){
       public void requestComplete(      Object result,      long requestTime){
-        if (logger.isTraceEnabled())         logger.trace(pipeline.getOperation().getSimpleName() + " response received (" + requestTime+ " ms.) from node "+ node.getId());
+        if (logger.isTraceEnabled())         logger.trace(pipeline.getOperation().getSimpleName() + " response received (" + requestTime+ " ms.) from node "+ node.getId()+ "for key "+ key);
         Response<ByteArray,Object> response=new Response<ByteArray,Object>(node,key,result,requestTime);
         if (logger.isDebugEnabled())         logger.debug("Finished " + pipeline.getOperation().getSimpleName() + " for key "+ ByteUtils.toHexString(key.get())+ " (keyRef: "+ System.identityHashCode(key)+ "); started at "+ startMs+ " took "+ requestTime+ " ms on node "+ node.getId()+ "("+ node.getHost()+ ")");
         responses.put(node.getId(),response);
@@ -18,7 +18,7 @@
         if (pipeline.isFinished() && response.getValue() instanceof Exception) {
           if (response.getValue() instanceof InvalidMetadataException) {
             pipelineData.reportException((InvalidMetadataException)response.getValue());
-            logger.warn("Received invalid metadata problem after a successful " + pipeline.getOperation().getSimpleName() + " call on node "+ node.getId()+ ", store '"+ pipelineData.getStoreName()+ "'");
+            logger.warn("Received invalid metadata problem after a successful " + pipeline.getOperation().getSimpleName() + " call on node "+ node.getId()+ ", store '"+ pipelineData.getStoreName()+ "' for key "+ key);
           }
  else {
             handleResponseError(response,pipeline,failureDetector);
@@ -27,7 +27,7 @@
       }
     }
 ;
-    if (logger.isTraceEnabled())     logger.trace("Submitting " + pipeline.getOperation().getSimpleName() + " request on node "+ node.getId());
+    if (logger.isTraceEnabled())     logger.trace("Submitting " + pipeline.getOperation().getSimpleName() + " request on node "+ node.getId()+ " for key "+ key);
     NonblockingStore store=nonblockingStores.get(node.getId());
     if (pipeline.getOperation() == Operation.GET)     store.submitGetRequest(key,transforms,callback,timeoutMs);
  else     if (pipeline.getOperation() == Operation.GET_VERSIONS)     store.submitGetVersionsRequest(key,callback,timeoutMs);
@@ -69,7 +69,7 @@
       }
  else {
         if (logger.isDebugEnabled()) {
-          logger.debug("Operation " + pipeline.getOperation().getSimpleName() + "failed due to insufficent zone responses, required "+ pipelineData.getZonesRequired()+ " obtained "+ zonesSatisfied+ " "+ pipelineData.getZoneResponses());
+          logger.debug("Operation " + pipeline.getOperation().getSimpleName() + "failed due to insufficent zone responses, required "+ pipelineData.getZonesRequired()+ " obtained "+ zonesSatisfied+ " "+ pipelineData.getZoneResponses()+ " for key "+ key);
         }
         if (this.insufficientZonesEvent != null) {
           pipeline.addEvent(this.insufficientZonesEvent);

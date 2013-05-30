@@ -1,0 +1,15 @@
+{
+  for (  int node : nodeToStart) {
+    Properties properties=new Properties();
+    if (null != configProps) {
+      for (      Entry<String,String> property : configProps.entrySet()) {
+        properties.put(property.getKey(),property.getValue());
+      }
+    }
+    properties.put("proxy.puts.during.rebalance","true");
+    VoldemortConfig config=ServerTestUtils.createServerConfig(useNio,node,TestUtils.createTempDir().getAbsolutePath(),null,storeXmlFile,properties);
+    VoldemortServer server=ServerTestUtils.startVoldemortServer(socketStoreFactory,config,cluster);
+    serverMap.put(node,server);
+  }
+  return cluster;
+}

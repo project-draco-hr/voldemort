@@ -1,0 +1,31 @@
+{
+  if (response == null) {
+    logger.warn("RoutingTimedout on waiting for async ops; parellelResponseToWait: " + numNodesPendingResponse + "; preferred-1: "+ (preferred - 1)+ "; quromOK: "+ quorumSatisfied+ "; zoneOK: "+ zonesSatisfied);
+  }
+ else {
+    numNodesPendingResponse=numNodesPendingResponse - 1;
+    numResponsesGot=numResponsesGot + 1;
+    if (response.getValue() instanceof Exception && !(response.getValue() instanceof ObsoleteVersionException)) {
+      if (logger.isDebugEnabled()) {
+        logger.debug("PUT {key:" + key + "} handling async put error");
+      }
+      if (handleResponseError(response,pipeline,failureDetector)) {
+        if (logger.isDebugEnabled()) {
+          logger.debug("PUT {key:" + key + "} severe async put error, exiting parallel put stage");
+        }
+        return;
+      }
+      if (PipelineRoutedStore.isSlopableFailure(response.getValue())) {
+        pipelineData.getSynchronizer().tryDelegateSlop(response.getNode());
+      }
+      if (logger.isDebugEnabled()) {
+        logger.debug("PUT {key:" + key + "} handled async put error");
+      }
+    }
+ else {
+      pipelineData.incrementSuccesses();
+      failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
+      pipelineData.getZoneResponses().add(response.getNode().getZoneId());
+    }
+  }
+}

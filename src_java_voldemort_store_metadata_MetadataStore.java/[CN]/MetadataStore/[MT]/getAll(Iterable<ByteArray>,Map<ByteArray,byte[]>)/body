@@ -1,4 +1,10 @@
 {
-  StoreUtils.assertValidKeys(keys);
-  return StoreUtils.getAll(this,keys,transforms);
+  readLock.lock();
+  try {
+    StoreUtils.assertValidKeys(keys);
+    return StoreUtils.getAll(this,keys,transforms);
+  }
+  finally {
+    readLock.unlock();
+  }
 }

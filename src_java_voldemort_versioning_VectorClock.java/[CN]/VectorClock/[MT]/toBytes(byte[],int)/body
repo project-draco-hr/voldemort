@@ -1,13 +1,15 @@
 {
-  ByteUtils.writeShort(buf,(short)versions.size(),offset);
+  ByteUtils.writeShort(buf,(short)versionMap.size(),offset);
   offset+=ByteUtils.SIZE_OF_SHORT;
   byte versionSize=ByteUtils.numberOfBytesRequired(getMaxVersion());
   buf[offset]=versionSize;
   offset++;
   int clockEntrySize=ByteUtils.SIZE_OF_SHORT + versionSize;
-  for (  ClockEntry v : versions) {
-    ByteUtils.writeShort(buf,v.getNodeId(),offset);
-    ByteUtils.writeBytes(buf,v.getVersion(),offset + ByteUtils.SIZE_OF_SHORT,versionSize);
+  SortedSet<Short> nodeIds=versionMap.navigableKeySet();
+  for (  Short nodeId : nodeIds) {
+    Long version=versionMap.get(nodeId);
+    ByteUtils.writeShort(buf,nodeId,offset);
+    ByteUtils.writeBytes(buf,version,offset + ByteUtils.SIZE_OF_SHORT,versionSize);
     offset+=clockEntrySize;
   }
   ByteUtils.writeLong(buf,this.timestamp,offset);

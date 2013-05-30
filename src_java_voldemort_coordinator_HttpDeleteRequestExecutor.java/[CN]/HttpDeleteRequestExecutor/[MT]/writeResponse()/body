@@ -1,8 +1,9 @@
 {
-  HttpResponse response=new DefaultHttpResponse(HTTP_1_1,OK);
-  response.setHeader(CONTENT_TYPE,"binary");
-  response.setHeader(CONTENT_TRANSFER_ENCODING,"binary");
+  HttpResponse response=new DefaultHttpResponse(HTTP_1_1,NO_CONTENT);
   response.setHeader(CONTENT_LENGTH,"0");
-  ChannelFuture future=this.deleteRequestMessageEvent.getChannel().write(response);
-  future.addListener(ChannelFutureListener.CLOSE);
+  if (this.coordinatorPerfStats != null) {
+    long durationInNs=System.nanoTime() - startTimestampInNs;
+    this.coordinatorPerfStats.recordTime(Tracked.DELETE,durationInNs);
+  }
+  this.deleteRequestMessageEvent.getChannel().write(response);
 }

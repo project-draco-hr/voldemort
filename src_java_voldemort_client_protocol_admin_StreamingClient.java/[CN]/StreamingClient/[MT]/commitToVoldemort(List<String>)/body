@@ -2,6 +2,7 @@
   if (logger.isDebugEnabled()) {
     logger.debug("Trying to commit to Voldemort");
   }
+  boolean hasError=false;
   for (  Node node : nodesToStream) {
     for (    String store : storeNamesToCommit) {
       if (!nodeIdStoreInitialized.get(new Pair(store,node.getId())))       continue;
@@ -13,63 +14,46 @@
         DataInputStream inputStream=nodeIdStoreToInputStreamRequest.get(new Pair(store,node.getId()));
         VAdminProto.UpdatePartitionEntriesResponse.Builder updateResponse=ProtoUtils.readToBuilder(inputStream,VAdminProto.UpdatePartitionEntriesResponse.newBuilder());
         if (updateResponse.hasError()) {
-          logger.warn("Invoking the Recovery Callback");
-          Future future=streamingresults.submit(recoveryCallback);
-          try {
-            future.get();
-          }
- catch (          InterruptedException e1) {
-            MARKED_BAD=true;
-            logger.error("Recovery Callback failed");
-            e1.printStackTrace();
-            throw new VoldemortException("Recovery Callback failed");
-          }
-catch (          ExecutionException e1) {
-            MARKED_BAD=true;
-            logger.error("Recovery Callback failed");
-            e1.printStackTrace();
-            throw new VoldemortException("Recovery Callback failed");
-          }
-        }
- else {
-          if (logger.isDebugEnabled()) {
-            logger.debug("Commit successful");
-            logger.debug("calling checkpoint callback");
-          }
-          Future future=streamingresults.submit(checkpointCallback);
-          try {
-            future.get();
-          }
- catch (          InterruptedException e1) {
-            logger.warn("Checkpoint callback failed!");
-            e1.printStackTrace();
-          }
-catch (          ExecutionException e1) {
-            logger.warn("Checkpoint callback failed!");
-            e1.printStackTrace();
-          }
+          hasError=true;
         }
       }
  catch (      IOException e) {
-        logger.warn("Invoking the Recovery Callback");
-        Future future=streamingresults.submit(recoveryCallback);
-        try {
-          future.get();
-        }
- catch (        InterruptedException e1) {
-          MARKED_BAD=true;
-          logger.error("Recovery Callback failed");
-          e1.printStackTrace();
-          throw new VoldemortException("Recovery Callback failed");
-        }
-catch (        ExecutionException e1) {
-          MARKED_BAD=true;
-          logger.error("Recovery Callback failed");
-          e1.printStackTrace();
-          throw new VoldemortException("Recovery Callback failed");
-        }
-        e.printStackTrace();
+        logger.error("Exception during commit",e);
+        hasError=true;
       }
+    }
+  }
+  if (hasError) {
+    logger.warn("Invoking the Recovery Callback");
+    Future future=streamingresults.submit(recoveryCallback);
+    try {
+      future.get();
+    }
+ catch (    InterruptedException e1) {
+      MARKED_BAD=true;
+      logger.error("Recovery Callback failed",e1);
+      throw new VoldemortException("Recovery Callback failed");
+    }
+catch (    ExecutionException e1) {
+      MARKED_BAD=true;
+      logger.error("Recovery Callback failed during execution",e1);
+      throw new VoldemortException("Recovery Callback failed during execution");
+    }
+  }
+ else {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Commit successful");
+      logger.debug("calling checkpoint callback");
+    }
+    Future future=streamingresults.submit(checkpointCallback);
+    try {
+      future.get();
+    }
+ catch (    InterruptedException e1) {
+      logger.warn("Checkpoint callback failed!",e1);
+    }
+catch (    ExecutionException e1) {
+      logger.warn("Checkpoint callback failed during execution!",e1);
     }
   }
 }

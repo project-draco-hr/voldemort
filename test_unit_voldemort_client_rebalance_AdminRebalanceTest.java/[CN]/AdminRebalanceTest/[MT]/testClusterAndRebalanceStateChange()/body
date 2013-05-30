@@ -1,7 +1,7 @@
 {
   try {
     startFourNodeRW();
-    adminClient.rebalanceOps.rebalanceStateChange(cluster,targetCluster,plans,false,true,true,true,true);
+    adminClient.rebalanceOps.rebalanceStateChange(cluster,targetCluster,servers[2].getMetadataStore().getStoreDefList(),servers[2].getMetadataStore().getStoreDefList(),plans,false,true,true,true,true);
     List<Integer> nodesChecked=Lists.newArrayList();
     for (    RebalancePartitionsInfo plan : plans) {
       nodesChecked.add(plan.getStealerId());
@@ -17,7 +17,7 @@
     cleanUpAllState();
     servers[3].getMetadataStore().getRebalancerState().update(new RebalancePartitionsInfo(3,0,new HashMap<String,HashMap<Integer,List<Integer>>>(),new HashMap<String,HashMap<Integer,List<Integer>>>(),cluster,0));
     try {
-      adminClient.rebalanceOps.rebalanceStateChange(cluster,targetCluster,plans,false,true,true,true,true);
+      adminClient.rebalanceOps.rebalanceStateChange(cluster,targetCluster,servers[2].getMetadataStore().getStoreDefList(),servers[2].getMetadataStore().getStoreDefList(),plans,false,true,true,true,true);
       fail("Should have thrown an exception since we added state before hand");
     }
  catch (    VoldemortRebalancingException e) {
@@ -32,7 +32,7 @@
     ServerTestUtils.stopVoldemortServer(servers[3]);
     servers[3]=null;
     try {
-      adminClient.rebalanceOps.rebalanceStateChange(cluster,targetCluster,plans,false,true,true,true,true);
+      adminClient.rebalanceOps.rebalanceStateChange(cluster,targetCluster,servers[2].getMetadataStore().getStoreDefList(),servers[2].getMetadataStore().getStoreDefList(),plans,false,true,true,true,true);
       fail("Should have thrown an exception since we added state before hand");
     }
  catch (    VoldemortRebalancingException e) {

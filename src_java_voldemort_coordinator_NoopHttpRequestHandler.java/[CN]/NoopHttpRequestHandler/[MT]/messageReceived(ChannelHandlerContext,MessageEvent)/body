@@ -3,16 +3,15 @@
   byte operationType=getOperationType(this.request.getMethod());
 switch (operationType) {
 case VoldemortOpCode.GET_OP_CODE:
-    HttpGetRequestExecutor getExecutor=new HttpGetRequestExecutor(new CompositeGetVoldemortRequest<ByteArray,byte[]>(null,0l,false),e,null);
+    HttpGetRequestExecutor getExecutor=new HttpGetRequestExecutor(e);
   Versioned<byte[]> responseVersioned=null;
-byte[] nullByteArray=new byte[1];
-nullByteArray[0]=0;
-responseVersioned=new Versioned<byte[]>(nullByteArray);
+byte[] sampleByteArray="a".getBytes();
+responseVersioned=new Versioned<byte[]>(sampleByteArray);
 getExecutor.writeResponse(responseVersioned);
 break;
 case VoldemortOpCode.PUT_OP_CODE:
 HttpPutRequestExecutor putRequestExecutor=new HttpPutRequestExecutor(e);
-putRequestExecutor.writeResponse();
+putRequestExecutor.writeResponse(new VectorClock());
 break;
 default :
 System.err.println("Illegal operation.");

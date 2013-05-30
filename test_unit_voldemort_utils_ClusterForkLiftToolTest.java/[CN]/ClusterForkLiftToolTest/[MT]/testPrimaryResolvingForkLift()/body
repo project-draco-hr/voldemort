@@ -1,5 +1,5 @@
 {
-  StoreInstance srcStoreInstance=new StoreInstance(srcCluster,primaryResolvingStoreDef);
+  StoreRoutingPlan srcStoreInstance=new StoreRoutingPlan(srcCluster,primaryResolvingStoreDef);
   for (  Map.Entry<String,String> entry : kvPairs.entrySet()) {
     srcPrimaryResolvingStoreClient.put(entry.getKey(),entry.getValue());
   }
@@ -9,7 +9,7 @@
   srcAdminClient.storeOps.putNodeKeyValue(PRIMARY_RESOLVING_STORE_NAME,new NodeValue<ByteArray,byte[]>(masterNode,new ByteArray(conflictKey.getBytes("UTF-8")),new Versioned<byte[]>("losing value".getBytes("UTF-8"),losingClock)));
   srcAdminClient.storeOps.putNodeKeyValue(PRIMARY_RESOLVING_STORE_NAME,new NodeValue<ByteArray,byte[]>(masterNode,new ByteArray(conflictKey.getBytes("UTF-8")),new Versioned<byte[]>("winning value".getBytes("UTF-8"),winningClock)));
   dstPrimaryResolvingStoreClient.put(firstKey,"before forklift");
-  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootStrapUrl,dstBootStrapUrl,10000,1,1000,Lists.newArrayList(PRIMARY_RESOLVING_STORE_NAME),null,false);
+  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootStrapUrl,dstBootStrapUrl,10000,1,1000,Lists.newArrayList(PRIMARY_RESOLVING_STORE_NAME),null,ClusterForkLiftTool.ForkLiftTaskMode.primary_resolution);
   forkLiftTool.run();
   dstPrimaryResolvingStoreClient.put(lastKey,"after forklift");
   for (  Map.Entry<String,String> entry : kvPairs.entrySet()) {

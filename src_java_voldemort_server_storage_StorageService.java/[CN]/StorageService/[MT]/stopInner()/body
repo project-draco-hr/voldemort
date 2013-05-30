@@ -50,6 +50,7 @@
     this.clientThreadPool.shutdownNow();
   }
   logger.info("Closed client threadpool.");
+  storeFactory.close();
   if (this.failureDetector != null) {
     try {
       this.failureDetector.destroy();
@@ -59,6 +60,14 @@
     }
   }
   logger.info("Closed failure detector.");
+  this.proxyPutWorkerPool.shutdown();
+  try {
+    if (!this.proxyPutWorkerPool.awaitTermination(10,TimeUnit.SECONDS))     this.proxyPutWorkerPool.shutdownNow();
+  }
+ catch (  InterruptedException e) {
+    this.proxyPutWorkerPool.shutdownNow();
+  }
+  logger.info("Closed proxy put thread pool.");
   if (lastException instanceof VoldemortException)   throw (VoldemortException)lastException;
  else   if (lastException != null)   throw new VoldemortException(lastException);
 }

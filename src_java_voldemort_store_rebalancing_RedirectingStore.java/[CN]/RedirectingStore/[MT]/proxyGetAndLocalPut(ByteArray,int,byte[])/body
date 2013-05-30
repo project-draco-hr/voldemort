@@ -1,10 +1,11 @@
 {
-  List<Versioned<byte[]>> proxyValues=proxyGet(key,donorId,transforms);
+  List<Versioned<byte[]>> proxyValues=proxyGet(key,proxyId,transforms);
   for (  Versioned<byte[]> proxyValue : proxyValues) {
     try {
       getInnerStore().put(key,proxyValue,null);
     }
  catch (    ObsoleteVersionException e) {
+      if (logger.isTraceEnabled())       logger.trace("OVE in proxy get local put for key " + ByteUtils.toHexString(key.get()) + " Stealer:"+ metadata.getNodeId()+ " ProxyNode:"+ proxyId,e);
     }
   }
   return proxyValues;

@@ -1,25 +1,16 @@
 {
   VectorClock newClock=new VectorClock();
-  int i=0;
-  int j=0;
-  while (i < this.versions.size() && j < clock.versions.size()) {
-    ClockEntry v1=this.versions.get(i);
-    ClockEntry v2=clock.versions.get(j);
-    if (v1.getNodeId() == v2.getNodeId()) {
-      newClock.versions.add(new ClockEntry(v1.getNodeId(),Math.max(v1.getVersion(),v2.getVersion())));
-      i++;
-      j++;
-    }
- else     if (v1.getNodeId() < v2.getNodeId()) {
-      newClock.versions.add(v1.clone());
-      i++;
+  for (  Map.Entry<Short,Long> entry : this.versionMap.entrySet()) {
+    newClock.versionMap.put(entry.getKey(),entry.getValue());
+  }
+  for (  Map.Entry<Short,Long> entry : clock.versionMap.entrySet()) {
+    Long version=newClock.versionMap.get(entry.getKey());
+    if (version == null) {
+      newClock.versionMap.put(entry.getKey(),entry.getValue());
     }
  else {
-      newClock.versions.add(v2.clone());
-      j++;
+      newClock.versionMap.put(entry.getKey(),Math.max(version,entry.getValue()));
     }
   }
-  for (int k=i; k < this.versions.size(); k++)   newClock.versions.add(this.versions.get(k).clone());
-  for (int k=j; k < clock.versions.size(); k++)   newClock.versions.add(clock.versions.get(k).clone());
   return newClock;
 }

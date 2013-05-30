@@ -6,7 +6,7 @@
         responseVersioned=this.getRequestObject.getValue();
       }
  else {
-        RESTErrorHandler.handleError(NOT_FOUND,this.getRequestMessageEvent,false,"Requested Key does not exist");
+        RESTErrorHandler.handleError(NOT_FOUND,this.getRequestMessageEvent,"Requested Key does not exist");
       }
       if (logger.isDebugEnabled()) {
         logger.debug("GET successful !");
@@ -17,15 +17,15 @@
  catch (  IllegalArgumentException illegalArgsException) {
     String errorDescription="PUT Failed !!! Illegal Arguments : " + illegalArgsException.getMessage();
     logger.error(errorDescription);
-    RESTErrorHandler.handleError(BAD_REQUEST,this.getRequestMessageEvent,false,errorDescription);
+    RESTErrorHandler.handleError(BAD_REQUEST,this.getRequestMessageEvent,errorDescription);
   }
 catch (  StoreTimeoutException timeoutException) {
     String errorDescription="GET Request timed out: " + timeoutException.getMessage();
     logger.error(errorDescription);
-    RESTErrorHandler.handleError(REQUEST_TIMEOUT,this.getRequestMessageEvent,false,errorDescription);
+    RESTErrorHandler.handleError(REQUEST_TIMEOUT,this.getRequestMessageEvent,errorDescription);
   }
 catch (  VoldemortException ve) {
     String errorDescription="Voldemort Exception: " + ve.getMessage();
-    RESTErrorHandler.handleError(INTERNAL_SERVER_ERROR,this.getRequestMessageEvent,false,errorDescription);
+    RESTErrorHandler.handleError(INTERNAL_SERVER_ERROR,this.getRequestMessageEvent,errorDescription);
   }
 }

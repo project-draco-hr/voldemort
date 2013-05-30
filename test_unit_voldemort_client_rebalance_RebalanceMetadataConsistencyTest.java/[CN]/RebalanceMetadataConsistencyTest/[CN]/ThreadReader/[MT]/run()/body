@@ -1,0 +1,12 @@
+{
+  metadataStore.readLock.lock();
+  checkCluster=metadataStore.getCluster();
+  checkstores=metadataStore.getStoreDefList();
+  metadataStore.readLock.unlock();
+  if (checkCluster.equals(currentCluster)) {
+    Assert.assertEquals(checkstores.get(0),rwStoreDefWithReplication);
+  }
+  if (checkCluster.equals(targetCluster)) {
+    Assert.assertEquals(checkstores.get(0),rwStoreDefWithReplication2);
+  }
+}

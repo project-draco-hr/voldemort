@@ -7,6 +7,9 @@
   for (  Node node : pipelineData.getReplicationSet()) {
     if (failureDetector.isAvailable(node))     nodes.add(node);
  else {
+      if (pipelineData instanceof PutPipelineData) {
+        ((PutPipelineData)pipelineData).getSynchronizer().tryDelegateSlop(node);
+      }
       pipelineData.addFailedNode(node);
       if (logger.isDebugEnabled()) {
         logger.debug("Key " + ByteUtils.toHexString(key.get()) + " Node "+ node.getId()+ " down");

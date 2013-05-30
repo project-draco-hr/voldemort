@@ -1,0 +1,9 @@
+{
+  assertEquals("The empty clock serializes incorrectly.",getClock(),new VectorClock(getClock().toBytes()));
+  VectorClock clock=getClock(1,1,2,3,4,4,6);
+  byte[] knownSerializedHead={0,5,1,0,1,2,0,2,1,0,3,1,0,4,2,0,6,1};
+  byte[] serialized=clock.toBytes();
+  for (int index=0; index < knownSerializedHead.length; index++) {
+    assertEquals("byte at index " + index + " is not equal",knownSerializedHead[index],serialized[index]);
+  }
+}

@@ -1,13 +1,8 @@
 {
-  Map<ByteArray,RebalancePartitionsInfo> rebalancePartitionsInfoPerKey=Maps.newHashMapWithExpectedSize(Iterables.size(keys));
-  for (  ByteArray key : keys) {
-    RebalancePartitionsInfo info=redirectingKey(key);
-    if (info != null) {
-      rebalancePartitionsInfoPerKey.put(key,info);
-    }
+  if (isServerRebalancing()) {
+    return redirectingGetAll(keys,transforms);
   }
-  if (!rebalancePartitionsInfoPerKey.isEmpty()) {
-    proxyGetAllAndLocalPut(rebalancePartitionsInfoPerKey,transforms);
+ else {
+    return getInnerStore().getAll(keys,transforms);
   }
-  return getInnerStore().getAll(keys,transforms);
 }

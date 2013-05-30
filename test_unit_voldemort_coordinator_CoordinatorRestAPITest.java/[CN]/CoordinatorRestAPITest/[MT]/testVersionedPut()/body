@@ -1,0 +1,20 @@
+{
+  String key="Which_Porter_do_I_want_to_drink";
+  String payload="Founders Porter";
+  String newPayload="Samuel Smith Taddy Porter";
+  doPut(key,payload,null);
+  TestVersionedValue response=doGet(key);
+  if (response == null) {
+    fail("key does not exist after a put. ");
+  }
+  System.out.println("Received value: " + response.getValue());
+  doPut(key,newPayload,response.getVc());
+  TestVersionedValue newResponse=doGet(key);
+  if (newResponse == null) {
+    fail("key does not exist after the versioned put. ");
+  }
+  System.out.println("Received value after the Versioned put: " + newResponse.getValue());
+  if (!newResponse.getValue().equals(newPayload)) {
+    fail("Received value is incorrect ! Expected : " + newPayload + " but got : "+ newResponse.getValue());
+  }
+}

@@ -1,0 +1,26 @@
+{
+  logger.info("Starting testRWRebalanceWithReplication");
+  try {
+    Cluster currentCluster=ServerTestUtils.getLocalCluster(2,new int[][]{{0,1,2,3,4,5,6},{7,8}});
+    Cluster targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,1,Lists.newArrayList(2,3));
+    List<Integer> serverList=Arrays.asList(0,1);
+    currentCluster=startServers(currentCluster,rwStoreDefFileWithReplication,serverList,null);
+    targetCluster=updateCluster(targetCluster);
+    RebalanceClientConfig config=new RebalanceClientConfig();
+    config.setDeleteAfterRebalancingEnabled(true);
+    config.setStealerBasedRebalancing(!useDonorBased);
+    RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(currentCluster,0),config);
+    try {
+      populateData(currentCluster,rwStoreDefWithReplication,rebalanceClient.getAdminClient(),false);
+      rebalanceAndCheck(currentCluster,targetCluster,Lists.newArrayList(rwStoreDefWithReplication),rebalanceClient,Arrays.asList(0,1));
+      checkConsistentMetadata(targetCluster,serverList);
+    }
+  finally {
+      stopServer(serverList);
+    }
+  }
+ catch (  AssertionError ae) {
+    logger.error("Assertion broken in testRWRebalanceWithReplication ",ae);
+    throw ae;
+  }
+}

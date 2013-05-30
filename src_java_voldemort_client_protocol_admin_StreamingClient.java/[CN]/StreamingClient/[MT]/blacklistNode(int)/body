@@ -1,0 +1,19 @@
+{
+  Collection<Node> nodesInCluster=adminClient.getAdminClientCluster().getNodes();
+  if (blackListedNodes == null) {
+    blackListedNodes=new ArrayList();
+  }
+  blackListedNodes.add(nodeId);
+  for (  Node node : nodesInCluster) {
+    if (node.getId() == nodeId) {
+      nodesToStream.remove(node);
+      break;
+    }
+  }
+  for (  String store : storeNames) {
+    SocketAndStreams sands=nodeIdStoreToSocketAndStreams.get(new Pair(store,nodeId));
+    close(sands.getSocket());
+    SocketDestination destination=nodeIdStoreToSocketRequest.get(new Pair(store,nodeId));
+    streamingSocketPool.checkin(destination,sands);
+  }
+}

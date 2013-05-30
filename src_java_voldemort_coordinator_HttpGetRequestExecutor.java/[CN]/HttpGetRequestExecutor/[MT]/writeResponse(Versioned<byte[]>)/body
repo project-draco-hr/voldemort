@@ -4,21 +4,7 @@
   this.responseContent=ChannelBuffers.dynamicBuffer(responseValue.length);
   this.responseContent.writeBytes(value);
   VectorClock vc=(VectorClock)responseVersioned.getVersion();
-  VectorClockWrapper vcWrapper=new VectorClockWrapper(vc);
-  ObjectMapper mapper=new ObjectMapper();
-  String eTag="";
-  try {
-    eTag=mapper.writeValueAsString(vcWrapper);
-  }
- catch (  JsonGenerationException e) {
-    e.printStackTrace();
-  }
-catch (  JsonMappingException e) {
-    e.printStackTrace();
-  }
-catch (  IOException e) {
-    e.printStackTrace();
-  }
+  String eTag=CoordinatorUtils.getSerializedVectorClock(vc);
   if (logger.isDebugEnabled()) {
     logger.debug("ETAG : " + eTag);
   }
@@ -30,6 +16,10 @@ catch (  IOException e) {
   response.setHeader(CONTENT_LENGTH,response.getContent().readableBytes());
   if (logger.isDebugEnabled()) {
     logger.debug("Response = " + response);
+  }
+  if (this.coordinatorPerfStats != null) {
+    long durationInNs=System.nanoTime() - startTimestampInNs;
+    this.coordinatorPerfStats.recordTime(Tracked.GET,durationInNs);
   }
   this.getRequestMessageEvent.getChannel().write(response);
 }

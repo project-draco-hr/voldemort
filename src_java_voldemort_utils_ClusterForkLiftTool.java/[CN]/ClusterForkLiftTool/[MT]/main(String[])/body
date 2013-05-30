@@ -39,7 +39,13 @@
   if (options.has("progress-period-ops")) {
     progressOps=(Integer)options.valueOf("progress-period-ops");
   }
-  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootstrapUrl,dstBootstrapUrl,maxPutsPerSecond,partitionParallelism,progressOps,storesList,partitions,options.has("global-resolution"));
+  ForkLiftTaskMode mode;
+  mode=ForkLiftTaskMode.primary_resolution;
+  if (options.has("mode")) {
+    mode=Utils.getEnumFromString(ForkLiftTaskMode.class,(String)options.valueOf("mode"));
+    if (mode == null)     mode=ForkLiftTaskMode.primary_resolution;
+  }
+  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootstrapUrl,dstBootstrapUrl,maxPutsPerSecond,partitionParallelism,progressOps,storesList,partitions,mode);
   forkLiftTool.run();
   System.exit(0);
 }

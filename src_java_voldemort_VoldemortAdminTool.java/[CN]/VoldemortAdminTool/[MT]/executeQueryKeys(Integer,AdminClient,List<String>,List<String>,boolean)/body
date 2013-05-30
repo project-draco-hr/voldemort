@@ -1,0 +1,91 @@
+{
+  List<ByteArray> listKeys=new ArrayList<ByteArray>();
+  Serializer<String> serializer=new StringSerializer();
+  for (  String key : keys) {
+    try {
+      if (useAscii) {
+        listKeys.add(new ByteArray(serializer.toBytes(key)));
+      }
+ else {
+        listKeys.add(new ByteArray(ByteUtils.fromHexString(key)));
+      }
+    }
+ catch (    DecoderException de) {
+      System.err.println("Error decoding key " + key);
+      de.printStackTrace();
+      return;
+    }
+  }
+  for (  final String storeName : storeNames) {
+    final Iterator<QueryKeyResult> iterator=adminClient.streamingOps.queryKeys(nodeId.intValue(),storeName,listKeys.iterator());
+    List<StoreDefinition> storeDefinitionList=adminClient.metadataMgmtOps.getRemoteStoreDefList(nodeId).getValue();
+    StoreDefinition storeDefinition=null;
+    for (    StoreDefinition storeDef : storeDefinitionList) {
+      if (storeDef.getName().equals(storeName))       storeDefinition=storeDef;
+    }
+    SerializerDefinition keySerializerDef=storeDefinition.getKeySerializer();
+    SerializerDefinition valueSerializerDef=storeDefinition.getValueSerializer();
+    SerializerFactory serializerFactory=new DefaultSerializerFactory();
+    @SuppressWarnings("unchecked") final Serializer<Object> keySerializer=(Serializer<Object>)serializerFactory.getSerializer(keySerializerDef);
+    @SuppressWarnings("unchecked") final Serializer<Object> valueSerializer=(Serializer<Object>)serializerFactory.getSerializer(valueSerializerDef);
+    final CompressionStrategy keyCompressionStrategy;
+    final CompressionStrategy valueCompressionStrategy;
+    if (keySerializerDef != null && keySerializerDef.hasCompression()) {
+      keyCompressionStrategy=new CompressionStrategyFactory().get(keySerializerDef.getCompression());
+    }
+ else {
+      keyCompressionStrategy=null;
+    }
+    if (valueSerializerDef != null && valueSerializerDef.hasCompression()) {
+      valueCompressionStrategy=new CompressionStrategyFactory().get(valueSerializerDef.getCompression());
+    }
+ else {
+      valueCompressionStrategy=null;
+    }
+    writeAscii(null,new Writable(){
+      @Override public void writeTo(      BufferedWriter out) throws IOException {
+        final StringWriter stringWriter=new StringWriter();
+        final JsonGenerator generator=new JsonFactory(new ObjectMapper()).createJsonGenerator(stringWriter);
+        stringWriter.write("Querying keys in node " + nodeId + " of "+ storeName+ "\n");
+        while (iterator.hasNext()) {
+          QueryKeyResult queryKeyResult=iterator.next();
+          byte[] keyBytes=queryKeyResult.getKey().get();
+          Object keyObject=keySerializer.toObject((null == keyCompressionStrategy) ? keyBytes : keyCompressionStrategy.inflate(keyBytes));
+          generator.writeObject(keyObject);
+          List<Versioned<byte[]>> values=queryKeyResult.getValues();
+          if (values != null) {
+            if (values.size() == 0) {
+              stringWriter.write(", null");
+            }
+            for (            Versioned<byte[]> versioned : values) {
+              VectorClock version=(VectorClock)versioned.getVersion();
+              byte[] valueBytes=versioned.getValue();
+              Object valueObject=valueSerializer.toObject((null == valueCompressionStrategy) ? valueBytes : valueCompressionStrategy.inflate(valueBytes));
+              stringWriter.write(", ");
+              stringWriter.write(version.toString());
+              stringWriter.write('[');
+              stringWriter.write(new Date(version.getTimestamp()).toString());
+              stringWriter.write(']');
+              generator.writeObject(valueObject);
+            }
+          }
+ else {
+            stringWriter.write(", null");
+          }
+          if (queryKeyResult.hasException()) {
+            stringWriter.write(", ");
+            stringWriter.write(queryKeyResult.getException().toString());
+          }
+          StringBuffer buf=stringWriter.getBuffer();
+          if (buf.charAt(0) == ' ') {
+            buf.setCharAt(0,'\n');
+          }
+          out.write(buf.toString());
+          buf.setLength(0);
+        }
+        out.write('\n');
+      }
+    }
+);
+  }
+}

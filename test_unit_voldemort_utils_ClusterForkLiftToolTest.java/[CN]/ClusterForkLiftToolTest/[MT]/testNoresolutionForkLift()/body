@@ -1,0 +1,22 @@
+{
+  int versions=0;
+  StoreRoutingPlan srcStoreInstance=new StoreRoutingPlan(srcCluster,nonResolvingStoreDef);
+  int masterNode=srcStoreInstance.getNodeIdForPartitionId(srcStoreInstance.getMasterPartitionId(conflictKey.getBytes("UTF-8")));
+  VectorClock losingClock=new VectorClock(Lists.newArrayList(new ClockEntry((short)0,5)),System.currentTimeMillis());
+  VectorClock winningClock=new VectorClock(Lists.newArrayList(new ClockEntry((short)1,5)),losingClock.getTimestamp() + 1);
+  srcAdminClient.storeOps.putNodeKeyValue(MULTIPLE_VERSIONS_STORE_NAME,new NodeValue<ByteArray,byte[]>(masterNode,new ByteArray(conflictKey.getBytes("UTF-8")),new Versioned<byte[]>("losing value".getBytes("UTF-8"),losingClock)));
+  srcAdminClient.storeOps.putNodeKeyValue(MULTIPLE_VERSIONS_STORE_NAME,new NodeValue<ByteArray,byte[]>(masterNode,new ByteArray(conflictKey.getBytes("UTF-8")),new Versioned<byte[]>("winning value".getBytes("UTF-8"),winningClock)));
+  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootStrapUrl,dstBootStrapUrl,10000,1,1000,Lists.newArrayList(MULTIPLE_VERSIONS_STORE_NAME),null,ClusterForkLiftTool.ForkLiftTaskMode.no_resolution);
+  forkLiftTool.run();
+  AdminClient dstAdminClient=new AdminClient(dstBootStrapUrl,new AdminClientConfig(),new ClientConfig());
+  for (  Node node : dstAdminClient.getAdminClientCluster().getNodes()) {
+    Iterator<Pair<ByteArray,Versioned<byte[]>>> entryItr=dstAdminClient.bulkFetchOps.fetchEntries(node.getId(),MULTIPLE_VERSIONS_STORE_NAME,node.getPartitionIds(),null,true);
+    while (entryItr.hasNext()) {
+      Pair<ByteArray,Versioned<byte[]>> record=entryItr.next();
+      ByteArray key=record.getFirst();
+      Versioned<byte[]> versioned=record.getSecond();
+      versions++;
+    }
+  }
+  assertEquals("Both conflicting versions present",versions,2);
+}

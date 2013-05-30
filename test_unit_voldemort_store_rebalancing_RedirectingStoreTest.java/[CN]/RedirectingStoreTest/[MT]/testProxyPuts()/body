@@ -1,0 +1,55 @@
+{
+  List<ByteArray> testPrimaryKeys=new ArrayList<ByteArray>(this.proxyPutTestPrimaryEntries.keySet());
+  List<ByteArray> testSecondaryKeys=new ArrayList<ByteArray>(this.proxyPutTestSecondaryEntries.keySet());
+  final RedirectingStore redirectingStoreNode2=getRedirectingStore(2,servers[2].getMetadataStore(),"test");
+  final RedirectingStore redirectingStoreNode0=getRedirectingStore(0,servers[0].getMetadataStore(),"test");
+  final Store<ByteArray,byte[],byte[]> socketStoreNode2=redirectingStoreNode2.getRedirectingSocketStore("test",2);
+  final Store<ByteArray,byte[],byte[]> socketStoreNode0=redirectingStoreNode0.getRedirectingSocketStore("test",0);
+  ByteArray secondaryKey=testSecondaryKeys.get(0);
+  VectorClock clock1=((VectorClock)redirectingStoreNode2.getVersions(secondaryKey).get(0)).incremented(2,System.currentTimeMillis());
+  try {
+    redirectingStoreNode2.put(secondaryKey,Versioned.value("write-through".getBytes("UTF-8"),clock1),null);
+  }
+ catch (  Exception e) {
+    fail("Unexpected error in testing write through proxy put");
+    e.printStackTrace();
+  }
+  waitForProxyPutsToDrain(redirectingStoreNode2);
+  assertTrue("Unexpected failures in proxy put",redirectingStoreNode2.getProxyPutStats().getNumProxyPutFailures() == 0);
+  assertEquals("Unexpected value in Node 2","write-through",new String(socketStoreNode2.get(secondaryKey,null).get(0).getValue()));
+  assertTrue("Proxy write not seen on proxy node 0","write-through".equals(new String(socketStoreNode0.get(secondaryKey,null).get(0).getValue())));
+  try {
+    redirectingStoreNode2.put(secondaryKey,Versioned.value("write-through-updated".getBytes("UTF-8"),clock1),null);
+    fail("Should have thrown OVE");
+  }
+ catch (  ObsoleteVersionException ove) {
+  }
+catch (  Exception e) {
+    fail("Unexpected error in testing write through proxy put");
+    e.printStackTrace();
+  }
+  waitForProxyPutsToDrain(redirectingStoreNode2);
+  assertFalse("Proxy write not seen on proxy node 0","write-through-updated".equals(new String(socketStoreNode0.get(secondaryKey,null).get(0).getValue())));
+  ByteArray primaryKey=testPrimaryKeys.get(0);
+  VectorClock clock2=((VectorClock)redirectingStoreNode2.getVersions(primaryKey).get(0)).incremented(2,System.currentTimeMillis());
+  try {
+    redirectingStoreNode2.put(primaryKey,Versioned.value("write-through".getBytes("UTF-8"),clock2),null);
+  }
+ catch (  Exception e) {
+    fail("Unexpected error in testing write through proxy put");
+    e.printStackTrace();
+  }
+  waitForProxyPutsToDrain(redirectingStoreNode2);
+  assertEquals("Unexpected value in Node 2","write-through",new String(socketStoreNode2.get(primaryKey,null).get(0).getValue()));
+  assertFalse("Proxy write seen on proxy node which is a replica","write-through".equals(new String(socketStoreNode0.get(primaryKey,null).get(0).getValue())));
+  try {
+    redirectingStoreNode2.put(primaryKey,Versioned.value("write-through".getBytes("UTF-8"),clock2),null);
+    fail("Should have thrown OVE");
+  }
+ catch (  ObsoleteVersionException ove) {
+  }
+catch (  Exception e) {
+    fail("Unexpected error in testing write through proxy put");
+    e.printStackTrace();
+  }
+}

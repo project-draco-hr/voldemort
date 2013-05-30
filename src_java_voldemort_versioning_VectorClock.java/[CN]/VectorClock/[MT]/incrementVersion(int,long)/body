@@ -1,26 +1,15 @@
 {
   if (node < 0 || node > Short.MAX_VALUE)   throw new IllegalArgumentException(node + " is outside the acceptable range of node ids.");
   this.timestamp=time;
-  boolean found=false;
-  int index=0;
-  for (; index < versions.size(); index++) {
-    if (versions.get(index).getNodeId() == node) {
-      found=true;
-      break;
-    }
- else     if (versions.get(index).getNodeId() > node) {
-      found=false;
-      break;
-    }
-  }
-  if (found) {
-    versions.set(index,versions.get(index).incremented());
-  }
- else   if (index < versions.size() - 1) {
-    versions.add(index,new ClockEntry((short)node,1));
+  Long version=versionMap.get((short)node);
+  if (version == null) {
+    version=1L;
   }
  else {
-    if (versions.size() > MAX_NUMBER_OF_VERSIONS)     throw new IllegalStateException("Vector clock is full!");
-    versions.add(index,new ClockEntry((short)node,1));
+    version=version + 1L;
+  }
+  versionMap.put((short)node,version);
+  if (versionMap.size() >= MAX_NUMBER_OF_VERSIONS) {
+    throw new IllegalStateException("Vector clock is full!");
   }
 }

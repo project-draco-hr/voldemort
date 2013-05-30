@@ -1,0 +1,74 @@
+{
+  Random random=new Random(System.currentTimeMillis());
+  cluster=VoldemortTestConstants.getEightNodeClusterWithZones();
+  storeDef=storeDefBuilder.build();
+  for (Integer nodeId=0; nodeId < NUM_NODES_TOTAL; nodeId++) {
+    createInnerStore(nodeId);
+  }
+  for (Integer nodeId=0; nodeId < NUM_NODES_TOTAL; nodeId++) {
+    try {
+      startServer(nodeId);
+    }
+ catch (    IOException e) {
+      logger.error("Server " + nodeId + "failed to start",e);
+    }
+  }
+  String bootstrapUrl=cluster.getNodeById(0).getSocketUrl().toString();
+  factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootstrapUrl));
+  startFinishLatch.countDown();
+  try {
+    boolean wrapUpSignal=false;
+    while (!wrapUpSignal) {
+      if (logger.isInfoEnabled()) {
+        logger.info("Will sleep for a while or until seeing wrapUpSignal. sleep time: " + statusRefreshIntervalSecond + " Seconds");
+      }
+      wrapUpSignal=wrapUpRequestLatch.await(statusRefreshIntervalSecond,TimeUnit.SECONDS);
+      if (logger.isInfoEnabled()) {
+        if (wrapUpSignal) {
+          logger.info("Wake Up and wrap up. Make all servers NORMAL");
+          minNodesAvailable=NUM_NODES_TOTAL;
+        }
+ else {
+          logger.info("Wake Up and decide new failure statuses");
+        }
+        for (        Map.Entry<Integer,Store<ByteArray,byte[],byte[]>> entry : realStores.entrySet()) {
+          InMemoryPutAssertionStorageEngine<ByteArray,byte[],byte[]> engine=(InMemoryPutAssertionStorageEngine<ByteArray,byte[],byte[]>)entry.getValue();
+          logger.info("Outstanding Put Assertions of node [" + entry.getKey() + "]: "+ engine.getFailedAssertions().size());
+        }
+      }
+      Integer numNodesToFail=random.nextInt(NUM_NODES_TOTAL - minNodesAvailable + 1);
+      Set<Integer> nodesToFail=getUniqueRandomNumbers(NUM_NODES_TOTAL,numNodesToFail);
+      if (logger.isInfoEnabled()) {
+        logger.info("Setting nodes to Fail: " + nodesToFail.toString());
+      }
+      for (Integer nodeId=0; nodeId < NUM_NODES_TOTAL; nodeId++) {
+        if (nodesToFail.contains(nodeId)) {
+          if (nodesStatus.get(nodeId) == NodeStatus.NORMAL) {
+            Integer failureMode=random.nextInt(3);
+switch (failureMode) {
+case 0:
+              makeNodeDown(nodeId);
+            break;
+case 1:
+          makeNodeSlow(nodeId);
+        break;
+case 2:
+      makeNodeBdbError(nodeId);
+    break;
+}
+}
+}
+ else {
+if (nodesStatus.get(nodeId) != NodeStatus.NORMAL) {
+makeNodeNormal(nodeId);
+}
+}
+}
+}
+}
+ catch (InterruptedException e) {
+}
+ finally {
+wrapUpFinishLatch.countDown();
+}
+}

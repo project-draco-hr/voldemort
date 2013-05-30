@@ -1,0 +1,40 @@
+{
+  SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
+  int numServers=2;
+  rwStoreDefWithReplication=new StoreDefinitionBuilder().setName(testStoreNameRW).setType(BdbStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).build();
+  rwStoreDefWithReplication2=new StoreDefinitionBuilder().setName(testStoreNameRW2).setType(BdbStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).build();
+  List<StoreDefinition> storedefs=new ArrayList<StoreDefinition>();
+  storedefs.add(rwStoreDefWithReplication);
+  String storesXmlStr=new StoreDefinitionsMapper().writeStoreList(storedefs);
+  File tempStoresXml=File.createTempFile("tempfile",".tmp");
+  BufferedWriter bw=new BufferedWriter(new FileWriter(tempStoresXml));
+  bw.write(storesXmlStr);
+  bw.close();
+  VoldemortServer[] voldemortServers=new VoldemortServer[numServers];
+  int partitionMap[][]={{0,1},{}};
+  cluster=ServerTestUtils.startVoldemortCluster(numServers,voldemortServers,partitionMap,socketStoreFactory,false,null,tempStoresXml.getAbsolutePath(),new Properties());
+  servers=Lists.newArrayList();
+  for (int i=0; i < numServers; ++i) {
+    servers.add(voldemortServers[i]);
+  }
+  socketUrl=voldemortServers[0].getIdentityNode().getSocketUrl().toString();
+  bootStrapUrls=new String[1];
+  bootStrapUrls[0]=socketUrl;
+  sysVersionStore=new SystemStore<String,String>(SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name(),bootStrapUrls,this.CLIENT_ZONE_ID);
+  repository=new SystemStoreRepository();
+  repository.addSystemStore(sysVersionStore,SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name());
+  this.scheduler=new SchedulerService(2,SystemTime.INSTANCE,true);
+  Callable<Void> rebootstrapCallback=new Callable<Void>(){
+    @Override public Void call() throws Exception {
+      checkConsistentMetadata();
+      return null;
+    }
+  }
+;
+  this.asyncCheckMetadata=new AsyncMetadataVersionManager(this.repository,rebootstrapCallback,null);
+  scheduler.schedule(asyncCheckMetadata.getClass().getName(),asyncCheckMetadata,new Date(),500);
+  while (maxRetries < 3 && !asyncCheckMetadata.isActive) {
+    Thread.sleep(500);
+    maxRetries++;
+  }
+}

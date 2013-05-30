@@ -1,0 +1,48 @@
+{
+  String storeName=storeDefinition.getName();
+  String nodeTag=node.getId() + " [" + node.getHost()+ "]";
+  List<Integer> nodePartitionIds=new ArrayList<Integer>(node.getPartitionIds());
+  if (partitionIds != null) {
+    nodePartitionIds.retainAll(partitionIds);
+    if (nodePartitionIds.size() == 0) {
+      logger.info("No partitions to sample for store '" + storeName + "' on node "+ nodeTag);
+      return new NodeSampleResult(true,null);
+    }
+  }
+  String infoTag="store " + storeName + ", partitionIDs "+ nodePartitionIds+ " on node "+ nodeTag;
+  logger.info("Starting sample --- " + infoTag);
+  long startTimeMs=System.currentTimeMillis();
+  try {
+    Iterator<ByteArray> fetchIterator;
+    fetchIterator=adminClient.bulkFetchOps.fetchKeys(node.getId(),storeName,nodePartitionIds,null,true,recordsPerPartition);
+    long keyCount=0;
+    while (fetchIterator.hasNext()) {
+      ByteArray key=fetchIterator.next();
+      String hexKeyString=ByteUtils.toHexString(key.get());
+synchronized (this.writer) {
+        writer.append(hexKeyString + "\n");
+      }
+      keyCount++;
+      throttler.maybeThrottle(1);
+      if (0 == keyCount % progressPeriodOps) {
+        if (logger.isInfoEnabled()) {
+          long durationS=TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - startTimeMs);
+          logger.info(infoTag + " --- " + keyCount+ " keys sampled in "+ durationS+ " seconds.");
+        }
+      }
+    }
+    long expectedKeyCount=recordsPerPartition * node.getPartitionIds().size();
+    if (keyCount < expectedKeyCount) {
+      logger.warn("Fewer keys (" + keyCount + ") than expected ("+ expectedKeyCount+ ") returned --- "+ infoTag);
+    }
+ else     if (keyCount < recordsPerPartition) {
+      logger.warn("More keys (" + keyCount + ") than expected ("+ expectedKeyCount+ ") returned --- "+ infoTag);
+    }
+    logger.info("Finished sample --- " + infoTag);
+    return new NodeSampleResult(true,null);
+  }
+ catch (  VoldemortException ve) {
+    logger.error("Failed to sample --- " + infoTag + " --- VoldemortException caught ("+ ve.getMessage()+ ") caused by ("+ ve.getCause().getMessage()+ ")",ve);
+    return new NodeSampleResult(false,ve);
+  }
+}

@@ -1,0 +1,12 @@
+{
+  StoreUtils.assertValidKey(key);
+  List<Versioned<V>> obsoleteVals=null;
+  List<Versioned<V>> valuesInStorage=null;
+  valuesInStorage=map.get(key);
+  if (valuesInStorage == null) {
+    valuesInStorage=new ArrayList<Versioned<V>>(values.size());
+  }
+  obsoleteVals=resolveAndConstructVersionsToPersist(valuesInStorage,values);
+  map.put(key,valuesInStorage);
+  return obsoleteVals;
+}

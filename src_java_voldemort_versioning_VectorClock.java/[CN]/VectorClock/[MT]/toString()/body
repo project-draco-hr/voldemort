@@ -1,12 +1,15 @@
 {
   StringBuilder builder=new StringBuilder();
   builder.append("version(");
-  if (this.versions.size() > 0) {
-    for (int i=0; i < this.versions.size() - 1; i++) {
-      builder.append(this.versions.get(i));
+  int versionsLeft=versionMap.size();
+  for (  Map.Entry<Short,Long> entry : versionMap.entrySet()) {
+    versionsLeft--;
+    Short node=entry.getKey();
+    Long version=entry.getValue();
+    builder.append(node + ":" + version);
+    if (versionsLeft > 0) {
       builder.append(", ");
     }
-    builder.append(this.versions.get(this.versions.size() - 1));
   }
   builder.append(")");
   builder.append(" ts:" + timestamp);

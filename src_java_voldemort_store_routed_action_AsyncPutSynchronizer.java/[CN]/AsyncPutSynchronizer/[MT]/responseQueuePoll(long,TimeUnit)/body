@@ -1,0 +1,15 @@
+{
+  long timeoutMs=timeUnit.toMillis(timeout);
+  long timeoutWallClockMs=System.currentTimeMillis() + timeoutMs;
+  while (responseQueue.isEmpty() && System.currentTimeMillis() < timeoutWallClockMs) {
+    long remainingMs=Math.max(0,timeoutWallClockMs - System.currentTimeMillis());
+    if (logger.isDebugEnabled()) {
+      logger.debug("Start waiting for response queue with timeoutMs: " + timeoutMs);
+    }
+    this.wait(remainingMs);
+    if (logger.isDebugEnabled()) {
+      logger.debug("End waiting for response queue with timeoutMs: " + timeoutMs);
+    }
+  }
+  return responseQueue.poll();
+}

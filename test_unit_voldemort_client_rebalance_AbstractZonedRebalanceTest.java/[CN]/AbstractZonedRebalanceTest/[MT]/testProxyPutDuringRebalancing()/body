@@ -1,0 +1,129 @@
+{
+  logger.info("Starting testProxyPutDuringRebalancing");
+  try {
+    Cluster currentCluster=ServerTestUtils.getLocalZonedCluster(6,2,new int[]{0,0,0,1,1,1},new int[][]{{0},{1,6},{2},{3},{4,7},{5}});
+    Cluster targetCluster=RebalanceUtils.createUpdatedCluster(currentCluster,2,Lists.newArrayList(7));
+    targetCluster=RebalanceUtils.createUpdatedCluster(targetCluster,5,Lists.newArrayList(6));
+    List<Integer> serverList=Arrays.asList(0,1,2,3,4,5);
+    Map<String,String> configProps=new HashMap<String,String>();
+    configProps.put("admin.max.threads","5");
+    final Cluster updatedCurrentCluster=startServers(currentCluster,rwStoreDefFileWithReplication,serverList,configProps);
+    final Cluster updatedTargetCluster=updateCluster(targetCluster);
+    ExecutorService executors=Executors.newFixedThreadPool(2);
+    final AtomicBoolean rebalancingComplete=new AtomicBoolean(false);
+    final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
+    RebalanceClientConfig rebalanceClientConfig=new RebalanceClientConfig();
+    rebalanceClientConfig.setMaxParallelRebalancing(2);
+    rebalanceClientConfig.setPrimaryPartitionBatchSize(Integer.MAX_VALUE);
+    rebalanceClientConfig.setStealerBasedRebalancing(!useDonorBased);
+    final RebalanceController rebalanceClient=new RebalanceController(getBootstrapUrl(updatedCurrentCluster,0),rebalanceClientConfig);
+    populateData(currentCluster,rwStoreDefWithReplication);
+    final AdminClient adminClient=rebalanceClient.getAdminClient();
+    final List<ByteArray> movingKeysList=sampleKeysFromPartition(adminClient,1,rwStoreDefWithReplication.getName(),Arrays.asList(6),20);
+    assertTrue("Empty list of moving keys...",movingKeysList.size() > 0);
+    final AtomicBoolean rebalancingStarted=new AtomicBoolean(false);
+    final AtomicBoolean proxyWritesDone=new AtomicBoolean(false);
+    final HashMap<String,String> baselineTuples=new HashMap<String,String>(testEntries);
+    final HashMap<String,VectorClock> baselineVersions=new HashMap<String,VectorClock>();
+    for (    String key : baselineTuples.keySet()) {
+      baselineVersions.put(key,new VectorClock());
+    }
+    final CountDownLatch latch=new CountDownLatch(2);
+    executors.execute(new Runnable(){
+      @Override public void run(){
+        SocketStoreClientFactory factory=null;
+        try {
+          List<VoldemortServer> serverList=Lists.newArrayList(serverMap.get(4),serverMap.get(2),serverMap.get(3),serverMap.get(5));
+          while (!rebalancingComplete.get()) {
+            Iterator<VoldemortServer> serverIterator=serverList.iterator();
+            while (serverIterator.hasNext()) {
+              VoldemortServer server=serverIterator.next();
+              if (ByteUtils.getString(server.getMetadataStore().get(MetadataStore.SERVER_STATE_KEY,null).get(0).getValue(),"UTF-8").compareTo(VoldemortState.REBALANCING_MASTER_SERVER.toString()) == 0) {
+                logger.info("Server " + server.getIdentityNode().getId() + " transitioned into REBALANCING MODE");
+                serverIterator.remove();
+              }
+            }
+            if (serverList.size() == 0) {
+              rebalancingStarted.set(true);
+              break;
+            }
+          }
+          if (rebalancingStarted.get()) {
+            factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(getBootstrapUrl(updatedCurrentCluster,0)).setEnableLazy(false).setSocketTimeout(120,TimeUnit.SECONDS).setClientZoneId(1));
+            final StoreClient<String,String> storeClientRW=new DefaultStoreClient<String,String>(testStoreNameRW,null,factory,3);
+            for (            ByteArray movingKey : movingKeysList) {
+              try {
+                String keyStr=ByteUtils.getString(movingKey.get(),"UTF-8");
+                String valStr="proxy_write";
+                storeClientRW.put(keyStr,valStr);
+                baselineTuples.put(keyStr,valStr);
+                baselineVersions.get(keyStr).incrementVersion(5,System.currentTimeMillis());
+                proxyWritesDone.set(true);
+                if (rebalancingComplete.get()) {
+                  break;
+                }
+              }
+ catch (              InvalidMetadataException e) {
+                logger.error("Encountered an invalid metadata exception.. ",e);
+              }
+            }
+          }
+        }
+ catch (        Exception e) {
+          logger.error("Exception in proxy write thread..",e);
+          exceptions.add(e);
+        }
+ finally {
+          if (factory != null)           factory.close();
+          latch.countDown();
+        }
+      }
+    }
+);
+    executors.execute(new Runnable(){
+      @Override public void run(){
+        try {
+          rebalanceClient.rebalance(updatedTargetCluster);
+        }
+ catch (        Exception e) {
+          logger.error("Error in rebalancing... ",e);
+          exceptions.add(e);
+        }
+ finally {
+          rebalancingComplete.set(true);
+          latch.countDown();
+        }
+      }
+    }
+);
+    latch.await();
+    executors.shutdown();
+    executors.awaitTermination(300,TimeUnit.SECONDS);
+    assertEquals("Client did not see all server transition into rebalancing state",rebalancingStarted.get(),true);
+    assertEquals("Not enough time to begin proxy writing",proxyWritesDone.get(),true);
+    checkEntriesPostRebalance(updatedCurrentCluster,updatedTargetCluster,Lists.newArrayList(rwStoreDefWithReplication),Arrays.asList(0,1,2,3,4,5),baselineTuples,baselineVersions);
+    checkConsistentMetadata(updatedTargetCluster,serverList);
+    if (exceptions.size() > 0) {
+      for (      Exception e : exceptions) {
+        e.printStackTrace();
+      }
+      fail("Should not see any exceptions.");
+    }
+    List<ClockEntry> clockEntries=new ArrayList<ClockEntry>(serverList.size());
+    for (    Integer nodeid : serverList)     clockEntries.add(new ClockEntry(nodeid.shortValue(),System.currentTimeMillis()));
+    VectorClock clusterXmlClock=new VectorClock(clockEntries,System.currentTimeMillis());
+    for (    Integer nodeid : serverList)     adminClient.metadataMgmtOps.updateRemoteCluster(nodeid,currentCluster,clusterXmlClock);
+    adminClient.setAdminClientCluster(currentCluster);
+    checkForTupleEquivalence(adminClient,1,testStoreNameRW,movingKeysList,baselineTuples,baselineVersions);
+    try {
+      stopServer(serverList);
+    }
+ catch (    Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+ catch (  AssertionError ae) {
+    logger.error("Assertion broken in testProxyPutDuringRebalancing ",ae);
+    throw ae;
+  }
+}

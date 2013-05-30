@@ -1,12 +1,12 @@
 {
-  if (!storeRepository.hasRedirectingSocketStore(storeName,donorNodeId)) {
+  if (!storeRepository.hasRedirectingSocketStore(storeName,proxyNodeId)) {
 synchronized (storeRepository) {
-      if (!storeRepository.hasRedirectingSocketStore(storeName,donorNodeId)) {
-        Node donorNode=getNodeIfPresent(donorNodeId);
-        logger.info("Creating new redirecting store for donor node " + donorNode.getId() + " and store "+ storeName);
-        storeRepository.addRedirectingSocketStore(donorNode.getId(),storeFactory.create(storeName,donorNode.getHost(),donorNode.getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS,RequestRoutingType.IGNORE_CHECKS));
+      if (!storeRepository.hasRedirectingSocketStore(storeName,proxyNodeId)) {
+        Node proxyNode=getNodeIfPresent(proxyNodeId);
+        logger.info("Creating new redirecting store for proxy node " + proxyNode.getId() + " and store "+ storeName);
+        storeRepository.addRedirectingSocketStore(proxyNode.getId(),storeFactory.create(storeName,proxyNode.getHost(),proxyNode.getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS,RequestRoutingType.IGNORE_CHECKS));
       }
     }
   }
-  return storeRepository.getRedirectingSocketStore(storeName,donorNodeId);
+  return storeRepository.getRedirectingSocketStore(storeName,proxyNodeId);
 }

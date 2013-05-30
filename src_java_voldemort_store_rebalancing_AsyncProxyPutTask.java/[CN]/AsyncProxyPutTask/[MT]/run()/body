@@ -1,0 +1,24 @@
+{
+  Node proxyNode=metadata.getCluster().getNodeById(destinationNode);
+  long startNs=System.nanoTime();
+  try {
+    redirectingStore.checkNodeAvailable(proxyNode);
+    Store<ByteArray,byte[],byte[]> socketStore=redirectingStore.getRedirectingSocketStore(redirectingStore.getName(),destinationNode);
+    socketStore.put(key,value,transforms);
+    redirectingStore.recordSuccess(proxyNode,startNs);
+    redirectingStore.reportProxyPutSuccess();
+    if (logger.isTraceEnabled()) {
+      logger.trace("Proxy write for store " + redirectingStore.getName() + " key "+ ByteUtils.toHexString(key.get())+ " to destinationNode:"+ destinationNode);
+    }
+  }
+ catch (  UnreachableStoreException e) {
+    redirectingStore.recordException(proxyNode,startNs,e);
+    logFailedProxyPutIfNeeded(e);
+  }
+catch (  ObsoleteVersionException ove) {
+    logFailedProxyPutIfNeeded(ove);
+  }
+catch (  Exception e) {
+    logFailedProxyPutIfNeeded(e);
+  }
+}

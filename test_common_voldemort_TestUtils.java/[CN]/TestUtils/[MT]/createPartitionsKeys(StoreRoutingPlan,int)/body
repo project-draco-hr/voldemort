@@ -1,0 +1,22 @@
+{
+  HashMap<Integer,List<byte[]>> partitionToKeyList=new HashMap<Integer,List<byte[]>>();
+  Set<Integer> partitionsPending=new HashSet<Integer>(routingPlan.getCluster().getNumberOfPartitions());
+  for (int partition=0; partition < routingPlan.getCluster().getNumberOfPartitions(); partition++) {
+    partitionsPending.add(partition);
+    partitionToKeyList.put(partition,new ArrayList<byte[]>(numKeysPerPartition));
+  }
+  for (int key=0; ; key++) {
+    byte[] keyBytes=("key" + key).getBytes();
+    int partition=routingPlan.getMasterPartitionId(keyBytes);
+    if (partitionToKeyList.get(partition).size() < numKeysPerPartition) {
+      partitionToKeyList.get(partition).add(keyBytes);
+      if (partitionToKeyList.get(partition).size() == numKeysPerPartition) {
+        partitionsPending.remove(partition);
+      }
+    }
+    if (partitionsPending.size() == 0) {
+      break;
+    }
+  }
+  return partitionToKeyList;
+}

@@ -23,6 +23,7 @@
     List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new File(STORES_XML));
     primaryResolvingStoreDef=StoreUtils.getStoreDef(storeDefs,PRIMARY_RESOLVING_STORE_NAME);
     globallyResolvingStoreDef=StoreUtils.getStoreDef(storeDefs,GLOBALLY_RESOLVING_STORE_NAME);
+    nonResolvingStoreDef=StoreUtils.getStoreDef(storeDefs,MULTIPLE_VERSIONS_STORE_NAME);
     srcfactory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(srcBootStrapUrl).setSelectors(1).setRoutingTimeout(1000,java.util.concurrent.TimeUnit.MILLISECONDS).setSocketTimeout(1000,java.util.concurrent.TimeUnit.MILLISECONDS).setConnectionTimeout(1000,java.util.concurrent.TimeUnit.MILLISECONDS).setMaxConnectionsPerNode(1));
     srcPrimaryResolvingStoreClient=srcfactory.getStoreClient(PRIMARY_RESOLVING_STORE_NAME);
     srcGloballyResolvingStoreClient=srcfactory.getStoreClient(GLOBALLY_RESOLVING_STORE_NAME);

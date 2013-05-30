@@ -51,6 +51,9 @@ catch (  IOException e) {
   response.setHeader(CONTENT_TRANSFER_ENCODING,"binary");
   response.setContent(responseContent);
   response.setHeader(CONTENT_LENGTH,response.getContent().readableBytes());
-  ChannelFuture future=this.getRequestMessageEvent.getChannel().write(response);
-  future.addListener(ChannelFutureListener.CLOSE);
+  if (this.coordinatorPerfStats != null) {
+    long durationInNs=System.nanoTime() - startTimestampInNs;
+    this.coordinatorPerfStats.recordTime(Tracked.GET_ALL,durationInNs);
+  }
+  this.getRequestMessageEvent.getChannel().write(response);
 }

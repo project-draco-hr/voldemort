@@ -3,8 +3,8 @@
     String base64Key=new String(Base64.encodeBase64(key.get()));
     RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
     rb.setMethod(DELETE);
-    rb.setHeader("Content-Type","application/json");
-    rb.setHeader("Content-Length","0");
+    rb.setHeader(CONTENT_TYPE,"binary");
+    rb.setHeader(CONTENT_LENGTH,"0");
     rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,"1000");
     RestRequest request=rb.build();
     Future<RestResponse> f=client.restRequest(request);
@@ -19,7 +19,10 @@
     throw ve;
   }
 catch (  Exception e) {
-    e.printStackTrace();
+    if (!e.getMessage().contains("status=404")) {
+      logger.error("Specified key to delete does not exist.",e);
+      return false;
+    }
   }
-  return false;
+  return true;
 }

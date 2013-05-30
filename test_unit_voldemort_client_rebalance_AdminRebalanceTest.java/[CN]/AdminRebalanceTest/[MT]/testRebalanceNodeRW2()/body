@@ -28,6 +28,7 @@
     for (    RebalancePartitionsInfo partitionPlan : plans) {
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalancePartitionsInfo.create(partitionPlan.toJsonString()))));
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,partitionPlan.getInitialCluster());
     }
     for (    VoldemortServer server : servers) {
       server.getMetadataStore().put(MetadataStore.CLUSTER_KEY,targetCluster);
@@ -82,7 +83,7 @@
     }
     for (    VoldemortServer server : servers) {
       assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
-      assertEquals(server.getMetadataStore().getServerState(),MetadataStore.VoldemortState.NORMAL_SERVER);
+      assertEquals(server.getMetadataStore().getServerStateUnlocked(),MetadataStore.VoldemortState.NORMAL_SERVER);
     }
   }
   finally {

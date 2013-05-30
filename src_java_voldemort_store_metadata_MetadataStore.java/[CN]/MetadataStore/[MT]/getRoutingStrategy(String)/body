@@ -1,9 +1,15 @@
 {
-  Map<String,RoutingStrategy> routingStrategyMap=(Map<String,RoutingStrategy>)metadataCache.get(ROUTING_STRATEGY_KEY).getValue();
-  RoutingStrategy strategy=routingStrategyMap.get(storeName);
-  if (strategy == null) {
-    Map<String,RoutingStrategy> systemRoutingStrategyMap=(Map<String,RoutingStrategy>)metadataCache.get(SYSTEM_ROUTING_STRATEGY_KEY).getValue();
-    strategy=systemRoutingStrategyMap.get(storeName);
+  readLock.lock();
+  try {
+    Map<String,RoutingStrategy> routingStrategyMap=(Map<String,RoutingStrategy>)metadataCache.get(ROUTING_STRATEGY_KEY).getValue();
+    RoutingStrategy strategy=routingStrategyMap.get(storeName);
+    if (strategy == null) {
+      Map<String,RoutingStrategy> systemRoutingStrategyMap=(Map<String,RoutingStrategy>)metadataCache.get(SYSTEM_ROUTING_STRATEGY_KEY).getValue();
+      strategy=systemRoutingStrategyMap.get(storeName);
+    }
+    return strategy;
   }
-  return strategy;
+  finally {
+    readLock.unlock();
+  }
 }

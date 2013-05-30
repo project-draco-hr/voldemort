@@ -7,7 +7,7 @@
       throw new VoldemortException("Value returned from node " + node.getId() + " was null");
     }
  else {
-      if (metadataKey.compareTo(MetadataStore.CLUSTER_KEY) == 0) {
+      if (metadataKey.compareTo(MetadataStore.CLUSTER_KEY) == 0 || metadataKey.compareTo(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML) == 0) {
         metadataValues.add(new ClusterMapper().readCluster(new StringReader(versioned.getValue())));
       }
  else       if (metadataKey.compareTo(MetadataStore.STORES_KEY) == 0) {

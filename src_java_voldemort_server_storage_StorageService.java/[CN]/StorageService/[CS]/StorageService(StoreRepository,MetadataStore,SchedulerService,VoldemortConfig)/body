@@ -17,4 +17,9 @@
     this.dynThrottleLimit=new DynamicThrottleLimit(rate);
   }
  else   this.dynThrottleLimit=null;
+  this.proxyPutWorkerPool=Executors.newFixedThreadPool(config.getMaxProxyPutThreads(),new DaemonThreadFactory("voldemort-proxy-put-thread"));
+  this.aggregatedProxyPutStats=new ProxyPutStats(null);
+  if (config.isJmxEnabled()) {
+    JmxUtils.registerMbean(this.aggregatedProxyPutStats,JmxUtils.createObjectName("voldemort.store.rebalancing","aggregate-proxy-puts"));
+  }
 }

@@ -1,0 +1,12 @@
+{
+  List<Integer> operationIds=getAsyncOperationList(showCompleted);
+  List<Integer> matchingOperationIds=new ArrayList<Integer>(operationIds.size());
+  for (  Integer operationId : operationIds) {
+    AsyncOperation operation=operations.get(operationId);
+    String operationDescription=operation.getStatus().getDescription();
+    if (operationDescription != null && operationDescription.indexOf(jobDescPattern) != -1) {
+      matchingOperationIds.add(operationId);
+    }
+  }
+  return matchingOperationIds;
+}

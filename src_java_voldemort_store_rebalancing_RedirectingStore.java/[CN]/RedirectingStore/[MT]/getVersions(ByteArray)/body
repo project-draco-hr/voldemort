@@ -1,7 +1,8 @@
 {
-  RebalancePartitionsInfo stealInfo=redirectingKey(key);
-  if (stealInfo != null) {
-    proxyGetAndLocalPut(key,stealInfo.getDonorId(),null);
+  if (isServerRebalancing()) {
+    return redirectingGetVersions(key);
   }
-  return getInnerStore().getVersions(key);
+ else {
+    return getInnerStore().getVersions(key);
+  }
 }

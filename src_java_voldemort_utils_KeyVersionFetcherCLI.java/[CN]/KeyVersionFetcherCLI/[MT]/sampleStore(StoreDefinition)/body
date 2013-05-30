@@ -3,7 +3,7 @@
   String keysFileName=inDir + System.getProperty("file.separator") + storeName+ ".keys";
   File keysFile=new File(keysFileName);
   if (!keysFile.exists()) {
-    logger.error("Keys file " + keysFileName + "does not exist!");
+    logger.error("Keys file " + keysFileName + " does not exist!");
     return false;
   }
   String kvFileName=outDir + System.getProperty("file.separator") + storeName+ ".kvs";
@@ -12,40 +12,50 @@
     logger.info("Key-Version file " + kvFileName + " exists, so will not sample keys from file "+ keysFileName+ ".");
     return true;
   }
-  StoreInstance storeInstance=new StoreInstance(cluster,storeDefinition);
+  StoreRoutingPlan storeInstance=new StoreRoutingPlan(cluster,storeDefinition);
   BufferedReader keyReader=null;
   BufferedWriter kvWriter=null;
   try {
     keyReader=new BufferedReader(new FileReader(keysFileName));
-    Queue<Future<String>> futureKVs=new LinkedList<Future<String>>();
-    for (String keyLine=keyReader.readLine(); keyLine != null; keyLine=keyReader.readLine()) {
-      byte[] keyInBytes=ByteUtils.fromHexString(keyLine.trim());
-      KeyVersionFetcher kvFetcher=new KeyVersionFetcher(storeInstance,keyInBytes);
-      Future<String> future=kvFetcherService.submit(kvFetcher);
-      futureKVs.add(future);
-    }
     kvWriter=new BufferedWriter(new FileWriter(kvFileName));
-    while (!futureKVs.isEmpty()) {
-      Future<String> future=futureKVs.poll();
-      String keyVersions=future.get();
-      kvWriter.append(keyVersions);
+    boolean readAllKeys=false;
+    while (!readAllKeys) {
+      Queue<Future<String>> futureKVs=new LinkedList<Future<String>>();
+      for (int numFetchTasks=0; numFetchTasks < this.outputBatchSize; numFetchTasks++) {
+        String keyLine=keyReader.readLine();
+        if (keyLine == null) {
+          readAllKeys=true;
+          break;
+        }
+        byte[] keyInBytes=ByteUtils.fromHexString(keyLine.trim());
+        FetchKeyVersionsTask kvFetcher=new FetchKeyVersionsTask(storeInstance,keyInBytes);
+        Future<String> future=kvFetcherService.submit(kvFetcher);
+        futureKVs.add(future);
+      }
+      if (futureKVs.size() > 0) {
+        while (!futureKVs.isEmpty()) {
+          Future<String> future=futureKVs.poll();
+          String keyVersions=future.get();
+          kvWriter.append(keyVersions);
+        }
+      }
     }
     return true;
   }
  catch (  DecoderException de) {
-    logger.error("Could not decode key to sample for store " + storeName + " : "+ de.getMessage());
+    logger.error("Could not decode key to sample for store " + storeName,de);
     return false;
   }
 catch (  IOException ioe) {
-    logger.error("IOException caught while sampling store " + storeName + " : "+ ioe.getMessage());
+    logger.error("IOException caught while sampling store " + storeName,ioe);
     return false;
   }
 catch (  InterruptedException ie) {
-    logger.error("InterruptedException caught while sampling store " + storeName + " : "+ ie.getMessage());
+    logger.error("InterruptedException caught while sampling store " + storeName,ie);
     return false;
   }
 catch (  ExecutionException ee) {
-    logger.error("Encountered an execution exception while sampling " + storeName + ": "+ ee.getMessage());
+    logger.error("Encountered an execution exception while sampling " + storeName,ee);
     ee.printStackTrace();
     return false;
   }
@@ -55,7 +65,7 @@ catch (  ExecutionException ee) {
         keyReader.close();
       }
  catch (      IOException e) {
-        logger.error("IOException caught while trying to close keyReader for store " + storeName + " : "+ e.getMessage());
+        logger.error("IOException caught while trying to close keyReader for store " + storeName,e);
         e.printStackTrace();
       }
     }
@@ -64,7 +74,7 @@ catch (  ExecutionException ee) {
         kvWriter.close();
       }
  catch (      IOException e) {
-        logger.error("IOException caught while trying to close kvWriter for store " + storeName + " : "+ e.getMessage());
+        logger.error("IOException caught while trying to close kvWriter for store " + storeName,e);
         e.printStackTrace();
       }
     }

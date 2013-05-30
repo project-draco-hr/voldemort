@@ -1,0 +1,18 @@
+{
+  List<Node> replicatingNodes=this.routingStrategy.routeRequest(key);
+  int zoneReplicaType=-1;
+  for (  Node node : replicatingNodes) {
+    if (node.getZoneId() == zoneId) {
+      zoneReplicaType++;
+    }
+    if (node.getId() == nodeId) {
+      return zoneReplicaType;
+    }
+  }
+  if (zoneReplicaType > -1) {
+    throw new VoldemortException("Node " + nodeId + " not a replica for the key "+ ByteUtils.toHexString(key)+ " in given zone "+ zoneId);
+  }
+ else {
+    throw new VoldemortException("Could not find any replicas for the key " + ByteUtils.toHexString(key) + " in given zone "+ zoneId);
+  }
+}

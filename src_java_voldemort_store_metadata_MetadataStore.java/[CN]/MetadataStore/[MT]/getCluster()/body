@@ -1,3 +1,9 @@
 {
-  return (Cluster)metadataCache.get(CLUSTER_KEY).getValue();
+  readLock.lock();
+  try {
+    return (Cluster)metadataCache.get(CLUSTER_KEY).getValue();
+  }
+  finally {
+    readLock.unlock();
+  }
 }

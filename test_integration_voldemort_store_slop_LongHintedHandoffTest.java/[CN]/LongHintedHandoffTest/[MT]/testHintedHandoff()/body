@@ -1,0 +1,60 @@
+{
+  Set<Integer> nodeIds=new HashSet<Integer>();
+  long startMs=System.currentTimeMillis();
+  long endMs=startMs + MAX_TOTAL_TIME_MS;
+  long totalPuts=0;
+  long numRejectedPuts=0;
+  long numAssertPuts=0;
+  StoreClient<byte[],byte[]> client=testEnv.makeClient();
+  while (true) {
+    if (System.currentTimeMillis() > endMs) {
+      break;
+    }
+    ByteArray key=new ByteArray(TestUtils.randomBytes(KEY_LENGTH));
+    byte[] value=TestUtils.randomBytes(VALUE_LENGTH);
+    try {
+      client.put(key.get(),value);
+      List<Node> routes=testEnv.routeRequest(key.get());
+      for (      Node node : routes) {
+        numAssertPuts++;
+        nodeIds.add(node.getId());
+        Store<ByteArray,byte[],byte[]> realStore=testEnv.getRealStore(node.getId());
+        if (realStore instanceof InMemoryPutAssertionStorageEngine) {
+          ((InMemoryPutAssertionStorageEngine<ByteArray,byte[],byte[]>)realStore).assertPut(key);
+        }
+ else {
+          fail("realStore is not InMemoryPutAssertionStorageEngine. Test setup is wrong");
+        }
+      }
+    }
+ catch (    InsufficientOperationalNodesException e) {
+      numRejectedPuts++;
+      if (logger.isDebugEnabled()) {
+        logger.debug("Key " + key + " is rejected for InsufficientOperationalNodes");
+      }
+    }
+ finally {
+      totalPuts++;
+    }
+  }
+  testEnv.warpUp();
+  long numFailedAssertions=0;
+  for (  Integer nodeId : nodeIds) {
+    Store<ByteArray,byte[],byte[]> realStore=testEnv.getRealStore(nodeId);
+    if (realStore instanceof InMemoryPutAssertionStorageEngine) {
+      Set<ByteArray> keys=((InMemoryPutAssertionStorageEngine<ByteArray,byte[],byte[]>)realStore).getFailedAssertions();
+      for (      ByteArray key : keys) {
+        logger.error("key [" + key + "] is asserted but not recorded on node ["+ nodeId+ "]");
+      }
+      numFailedAssertions+=keys.size();
+    }
+ else {
+      fail("realStore is not InMemoryPutAssertionStorageEngine");
+    }
+  }
+  logger.info("Total Client Puts Rejected (InsufficientOperationalNodes): " + numRejectedPuts);
+  logger.info("Total Client Put Operations: " + totalPuts);
+  logger.info("Total Server Put Assertions: " + numAssertPuts);
+  logger.info("Total Server Put Lost: " + numFailedAssertions);
+  assertEquals(numFailedAssertions + " server puts are lost: " + numFailedAssertions,0L,numFailedAssertions);
+}
