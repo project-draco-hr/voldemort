@@ -3,11 +3,11 @@
     logger.info("Connecting to bootstrap server: " + url);
   }
   Properties clientProps=new Properties();
-  clientProps.put("connection_timeout_ms",2500);
-  clientProps.put("max_connections",keyParallelism);
-  clientProps.put("routing_timeout_ms",10000);
-  clientProps.put("socket_timeout_ms",10000);
-  clientProps.put("failuredetector_threshold",10);
+  clientProps.put("connection_timeout_ms","2500");
+  clientProps.put("max_connections",Integer.toString(keyParallelism));
+  clientProps.put("routing_timeout_ms","10000");
+  clientProps.put("socket_timeout_ms","10000");
+  clientProps.put("failuredetector_threshold","10");
   this.adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig(clientProps));
   this.cluster=adminClient.getAdminClientCluster();
   this.storeDefinitions=adminClient.metadataMgmtOps.getRemoteStoreDefList(0).getValue();
