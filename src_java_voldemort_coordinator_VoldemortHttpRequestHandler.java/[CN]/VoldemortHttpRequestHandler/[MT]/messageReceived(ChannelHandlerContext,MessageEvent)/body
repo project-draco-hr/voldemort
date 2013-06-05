@@ -14,7 +14,20 @@
       String storeName=getStoreName(requestURI);
       FatClientWrapper fatClientWrapper=null;
       if (storeName != null) {
-        fatClientWrapper=this.fatClientMap.get(storeName);
+        if (storeName.equalsIgnoreCase(SCHEMATA)) {
+          String queryStore=ByteUtils.getString(requestObject.getKey().get(),"UTF-8");
+          fatClientWrapper=this.fatClientMap.get(queryStore);
+          if (queryStore == null || fatClientWrapper == null) {
+            this.errorStats.reportException(new IllegalArgumentException());
+            handleBadRequest(e,"Invalid store name. Critical error.");
+            return;
+          }
+          fatClientWrapper.submitGetSchemataRequest(e);
+          return;
+        }
+ else {
+          fatClientWrapper=this.fatClientMap.get(storeName);
+        }
       }
       if (storeName == null || fatClientWrapper == null) {
         this.errorStats.reportException(new IllegalArgumentException());

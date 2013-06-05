@@ -1,0 +1,13 @@
+{
+  this.responseContent=ChannelBuffers.dynamicBuffer(responseValue.length);
+  this.responseContent.writeBytes(responseValue);
+  HttpResponse response=new DefaultHttpResponse(HTTP_1_1,OK);
+  response.setHeader(CONTENT_TYPE,"binary");
+  response.setHeader(CONTENT_TRANSFER_ENCODING,"binary");
+  response.setContent(responseContent);
+  response.setHeader(CONTENT_LENGTH,response.getContent().readableBytes());
+  if (logger.isDebugEnabled()) {
+    logger.debug("Response = " + response);
+  }
+  this.getRequestMessageEvent.getChannel().write(response);
+}

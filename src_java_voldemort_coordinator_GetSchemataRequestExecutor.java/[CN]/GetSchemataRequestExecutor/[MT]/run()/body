@@ -1,0 +1,9 @@
+{
+  StoreDefinition storeDef=StoreDefinitionUtils.getStoreDefinitionWithName(storeClientFactory.getStoreDefs(),storeName);
+  String keySerializer=storeDef.getKeySerializer().toString();
+  String valueSerializer=storeDef.getValueSerializer().toString();
+  GenericData.Record record=new GenericData.Record(Schema.parse(SCHEMATAJSON));
+  record.put("key-serializer",keySerializer);
+  record.put("value-serializer",valueSerializer);
+  writeResponse(record.toString().getBytes());
+}
