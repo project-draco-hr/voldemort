@@ -17,13 +17,6 @@
         if (storeName.equalsIgnoreCase(SCHEMATA)) {
           String queryStore=ByteUtils.getString(requestObject.getKey().get(),"UTF-8");
           fatClientWrapper=this.fatClientMap.get(queryStore);
-          if (queryStore == null || fatClientWrapper == null) {
-            this.errorStats.reportException(new IllegalArgumentException());
-            handleBadRequest(e,"Invalid store name. Critical error.");
-            return;
-          }
-          fatClientWrapper.submitGetSchemataRequest(e);
-          return;
         }
  else {
           fatClientWrapper=this.fatClientMap.get(storeName);
@@ -44,10 +37,14 @@ case VoldemortOpCode.GET_OP_CODE:
         if (logger.isDebugEnabled()) {
           logger.debug("Incoming get request");
         }
-      fatClientWrapper.submitGetRequest(requestObject,e,startTimeStampInNs);
-    break;
+      if (storeName.equalsIgnoreCase(SCHEMATA)) {
+        fatClientWrapper.submitGetSchemataRequest(e);
+        return;
+      }
+    fatClientWrapper.submitGetRequest(requestObject,e,startTimeStampInNs);
+  break;
 case VoldemortOpCode.GET_ALL_OP_CODE:
-  fatClientWrapper.submitGetAllRequest(requestObject,e,storeName,startTimeStampInNs);
+fatClientWrapper.submitGetAllRequest(requestObject,e,storeName,startTimeStampInNs);
 break;
 case VoldemortOpCode.PUT_OP_CODE:
 if (logger.isDebugEnabled()) {

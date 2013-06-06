@@ -5,5 +5,10 @@
   GenericData.Record record=new GenericData.Record(Schema.parse(SCHEMATAJSON));
   record.put("key-serializer",keySerializer);
   record.put("value-serializer",valueSerializer);
-  writeResponse(record.toString().getBytes());
+  try {
+    writeResponse(record.toString().getBytes("UTF-8"));
+  }
+ catch (  UnsupportedEncodingException e) {
+    logger.error(e);
+  }
 }
