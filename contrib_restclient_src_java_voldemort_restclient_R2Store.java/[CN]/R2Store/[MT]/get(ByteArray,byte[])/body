@@ -1,14 +1,10 @@
 {
   List<Versioned<byte[]>> resultList=new ArrayList<Versioned<byte[]>>();
+  String base64Key=new String(Base64.encodeBase64(key.get()));
+  RestRequestBuilder rb=null;
   try {
-    String base64Key=new String(Base64.encodeBase64(key.get()));
-    RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
-    rb.setMethod(GET);
-    rb.setHeader("Accept","binary");
-    rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,"1000");
-    RestRequest request=rb.build();
-    Future<RestResponse> f=client.restRequest(request);
-    RestResponse response=f.get();
+    rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
+    RestResponse response=fetchGetResponse(rb);
     final ByteString entity=response.getEntity();
     String eTag=response.getHeader(ETAG);
     String lastModified=response.getHeader(LAST_MODIFIED);
@@ -20,12 +16,13 @@
     }
   }
  catch (  VoldemortException ve) {
-    ve.printStackTrace();
+    logger.error("Error performing get",ve);
     throw ve;
   }
 catch (  Exception e) {
-    if (!e.getMessage().contains("status=404")) {
-      logger.error("Specified key does not exist." + e);
+    String errorMsg=e.getMessage();
+    if (errorMsg != null && !errorMsg.contains("status=404")) {
+      logger.error("Specified key does not exist.",e);
     }
   }
   return resultList;

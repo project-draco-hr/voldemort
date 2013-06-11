@@ -1,0 +1,12 @@
+{
+  Element store=new Element(StoreDefinitionsMapper.STORE_ELMT);
+  store.addContent(new Element(StoreDefinitionsMapper.STORE_NAME_ELMT).setText(storeDefinition.getName()));
+  Element keySerializer=new Element(StoreDefinitionsMapper.STORE_KEY_SERIALIZER_ELMT);
+  StoreDefinitionsMapper.addSerializer(keySerializer,storeDefinition.getKeySerializer());
+  store.addContent(keySerializer);
+  Element valueSerializer=new Element(StoreDefinitionsMapper.STORE_VALUE_SERIALIZER_ELMT);
+  StoreDefinitionsMapper.addSerializer(valueSerializer,storeDefinition.getValueSerializer());
+  store.addContent(valueSerializer);
+  XMLOutputter serializer=new XMLOutputter(Format.getPrettyFormat());
+  return serializer.outputString(store);
+}

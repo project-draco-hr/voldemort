@@ -1,12 +1,8 @@
 {
   StoreDefinition storeDef=StoreDefinitionUtils.getStoreDefinitionWithName(storeClientFactory.getStoreDefs(),storeName);
-  String keySerializer=storeDef.getKeySerializer().toString();
-  String valueSerializer=storeDef.getValueSerializer().toString();
-  GenericData.Record record=new GenericData.Record(Schema.parse(SCHEMATAJSON));
-  record.put("key-serializer",keySerializer);
-  record.put("value-serializer",valueSerializer);
+  String serializerInfoXml=CoordinatorUtils.constructSerializerInfoXml(storeDef);
   try {
-    writeResponse(record.toString().getBytes("UTF-8"));
+    writeResponse(serializerInfoXml.getBytes("UTF-8"));
   }
  catch (  UnsupportedEncodingException e) {
     logger.error(e);

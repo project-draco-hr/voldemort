@@ -1,0 +1,15 @@
+{
+  SAXBuilder builder=new SAXBuilder();
+  try {
+    Document doc=builder.build(new StringReader(serializerInfoXml));
+    Element root=doc.getRootElement();
+    Element serializerElement=root.getChild(elementName);
+    return StoreDefinitionsMapper.readSerializer(serializerElement);
+  }
+ catch (  JDOMException e) {
+    throw new MappingException(e);
+  }
+catch (  IOException e) {
+    throw new MappingException(e);
+  }
+}
