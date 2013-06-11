@@ -1,0 +1,22 @@
+{
+  PartitionBalance currentPb=new PartitionBalance(currentCluster,currentStores);
+  boolean disableNodeBalancing=true;
+  boolean disableZoneBalancing=true;
+  boolean enableRandomSwaps=true;
+  int swapAttempts=100;
+  int swapSuccesses=10;
+  Cluster repartitionedCluster=Repartitioner.repartition(currentCluster,currentStores,currentCluster,currentStores,null,1,disableNodeBalancing,disableZoneBalancing,enableRandomSwaps,swapAttempts,swapSuccesses,swapZoneIds,false,null,0,0,0,0);
+  PartitionBalance repartitionedPb=new PartitionBalance(repartitionedCluster,currentStores);
+  Set<Integer> allNodeIds=repartitionedCluster.getNodeIds();
+  Set<Integer> swapNodeIds=null;
+  for (  Integer swapZoneId : swapZoneIds) {
+    swapNodeIds=repartitionedCluster.getNodeIdsInZone(swapZoneId);
+  }
+  allNodeIds.removeAll(swapNodeIds);
+  for (  Integer remainingNodeId : allNodeIds) {
+    Set<Integer> beforeRepartition=new HashSet<Integer>(currentCluster.getNodeById(remainingNodeId).getPartitionIds());
+    Set<Integer> afterRepartition=new HashSet<Integer>(currentCluster.getNodeById(remainingNodeId).getPartitionIds());
+    assertTrue(beforeRepartition.equals(afterRepartition));
+    assertTrue(repartitionedPb.getUtility() <= currentPb.getUtility());
+  }
+}
