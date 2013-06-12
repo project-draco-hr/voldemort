@@ -1,0 +1,7 @@
+{
+  HashMap<Integer,List<byte[]>> samplePartitionKeysMap=TestUtils.createPartitionsKeys(zzzRoutingPlan,1);
+  assertEquals("Node 1 does not contain p8?",(Integer)10,zzzRoutingPlan.getNodesPartitionIdForKey(1,samplePartitionKeysMap.get(8).get(0)));
+  assertEquals("Replication list does not match up",Lists.newArrayList(0,2,3,4,6,8),zzzRoutingPlan.getReplicationNodeList(0));
+  assertEquals("Zone replica type should be 0",0,zzzRoutingPlan.getZoneNAry(0,1,samplePartitionKeysMap.get(6).get(0)));
+  assertEquals("Replica owner should be 3",3,zzzRoutingPlan.getNodeIdForZoneNary(1,0,samplePartitionKeysMap.get(1).get(0)));
+}
