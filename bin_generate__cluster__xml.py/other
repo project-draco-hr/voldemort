@@ -1,6 +1,11 @@
 import sys
 import random
-import argparse
+import os
+import errno
+try:
+    import argparse
+except ImportError:
+    print 'Python 2.7 or higher is needed'
 rseed = int(random.randint(1, 99999999999))
 parser = argparse.ArgumentParser(description='Build a voldemort cluster.xml.')
 parser.add_argument('-f', '--file', type=str, dest='file', help='the file of the list of hosts(one per line)')
@@ -12,9 +17,21 @@ parser.add_argument('-a', '--admin-port', type=int, default=6667, dest='admin_po
 parser.add_argument('-H', '--http-port', type=int, default=6665, dest='http_port', help='http port number')
 genType = parser.add_mutually_exclusive_group()
 genType.add_argument('-S', '--seed', type=int, default=rseed, dest='seed', help='seed for randomizing partition distribution')
-genType.add_argument('-l', '--loops', type=int, default=1000, dest='loops', help='loop n times, using a different random seed every                           time (Note: not currently supported)')
-parser.add_argument('-z', '--zones', type=int, dest='zones', help='if using zones, the number of zones you will have                          (Note: you must add your own <zone> fields                           manually)')
+parser.add_argument('-z', '--zones', type=int, dest='zones', help='the number of zones you will have')
+parser.add_argument('-o', '--output-dir', type=str, dest='output_dir', help='output directory location')
 args = parser.parse_args()
+try:
+    with open(args.file):
+        pass
+except IOError:
+    print 'File does not exist'
+try:
+    os.makedirs(args.output_dir)
+except OSError as exception:
+    if (exception.errno != errno.EEXIST):
+        raise
+filepath = os.path.join(args.output_dir, 'cluster.xml')
+fileHandle = open(filepath, 'w')
 if args.zones:
     zones = args.zones
     if ((args.nodes % zones) != 0):
@@ -37,26 +54,35 @@ if args.zones:
     zone_id = 0
 random.seed(seed)
 random.shuffle(part_ids)
-print ('<!-- Partition distribution generated using seed [%d] -->' % seed)
-print '<cluster>'
-print ('  <name>%s</name>' % name)
+print  >> fileHandle, '<cluster>'
+print  >> fileHandle, ('  <name>%s</name>' % name)
+if args.zones:
+    for i in range(args.zones):
+        print  >> fileHandle, '  <zone>'
+        print  >> fileHandle, ('    <zone-id>%d</zone-id>' % i)
+        proximityList = list()
+        for j in range(1, len(zone_ids)):
+            proximityList.append(zone_ids[((i + j) % len(zone_ids))])
+        print  >> fileHandle, ('    <proximity-list>%s</proximity-list>' % str(proximityList).strip('[]'))
+        print  >> fileHandle, '  </zone>'
 for i in xrange(nodes):
     node_partitions = ', '.join((str(p) for p in sorted(part_ids[(i * partitions):((i + 1) * partitions)])))
-    print '  <server>'
-    print ('    <id>%d</id>' % i)
+    print  >> fileHandle, '  <server>'
+    print  >> fileHandle, ('    <id>%d</id>' % i)
     if args.file:
-        print ('    <host>%s</host>' % hostList[i].strip())
+        print  >> fileHandle, ('    <host>%s</host>' % hostList[i].strip())
     else:
-        print ('    <host>host%d</host>' % i)
-    print ('    <http-port>%d</http-port>' % http_port)
-    print ('    <socket-port>%d</socket-port>' % sock_port)
-    print ('    <admin-port>%d</admin-port>' % admin_port)
-    print ('    <partitions>%s</partitions>' % node_partitions)
+        print  >> fileHandle, ('    <host>host%d</host>' % i)
+    print  >> fileHandle, ('    <http-port>%d</http-port>' % http_port)
+    print  >> fileHandle, ('    <socket-port>%d</socket-port>' % sock_port)
+    print  >> fileHandle, ('    <admin-port>%d</admin-port>' % admin_port)
+    print  >> fileHandle, ('    <partitions>%s</partitions>' % node_partitions)
     if args.zones:
-        print ('    <zone-id>%d</zone-id>' % zone_id)
+        print  >> fileHandle, ('    <zone-id>%d</zone-id>' % zone_id)
         if (zone_id == (zones - 1)):
             zone_id = 0
         else:
             zone_id += 1
-    print '  </server>'
-print '</cluster>'
+    print  >> fileHandle, '  </server>'
+print  >> fileHandle, '</cluster>'
+fileHandle.close()
