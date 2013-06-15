@@ -1,0 +1,121 @@
+{
+  RestServerErrorHandler errorHandler;
+  if (!readingChunks) {
+    HttpRequest request=this.request=(HttpRequest)messageEvent.getMessage();
+    String requestURI=this.request.getUri();
+    if (logger.isDebugEnabled()) {
+      logger.debug("Request URI: " + requestURI);
+    }
+    if (request.isChunked()) {
+      readingChunks=true;
+    }
+ else {
+      HttpMethod httpMethod=request.getMethod();
+      if (httpMethod.equals(HttpMethod.GET)) {
+        errorHandler=new RestServerGetRequestErrorHandler(request,messageEvent,storeRepository);
+      }
+ else       if (httpMethod.equals(HttpMethod.POST)) {
+        errorHandler=new RestServerPutRequestErrorHandler(request,messageEvent,storeRepository);
+      }
+ else       if (httpMethod.equals(HttpMethod.DELETE)) {
+        errorHandler=new RestServerDeleteRequestErrorHandler(request,messageEvent,storeRepository);
+      }
+ else       if (httpMethod.equals(HttpMethod.HEAD)) {
+        System.out.println("In voldemort request handler HEAD switch");
+        errorHandler=new RestServerGetVersionRequestErrorHandler(request,messageEvent,storeRepository);
+      }
+ else {
+        String errorMessage="Illegal Http request.";
+        logger.error(errorMessage);
+        RestServerErrorHandler.writeErrorResponse(messageEvent,BAD_REQUEST,errorMessage);
+        return;
+      }
+      CompositeVoldemortRequest<ByteArray,byte[]> requestObject=errorHandler.constructCompositeVoldemortRequestObject();
+      if (requestObject != null) {
+switch (requestObject.getOperationType()) {
+case VoldemortOpCode.GET_OP_CODE:
+          if (logger.isDebugEnabled()) {
+            logger.debug("Incoming get request");
+          }
+        try {
+          List<Versioned<byte[]>> versionedValues=inMemoryStore.get(requestObject.getKey(),null);
+          GetResponseSender responseConstructor=new GetResponseSender(messageEvent,requestObject.getKey(),versionedValues,inMemoryStore.getName());
+          responseConstructor.sendResponse();
+        }
+ catch (        Exception e) {
+          errorHandler.handleExceptions(e);
+        }
+      break;
+case VoldemortOpCode.GET_ALL_OP_CODE:
+    if (logger.isDebugEnabled()) {
+      logger.debug("Incoming get all request");
+    }
+  try {
+    Map<ByteArray,List<Versioned<byte[]>>> keyValuesMap=inMemoryStore.getAll(requestObject.getIterableKeys(),null);
+    GetAllResponseSender responseConstructor=new GetAllResponseSender(messageEvent,keyValuesMap,inMemoryStore.getName());
+    responseConstructor.sendResponse();
+  }
+ catch (  Exception e) {
+    errorHandler.handleExceptions(e);
+  }
+break;
+case VoldemortOpCode.PUT_OP_CODE:
+if (logger.isDebugEnabled()) {
+logger.debug("Incoming put request");
+}
+try {
+inMemoryStore.put(requestObject.getKey(),requestObject.getValue(),null);
+PutResponseSender responseConstructor=new PutResponseSender(messageEvent);
+responseConstructor.sendResponse();
+}
+ catch (Exception e) {
+errorHandler.handleExceptions(e);
+}
+break;
+case VoldemortOpCode.DELETE_OP_CODE:
+if (logger.isDebugEnabled()) {
+logger.debug("Incoming delete request");
+}
+try {
+boolean result=inMemoryStore.delete(requestObject.getKey(),requestObject.getVersion());
+DeleteResponseSender responseConstructor=new DeleteResponseSender(messageEvent);
+responseConstructor.sendResponse();
+}
+ catch (Exception e) {
+errorHandler.handleExceptions(e);
+}
+break;
+case VoldemortOpCode.GET_VERSION_OP_CODE:
+if (logger.isDebugEnabled()) {
+logger.debug("Incoming get version request");
+}
+try {
+List<Version> versions=inMemoryStore.getVersions(requestObject.getKey());
+System.out.println("Printing versions here");
+for (Version v : versions) {
+String etag=CoordinatorUtils.getSerializedVectorClock((VectorClock)v);
+System.out.println(etag);
+}
+if (versions != null) {
+System.out.println("Procedding to construct response");
+}
+GetVersionResponseSender responseConstructor=new GetVersionResponseSender(messageEvent,requestObject.getKey(),versions,inMemoryStore.getName());
+responseConstructor.sendResponse();
+}
+ catch (Exception e) {
+errorHandler.handleExceptions(e);
+}
+break;
+default :
+return;
+}
+}
+}
+}
+ else {
+HttpChunk chunk=(HttpChunk)messageEvent.getMessage();
+if (chunk.isLast()) {
+readingChunks=false;
+}
+}
+}

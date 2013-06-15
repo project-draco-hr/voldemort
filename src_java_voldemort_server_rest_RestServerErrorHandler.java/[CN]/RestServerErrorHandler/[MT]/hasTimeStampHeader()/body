@@ -1,0 +1,19 @@
+{
+  String originTime=request.getHeader(RestMessageHeaders.X_VOLD_REQUEST_ORIGIN_TIME_MS);
+  boolean result=false;
+  if (originTime != null) {
+    try {
+      this.parsedRequestOriginTimeInMs=Long.parseLong(originTime);
+      result=true;
+    }
+ catch (    NumberFormatException nfe) {
+      writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Incorrect origin time parameter. Cannot parse this to long: " + originTime);
+      result=false;
+    }
+  }
+ else {
+    writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Missing origin time parameter.");
+    result=false;
+  }
+  return result;
+}

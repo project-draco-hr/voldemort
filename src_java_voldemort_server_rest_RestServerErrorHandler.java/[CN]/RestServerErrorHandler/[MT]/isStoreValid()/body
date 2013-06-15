@@ -1,0 +1,14 @@
+{
+  boolean result=true;
+  String requestURI=this.request.getUri();
+  String storeName=getStoreName(requestURI);
+  if (storeName == null) {
+    result=false;
+    writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Missing store name. Critical error.");
+  }
+ else   if (!this.storeRepository.hasLocalStore(storeName)) {
+    result=false;
+    writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Invalid store name. Critical error.");
+  }
+  return result;
+}

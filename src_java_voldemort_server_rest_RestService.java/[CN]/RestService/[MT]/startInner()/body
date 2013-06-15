@@ -1,0 +1,10 @@
+{
+  this.workerPool=(ThreadPoolExecutor)Executors.newFixedThreadPool(numOfThreads);
+  this.bootstrap=new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),workerPool));
+  this.bootstrap.setOption("child.tcpNoDelay",true);
+  this.bootstrap.setOption("child.keepAlive",true);
+  this.bootstrap.setOption("child.reuseAddress",true);
+  this.bootstrap.setPipelineFactory(new RestPipelineFactory(storeRepository));
+  this.nettyServerChannel=this.bootstrap.bind(new InetSocketAddress(this.port));
+  logger.info("REST service started on port " + this.port);
+}

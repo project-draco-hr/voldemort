@@ -1,0 +1,14 @@
+{
+  if (exception instanceof InvalidMetadataException) {
+    writeErrorResponse(this.messageEvent,HttpResponseStatus.REQUESTED_RANGE_NOT_SATISFIABLE,"The requested key does not exist in this partition");
+  }
+ else   if (exception instanceof PersistenceFailureException) {
+    writeErrorResponse(this.messageEvent,HttpResponseStatus.INTERNAL_SERVER_ERROR,"TOperation failed");
+  }
+ else   if (exception instanceof ProxyUnreachableException) {
+    writeErrorResponse(this.messageEvent,HttpResponseStatus.SERVICE_UNAVAILABLE,"The proxy is unreachable");
+  }
+ else {
+    super.handleExceptions(exception);
+  }
+}
