@@ -1,14 +1,16 @@
 {
   if (args.length < 5)   Utils.croak("USAGE: java " + RestHadoopFetcher.class.getName() + " [url] [keytab location] [kerberos username] [kerberos realm] [kerberos kdc]");
+  long MAX_BYTES_PER_SECOND=1024 * 1024 * 1024;
+  long REPORTING_INTERVAL_BYTES=VoldemortConfig.REPORTING_INTERVAL_BYTES;
+  int BUFFER_SIZE=VoldemortConfig.DEFAULT_BUFFER_SIZE;
   String url=args[0];
   String keytabLocation=args[1];
   String kerberosUser=args[2];
   String realm=args[3];
   String kdc=args[4];
-  long maxBytesPerSec=1024 * 1024 * 1024;
   RestHadoopAuth restAuth=new RestHadoopAuth(realm,kdc,kerberosUser,keytabLocation);
   restAuth.start();
-  RestHadoopFetcher fetcher=new RestHadoopFetcher(null,maxBytesPerSec,VoldemortConfig.REPORTING_INTERVAL_BYTES,VoldemortConfig.DEFAULT_BUFFER_SIZE,0,keytabLocation,kerberosUser,realm,kdc);
+  RestHadoopFetcher fetcher=new RestHadoopFetcher(null,MAX_BYTES_PER_SECOND,REPORTING_INTERVAL_BYTES,BUFFER_SIZE,0);
   long start=System.currentTimeMillis();
   File location=fetcher.fetch(url,System.getProperty("user.home") + File.separator + start);
   long size=location.length();

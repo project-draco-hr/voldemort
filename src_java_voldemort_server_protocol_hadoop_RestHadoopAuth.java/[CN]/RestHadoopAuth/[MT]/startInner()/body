@@ -1,3 +1,9 @@
 {
-  syncAuth.loginIfNot();
+  try {
+    loginSecuredHdfs();
+  }
+ catch (  RestFSException e) {
+    logger.warn("Failed to authenticate to HDFS: " + e);
+    logger.warn("Will try authentication to HDFS again later.");
+  }
 }
