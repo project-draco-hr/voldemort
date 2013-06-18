@@ -20,7 +20,7 @@
     logger.debug("Obtained cluster metadata xml" + clusterXml);
     logger.debug("Obtained stores  metadata xml" + storesXml);
   }
-  storeDefs=storeMapper.readStoreList(new StringReader(storesXml),false);
+  List<StoreDefinition> storeDefs=storeMapper.readStoreList(new StringReader(storesXml),false);
   StoreDefinition storeDef=null;
   for (  StoreDefinition d : storeDefs)   if (d.getName().equals(storeName))   storeDef=d;
   if (storeDef == null) {
@@ -58,17 +58,16 @@
   }
   Store<ByteArray,byte[],byte[]> store=routedStoreFactory.create(this.cluster,storeDef,clientMapping,nonblockingStores,slopStores,nonblockingSlopStores,repairReads,clientZoneId,failureDetectorRef,isJmxEnabled,this.jmxId);
   store=new LoggingStore(store);
-  Store<K,V,T> finalStore=(Store<K,V,T>)store;
   if (isJmxEnabled) {
-    StatTrackingStore statStore=new StatTrackingStore(store,this.stats);
-    store=statStore;
-    JmxUtils.registerMbean(new StoreStatsJmx(statStore.getStats()),JmxUtils.createObjectName(JmxUtils.getPackageName(store.getClass()),store.getName() + JmxUtils.getJmxId(jmxId)));
+    store=new StatTrackingStore(store,this.stats);
+    JmxUtils.registerMbean(new StoreStatsJmx(((StatTrackingStore)store).getStats()),JmxUtils.createObjectName(JmxUtils.getPackageName(store.getClass()),store.getName() + JmxUtils.getJmxId(jmxId)));
   }
   if (this.config.isEnableCompressionLayer()) {
     if (storeDef.getKeySerializer().hasCompression() || storeDef.getValueSerializer().hasCompression()) {
       store=new CompressingStore(store,getCompressionStrategy(storeDef.getKeySerializer()),getCompressionStrategy(storeDef.getValueSerializer()));
     }
   }
+  Store<K,V,T> finalStore=(Store<K,V,T>)store;
   if (this.config.isEnableSerializationLayer()) {
     Serializer<K> keySerializer=(Serializer<K>)serializerFactory.getSerializer(storeDef.getKeySerializer());
     Serializer<V> valueSerializer=(Serializer<V>)serializerFactory.getSerializer(storeDef.getValueSerializer());
