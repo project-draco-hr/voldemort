@@ -1,0 +1,10 @@
+{
+  cluster=VoldemortTestConstants.getThreeNodeClusterWith3Zones();
+  HashMap<Integer,Integer> zoneReplicationFactor=Maps.newHashMap();
+  zoneReplicationFactor.put(0,cluster.getNumberOfNodesInZone(0));
+  zoneReplicationFactor.put(1,cluster.getNumberOfNodesInZone(0));
+  zoneReplicationFactor.put(2,cluster.getNumberOfNodesInZone(0));
+  RoutedStore routedStore=getStore(cluster,cluster.getNumberOfNodes() - 1,cluster.getNumberOfNodes(),0,0,1,zoneReplicationFactor);
+  Store<ByteArray,byte[],byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[],byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
+  getAllWithNodeDown(store);
+}

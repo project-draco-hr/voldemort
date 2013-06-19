@@ -1,0 +1,35 @@
+{
+  cluster=VoldemortTestConstants.getSixNodeClusterWith3Zones();
+  HashMap<Integer,Integer> zoneReplicationFactor=Maps.newHashMap();
+  zoneReplicationFactor.put(0,cluster.getNumberOfNodesInZone(0));
+  zoneReplicationFactor.put(1,cluster.getNumberOfNodesInZone(0));
+  zoneReplicationFactor.put(2,cluster.getNumberOfNodesInZone(0));
+  StoreDefinition storeDef=ServerTestUtils.getStoreDef("test",3,3,6,6,2,2,zoneReplicationFactor,HintedHandoffStrategyType.PROXIMITY_STRATEGY,RoutingStrategyType.ZONE_STRATEGY);
+  Map<Integer,Store<ByteArray,byte[],byte[]>> subStores=Maps.newHashMap();
+  for (int id=0; id < 6; id++) {
+    if (id % 2 == 0) {
+      subStores.put(id,new InMemoryStorageEngine<ByteArray,byte[],byte[]>("test"));
+    }
+ else {
+      subStores.put(id,new FailingReadsStore<ByteArray,byte[],byte[]>("test"));
+    }
+  }
+  setFailureDetector(subStores);
+  routedStoreThreadPool=Executors.newFixedThreadPool(1);
+  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,new TimeoutConfig(BANNAGE_PERIOD,false));
+  RoutedStore routedStore=routedStoreFactory.create(cluster,storeDef,subStores,true,failureDetector);
+  Store<ByteArray,byte[],byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[],byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
+  Map<ByteArray,byte[]> expectedValues=Maps.newHashMap();
+  for (byte i=1; i < 11; ++i) {
+    ByteArray key=new ByteArray(new byte[]{i});
+    byte[] value=new byte[]{(byte)(i + 50)};
+    store.put(key,Versioned.value(value),null);
+    expectedValues.put(key,value);
+  }
+  Map<ByteArray,List<Versioned<byte[]>>> all=store.getAll(expectedValues.keySet(),null);
+  assertEquals(expectedValues.size(),all.size());
+  for (  Map.Entry<ByteArray,List<Versioned<byte[]>>> mapEntry : all.entrySet()) {
+    byte[] value=expectedValues.get(mapEntry.getKey());
+    assertEquals(new ByteArray(value),new ByteArray(mapEntry.getValue().get(0).getValue()));
+  }
+}

@@ -1,0 +1,42 @@
+{
+  cluster=VoldemortTestConstants.getSixNodeClusterWith3Zones();
+  HashMap<Integer,Integer> zoneReplicationFactor=Maps.newHashMap();
+  zoneReplicationFactor.put(0,cluster.getNumberOfNodesInZone(0));
+  zoneReplicationFactor.put(1,cluster.getNumberOfNodesInZone(0));
+  zoneReplicationFactor.put(2,cluster.getNumberOfNodesInZone(0));
+  RoutedStore routedStore=getStore(cluster,6,4,cluster.getNumberOfZones() - 1,1,1,zoneReplicationFactor);
+  Store<ByteArray,byte[],byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[],byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
+  StoreRoutingPlan routingPlan=new StoreRoutingPlan(cluster,this.storeDef);
+  List<Integer> replicatingNodes=routingPlan.getReplicationNodeList(aKey.get());
+  try {
+    store.put(aKey,new Versioned<byte[]>(aValue),null);
+    List<Version> initialVersions=store.getVersions(aKey);
+    assertEquals(6,initialVersions.size());
+    Version mainVersion=initialVersions.get(0);
+    for (int i=1; i < initialVersions.size(); i++) {
+      assertEquals(mainVersion,initialVersions.get(i));
+    }
+    byte[] anotherValue="john".getBytes();
+    recordException(failureDetector,cluster.getNodeById(0));
+    recordException(failureDetector,cluster.getNodeById(1));
+    Version newVersion=((VectorClock)mainVersion).clone();
+    store.put(aKey,new Versioned<byte[]>(anotherValue,newVersion),null);
+    waitForOperationToComplete(500);
+    recordSuccess(failureDetector,cluster.getNodeById(0));
+    recordSuccess(failureDetector,cluster.getNodeById(1));
+    List<Versioned<byte[]>> versioneds=store.get(aKey,null);
+    assertEquals(1,versioneds.size());
+    assertEquals(new ByteArray(anotherValue),new ByteArray(versioneds.get(0).getValue()));
+    Thread.sleep(500);
+    for (    Map.Entry<Integer,Store<ByteArray,byte[],byte[]>> innerStoreEntry : routedStore.getInnerStores().entrySet()) {
+      if (replicatingNodes.contains(innerStoreEntry.getKey())) {
+        List<Versioned<byte[]>> innerVersioneds=innerStoreEntry.getValue().get(aKey,null);
+        assertEquals(1,versioneds.size());
+        assertEquals(new ByteArray(anotherValue),new ByteArray(innerVersioneds.get(0).getValue()));
+      }
+    }
+  }
+ catch (  VoldemortException ve) {
+    fail("Unexpected error occurred : " + ve);
+  }
+}

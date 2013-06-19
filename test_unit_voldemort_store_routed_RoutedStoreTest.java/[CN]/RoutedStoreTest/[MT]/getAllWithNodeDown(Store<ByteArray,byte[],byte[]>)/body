@@ -1,0 +1,16 @@
+{
+  Map<ByteArray,byte[]> expectedValues=Maps.newHashMap();
+  for (byte i=1; i < 11; ++i) {
+    ByteArray key=new ByteArray(new byte[]{i});
+    byte[] value=new byte[]{(byte)(i + 50)};
+    store.put(key,Versioned.value(value),null);
+    expectedValues.put(key,value);
+  }
+  recordException(failureDetector,cluster.getNodes().iterator().next());
+  Map<ByteArray,List<Versioned<byte[]>>> all=store.getAll(expectedValues.keySet(),null);
+  assertEquals(expectedValues.size(),all.size());
+  for (  Map.Entry<ByteArray,List<Versioned<byte[]>>> mapEntry : all.entrySet()) {
+    byte[] value=expectedValues.get(mapEntry.getKey());
+    assertEquals(new ByteArray(value),new ByteArray(mapEntry.getValue().get(0).getValue()));
+  }
+}

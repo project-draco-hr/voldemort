@@ -1,0 +1,9 @@
+{
+  cluster=VoldemortTestConstants.getNineNodeClusterWith3Zones();
+  HashMap<Integer,Integer> zoneReplicationFactor=Maps.newHashMap();
+  zoneReplicationFactor.put(0,cluster.getNumberOfNodesInZone(0));
+  zoneReplicationFactor.put(1,cluster.getNumberOfNodesInZone(0));
+  zoneReplicationFactor.put(2,cluster.getNumberOfNodesInZone(0));
+  RoutedStore zonedRoutedStore=getStore(cluster,7,7,cluster.getNumberOfZones() - 1,cluster.getNumberOfZones() - 1,4,Sets.newHashSet(1,5,6),null,zoneReplicationFactor,RoutingStrategyType.ZONE_STRATEGY,0,BANNAGE_PERIOD,new UnreachableStoreException("no go"));
+  testBasicOperationFailure(cluster.getNumberOfNodes() - 2,cluster.getNumberOfNodes() - 2,0,0,zonedRoutedStore);
+}

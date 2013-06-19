@@ -1,0 +1,9 @@
+{
+  cluster=VoldemortTestConstants.getNineNodeClusterWith3Zones();
+  HashMap<Integer,Integer> zoneReplicationFactor=Maps.newHashMap();
+  zoneReplicationFactor.put(0,cluster.getNumberOfNodesInZone(0));
+  zoneReplicationFactor.put(1,cluster.getNumberOfNodesInZone(0));
+  zoneReplicationFactor.put(2,cluster.getNumberOfNodesInZone(0));
+  RoutedStore routedStore=getStore(cluster,cluster.getNumberOfNodesInZone(0),cluster.getNumberOfNodesInZone(0),cluster.getNumberOfZones() - 1,cluster.getNumberOfZones() - 1,4,zoneReplicationFactor);
+  testBasicOperations(cluster.getNumberOfNodes(),cluster.getNumberOfNodes(),0,0,routedStore,500);
+}

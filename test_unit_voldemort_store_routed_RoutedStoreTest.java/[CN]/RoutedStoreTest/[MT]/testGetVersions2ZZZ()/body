@@ -1,0 +1,13 @@
+{
+  List<ByteArray> keys=getKeys(2);
+  ByteArray key=keys.get(0);
+  byte[] value=getValue();
+  Store<ByteArray,byte[],byte[]> store=getZonedStore();
+  store.put(key,Versioned.value(value),null);
+  List<Versioned<byte[]>> versioneds=store.get(key,null);
+  List<Version> versions=store.getVersions(key);
+  assertEquals(1,versioneds.size());
+  assertEquals(9,versions.size());
+  for (int i=0; i < versions.size(); i++)   assertEquals(versioneds.get(0).getVersion(),versions.get(i));
+  assertEquals(0,store.getVersions(keys.get(1)).size());
+}

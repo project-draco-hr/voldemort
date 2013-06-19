@@ -1,16 +1,14 @@
 {
   Map<Integer,Store<ByteArray,byte[],byte[]>> subStores=Maps.newHashMap();
-  int count=0;
   for (  Node n : cluster.getNodes()) {
     Store<ByteArray,byte[],byte[]> subStore=null;
     if (failing != null && failing.contains(n.getId()))     subStore=new FailingStore<ByteArray,byte[],byte[]>("test",e);
  else     if (sleepy != null && sleepy.contains(n.getId()))     subStore=new SleepyStore<ByteArray,byte[],byte[]>(sleepMs,new InMemoryStorageEngine<ByteArray,byte[],byte[]>("test"));
  else     subStore=new InMemoryStorageEngine<ByteArray,byte[],byte[]>("test");
     subStores.put(n.getId(),subStore);
-    count+=1;
   }
   setFailureDetector(subStores);
-  StoreDefinition storeDef=ServerTestUtils.getStoreDef("test",reads,reads,writes,writes,zonereads,zonewrites,zoneReplicationFactor,HintedHandoffStrategyType.PROXIMITY_STRATEGY,strategy);
+  this.storeDef=ServerTestUtils.getStoreDef("test",reads,reads,writes,writes,zonereads,zonewrites,zoneReplicationFactor,HintedHandoffStrategyType.PROXIMITY_STRATEGY,strategy);
   routedStoreThreadPool=Executors.newFixedThreadPool(threads);
   RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,new TimeoutConfig(timeOutMs,false));
   return routedStoreFactory.create(cluster,storeDef,subStores,true,failureDetector);

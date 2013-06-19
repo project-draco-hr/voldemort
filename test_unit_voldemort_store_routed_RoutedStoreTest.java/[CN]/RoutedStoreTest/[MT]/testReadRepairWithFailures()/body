@@ -1,23 +1,29 @@
 {
   cluster=getNineNodeCluster();
-  RoutedStore routedStore=getStore(cluster,cluster.getNumberOfNodes() - 1,cluster.getNumberOfNodes() - 1,1,0);
-  recordException(failureDetector,Iterables.get(cluster.getNodes(),1));
+  RoutedStore routedStore=getStore(cluster,2,2,1,0);
+  StoreRoutingPlan routingPlan=new StoreRoutingPlan(cluster,this.storeDef);
+  List<Integer> replicatingNodes=routingPlan.getReplicationNodeList(aKey.get());
+  Node primaryNode=Iterables.get(cluster.getNodes(),replicatingNodes.get(0));
+  Node secondaryNode=Iterables.get(cluster.getNodes(),replicatingNodes.get(1));
+  recordException(failureDetector,primaryNode);
   Store<ByteArray,byte[],byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[],byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
   store.put(aKey,new Versioned<byte[]>(aValue),null);
   byte[] anotherValue="john".getBytes();
-  recordException(failureDetector,Iterables.getLast(cluster.getNodes()));
-  recordSuccess(failureDetector,Iterables.get(cluster.getNodes(),1));
-  VectorClock clock=getClock(1);
+  recordException(failureDetector,secondaryNode);
+  recordSuccess(failureDetector,primaryNode);
+  VectorClock clock=getClock(6);
   store.put(aKey,new Versioned<byte[]>(anotherValue,clock),null);
-  recordException(failureDetector,Iterables.get(cluster.getNodes(),1));
-  recordSuccess(failureDetector,Iterables.getLast(cluster.getNodes()));
+  recordException(failureDetector,primaryNode);
+  recordSuccess(failureDetector,secondaryNode);
   List<Versioned<byte[]>> versioneds=store.get(aKey,null);
   assertEquals(1,versioneds.size());
   assertEquals(new ByteArray(anotherValue),new ByteArray(versioneds.get(0).getValue()));
-  Thread.sleep(100);
-  for (  Store<ByteArray,byte[],byte[]> innerStore : routedStore.getInnerStores().values()) {
-    List<Versioned<byte[]>> innerVersioneds=innerStore.get(aKey,null);
-    assertEquals(1,versioneds.size());
-    assertEquals(new ByteArray(anotherValue),new ByteArray(innerVersioneds.get(0).getValue()));
+  Thread.sleep(500);
+  for (  Map.Entry<Integer,Store<ByteArray,byte[],byte[]>> innerStoreEntry : routedStore.getInnerStores().entrySet()) {
+    if (replicatingNodes.contains(innerStoreEntry.getKey())) {
+      List<Versioned<byte[]>> innerVersioneds=innerStoreEntry.getValue().get(aKey,null);
+      assertEquals(1,versioneds.size());
+      assertEquals(new ByteArray(anotherValue),new ByteArray(innerVersioneds.get(0).getValue()));
+    }
   }
 }

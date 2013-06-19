@@ -1,0 +1,15 @@
+{
+  cluster=VoldemortTestConstants.getSixNodeClusterWith3Zones();
+  HashMap<Integer,Integer> zoneReplicationFactor=Maps.newHashMap();
+  zoneReplicationFactor.put(0,cluster.getNumberOfNodesInZone(0));
+  zoneReplicationFactor.put(1,cluster.getNumberOfNodesInZone(0));
+  zoneReplicationFactor.put(2,cluster.getNumberOfNodesInZone(0));
+  RoutedStore routedStore=getStore(cluster,4,4,0,0,4,Sets.newHashSet(2),Sets.newHashSet(0),zoneReplicationFactor,RoutingStrategyType.ZONE_STRATEGY,0,BANNAGE_PERIOD,new VoldemortException());
+  Store<ByteArray,byte[],byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[],byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
+  try {
+    store.put(aKey,new Versioned<byte[]>(aValue),aTransform);
+  }
+ catch (  VoldemortException ve) {
+    fail("Unknown exception occurred : " + ve);
+  }
+}

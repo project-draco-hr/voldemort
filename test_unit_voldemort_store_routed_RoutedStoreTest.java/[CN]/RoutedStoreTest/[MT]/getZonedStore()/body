@@ -1,0 +1,8 @@
+{
+  cluster=VoldemortTestConstants.getNineNodeClusterWith3Zones();
+  HashMap<Integer,Integer> zoneReplicationFactor=Maps.newHashMap();
+  zoneReplicationFactor.put(0,cluster.getNumberOfNodesInZone(0));
+  zoneReplicationFactor.put(1,cluster.getNumberOfNodesInZone(0));
+  zoneReplicationFactor.put(2,cluster.getNumberOfNodesInZone(0));
+  return new InconsistencyResolvingStore<ByteArray,byte[],byte[]>(getStore(cluster,cluster.getNumberOfNodes(),cluster.getNumberOfNodes(),cluster.getNumberOfZones() - 1,cluster.getNumberOfZones() - 1,4,zoneReplicationFactor),new VectorClockInconsistencyResolver<byte[]>());
+}
