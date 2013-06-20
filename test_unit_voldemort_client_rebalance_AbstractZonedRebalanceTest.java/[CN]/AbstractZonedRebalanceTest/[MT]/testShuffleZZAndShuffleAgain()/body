@@ -1,0 +1,21 @@
+{
+  logger.info("Starting testShuffleZZAndShuffleAgain");
+  Thread.sleep(TimeUnit.SECONDS.toMillis(2));
+  Cluster interimCluster=RebalanceUtils.getInterimCluster(zzCurrent,zzShuffle);
+  List<Integer> serverList=new ArrayList<Integer>(interimCluster.getNodeIds());
+  Map<String,String> configProps=new HashMap<String,String>();
+  configProps.put("admin.max.threads","5");
+  interimCluster=startServers(interimCluster,zzStoresXml,serverList,configProps);
+  for (  StoreDefinition storeDef : zzStores) {
+    populateData(zzCurrent,storeDef);
+  }
+  String bootstrapUrl=getBootstrapUrl(interimCluster,0);
+  boolean stealerBased=!useDonorBased;
+  ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,zzShuffle,zzStores);
+  rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,serverList);
+  checkConsistentMetadata(zzShuffle,serverList);
+  rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,zzCurrent,zzStores);
+  rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,serverList);
+  checkConsistentMetadata(zzCurrent,serverList);
+  stopServer(serverList);
+}
