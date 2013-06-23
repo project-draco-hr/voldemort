@@ -1,0 +1,27 @@
+{
+  this.tasksByStealer=new HashMap<Integer,List<StealerBasedRebalanceTask>>();
+  for (  StealerBasedRebalanceTask task : sbTaskList) {
+    if (task.getStealInfos().size() != 1) {
+      throw new VoldemortException("StealerBasedRebalanceTasks should have a list of RebalancePartitionsInfo of length 1.");
+    }
+    RebalancePartitionsInfo stealInfo=task.getStealInfos().get(0);
+    int stealerId=stealInfo.getStealerId();
+    if (!this.tasksByStealer.containsKey(stealerId)) {
+      this.tasksByStealer.put(stealerId,new ArrayList<StealerBasedRebalanceTask>());
+    }
+    this.tasksByStealer.get(stealerId).add(task);
+  }
+  if (tasksByStealer.isEmpty()) {
+    return;
+  }
+  this.numTasksExecuting=0;
+  this.nodeIdsWithWork=new HashSet<Integer>();
+  doneSignal=new CountDownLatch(sbTaskList.size());
+  scheduleMoreTasks();
+  try {
+    doneSignal.await();
+  }
+ catch (  InterruptedException e) {
+    e.printStackTrace();
+  }
+}

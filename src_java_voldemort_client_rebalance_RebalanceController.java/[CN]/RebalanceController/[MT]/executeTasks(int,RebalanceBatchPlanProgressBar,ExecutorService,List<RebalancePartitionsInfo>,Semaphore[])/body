@@ -2,12 +2,15 @@
   List<RebalanceTask> taskList=Lists.newArrayList();
   int taskId=0;
   if (stealerBasedRebalancing) {
+    Scheduler scheduler=new Scheduler(service);
+    List<StealerBasedRebalanceTask> sbTaskList=Lists.newArrayList();
     for (    RebalancePartitionsInfo partitionsInfo : rebalancePartitionPlanList) {
-      StealerBasedRebalanceTask rebalanceTask=new StealerBasedRebalanceTask(batchId,taskId,partitionsInfo,maxTriesRebalancing,donorPermits[partitionsInfo.getDonorId()],adminClient,progressBar);
+      StealerBasedRebalanceTask rebalanceTask=new StealerBasedRebalanceTask(batchId,taskId,partitionsInfo,maxTriesRebalancing,donorPermits[partitionsInfo.getDonorId()],adminClient,progressBar,scheduler);
       taskList.add(rebalanceTask);
-      service.execute(rebalanceTask);
+      sbTaskList.add(rebalanceTask);
       taskId++;
     }
+    scheduler.run(sbTaskList);
   }
  else {
     HashMap<Integer,List<RebalancePartitionsInfo>> donorNodeBasedPartitionsInfo=RebalanceUtils.groupPartitionsInfoByNode(rebalancePartitionPlanList,false);

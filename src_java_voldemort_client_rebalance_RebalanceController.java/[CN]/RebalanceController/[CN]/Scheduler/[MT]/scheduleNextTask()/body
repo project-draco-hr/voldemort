@@ -1,0 +1,28 @@
+{
+  if (doneSignal.getCount() == 0) {
+    return null;
+  }
+  if (this.numTasksExecuting == maxParallelRebalancing) {
+    return null;
+  }
+  List<Integer> stealerIds=new ArrayList<Integer>(tasksByStealer.keySet());
+  Collections.shuffle(stealerIds);
+  for (  int stealerId : stealerIds) {
+    if (nodeIdsWithWork.contains(stealerId)) {
+      continue;
+    }
+    for (    StealerBasedRebalanceTask sbTask : tasksByStealer.get(stealerId)) {
+      int donorId=sbTask.getStealInfos().get(0).getDonorId();
+      if (nodeIdsWithWork.contains(donorId)) {
+        continue;
+      }
+      nodeIdsWithWork.add(stealerId);
+      nodeIdsWithWork.add(donorId);
+      numTasksExecuting++;
+      tasksByStealer.get(stealerId).remove(sbTask);
+      service.execute(sbTask);
+      return sbTask;
+    }
+  }
+  return null;
+}
