@@ -1,35 +1,22 @@
 {
-  System.out.println("Here I am constructing the response");
-  MimeMultipart multiPart=new MimeMultipart();
-  ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
   String contentLocationKey="/" + this.storeName + "/"+ new String(Base64.encodeBase64(key.get()));
+  StringBuilder eTags=new StringBuilder();
+  boolean firstETag=true;
   for (  Version versionedValue : versionedValues) {
     VectorClock vectorClock=(VectorClock)versionedValue;
     String eTag=CoordinatorUtils.getSerializedVectorClock(vectorClock);
-    MimeBodyPart body=new MimeBodyPart();
-    try {
-      body.addHeader(CONTENT_LOCATION,contentLocationKey);
-      body.addHeader(ETAG,eTag);
-      multiPart.addBodyPart(body);
+    if (firstETag) {
+      eTags.append(eTag);
+      firstETag=false;
     }
- catch (    MessagingException me) {
-      logger.error("Exception while constructing body part",me);
-      throw me;
+ else {
+      eTags.append(", " + eTag);
     }
   }
-  try {
-    multiPart.writeTo(outputStream);
-  }
- catch (  Exception e) {
-    logger.error("Exception while writing multipart to output stream",e);
-    throw e;
-  }
-  ChannelBuffer responseContent=ChannelBuffers.dynamicBuffer();
-  responseContent.writeBytes(outputStream.toByteArray());
   HttpResponse response=new DefaultHttpResponse(HTTP_1_1,OK);
-  response.setHeader(CONTENT_TYPE,"multipart/binary");
   response.setHeader(CONTENT_TRANSFER_ENCODING,"binary");
-  response.setContent(responseContent);
-  response.setHeader(CONTENT_LENGTH,response.getContent().readableBytes());
+  response.setHeader(CONTENT_LENGTH,0);
+  response.setHeader(CONTENT_LOCATION,contentLocationKey);
+  response.setHeader(ETAG,eTags.toString());
   this.messageEvent.getChannel().write(response);
 }
