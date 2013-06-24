@@ -1,0 +1,45 @@
+{
+  String response=null;
+  TestVersionedValue responseObj=null;
+  int expectedResponseCode=200;
+  try {
+    HttpURLConnection conn=null;
+    String base64Key=new String(Base64.encodeBase64(key.getBytes()));
+    URL url=new URL(this.coordinatorURL + "/" + STORE_NAME+ "/"+ base64Key);
+    conn=(HttpURLConnection)url.openConnection();
+    conn.setRequestMethod("GET");
+    conn.setDoInput(true);
+    conn.setRequestProperty(VoldemortHttpRequestHandler.X_VOLD_REQUEST_TIMEOUT_MS,"1000");
+    if (options != null) {
+      if (options.get("timeout") != null && options.get("timeout") instanceof String) {
+        conn.setRequestProperty(VoldemortHttpRequestHandler.X_VOLD_REQUEST_TIMEOUT_MS,(String)options.get("timeout"));
+      }
+      if (options.get("responseCode") != null && options.get("responseCode") instanceof Integer) {
+        expectedResponseCode=(Integer)options.get("responseCode");
+      }
+    }
+    if (conn.getResponseCode() != expectedResponseCode) {
+      System.err.println("Illegal response during GET : " + conn.getResponseMessage());
+      fail("Incorrect response received for a HTTP put request :" + conn.getResponseCode());
+    }
+    if (conn.getResponseCode() == 404 || conn.getResponseCode() == 408) {
+      return null;
+    }
+    BufferedReader rd=new BufferedReader(new InputStreamReader(conn.getInputStream()));
+    StringBuilder sb=new StringBuilder();
+    String line;
+    while ((line=rd.readLine()) != null) {
+      sb.append(line);
+    }
+    rd.close();
+    conn.disconnect();
+    response=sb.toString();
+    VectorClock vc=CoordinatorUtils.deserializeVectorClock(conn.getHeaderField("ETag"));
+    responseObj=new TestVersionedValue(response,vc);
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    fail("Error in sending the REST request");
+  }
+  return responseObj;
+}

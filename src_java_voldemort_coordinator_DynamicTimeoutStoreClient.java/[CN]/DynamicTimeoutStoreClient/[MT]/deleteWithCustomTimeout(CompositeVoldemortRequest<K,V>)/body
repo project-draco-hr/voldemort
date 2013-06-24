@@ -6,13 +6,12 @@
     if (versioned == null) {
       return false;
     }
-    long endTimeInMs=System.currentTimeMillis();
-    long diffInMs=endTimeInMs - startTimeInMs;
-    if (diffInMs > deleteRequestObject.getRoutingTimeoutInMs()) {
+    long timeLeft=deleteRequestObject.getRoutingTimeoutInMs() - (System.currentTimeMillis() - startTimeInMs);
+    if (timeLeft < 0) {
       throw new StoreTimeoutException("DELETE request timed out");
     }
     deleteRequestObject.setVersion(versioned.getVersion());
-    deleteRequestObject.setRoutingTimeoutInMs(deleteRequestObject.getRoutingTimeoutInMs() - diffInMs);
+    deleteRequestObject.setRoutingTimeoutInMs(timeLeft);
   }
   return store.delete(deleteRequestObject);
 }

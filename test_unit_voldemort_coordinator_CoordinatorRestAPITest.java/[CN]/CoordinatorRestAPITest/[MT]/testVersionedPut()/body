@@ -3,7 +3,7 @@
   String payload="Founders Porter";
   String newPayload="Samuel Smith Taddy Porter";
   doPut(key,payload,null);
-  TestVersionedValue response=doGet(key);
+  TestVersionedValue response=doGet(key,null);
   if (response == null) {
     fail("key does not exist after a put. ");
   }
@@ -13,6 +13,8 @@
   if (newResponse == null) {
     fail("key does not exist after the versioned put. ");
   }
+  assertEquals("Returned response does not have a higer version",Occurred.AFTER,newResponse.getVc().compare(response.getVc()));
+  assertEquals("Returned response does not have a higer version",Occurred.BEFORE,response.getVc().compare(newResponse.getVc()));
   System.out.println("Received value after the Versioned put: " + newResponse.getValue());
   if (!newResponse.getValue().equals(newPayload)) {
     fail("Received value is incorrect ! Expected : " + newPayload + " but got : "+ newResponse.getValue());

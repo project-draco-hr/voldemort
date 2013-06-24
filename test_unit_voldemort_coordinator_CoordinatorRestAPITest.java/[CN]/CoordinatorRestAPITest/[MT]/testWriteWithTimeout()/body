@@ -1,0 +1,23 @@
+{
+  String key="Which_Imperial_IPA_do_I_want_to_drink";
+  String payload="Pliny the Younger";
+  Map<String,Object> options=new HashMap<String,Object>();
+  options.put("timeout","1");
+  options.put("responseCode",408);
+  doPut(key,payload,null,options);
+  options.clear();
+  options.put("responseCode",404);
+  TestVersionedValue response=doGet(key,options);
+  if (response != null) {
+    fail("key should not exist after a put. ");
+  }
+  doPut(key,payload,null);
+  options.clear();
+  options.put("timeout","1");
+  options.put("responseCode",408);
+  response=doGet(key,options);
+  response=doGet(key);
+  if (response == null) {
+    fail("key does not exist after a put. ");
+  }
+}

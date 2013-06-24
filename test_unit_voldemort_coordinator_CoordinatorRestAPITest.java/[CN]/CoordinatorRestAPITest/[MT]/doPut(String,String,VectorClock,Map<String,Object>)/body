@@ -1,0 +1,40 @@
+{
+  VectorClock successfulPutVC=null;
+  int expectedResponseCode=201;
+  try {
+    HttpURLConnection conn=null;
+    String base64Key=new String(Base64.encodeBase64(key.getBytes()));
+    URL url=new URL(this.coordinatorURL + "/" + STORE_NAME+ "/"+ base64Key);
+    conn=(HttpURLConnection)url.openConnection();
+    conn.setRequestMethod("POST");
+    conn.setDoOutput(true);
+    conn.setDoInput(true);
+    conn.setRequestProperty("Content-Type","binary");
+    conn.setRequestProperty("Content-Length","" + payload.length());
+    conn.setRequestProperty(VoldemortHttpRequestHandler.X_VOLD_REQUEST_TIMEOUT_MS,"1000");
+    if (options != null) {
+      if (options.get("timeout") != null && options.get("timeout") instanceof String) {
+        conn.setRequestProperty(VoldemortHttpRequestHandler.X_VOLD_REQUEST_TIMEOUT_MS,(String)options.get("timeout"));
+      }
+      if (options.get("responseCode") != null && options.get("responseCode") instanceof Integer) {
+        expectedResponseCode=(Integer)options.get("responseCode");
+      }
+    }
+    if (vc != null) {
+      String eTag=CoordinatorUtils.getSerializedVectorClock(vc);
+      conn.setRequestProperty("ETag",eTag);
+    }
+    OutputStream out=conn.getOutputStream();
+    out.write(payload.getBytes());
+    out.close();
+    if (conn.getResponseCode() != expectedResponseCode) {
+      System.err.println("Illegal response during PUT : " + conn.getResponseMessage());
+      fail("Incorrect response received for a HTTP put request :" + conn.getResponseCode());
+    }
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    fail("Error in sending the REST request");
+  }
+  return successfulPutVC;
+}

@@ -6,8 +6,9 @@
   long endTime=System.currentTimeMillis();
   if (versioned == null)   versioned=Versioned.value(requestWrapper.getRawValue(),new VectorClock());
  else   versioned.setObject(requestWrapper.getRawValue());
-  if ((endTime - startTime) > requestWrapper.getRoutingTimeoutInMs()) {
+  long timeLeft=requestWrapper.getRoutingTimeoutInMs() - (endTime - startTime);
+  if (timeLeft <= 0) {
     throw new StoreTimeoutException("PUT request timed out");
   }
-  return putVersionedWithCustomTimeout(new CompositeVersionedPutVoldemortRequest<K,V>(requestWrapper.getKey(),versioned,(requestWrapper.getRoutingTimeoutInMs() - (endTime - startTime))));
+  return putVersionedWithCustomTimeout(new CompositeVersionedPutVoldemortRequest<K,V>(requestWrapper.getKey(),versioned,timeLeft));
 }

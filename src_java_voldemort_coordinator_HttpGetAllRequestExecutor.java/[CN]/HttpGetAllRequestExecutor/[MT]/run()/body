@@ -16,6 +16,18 @@ catch (  StoreTimeoutException timeoutException) {
     logger.error(errorDescription);
     RESTErrorHandler.handleError(REQUEST_TIMEOUT,this.getRequestMessageEvent,errorDescription);
   }
+catch (  InsufficientOperationalNodesException exception) {
+    long nowInNs=System.nanoTime();
+    if (nowInNs - startTimestampInNs > getAllRequestObject.getRoutingTimeoutInMs() * Time.NS_PER_MS) {
+      String errorDescription="GET Request timed out: " + exception.getMessage();
+      logger.error(errorDescription);
+      RESTErrorHandler.handleError(REQUEST_TIMEOUT,this.getRequestMessageEvent,errorDescription);
+    }
+ else {
+      String errorDescription="Voldemort Exception: " + exception.getMessage();
+      RESTErrorHandler.handleError(INTERNAL_SERVER_ERROR,this.getRequestMessageEvent,errorDescription);
+    }
+  }
 catch (  VoldemortException ve) {
     String errorDescription="Voldemort Exception: " + ve.getMessage();
     RESTErrorHandler.handleError(INTERNAL_SERVER_ERROR,this.getRequestMessageEvent,errorDescription);
