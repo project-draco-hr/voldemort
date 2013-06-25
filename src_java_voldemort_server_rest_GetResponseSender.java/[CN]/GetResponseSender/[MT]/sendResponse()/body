@@ -9,15 +9,15 @@
     MimeBodyPart body=new MimeBodyPart();
     try {
       body.addHeader(CONTENT_TYPE,"application/octet-stream");
-      body.addHeader(CONTENT_LOCATION,contentLocationKey);
       body.addHeader(CONTENT_TRANSFER_ENCODING,"binary");
       body.addHeader(CONTENT_LENGTH,"" + responseValue.length);
-      body.addHeader(ETAG,eTag);
+      body.addHeader(RestMessageHeaders.X_VOLD_VECTOR_CLOCK,eTag);
       body.setContent(responseValue,"application/octet-stream");
       multiPart.addBodyPart(body);
     }
  catch (    MessagingException me) {
       logger.error("Exception while constructing body part",me);
+      outputStream.close();
       throw me;
     }
   }
@@ -26,6 +26,7 @@
   }
  catch (  Exception e) {
     logger.error("Exception while writing multipart to output stream",e);
+    outputStream.close();
     throw e;
   }
   ChannelBuffer responseContent=ChannelBuffers.dynamicBuffer();
@@ -33,7 +34,9 @@
   HttpResponse response=new DefaultHttpResponse(HTTP_1_1,OK);
   response.setHeader(CONTENT_TYPE,"multipart/binary");
   response.setHeader(CONTENT_TRANSFER_ENCODING,"binary");
+  response.setHeader(CONTENT_LOCATION,contentLocationKey);
   response.setContent(responseContent);
   response.setHeader(CONTENT_LENGTH,response.getContent().readableBytes());
   this.messageEvent.getChannel().write(response);
+  outputStream.close();
 }
