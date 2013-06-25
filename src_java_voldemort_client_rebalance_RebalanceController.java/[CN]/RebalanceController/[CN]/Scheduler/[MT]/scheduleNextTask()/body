@@ -20,7 +20,13 @@
       nodeIdsWithWork.add(donorId);
       numTasksExecuting++;
       tasksByStealer.get(stealerId).remove(sbTask);
-      service.execute(sbTask);
+      try {
+        service.execute(sbTask);
+      }
+ catch (      RejectedExecutionException ree) {
+        logger.error("Rebalancing task rejected by executor service.",ree);
+        throw new VoldemortRebalancingException("Rebalancing task rejected by executor service.");
+      }
       return sbTask;
     }
   }
