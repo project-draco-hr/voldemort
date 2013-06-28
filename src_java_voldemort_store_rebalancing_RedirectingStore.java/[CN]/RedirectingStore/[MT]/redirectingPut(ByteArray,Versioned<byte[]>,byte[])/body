@@ -4,7 +4,7 @@
   if (storeDef.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0) {
     throw new UnsupportedOperationException("put() not supported on read-only store");
   }
-  StoreRoutingPlan currentRoutingPlan=new StoreRoutingPlan(currentCluster,storeDef);
+  BaseStoreRoutingPlan currentRoutingPlan=new BaseStoreRoutingPlan(currentCluster,storeDef);
   Integer redirectNode=getProxyNode(currentRoutingPlan,storeDef,key.get());
   if (redirectNode != null) {
     List<Versioned<byte[]>> vals=getInnerStore().get(key,transforms);
