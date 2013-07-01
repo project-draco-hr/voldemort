@@ -3,7 +3,8 @@
   try {
     String base64Key=new String(Base64.encodeBase64(getName().getBytes("UTF-8")));
     rb=new RestRequestBuilder(new URI(this.baseURL + "/" + SCHEMATA_STORE_NAME+ "/"+ base64Key));
-    RestResponse response=fetchGetResponse(rb);
+    rb.setHeader("Accept","binary");
+    RestResponse response=fetchGetResponse(rb,FETCH_SCHEMA_TIMEOUT);
     return response.getEntity().asString("UTF-8");
   }
  catch (  Exception e) {

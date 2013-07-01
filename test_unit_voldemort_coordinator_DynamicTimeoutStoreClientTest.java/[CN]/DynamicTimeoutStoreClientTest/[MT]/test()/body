@@ -19,7 +19,9 @@
     System.out.println("This failed as Expected.");
   }
   try {
-    Versioned<byte[]> versionedValue=this.dynamicTimeoutClient.getWithCustomTimeout(new CompositeGetVoldemortRequest<ByteArray,byte[]>(new ByteArray(key.getBytes()),correctTimeout,true));
+    List<Versioned<byte[]>> versionedValues=this.dynamicTimeoutClient.getWithCustomTimeout(new CompositeGetVoldemortRequest<ByteArray,byte[]>(new ByteArray(key.getBytes()),correctTimeout,true));
+    assertTrue(versionedValues.size() == 1);
+    Versioned<byte[]> versionedValue=versionedValues.get(0);
     long endTime=System.currentTimeMillis();
     System.out.println("Total time taken = " + (endTime - startTime));
     String response=new String(versionedValue.getValue());

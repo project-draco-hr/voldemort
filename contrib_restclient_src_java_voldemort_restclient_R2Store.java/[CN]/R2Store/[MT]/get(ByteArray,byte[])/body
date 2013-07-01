@@ -4,12 +4,12 @@
   RestRequestBuilder rb=null;
   try {
     rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
-    RestResponse response=fetchGetResponse(rb);
+    String timeoutStr=Long.toString(this.timeoutConfig.getOperationTimeout(VoldemortOpCode.GET_OP_CODE));
+    rb.setHeader("Accept",MULTIPART_CONTENT_TYPE);
+    RestResponse response=fetchGetResponse(rb,timeoutStr);
     final ByteString entity=response.getEntity();
-    String eTag=response.getHeader(ETAG);
-    String lastModified=response.getHeader(LAST_MODIFIED);
     if (entity != null) {
-      resultList=readResults(entity,eTag,lastModified);
+      resultList=parseGetResponse(entity);
     }
  else {
       logger.error("Did not get any response!");

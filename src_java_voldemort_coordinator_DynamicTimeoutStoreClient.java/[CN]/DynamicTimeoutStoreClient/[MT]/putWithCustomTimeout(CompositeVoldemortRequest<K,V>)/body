@@ -1,8 +1,10 @@
 {
   validateTimeout(requestWrapper.getRoutingTimeoutInMs());
-  Versioned<V> versioned;
+  List<Versioned<V>> versionedValues;
   long startTime=System.currentTimeMillis();
-  versioned=getWithCustomTimeout(requestWrapper);
+  requestWrapper.setResolveConflicts(true);
+  versionedValues=getWithCustomTimeout(requestWrapper);
+  Versioned<V> versioned=getItemOrThrow(requestWrapper.getKey(),null,versionedValues);
   long endTime=System.currentTimeMillis();
   if (versioned == null)   versioned=Versioned.value(requestWrapper.getRawValue(),new VectorClock());
  else   versioned.setObject(requestWrapper.getRawValue());

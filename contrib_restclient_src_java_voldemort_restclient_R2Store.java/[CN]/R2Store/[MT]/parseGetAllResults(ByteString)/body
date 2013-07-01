@@ -1,0 +1,43 @@
+{
+  Map<ByteArray,List<Versioned<byte[]>>> results=new HashMap<ByteArray,List<Versioned<byte[]>>>();
+  try {
+    byte[] bytes=new byte[entity.length()];
+    entity.copyBytes(bytes,0);
+    ByteArrayDataSource ds=new ByteArrayDataSource(bytes,"multipart/mixed");
+    MimeMultipart mp=new MimeMultipart(ds);
+    for (int i=0; i < mp.getCount(); i++) {
+      MimeBodyPart part=(MimeBodyPart)mp.getBodyPart(i);
+      String contentLocation=part.getHeader("Content-Location")[0];
+      String base64Key=contentLocation.split("/")[2];
+      ByteArray key=new ByteArray(Base64.decodeBase64(base64Key.getBytes()));
+      logger.debug("Content-Location : " + contentLocation);
+      logger.debug("Base 64 key : " + base64Key);
+      List<Versioned<byte[]>> valueResultList=new ArrayList<Versioned<byte[]>>();
+      ByteArrayDataSource nestedDS=new ByteArrayDataSource((String)part.getContent(),"multipart/mixed");
+      MimeMultipart valueParts=new MimeMultipart(nestedDS);
+      for (int valueId=0; valueId < valueParts.getCount(); valueId++) {
+        MimeBodyPart valuePart=(MimeBodyPart)valueParts.getBodyPart(valueId);
+        String serializedVC=valuePart.getHeader(X_VOLD_VECTOR_CLOCK)[0];
+        logger.debug("Received serialized  : " + serializedVC);
+        VectorClockWrapper vcWrapper=mapper.readValue(serializedVC,VectorClockWrapper.class);
+        byte[] bodyPartBytes=((String)valuePart.getContent()).getBytes();
+        VectorClock clock=new VectorClock(vcWrapper.getVersions(),vcWrapper.getTimestamp());
+        valueResultList.add(new Versioned<byte[]>(bodyPartBytes,clock));
+      }
+      results.put(key,valueResultList);
+    }
+  }
+ catch (  MessagingException e) {
+    e.printStackTrace();
+  }
+catch (  JsonParseException e) {
+    e.printStackTrace();
+  }
+catch (  JsonMappingException e) {
+    e.printStackTrace();
+  }
+catch (  IOException e) {
+    e.printStackTrace();
+  }
+  return results;
+}

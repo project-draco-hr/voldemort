@@ -1,36 +1,34 @@
 {
   try {
-    ByteArrayOutputStream outputBytes=new ByteArrayOutputStream();
-    DataOutputStream outputStream=new DataOutputStream(outputBytes);
     byte[] payload=value.getValue();
-    outputStream.write(payload);
     String base64Key=new String(Base64.encodeBase64(key.get()));
     RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
-    VectorClock vc=(VectorClock)value.getVersion();
-    String serializedVC=null;
-    if (!vc.getEntries().isEmpty()) {
-      serializedVC=CoordinatorUtils.getSerializedVectorClock(vc);
-    }
     rb.setMethod(POST);
-    rb.setEntity(outputBytes.toByteArray());
+    rb.setEntity(payload);
     rb.setHeader(CONTENT_TYPE,"binary");
     rb.setHeader(CONTENT_LENGTH,"" + payload.length);
-    rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,"1000");
-    if (serializedVC != null && serializedVC.length() > 0) {
-      rb.setHeader(X_VOLD_VECTOR_CLOCK,serializedVC);
+    String timeoutStr=Long.toString(this.timeoutConfig.getOperationTimeout(VoldemortOpCode.PUT_OP_CODE));
+    rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,timeoutStr);
+    VectorClock vc=(VectorClock)value.getVersion();
+    if (vc != null && vc.getEntries().size() != 0) {
+      String serializedVC=null;
+      if (!vc.getEntries().isEmpty()) {
+        serializedVC=CoordinatorUtils.getSerializedVectorClock(vc);
+      }
+      if (serializedVC != null && serializedVC.length() > 0) {
+        rb.setHeader(X_VOLD_VECTOR_CLOCK,serializedVC);
+      }
     }
     RestRequest request=rb.build();
     Future<RestResponse> f=client.restRequest(request);
     RestResponse response=f.get();
-    String eTag=response.getHeader(ETAG);
     final ByteString entity=response.getEntity();
     if (entity == null) {
       logger.error("Empty response !");
     }
   }
  catch (  VoldemortException ve) {
-    ve.printStackTrace();
-    throw ve;
+    logger.error("Voldemort Exception occured : " + ve.getMessage(),ve);
   }
 catch (  Exception e) {
     if (!e.getMessage().contains("status=412")) {

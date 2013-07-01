@@ -1,9 +1,12 @@
 {
   try {
-    Versioned<byte[]> responseVersioned=storeClient.getWithCustomTimeout(this.getRequestObject);
-    if (responseVersioned == null) {
+    List<Versioned<byte[]>> versionedValues=storeClient.getWithCustomTimeout(this.getRequestObject);
+    if (versionedValues == null || versionedValues.size() == 0) {
       if (this.getRequestObject.getValue() != null) {
-        responseVersioned=this.getRequestObject.getValue();
+        if (versionedValues == null) {
+          versionedValues=new ArrayList<Versioned<byte[]>>();
+        }
+        versionedValues.add(this.getRequestObject.getValue());
       }
  else {
         RESTErrorHandler.handleError(NOT_FOUND,this.getRequestMessageEvent,"Requested Key does not exist");
@@ -12,7 +15,7 @@
         logger.debug("GET successful !");
       }
     }
-    writeResponse(responseVersioned);
+    writeResponse(versionedValues);
   }
  catch (  IllegalArgumentException illegalArgsException) {
     String errorDescription="PUT Failed !!! Illegal Arguments : " + illegalArgsException.getMessage();
@@ -38,6 +41,10 @@ catch (  InsufficientOperationalNodesException exception) {
   }
 catch (  VoldemortException ve) {
     String errorDescription="Voldemort Exception: " + ve.getMessage();
+    RESTErrorHandler.handleError(INTERNAL_SERVER_ERROR,this.getRequestMessageEvent,errorDescription);
+  }
+catch (  Exception ve) {
+    String errorDescription="Exception: " + ve.getMessage();
     RESTErrorHandler.handleError(INTERNAL_SERVER_ERROR,this.getRequestMessageEvent,errorDescription);
   }
 }

@@ -1,0 +1,31 @@
+{
+  List<Versioned<byte[]>> results=new ArrayList<Versioned<byte[]>>();
+  try {
+    byte[] bytes=new byte[entity.length()];
+    entity.copyBytes(bytes,0);
+    ByteArrayDataSource ds=new ByteArrayDataSource(bytes,"multipart/mixed");
+    MimeMultipart mp=new MimeMultipart(ds);
+    for (int i=0; i < mp.getCount(); i++) {
+      MimeBodyPart part=(MimeBodyPart)mp.getBodyPart(i);
+      String serializedVC=part.getHeader(X_VOLD_VECTOR_CLOCK)[0];
+      logger.debug("Received VC : " + serializedVC);
+      VectorClockWrapper vcWrapper=mapper.readValue(serializedVC,VectorClockWrapper.class);
+      byte[] bodyPartBytes=((String)part.getContent()).getBytes();
+      VectorClock clock=new VectorClock(vcWrapper.getVersions(),vcWrapper.getTimestamp());
+      results.add(new Versioned<byte[]>(bodyPartBytes,clock));
+    }
+  }
+ catch (  MessagingException e) {
+    e.printStackTrace();
+  }
+catch (  JsonParseException e) {
+    e.printStackTrace();
+  }
+catch (  JsonMappingException e) {
+    e.printStackTrace();
+  }
+catch (  IOException e) {
+    e.printStackTrace();
+  }
+  return results;
+}

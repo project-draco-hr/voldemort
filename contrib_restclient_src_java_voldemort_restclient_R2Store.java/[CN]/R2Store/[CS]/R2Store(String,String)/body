@@ -1,13 +1,10 @@
 {
   super(storeName);
-  try {
-    _clientFactory=new HttpClientFactory();
-    final TransportClient transportClient=_clientFactory.getClient(new HashMap<String,String>());
-    client=new TransportClientAdapter(transportClient);
-    this.baseURL=baseURL;
-    mapper=new ObjectMapper();
-  }
- catch (  Exception e) {
-    e.printStackTrace();
-  }
+  _clientFactory=new HttpClientFactory();
+  Map<String,String> properties=new HashMap<String,String>();
+  properties.put(HttpClientFactory.POOL_SIZE_KEY,Integer.toString(maxClientThreads));
+  final TransportClient transportClient=_clientFactory.getClient(properties);
+  client=new TransportClientAdapter(transportClient);
+  this.baseURL=baseURL;
+  mapper=new ObjectMapper();
 }

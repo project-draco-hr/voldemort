@@ -1,8 +1,11 @@
 {
+  List<Versioned<V>> versionedValues;
   validateTimeout(deleteRequestObject.getRoutingTimeoutInMs());
   if (deleteRequestObject.getVersion() == null) {
     long startTimeInMs=System.currentTimeMillis();
-    Versioned<V> versioned=getWithCustomTimeout(deleteRequestObject);
+    deleteRequestObject.setResolveConflicts(true);
+    versionedValues=getWithCustomTimeout(deleteRequestObject);
+    Versioned<V> versioned=getItemOrThrow(deleteRequestObject.getKey(),null,versionedValues);
     if (versioned == null) {
       return false;
     }

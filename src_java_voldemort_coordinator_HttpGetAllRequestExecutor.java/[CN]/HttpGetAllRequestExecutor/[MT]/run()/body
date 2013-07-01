@@ -1,10 +1,10 @@
 {
   try {
-    Map<ByteArray,Versioned<byte[]>> responseVersioned=storeClient.getAllWithCustomTimeout(this.getAllRequestObject);
-    if (responseVersioned == null) {
+    Map<ByteArray,List<Versioned<byte[]>>> versionedResponses=storeClient.getAllWithCustomTimeout(this.getAllRequestObject);
+    if (versionedResponses == null || versionedResponses.entrySet().size() == 0) {
       RESTErrorHandler.handleError(NOT_FOUND,this.getRequestMessageEvent,"Requested Key does not exist");
     }
-    writeResponse(responseVersioned);
+    writeResponse(versionedResponses);
   }
  catch (  IllegalArgumentException illegalArgsException) {
     String errorDescription="GETALL Failed !!! Illegal Arguments : " + illegalArgsException.getMessage();
@@ -30,6 +30,10 @@ catch (  InsufficientOperationalNodesException exception) {
   }
 catch (  VoldemortException ve) {
     String errorDescription="Voldemort Exception: " + ve.getMessage();
+    RESTErrorHandler.handleError(INTERNAL_SERVER_ERROR,this.getRequestMessageEvent,errorDescription);
+  }
+catch (  Exception e) {
+    String errorDescription="Exception: " + e.getMessage();
     RESTErrorHandler.handleError(INTERNAL_SERVER_ERROR,this.getRequestMessageEvent,errorDescription);
   }
 }

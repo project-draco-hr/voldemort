@@ -3,9 +3,9 @@
     String base64Key=new String(Base64.encodeBase64(key.get()));
     RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
     rb.setMethod(DELETE);
-    rb.setHeader(CONTENT_TYPE,"binary");
     rb.setHeader(CONTENT_LENGTH,"0");
-    rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,"1000");
+    String timeoutStr=Long.toString(this.timeoutConfig.getOperationTimeout(VoldemortOpCode.DELETE_OP_CODE));
+    rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,timeoutStr);
     RestRequest request=rb.build();
     Future<RestResponse> f=client.restRequest(request);
     RestResponse response=f.get();
@@ -15,8 +15,7 @@
     }
   }
  catch (  VoldemortException ve) {
-    ve.printStackTrace();
-    throw ve;
+    logger.error("Voldemort exception ocurred : " + ve.getMessage(),ve);
   }
 catch (  Exception e) {
     if (!e.getMessage().contains("status=404")) {
