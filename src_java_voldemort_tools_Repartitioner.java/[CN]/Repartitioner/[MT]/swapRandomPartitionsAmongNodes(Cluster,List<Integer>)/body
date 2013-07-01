@@ -1,0 +1,27 @@
+{
+  Cluster returnCluster=ClusterUtils.copyCluster(nextCandidateCluster);
+  Random r=new Random();
+  if (nodeIds.isEmpty()) {
+    return returnCluster;
+  }
+  int stealerNodeOffset=r.nextInt(nodeIds.size());
+  Integer stealerNodeId=nodeIds.get(stealerNodeOffset);
+  List<Integer> stealerPartitions=returnCluster.getNodeById(stealerNodeId).getPartitionIds();
+  if (stealerPartitions.size() == 0) {
+    return nextCandidateCluster;
+  }
+  int stealerPartitionOffset=r.nextInt(stealerPartitions.size());
+  int stealerPartitionId=stealerPartitions.get(stealerPartitionOffset);
+  List<Integer> donorNodeIds=new ArrayList<Integer>();
+  donorNodeIds.addAll(nodeIds);
+  donorNodeIds.remove(stealerNodeId);
+  if (donorNodeIds.isEmpty()) {
+    return returnCluster;
+  }
+  int donorIdOffset=r.nextInt(donorNodeIds.size());
+  Integer donorNodeId=donorNodeIds.get(donorIdOffset);
+  List<Integer> donorPartitions=returnCluster.getNodeById(donorNodeId).getPartitionIds();
+  int donorPartitionOffset=r.nextInt(donorPartitions.size());
+  int donorPartitionId=donorPartitions.get(donorPartitionOffset);
+  return swapPartitions(returnCluster,stealerNodeId,stealerPartitionId,donorNodeId,donorPartitionId);
+}
