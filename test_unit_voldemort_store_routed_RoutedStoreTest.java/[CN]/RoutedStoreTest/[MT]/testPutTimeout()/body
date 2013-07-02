@@ -14,8 +14,8 @@
   }
   setFailureDetector(stores);
   routedStoreThreadPool=Executors.newFixedThreadPool(3);
-  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,new TimeoutConfig(timeout,false));
-  RoutedStore routedStore=routedStoreFactory.create(new Cluster("test",nodes),definition,stores,true,failureDetector);
+  RoutedStoreFactory routedStoreFactory=createFactory(timeout);
+  RoutedStore routedStore=routedStoreFactory.create(new Cluster("test",nodes),definition,stores,failureDetector);
   long start=System.nanoTime();
   try {
     routedStore.put(new ByteArray("test".getBytes()),new Versioned<byte[]>(new byte[]{1}),null);

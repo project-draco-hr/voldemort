@@ -46,7 +46,8 @@
   failureDetectorConfig.setCluster(cluster);
   failureDetectorConfig.setStoreVerifier(MutableStoreVerifier.create(subStores));
   failureDetector=FailureDetectorUtils.create(failureDetectorConfig,false);
-  routedStore=new PipelineRoutedStore(STORE_NAME,testStores,socketTestStores,slopStores,socketSlopStores,cluster,storeDef,false,Zone.DEFAULT_ZONE_ID,new TimeoutConfig(1500L,false),failureDetector,false,0);
+  RoutedStoreFactory factory=new RoutedStoreFactory(null,new TimeoutConfig(1500L,false));
+  routedStore=factory.create(cluster,storeDef,testStores,socketTestStores,slopStores,socketSlopStores,failureDetector);
   for (int i=0; i < 5; i++) {
     Set<Integer> nodesCovered=Sets.newHashSet();
     while (nodesCovered.size() < NUM_NODES_TOTAL) {

@@ -1,5 +1,5 @@
 {
-  logger.info("Client zone-id [" + clientZoneId + "] Attempting to obtain metadata for store ["+ storeName+ "] ");
+  logger.info("Client zone-id [" + this.routedStoreConfig.getClientZoneId() + "] Attempting to obtain metadata for store ["+ storeName+ "] ");
   if (logger.isDebugEnabled()) {
     for (    URI uri : bootstrapUrls) {
       logger.debug("Client Bootstrap url [" + uri + "]");
@@ -56,7 +56,8 @@
  else {
     logger.debug("Using existing failure detector.");
   }
-  Store<ByteArray,byte[],byte[]> store=routedStoreFactory.create(this.cluster,storeDef,clientMapping,nonblockingStores,slopStores,nonblockingSlopStores,repairReads,clientZoneId,failureDetectorRef,isJmxEnabled,this.jmxId);
+  this.routedStoreConfig.setRepairReads(repairReads);
+  Store<ByteArray,byte[],byte[]> store=routedStoreFactory.create(this.cluster,storeDef,clientMapping,nonblockingStores,slopStores,nonblockingSlopStores,failureDetectorRef);
   store=new LoggingStore(store);
   if (isJmxEnabled) {
     StatTrackingStore statStore=new StatTrackingStore(store,this.stats);

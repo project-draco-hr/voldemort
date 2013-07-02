@@ -12,11 +12,11 @@
   }
   setFailureDetector(subStores);
   routedStoreThreadPool=Executors.newFixedThreadPool(cluster.getNumberOfNodes());
-  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,new TimeoutConfig(10000L,false));
-  RoutedStore routedStore=routedStoreFactory.create(cluster,storeDef,subStores,true,failureDetector);
+  RoutedStoreFactory routedStoreFactory=createFactory(10000L);
+  RoutedStore routedStore=routedStoreFactory.create(cluster,storeDef,subStores,failureDetector);
   routedStore.put(aKey,Versioned.value(aValue),null);
-  routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,new TimeoutConfig(sleepTimeMs / 2,false));
-  routedStore=routedStoreFactory.create(cluster,storeDef,subStores,true,failureDetector);
+  routedStoreFactory=createFactory(sleepTimeMs / 2);
+  routedStore=routedStoreFactory.create(cluster,storeDef,subStores,failureDetector);
   List<Versioned<byte[]>> versioneds=routedStore.get(aKey,null);
   assertEquals(2,versioneds.size());
   Thread.sleep(sleepTimeMs * 2);

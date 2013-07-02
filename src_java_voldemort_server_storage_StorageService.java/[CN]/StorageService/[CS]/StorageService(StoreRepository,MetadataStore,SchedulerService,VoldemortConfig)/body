@@ -11,7 +11,8 @@
   FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig(voldemortConfig).setCluster(metadata.getCluster()).setStoreVerifier(new ServerStoreVerifier(storeFactory,metadata,config));
   this.failureDetector=create(failureDetectorConfig,config.isJmxEnabled());
   this.storeStats=new StoreStats();
-  this.routedStoreFactory=new RoutedStoreFactory(voldemortConfig.isPipelineRoutedStoreEnabled(),this.clientThreadPool,voldemortConfig.getTimeoutConfig());
+  this.routedStoreFactory=new RoutedStoreFactory(new RoutedStoreConfig(voldemortConfig));
+  this.routedStoreFactory.setThreadPool(this.clientThreadPool);
   if (this.voldemortConfig.getStorageConfigurations().contains(ReadOnlyStorageConfiguration.class.getName())) {
     long rate=this.voldemortConfig.getReadOnlyFetcherMaxBytesPerSecond();
     this.dynThrottleLimit=new DynamicThrottleLimit(rate);

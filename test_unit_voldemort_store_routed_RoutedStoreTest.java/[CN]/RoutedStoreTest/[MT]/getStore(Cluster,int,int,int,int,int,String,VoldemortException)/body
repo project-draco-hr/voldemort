@@ -13,6 +13,6 @@
   setFailureDetector(subStores);
   this.storeDef=ServerTestUtils.getStoreDef("test",reads + writes,reads,reads,writes,writes,strategy);
   routedStoreThreadPool=Executors.newFixedThreadPool(threads);
-  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,new TimeoutConfig(BANNAGE_PERIOD,false));
-  return routedStoreFactory.create(cluster,storeDef,subStores,true,failureDetector);
+  RoutedStoreFactory routedStoreFactory=createFactory(BANNAGE_PERIOD);
+  return routedStoreFactory.create(cluster,storeDef,subStores,failureDetector);
 }

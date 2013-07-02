@@ -8,8 +8,8 @@
   subStores.put(id2,new InMemoryStorageEngine<ByteArray,byte[],byte[]>("test"));
   setFailureDetector(subStores);
   routedStoreThreadPool=Executors.newFixedThreadPool(1);
-  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(isPipelineRoutedStoreEnabled,routedStoreThreadPool,new TimeoutConfig(BANNAGE_PERIOD,false));
-  RoutedStore routedStore=routedStoreFactory.create(cluster,storeDef,subStores,true,failureDetector);
+  RoutedStoreFactory routedStoreFactory=createFactory(BANNAGE_PERIOD);
+  RoutedStore routedStore=routedStoreFactory.create(cluster,storeDef,subStores,failureDetector);
   Store<ByteArray,byte[],byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[],byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
   store.put(aKey,Versioned.value(aValue),aTransform);
   recordException(failureDetector,cluster.getNodes().iterator().next());

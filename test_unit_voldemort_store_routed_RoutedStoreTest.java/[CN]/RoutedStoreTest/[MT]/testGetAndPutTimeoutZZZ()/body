@@ -18,7 +18,7 @@
   }
   setFailureDetector(stores);
   routedStoreThreadPool=Executors.newFixedThreadPool(3);
-  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,new TimeoutConfig(timeout,false));
+  RoutedStoreFactory routedStoreFactory=createFactory(timeout);
   List<Zone> zones=Lists.newArrayList();
   for (int i=0; i < 3; i++) {
     LinkedList<Integer> zoneProximityList=Lists.newLinkedList();
@@ -27,7 +27,7 @@
     zoneProximityList.addAll(zoneIds);
     zones.add(new Zone(i,zoneProximityList));
   }
-  RoutedStore routedStore=routedStoreFactory.create(new Cluster("test",nodes,zones),definition,stores,true,failureDetector);
+  RoutedStore routedStore=routedStoreFactory.create(new Cluster("test",nodes,zones),definition,stores,failureDetector);
   long start=System.nanoTime();
   try {
     routedStore.get(new ByteArray("test".getBytes()),null);

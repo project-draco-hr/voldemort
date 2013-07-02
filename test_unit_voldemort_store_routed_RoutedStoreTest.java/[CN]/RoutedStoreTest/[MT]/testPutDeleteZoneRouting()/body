@@ -17,8 +17,8 @@
   setFailureDetector(subStores);
   StoreDefinition storeDef=ServerTestUtils.getStoreDef("test",1,1,1,1,0,0,zoneReplicationFactor,HintedHandoffStrategyType.PROXIMITY_STRATEGY,RoutingStrategyType.ZONE_STRATEGY);
   routedStoreThreadPool=Executors.newFixedThreadPool(8);
-  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(true,routedStoreThreadPool,new TimeoutConfig(OPERATION_TIMEOUT,false));
-  Store<ByteArray,byte[],byte[]> s1=routedStoreFactory.create(cluster,storeDef,subStores,true,failureDetector);
+  RoutedStoreFactory routedStoreFactory=createFactory(OPERATION_TIMEOUT);
+  Store<ByteArray,byte[],byte[]> s1=routedStoreFactory.create(cluster,storeDef,subStores,failureDetector);
   RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
   List<Node> nodesRoutedTo=routingStrategy.routeRequest("test".getBytes());
   long start=System.nanoTime(), elapsed;
