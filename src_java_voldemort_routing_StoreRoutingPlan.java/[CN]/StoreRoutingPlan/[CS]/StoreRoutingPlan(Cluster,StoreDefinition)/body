@@ -1,7 +1,13 @@
 {
-  super(cluster,storeDefinition);
+  this.cluster=cluster;
+  this.storeDefinition=storeDefinition;
+  this.routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDefinition,cluster);
+  this.partitionToNode=cluster.getPartitionIdToNodeArray();
+  this.partitionIdToReplicatingList=new ArrayList<List<Integer>>(this.partitionToNode.length);
+  for (int partitionId=0; partitionId < partitionToNode.length; ++partitionId) {
+    this.partitionIdToReplicatingList.add(partitionId,routingStrategy.getReplicatingPartitionList(partitionId));
+  }
   verifyClusterStoreDefinition();
-  this.partitionIdToNodeIdMap=ClusterUtils.getCurrentPartitionMapping(cluster);
   this.nodeIdToNaryPartitionMap=new HashMap<Integer,List<Integer>>();
   this.nodeIdToZonePrimaryMap=new HashMap<Integer,List<Integer>>();
   for (  int nodeId : cluster.getNodeIds()) {

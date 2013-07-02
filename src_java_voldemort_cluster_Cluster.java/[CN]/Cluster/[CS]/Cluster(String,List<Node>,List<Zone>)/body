@@ -3,7 +3,7 @@
   this.partitionsPerZone=new LinkedHashMap<Zone,List<Integer>>();
   this.nodesPerZone=new LinkedHashMap<Zone,List<Integer>>();
   this.partitionIdToZone=new HashMap<Integer,Zone>();
-  this.partitionIdToNode=new HashMap<Integer,Node>();
+  Map<Integer,Node> partitionIdToNodeMap=new HashMap<Integer,Node>();
   if (zones.size() != 0) {
     zonesById=new LinkedHashMap<Integer,Zone>(zones.size());
     for (    Zone zone : zones) {
@@ -32,8 +32,12 @@
     partitionsPerZone.get(nodesZone).addAll(node.getPartitionIds());
     for (    Integer partitionId : node.getPartitionIds()) {
       this.partitionIdToZone.put(partitionId,nodesZone);
-      this.partitionIdToNode.put(partitionId,node);
+      partitionIdToNodeMap.put(partitionId,node);
     }
   }
-  this.numberOfTags=getNumberOfTags(nodes);
+  this.numberOfPartitionIds=getNumberOfTags(nodes);
+  this.partitionIdToNodeArray=new Node[this.numberOfPartitionIds];
+  for (int partitionId=0; partitionId < this.numberOfPartitionIds; partitionId++) {
+    this.partitionIdToNodeArray[partitionId]=partitionIdToNodeMap.get(partitionId);
+  }
 }

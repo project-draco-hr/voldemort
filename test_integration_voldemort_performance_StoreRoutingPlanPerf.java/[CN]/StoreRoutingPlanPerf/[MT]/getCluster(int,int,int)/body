@@ -1,0 +1,31 @@
+{
+  if (numPartitions % numNodes != 0) {
+    System.err.println("numPartitions does not evenly divide by numNodes: " + numPartitions + " / "+ numNodes);
+    System.exit(1);
+  }
+  if (numNodes % numZones != 0) {
+    System.err.println("numNodes does not evenly divide by numZones: " + numNodes + " / "+ numZones);
+    System.exit(1);
+  }
+  int[] nodeToZoneMapping=new int[numNodes];
+  for (int i=0; i < numNodes; ++i) {
+    nodeToZoneMapping[i]=i % numZones;
+  }
+  int[][] partitionMapping=new int[numNodes][];
+  for (int i=0; i < numPartitions; ++i) {
+    int nodeId=i % numNodes;
+    partitionMapping[nodeId]=new int[numPartitions / numNodes];
+  }
+  for (int i=0; i < numPartitions; ++i) {
+    int nodeId=i % numNodes;
+    int partitionOffset=i / numNodes;
+    partitionMapping[nodeId][partitionOffset]=i;
+  }
+  int[] dummyPorts=new int[numNodes * 3];
+  for (int i=0; i < numNodes; i++) {
+    dummyPorts[i * 3]=1000;
+    dummyPorts[i * 3 + 1]=2000;
+    dummyPorts[i * 3 + 2]=3000;
+  }
+  return ServerTestUtils.getLocalZonedCluster(numNodes,numZones,nodeToZoneMapping,partitionMapping,dummyPorts);
+}

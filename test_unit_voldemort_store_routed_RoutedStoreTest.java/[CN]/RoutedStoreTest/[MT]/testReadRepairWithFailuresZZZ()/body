@@ -6,7 +6,7 @@
   zoneReplicationFactor.put(2,cluster.getNumberOfNodesInZone(0));
   RoutedStore routedStore=getStore(cluster,6,4,cluster.getNumberOfZones() - 1,1,1,zoneReplicationFactor);
   Store<ByteArray,byte[],byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[],byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
-  StoreRoutingPlan routingPlan=new StoreRoutingPlan(cluster,this.storeDef);
+  BaseStoreRoutingPlan routingPlan=new BaseStoreRoutingPlan(cluster,this.storeDef);
   List<Integer> replicatingNodes=routingPlan.getReplicationNodeList(aKey.get());
   try {
     store.put(aKey,new Versioned<byte[]>(aValue),null);

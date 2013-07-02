@@ -1,0 +1,9 @@
+{
+  HashMap<Integer,Integer> zoneRep=new HashMap<Integer,Integer>();
+  for (int zoneId=0; zoneId < numZones; zoneId++) {
+    zoneRep.put(zoneId,3);
+  }
+  int repFactor=numZones * 3;
+  StoreDefinition storeDef=new StoreDefinitionBuilder().setName("ZZ322").setType(BdbStorageConfiguration.TYPE_NAME).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.ZONE_STRATEGY).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setReplicationFactor(repFactor).setZoneReplicationFactor(zoneRep).setRequiredReads(2).setRequiredWrites(2).setZoneCountReads(0).setZoneCountWrites(0).build();
+  return storeDef;
+}

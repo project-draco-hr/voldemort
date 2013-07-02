@@ -1,12 +1,12 @@
 {
   if (RoutingStrategyType.CONSISTENT_STRATEGY.equals(storeDef.getRoutingStrategyType())) {
-    return new ConsistentRoutingStrategy(cluster.getNodes(),storeDef.getReplicationFactor());
+    return new ConsistentRoutingStrategy(cluster,storeDef.getReplicationFactor());
   }
  else   if (RoutingStrategyType.TO_ALL_STRATEGY.equals(storeDef.getRoutingStrategyType())) {
     return new RouteToAllStrategy(cluster.getNodes());
   }
  else   if (RoutingStrategyType.ZONE_STRATEGY.equals(storeDef.getRoutingStrategyType())) {
-    return new ZoneRoutingStrategy(cluster.getNodes(),storeDef.getZoneReplicationFactor(),storeDef.getReplicationFactor());
+    return new ZoneRoutingStrategy(cluster,storeDef.getZoneReplicationFactor(),storeDef.getReplicationFactor());
   }
  else   if (RoutingStrategyType.TO_ALL_LOCAL_PREF_STRATEGY.equals(storeDef.getRoutingStrategyType())) {
     return new RouteToAllLocalPrefStrategy(cluster.getNodes());
