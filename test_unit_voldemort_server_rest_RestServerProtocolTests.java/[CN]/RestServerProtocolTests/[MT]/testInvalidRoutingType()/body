@@ -1,0 +1,16 @@
+{
+  logger.info("********** Testing invalid routing type **********");
+  HttpURLConnection conn=null;
+  int responseCode=-1;
+  try {
+    conn=doGet(urlStr,key1,storeNameStr,String.valueOf(originTime),String.valueOf(timeOut),String.valueOf(6));
+    responseCode=conn.getResponseCode();
+    logger.info("Response Code: " + responseCode + " Message: "+ conn.getResponseMessage());
+    readErrorMessageFromResponse(conn);
+  }
+ catch (  IOException e1) {
+    e1.printStackTrace();
+  }
+  assertEquals(responseCode,400);
+  conn.disconnect();
+}

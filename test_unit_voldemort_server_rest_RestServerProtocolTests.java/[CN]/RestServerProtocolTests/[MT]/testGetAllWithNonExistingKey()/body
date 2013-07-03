@@ -1,0 +1,16 @@
+{
+  logger.info("********** Testing get all with all non existing keys **********");
+  HttpURLConnection conn=null;
+  int responseCode=-1;
+  try {
+    conn=doGet(urlStr,"non existing key1, non existing key2",storeNameStr,String.valueOf(originTime),String.valueOf(timeOut),String.valueOf(routingType));
+    responseCode=conn.getResponseCode();
+    logger.info("Response Code: " + responseCode + " Message: "+ conn.getResponseMessage());
+    readErrorMessageFromResponse(conn);
+  }
+ catch (  IOException e) {
+    e.printStackTrace();
+  }
+  assertEquals(responseCode,404);
+  conn.disconnect();
+}

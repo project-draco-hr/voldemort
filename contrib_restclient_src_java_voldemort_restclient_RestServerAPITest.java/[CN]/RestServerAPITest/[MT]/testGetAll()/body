@@ -1,0 +1,24 @@
+{
+  logger.info("\n\n********************  Testing Get All *******************\n\n");
+  VectorClock vectorClock1=new VectorClock();
+  vectorClock1.incrementVersion(config.getNodeId(),System.currentTimeMillis());
+  ByteArray key2=new ByteArray("key2".getBytes());
+  Versioned<byte[]> value2=new Versioned<byte[]>("value2".getBytes(),vectorClock1);
+  store.put(key2,value2,null);
+  vectorClock1=new VectorClock();
+  vectorClock1.incrementVersion(config.getNodeId(),System.currentTimeMillis());
+  ByteArray key3=new ByteArray("key3".getBytes());
+  Versioned<byte[]> value3=new Versioned<byte[]>("value3".getBytes(),vectorClock1);
+  store.put(key3,value3,null);
+  Map<ByteArray,List<Versioned<byte[]>>> input=new HashMap<ByteArray,List<Versioned<byte[]>>>();
+  List<Versioned<byte[]>> valuesList2=new ArrayList<Versioned<byte[]>>();
+  valuesList2.add(value2);
+  input.put(key2,valuesList2);
+  List<Versioned<byte[]>> valuesList3=new ArrayList<Versioned<byte[]>>();
+  valuesList3.add(value3);
+  input.put(key3,valuesList3);
+  Map<ByteArray,List<Versioned<byte[]>>> output=store.getAll(input.keySet(),null);
+  assertEquals(input,output);
+  deleteCreatedKeys(key2);
+  deleteCreatedKeys(key3);
+}

@@ -1,0 +1,19 @@
+{
+  HttpURLConnection conn=createConnection(url,key,storeName,originTime,timeOut,routingType,"POST");
+  conn.setDoOutput(true);
+  if (vectorClock != null) {
+    conn.setRequestProperty(RestMessageHeaders.X_VOLD_VECTOR_CLOCK,vectorClock);
+  }
+  if (ContentType != null) {
+    conn.setRequestProperty("Content-Type",ContentType);
+  }
+  if (contentLength != null) {
+    conn.setRequestProperty("Content-Length",contentLength);
+  }
+  if (value != null) {
+    OutputStream out=conn.getOutputStream();
+    out.write(value.getBytes());
+    out.close();
+  }
+  return conn;
+}

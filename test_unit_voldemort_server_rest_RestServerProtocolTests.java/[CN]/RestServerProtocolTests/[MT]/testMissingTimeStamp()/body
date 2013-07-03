@@ -1,0 +1,16 @@
+{
+  logger.info("********** Testing missing time stamp **********");
+  HttpURLConnection conn=null;
+  int responseCode=-1;
+  try {
+    conn=doDelete(urlStr,key1,storeNameStr,null,String.valueOf(timeOut),String.valueOf(routingType),eTag);
+    responseCode=conn.getResponseCode();
+    logger.info("Response Code: " + responseCode + " Message: "+ conn.getResponseMessage());
+    readErrorMessageFromResponse(conn);
+  }
+ catch (  IOException e) {
+    e.printStackTrace();
+  }
+  assertEquals(responseCode,400);
+  conn.disconnect();
+}

@@ -1,0 +1,29 @@
+{
+  logger.info("\n\n********************  Testing Get All with multiple versions *******************\n\n");
+  Map<ByteArray,List<Versioned<byte[]>>> input=new HashMap<ByteArray,List<Versioned<byte[]>>>();
+  List<Versioned<byte[]>> valuesList2=new ArrayList<Versioned<byte[]>>();
+  VectorClock vectorClock1=new VectorClock();
+  vectorClock1.incrementVersion(config.getNodeId(),System.currentTimeMillis());
+  ByteArray key2=new ByteArray("key22".getBytes());
+  Versioned<byte[]> value1=new Versioned<byte[]>("value22".getBytes(),vectorClock1);
+  store.put(key2,value1,null);
+  valuesList2.add(value1);
+  VectorClock vectorClock2=new VectorClock();
+  vectorClock2.incrementVersion(1,System.currentTimeMillis());
+  Versioned<byte[]> value2=new Versioned<byte[]>("value23".getBytes(),vectorClock2);
+  store.put(key2,value2,null);
+  valuesList2.add(value2);
+  input.put(key2,valuesList2);
+  List<Versioned<byte[]>> valuesList3=new ArrayList<Versioned<byte[]>>();
+  VectorClock vectorClock3=new VectorClock();
+  vectorClock3.incrementVersion(config.getNodeId(),System.currentTimeMillis());
+  ByteArray key3=new ByteArray("key23".getBytes());
+  Versioned<byte[]> value3=new Versioned<byte[]>("value43".getBytes(),vectorClock3);
+  store.put(key3,value3,null);
+  valuesList3.add(value3);
+  input.put(key3,valuesList3);
+  Map<ByteArray,List<Versioned<byte[]>>> output=store.getAll(input.keySet(),null);
+  assertEquals(input,output);
+  deleteCreatedKeys(key2);
+  deleteCreatedKeys(key3);
+}

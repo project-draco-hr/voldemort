@@ -1,0 +1,27 @@
+{
+  logger.info("********** Testing obsolete version exception **********");
+  deleteKeysCreated(key1,eTag);
+  HttpURLConnection conn=null;
+  int responseCode=-1;
+  try {
+    conn=doPut(urlStr,key1,value1,storeNameStr,String.valueOf(originTime),String.valueOf(timeOut),String.valueOf(routingType),eTag,contentType,String.valueOf(value1.getBytes().length));
+    responseCode=conn.getResponseCode();
+    logger.info("Response Code: " + responseCode + " Message: "+ conn.getResponseMessage());
+    if (responseCode != 200 && responseCode != 201) {
+      fail("Initial put failed");
+    }
+ else {
+      conn.disconnect();
+      conn=doPut(urlStr,key1,value1,storeNameStr,String.valueOf(originTime),String.valueOf(timeOut),String.valueOf(routingType),eTag,contentType,String.valueOf(value1.getBytes().length));
+      responseCode=conn.getResponseCode();
+      logger.info("Response Code: " + responseCode + " Message: "+ conn.getResponseMessage());
+      readErrorMessageFromResponse(conn);
+    }
+  }
+ catch (  IOException e) {
+    e.printStackTrace();
+  }
+  assertEquals(responseCode,412);
+  conn.disconnect();
+  deleteKeysCreated(key1,eTag);
+}

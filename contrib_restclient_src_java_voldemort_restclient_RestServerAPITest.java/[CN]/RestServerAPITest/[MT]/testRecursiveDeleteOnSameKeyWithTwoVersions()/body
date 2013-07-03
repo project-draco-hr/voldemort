@@ -1,0 +1,29 @@
+{
+  logger.info("\n\n********************  Testing recursive Delete on a key with two versions *******************\n\n");
+  store.put(key,value,null);
+  List<Versioned<byte[]>> resultList, previousResultList;
+  resultList=store.get(key,null);
+  VectorClock vectorClock2=new VectorClock();
+  vectorClock2.incrementVersion(config.getNodeId() + 1,System.currentTimeMillis());
+  Versioned<byte[]> value2=new Versioned<byte[]>("value32".getBytes(),vectorClock2);
+  store.put(key,value2,null);
+  previousResultList=resultList;
+  resultList=store.get(key,null);
+  if (resultList.size() != previousResultList.size() + 1) {
+    fail("Failed to add another version");
+  }
+ else {
+    previousResultList=resultList;
+    store.delete(key,value.getVersion());
+    resultList=store.get(key,null);
+    if (resultList.size() != previousResultList.size() - 1) {
+      fail("Delete failed");
+    }
+ else {
+      previousResultList=resultList;
+      store.delete(key,value2.getVersion());
+      resultList=store.get(key,null);
+      assertTrue(resultList.size() == previousResultList.size() - 1);
+    }
+  }
+}

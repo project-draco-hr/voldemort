@@ -1,0 +1,29 @@
+{
+  HttpURLConnection conn=null;
+  URL url;
+  String urlStr=urlString;
+  String base64Key="";
+  if (storeName != null) {
+    urlStr+=storeName + "/";
+  }
+  if (key != null) {
+    base64Key=new String(Base64.encodeBase64(key.getBytes()));
+    url=new URL(urlStr + base64Key);
+  }
+ else {
+    url=new URL(urlStr);
+  }
+  conn=(HttpURLConnection)url.openConnection();
+  conn.setRequestMethod(method);
+  conn.setDoInput(true);
+  if (originTime != null) {
+    conn.setRequestProperty(RestMessageHeaders.X_VOLD_REQUEST_ORIGIN_TIME_MS,String.valueOf(originTime));
+  }
+  if (timeOut != null) {
+    conn.setRequestProperty(RestMessageHeaders.X_VOLD_REQUEST_TIMEOUT_MS,String.valueOf(timeOut));
+  }
+  if (routingType != null) {
+    conn.setRequestProperty(RestMessageHeaders.X_VOLD_ROUTING_TYPE_CODE,String.valueOf(routingType));
+  }
+  return conn;
+}

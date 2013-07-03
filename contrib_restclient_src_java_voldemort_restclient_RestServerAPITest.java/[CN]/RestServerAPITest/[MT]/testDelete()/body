@@ -1,0 +1,20 @@
+{
+  logger.info("\n\n********************  Testing Delete *******************\n\n");
+  input=new ArrayList<Versioned<byte[]>>();
+  input.add(value);
+  store.put(key,value,null);
+  output=store.get(key,null);
+  if (!output.equals(input)) {
+    fail("key does not exist after put");
+  }
+ else {
+    boolean result=store.delete(key,output.get(0).getVersion());
+    if (!result) {
+      fail("Notthing to delete");
+    }
+ else {
+      output=store.get(key,null);
+      assertTrue(output.size() == 0);
+    }
+  }
+}

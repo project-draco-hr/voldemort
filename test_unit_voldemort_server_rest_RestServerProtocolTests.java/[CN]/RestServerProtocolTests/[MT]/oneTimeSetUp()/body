@@ -1,0 +1,17 @@
+{
+  storeNameStr="test";
+  urlStr="http://localhost:8081/";
+  config=VoldemortConfig.loadFromVoldemortHome("config/single_node_cluster/");
+  key1="The longest key ";
+  vectorClock=new VectorClock();
+  vectorClock.incrementVersion(config.getNodeId(),System.currentTimeMillis());
+  eTag=CoordinatorUtils.getSerializedVectorClock(vectorClock);
+  value1="The longest value";
+  timeOut=1000L;
+  contentType="text";
+  originTime=System.currentTimeMillis();
+  routingType=2;
+  server=new VoldemortServer(config);
+  if (!server.isStarted())   server.start();
+  System.out.println("********************Starting REST Server********************");
+}
