@@ -10,6 +10,16 @@
     if (this.routingTypeCode != null) {
       rb.setHeader(X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
     }
+    VectorClock vc=(VectorClock)version;
+    if (vc != null && vc.getEntries().size() != 0) {
+      String serializedVC=null;
+      if (!vc.getEntries().isEmpty()) {
+        serializedVC=CoordinatorUtils.getSerializedVectorClock(vc);
+      }
+      if (serializedVC != null && serializedVC.length() > 0) {
+        rb.setHeader(X_VOLD_VECTOR_CLOCK,serializedVC);
+      }
+    }
     RestRequest request=rb.build();
     Future<RestResponse> f=client.restRequest(request);
     RestResponse response=f.get();

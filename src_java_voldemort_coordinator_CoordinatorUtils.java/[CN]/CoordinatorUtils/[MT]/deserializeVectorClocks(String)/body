@@ -1,0 +1,23 @@
+{
+  Set<VectorClockWrapper> vectorClockWrappers=null;
+  List<VectorClock> vectorClocks=null;
+  if (serializedVC == null) {
+    return null;
+  }
+  ObjectMapper mapper=new ObjectMapper();
+  try {
+    vectorClockWrappers=mapper.readValue(serializedVC,new TypeReference<Set<VectorClockWrapper>>(){
+    }
+);
+    if (vectorClockWrappers.size() > 0) {
+      vectorClocks=new ArrayList<VectorClock>();
+    }
+    for (    VectorClockWrapper vectorClockWrapper : vectorClockWrappers) {
+      vectorClocks.add(new VectorClock(vectorClockWrapper.getVersions(),vectorClockWrapper.getTimestamp()));
+    }
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+  return vectorClocks;
+}

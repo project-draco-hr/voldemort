@@ -1,0 +1,21 @@
+{
+  String rtCode=this.request.getHeader(RestMessageHeaders.X_VOLD_ROUTING_TYPE_CODE);
+  boolean result=false;
+  if (rtCode != null) {
+    try {
+      int routingTypeCode=Integer.parseInt(rtCode);
+      this.parsedRoutingType=RequestRoutingType.getRequestRoutingType(routingTypeCode);
+      result=true;
+    }
+ catch (    NumberFormatException nfe) {
+      RestServerErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Incorrect routing type parameter. Cannot parse this to long: " + rtCode);
+    }
+catch (    VoldemortException ve) {
+      RestServerErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Incorrect routing type code: " + rtCode);
+    }
+  }
+ else {
+    RestServerErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Missing routing type parameter.");
+  }
+  return result;
+}

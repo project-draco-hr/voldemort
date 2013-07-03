@@ -1,5 +1,5 @@
 {
-  RestServerErrorHandler errorHandler;
+  RestServerRequestValidator requestValidator;
   if (!readingChunks) {
     HttpRequest request=this.request=(HttpRequest)messageEvent.getMessage();
     String requestURI=this.request.getUri();
@@ -12,16 +12,16 @@
  else {
       HttpMethod httpMethod=request.getMethod();
       if (httpMethod.equals(HttpMethod.GET)) {
-        errorHandler=new RestServerGetRequestErrorHandler(request,messageEvent,storeRepository);
+        requestValidator=new RestServerGetRequestValidator(request,messageEvent,storeRepository);
       }
  else       if (httpMethod.equals(HttpMethod.POST)) {
-        errorHandler=new RestServerPutRequestErrorHandler(request,messageEvent,storeRepository);
+        requestValidator=new RestServerPutRequestValidator(request,messageEvent,storeRepository);
       }
  else       if (httpMethod.equals(HttpMethod.DELETE)) {
-        errorHandler=new RestServerDeleteRequestErrorHandler(request,messageEvent,storeRepository);
+        requestValidator=new RestServerDeleteRequestValidator(request,messageEvent,storeRepository);
       }
  else       if (httpMethod.equals(HttpMethod.HEAD)) {
-        errorHandler=new RestServerGetVersionRequestErrorHandler(request,messageEvent,storeRepository);
+        requestValidator=new RestServerGetVersionRequestValidator(request,messageEvent,storeRepository);
       }
  else {
         String errorMessage="Illegal Http request.";
@@ -29,110 +29,24 @@
         RestServerErrorHandler.writeErrorResponse(messageEvent,BAD_REQUEST,errorMessage);
         return;
       }
-      CompositeVoldemortRequest<ByteArray,byte[]> requestObject=errorHandler.constructCompositeVoldemortRequestObject();
+      CompositeVoldemortRequest<ByteArray,byte[]> requestObject=requestValidator.constructCompositeVoldemortRequestObject();
       if (requestObject != null) {
-switch (requestObject.getOperationType()) {
-case VoldemortOpCode.GET_OP_CODE:
-          if (logger.isDebugEnabled()) {
-            logger.debug("Incoming get request");
-          }
-        try {
-          List<Versioned<byte[]>> versionedValues=inMemoryStore.get(requestObject.getKey(),null);
-          if (versionedValues.size() > 0) {
-            GetResponseSender responseConstructor=new GetResponseSender(messageEvent,requestObject.getKey(),versionedValues,inMemoryStore.getName());
-            responseConstructor.sendResponse();
-          }
+        Store store=getStore(requestValidator.getStoreName(),requestValidator.getParsedRoutingType());
+        if (store != null) {
+          VoldemortStoreRequest voldemortStoreRequest=new VoldemortStoreRequest(requestObject,store);
+          Channels.fireMessageReceived(ctx,voldemortStoreRequest);
+        }
  else {
-            RestServerErrorHandler.writeErrorResponse(messageEvent,NOT_FOUND,"Either key does not exist or key is null");
-          }
+          RestServerErrorHandler.writeErrorResponse(messageEvent,HttpResponseStatus.BAD_REQUEST,"Non Existing store name. Critical error.");
+          return;
         }
- catch (        Exception e) {
-          errorHandler.handleExceptions(e);
-        }
-      break;
-case VoldemortOpCode.GET_ALL_OP_CODE:
-    if (logger.isDebugEnabled()) {
-      logger.debug("Incoming get all request");
-    }
-  try {
-    Map<ByteArray,List<Versioned<byte[]>>> keyValuesMap=inMemoryStore.getAll(requestObject.getIterableKeys(),null);
-    boolean hasAtleastOneValidKey=false;
-    for (    List<Versioned<byte[]>> values : keyValuesMap.values()) {
-      if (values.size() > 0) {
-        hasAtleastOneValidKey=true;
-        break;
       }
     }
-    if (hasAtleastOneValidKey) {
-      GetAllResponseSender responseConstructor=new GetAllResponseSender(messageEvent,keyValuesMap,inMemoryStore.getName());
-      responseConstructor.sendResponse();
-    }
+  }
  else {
-      RestServerErrorHandler.writeErrorResponse(messageEvent,NOT_FOUND,"Either key does not exist or key is null");
+    HttpChunk chunk=(HttpChunk)messageEvent.getMessage();
+    if (chunk.isLast()) {
+      readingChunks=false;
     }
   }
- catch (  Exception e) {
-    errorHandler.handleExceptions(e);
-  }
-break;
-case VoldemortOpCode.PUT_OP_CODE:
-if (logger.isDebugEnabled()) {
-logger.debug("Incoming put request");
-}
-try {
-inMemoryStore.put(requestObject.getKey(),requestObject.getValue(),null);
-PutResponseSender responseConstructor=new PutResponseSender(messageEvent);
-responseConstructor.sendResponse();
-}
- catch (Exception e) {
-errorHandler.handleExceptions(e);
-}
-break;
-case VoldemortOpCode.DELETE_OP_CODE:
-if (logger.isDebugEnabled()) {
-logger.debug("Incoming delete request");
-}
-try {
-boolean result=inMemoryStore.delete(requestObject.getKey(),requestObject.getVersion());
-if (!result) {
-RestServerErrorHandler.writeErrorResponse(messageEvent,NOT_FOUND,"Non Existing key/version. Nothing to delete");
-break;
-}
-DeleteResponseSender responseConstructor=new DeleteResponseSender(messageEvent);
-responseConstructor.sendResponse();
-}
- catch (Exception e) {
-errorHandler.handleExceptions(e);
-}
-break;
-case VoldemortOpCode.GET_VERSION_OP_CODE:
-if (logger.isDebugEnabled()) {
-logger.debug("Incoming get version request");
-}
-try {
-List<Version> versions=inMemoryStore.getVersions(requestObject.getKey());
-if (versions.size() > 0) {
-GetVersionResponseSender responseConstructor=new GetVersionResponseSender(messageEvent,requestObject.getKey(),versions,inMemoryStore.getName());
-responseConstructor.sendResponse();
-}
- else {
-RestServerErrorHandler.writeErrorResponse(messageEvent,NOT_FOUND,"Either key does not exist or key is null");
-}
-}
- catch (Exception e) {
-errorHandler.handleExceptions(e);
-}
-break;
-default :
-return;
-}
-}
-}
-}
- else {
-HttpChunk chunk=(HttpChunk)messageEvent.getMessage();
-if (chunk.isLast()) {
-readingChunks=false;
-}
-}
 }

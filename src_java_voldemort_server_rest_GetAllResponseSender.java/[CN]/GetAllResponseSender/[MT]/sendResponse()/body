@@ -24,7 +24,6 @@
       try {
         valueBody.addHeader(CONTENT_TYPE,"application/octet-stream");
         valueBody.addHeader(CONTENT_TRANSFER_ENCODING,"binary");
-        valueBody.addHeader(CONTENT_LENGTH,"" + responseValue.length);
         valueBody.addHeader(RestMessageHeaders.X_VOLD_VECTOR_CLOCK,eTag);
         valueBody.setContent(responseValue,"application/octet-stream");
         multiPartValues.addBodyPart(valueBody);
@@ -37,7 +36,6 @@
     }
     try {
       keyBody.setContent(multiPartValues);
-      keyBody.addHeader(CONTENT_LENGTH,"" + keyBody.getSize());
       multiPartKeys.addBodyPart(keyBody);
     }
  catch (    MessagingException me) {

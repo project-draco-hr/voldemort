@@ -7,7 +7,7 @@
   services.add(scheduler);
   services.add(asyncService);
   if (voldemortConfig.isHttpServerEnabled()) {
-    services.add(new RestService(voldemortConfig.getMaxThreads(),identityNode.getHttpPort(),storeRepository));
+    services.add(new RestService(voldemortConfig,identityNode.getHttpPort(),storeRepository));
   }
   if (voldemortConfig.isSocketServerEnabled()) {
     RequestHandlerFactory socketRequestHandlerFactory=new SocketRequestHandlerFactory(storageService,this.storeRepository,this.metadata,this.voldemortConfig,this.asyncService,null);

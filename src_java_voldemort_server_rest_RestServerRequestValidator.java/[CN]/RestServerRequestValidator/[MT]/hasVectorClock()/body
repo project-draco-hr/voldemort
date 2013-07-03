@@ -1,0 +1,20 @@
+{
+  boolean result=false;
+  String vectorClockHeader=this.request.getHeader(RestMessageHeaders.X_VOLD_VECTOR_CLOCK);
+  if (vectorClockHeader != null) {
+    ObjectMapper mapper=new ObjectMapper();
+    try {
+      VectorClockWrapper vcWrapper=mapper.readValue(vectorClockHeader,VectorClockWrapper.class);
+      this.parsedVectorClock=new VectorClock(vcWrapper.getVersions(),vcWrapper.getTimestamp());
+      result=true;
+    }
+ catch (    Exception e) {
+      logger.error("Exception while parsing and constructing vector clock",e);
+      RestServerErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Invalid Vector Clock");
+    }
+  }
+ else {
+    RestServerErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Missing Vector Clock");
+  }
+  return result;
+}

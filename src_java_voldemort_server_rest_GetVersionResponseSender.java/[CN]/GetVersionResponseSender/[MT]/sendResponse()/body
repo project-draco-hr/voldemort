@@ -1,22 +1,18 @@
 {
   String contentLocationKey="/" + this.storeName + "/"+ new String(Base64.encodeBase64(key.get()));
-  StringBuilder eTags=new StringBuilder();
-  boolean firstETag=true;
+  List<VectorClock> vectorClocks=new ArrayList<VectorClock>();
   for (  Version versionedValue : versionedValues) {
-    VectorClock vectorClock=(VectorClock)versionedValue;
-    String eTag=CoordinatorUtils.getSerializedVectorClock(vectorClock);
-    if (firstETag) {
-      eTags.append(eTag);
-      firstETag=false;
-    }
- else {
-      eTags.append(", " + eTag);
-    }
+    vectorClocks.add((VectorClock)versionedValue);
   }
+  String eTags=CoordinatorUtils.getSerializedVectorClocks(vectorClocks);
+  byte[] responseContent=eTags.getBytes();
+  ChannelBuffer responseContentBuffer=ChannelBuffers.dynamicBuffer(responseContent.length);
+  responseContentBuffer.writeBytes(responseContent);
   HttpResponse response=new DefaultHttpResponse(HTTP_1_1,OK);
+  response.setHeader(CONTENT_TYPE,"binary");
   response.setHeader(CONTENT_TRANSFER_ENCODING,"binary");
-  response.setHeader(CONTENT_LENGTH,0);
   response.setHeader(CONTENT_LOCATION,contentLocationKey);
-  response.setHeader(RestMessageHeaders.X_VOLD_VECTOR_CLOCK,eTags.toString());
+  response.setContent(responseContentBuffer);
+  response.setHeader(CONTENT_LENGTH,response.getContent().readableBytes());
   this.messageEvent.getChannel().write(response);
 }
