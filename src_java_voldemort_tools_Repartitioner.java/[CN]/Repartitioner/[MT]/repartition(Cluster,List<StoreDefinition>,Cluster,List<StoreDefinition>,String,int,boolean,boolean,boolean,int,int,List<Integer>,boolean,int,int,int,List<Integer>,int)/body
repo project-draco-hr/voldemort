@@ -12,11 +12,10 @@
       nextCandidateCluster=balancePrimaryPartitions(nextCandidateCluster,!disableZoneBalancing);
     }
     if (enableRandomSwaps) {
-      boolean interZoneSwapping=true;
-      nextCandidateCluster=randomShufflePartitions(nextCandidateCluster,randomSwapAttempts,randomSwapSuccesses,randomSwapZoneIds,finalStoreDefs,interZoneSwapping);
+      nextCandidateCluster=randomShufflePartitions(nextCandidateCluster,randomSwapAttempts,randomSwapSuccesses,randomSwapZoneIds,finalStoreDefs);
     }
     if (enableGreedySwaps) {
-      nextCandidateCluster=greedyShufflePartitions(nextCandidateCluster,greedySwapAttempts,greedySwapMaxPartitionsPerNode,greedySwapMaxPartitionsPerZone,new ArrayList<Integer>(interimCluster.getZoneIds()),finalStoreDefs);
+      nextCandidateCluster=greedyShufflePartitions(nextCandidateCluster,greedySwapAttempts,greedySwapMaxPartitionsPerNode,greedySwapMaxPartitionsPerZone,greedySwapZoneIds,finalStoreDefs);
     }
     RebalanceUtils.validateCurrentFinalCluster(currentCluster,nextCandidateCluster);
     System.out.println("-------------------------\n");

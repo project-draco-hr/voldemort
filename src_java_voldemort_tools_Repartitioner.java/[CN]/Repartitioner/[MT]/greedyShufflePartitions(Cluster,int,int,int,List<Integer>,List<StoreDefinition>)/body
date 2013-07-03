@@ -1,37 +1,24 @@
 {
-  final int specialZoneId=-1;
-  if (zoneIds == null) {
-    zoneIds=new ArrayList<Integer>();
-    zoneIds.add(specialZoneId);
+  List<Integer> zoneIds=null;
+  if (greedySwapZoneIds.isEmpty()) {
+    zoneIds=new ArrayList<Integer>(nextCandidateCluster.getZoneIds());
   }
+ else {
+    zoneIds=new ArrayList<Integer>(greedySwapZoneIds);
+  }
+  List<Integer> nodeIds=new ArrayList<Integer>();
   Cluster returnCluster=ClusterUtils.copyCluster(nextCandidateCluster);
-  if (zoneIds.isEmpty()) {
-    logger.warn("greedyShufflePartitions invoked with empty list of zone IDs.");
-    return returnCluster;
-  }
   double currentUtility=new PartitionBalance(returnCluster,storeDefs).getUtility();
   for (int i=0; i < greedyAttempts; i++) {
+    int zoneIdOffset=i % zoneIds.size();
+    Set<Integer> nodeIdSet=nextCandidateCluster.getNodeIdsInZone(zoneIds.get(zoneIdOffset));
+    nodeIds=new ArrayList<Integer>(nodeIdSet);
     Collections.shuffle(zoneIds,new Random(System.currentTimeMillis()));
-    for (    Integer zoneId : zoneIds) {
-      System.out.println("Greedy swap attempt: zone " + zoneId + " , attempt "+ i+ " of "+ greedyAttempts);
-      List<Integer> nodeIds;
-      if (zoneId == specialZoneId) {
-        nodeIds=new ArrayList<Integer>(nextCandidateCluster.getNodeIds());
-      }
- else {
-        nodeIds=new ArrayList<Integer>(nextCandidateCluster.getNodeIdsInZone(zoneId));
-      }
-      Cluster shuffleResults=swapGreedyRandomPartitions(returnCluster,nodeIds,greedySwapMaxPartitionsPerNode,greedySwapMaxPartitionsPerZone,storeDefs);
-      double nextUtility=new PartitionBalance(shuffleResults,storeDefs).getUtility();
-      if (nextUtility == currentUtility) {
-        System.out.println("Not improving for zone: " + zoneId);
-      }
- else {
-        System.out.println("Swap improved max-min ratio: " + currentUtility + " -> "+ nextUtility+ " (swap attempt "+ i+ " in zone "+ zoneId+ ")");
-        returnCluster=shuffleResults;
-        currentUtility=nextUtility;
-      }
-    }
+    Cluster shuffleResults=swapGreedyRandomPartitions(returnCluster,nodeIds,greedySwapMaxPartitionsPerNode,greedySwapMaxPartitionsPerZone,storeDefs);
+    double nextUtility=new PartitionBalance(shuffleResults,storeDefs).getUtility();
+    System.out.println("Swap improved max-min ratio: " + currentUtility + " -> "+ nextUtility+ " (swap attempt "+ i+ " in zone "+ zoneIds.get(zoneIdOffset)+ ")");
+    returnCluster=shuffleResults;
+    currentUtility=nextUtility;
   }
   return returnCluster;
 }

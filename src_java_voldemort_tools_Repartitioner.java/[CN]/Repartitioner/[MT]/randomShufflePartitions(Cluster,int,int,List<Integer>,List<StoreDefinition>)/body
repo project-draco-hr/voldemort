@@ -7,20 +7,13 @@
     zoneIds=new ArrayList<Integer>(randomSwapZoneIds);
   }
   List<Integer> nodeIds=new ArrayList<Integer>();
-  if (interZoneSwapping) {
-    for (    int zoneId : zoneIds) {
-      nodeIds.addAll(nextCandidateCluster.getNodeIdsInZone(zoneId));
-    }
-  }
   Cluster returnCluster=ClusterUtils.copyCluster(nextCandidateCluster);
   double currentUtility=new PartitionBalance(returnCluster,storeDefs).getUtility();
   int successes=0;
   for (int i=0; i < randomSwapAttempts; i++) {
-    if (!interZoneSwapping) {
-      int zoneIdOffset=i % randomSwapZoneIds.size();
-      Set<Integer> nodeIdSet=nextCandidateCluster.getNodeIdsInZone(randomSwapZoneIds.get(zoneIdOffset));
-      nodeIds=new ArrayList<Integer>(nodeIdSet);
-    }
+    int zoneIdOffset=i % zoneIds.size();
+    Set<Integer> nodeIdSet=nextCandidateCluster.getNodeIdsInZone(zoneIds.get(zoneIdOffset));
+    nodeIds=new ArrayList<Integer>(nodeIdSet);
     Collections.shuffle(zoneIds,new Random(System.currentTimeMillis()));
     Cluster shuffleResults=swapRandomPartitionsAmongNodes(returnCluster,nodeIds);
     double nextUtility=new PartitionBalance(shuffleResults,storeDefs).getUtility();
