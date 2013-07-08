@@ -5,7 +5,9 @@
   this.checkHostName();
   this.storeRepository=new StoreRepository(config.isJmxEnabled());
   ConfigurationStorageEngine metadataInnerEngine=new ConfigurationStorageEngine("metadata-config-store",voldemortConfig.getMetadataDirectory());
-  metadataInnerEngine.put(MetadataStore.CLUSTER_KEY,new Versioned<String>(new ClusterMapper().writeCluster(cluster)),null);
+  VectorClock version=new VectorClock();
+  version.incrementVersion(0,System.currentTimeMillis());
+  metadataInnerEngine.put(MetadataStore.CLUSTER_KEY,new Versioned<String>(new ClusterMapper().writeCluster(cluster),version),null);
   this.metadata=new MetadataStore(metadataInnerEngine,voldemortConfig.getNodeId());
   this.services=createServices();
 }
