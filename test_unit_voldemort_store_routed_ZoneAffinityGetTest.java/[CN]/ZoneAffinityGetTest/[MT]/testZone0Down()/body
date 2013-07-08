@@ -1,0 +1,11 @@
+{
+  for (  Integer nodeId : cluster.getNodeIdsInZone(0)) {
+    this.vservers.get(nodeId).stop();
+  }
+  try {
+    client.get("AB",null);
+    fail("Did not fail fast");
+  }
+ catch (  InsufficientOperationalNodesException e) {
+  }
+}
