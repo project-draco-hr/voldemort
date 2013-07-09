@@ -4,8 +4,10 @@
     String base64Key=new String(Base64.encodeBase64(getName().getBytes("UTF-8")));
     rb=new RestRequestBuilder(new URI(this.baseURL + "/" + SCHEMATA_STORE_NAME+ "/"+ base64Key));
     rb.setHeader("Accept","binary");
-    rb.setHeader(X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
     rb.setHeader(X_VOLD_REQUEST_ORIGIN_TIME_MS,String.valueOf(System.currentTimeMillis()));
+    if (this.routingTypeCode != null) {
+      rb.setHeader(X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
+    }
     RestResponse response=fetchGetResponse(rb,FETCH_SCHEMA_TIMEOUT_MS);
     return response.getEntity().asString("UTF-8");
   }
