@@ -20,7 +20,6 @@
   parser.accepts("truncate","truncate a store").withRequiredArg().describedAs("store-name").ofType(String.class);
   parser.accepts("set-metadata","Forceful setting of metadata [ " + MetadataStore.CLUSTER_KEY + " | "+ MetadataStore.STORES_KEY+ " | "+ MetadataStore.SERVER_STATE_KEY+ " | "+ MetadataStore.REBALANCING_SOURCE_CLUSTER_XML+ " | "+ MetadataStore.REBALANCING_STEAL_INFO+ " ]").withRequiredArg().describedAs("metadata-key").ofType(String.class);
   parser.accepts("set-metadata-value","The value for the set-metadata [ " + MetadataStore.CLUSTER_KEY + " | "+ MetadataStore.STORES_KEY+ ", "+ MetadataStore.REBALANCING_SOURCE_CLUSTER_XML+ ", "+ MetadataStore.REBALANCING_STEAL_INFO+ " ] - xml file location, [ "+ MetadataStore.SERVER_STATE_KEY+ " ] - "+ MetadataStore.VoldemortState.NORMAL_SERVER+ ","+ MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER).withRequiredArg().describedAs("metadata-value").ofType(String.class);
-  parser.accepts("key-distribution","Prints the current key distribution of the cluster");
   parser.accepts("clear-rebalancing-metadata","Remove the metadata related to rebalancing");
   parser.accepts("async","a) Get a list of async job ids [get] b) Stop async job ids [stop] ").withRequiredArg().describedAs("op-type").ofType(String.class);
   parser.accepts("async-id","Comma separated list of async ids to stop").withOptionalArg().describedAs("job-ids").withValuesSeparatedBy(',').ofType(Integer.class);
@@ -47,7 +46,7 @@
   }
   Set<String> missing=CmdUtils.missing(options,"url","node");
   if (missing.size() > 0) {
-    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store") || options.has("ro-metadata")|| options.has("set-metadata")|| options.has("get-metadata")|| options.has("check-metadata")|| options.has("key-distribution")) || options.has("truncate") || options.has("clear-rebalancing-metadata") || options.has("async") || options.has("native-backup") || options.has("rollback") || options.has("verify-metadata-version") || options.has("reserve-memory"))) {
+    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store") || options.has("ro-metadata")|| options.has("set-metadata")|| options.has("get-metadata")|| options.has("check-metadata")) || options.has("truncate") || options.has("clear-rebalancing-metadata") || options.has("async") || options.has("native-backup") || options.has("rollback") || options.has("verify-metadata-version") || options.has("reserve-memory"))) {
       System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
       printHelp(System.err,parser);
       System.exit(1);
@@ -136,14 +135,11 @@
   if (options.has("fetch-entries")) {
     ops+="v";
   }
-  if (options.has("key-distribution")) {
-    ops+="y";
-  }
   if (options.has("synchronize-metadata-version")) {
     ops+="z";
   }
   if (ops.length() < 1) {
-    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, key-distribution, clear-rebalancing-metadata, async, "+ "repair-job, native-backup, rollback, reserve-memory, mirror-url, verify-metadata-version) must be specified");
+    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, clear-rebalancing-metadata, async, "+ "repair-job, native-backup, rollback, reserve-memory, mirror-url, verify-metadata-version) must be specified");
   }
   List<String> storeNames=null;
   if (options.has("stores")) {
@@ -270,9 +266,6 @@
           throw new VoldemortException("Incorrect metadata key");
         }
       }
-    }
-    if (ops.contains("y")) {
-      executeKeyDistribution(adminClient);
     }
     if (ops.contains("i")) {
       executeClearRebalancing(nodeId,adminClient);
