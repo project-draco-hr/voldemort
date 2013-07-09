@@ -5,10 +5,10 @@
     rb.setMethod(DELETE);
     rb.setHeader(CONTENT_LENGTH,"0");
     String timeoutStr=Long.toString(this.config.getTimeoutConfig().getOperationTimeout(VoldemortOpCode.DELETE_OP_CODE));
-    rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,timeoutStr);
-    rb.setHeader(X_VOLD_REQUEST_ORIGIN_TIME_MS,String.valueOf(System.currentTimeMillis()));
+    rb.setHeader(RestMessageHeaders.X_VOLD_REQUEST_TIMEOUT_MS,timeoutStr);
+    rb.setHeader(RestMessageHeaders.X_VOLD_REQUEST_ORIGIN_TIME_MS,String.valueOf(System.currentTimeMillis()));
     if (this.routingTypeCode != null) {
-      rb.setHeader(X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
+      rb.setHeader(RestMessageHeaders.X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
     }
     VectorClock vc=(VectorClock)version;
     if (vc != null && vc.getEntries().size() != 0) {
@@ -17,7 +17,7 @@
         serializedVC=CoordinatorUtils.getSerializedVectorClock(vc);
       }
       if (serializedVC != null && serializedVC.length() > 0) {
-        rb.setHeader(X_VOLD_VECTOR_CLOCK,serializedVC);
+        rb.setHeader(RestMessageHeaders.X_VOLD_VECTOR_CLOCK,serializedVC);
       }
     }
     RestRequest request=rb.build();

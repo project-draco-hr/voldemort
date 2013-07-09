@@ -17,10 +17,10 @@
     rb.setMethod(GET);
     rb.setHeader("Accept",MULTIPART_CONTENT_TYPE);
     String timeoutStr=Long.toString(this.config.getTimeoutConfig().getOperationTimeout(VoldemortOpCode.GET_ALL_OP_CODE));
-    rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,timeoutStr);
-    rb.setHeader(X_VOLD_REQUEST_ORIGIN_TIME_MS,String.valueOf(System.currentTimeMillis()));
+    rb.setHeader(RestMessageHeaders.X_VOLD_REQUEST_TIMEOUT_MS,timeoutStr);
+    rb.setHeader(RestMessageHeaders.X_VOLD_REQUEST_ORIGIN_TIME_MS,String.valueOf(System.currentTimeMillis()));
     if (this.routingTypeCode != null) {
-      rb.setHeader(X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
+      rb.setHeader(RestMessageHeaders.X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
     }
     RestRequest request=rb.build();
     Future<RestResponse> f=client.restRequest(request);

@@ -9,10 +9,10 @@
     rb.setHeader(CONTENT_TYPE,"binary");
     rb.setHeader(CONTENT_LENGTH,"" + payload.length);
     String timeoutStr=Long.toString(this.config.getTimeoutConfig().getOperationTimeout(VoldemortOpCode.PUT_OP_CODE));
-    rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,timeoutStr);
-    rb.setHeader(X_VOLD_REQUEST_ORIGIN_TIME_MS,String.valueOf(System.currentTimeMillis()));
+    rb.setHeader(RestMessageHeaders.X_VOLD_REQUEST_TIMEOUT_MS,timeoutStr);
+    rb.setHeader(RestMessageHeaders.X_VOLD_REQUEST_ORIGIN_TIME_MS,String.valueOf(System.currentTimeMillis()));
     if (this.routingTypeCode != null) {
-      rb.setHeader(X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
+      rb.setHeader(RestMessageHeaders.X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
     }
     VectorClock vc=(VectorClock)value.getVersion();
     if (vc != null) {
@@ -21,13 +21,13 @@
         serializedVC=CoordinatorUtils.getSerializedVectorClock(vc);
       }
       if (serializedVC != null && serializedVC.length() > 0) {
-        rb.setHeader(X_VOLD_VECTOR_CLOCK,serializedVC);
+        rb.setHeader(RestMessageHeaders.X_VOLD_VECTOR_CLOCK,serializedVC);
       }
     }
     RestRequest request=rb.build();
     Future<RestResponse> f=client.restRequest(request);
     response=f.get();
-    String serializedUpdatedVC=response.getHeader(X_VOLD_VECTOR_CLOCK);
+    String serializedUpdatedVC=response.getHeader(RestMessageHeaders.X_VOLD_VECTOR_CLOCK);
     if (serializedUpdatedVC == null || serializedUpdatedVC.length() == 0) {
       if (logger.isDebugEnabled()) {
         logger.debug("Received empty vector clock in the response");
