@@ -7,10 +7,12 @@
       result=true;
     }
  catch (    NumberFormatException nfe) {
+      logger.error("Exception when validating request. Incorrect timeout parameter. Cannot parse this to long: " + timeoutValStr,nfe);
       RestServerErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Incorrect timeout parameter. Cannot parse this to long: " + timeoutValStr);
     }
   }
  else {
+    logger.error("Error when validating request. Missing timeout parameter.");
     RestServerErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Missing timeout parameter.");
   }
   return result;

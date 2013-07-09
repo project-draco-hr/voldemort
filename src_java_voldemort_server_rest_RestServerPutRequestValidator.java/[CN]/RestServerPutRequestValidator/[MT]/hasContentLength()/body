@@ -7,9 +7,13 @@
       result=true;
     }
  catch (    NumberFormatException nfe) {
+      logger.error("Exception when validating put request. Incorrect content length parameter. Cannot parse this to long: " + contentLength + ". Details: "+ nfe.getMessage(),nfe);
       RestServerErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Incorrect content length parameter. Cannot parse this to long: " + contentLength + ". Details: "+ nfe.getMessage());
     }
   }
- else   RestServerErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Missing Content-Length header");
+ else {
+    logger.error("Error when validating put request. Missing Content-Length header.");
+    RestServerErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Missing Content-Length header");
+  }
   return result;
 }

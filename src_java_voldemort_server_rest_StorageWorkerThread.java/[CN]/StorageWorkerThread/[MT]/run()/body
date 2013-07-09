@@ -16,6 +16,7 @@ case VoldemortOpCode.GET_OP_CODE:
         responseConstructor.sendResponse();
       }
  else {
+        logger.error("Error when doing get. Key does not exist");
         RestServerErrorHandler.writeErrorResponse(messageEvent,NOT_FOUND,"Key does not exist");
       }
     }
@@ -41,6 +42,7 @@ if (hasAtleastOneValidKey) {
   responseConstructor.sendResponse();
 }
  else {
+  logger.error("Error when doing getall. Key does not exist or key is null");
   RestServerErrorHandler.writeErrorResponse(messageEvent,NOT_FOUND,"Key does not exist or key is null");
 }
 }
@@ -68,6 +70,7 @@ logger.debug("Incoming delete request");
 try {
 boolean result=store.delete(requestObject.getKey(),requestObject.getVersion());
 if (!result) {
+logger.error("Error when doing delete. Non Existing key/version. Nothing to delete");
 RestServerErrorHandler.writeErrorResponse(messageEvent,NOT_FOUND,"Non Existing key/version. Nothing to delete");
 break;
 }
@@ -89,6 +92,7 @@ GetVersionResponseSender responseConstructor=new GetVersionResponseSender(messag
 responseConstructor.sendResponse();
 }
  else {
+logger.error("Error when doing getversion. Key does not exist or key is null");
 RestServerErrorHandler.writeErrorResponse(messageEvent,NOT_FOUND,"Key does not exist or key is null");
 }
 }

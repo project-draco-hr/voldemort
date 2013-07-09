@@ -1,11 +1,11 @@
 {
-  config=VoldemortConfig.loadFromVoldemortHome("config/single_node_cluster/");
+  config=VoldemortConfig.loadFromVoldemortHome("config/single_node_rest_server/");
   key=new ByteArray("key1".getBytes());
   vectorClock=new VectorClock();
   vectorClock.incrementVersion(config.getNodeId(),System.currentTimeMillis());
   value=new Versioned<byte[]>("value1".getBytes(),vectorClock);
   server=new VoldemortServer(config);
   if (!server.isStarted())   server.start();
-  System.out.println("********************Starting REST Server********************");
+  logger.info("********************Starting REST Server********************");
   deleteCreatedKeys(key);
 }

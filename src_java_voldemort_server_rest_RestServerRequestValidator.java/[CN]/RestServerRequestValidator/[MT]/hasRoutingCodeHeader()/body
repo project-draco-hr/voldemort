@@ -8,13 +8,16 @@
       result=true;
     }
  catch (    NumberFormatException nfe) {
+      logger.error("Exception when validating request. Incorrect routing type parameter. Cannot parse this to long: " + rtCode,nfe);
       RestServerErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Incorrect routing type parameter. Cannot parse this to long: " + rtCode);
     }
 catch (    VoldemortException ve) {
+      logger.error("Exception when validating request. Incorrect routing type code: " + rtCode,ve);
       RestServerErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Incorrect routing type code: " + rtCode);
     }
   }
  else {
+    logger.error("Error when validating request. Missing routing type parameter.");
     RestServerErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Missing routing type parameter.");
   }
   return result;
