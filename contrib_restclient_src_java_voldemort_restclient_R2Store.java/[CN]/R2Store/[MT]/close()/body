@@ -1,13 +1,13 @@
 {
-  final FutureCallback<None> callback=new FutureCallback<None>();
-  client.shutdown(callback);
+  final FutureCallback<None> clientShutdownCallback=new FutureCallback<None>();
+  client.shutdown(clientShutdownCallback);
   try {
-    callback.get();
+    clientShutdownCallback.get();
   }
  catch (  InterruptedException e) {
-    e.printStackTrace();
+    logger.error("Interrupted while shutting down the HttpClientFactory: " + e.getMessage(),e);
   }
 catch (  ExecutionException e) {
-    e.printStackTrace();
+    logger.error("Execution exception occurred while shutting down the HttpClientFactory: " + e.getMessage(),e);
   }
 }

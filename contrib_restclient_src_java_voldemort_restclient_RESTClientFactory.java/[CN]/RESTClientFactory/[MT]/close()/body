@@ -1,0 +1,16 @@
+{
+  for (  R2Store store : this.rawStoreList) {
+    store.close();
+  }
+  final FutureCallback<None> factoryShutdownCallback=new FutureCallback<None>();
+  this._clientFactory.shutdown(factoryShutdownCallback);
+  try {
+    factoryShutdownCallback.get();
+  }
+ catch (  InterruptedException e) {
+    logger.error("Interrupted while shutting down the HttpClientFactory: " + e.getMessage(),e);
+  }
+catch (  ExecutionException e) {
+    logger.error("Execution exception occurred while shutting down the HttpClientFactory: " + e.getMessage(),e);
+  }
+}

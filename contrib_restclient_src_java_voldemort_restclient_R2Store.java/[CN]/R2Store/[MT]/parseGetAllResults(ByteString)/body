@@ -10,15 +10,19 @@
       String contentLocation=part.getHeader("Content-Location")[0];
       String base64Key=contentLocation.split("/")[2];
       ByteArray key=new ByteArray(Base64.decodeBase64(base64Key.getBytes()));
-      logger.debug("Content-Location : " + contentLocation);
-      logger.debug("Base 64 key : " + base64Key);
+      if (logger.isDebugEnabled()) {
+        logger.debug("Content-Location : " + contentLocation);
+        logger.debug("Base 64 key : " + base64Key);
+      }
       List<Versioned<byte[]>> valueResultList=new ArrayList<Versioned<byte[]>>();
       ByteArrayDataSource nestedDS=new ByteArrayDataSource((String)part.getContent(),"multipart/mixed");
       MimeMultipart valueParts=new MimeMultipart(nestedDS);
       for (int valueId=0; valueId < valueParts.getCount(); valueId++) {
         MimeBodyPart valuePart=(MimeBodyPart)valueParts.getBodyPart(valueId);
         String serializedVC=valuePart.getHeader(X_VOLD_VECTOR_CLOCK)[0];
-        logger.debug("Received serialized  : " + serializedVC);
+        if (logger.isDebugEnabled()) {
+          logger.debug("Received serialized Vector Clock : " + serializedVC);
+        }
         VectorClockWrapper vcWrapper=mapper.readValue(serializedVC,VectorClockWrapper.class);
         byte[] bodyPartBytes=((String)valuePart.getContent()).getBytes();
         VectorClock clock=new VectorClock(vcWrapper.getVersions(),vcWrapper.getTimestamp());
@@ -28,16 +32,16 @@
     }
   }
  catch (  MessagingException e) {
-    e.printStackTrace();
+    throw new VoldemortException("Messaging exception while trying to parse GET response " + e.getMessage(),e);
   }
 catch (  JsonParseException e) {
-    e.printStackTrace();
+    throw new VoldemortException("JSON parsing exception while trying to parse GET response " + e.getMessage(),e);
   }
 catch (  JsonMappingException e) {
-    e.printStackTrace();
+    throw new VoldemortException("JSON mapping exception while trying to parse GET response " + e.getMessage(),e);
   }
 catch (  IOException e) {
-    e.printStackTrace();
+    throw new VoldemortException("IO exception while trying to parse GET response " + e.getMessage(),e);
   }
   return results;
 }

@@ -1,0 +1,15 @@
+{
+  Properties properties=new Properties();
+  InputStream input=null;
+  try {
+    input=new BufferedInputStream(new FileInputStream(propertyFile.getAbsolutePath()));
+    properties.load(input);
+  }
+ catch (  IOException e) {
+    throw new ConfigurationException(e);
+  }
+ finally {
+    IOUtils.closeQuietly(input);
+  }
+  setProperties(properties);
+}

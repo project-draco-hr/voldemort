@@ -8,7 +8,9 @@
     for (int i=0; i < mp.getCount(); i++) {
       MimeBodyPart part=(MimeBodyPart)mp.getBodyPart(i);
       String serializedVC=part.getHeader(X_VOLD_VECTOR_CLOCK)[0];
-      logger.debug("Received VC : " + serializedVC);
+      if (logger.isDebugEnabled()) {
+        logger.debug("Received VC : " + serializedVC);
+      }
       VectorClockWrapper vcWrapper=mapper.readValue(serializedVC,VectorClockWrapper.class);
       byte[] bodyPartBytes=((String)part.getContent()).getBytes();
       VectorClock clock=new VectorClock(vcWrapper.getVersions(),vcWrapper.getTimestamp());
@@ -16,16 +18,16 @@
     }
   }
  catch (  MessagingException e) {
-    e.printStackTrace();
+    throw new VoldemortException("Messaging exception while trying to parse GET response " + e.getMessage(),e);
   }
 catch (  JsonParseException e) {
-    e.printStackTrace();
+    throw new VoldemortException("JSON parsing exception while trying to parse GET response " + e.getMessage(),e);
   }
 catch (  JsonMappingException e) {
-    e.printStackTrace();
+    throw new VoldemortException("JSON mapping exception while trying to parse GET response " + e.getMessage(),e);
   }
 catch (  IOException e) {
-    e.printStackTrace();
+    throw new VoldemortException("IO exception while trying to parse GET response " + e.getMessage(),e);
   }
   return results;
 }

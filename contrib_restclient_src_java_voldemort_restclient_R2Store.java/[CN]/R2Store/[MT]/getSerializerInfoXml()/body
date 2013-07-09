@@ -4,11 +4,33 @@
     String base64Key=new String(Base64.encodeBase64(getName().getBytes("UTF-8")));
     rb=new RestRequestBuilder(new URI(this.baseURL + "/" + SCHEMATA_STORE_NAME+ "/"+ base64Key));
     rb.setHeader("Accept","binary");
-    RestResponse response=fetchGetResponse(rb,FETCH_SCHEMA_TIMEOUT);
+    rb.setHeader(X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
+    rb.setHeader(X_VOLD_REQUEST_ORIGIN_TIME_MS,String.valueOf(System.currentTimeMillis()));
+    RestResponse response=fetchGetResponse(rb,FETCH_SCHEMA_TIMEOUT_MS);
     return response.getEntity().asString("UTF-8");
   }
- catch (  Exception e) {
-    logger.error("Error in get serializer info request",e);
-    throw new VoldemortException(e);
+ catch (  ExecutionException e) {
+    if (e.getCause() instanceof RestException) {
+      RestException exception=(RestException)e.getCause();
+      if (logger.isDebugEnabled()) {
+        logger.debug("REST EXCEPTION STATUS : " + exception.getResponse().getStatus());
+      }
+    }
+ else {
+      throw new VoldemortException("Unknown HTTP request execution exception: " + e.getMessage(),e);
+    }
   }
+catch (  InterruptedException e) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Operation interrupted : " + e.getMessage(),e);
+    }
+    throw new VoldemortException("Operation interrupted exception: " + e.getMessage(),e);
+  }
+catch (  URISyntaxException e) {
+    throw new VoldemortException("Illegal HTTP URL" + e.getMessage(),e);
+  }
+catch (  UnsupportedEncodingException e) {
+    throw new VoldemortException("Unsupported Encoding exception while encoding the key" + e.getMessage(),e);
+  }
+  return null;
 }

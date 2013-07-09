@@ -1,0 +1,27 @@
+{
+  Props props=new Props(properties);
+  if (props.containsKey(ClientConfig.ENABLE_JMX_PROPERTY)) {
+    this.setEnableJmx(props.getBoolean(ClientConfig.ENABLE_JMX_PROPERTY));
+  }
+  if (props.containsKey(ClientConfig.BOOTSTRAP_URLS_PROPERTY)) {
+    List<String> urls=props.getList(ClientConfig.BOOTSTRAP_URLS_PROPERTY);
+    if (urls.size() > 0) {
+      setHttpBootstrapURL(urls.get(0));
+    }
+  }
+  if (props.containsKey(ClientConfig.MAX_TOTAL_CONNECTIONS_PROPERTY)) {
+    setMaxR2PoolSize(props.getInt(ClientConfig.MAX_TOTAL_CONNECTIONS_PROPERTY,maxR2PoolSize));
+  }
+  if (props.containsKey(ClientConfig.ROUTING_TIMEOUT_MS_PROPERTY))   this.setTimeoutMs(props.getLong(ClientConfig.ROUTING_TIMEOUT_MS_PROPERTY,timeoutMs),TimeUnit.MILLISECONDS);
+  timeoutConfig=new TimeoutConfig(timeoutMs,false);
+  if (props.containsKey(ClientConfig.GETALL_ROUTING_TIMEOUT_MS_PROPERTY))   timeoutConfig.setOperationTimeout(VoldemortOpCode.GET_ALL_OP_CODE,props.getInt(ClientConfig.GETALL_ROUTING_TIMEOUT_MS_PROPERTY));
+  if (props.containsKey(ClientConfig.GET_ROUTING_TIMEOUT_MS_PROPERTY))   timeoutConfig.setOperationTimeout(VoldemortOpCode.GET_OP_CODE,props.getInt(ClientConfig.GET_ROUTING_TIMEOUT_MS_PROPERTY));
+  if (props.containsKey(ClientConfig.PUT_ROUTING_TIMEOUT_MS_PROPERTY)) {
+    long putTimeoutMs=props.getInt(ClientConfig.PUT_ROUTING_TIMEOUT_MS_PROPERTY);
+    timeoutConfig.setOperationTimeout(VoldemortOpCode.PUT_OP_CODE,putTimeoutMs);
+    timeoutConfig.setOperationTimeout(VoldemortOpCode.GET_VERSION_OP_CODE,putTimeoutMs);
+  }
+  if (props.containsKey(ClientConfig.GET_VERSIONS_ROUTING_TIMEOUT_MS_PROPERTY))   timeoutConfig.setOperationTimeout(VoldemortOpCode.GET_VERSION_OP_CODE,props.getInt(ClientConfig.GET_VERSIONS_ROUTING_TIMEOUT_MS_PROPERTY));
+  if (props.containsKey(ClientConfig.DELETE_ROUTING_TIMEOUT_MS_PROPERTY))   timeoutConfig.setOperationTimeout(VoldemortOpCode.DELETE_OP_CODE,props.getInt(ClientConfig.DELETE_ROUTING_TIMEOUT_MS_PROPERTY));
+  if (props.containsKey(ClientConfig.ALLOW_PARTIAL_GETALLS_PROPERTY))   timeoutConfig.setPartialGetAllAllowed(props.getBoolean(ClientConfig.ALLOW_PARTIAL_GETALLS_PROPERTY));
+}

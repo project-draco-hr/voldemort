@@ -1,4 +1,5 @@
 {
+  RestResponse response=null;
   try {
     byte[] payload=value.getValue();
     String base64Key=new String(Base64.encodeBase64(key.get()));
@@ -7,10 +8,12 @@
     rb.setEntity(payload);
     rb.setHeader(CONTENT_TYPE,"binary");
     rb.setHeader(CONTENT_LENGTH,"" + payload.length);
-    String timeoutStr=Long.toString(this.timeoutConfig.getOperationTimeout(VoldemortOpCode.PUT_OP_CODE));
+    String timeoutStr=Long.toString(this.config.getTimeoutConfig().getOperationTimeout(VoldemortOpCode.PUT_OP_CODE));
     rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,timeoutStr);
+    rb.setHeader(X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
+    rb.setHeader(X_VOLD_REQUEST_ORIGIN_TIME_MS,String.valueOf(System.currentTimeMillis()));
     VectorClock vc=(VectorClock)value.getVersion();
-    if (vc != null && vc.getEntries().size() != 0) {
+    if (vc != null) {
       String serializedVC=null;
       if (!vc.getEntries().isEmpty()) {
         serializedVC=CoordinatorUtils.getSerializedVectorClock(vc);
@@ -21,18 +24,50 @@
     }
     RestRequest request=rb.build();
     Future<RestResponse> f=client.restRequest(request);
-    RestResponse response=f.get();
+    response=f.get();
+    String serializedUpdatedVC=response.getHeader(X_VOLD_VECTOR_CLOCK);
+    if (serializedUpdatedVC == null || serializedUpdatedVC.length() == 0) {
+      if (logger.isDebugEnabled()) {
+        logger.debug("Received empty vector clock in the response");
+      }
+    }
+ else {
+      VectorClock updatedVC=CoordinatorUtils.deserializeVectorClock(serializedUpdatedVC);
+      VectorClock originalVC=(VectorClock)value.getVersion();
+      originalVC.copyFromVectorClock(updatedVC);
+    }
     final ByteString entity=response.getEntity();
     if (entity == null) {
-      logger.error("Empty response !");
+      if (logger.isDebugEnabled()) {
+        logger.debug("Empty response !");
+      }
     }
   }
- catch (  VoldemortException ve) {
-    logger.error("Voldemort Exception occured : " + ve.getMessage(),ve);
-  }
-catch (  Exception e) {
-    if (!e.getMessage().contains("status=412")) {
-      logger.error("Specified version of the value is Obsolete.",e);
+ catch (  ExecutionException e) {
+    if (e.getCause() instanceof RestException) {
+      RestException exception=(RestException)e.getCause();
+      if (logger.isDebugEnabled()) {
+        logger.debug("REST EXCEPTION STATUS : " + exception.getResponse().getStatus());
+      }
+      int httpErrorStatus=exception.getResponse().getStatus();
+      if (httpErrorStatus == PRECONDITION_FAILED.getCode()) {
+        throw new ObsoleteVersionException(e.getMessage());
+      }
+ else       if (httpErrorStatus == REQUEST_TIMEOUT.getCode() || httpErrorStatus == INTERNAL_SERVER_ERROR.getCode()) {
+        throw new InsufficientOperationalNodesException(e.getMessage());
+      }
     }
+ else {
+      throw new VoldemortException("Unknown HTTP request execution exception: " + e.getMessage(),e);
+    }
+  }
+catch (  InterruptedException e) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Operation interrupted : " + e.getMessage());
+    }
+    throw new VoldemortException("Unknown Voldemort exception: " + e.getMessage());
+  }
+catch (  URISyntaxException e) {
+    throw new VoldemortException("Illegal HTTP URL" + e.getMessage());
   }
 }

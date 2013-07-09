@@ -4,26 +4,39 @@
   RestRequestBuilder rb=null;
   try {
     rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
-    String timeoutStr=Long.toString(this.timeoutConfig.getOperationTimeout(VoldemortOpCode.GET_OP_CODE));
+    String timeoutStr=Long.toString(this.config.getTimeoutConfig().getOperationTimeout(VoldemortOpCode.GET_OP_CODE));
     rb.setHeader("Accept",MULTIPART_CONTENT_TYPE);
+    rb.setHeader(X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
     RestResponse response=fetchGetResponse(rb,timeoutStr);
     final ByteString entity=response.getEntity();
     if (entity != null) {
       resultList=parseGetResponse(entity);
     }
  else {
-      logger.error("Did not get any response!");
+      if (logger.isDebugEnabled()) {
+        logger.debug("Did not get any response!");
+      }
     }
   }
- catch (  VoldemortException ve) {
-    logger.error("Error performing get",ve);
-    throw ve;
-  }
-catch (  Exception e) {
-    String errorMsg=e.getMessage();
-    if (errorMsg != null && !errorMsg.contains("status=404")) {
-      logger.error("Specified key does not exist.",e);
+ catch (  ExecutionException e) {
+    if (e.getCause() instanceof RestException) {
+      RestException exception=(RestException)e.getCause();
+      if (logger.isDebugEnabled()) {
+        logger.debug("REST EXCEPTION STATUS : " + exception.getResponse().getStatus());
+      }
     }
+ else {
+      throw new VoldemortException("Unknown HTTP request execution exception: " + e.getMessage(),e);
+    }
+  }
+catch (  InterruptedException e) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Operation interrupted : " + e.getMessage(),e);
+    }
+    throw new VoldemortException("Operation interrupted exception: " + e.getMessage(),e);
+  }
+catch (  URISyntaxException e) {
+    throw new VoldemortException("Illegal HTTP URL" + e.getMessage(),e);
   }
   return resultList;
 }

@@ -1,0 +1,27 @@
+{
+  Store<K,V,T> clientStore=null;
+  R2Store r2store=new R2Store(storeName,this.config.getHttpBootstrapURL(),this.transportClient,this.config);
+  this.rawStoreList.add(r2store);
+  String serializerInfoXml=r2store.getSerializerInfoXml();
+  SerializerDefinition keySerializerDefinition=CoordinatorUtils.parseKeySerializerDefinition(serializerInfoXml);
+  SerializerDefinition valueSerializerDefinition=CoordinatorUtils.parseValueSerializerDefinition(serializerInfoXml);
+  if (logger.isDebugEnabled()) {
+    logger.debug("Bootstrapping for " + storeName + ": Key serializer "+ keySerializerDefinition);
+    logger.debug("Bootstrapping for " + storeName + ": Value serializer "+ valueSerializerDefinition);
+  }
+  Store<ByteArray,byte[],byte[]> store=r2store;
+  if (this.config.isEnableJmx()) {
+    StatTrackingStore statStore=new StatTrackingStore(store,this.stats);
+    store=statStore;
+    JmxUtils.registerMbean(new StoreStatsJmx(statStore.getStats()),JmxUtils.createObjectName(JmxUtils.getPackageName(store.getClass()),store.getName()));
+  }
+  if (keySerializerDefinition.hasCompression() || valueSerializerDefinition.hasCompression()) {
+    store=new CompressingStore(store,new CompressionStrategyFactory().get(keySerializerDefinition.getCompression()),new CompressionStrategyFactory().get(valueSerializerDefinition.getCompression()));
+  }
+  Serializer<K> keySerializer=(Serializer<K>)serializerFactory.getSerializer(keySerializerDefinition);
+  Serializer<V> valueSerializer=(Serializer<V>)serializerFactory.getSerializer(valueSerializerDefinition);
+  clientStore=SerializingStore.wrap(store,keySerializer,valueSerializer,null);
+  InconsistencyResolver<Versioned<V>> secondaryResolver=resolver == null ? new TimeBasedInconsistencyResolver<V>() : resolver;
+  clientStore=new InconsistencyResolvingStore<K,V,T>(clientStore,new ChainedResolver<Versioned<V>>(new VectorClockInconsistencyResolver<V>(),secondaryResolver));
+  return clientStore;
+}

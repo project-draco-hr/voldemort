@@ -16,8 +16,10 @@
     RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ keyArgs));
     rb.setMethod(GET);
     rb.setHeader("Accept",MULTIPART_CONTENT_TYPE);
-    String timeoutStr=Long.toString(this.timeoutConfig.getOperationTimeout(VoldemortOpCode.GET_ALL_OP_CODE));
+    String timeoutStr=Long.toString(this.config.getTimeoutConfig().getOperationTimeout(VoldemortOpCode.GET_ALL_OP_CODE));
     rb.setHeader(X_VOLD_REQUEST_TIMEOUT_MS,timeoutStr);
+    rb.setHeader(X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
+    rb.setHeader(X_VOLD_REQUEST_ORIGIN_TIME_MS,String.valueOf(System.currentTimeMillis()));
     RestRequest request=rb.build();
     Future<RestResponse> f=client.restRequest(request);
     RestResponse response=f.get();
@@ -28,20 +30,36 @@
         resultMap=parseGetAllResults(entity);
       }
  else {
-        logger.error("Did not receive a multipart response");
+        if (logger.isDebugEnabled()) {
+          logger.debug("Did not receive a multipart response");
+        }
       }
     }
  else {
-      logger.error("Did not get any response!");
+      if (logger.isDebugEnabled()) {
+        logger.debug("Did not get any response!");
+      }
     }
   }
- catch (  VoldemortException ve) {
-    logger.error("Voldemort Exception occured : " + ve.getMessage(),ve);
-  }
-catch (  Exception e) {
-    if (!e.getMessage().contains("status=404")) {
-      logger.error("ERROR: " + e);
+ catch (  ExecutionException e) {
+    if (e.getCause() instanceof RestException) {
+      RestException exception=(RestException)e.getCause();
+      if (logger.isDebugEnabled()) {
+        logger.debug("REST EXCEPTION STATUS : " + exception.getResponse().getStatus());
+      }
     }
+ else {
+      throw new VoldemortException("Unknown HTTP request execution exception: " + e.getMessage(),e);
+    }
+  }
+catch (  InterruptedException e) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Operation interrupted : " + e.getMessage(),e);
+    }
+    throw new VoldemortException("Operation interrupted exception: " + e.getMessage(),e);
+  }
+catch (  URISyntaxException e) {
+    throw new VoldemortException("Illegal HTTP URL" + e.getMessage(),e);
   }
   return resultMap;
 }
