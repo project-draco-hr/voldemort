@@ -3,7 +3,7 @@
   StoreDefinition storeDef=metadataStore.getStoreDef(storeName);
   List<DonorBasedRebalancePusherSlave> storePushSlaves=Lists.newArrayList();
   ExecutorService pushSlavesExecutor=Executors.newCachedThreadPool(new ThreadFactory(){
-    public Thread newThread(    Runnable r){
+    @Override public Thread newThread(    Runnable r){
       Thread thread=new Thread(r);
       thread.setName(r.getClass().getName());
       return thread;
@@ -16,19 +16,7 @@
   }
  else {
     HashMap<Integer,SynchronousQueue<Pair<ByteArray,Versioned<byte[]>>>> nodeToQueue=Maps.newHashMap();
-    Set<Pair<Integer,HashMap<Integer,List<Integer>>>> optimizedStealerNodeToMappingTuples=Sets.newHashSet();
-    if (voldemortConfig.getRebalancingOptimization() && !storageEngine.isPartitionAware()) {
-      for (      Pair<Integer,HashMap<Integer,List<Integer>>> entry : stealerNodeToMappingTuples) {
-        HashMap<Integer,List<Integer>> optimizedReplicaToPartition=RebalanceUtils.getOptimizedReplicaToPartitionList(entry.getFirst(),currentCluster,storeDef,entry.getSecond());
-        if (optimizedReplicaToPartition.size() > 0) {
-          optimizedStealerNodeToMappingTuples.add(Pair.create(entry.getFirst(),optimizedReplicaToPartition));
-        }
-      }
-    }
- else {
-      optimizedStealerNodeToMappingTuples.addAll(stealerNodeToMappingTuples);
-    }
-    if (optimizedStealerNodeToMappingTuples.size() <= 0) {
+    if (stealerNodeToMappingTuples.size() <= 0) {
       return;
     }
     for (    Pair<Integer,HashMap<Integer,List<Integer>>> tuple : stealerNodeToMappingTuples) {
@@ -41,10 +29,10 @@
       logger.info("Started a thread for " + jobName);
     }
     if (usePartitionScan && storageEngine.isPartitionScanSupported()) {
-      fetchEntriesForStealersPartitionScan(storageEngine,optimizedStealerNodeToMappingTuples,storeDef,nodeToQueue,storeName);
+      fetchEntriesForStealersPartitionScan(storageEngine,stealerNodeToMappingTuples,storeDef,nodeToQueue,storeName);
     }
  else {
-      fetchEntriesForStealers(storageEngine,optimizedStealerNodeToMappingTuples,storeDef,nodeToQueue,storeName);
+      fetchEntriesForStealers(storageEngine,stealerNodeToMappingTuples,storeDef,nodeToQueue,storeName);
     }
   }
 }

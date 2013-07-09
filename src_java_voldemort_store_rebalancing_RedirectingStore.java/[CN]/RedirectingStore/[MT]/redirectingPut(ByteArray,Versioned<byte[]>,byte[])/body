@@ -16,7 +16,7 @@
     }
   }
   getInnerStore().put(key,value,transforms);
-  if (isProxyPutEnabled && redirectNode != null && !currentRoutingPlan.getReplicationNodeList(key.get()).contains(redirectNode)) {
+  if (redirectNode != null && !currentRoutingPlan.getReplicationNodeList(key.get()).contains(redirectNode)) {
     AsyncProxyPutTask asyncProxyPutTask=new AsyncProxyPutTask(this,key,value,transforms,redirectNode);
     proxyPutStats.reportProxyPutSubmission();
     proxyPutWorkerPool.submit(asyncProxyPutTask);

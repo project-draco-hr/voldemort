@@ -7,7 +7,7 @@
       @Override public void run(){
         try {
           logger.info("Restoring data for store " + storeDef.getName() + " at node "+ restoringNodeId+ " from node "+ replicationEntry.getKey()+ " partitions:"+ replicationEntry.getValue());
-          int migrateAsyncId=storeMntOps.migratePartitions(donorNodeId,restoringNodeId,storeDef.getName(),replicationEntry.getValue(),null,null,false);
+          int migrateAsyncId=storeMntOps.migratePartitions(donorNodeId,restoringNodeId,storeDef.getName(),replicationEntry.getValue(),null,null);
           rpcOps.waitForCompletion(restoringNodeId,migrateAsyncId,adminClientConfig.getRestoreDataTimeoutSec(),TimeUnit.SECONDS);
           logger.info("Restoring data for store:" + storeDef.getName() + " from node "+ donorNodeId+ " completed.");
         }

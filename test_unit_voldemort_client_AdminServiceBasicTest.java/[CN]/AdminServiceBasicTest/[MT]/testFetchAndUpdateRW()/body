@@ -18,7 +18,7 @@
   for (  Entry<ByteArray,byte[]> entry : entrySet.entrySet())   assertEquals("server1 should be empty at start.",0,store1.get(entry.getKey(),null).size());
   getServer(0).getMetadataStore().put(MetadataStore.CLUSTER_KEY,targetCluster);
   AdminClient client=getAdminClient();
-  int id=client.storeMntOps.migratePartitions(0,1,"test-recovery-data",combinedLists,null,cluster,false);
+  int id=client.storeMntOps.migratePartitions(0,1,"test-recovery-data",combinedLists,null,cluster);
   client.rpcOps.waitForCompletion(1,id,120,TimeUnit.SECONDS);
   for (  Entry<ByteArray,byte[]> entry : keysMovedWith0AsSecondary.entrySet()) {
     assertEquals("server1 store should contain fetchAndupdated partitions.",1,store1.get(entry.getKey(),null).size());
