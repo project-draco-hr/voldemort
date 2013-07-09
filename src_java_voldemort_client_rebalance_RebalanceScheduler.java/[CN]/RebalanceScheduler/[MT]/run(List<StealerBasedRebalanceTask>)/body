@@ -1,0 +1,12 @@
+{
+  initializeLatch(sbTaskList.size());
+  populateTasksByStealer(sbTaskList);
+  scheduleMoreTasks();
+  try {
+    doneSignal.await();
+  }
+ catch (  InterruptedException e) {
+    logger.error("RebalancController scheduler interrupted while waiting for rebalance " + "tasks to be scheduled.",e);
+    throw new VoldemortRebalancingException("RebalancController scheduler interrupted " + "while waiting for rebalance tasks to be " + "scheduled.");
+  }
+}

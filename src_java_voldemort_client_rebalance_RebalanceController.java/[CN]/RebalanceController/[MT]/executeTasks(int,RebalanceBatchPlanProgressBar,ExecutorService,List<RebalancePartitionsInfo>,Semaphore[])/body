@@ -2,7 +2,7 @@
   List<RebalanceTask> taskList=Lists.newArrayList();
   int taskId=0;
   if (stealerBasedRebalancing) {
-    Scheduler scheduler=new Scheduler(service);
+    RebalanceScheduler scheduler=new RebalanceScheduler(service,maxParallelRebalancing);
     List<StealerBasedRebalanceTask> sbTaskList=Lists.newArrayList();
     for (    RebalancePartitionsInfo partitionsInfo : rebalancePartitionPlanList) {
       StealerBasedRebalanceTask rebalanceTask=new StealerBasedRebalanceTask(batchId,taskId,partitionsInfo,maxTriesRebalancing,donorPermits[partitionsInfo.getDonorId()],adminClient,progressBar,scheduler);

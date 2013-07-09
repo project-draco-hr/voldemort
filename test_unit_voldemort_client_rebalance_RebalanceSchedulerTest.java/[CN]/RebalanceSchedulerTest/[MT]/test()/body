@@ -1,0 +1,38 @@
+{
+  RebalanceScheduler mockedScheduler=Mockito.spy(scheduler);
+  Cluster zzCurrent=ClusterTestUtils.getZZCluster();
+  adminClient=ServerTestUtils.getAdminClient(zzCurrent);
+  Map<String,HashMap<Integer,List<Integer>>> outerMap=new HashMap<String,HashMap<Integer,List<Integer>>>();
+  Map<Integer,List<Integer>> innerMap=new HashMap<Integer,List<Integer>>();
+  List<Integer> someList=Arrays.asList(0,1,2);
+  innerMap.put(0,someList);
+  outerMap.put("storeA",(HashMap<Integer,List<Integer>>)innerMap);
+  int stealerId=0;
+  int donorId=1;
+  RebalancePartitionsInfo partitionsInfo=new RebalancePartitionsInfo(stealerId,donorId,(HashMap<String,HashMap<Integer,List<Integer>>>)outerMap,zzCurrent);
+  StealerBasedRebalanceTask sbTask=new StealerBasedRebalanceTask(0,0,partitionsInfo,3,donorPermit,adminClient,progressBar,mockedScheduler);
+  sbTaskList.add(sbTask);
+  sbTaskList.add(sbTask);
+  sbTaskList.add(sbTask);
+  sbTaskList.add(sbTask);
+  sbTaskList.add(sbTask);
+  mockedScheduler.initializeLatch(sbTaskList.size());
+  mockedScheduler.populateTasksByStealer(sbTaskList);
+  StealerBasedRebalanceTask scheduledTask=mockedScheduler.scheduleNextTask(false);
+  org.junit.Assert.assertNotNull(sbTask);
+  org.junit.Assert.assertEquals(sbTask,scheduledTask);
+  mockedScheduler.removeNodesFromWorkerList(Arrays.asList(stealerId,donorId));
+  mockedScheduler.addNodesToWorkerList(Arrays.asList(stealerId));
+  mockedScheduler.removeNodesFromWorkerList(Arrays.asList(donorId));
+  org.junit.Assert.assertEquals(mockedScheduler.scheduleNextTask(false),null);
+  mockedScheduler.addNodesToWorkerList(Arrays.asList(donorId));
+  mockedScheduler.removeNodesFromWorkerList(Arrays.asList(stealerId));
+  org.junit.Assert.assertEquals(mockedScheduler.scheduleNextTask(false),null);
+  mockedScheduler.addNodesToWorkerList(Arrays.asList(donorId));
+  mockedScheduler.addNodesToWorkerList(Arrays.asList(stealerId));
+  org.junit.Assert.assertEquals(mockedScheduler.scheduleNextTask(false),null);
+  mockedScheduler.removeNodesFromWorkerList(Arrays.asList(stealerId,donorId));
+  StealerBasedRebalanceTask nextscheduledTask=mockedScheduler.scheduleNextTask(false);
+  org.junit.Assert.assertNotNull(sbTask);
+  org.junit.Assert.assertEquals(sbTask,nextscheduledTask);
+}

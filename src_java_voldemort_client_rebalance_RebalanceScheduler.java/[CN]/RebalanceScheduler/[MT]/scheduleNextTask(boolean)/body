@@ -2,9 +2,7 @@
   if (doneSignal.getCount() == 0) {
     return null;
   }
-  if (this.numTasksExecuting == maxParallelRebalancing) {
-    return null;
-  }
+  if (this.numTasksExecuting == maxParallelRebalancing)   return null;
   List<Integer> stealerIds=new ArrayList<Integer>(tasksByStealer.keySet());
   Collections.shuffle(stealerIds);
   for (  int stealerId : stealerIds) {
@@ -16,12 +14,14 @@
       if (nodeIdsWithWork.contains(donorId)) {
         continue;
       }
-      nodeIdsWithWork.add(stealerId);
-      nodeIdsWithWork.add(donorId);
+      addNodesToWorkerList(Arrays.asList(stealerId,donorId));
       numTasksExecuting++;
       tasksByStealer.get(stealerId).remove(sbTask);
       try {
-        service.execute(sbTask);
+        if (executeService) {
+          System.out.println("here");
+          service.execute(sbTask);
+        }
       }
  catch (      RejectedExecutionException ree) {
         logger.error("Rebalancing task rejected by executor service.",ree);

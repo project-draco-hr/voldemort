@@ -1,5 +1,4 @@
 {
-  this.tasksByStealer=new HashMap<Integer,List<StealerBasedRebalanceTask>>();
   for (  StealerBasedRebalanceTask task : sbTaskList) {
     if (task.getStealInfos().size() != 1) {
       throw new VoldemortException("StealerBasedRebalanceTasks should have a list of RebalancePartitionsInfo of length 1.");
@@ -16,16 +15,5 @@
   }
   for (  List<StealerBasedRebalanceTask> taskList : tasksByStealer.values()) {
     Collections.shuffle(taskList);
-  }
-  this.numTasksExecuting=0;
-  this.nodeIdsWithWork=new HashSet<Integer>();
-  doneSignal=new CountDownLatch(sbTaskList.size());
-  scheduleMoreTasks();
-  try {
-    doneSignal.await();
-  }
- catch (  InterruptedException e) {
-    logger.error("RebalancController scheduler interrupted while waiting for rebalance tasks to be scheduled.",e);
-    throw new VoldemortRebalancingException("RebalancController scheduler interrupted while waiting for rebalance tasks to be scheduled.");
   }
 }
