@@ -4,7 +4,12 @@
   if (originTime != null) {
     try {
       this.parsedRequestOriginTimeInMs=Long.parseLong(originTime);
-      result=true;
+      if (this.parsedRequestOriginTimeInMs < 0) {
+        RestServerErrorHandler.writeErrorResponse(messageEvent,HttpResponseStatus.BAD_REQUEST,"Origin time cannot be negative ");
+      }
+ else {
+        result=true;
+      }
     }
  catch (    NumberFormatException nfe) {
       logger.error("Exception when validating request. Incorrect origin time parameter. Cannot parse this to long: " + originTime,nfe);

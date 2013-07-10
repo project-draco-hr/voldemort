@@ -2,5 +2,10 @@
   if (!super.parseAndValidateRequest()) {
     return false;
   }
+  isGetVersionRequest=hasGetVersionRequestHeader();
+  if (isGetVersionRequest && this.parsedKeys.size() > 1) {
+    RestServerErrorHandler.writeErrorResponse(messageEvent,HttpResponseStatus.BAD_REQUEST,"Get version request cannot have multiple keys");
+    return false;
+  }
   return true;
 }

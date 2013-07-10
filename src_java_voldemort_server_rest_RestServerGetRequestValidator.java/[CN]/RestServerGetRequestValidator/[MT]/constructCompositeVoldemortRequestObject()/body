@@ -1,10 +1,13 @@
 {
   if (parseAndValidateRequest()) {
-    if (this.parsedKeys.size() > 1) {
-      this.requestObject=new CompositeGetAllVoldemortRequest<ByteArray,byte[]>(this.parsedKeys,this.parsedRoutingTimeoutInMs,this.parsedRequestOriginTimeInMs,this.parsedRoutingType);
+    if (this.isGetVersionRequest) {
+      this.requestObject=new CompositeGetVersionVoldemortRequest<ByteArray,byte[]>(this.parsedKeys.get(0),this.parsedTimeoutInMs,this.parsedRequestOriginTimeInMs,this.parsedRoutingType);
+    }
+ else     if (this.parsedKeys.size() > 1) {
+      this.requestObject=new CompositeGetAllVoldemortRequest<ByteArray,byte[]>(this.parsedKeys,this.parsedTimeoutInMs,this.parsedRequestOriginTimeInMs,this.parsedRoutingType);
     }
  else {
-      this.requestObject=new CompositeGetVoldemortRequest<ByteArray,byte[]>(this.parsedKeys.get(0),this.parsedRoutingTimeoutInMs,this.parsedRequestOriginTimeInMs,this.parsedRoutingType);
+      this.requestObject=new CompositeGetVoldemortRequest<ByteArray,byte[]>(this.parsedKeys.get(0),this.parsedTimeoutInMs,this.parsedRequestOriginTimeInMs,this.parsedRoutingType);
     }
     return this.requestObject;
   }
