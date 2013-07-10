@@ -1,19 +1,13 @@
 {
-  int nTries=0;
-  AlreadyRebalancingException rebalanceException=null;
-  while (nTries < maxTries) {
-    nTries++;
-    try {
-      taskLog("Trying to start async rebalance task on stealer node " + stealerNodeId);
-      int asyncOperationId=adminClient.rebalanceOps.rebalanceNode(stealInfos.get(0));
-      taskLog("Started async rebalance task on stealer node " + stealerNodeId);
-      return asyncOperationId;
-    }
- catch (    AlreadyRebalancingException e) {
-      taskLog("Node " + stealerNodeId + " is currently rebalancing. Waiting till completion");
-      adminClient.rpcOps.waitForCompletion(stealerNodeId,MetadataStore.SERVER_STATE_KEY,VoldemortState.NORMAL_SERVER.toString());
-      rebalanceException=e;
-    }
+  try {
+    taskLog("Trying to start async rebalance task on stealer node " + stealerNodeId);
+    int asyncOperationId=adminClient.rebalanceOps.rebalanceNode(stealInfos.get(0));
+    taskLog("Started async rebalance task on stealer node " + stealerNodeId);
+    return asyncOperationId;
   }
-  throw new VoldemortException("Failed to start rebalancing with plan: " + getStealInfos(),rebalanceException);
+ catch (  AlreadyRebalancingException e) {
+    String errorMessage="Node " + stealerNodeId + " is currently rebalancing. Should not have tried to start new task on stealer node!";
+    taskLog(errorMessage);
+    throw new VoldemortException(errorMessage + " Failed to start rebalancing with plan: " + getStealInfos(),e);
+  }
 }

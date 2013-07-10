@@ -10,15 +10,11 @@
   if (options.has("parallelism")) {
     parallelism=(Integer)options.valueOf("parallelism");
   }
-  int tries=RebalanceController.MAX_TRIES_REBALANCING;
-  if (options.has("tries")) {
-    tries=(Integer)options.valueOf("tries");
-  }
   long proxyPauseSec=RebalanceController.PROXY_PAUSE_IN_SECONDS;
   if (options.has("proxy-pause")) {
     proxyPauseSec=(Long)options.valueOf("proxy-pause");
   }
-  RebalanceController rebalanceController=new RebalanceController(bootstrapURL,parallelism,tries,stealerBased,proxyPauseSec);
+  RebalanceController rebalanceController=new RebalanceController(bootstrapURL,parallelism,stealerBased,proxyPauseSec);
   Cluster currentCluster=rebalanceController.getCurrentCluster();
   List<StoreDefinition> currentStoreDefs=rebalanceController.getCurrentStoreDefs();
   RebalanceUtils.validateClusterStores(currentCluster,currentStoreDefs);
