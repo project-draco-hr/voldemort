@@ -10,8 +10,8 @@
   subStores.put(id2,new SleepyStore<ByteArray,byte[],byte[]>(100,new InMemoryStorageEngine<ByteArray,byte[],byte[]>("test")));
   setFailureDetector(subStores);
   routedStoreThreadPool=Executors.newFixedThreadPool(1);
-  RoutedStoreFactory routedStoreFactory=createFactory(BANNAGE_PERIOD);
-  RoutedStore routedStore=routedStoreFactory.create(cluster,storeDef,subStores,failureDetector);
+  RoutedStoreFactory routedStoreFactory=createFactory();
+  RoutedStore routedStore=routedStoreFactory.create(cluster,storeDef,subStores,failureDetector,createConfig(BANNAGE_PERIOD));
   Store<ByteArray,byte[],byte[]> store=new InconsistencyResolvingStore<ByteArray,byte[],byte[]>(routedStore,new VectorClockInconsistencyResolver<byte[]>());
   store.put(aKey,new Versioned<byte[]>(aValue),aTransform);
 }

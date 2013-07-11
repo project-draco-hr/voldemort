@@ -12,11 +12,11 @@
   }
   setFailureDetector(subStores);
   routedStoreThreadPool=Executors.newFixedThreadPool(cluster.getNumberOfNodes());
-  RoutedStoreFactory routedStoreFactory=createFactory(10000L);
-  RoutedStore routedStore=routedStoreFactory.create(cluster,storeDef,subStores,failureDetector);
+  RoutedStoreFactory routedStoreFactory=createFactory();
+  RoutedStore routedStore=routedStoreFactory.create(cluster,storeDef,subStores,failureDetector,createConfig(10000L));
   routedStore.put(aKey,Versioned.value(aValue),null);
-  routedStoreFactory=createFactory(sleepTimeMs / 2);
-  routedStore=routedStoreFactory.create(cluster,storeDef,subStores,failureDetector);
+  routedStoreFactory=createFactory();
+  routedStore=routedStoreFactory.create(cluster,storeDef,subStores,failureDetector,createConfig(sleepTimeMs / 2));
   List<Versioned<byte[]>> versioneds=routedStore.get(aKey,null);
   assertEquals(2,versioneds.size());
   Thread.sleep(sleepTimeMs * 2);

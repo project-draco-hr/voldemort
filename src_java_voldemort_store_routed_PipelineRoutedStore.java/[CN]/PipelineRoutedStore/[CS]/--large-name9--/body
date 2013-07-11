@@ -1,7 +1,7 @@
 {
-  super(storeDef.getName(),innerStores,cluster,storeDef,storeConfig.getRepairReads(),storeConfig.getTimeoutConfig(),failureDetector,SystemTime.INSTANCE);
+  super(storeDef.getName(),innerStores,cluster,storeDef,repairReads,timeoutConfig,failureDetector,SystemTime.INSTANCE);
   this.nonblockingSlopStores=nonblockingSlopStores;
-  this.clientZone=cluster.getZoneById(storeConfig.getClientZoneId());
+  this.clientZone=cluster.getZoneById(clientZoneId);
   this.nonblockingStores=new ConcurrentHashMap<Integer,NonblockingStore>(nonblockingStores);
   this.slopStores=slopStores;
   if (storeDef.getRoutingStrategyType().compareTo(RoutingStrategyType.ZONE_STRATEGY) == 0) {
@@ -17,8 +17,8 @@
  else {
     this.handoffStrategy=null;
   }
-  this.jmxEnabled=storeConfig.isJmxEnabled();
-  this.jmxId=storeConfig.getJmxId();
+  this.jmxEnabled=isJmxEnabled;
+  this.jmxId=jmxId;
   if (this.jmxEnabled) {
     stats=new PipelineRoutedStats();
     JmxUtils.registerMbean(stats,JmxUtils.createObjectName(JmxUtils.getPackageName(stats.getClass()),getName() + "-" + JmxUtils.getJmxId(this.jmxId)));

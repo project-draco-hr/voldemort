@@ -10,8 +10,8 @@
   }
   setFailureDetector(subStores);
   routedStoreThreadPool=Executors.newFixedThreadPool(1);
-  RoutedStoreFactory routedStoreFactory=createFactory(BANNAGE_PERIOD);
-  RoutedStore routedStore=routedStoreFactory.create(cluster,storeDef,subStores,failureDetector);
+  RoutedStoreFactory routedStoreFactory=createFactory();
+  RoutedStore routedStore=routedStoreFactory.create(cluster,storeDef,subStores,failureDetector,createConfig(BANNAGE_PERIOD));
   ByteArray key1=aKey;
   routedStore.put(key1,Versioned.value("value1".getBytes()),null);
   ByteArray key2=TestUtils.toByteArray("voldemort");

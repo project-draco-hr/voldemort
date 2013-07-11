@@ -6,19 +6,17 @@
   Versioned<byte[]> versioned=new Versioned<byte[]>(new byte[]{1});
   Map<Integer,Store<ByteArray,byte[],byte[]>> subStores=Maps.newHashMap();
   Set<Integer> sleepy=Sets.newHashSet(4,5,6,7);
-  int count=0;
   for (  Node n : cluster.getNodes()) {
     Store<ByteArray,byte[],byte[]> subStore=null;
     if (sleepy != null && sleepy.contains(n.getId()))     subStore=new SleepyStore<ByteArray,byte[],byte[]>(SLEEPY_TIME,new InMemoryStorageEngine<ByteArray,byte[],byte[]>("test"));
  else     subStore=new InMemoryStorageEngine<ByteArray,byte[],byte[]>("test");
     subStores.put(n.getId(),subStore);
-    count+=1;
   }
   setFailureDetector(subStores);
   StoreDefinition storeDef=ServerTestUtils.getStoreDef("test",1,1,1,1,0,0,zoneReplicationFactor,HintedHandoffStrategyType.PROXIMITY_STRATEGY,RoutingStrategyType.ZONE_STRATEGY);
   routedStoreThreadPool=Executors.newFixedThreadPool(8);
-  RoutedStoreFactory routedStoreFactory=createFactory(OPERATION_TIMEOUT);
-  Store<ByteArray,byte[],byte[]> s1=routedStoreFactory.create(cluster,storeDef,subStores,failureDetector);
+  RoutedStoreFactory routedStoreFactory=createFactory();
+  Store<ByteArray,byte[],byte[]> s1=routedStoreFactory.create(cluster,storeDef,subStores,failureDetector,createConfig(OPERATION_TIMEOUT));
   RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
   List<Node> nodesRoutedTo=routingStrategy.routeRequest("test".getBytes());
   long start=System.nanoTime(), elapsed;

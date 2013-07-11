@@ -53,8 +53,9 @@
   FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setImplementationClassName(BannagePeriodFailureDetector.class.getName()).setCluster(cluster).setStoreVerifier(MutableStoreVerifier.create(stores));
   FailureDetector failureDetector=FailureDetectorUtils.create(failureDetectorConfig,false);
   ExecutorService routedStoreThreadPool=Executors.newFixedThreadPool(clientConfig.getMaxThreads());
-  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(routedStoreThreadPool,clientConfig.getTimeoutConfig());
-  final RoutedStore routedStore=routedStoreFactory.create(cluster,storeDefinition,stores,failureDetector);
+  RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(routedStoreThreadPool);
+  RoutedStoreConfig routedStoreConfig=new RoutedStoreConfig(clientConfig);
+  final RoutedStore routedStore=routedStoreFactory.create(cluster,storeDefinition,stores,failureDetector,routedStoreConfig);
   ExecutorService runner=Executors.newFixedThreadPool(numClients);
   long start=System.nanoTime();
   try {

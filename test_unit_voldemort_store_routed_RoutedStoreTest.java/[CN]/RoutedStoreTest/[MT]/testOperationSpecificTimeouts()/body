@@ -12,8 +12,8 @@
   routedStoreThreadPool=Executors.newFixedThreadPool(3);
   TimeoutConfig timeoutConfig=new TimeoutConfig(1500,false);
   timeoutConfig.setOperationTimeout(VoldemortOpCode.GET_OP_CODE,100);
-  RoutedStoreFactory routedStoreFactory=createFactory(timeoutConfig);
-  RoutedStore routedStore=routedStoreFactory.create(new Cluster("test",nodes),definition,stores,failureDetector);
+  RoutedStoreFactory routedStoreFactory=createFactory();
+  RoutedStore routedStore=routedStoreFactory.create(new Cluster("test",nodes),definition,stores,failureDetector,createConfig(timeoutConfig));
   try {
     routedStore.put(new ByteArray("test".getBytes()),new Versioned<byte[]>(new byte[]{1}),null);
   }

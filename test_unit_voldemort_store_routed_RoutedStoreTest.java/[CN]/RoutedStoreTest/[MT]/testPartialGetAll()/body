@@ -12,8 +12,8 @@
   routedStoreThreadPool=Executors.newFixedThreadPool(3);
   TimeoutConfig timeoutConfig=new TimeoutConfig(1500,true);
   timeoutConfig.setOperationTimeout(VoldemortOpCode.GET_ALL_OP_CODE,250);
-  RoutedStoreFactory routedStoreFactory=createFactory(timeoutConfig);
-  RoutedStore routedStore=routedStoreFactory.create(new Cluster("test",nodes),definition,stores,failureDetector);
+  RoutedStoreFactory routedStoreFactory=createFactory();
+  RoutedStore routedStore=routedStoreFactory.create(new Cluster("test",nodes),definition,stores,failureDetector,createConfig(timeoutConfig));
   Map<ByteArray,byte[]> expectedValues=Maps.newHashMap();
   for (byte i=1; i < 11; ++i) {
     ByteArray key=new ByteArray(new byte[]{i});

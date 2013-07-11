@@ -16,7 +16,7 @@
   routedStoreThreadPool=Executors.newFixedThreadPool(3);
   TimeoutConfig timeoutConfig=new TimeoutConfig(1500,true);
   timeoutConfig.setOperationTimeout(VoldemortOpCode.GET_ALL_OP_CODE,250);
-  RoutedStoreFactory routedStoreFactory=createFactory(timeoutConfig);
+  RoutedStoreFactory routedStoreFactory=createFactory();
   List<Zone> zones=Lists.newArrayList();
   for (int i=0; i < 3; i++) {
     LinkedList<Integer> zoneProximityList=Lists.newLinkedList();
@@ -25,7 +25,7 @@
     zoneProximityList.addAll(zoneIds);
     zones.add(new Zone(i,zoneProximityList));
   }
-  RoutedStore routedStore=routedStoreFactory.create(new Cluster("test",nodes,zones),definition,stores,failureDetector);
+  RoutedStore routedStore=routedStoreFactory.create(new Cluster("test",nodes,zones),definition,stores,failureDetector,createConfig(timeoutConfig));
   Map<ByteArray,byte[]> expectedValues=Maps.newHashMap();
   for (byte i=1; i < 11; ++i) {
     ByteArray key=new ByteArray(new byte[]{i});
