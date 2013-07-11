@@ -6,6 +6,7 @@
   cluster=ClusterTestUtils.getZZCluster();
   ClientConfig clientConfig=new ClientConfig();
   clientConfig.setBootstrapUrls(cluster.getNodeById(0).getSocketUrl().toString());
+  clientConfig.setEnableGetOpZoneAffinity(true);
   SocketStoreClientFactory socketStoreClientFactory=new SocketStoreClientFactory(clientConfig);
   for (  Integer nodeId : cluster.getNodeIds()) {
     SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,1024);

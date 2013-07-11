@@ -1,0 +1,18 @@
+{
+  List<Node> originalNodes=null;
+  List<Node> nodes=new ArrayList<Node>();
+  try {
+    originalNodes=super.getNodes(key);
+  }
+ catch (  VoldemortException e) {
+    pipelineData.setFatalError(e);
+    return null;
+  }
+  for (  Node node : originalNodes) {
+    if (node.getZoneId() == clientZone.getId()) {
+      nodes.add(node);
+    }
+  }
+  if (logger.isDebugEnabled())   logger.debug("Adding " + nodes.size() + " node(s) to preference list");
+  return nodes;
+}
