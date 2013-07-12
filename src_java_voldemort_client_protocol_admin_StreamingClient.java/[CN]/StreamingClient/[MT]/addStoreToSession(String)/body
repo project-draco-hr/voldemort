@@ -1,9 +1,12 @@
 {
+  Exception initializationException=null;
   storeNames.add(store);
   for (  Node node : nodesToStream) {
-    SocketDestination destination=new SocketDestination(node.getHost(),node.getAdminPort(),RequestFormatType.ADMIN_PROTOCOL_BUFFERS);
-    SocketAndStreams sands=streamingSocketPool.checkout(destination);
+    SocketDestination destination=null;
+    SocketAndStreams sands=null;
     try {
+      destination=new SocketDestination(node.getHost(),node.getAdminPort(),RequestFormatType.ADMIN_PROTOCOL_BUFFERS);
+      sands=streamingSocketPool.checkout(destination);
       DataOutputStream outputStream=sands.getOutputStream();
       DataInputStream inputStream=sands.getInputStream();
       nodeIdStoreToSocketRequest.put(new Pair(store,node.getId()),destination);
@@ -14,17 +17,27 @@
       remoteStoreDefs=adminClient.metadataMgmtOps.getRemoteStoreDefList(node.getId()).getValue();
     }
  catch (    Exception e) {
-      close(sands.getSocket());
-      streamingSocketPool.checkin(destination,sands);
-      throw new VoldemortException(e);
+      logger.error(e);
+      try {
+        close(sands.getSocket());
+        streamingSocketPool.checkin(destination,sands);
+      }
+ catch (      Exception ioE) {
+        logger.error(ioE);
+      }
+      if (!faultyNodes.contains(node.getId()))       faultyNodes.add(node.getId());
+      initializationException=e;
     }
   }
+  if (initializationException != null)   throw new VoldemortException(initializationException);
+  if (store.equals("slop"))   return;
   boolean foundStore=false;
   for (  StoreDefinition remoteStoreDef : remoteStoreDefs) {
     if (remoteStoreDef.getName().equals(store)) {
       RoutingStrategyFactory factory=new RoutingStrategyFactory();
       RoutingStrategy storeRoutingStrategy=factory.updateRoutingStrategy(remoteStoreDef,adminClient.getAdminClientCluster());
       storeToRoutingStrategy.put(store,storeRoutingStrategy);
+      validateSufficientNodesAvailable(blackListedNodes,remoteStoreDef);
       foundStore=true;
       break;
     }

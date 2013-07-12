@@ -1,0 +1,65 @@
+{
+  Random random=new Random(System.currentTimeMillis());
+  cluster=VoldemortTestConstants.getEightNodeClusterWithZones();
+  bootstrapUrl=cluster.getNodeById(0).getSocketUrl().toString();
+  storeDef=storeDefBuilder.build();
+  for (Integer nodeId=0; nodeId < NUM_NODES_TOTAL; nodeId++) {
+    createInnerStore(nodeId);
+  }
+  for (Integer nodeId=0; nodeId < NUM_NODES_TOTAL; nodeId++) {
+    try {
+      startServer(nodeId);
+    }
+ catch (    IOException e) {
+      logger.error("Server " + nodeId + "failed to start",e);
+    }
+  }
+  factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootstrapUrl));
+  startFinishLatch.countDown();
+  try {
+    Set<Integer> nodesToFail=new HashSet<Integer>();
+    nodesToFail.add(1);
+    boolean wrapUpSignal=false;
+    if (logger.isInfoEnabled()) {
+      if (wrapUpSignal) {
+        logger.info("Wake Up and wrap up. Make all servers NORMAL");
+      }
+ else {
+        logger.info("Wake Up and decide new failure statuses");
+      }
+      for (      Map.Entry<Integer,Store<ByteArray,byte[],byte[]>> entry : realStores.entrySet()) {
+        InMemoryPutAssertionStorageEngine<ByteArray,byte[],byte[]> engine=(InMemoryPutAssertionStorageEngine<ByteArray,byte[],byte[]>)entry.getValue();
+        logger.info("Outstanding Put Assertions of node [" + entry.getKey() + "]: "+ engine.getFailedAssertions().size());
+      }
+    }
+    if (logger.isInfoEnabled()) {
+      logger.info("Setting nodes to Fail: " + nodesToFail.toString());
+    }
+    for (Integer nodeId=0; nodeId < NUM_NODES_TOTAL; nodeId++) {
+      makeNodeNormal(nodeId);
+    }
+    for (Integer nodeId=0; nodeId < NUM_NODES_TOTAL; nodeId++) {
+      if (nodesToFail.contains(nodeId)) {
+        if (nodesStatus.get(nodeId) == NodeStatus.NORMAL) {
+          makeNodeDown(nodeId);
+        }
+      }
+ else {
+        if (nodesStatus.get(nodeId) != NodeStatus.NORMAL) {
+          makeNodeNormal(nodeId);
+        }
+      }
+    }
+    if (throwIntermittentException)     waitForFaultyNodeLatch.countDown();
+    if (!throwIntermittentException) {
+      for (Integer nodeId=0; nodeId < NUM_NODES_TOTAL; nodeId++) {
+        makeNodeNormal(nodeId);
+      }
+    }
+  }
+ catch (  Exception e) {
+  }
+ finally {
+    wrapUpFinishLatch.countDown();
+  }
+}

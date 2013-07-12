@@ -1,0 +1,26 @@
+{
+  startFinishLatch.await();
+  if (throwIntermittentException)   waitForFaultyNodeLatch.await();
+  Props property=new Props();
+  property.put("streaming.platform.bootstrapURL",bootstrapUrl);
+  StreamingClientConfig config=new StreamingClientConfig(property);
+  SlopWrappingStreamingClient streamer=new SlopWrappingStreamingClient(config);
+  Callable<Integer> cpCallable=new CheckpointCallable();
+  Callable<Integer> rbCallable=new RollbackCallable();
+  List<String> stores=new ArrayList();
+  stores.add(STORE_NAME);
+  List<Integer> failedNodes=new ArrayList<Integer>();
+  for (int i=0; i < numFailedNodes; i++)   failedNodes.add(i + 1);
+  if (!wrapException) {
+    streamer.initStreamingSessions(stores,cpCallable,rbCallable,true,failedNodes);
+  }
+ else {
+    try {
+      streamer.initStreamingSessions(stores,cpCallable,rbCallable,true,failedNodes);
+    }
+ catch (    Exception e) {
+      logger.error(e);
+    }
+  }
+  return streamer;
+}

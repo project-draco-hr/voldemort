@@ -1,0 +1,22 @@
+{
+  Slop slop=new Slop(storeName,Slop.Operation.PUT,key,value.getValue(),null,failedNodeId,new Date());
+  ByteArray slopKey=slop.makeKey();
+  Versioned<byte[]> slopValue=new Versioned<byte[]>(slopSerializer.toBytes(slop),value.getVersion());
+  int totalNodes=storeToRoutingStrategy.get(storeName).getNodes().size();
+  int slopDestination=generator.nextInt(totalNodes);
+  while (failedNodeId == slopDestination) {
+    slopDestination=generator.nextInt(totalNodes);
+  }
+  VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(slopKey)).setVersioned(ProtoUtils.encodeVersioned(slopValue)).build();
+  VAdminProto.UpdatePartitionEntriesRequest.Builder updateRequest=VAdminProto.UpdatePartitionEntriesRequest.newBuilder().setStore(SLOP_STORE).setPartitionEntry(partitionEntry);
+  DataOutputStream outputStream=nodeIdStoreToOutputStreamRequest.get(new Pair<String,Integer>(SLOP_STORE,slopDestination));
+  if (nodeIdStoreInitialized.get(new Pair<String,Integer>(SLOP_STORE,slopDestination))) {
+    ProtoUtils.writeMessage(outputStream,updateRequest.build());
+  }
+ else {
+    ProtoUtils.writeMessage(outputStream,VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_PARTITION_ENTRIES).setUpdatePartitionEntries(updateRequest).build());
+    outputStream.flush();
+    nodeIdStoreInitialized.put(new Pair<String,Integer>(SLOP_STORE,slopDestination),true);
+  }
+  throttler.maybeThrottle(1);
+}

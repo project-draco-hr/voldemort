@@ -2,10 +2,15 @@
   logger.info("Performing cleanup");
   for (  String store : storeNamesToCleanUp) {
     for (    Node node : nodesToStream) {
-      SocketAndStreams sands=nodeIdStoreToSocketAndStreams.get(new Pair(store,node.getId()));
-      close(sands.getSocket());
-      SocketDestination destination=nodeIdStoreToSocketRequest.get(new Pair(store,node.getId()));
-      streamingSocketPool.checkin(destination,sands);
+      try {
+        SocketAndStreams sands=nodeIdStoreToSocketAndStreams.get(new Pair(store,node.getId()));
+        close(sands.getSocket());
+        SocketDestination destination=nodeIdStoreToSocketRequest.get(new Pair(store,node.getId()));
+        streamingSocketPool.checkin(destination,sands);
+      }
+ catch (      Exception ioE) {
+        logger.error(ioE);
+      }
     }
   }
   cleanedUp=true;

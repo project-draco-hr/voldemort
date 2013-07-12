@@ -1,0 +1,14 @@
+{
+  Future future=streamingSlopResults.submit(call);
+  try {
+    future.get();
+  }
+ catch (  InterruptedException e1) {
+    logger.error("Recovery Callback failed",e1);
+    throw new VoldemortException("Recovery Callback failed");
+  }
+catch (  ExecutionException e1) {
+    logger.error("Recovery Callback failed during execution",e1);
+    throw new VoldemortException("Recovery Callback failed during execution");
+  }
+}

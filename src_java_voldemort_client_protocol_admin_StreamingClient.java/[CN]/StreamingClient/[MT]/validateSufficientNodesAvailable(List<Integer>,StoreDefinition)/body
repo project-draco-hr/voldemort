@@ -1,0 +1,9 @@
+{
+  int faultyNodes=0;
+  if (blackListedNodes != null && blackListedNodes.size() > 0) {
+    faultyNodes=blackListedNodes.size();
+  }
+  int repFactor=remoteStoreDef.getReplicationFactor();
+  int numNodes=repFactor - faultyNodes;
+  if (numNodes < remoteStoreDef.getRequiredWrites())   throw new InsufficientOperationalNodesException("Only " + numNodes + " nodes in preference list, but "+ remoteStoreDef.getRequiredWrites()+ " writes required.");
+}

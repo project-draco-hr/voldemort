@@ -11,9 +11,14 @@
     }
   }
   for (  String store : storeNames) {
-    SocketAndStreams sands=nodeIdStoreToSocketAndStreams.get(new Pair(store,nodeId));
-    close(sands.getSocket());
-    SocketDestination destination=nodeIdStoreToSocketRequest.get(new Pair(store,nodeId));
-    streamingSocketPool.checkin(destination,sands);
+    try {
+      SocketAndStreams sands=nodeIdStoreToSocketAndStreams.get(new Pair(store,nodeId));
+      close(sands.getSocket());
+      SocketDestination destination=nodeIdStoreToSocketRequest.get(new Pair(store,nodeId));
+      streamingSocketPool.checkin(destination,sands);
+    }
+ catch (    Exception ioE) {
+      logger.error(ioE);
+    }
   }
 }
