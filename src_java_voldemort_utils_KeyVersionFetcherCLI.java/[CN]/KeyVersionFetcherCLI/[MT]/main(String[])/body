@@ -10,7 +10,7 @@
     printUsageAndDie("Exception when parsing arguments : " + oe.getMessage());
     return;
   }
-  if (options.hasArgument("help")) {
+  if (options.has("help")) {
     parser.printHelpOn(System.out);
     printUsage();
     return;
@@ -42,8 +42,9 @@
   if (options.hasArgument("output-batch-size")) {
     outputBatchSize=(Integer)options.valueOf("output-batch-size");
   }
+  boolean details=options.has("details");
   try {
-    KeyVersionFetcherCLI sampler=new KeyVersionFetcherCLI(url,inDir,outDir,storeNames,keyParallelism,progressPeriodOps,outputBatchSize);
+    KeyVersionFetcherCLI sampler=new KeyVersionFetcherCLI(url,inDir,outDir,storeNames,keyParallelism,progressPeriodOps,outputBatchSize,details);
     try {
       if (!sampler.sampleStores()) {
         logger.error("Key-versions were not successfully sampled from some stores.");
