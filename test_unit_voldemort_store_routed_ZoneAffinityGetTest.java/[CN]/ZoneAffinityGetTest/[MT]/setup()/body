@@ -1,12 +1,13 @@
 {
   byte[] bytes1={(byte)'A',(byte)'B'};
   byte[] bytes2={(byte)'C',(byte)'D'};
-  List<StoreDefinition> stores=ClusterTestUtils.getZZ322StoreDefs("memory");
+  List<StoreDefinition> stores=ClusterTestUtils.getZZZ322StoreDefs("memory");
   StoreDefinition storeDef=stores.get(0);
-  cluster=ClusterTestUtils.getZZCluster();
+  cluster=ClusterTestUtils.getZZZCluster();
   ClientConfig clientConfig=new ClientConfig();
   clientConfig.setBootstrapUrls(cluster.getNodeById(0).getSocketUrl().toString());
-  clientConfig.setEnableGetOpZoneAffinity(true);
+  clientConfig.getZoneAffinity().setEnableGetOpZoneAffinity(true);
+  clientConfig.setClientZoneId(clientZoneId);
   SocketStoreClientFactory socketStoreClientFactory=new SocketStoreClientFactory(clientConfig);
   for (  Integer nodeId : cluster.getNodeIds()) {
     SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,1024);
@@ -18,10 +19,10 @@
     VectorClock version1=new VectorClock();
     version1.incrementVersion(0,System.currentTimeMillis());
     VectorClock version2=version1.incremented(0,System.currentTimeMillis());
-    if (node.getZoneId() == 0) {
+    if (node.getZoneId() == clientZoneId) {
       store.put(new ByteArray(bytes1),new Versioned<byte[]>(bytes1,version1),null);
     }
- else     if (node.getZoneId() == 1) {
+ else {
       store.put(new ByteArray(bytes1),new Versioned<byte[]>(bytes2,version2),null);
     }
   }
