@@ -3,7 +3,7 @@
   clientConfig.setBootstrapUrls(this.coordinatorConfig.getBootstrapURLs());
   storeClientFactory=new SocketStoreClientFactory(clientConfig);
   initializeFatClients();
-  SystemStoreRepository sysRepository=new SystemStoreRepository();
+  SystemStoreRepository sysRepository=new SystemStoreRepository(clientConfig);
   String clusterXml=storeClientFactory.bootstrapMetadataWithRetries(MetadataStore.CLUSTER_KEY);
   sysRepository.createSystemStores(clientConfig,clusterXml,storeClientFactory.getFailureDetector());
   Callable<Void> rebootstrapCallback=new Callable<Void>(){
