@@ -1,0 +1,13 @@
+{
+  String prefix=storeName.substring(0,SystemStoreConstants.NAME_PREFIX.length());
+  if (!SystemStoreConstants.NAME_PREFIX.equals(prefix)) {
+    throw new VoldemortException("Illegal system store : " + storeName);
+  }
+  this.storeName=storeName;
+  try {
+    this.sysStore=systemStore;
+  }
+ catch (  Exception e) {
+    logger.debug("Error while creating a system store client for store : " + this.storeName);
+  }
+}

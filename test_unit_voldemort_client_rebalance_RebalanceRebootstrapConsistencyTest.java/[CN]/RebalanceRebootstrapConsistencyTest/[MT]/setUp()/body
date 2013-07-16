@@ -20,9 +20,10 @@
   socketUrl=voldemortServers[0].getIdentityNode().getSocketUrl().toString();
   bootStrapUrls=new String[1];
   bootStrapUrls[0]=socketUrl;
-  sysVersionStore=new SystemStore<String,String>(SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name(),bootStrapUrls,this.CLIENT_ZONE_ID);
   ClientConfig clientConfig=new ClientConfig();
   clientConfig.setBootstrapUrls(bootStrapUrls).setClientZoneId(this.CLIENT_ZONE_ID);
+  SystemStoreClientFactory<String,String> systemStoreFactory=new SystemStoreClientFactory<String,String>(clientConfig);
+  sysVersionStore=systemStoreFactory.createSystemStore(SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name());
   repository=new SystemStoreRepository(clientConfig);
   repository.addSystemStore(sysVersionStore,SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name());
   this.scheduler=new SchedulerService(2,SystemTime.INSTANCE,true);
