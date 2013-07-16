@@ -1,8 +1,5 @@
 {
-  this.bootstrapURL=config.getBootstrapURL();
-  CHECKPOINT_COMMIT_SIZE=config.getBatchSize();
-  THROTTLE_QPS=config.getThrottleQPS();
-  adminClientConfig=new AdminClientConfig();
-  adminClient=new AdminClient(bootstrapURL,adminClientConfig,new ClientConfig());
-  faultyNodes=new ArrayList<Integer>();
+  super(config);
+  MAX_FAULTY_NODES=config.getFailedNodesTolerated();
+  streamingSlopResults=Executors.newFixedThreadPool(1);
 }
