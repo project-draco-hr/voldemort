@@ -1,0 +1,17 @@
+{
+  for (  Integer nodeId : cluster.getNodeIdsInZone(clientZoneId)) {
+    this.vservers.get(nodeId).stop();
+  }
+  try {
+    ArrayList<String> keys=new ArrayList<String>();
+    keys.add("K1");
+    keys.add("K2");
+    keys.add("K3");
+    Map<String,List<Versioned<String>>> versioneds=client.getAll(keys,null);
+    assertEquals(null,versioneds.get("K1"));
+    assertEquals(null,versioneds.get("K2"));
+    assertEquals(null,versioneds.get("K3"));
+  }
+ catch (  InsufficientOperationalNodesException e) {
+  }
+}

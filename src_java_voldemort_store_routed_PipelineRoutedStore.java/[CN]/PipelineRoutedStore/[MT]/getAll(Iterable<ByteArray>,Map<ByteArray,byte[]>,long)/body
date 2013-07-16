@@ -12,7 +12,7 @@
  else   pipelineData.setZonesRequired(null);
   pipelineData.setStats(stats);
   Pipeline pipeline=new Pipeline(Operation.GET_ALL,getAllOpTimeoutInMs,TimeUnit.MILLISECONDS);
-  pipeline.addEventAction(Event.STARTED,new GetAllConfigureNodes(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),routingStrategy,keys,transforms,clientZone));
+  pipeline.addEventAction(Event.STARTED,new GetAllConfigureNodes(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getPreferredReads(),storeDef.getRequiredReads(),routingStrategy,keys,transforms,clientZone,zoneAffinity));
   pipeline.addEventAction(Event.CONFIGURED,new PerformParallelGetAllRequests(pipelineData,Event.INSUFFICIENT_SUCCESSES,failureDetector,getAllOpTimeoutInMs,nonblockingStores));
   pipeline.addEventAction(Event.INSUFFICIENT_SUCCESSES,new PerformSerialGetAllRequests(pipelineData,allowReadRepair ? Event.RESPONSES_RECEIVED : Event.COMPLETED,keys,failureDetector,innerStores,storeDef.getPreferredReads(),storeDef.getRequiredReads(),timeoutConfig.isPartialGetAllAllowed()));
   if (allowReadRepair)   pipeline.addEventAction(Event.RESPONSES_RECEIVED,new GetAllReadRepair(pipelineData,Event.COMPLETED,storeDef.getPreferredReads(),getAllOpTimeoutInMs,nonblockingStores,readRepairer));
