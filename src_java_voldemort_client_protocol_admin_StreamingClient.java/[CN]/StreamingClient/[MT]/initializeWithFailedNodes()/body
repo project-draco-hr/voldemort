@@ -1,10 +1,10 @@
 {
-  if (blackListedNodes != null && blackListedNodes.size() == MAX_FAULTY_NODES) {
+  if (blackListedNodes == null || blackListedNodes.size() == 0) {
+    super.initStreamingSessions(stores,stubCheckpointCallback,stubRecoveryCallback,allowMerge,null);
+  }
+ else   if (blackListedNodes != null && blackListedNodes.size() <= MAX_FAULTY_NODES) {
     super.initStreamingSessions(stores,stubCheckpointCallback,stubRecoveryCallback,allowMerge,blackListedNodes);
     super.addStoreToSession("slop");
-  }
- else   if (blackListedNodes == null || blackListedNodes.size() == 0) {
-    super.initStreamingSessions(stores,stubCheckpointCallback,stubRecoveryCallback,allowMerge,null);
   }
  else {
     throw new InsufficientOperationalNodesException("More than " + MAX_FAULTY_NODES + " nodes are down, cannot stream");

@@ -2,11 +2,9 @@
   Slop slop=new Slop(storeName,Slop.Operation.PUT,key,value.getValue(),null,failedNodeId,new Date());
   ByteArray slopKey=slop.makeKey();
   Versioned<byte[]> slopValue=new Versioned<byte[]>(slopSerializer.toBytes(slop),value.getVersion());
-  int totalNodes=storeToRoutingStrategy.get(storeName).getNodes().size();
-  int slopDestination=generator.nextInt(totalNodes);
-  while (failedNodeId == slopDestination) {
-    slopDestination=generator.nextInt(totalNodes);
-  }
+  Node failedNode=adminClient.getAdminClientCluster().getNodeById(failedNodeId);
+  HandoffToAnyStrategy slopRoutingStrategy=new HandoffToAnyStrategy(adminClient.getAdminClientCluster(),true,failedNode.getZoneId());
+  int slopDestination=slopRoutingStrategy.routeHint(failedNode).get(0).getId();
   VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(slopKey)).setVersioned(ProtoUtils.encodeVersioned(slopValue)).build();
   VAdminProto.UpdatePartitionEntriesRequest.Builder updateRequest=VAdminProto.UpdatePartitionEntriesRequest.newBuilder().setStore(SLOP_STORE).setPartitionEntry(partitionEntry);
   DataOutputStream outputStream=nodeIdStoreToOutputStreamRequest.get(new Pair<String,Integer>(SLOP_STORE,slopDestination));
