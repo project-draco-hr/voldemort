@@ -1,0 +1,12 @@
+{
+  int stealerId=(Integer)map.get("stealerId");
+  int donorId=(Integer)map.get("donorId");
+  List<String> unbalancedStoreList=Utils.uncheckedCast(map.get("unbalancedStores"));
+  Cluster initialCluster=new ClusterMapper().readCluster(new StringReader((String)map.get("initialCluster")));
+  HashMap<String,List<Integer>> storeToPartitionIds=Maps.newHashMap();
+  for (  String unbalancedStore : unbalancedStoreList) {
+    List<Integer> partitionList=Utils.uncheckedCast(map.get(unbalancedStore + "partitionList"));
+    if (partitionList.size() > 0)     storeToPartitionIds.put(unbalancedStore,partitionList);
+  }
+  return new RebalanceTaskInfo(stealerId,donorId,storeToPartitionIds,initialCluster);
+}

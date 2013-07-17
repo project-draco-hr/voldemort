@@ -1,17 +1,22 @@
 {
   StreamRequestHandlerState handlerState=StreamRequestHandlerState.WRITING;
   if (partitionIterator.hasNext()) {
-    currentPair=partitionIterator.next();
+    Integer partitionId=partitionIterator.next();
+    int nodeId=metadataStore.getNodeId();
+    int zoneId=metadataStore.getCluster().getNodeById(nodeId).getZoneId();
+    StoreDefinition storeDef=metadataStore.getStoreDef(request.getStoreName());
+    StoreRoutingPlan storeRoutingPlan=new StoreRoutingPlan(metadataStore.getCluster(),storeDef);
+    int getZoneNary=storeRoutingPlan.getZoneNaryForNodesPartition(zoneId,nodeId,partitionId);
     currentChunkId=0;
-    if (!bucketToNumChunks.containsKey(Pair.create(currentPair.getSecond(),currentPair.getFirst()))) {
-      throw new VoldemortException("Bucket [ partition = " + currentPair.getSecond() + ", replica = "+ currentPair.getFirst()+ " ] does not exist for store "+ request.getStore());
+    if (!bucketToNumChunks.containsKey(Pair.create(partitionId,getZoneNary))) {
+      throw new VoldemortException("Bucket [ partition = " + partitionId + ", replica = "+ getZoneNary+ " ] does not exist for store "+ request.getStoreName());
     }
-    numChunks=bucketToNumChunks.get(Pair.create(currentPair.getSecond(),currentPair.getFirst()));
+    numChunks=bucketToNumChunks.get(Pair.create(partitionId,getZoneNary));
     dataFile=indexFile=null;
     fetchStatus=FetchStatus.SEND_DATA_FILE;
   }
  else {
-    logger.info("Finished streaming files for partitions tuples " + replicaToPartitionTuples);
+    logger.info("Finished streaming files for partitions tuples " + partitionIds);
     handlerState=StreamRequestHandlerState.COMPLETE;
   }
   return handlerState;

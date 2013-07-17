@@ -14,12 +14,20 @@ default :
     }
     break;
   }
+case 8:
+{
+  addPartitionIds(input.readInt32());
+  break;
+}
 case 10:
 {
-  voldemort.client.protocol.pb.VAdminProto.PartitionTuple.Builder subBuilder=voldemort.client.protocol.pb.VAdminProto.PartitionTuple.newBuilder();
-  input.readMessage(subBuilder,extensionRegistry);
-  addReplicaToPartition(subBuilder.buildPartial());
-  break;
+int length=input.readRawVarint32();
+int limit=input.pushLimit(length);
+while (input.getBytesUntilLimit() > 0) {
+  addPartitionIds(input.readInt32());
+}
+input.popLimit(limit);
+break;
 }
 case 18:
 {

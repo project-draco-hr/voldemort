@@ -2,8 +2,13 @@
   int size=memoizedSerializedSize;
   if (size != -1)   return size;
   size=0;
-  for (  voldemort.client.protocol.pb.VAdminProto.PartitionTuple element : getReplicaToPartitionList()) {
-    size+=com.google.protobuf.CodedOutputStream.computeMessageSize(1,element);
+{
+    int dataSize=0;
+    for (    int element : getPartitionIdsList()) {
+      dataSize+=com.google.protobuf.CodedOutputStream.computeInt32SizeNoTag(element);
+    }
+    size+=dataSize;
+    size+=1 * getPartitionIdsList().size();
   }
   if (hasStore()) {
     size+=com.google.protobuf.CodedOutputStream.computeStringSize(2,getStore());

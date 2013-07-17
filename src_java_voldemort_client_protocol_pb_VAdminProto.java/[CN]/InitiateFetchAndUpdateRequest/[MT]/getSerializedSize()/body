@@ -11,8 +11,13 @@
   if (hasFilter()) {
     size+=com.google.protobuf.CodedOutputStream.computeMessageSize(3,getFilter());
   }
-  for (  voldemort.client.protocol.pb.VAdminProto.PartitionTuple element : getReplicaToPartitionList()) {
-    size+=com.google.protobuf.CodedOutputStream.computeMessageSize(4,element);
+{
+    int dataSize=0;
+    for (    int element : getPartitionIdsList()) {
+      dataSize+=com.google.protobuf.CodedOutputStream.computeInt32SizeNoTag(element);
+    }
+    size+=dataSize;
+    size+=1 * getPartitionIdsList().size();
   }
   if (hasInitialCluster()) {
     size+=com.google.protobuf.CodedOutputStream.computeStringSize(5,getInitialCluster());

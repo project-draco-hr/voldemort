@@ -2,12 +2,5 @@
   super(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader,operation);
   this.keyIterator=storageEngine.keys();
   this.partitionFetches=new HashMap<Integer,Long>();
-  for (  Integer replicaType : replicaToPartitionList.keySet()) {
-    if (replicaToPartitionList.get(replicaType) != null) {
-      for (      Integer partitionId : replicaToPartitionList.get(replicaType)) {
-        this.partitionFetches.put(partitionId,new Long(0));
-      }
-    }
-  }
-  this.partitionsToFetch=new HashSet<Integer>(partitionFetches.keySet());
+  this.partitionsToFetch=new HashSet<Integer>(partitionIds);
 }

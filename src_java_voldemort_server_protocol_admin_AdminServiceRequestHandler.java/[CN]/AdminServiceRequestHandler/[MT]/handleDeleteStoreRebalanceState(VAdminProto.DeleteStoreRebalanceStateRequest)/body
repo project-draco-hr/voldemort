@@ -5,17 +5,17 @@ synchronized (rebalancer) {
       int nodeId=request.getNodeId();
       String storeName=request.getStoreName();
       logger.info("Removing rebalancing state for donor node " + nodeId + " and store "+ storeName+ " from stealer node "+ metadataStore.getNodeId());
-      RebalancePartitionsInfo info=metadataStore.getRebalancerState().find(nodeId);
+      RebalanceTaskInfo info=metadataStore.getRebalancerState().find(nodeId);
       if (info == null) {
         throw new VoldemortException("Could not find state for donor node " + nodeId);
       }
-      HashMap<Integer,List<Integer>> replicaToPartition=info.getReplicaToAddPartitionList(storeName);
-      if (replicaToPartition == null) {
+      List<Integer> partitionIds=info.getPartitionIds(storeName);
+      if (partitionIds.size() == 0) {
         throw new VoldemortException("Could not find state for donor node " + nodeId + " and store "+ storeName);
       }
       info.removeStore(storeName);
       logger.info("Removed rebalancing state for donor node " + nodeId + " and store "+ storeName+ " from stealer node "+ metadataStore.getNodeId());
-      if (info.getUnbalancedStoreList().isEmpty()) {
+      if (info.getPartitionStores().isEmpty()) {
         metadataStore.deleteRebalancingState(info);
         logger.info("Removed entire rebalancing state for donor node " + nodeId + " from stealer node "+ metadataStore.getNodeId());
       }

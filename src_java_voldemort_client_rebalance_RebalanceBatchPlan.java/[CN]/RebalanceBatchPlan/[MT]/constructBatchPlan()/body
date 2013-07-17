@@ -7,7 +7,7 @@
   for (  StoreDefinition storeDef : finalStoreDefs) {
     finalStoreRoutingPlans.put(storeDef.getName(),new StoreRoutingPlan(finalCluster,storeDef));
   }
-  RebalancePartitionsInfoBuilder rpiBuilder=new RebalancePartitionsInfoBuilder();
+  RebalanceTaskInfoBuilder rpiBuilder=new RebalanceTaskInfoBuilder();
   for (  Node stealerNode : finalCluster.getNodes()) {
     int stealerZoneId=stealerNode.getZoneId();
     int stealerNodeId=stealerNode.getId();
@@ -20,9 +20,9 @@
         }
         int donorNodeId=getDonorId(currentSRP,finalSRP,stealerZoneId,stealerNodeId,stealerPartitionId);
         int donorReplicaType=currentSRP.getReplicaType(donorNodeId,stealerPartitionId);
-        rpiBuilder.addPartitionStoreMove(stealerNodeId,donorNodeId,storeDef.getName(),donorReplicaType,stealerPartitionId);
+        rpiBuilder.addPartitionStoreMove(stealerNodeId,donorNodeId,storeDef.getName());
       }
     }
   }
-  return rpiBuilder.buildRebalancePartitionsInfos();
+  return rpiBuilder.buildRebalanceTaskInfos();
 }

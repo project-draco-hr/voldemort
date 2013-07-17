@@ -4,10 +4,10 @@
   final Cluster batchFinalCluster=batchPlan.getFinalCluster();
   final List<StoreDefinition> batchFinalStoreDefs=batchPlan.getFinalStoreDefs();
   try {
-    final List<RebalancePartitionsInfo> rebalancePartitionsInfoList=batchPlan.getBatchPlan();
-    if (rebalancePartitionsInfoList.isEmpty()) {
+    final List<RebalanceTaskInfo> rebalanceTaskInfoList=batchPlan.getBatchPlan();
+    if (rebalanceTaskInfoList.isEmpty()) {
       RebalanceUtils.printBatchLog(batchId,logger,"Skipping batch " + batchId + " since it is empty.");
-      adminClient.rebalanceOps.rebalanceStateChange(batchCurrentCluster,batchFinalCluster,batchCurrentStoreDefs,batchFinalStoreDefs,rebalancePartitionsInfoList,false,true,false,false,true);
+      adminClient.rebalanceOps.rebalanceStateChange(batchCurrentCluster,batchFinalCluster,batchCurrentStoreDefs,batchFinalStoreDefs,rebalanceTaskInfoList,false,true,false,false,true);
       return;
     }
     RebalanceUtils.printBatchLog(batchId,logger,"Starting batch " + batchId + ".");
@@ -16,14 +16,14 @@
     boolean hasReadOnlyStores=readOnlyStoreDefs != null && readOnlyStoreDefs.size() > 0;
     boolean hasReadWriteStores=readWriteStoreDefs != null && readWriteStoreDefs.size() > 0;
     boolean finishedReadOnlyPhase=false;
-    List<RebalancePartitionsInfo> filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionsInfoList,readOnlyStoreDefs);
+    List<RebalanceTaskInfo> filteredRebalancePartitionPlanList=RebalanceUtils.filterTaskPlanWithStores(rebalanceTaskInfoList,readOnlyStoreDefs);
     rebalanceStateChange(batchId,batchCurrentCluster,batchCurrentStoreDefs,batchFinalCluster,batchFinalStoreDefs,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     if (hasReadOnlyStores) {
       RebalanceBatchPlanProgressBar progressBar=batchPlan.getProgressBar(batchId);
       executeSubBatch(batchId,progressBar,batchCurrentCluster,batchCurrentStoreDefs,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     }
     finishedReadOnlyPhase=true;
-    filteredRebalancePartitionPlanList=RebalanceUtils.filterPartitionPlanWithStores(rebalancePartitionsInfoList,readWriteStoreDefs);
+    filteredRebalancePartitionPlanList=RebalanceUtils.filterTaskPlanWithStores(rebalanceTaskInfoList,readWriteStoreDefs);
     rebalanceStateChange(batchId,batchCurrentCluster,batchCurrentStoreDefs,batchFinalCluster,batchFinalStoreDefs,filteredRebalancePartitionPlanList,hasReadOnlyStores,hasReadWriteStores,finishedReadOnlyPhase);
     if (hasReadWriteStores) {
       proxyPause();

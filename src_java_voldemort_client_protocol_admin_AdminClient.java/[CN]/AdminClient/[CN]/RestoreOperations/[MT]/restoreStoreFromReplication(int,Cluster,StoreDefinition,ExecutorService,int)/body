@@ -1,7 +1,7 @@
 {
   logger.info("Restoring data for store " + storeDef.getName() + " on node "+ restoringNodeId);
-  Map<Integer,HashMap<Integer,List<Integer>>> restoreMapping=helperOps.getReplicationMapping(restoringNodeId,cluster,storeDef,zoneId);
-  for (  final Entry<Integer,HashMap<Integer,List<Integer>>> replicationEntry : restoreMapping.entrySet()) {
+  Map<Integer,List<Integer>> restoreMapping=helperOps.getReplicationMapping(restoringNodeId,cluster,storeDef,zoneId);
+  for (  final Entry<Integer,List<Integer>> replicationEntry : restoreMapping.entrySet()) {
     final int donorNodeId=replicationEntry.getKey();
     executorService.submit(new Runnable(){
       @Override public void run(){

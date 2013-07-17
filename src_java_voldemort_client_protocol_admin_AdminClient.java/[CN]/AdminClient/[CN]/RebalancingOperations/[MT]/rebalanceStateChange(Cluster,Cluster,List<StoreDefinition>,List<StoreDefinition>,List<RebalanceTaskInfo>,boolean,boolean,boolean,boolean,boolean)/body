@@ -1,0 +1,47 @@
+{
+  HashMap<Integer,List<RebalanceTaskInfo>> stealerNodeToPlan=RebalanceUtils.groupPartitionsTaskByNode(rebalanceTaskPlanList,true);
+  Set<Integer> completedNodeIds=Sets.newHashSet();
+  HashMap<Integer,Exception> exceptions=Maps.newHashMap();
+  try {
+    for (    Node node : transitionCluster.getNodes()) {
+      try {
+        individualStateChange(node.getId(),transitionCluster,targetStoreDefs,stealerNodeToPlan.get(node.getId()),swapRO,changeClusterMetadata,changeRebalanceState,false);
+        completedNodeIds.add(node.getId());
+      }
+ catch (      Exception e) {
+        exceptions.put(node.getId(),e);
+        if (failEarly) {
+          throw e;
+        }
+      }
+    }
+    if (exceptions.size() > 0) {
+      throw new VoldemortRebalancingException("Got exceptions from nodes " + exceptions.keySet());
+    }
+    if (changeClusterMetadata) {
+      try {
+        metadataMgmtOps.updateMetadataversion(CLUSTER_VERSION_KEY);
+      }
+ catch (      Exception e) {
+        logger.info("Exception occurred while setting cluster metadata version during Rebalance state change !!!");
+      }
+    }
+  }
+ catch (  Exception e) {
+    if (rollback) {
+      logger.error("Got exceptions from nodes " + exceptions.keySet() + " while changing state. Rolling back state on "+ completedNodeIds);
+      for (      int completedNodeId : completedNodeIds) {
+        try {
+          individualStateChange(completedNodeId,existingCluster,existingStoreDefs,stealerNodeToPlan.get(completedNodeId),swapRO,changeClusterMetadata,changeRebalanceState,true);
+        }
+ catch (        Exception exception) {
+          logger.error("Error while reverting back state change for completed node " + completedNodeId,exception);
+        }
+      }
+    }
+ else {
+      logger.error("Got exceptions from nodes " + exceptions.keySet() + " while changing state");
+    }
+    throw new VoldemortRebalancingException("Got exceptions from nodes " + exceptions.keySet() + " while changing state",Lists.newArrayList(exceptions.values()));
+  }
+}

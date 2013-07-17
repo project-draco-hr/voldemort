@@ -1,6 +1,6 @@
 {
   final int nodeId=request.getNodeId();
-  final HashMap<Integer,List<Integer>> replicaToPartitionList=ProtoUtils.decodePartitionTuple(request.getReplicaToPartitionList());
+  final List<Integer> partitionIds=request.getPartitionIdsList();
   final VoldemortFilter filter=request.hasFilter() ? getFilterFromRequest(request.getFilter(),voldemortConfig,networkClassLoader) : new DefaultVoldemortFilter();
   final String storeName=request.getStore();
   final boolean optimize=request.hasOptimize() ? request.getOptimize() : false;
@@ -14,7 +14,7 @@
       private final AtomicBoolean running=new AtomicBoolean(true);
       @Override public void stop(){
         running.set(false);
-        logger.info("Stopping fetch and update for store " + storeName + " from node "+ nodeId+ "( "+ replicaToPartitionList+ " )");
+        logger.info("Stopping fetch and update for store " + storeName + " from node "+ nodeId+ "( "+ partitionIds+ " )");
       }
       @Override public void operate(){
         AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),voldemortConfig.getClientMaxConnectionsPerNode());
@@ -24,24 +24,24 @@
           if (isReadOnlyStore) {
             ReadOnlyStorageEngine readOnlyStorageEngine=((ReadOnlyStorageEngine)storageEngine);
             String destinationDir=readOnlyStorageEngine.getCurrentDirPath();
-            logger.info("Fetching files for RO store '" + storeName + "' from node "+ nodeId+ " ( "+ replicaToPartitionList+ " )");
-            updateStatus("Fetching files for RO store '" + storeName + "' from node "+ nodeId+ " ( "+ replicaToPartitionList+ " )");
-            adminClient.readonlyOps.fetchPartitionFiles(nodeId,storeName,replicaToPartitionList,destinationDir,readOnlyStorageEngine.getChunkedFileSet().getChunkIdToNumChunks().keySet(),running);
+            logger.info("Fetching files for RO store '" + storeName + "' from node "+ nodeId+ " ( "+ partitionIds+ " )");
+            updateStatus("Fetching files for RO store '" + storeName + "' from node "+ nodeId+ " ( "+ partitionIds+ " )");
+            adminClient.readonlyOps.fetchPartitionFiles(nodeId,storeName,partitionIds,destinationDir,readOnlyStorageEngine.getChunkedFileSet().getChunkIdToNumChunks().keySet(),running);
           }
  else {
-            logger.info("Fetching entries for RW store '" + storeName + "' from node "+ nodeId+ " ( "+ replicaToPartitionList+ " )");
-            updateStatus("Fetching entries for RW store '" + storeName + "' from node "+ nodeId+ " ( "+ replicaToPartitionList+ " ) ");
-            HashMap<Integer,List<Integer>> optimizedReplicaToPartitionList=Maps.newHashMap();
+            logger.info("Fetching entries for RW store '" + storeName + "' from node "+ nodeId+ " ( "+ partitionIds+ " )");
+            updateStatus("Fetching entries for RW store '" + storeName + "' from node "+ nodeId+ " ( "+ partitionIds+ " ) ");
+            List<Integer> optimizedPartitionIds=Lists.newArrayList();
             if (initialCluster != null && optimize && !storageEngine.isPartitionAware() && voldemortConfig.getRebalancingOptimization()) {
-              optimizedReplicaToPartitionList.putAll(RebalanceUtils.getOptimizedReplicaToPartitionList(metadataStore.getNodeId(),initialCluster,storeDef,replicaToPartitionList));
-              logger.info("After running RW level optimization - Fetching entries for RW store '" + storeName + "' from node "+ nodeId+ " ( "+ optimizedReplicaToPartitionList+ " )");
-              updateStatus("After running RW level optimization - Fetching entries for RW store '" + storeName + "' from node "+ nodeId+ " ( "+ optimizedReplicaToPartitionList+ " )");
+              optimizedPartitionIds.addAll(RebalanceUtils.getOptimizedPartitionIds(metadataStore.getNodeId(),initialCluster,storeDef,partitionIds));
+              logger.info("After running RW level optimization - Fetching entries for RW store '" + storeName + "' from node "+ nodeId+ " ( "+ optimizedPartitionIds+ " )");
+              updateStatus("After running RW level optimization - Fetching entries for RW store '" + storeName + "' from node "+ nodeId+ " ( "+ optimizedPartitionIds+ " )");
             }
  else {
-              optimizedReplicaToPartitionList.putAll(replicaToPartitionList);
+              optimizedPartitionIds.addAll(partitionIds);
             }
-            if (optimizedReplicaToPartitionList.size() > 0) {
-              Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=adminClient.bulkFetchOps.fetchEntries(nodeId,storeName,optimizedReplicaToPartitionList,filter,false,initialCluster,0);
+            if (optimizedPartitionIds.size() > 0) {
+              Iterator<Pair<ByteArray,Versioned<byte[]>>> entriesIterator=adminClient.bulkFetchOps.fetchEntries(nodeId,storeName,optimizedPartitionIds,filter,false,initialCluster,0);
               long numTuples=0;
               long startTime=System.currentTimeMillis();
               while (running.get() && entriesIterator.hasNext()) {

@@ -1,0 +1,10 @@
+{
+  ImmutableMap.Builder<String,Object> builder=new ImmutableMap.Builder<String,Object>();
+  builder.put("stealerId",stealerId).put("donorId",donorId).put("unbalancedStores",Lists.newArrayList(storeToPartitionIds.keySet())).put("initialCluster",new ClusterMapper().writeCluster(initialCluster));
+  for (  String unbalancedStore : storeToPartitionIds.keySet()) {
+    List<Integer> partitionIds=storeToPartitionIds.get(unbalancedStore);
+    if (!partitionIds.isEmpty())     builder.put(unbalancedStore + "partitionList",partitionIds);
+ else     builder.put(unbalancedStore + "partitionList",Lists.newArrayList());
+  }
+  return builder.build();
+}

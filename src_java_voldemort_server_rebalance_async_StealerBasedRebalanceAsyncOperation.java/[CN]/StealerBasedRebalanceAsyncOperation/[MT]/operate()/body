@@ -3,9 +3,9 @@
   final List<Exception> failures=new ArrayList<Exception>();
   final ConcurrentLinkedQueue<String> storesRebalancing=new ConcurrentLinkedQueue<String>();
   final AtomicInteger completedStoresCount=new AtomicInteger(0);
-  final int totalStoresCount=stealInfo.getUnbalancedStoreList().size();
+  final int totalStoresCount=stealInfo.getPartitionStores().size();
   try {
-    for (    final String storeName : ImmutableList.copyOf(stealInfo.getUnbalancedStoreList())) {
+    for (    final String storeName : ImmutableList.copyOf(stealInfo.getPartitionStores())) {
       executors.submit(new Runnable(){
         @Override public void run(){
           try {
@@ -27,7 +27,7 @@
 );
     }
     waitForShutdown();
-    List<String> unbalancedStores=Lists.newArrayList(stealInfo.getUnbalancedStoreList());
+    List<String> unbalancedStores=Lists.newArrayList(stealInfo.getPartitionStores());
     if (unbalancedStores.isEmpty()) {
       logger.info(getHeader(stealInfo) + "Rebalance of " + stealInfo+ " completed successfully for all "+ totalStoresCount+ " stores");
       updateStatus(getHeader(stealInfo) + "Rebalance of " + partitionStoreCount+ " partition-stores completed successfully for all "+ totalStoresCount+ " stores");

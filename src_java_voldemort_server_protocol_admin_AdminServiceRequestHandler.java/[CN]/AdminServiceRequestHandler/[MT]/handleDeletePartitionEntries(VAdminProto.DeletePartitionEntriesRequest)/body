@@ -3,7 +3,7 @@
   ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> iterator=null;
   try {
     String storeName=request.getStore();
-    final HashMap<Integer,List<Integer>> replicaToPartitionList=ProtoUtils.decodePartitionTuple(request.getReplicaToPartitionList());
+    final List<Integer> partitionsIds=request.getPartitionIdsList();
     final boolean isReadWriteStore=metadataStore.getStoreDef(storeName).getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) != 0;
     if (!isReadWriteStore) {
       throw new VoldemortException("Cannot delete partitions for store " + storeName + " on node "+ metadataStore.getNodeId()+ " since it is not a RW store");
@@ -13,13 +13,13 @@
     EventThrottler throttler=new EventThrottler(voldemortConfig.getStreamMaxReadBytesPerSec());
     iterator=storageEngine.entries();
     long deleteSuccess=0;
-    logger.info("Deleting entries for RW store " + storeName + " from node "+ metadataStore.getNodeId()+ " ( "+ replicaToPartitionList+ " )");
+    logger.info("Deleting entries for RW store " + storeName + " from node "+ metadataStore.getNodeId()+ " ( "+ storeName+ " )");
     while (iterator.hasNext()) {
       Pair<ByteArray,Versioned<byte[]>> entry=iterator.next();
       ByteArray key=entry.getFirst();
       Versioned<byte[]> value=entry.getSecond();
       throttler.maybeThrottle(key.length() + valueSize(value));
-      if (StoreRoutingPlan.checkKeyBelongsToPartition(metadataStore.getNodeId(),key.get(),replicaToPartitionList,request.hasInitialCluster() ? new ClusterMapper().readCluster(new StringReader(request.getInitialCluster())) : metadataStore.getCluster(),metadataStore.getStoreDef(storeName)) && filter.accept(key,value)) {
+      if (StoreRoutingPlan.checkKeyBelongsToPartitionIds(metadataStore.getNodeId(),key.get(),request.hasInitialCluster() ? new ClusterMapper().readCluster(new StringReader(request.getInitialCluster())) : metadataStore.getCluster(),metadataStore.getStoreDef(storeName)) && filter.accept(key,value)) {
         if (storageEngine.delete(key,value.getVersion())) {
           deleteSuccess++;
           if ((deleteSuccess % 10000) == 0) {
@@ -28,7 +28,7 @@
         }
       }
     }
-    logger.info("Completed deletion of entries for RW store " + storeName + " from node "+ metadataStore.getNodeId()+ " ( "+ replicaToPartitionList+ " )");
+    logger.info("Completed deletion of entries for RW store " + storeName + " from node "+ metadataStore.getNodeId()+ " ( "+ partitionsIds+ " )");
     response.setCount(deleteSuccess);
   }
  catch (  VoldemortException e) {

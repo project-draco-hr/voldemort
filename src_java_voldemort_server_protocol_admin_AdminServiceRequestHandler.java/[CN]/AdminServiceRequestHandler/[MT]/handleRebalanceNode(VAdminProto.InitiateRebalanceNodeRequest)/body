@@ -6,7 +6,7 @@
       response.setError(ProtoUtils.encodeError(errorCodeMapper,new VoldemortException("Voldemort server " + metadataStore.getNodeId() + " not in rebalancing state")));
       return response.build();
     }
-    RebalancePartitionsInfo rebalanceStealInfo=ProtoUtils.decodeRebalancePartitionInfoMap(request.getRebalancePartitionInfo());
+    RebalanceTaskInfo rebalanceStealInfo=ProtoUtils.decodeRebalanceTaskInfoMap(request.getRebalanceTaskInfo());
     int requestId=rebalancer.rebalanceNode(rebalanceStealInfo);
     response.setRequestId(requestId).setDescription(rebalanceStealInfo.toString()).setStatus("Started rebalancing").setComplete(false);
   }

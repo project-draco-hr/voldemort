@@ -1,0 +1,12 @@
+{
+  StringBuffer sb=new StringBuffer();
+  sb.append("\nRebalanceTaskInfo(" + getStealerId() + " ["+ initialCluster.getNodeById(getStealerId()).getHost()+ "] <--- "+ getDonorId()+ " ["+ initialCluster.getNodeById(getDonorId()).getHost()+ "] ");
+  for (  String unbalancedStore : storeToPartitionIds.keySet()) {
+    sb.append("\n\t- Store '" + unbalancedStore + "' move ");
+    List<Integer> partitionIds=storeToPartitionIds.get(unbalancedStore);
+    if (!partitionIds.isEmpty())     sb.append(" - " + partitionIds);
+ else     sb.append(" - []");
+  }
+  sb.append(")");
+  return sb.toString();
+}

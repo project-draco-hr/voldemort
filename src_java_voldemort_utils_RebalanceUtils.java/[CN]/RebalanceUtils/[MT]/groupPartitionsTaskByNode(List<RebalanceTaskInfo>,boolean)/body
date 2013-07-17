@@ -1,0 +1,15 @@
+{
+  HashMap<Integer,List<RebalanceTaskInfo>> nodeToTaskInfo=Maps.newHashMap();
+  if (rebalanceTaskPlanList != null) {
+    for (    RebalanceTaskInfo partitionInfo : rebalanceTaskPlanList) {
+      int nodeId=groupByStealerNode ? partitionInfo.getStealerId() : partitionInfo.getDonorId();
+      List<RebalanceTaskInfo> taskInfos=nodeToTaskInfo.get(nodeId);
+      if (taskInfos == null) {
+        taskInfos=Lists.newArrayList();
+        nodeToTaskInfo.put(nodeId,taskInfos);
+      }
+      taskInfos.add(partitionInfo);
+    }
+  }
+  return nodeToTaskInfo;
+}

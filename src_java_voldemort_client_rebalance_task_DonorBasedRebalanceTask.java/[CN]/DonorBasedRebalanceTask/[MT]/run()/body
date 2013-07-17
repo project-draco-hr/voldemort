@@ -2,10 +2,6 @@
   int rebalanceAsyncId=INVALID_REBALANCE_ID;
   try {
     acquirePermit(donorNodeId);
-    rebalanceAsyncId=adminClient.rebalanceOps.rebalanceNode(stealInfos);
-    taskStart(rebalanceAsyncId);
-    adminClient.rpcOps.waitForCompletion(donorNodeId,rebalanceAsyncId);
-    taskDone(rebalanceAsyncId);
   }
  catch (  UnreachableStoreException e) {
     exception=e;

@@ -1,0 +1,15 @@
+{
+  List<RebalanceTaskInfo> plans=Lists.newArrayList();
+  List<String> storeNames=StoreDefinitionUtils.getStoreNames(storeDefs);
+  for (  RebalanceTaskInfo existingPlan : existingPlanList) {
+    RebalanceTaskInfo info=RebalanceTaskInfo.create(existingPlan.toJsonString());
+    HashMap<String,List<Integer>> storeToPartitions=info.getStoreToPartitionIds();
+    HashMap<String,List<Integer>> newStoreToPartitions=Maps.newHashMap();
+    for (    String storeName : storeNames) {
+      if (storeToPartitions.containsKey(storeName))       newStoreToPartitions.put(storeName,storeToPartitions.get(storeName));
+    }
+    info.setStoreToPartitionList(newStoreToPartitions);
+    plans.add(info);
+  }
+  return plans;
+}

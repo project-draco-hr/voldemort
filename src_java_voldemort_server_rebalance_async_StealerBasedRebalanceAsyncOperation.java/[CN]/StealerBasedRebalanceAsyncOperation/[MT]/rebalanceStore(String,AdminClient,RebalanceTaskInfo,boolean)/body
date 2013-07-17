@@ -1,0 +1,14 @@
+{
+  if (stealInfo.getPartitionIds(storeName) != null && stealInfo.getPartitionIds(storeName).size() > 0) {
+    logger.info(getHeader(stealInfo) + "Starting partitions migration for store " + storeName+ " from donor node "+ stealInfo.getDonorId());
+    int asyncId=adminClient.storeMntOps.migratePartitions(stealInfo.getDonorId(),metadataStore.getNodeId(),storeName,stealInfo.getPartitionIds(storeName),null,stealInfo.getInitialCluster(),true);
+    rebalanceStatusList.add(asyncId);
+    if (logger.isDebugEnabled()) {
+      logger.debug(getHeader(stealInfo) + "Waiting for completion for " + storeName+ " with async id "+ asyncId);
+    }
+    adminClient.rpcOps.waitForCompletion(metadataStore.getNodeId(),asyncId,voldemortConfig.getRebalancingTimeoutSec(),TimeUnit.SECONDS,getStatus());
+    rebalanceStatusList.remove((Object)asyncId);
+    logger.info(getHeader(stealInfo) + "Completed partition migration for store " + storeName+ " from donor node "+ stealInfo.getDonorId());
+  }
+  logger.info(getHeader(stealInfo) + "Finished all migration for store " + storeName);
+}

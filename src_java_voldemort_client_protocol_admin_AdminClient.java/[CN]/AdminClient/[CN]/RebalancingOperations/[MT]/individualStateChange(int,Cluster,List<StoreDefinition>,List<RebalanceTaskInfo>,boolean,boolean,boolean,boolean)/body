@@ -1,0 +1,21 @@
+{
+  if (!changeClusterMetadata && rebalanceTaskPlanList == null) {
+    return;
+  }
+  logger.info("Node " + nodeId + "] Performing "+ (rollback ? "rollback" : "normal")+ " rebalance state change "+ (swapRO ? "<swap RO>" : "")+ (changeClusterMetadata ? "<change cluster - " + cluster + ">" : "")+ (changeRebalanceState ? "<change rebalance state - " + rebalanceTaskPlanList + ">" : ""));
+  VAdminProto.RebalanceStateChangeRequest.Builder getRebalanceStateChangeRequestBuilder=VAdminProto.RebalanceStateChangeRequest.newBuilder();
+  if (rebalanceTaskPlanList != null) {
+    List<RebalanceTaskInfoMap> map=Lists.newArrayList();
+    for (    RebalanceTaskInfo stealInfo : rebalanceTaskPlanList) {
+      RebalanceTaskInfoMap infoMap=ProtoUtils.encodeRebalanceTaskInfoMap(stealInfo);
+      map.add(infoMap);
+    }
+    getRebalanceStateChangeRequestBuilder.addAllRebalancePartitionTaskList(map);
+  }
+  VAdminProto.RebalanceStateChangeRequest getRebalanceStateChangeRequest=getRebalanceStateChangeRequestBuilder.setSwapRo(swapRO).setChangeClusterMetadata(changeClusterMetadata).setChangeRebalanceState(changeRebalanceState).setClusterString(clusterMapper.writeCluster(cluster)).setRollback(rollback).setStoresString(new StoreDefinitionsMapper().writeStoreList(storeDefs)).build();
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setRebalanceStateChange(getRebalanceStateChangeRequest).setType(VAdminProto.AdminRequestType.REBALANCE_STATE_CHANGE).build();
+  VAdminProto.RebalanceStateChangeResponse.Builder response=rpcOps.sendAndReceive(nodeId,adminRequest,VAdminProto.RebalanceStateChangeResponse.newBuilder());
+  if (response.hasError()) {
+    helperOps.throwException(response.getError());
+  }
+}
