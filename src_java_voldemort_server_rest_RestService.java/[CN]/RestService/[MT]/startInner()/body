@@ -7,4 +7,5 @@
   this.bootstrap.setPipelineFactory(new RestPipelineFactory(storeRepository,config.getNumRestServiceStorageThreads(),config.getRestServiceStorageThreadPoolQueueSize()));
   this.nettyServerChannel=this.bootstrap.bind(new InetSocketAddress(this.port));
   logger.info("REST service started on port " + this.port);
+  JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass())));
 }
