@@ -4,8 +4,10 @@
   this.bootstrap.setOption("child.tcpNoDelay",true);
   this.bootstrap.setOption("child.keepAlive",true);
   this.bootstrap.setOption("child.reuseAddress",true);
-  this.bootstrap.setPipelineFactory(new RestPipelineFactory(storeRepository,config.getNumRestServiceStorageThreads(),config.getRestServiceStorageThreadPoolQueueSize()));
+  this.bootstrap.setPipelineFactory(new RestPipelineFactory(storeRepository,config.getNumRestServiceStorageThreads(),config.getRestServiceStorageThreadPoolQueueSize(),config.isJmxEnabled()));
   this.nettyServerChannel=this.bootstrap.bind(new InetSocketAddress(this.port));
   logger.info("REST service started on port " + this.port);
-  JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass())));
+  if (config.isJmxEnabled()) {
+    JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass())));
+  }
 }

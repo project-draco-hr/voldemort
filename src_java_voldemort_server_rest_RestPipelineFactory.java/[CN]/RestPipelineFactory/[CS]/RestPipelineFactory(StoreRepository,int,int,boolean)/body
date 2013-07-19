@@ -1,0 +1,11 @@
+{
+  this.storeRepository=storeRepository;
+  this.threadPoolExecutor=new ThreadPoolExecutor(numStorageThreads,numStorageThreads,0L,TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>(threadPoolQueueSize),threadFactory);
+  storageExecutionHandler=new StorageExecutionHandler(threadPoolExecutor);
+  connectionStats=new ConnectionStats();
+  connectionStatsHandler=new ConnectionStatsHandler(connectionStats);
+  if (jmxEnabled) {
+    JmxUtils.registerMbean(this.storageExecutionHandler,JmxUtils.createObjectName(JmxUtils.getPackageName(this.storageExecutionHandler.getClass()),JmxUtils.getClassName(this.storageExecutionHandler.getClass())));
+    JmxUtils.registerMbean(this.connectionStats,JmxUtils.createObjectName(JmxUtils.getPackageName(this.connectionStats.getClass()),JmxUtils.getClassName(this.connectionStats.getClass())));
+  }
+}
