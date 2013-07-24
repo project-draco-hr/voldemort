@@ -5,6 +5,9 @@
   if (this.routingTypeCode != null) {
     requestBuilder.setHeader(RestMessageHeaders.X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
   }
+  if (this.zoneId != defaultZoneId) {
+    requestBuilder.setHeader(RestMessageHeaders.X_VOLD_ZONE_ID,String.valueOf(this.zoneId));
+  }
   RestRequest request=requestBuilder.build();
   Future<RestResponse> f=client.restRequest(request);
   return f.get();

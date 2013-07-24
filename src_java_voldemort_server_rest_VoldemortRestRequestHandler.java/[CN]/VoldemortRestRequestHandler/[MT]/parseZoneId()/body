@@ -1,0 +1,19 @@
+{
+  int result=-1;
+  String zoneIdStr=this.request.getHeader(RestMessageHeaders.X_VOLD_ZONE_ID);
+  if (zoneIdStr != null) {
+    try {
+      int zoneId=Integer.parseInt(zoneIdStr);
+      if (zoneId < 0) {
+        logger.error("ZoneId cannot be negative. Assuming the default zone id.");
+      }
+ else {
+        result=zoneId;
+      }
+    }
+ catch (    NumberFormatException nfe) {
+      logger.error("Exception when validating request. Incorrect zone id parameter. Cannot parse this to int: " + zoneIdStr,nfe);
+    }
+  }
+  return result;
+}
