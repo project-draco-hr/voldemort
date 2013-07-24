@@ -1,0 +1,13 @@
+{
+  Set<Integer> nodeIds=cluster.getNodeIdsInZone(clientZoneId);
+  nodeIds.remove(nodeIds.iterator().next());
+  for (  Integer nodeId : nodeIds) {
+    this.vservers.get(nodeId).stop();
+  }
+  try {
+    client.getVersions("AB");
+    fail("Did not fail fast");
+  }
+ catch (  InsufficientOperationalNodesException e) {
+  }
+}
