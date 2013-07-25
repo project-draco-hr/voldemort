@@ -14,9 +14,5 @@
   response.setHeader(CONTENT_LOCATION,contentLocationKey);
   response.setContent(responseContentBuffer);
   response.setHeader(CONTENT_LENGTH,response.getContent().readableBytes());
-  if (performanceStats != null && isFromLocalZone) {
-    long duration=System.currentTimeMillis() - startTimeInMs;
-    performanceStats.recordTime(Tracked.GET,duration * toNanoSeconds);
-  }
   this.messageEvent.getChannel().write(response);
 }

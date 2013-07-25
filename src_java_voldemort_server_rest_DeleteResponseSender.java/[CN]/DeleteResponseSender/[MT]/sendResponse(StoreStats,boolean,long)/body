@@ -1,9 +1,8 @@
 {
   HttpResponse response=new DefaultHttpResponse(HTTP_1_1,NO_CONTENT);
   response.setHeader(CONTENT_LENGTH,"0");
-  if (performanceStats != null && isFromLocalZone) {
-    long duration=System.currentTimeMillis() - startTimeInMs;
-    performanceStats.recordTime(Tracked.DELETE,duration * toNanoSeconds);
-  }
   this.messageEvent.getChannel().write(response);
+  if (performanceStats != null && isFromLocalZone) {
+    recordStats(performanceStats,startTimeInMs,Tracked.DELETE);
+  }
 }
