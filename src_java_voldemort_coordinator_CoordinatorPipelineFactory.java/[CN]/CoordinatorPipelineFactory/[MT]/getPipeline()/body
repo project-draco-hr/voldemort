@@ -4,11 +4,7 @@
   pipeline.addLast("aggregator",new HttpChunkAggregator(1048576));
   pipeline.addLast("encoder",new HttpResponseEncoder());
   pipeline.addLast("deflater",new HttpContentCompressor());
-  if (this.noop) {
-    pipeline.addLast("handler",new NoopHttpRequestHandler());
-  }
- else {
-    pipeline.addLast("handler",new VoldemortHttpRequestHandler(this.fatClientMap,this.errorStats));
-  }
+  pipeline.addLast("handler",new CoordinatorRestRequestHandler(fatClientMap));
+  pipeline.addLast("storageExecutionHandler",coordinatorExecutionHandler);
   return pipeline;
 }

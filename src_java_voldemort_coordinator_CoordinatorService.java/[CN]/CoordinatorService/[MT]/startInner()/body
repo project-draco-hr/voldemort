@@ -22,9 +22,11 @@
   this.bootstrap.setOption("child.tcpNoDelay",true);
   this.bootstrap.setOption("child.keepAlive",true);
   this.bootstrap.setOption("child.reuseAddress",true);
-  this.bootstrap.setPipelineFactory(new CoordinatorPipelineFactory(this.fatClientMap,this.errorStats,noop));
-  JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass())));
-  JmxUtils.registerMbean(this.errorStats,JmxUtils.createObjectName(JmxUtils.getPackageName(this.errorStats.getClass()),JmxUtils.getClassName(this.errorStats.getClass())));
+  this.bootstrap.setPipelineFactory(new CoordinatorPipelineFactory(this.fatClientMap,this.coordinatorConfig,this.errorStats));
+  if (clientConfig.isJmxEnabled()) {
+    JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass())));
+    JmxUtils.registerMbean(this.errorStats,JmxUtils.createObjectName(JmxUtils.getPackageName(this.errorStats.getClass()),JmxUtils.getClassName(this.errorStats.getClass())));
+  }
   this.nettyServerChannel=this.bootstrap.bind(new InetSocketAddress(this.coordinatorConfig.getServerPort()));
   logger.info("Coordinator service started on port " + this.coordinatorConfig.getServerPort());
 }
