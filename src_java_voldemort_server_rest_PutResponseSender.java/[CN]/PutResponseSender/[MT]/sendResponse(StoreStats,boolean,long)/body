@@ -1,6 +1,10 @@
 {
   HttpResponse response=new DefaultHttpResponse(HTTP_1_1,CREATED);
   response.setHeader(CONTENT_LENGTH,0);
+  if (this.successfulPutVC != null) {
+    String serializedVC=CoordinatorUtils.getSerializedVectorClock(successfulPutVC);
+    response.setHeader(VoldemortHttpRequestHandler.X_VOLD_VECTOR_CLOCK,serializedVC);
+  }
   this.messageEvent.getChannel().write(response);
   if (performanceStats != null && isFromLocalZone) {
     recordStats(performanceStats,startTimeInMs,Tracked.PUT);

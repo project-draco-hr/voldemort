@@ -1,6 +1,6 @@
 {
   String line;
-  Map<String,ClientConfig> storeNameConfigMap=new HashMap<String,ClientConfig>();
+  Map<String,SocketStoreClientFactory> storeFactoryMap=new HashMap<String,SocketStoreClientFactory>();
   try {
     line=Joiner.on(" ").join(IOUtils.readLines(new FileReader(new File(configFilePath)))).trim();
     JsonDecoder decoder=new JsonDecoder(CLIENT_CONFIGS_AVRO_SCHEMA,line);
@@ -19,7 +19,9 @@
         }
         ClientConfig fatClientConfig=new ClientConfig(props);
         fatClientConfig.setBootstrapUrls(bootstrapURLs).setEnableCompressionLayer(false).setEnableSerializationLayer(false).enableDefaultClient(true).setEnableLazy(false);
-        storeNameConfigMap.put(storeName,fatClientConfig);
+        logger.info("Creating a Fat client for store: " + storeName);
+        logger.info("Using config: " + fatClientConfig);
+        storeFactoryMap.put(storeName,new SocketStoreClientFactory(fatClientConfig));
       }
     }
   }
@@ -32,5 +34,5 @@ catch (  IOException e) {
 catch (  Exception e) {
     e.printStackTrace();
   }
-  return storeNameConfigMap;
+  return storeFactoryMap;
 }

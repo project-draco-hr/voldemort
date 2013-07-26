@@ -13,9 +13,9 @@
     Version obsoleteVersion=((VectorClock)versionedValue.getVersion()).clone();
     System.out.println("First versioned put");
     versionedValue.setObject("New Value !!!");
-    System.err.println("************* original version : " + versionedValue.getVersion());
+    System.out.println("************* original version : " + versionedValue.getVersion());
     Version putVersion=clientStore.put("a",versionedValue);
-    System.err.println("************* Updated version : " + putVersion);
+    System.out.println("************* Updated version : " + putVersion);
     System.out.println("Obsolete put");
     Versioned<String> obsoleteVersionedValue=new Versioned<String>("Obsolete value",obsoleteVersion);
     try {
@@ -23,7 +23,7 @@
       System.err.println(" **************** Should not reach this point **************** ");
     }
  catch (    Exception e) {
-      e.printStackTrace();
+      System.out.println("Exception occured as expected: " + e.getMessage());
     }
     versionedValue=clientStore.get("a");
     System.out.println("Received response on the versioned put: " + versionedValue);

@@ -3,15 +3,14 @@
   String storesXml=storeClientFactory.bootstrapMetadataWithRetries(MetadataStore.STORES_KEY);
   String clusterXml=storeClientFactory.bootstrapMetadataWithRetries(MetadataStore.CLUSTER_KEY);
   List<StoreDefinition> storeDefList=storeMapper.readStoreList(new StringReader(storesXml),false);
-  Map<String,ClientConfig> fatClientConfigMap=readClientConfig(this.coordinatorConfig.getFatClientConfigPath(),this.coordinatorConfig.getBootstrapURLs());
+  this.coordinatorMetadata.setMetadata(clusterXml,storeDefList);
+  Map<String,SocketStoreClientFactory> fatClientFactoryMap=readClientConfig(this.coordinatorConfig.getFatClientConfigPath(),this.coordinatorConfig.getBootstrapURLs());
   if (this.fatClientMap == null) {
     this.fatClientMap=new HashMap<String,DynamicTimeoutStoreClient<ByteArray,byte[]>>();
   }
   for (  StoreDefinition storeDef : storeDefList) {
     String storeName=storeDef.getName();
-    logger.info("Creating a Fat client for store: " + storeName);
-    logger.info("Using config: " + fatClientConfigMap.get(storeName));
-    DynamicTimeoutStoreClient<ByteArray,byte[]> storeClient=new DynamicTimeoutStoreClient<ByteArray,byte[]>(storeName,this.storeClientFactory,1,storesXml,clusterXml);
+    DynamicTimeoutStoreClient<ByteArray,byte[]> storeClient=new DynamicTimeoutStoreClient<ByteArray,byte[]>(storeName,fatClientFactoryMap.get(storeName),1,storesXml,clusterXml);
     fatClientMap.put(storeName,storeClient);
   }
 }
