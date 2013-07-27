@@ -6,8 +6,7 @@
     boolean found=false;
     while (!found && (currentIndex < partitionList.size())) {
       currentPartition=partitionList.get(currentIndex);
-      currentReplicaType=replicaTypeList.get(currentIndex);
-      if (!fetchedPartitions.contains(currentPartition) && StoreRoutingPlan.checkPartitionBelongsToNode(currentPartition,currentReplicaType,nodeId,initialCluster,storeDef)) {
+      if (!fetchedPartitions.contains(currentPartition) && StoreRoutingPlan.checkPartitionBelongsToNode(currentPartition,nodeId,initialCluster,storeDef)) {
         found=true;
         completedFetchingCurrentPartition();
         keysPartitionIterator=storageEngine.keys(currentPartition);

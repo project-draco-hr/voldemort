@@ -14,50 +14,33 @@
  catch (  VoldemortException e) {
   }
   storeDef=ServerTestUtils.getStoreDef("consistent",2,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY);
-  Map<Integer,HashMap<Integer,List<Integer>>> replicationMapping=adminClient.helperOps.getReplicationMapping(0,newCluster,storeDef);
+  Map<Integer,List<Integer>> replicationMapping=adminClient.helperOps.getReplicationMapping(0,newCluster,storeDef);
 {
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.clear();
-    partitionTuple.put(1,Lists.newArrayList(0,4,8));
-    expectedMapping.put(1,partitionTuple);
-    HashMap<Integer,List<Integer>> partitionTuple2=Maps.newHashMap();
-    partitionTuple2.put(0,Lists.newArrayList(3,7,11));
-    expectedMapping.put(3,partitionTuple2);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(1,Lists.newArrayList(0,4,8));
+    expectedMapping.put(3,Lists.newArrayList(3,7,11));
+    assertEquals(expectedMapping,replicationMapping);
   }
 {
     replicationMapping=adminClient.helperOps.getReplicationMapping(1,newCluster,storeDef);
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.put(0,Lists.newArrayList(0,4,8));
-    expectedMapping.put(0,partitionTuple);
-    HashMap<Integer,List<Integer>> partitionTuple2=Maps.newHashMap();
-    partitionTuple2.put(1,Lists.newArrayList(1,5,9));
-    expectedMapping.put(2,partitionTuple2);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(0,Lists.newArrayList(0,4,8));
+    expectedMapping.put(2,Lists.newArrayList(1,5,9));
+    assertEquals(expectedMapping,replicationMapping);
   }
 {
     replicationMapping=adminClient.helperOps.getReplicationMapping(2,newCluster,storeDef);
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.put(0,Lists.newArrayList(1,5,9));
-    expectedMapping.put(1,partitionTuple);
-    HashMap<Integer,List<Integer>> partitionTuple2=Maps.newHashMap();
-    partitionTuple2.put(1,Lists.newArrayList(2,6,10));
-    expectedMapping.put(3,partitionTuple2);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(1,Lists.newArrayList(1,5,9));
+    expectedMapping.put(3,Lists.newArrayList(2,6,10));
+    assertEquals(expectedMapping,replicationMapping);
   }
 {
     replicationMapping=adminClient.helperOps.getReplicationMapping(3,newCluster,storeDef);
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.put(1,Lists.newArrayList(3,7,11));
-    expectedMapping.put(0,partitionTuple);
-    HashMap<Integer,List<Integer>> partitionTuple2=Maps.newHashMap();
-    partitionTuple2.put(0,Lists.newArrayList(2,6,10));
-    expectedMapping.put(2,partitionTuple2);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(0,Lists.newArrayList(3,7,11));
+    expectedMapping.put(2,Lists.newArrayList(2,6,10));
+    assertEquals(expectedMapping,replicationMapping);
   }
   HashMap<Integer,Integer> zoneReplicationFactors=Maps.newHashMap();
   for (int zoneIds=0; zoneIds < 2; zoneIds++) {
@@ -67,101 +50,63 @@
   newCluster=new Cluster("multi_zone_cluster",nodes,zones);
 {
     replicationMapping=adminClient.helperOps.getReplicationMapping(0,newCluster,storeDef);
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.put(0,Lists.newArrayList(2,6,10));
-    partitionTuple.put(1,Lists.newArrayList(0,4,8));
-    expectedMapping.put(2,partitionTuple);
-    HashMap<Integer,List<Integer>> partitionTuple2=Maps.newHashMap();
-    partitionTuple2.put(0,Lists.newArrayList(3,7,11));
-    expectedMapping.put(3,partitionTuple2);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(2,Lists.newArrayList(0,4,8,2,6,10));
+    expectedMapping.put(3,Lists.newArrayList(3,7,11));
+    assertEquals(expectedMapping,replicationMapping);
   }
 {
     replicationMapping=adminClient.helperOps.getReplicationMapping(1,newCluster,storeDef);
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.put(1,Lists.newArrayList(1,5,9));
-    expectedMapping.put(2,partitionTuple);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(2,Lists.newArrayList(1,5,9));
+    assertEquals(expectedMapping,replicationMapping);
   }
 {
     replicationMapping=adminClient.helperOps.getReplicationMapping(2,newCluster,storeDef);
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.put(0,Lists.newArrayList(0,4,8));
-    partitionTuple.put(1,Lists.newArrayList(2,6,10));
-    expectedMapping.put(0,partitionTuple);
-    HashMap<Integer,List<Integer>> partitionTuple2=Maps.newHashMap();
-    partitionTuple2.put(0,Lists.newArrayList(1,5,9));
-    expectedMapping.put(1,partitionTuple2);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(0,Lists.newArrayList(0,4,8,2,6,10));
+    expectedMapping.put(1,Lists.newArrayList(1,5,9));
+    assertEquals(expectedMapping,replicationMapping);
   }
 {
     replicationMapping=adminClient.helperOps.getReplicationMapping(3,newCluster,storeDef);
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.put(1,Lists.newArrayList(3,7,11));
-    expectedMapping.put(0,partitionTuple);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(0,Lists.newArrayList(3,7,11));
+    assertEquals(expectedMapping,replicationMapping);
   }
   storeDef=ServerTestUtils.getStoreDef("consistent",3,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY);
   newCluster=new Cluster("single_zone_cluster",nodes,zones);
 {
     replicationMapping=adminClient.helperOps.getReplicationMapping(0,newCluster,storeDef);
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.put(1,Lists.newArrayList(0,4,8));
-    expectedMapping.put(1,partitionTuple);
-    HashMap<Integer,List<Integer>> partitionTuple2=Maps.newHashMap();
-    partitionTuple2.put(0,Lists.newArrayList(3,7,11));
-    expectedMapping.put(3,partitionTuple2);
-    HashMap<Integer,List<Integer>> partitionTuple3=Maps.newHashMap();
-    partitionTuple3.put(0,Lists.newArrayList(2,6,10));
-    expectedMapping.put(2,partitionTuple3);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(1,Lists.newArrayList(0,4,8));
+    expectedMapping.put(3,Lists.newArrayList(3,7,11));
+    expectedMapping.put(2,Lists.newArrayList(2,6,10));
+    assertEquals(expectedMapping,replicationMapping);
   }
 {
     replicationMapping=adminClient.helperOps.getReplicationMapping(1,newCluster,storeDef);
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.put(0,Lists.newArrayList(0,4,8));
-    expectedMapping.put(0,partitionTuple);
-    HashMap<Integer,List<Integer>> partitionTuple2=Maps.newHashMap();
-    partitionTuple2.put(0,Lists.newArrayList(3,7,11));
-    expectedMapping.put(3,partitionTuple2);
-    HashMap<Integer,List<Integer>> partitionTuple3=Maps.newHashMap();
-    partitionTuple3.put(1,Lists.newArrayList(1,5,9));
-    expectedMapping.put(2,partitionTuple3);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(0,Lists.newArrayList(0,4,8));
+    expectedMapping.put(3,Lists.newArrayList(3,7,11));
+    expectedMapping.put(2,Lists.newArrayList(1,5,9));
+    assertEquals(expectedMapping,replicationMapping);
   }
 {
     replicationMapping=adminClient.helperOps.getReplicationMapping(2,newCluster,storeDef);
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.put(0,Lists.newArrayList(0,4,8));
-    expectedMapping.put(0,partitionTuple);
-    HashMap<Integer,List<Integer>> partitionTuple2=Maps.newHashMap();
-    partitionTuple2.put(0,Lists.newArrayList(1,5,9));
-    expectedMapping.put(1,partitionTuple2);
-    HashMap<Integer,List<Integer>> partitionTuple3=Maps.newHashMap();
-    partitionTuple3.put(1,Lists.newArrayList(2,6,10));
-    expectedMapping.put(3,partitionTuple3);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(0,Lists.newArrayList(0,4,8));
+    expectedMapping.put(1,Lists.newArrayList(1,5,9));
+    expectedMapping.put(3,Lists.newArrayList(2,6,10));
+    assertEquals(expectedMapping,replicationMapping);
   }
 {
     replicationMapping=adminClient.helperOps.getReplicationMapping(3,newCluster,storeDef);
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.put(1,Lists.newArrayList(3,7,11));
-    expectedMapping.put(0,partitionTuple);
-    HashMap<Integer,List<Integer>> partitionTuple2=Maps.newHashMap();
-    partitionTuple2.put(0,Lists.newArrayList(1,5,9));
-    expectedMapping.put(1,partitionTuple2);
-    HashMap<Integer,List<Integer>> partitionTuple3=Maps.newHashMap();
-    partitionTuple3.put(0,Lists.newArrayList(2,6,10));
-    expectedMapping.put(2,partitionTuple3);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(0,Lists.newArrayList(3,7,11));
+    expectedMapping.put(1,Lists.newArrayList(1,5,9));
+    expectedMapping.put(2,Lists.newArrayList(2,6,10));
+    assertEquals(expectedMapping,replicationMapping);
   }
   zoneReplicationFactors=Maps.newHashMap();
   for (int zoneIds=0; zoneIds < 2; zoneIds++) {
@@ -171,62 +116,34 @@
   newCluster=new Cluster("multi_zone_cluster",nodes,zones);
 {
     replicationMapping=adminClient.helperOps.getReplicationMapping(0,newCluster,storeDef);
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.put(0,Lists.newArrayList(1,5,9));
-    partitionTuple.put(1,Lists.newArrayList(0,4,8));
-    expectedMapping.put(1,partitionTuple);
-    HashMap<Integer,List<Integer>> partitionTuple2=Maps.newHashMap();
-    partitionTuple2.put(0,Lists.newArrayList(2,6,10));
-    expectedMapping.put(2,partitionTuple2);
-    HashMap<Integer,List<Integer>> partitionTuple3=Maps.newHashMap();
-    partitionTuple3.put(0,Lists.newArrayList(3,7,11));
-    expectedMapping.put(3,partitionTuple3);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(1,Lists.newArrayList(0,4,8,1,5,9));
+    expectedMapping.put(2,Lists.newArrayList(2,6,10));
+    expectedMapping.put(3,Lists.newArrayList(3,7,11));
+    assertEquals(expectedMapping,replicationMapping);
   }
 {
     replicationMapping=adminClient.helperOps.getReplicationMapping(1,newCluster,storeDef);
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.put(0,Lists.newArrayList(0,4,8));
-    expectedMapping.put(0,partitionTuple);
-    HashMap<Integer,List<Integer>> partitionTuple2=Maps.newHashMap();
-    partitionTuple2.put(0,Lists.newArrayList(2,6,10));
-    partitionTuple2.put(1,Lists.newArrayList(1,5,9));
-    expectedMapping.put(2,partitionTuple2);
-    HashMap<Integer,List<Integer>> partitionTuple3=Maps.newHashMap();
-    partitionTuple3.put(0,Lists.newArrayList(3,7,11));
-    expectedMapping.put(3,partitionTuple3);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(0,Lists.newArrayList(0,4,8));
+    expectedMapping.put(2,Lists.newArrayList(1,5,9,2,6,10));
+    expectedMapping.put(3,Lists.newArrayList(3,7,11));
+    assertEquals(expectedMapping,replicationMapping);
   }
 {
     replicationMapping=adminClient.helperOps.getReplicationMapping(2,newCluster,storeDef);
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.put(0,Lists.newArrayList(0,4,8));
-    expectedMapping.put(0,partitionTuple);
-    HashMap<Integer,List<Integer>> partitionTuple2=Maps.newHashMap();
-    partitionTuple2.put(0,Lists.newArrayList(1,5,9));
-    expectedMapping.put(1,partitionTuple2);
-    HashMap<Integer,List<Integer>> partitionTuple3=Maps.newHashMap();
-    partitionTuple3.put(0,Lists.newArrayList(3,7,11));
-    partitionTuple3.put(1,Lists.newArrayList(2,6,10));
-    expectedMapping.put(3,partitionTuple3);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(0,Lists.newArrayList(0,4,8));
+    expectedMapping.put(1,Lists.newArrayList(1,5,9));
+    expectedMapping.put(3,Lists.newArrayList(2,6,10,3,7,11));
+    assertEquals(expectedMapping,replicationMapping);
   }
 {
     replicationMapping=adminClient.helperOps.getReplicationMapping(3,newCluster,storeDef);
-    HashMap<Integer,HashMap<Integer,List<Integer>>> expectedMapping=Maps.newHashMap();
-    HashMap<Integer,List<Integer>> partitionTuple=Maps.newHashMap();
-    partitionTuple.put(0,Lists.newArrayList(0,4,8));
-    partitionTuple.put(1,Lists.newArrayList(3,7,11));
-    expectedMapping.put(0,partitionTuple);
-    HashMap<Integer,List<Integer>> partitionTuple2=Maps.newHashMap();
-    partitionTuple2.put(0,Lists.newArrayList(1,5,9));
-    expectedMapping.put(1,partitionTuple2);
-    HashMap<Integer,List<Integer>> partitionTuple3=Maps.newHashMap();
-    partitionTuple3.put(0,Lists.newArrayList(2,6,10));
-    expectedMapping.put(2,partitionTuple3);
-    assertEquals(replicationMapping,expectedMapping);
+    HashMap<Integer,List<Integer>> expectedMapping=Maps.newHashMap();
+    expectedMapping.put(0,Lists.newArrayList(0,4,8,3,7,11));
+    expectedMapping.put(1,Lists.newArrayList(1,5,9));
+    expectedMapping.put(2,Lists.newArrayList(2,6,10));
+    assertEquals(expectedMapping,replicationMapping);
   }
 }

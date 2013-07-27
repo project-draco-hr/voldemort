@@ -50,8 +50,8 @@
   }
   assertTrue("Not enough secondary entries",primaryEntriesMoved.size() > 1);
   RebalanceBatchPlan RebalanceBatchPlan=new RebalanceBatchPlan(currentCluster,targetCluster,Lists.newArrayList(storeDef));
-  List<RebalancePartitionsInfo> plans=Lists.newArrayList(RebalanceBatchPlan.getBatchPlan());
-  for (  RebalancePartitionsInfo partitionPlan : plans) {
+  List<RebalanceTaskInfo> plans=Lists.newArrayList(RebalanceBatchPlan.getBatchPlan());
+  for (  RebalanceTaskInfo partitionPlan : plans) {
     servers[partitionPlan.getStealerId()].getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
     servers[partitionPlan.getStealerId()].getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(partitionPlan)));
     servers[partitionPlan.getStealerId()].getMetadataStore().put(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,currentCluster);

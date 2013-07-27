@@ -1,10 +1,9 @@
 {
   for (  final Integer node : from.keySet()) {
     timeFunction(new Timed(){
-      public void apply(){
-        HashMap<Integer,List<Integer>> replicaToPartitionList=Maps.newHashMap();
-        replicaToPartitionList.put(0,Lists.newArrayList(from.get(node)));
-        adminClient.storeMntOps.migratePartitions(node,to,storeName,replicaToPartitionList,null,null,false);
+      @Override public void apply(){
+        List<Integer> partitionIds=Lists.newArrayList(from.get(node));
+        adminClient.storeMntOps.migratePartitions(node,to,storeName,partitionIds,null,null,false);
       }
     }
 ,1);

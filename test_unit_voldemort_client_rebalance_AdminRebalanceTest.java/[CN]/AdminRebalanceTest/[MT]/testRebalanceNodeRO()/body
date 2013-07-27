@@ -5,13 +5,13 @@
     for (    StoreDefinition storeDef : Lists.newArrayList(storeDef1,storeDef2)) {
       buildROStore(storeDef,numChunks);
     }
-    for (    RebalancePartitionsInfo partitionPlan : plans) {
+    for (    RebalanceTaskInfo partitionPlan : plans) {
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
-      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalancePartitionsInfo.create(partitionPlan.toJsonString()))));
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalanceTaskInfo.create(partitionPlan.toJsonString()))));
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,partitionPlan.getInitialCluster());
     }
     try {
-      for (      RebalancePartitionsInfo currentPlan : plans) {
+      for (      RebalanceTaskInfo currentPlan : plans) {
         int asyncId=adminClient.rebalanceOps.rebalanceNode(currentPlan);
         assertNotSame("Got a valid rebalanceAsyncId",-1,asyncId);
         getAdminClient().rpcOps.waitForCompletion(currentPlan.getStealerId(),asyncId,300,TimeUnit.SECONDS);
@@ -24,16 +24,25 @@
     }
     for (    StoreDefinition storeDef : Lists.newArrayList(storeDef1,storeDef2)) {
       String storeName=storeDef.getName();
-      for (      RebalancePartitionsInfo currentPlan : plans) {
+      for (      RebalanceTaskInfo currentPlan : plans) {
+        MetadataStore metadataStore=getServer(currentPlan.getStealerId()).getMetadataStore();
+        int nodeId=metadataStore.getNodeId();
+        int zoneId=metadataStore.getCluster().getNodeById(nodeId).getZoneId();
+        StoreRoutingPlan storeRoutingPlan=new StoreRoutingPlan(metadataStore.getCluster(),storeDef);
         File currentDir=new File(((ReadOnlyStorageEngine)getStore(currentPlan.getStealerId(),storeName)).getCurrentDirPath());
-        if (currentPlan.getUnbalancedStoreList().contains(storeDef.getName())) {
-          for (          Entry<Integer,List<Integer>> entry : currentPlan.getReplicaToAddPartitionList(storeName).entrySet()) {
-            if (entry.getKey() < storeDef.getReplicationFactor()) {
-              for (              int partitionId : entry.getValue()) {
-                for (int chunkId=0; chunkId < numChunks; chunkId++) {
-                  assertTrue(new File(currentDir,partitionId + "_" + entry.getKey()+ "_"+ chunkId+ ".data").exists());
-                  assertTrue(new File(currentDir,partitionId + "_" + entry.getKey()+ "_"+ chunkId+ ".index").exists());
-                }
+        if (currentPlan.getPartitionStores().contains(storeDef.getName())) {
+          for (          Integer partitionId : currentPlan.getStoreToPartitionIds().get(storeName)) {
+            int zoneNary=-1;
+            try {
+              zoneNary=storeRoutingPlan.getZoneNaryForNodesPartition(zoneId,nodeId,partitionId);
+            }
+ catch (            VoldemortException ve) {
+              continue;
+            }
+            if (zoneNary < storeDef.getReplicationFactor()) {
+              for (int chunkId=0; chunkId < numChunks; chunkId++) {
+                assertTrue(new File(currentDir,partitionId + "_" + zoneNary+ "_"+ chunkId+ ".data").exists());
+                assertTrue(new File(currentDir,partitionId + "_" + zoneNary+ "_"+ chunkId+ ".index").exists());
               }
             }
           }
@@ -41,7 +50,7 @@
       }
     }
     for (    VoldemortServer server : servers) {
-      assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
+      assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalanceTaskInfo>()));
       assertEquals(server.getMetadataStore().getServerStateUnlocked(),MetadataStore.VoldemortState.NORMAL_SERVER);
     }
     servers[2].getMetadataStore().put(MetadataStore.STORES_KEY,Lists.newArrayList(storeDef1,storeDef2,new StoreDefinitionBuilder().setName("test3").setType(ReadOnlyStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).build()));
@@ -55,9 +64,9 @@
     checkRO(currentCluster);
     adminClient.rebalanceOps.rebalanceStateChange(currentCluster,finalCluster,servers[2].getMetadataStore().getStoreDefList(),servers[2].getMetadataStore().getStoreDefList(),plans,true,true,false,true,true);
     checkRO(finalCluster);
-    for (    RebalancePartitionsInfo partitionPlan : plans) {
+    for (    RebalanceTaskInfo partitionPlan : plans) {
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
-      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalancePartitionsInfo.create(partitionPlan.toJsonString()))));
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalanceTaskInfo.create(partitionPlan.toJsonString()))));
     }
     try {
       int asyncId=adminClient.rebalanceOps.rebalanceNode(plans.get(0));

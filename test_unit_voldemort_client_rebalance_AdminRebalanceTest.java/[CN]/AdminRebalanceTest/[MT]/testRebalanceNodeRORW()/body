@@ -5,13 +5,13 @@
     for (    StoreDefinition storeDef : Lists.newArrayList(storeDef1,storeDef2)) {
       buildROStore(storeDef,numChunks);
     }
-    for (    RebalancePartitionsInfo partitionPlan : plans) {
+    for (    RebalanceTaskInfo partitionPlan : plans) {
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
-      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalancePartitionsInfo.create(partitionPlan.toJsonString()))));
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalanceTaskInfo.create(partitionPlan.toJsonString()))));
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,partitionPlan.getInitialCluster());
     }
     try {
-      for (      RebalancePartitionsInfo currentPlan : plans) {
+      for (      RebalanceTaskInfo currentPlan : plans) {
         int asyncId=adminClient.rebalanceOps.rebalanceNode(currentPlan);
         assertNotSame("Got a valid rebalanceAsyncId",-1,asyncId);
         getAdminClient().rpcOps.waitForCompletion(currentPlan.getStealerId(),asyncId,300,TimeUnit.SECONDS);
@@ -22,7 +22,7 @@
       e.printStackTrace();
       fail("Should not throw any exceptions");
     }
-    servers[3].getMetadataStore().getRebalancerState().update(new RebalancePartitionsInfo(3,0,new HashMap<String,HashMap<Integer,List<Integer>>>(),currentCluster));
+    servers[3].getMetadataStore().getRebalancerState().update(new RebalanceTaskInfo(3,0,new HashMap<String,List<Integer>>(),currentCluster));
     try {
       adminClient.rebalanceOps.rebalanceStateChange(currentCluster,finalCluster,servers[2].getMetadataStore().getStoreDefList(),servers[2].getMetadataStore().getStoreDefList(),plans,true,true,true,true,true);
       fail("Should have thrown an exception since we added state before hand");
@@ -31,7 +31,7 @@
     }
     for (    VoldemortServer server : servers) {
       if (server.getMetadataStore().getNodeId() != 3) {
-        assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
+        assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalanceTaskInfo>()));
         assertEquals(server.getMetadataStore().getServerStateUnlocked(),MetadataStore.VoldemortState.NORMAL_SERVER);
       }
       assertEquals(server.getMetadataStore().getCluster(),currentCluster);
@@ -47,7 +47,7 @@
     }
     Thread.sleep(1000);
     for (    VoldemortServer server : servers) {
-      assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
+      assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalanceTaskInfo>()));
       assertEquals(server.getMetadataStore().getServerStateUnlocked(),MetadataStore.VoldemortState.NORMAL_SERVER);
       assertEquals(server.getMetadataStore().getCluster(),currentCluster);
     }
@@ -56,7 +56,7 @@
     servers[2].getMetadataStore().put(MetadataStore.STORES_KEY,Lists.newArrayList(storeDef1,storeDef2,storeDef3,storeDef4));
     adminClient.rebalanceOps.rebalanceStateChange(currentCluster,finalCluster,servers[2].getMetadataStore().getStoreDefList(),servers[2].getMetadataStore().getStoreDefList(),plans,true,true,true,true,true);
     List<Integer> nodesChecked=Lists.newArrayList();
-    for (    RebalancePartitionsInfo plan : plans) {
+    for (    RebalanceTaskInfo plan : plans) {
       nodesChecked.add(plan.getStealerId());
       assertEquals(servers[plan.getStealerId()].getMetadataStore().getRebalancerState(),new RebalancerState(Lists.newArrayList(plan)));
       assertEquals(servers[plan.getStealerId()].getMetadataStore().getServerStateUnlocked(),MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
@@ -65,7 +65,7 @@
     List<Integer> allNodes=Lists.newArrayList(NodeUtils.getNodeIds(Lists.newArrayList(currentCluster.getNodes())));
     allNodes.removeAll(nodesChecked);
     for (    int nodeId : allNodes) {
-      assertEquals(servers[nodeId].getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
+      assertEquals(servers[nodeId].getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalanceTaskInfo>()));
       assertEquals(servers[nodeId].getMetadataStore().getServerStateUnlocked(),MetadataStore.VoldemortState.NORMAL_SERVER);
       assertEquals(servers[nodeId].getMetadataStore().getCluster(),finalCluster);
     }

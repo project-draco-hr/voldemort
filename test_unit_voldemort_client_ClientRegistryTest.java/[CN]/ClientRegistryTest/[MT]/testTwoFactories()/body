@@ -1,5 +1,5 @@
 {
-  List<Integer> emptyPartitionList=Lists.newArrayList();
+  List<Integer> routeToAllPartitionList=Arrays.asList(0);
   ClientConfig clientConfig=new ClientConfig().setMaxThreads(4).setMaxTotalConnections(4).setMaxConnectionsPerNode(4).setBootstrapUrls(SERVER_LOCAL_URL + serverPorts[0]).setClientContextName(CLIENT_CONTEXT_NAME).enableDefaultClient(false).setClientRegistryUpdateIntervalInSecs(CLIENT_REGISTRY_REFRESH_INTERVAL).setEnableLazy(false);
   SocketStoreClientFactory socketFactory1=new SocketStoreClientFactory(clientConfig);
   ClientConfig clientConfig2=new ClientConfig().setMaxThreads(4).setMaxTotalConnections(4).setMaxConnectionsPerNode(4).setBootstrapUrls(SERVER_LOCAL_URL + serverPorts[0]).setClientContextName(CLIENT_CONTEXT_NAME2).enableDefaultClient(false).setClientRegistryUpdateIntervalInSecs(CLIENT_REGISTRY_REFRESH_INTERVAL).setEnableLazy(false);
@@ -8,7 +8,7 @@
   StoreClient<String,String> client2=socketFactory2.getStoreClient(TEST_STORE_NAME2);
   client1.put("k1","v1");
   client2.put("k2","v2");
-  Iterator<Pair<ByteArray,Versioned<byte[]>>> it=adminClient.bulkFetchOps.fetchEntries(0,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),emptyPartitionList,null,false);
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> it=adminClient.bulkFetchOps.fetchEntries(0,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),routeToAllPartitionList,null,false);
   ArrayList<ClientInfo> infoList=getClientRegistryContent(it);
   assertNotNull("Client version is null",infoList.get(0).getReleaseVersion());
   assertNotNull("Client version is null",infoList.get(1).getReleaseVersion());
@@ -33,7 +33,7 @@
     assertTrue("Client registry bootstrap time incorrect",startTime <= infoList.get(1).getBootstrapTime());
     assertTrue("Client registry bootstrap time incorrect",infoList.get(0).getBootstrapTime() >= infoList.get(1).getBootstrapTime());
   }
-  it=adminClient.bulkFetchOps.fetchEntries(1,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),emptyPartitionList,null,false);
+  it=adminClient.bulkFetchOps.fetchEntries(1,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),routeToAllPartitionList,null,false);
   infoList=getClientRegistryContent(it);
   assertNotNull("Client version is null",infoList.get(0).getReleaseVersion());
   assertNotNull("Client version is null",infoList.get(1).getReleaseVersion());
@@ -63,7 +63,7 @@
   }
  catch (  InterruptedException e) {
   }
-  it=adminClient.bulkFetchOps.fetchEntries(1,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),emptyPartitionList,null,false);
+  it=adminClient.bulkFetchOps.fetchEntries(1,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),routeToAllPartitionList,null,false);
   infoList=getClientRegistryContent(it);
   assertTrue("Client registry not updated.",infoList.get(0).getBootstrapTime() < infoList.get(0).getUpdateTime());
   assertTrue("Client registry not updated.",infoList.get(1).getBootstrapTime() < infoList.get(1).getUpdateTime());

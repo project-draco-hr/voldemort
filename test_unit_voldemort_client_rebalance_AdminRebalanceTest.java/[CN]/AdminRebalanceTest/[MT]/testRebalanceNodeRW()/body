@@ -26,7 +26,7 @@
     }
  catch (    VoldemortException e) {
     }
-    for (    RebalancePartitionsInfo partitionPlan : plans) {
+    for (    RebalanceTaskInfo partitionPlan : plans) {
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,partitionPlan.getInitialCluster());
     }
@@ -37,21 +37,21 @@
  catch (    VoldemortException e) {
     }
     int incorrectStealerId=(plans.get(0).getStealerId() + 1) % 3;
-    getServer(plans.get(0).getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(new RebalancePartitionsInfo(incorrectStealerId,plans.get(0).getDonorId(),plans.get(0).getStoreToReplicaToAddPartitionList(),plans.get(0).getInitialCluster()))));
+    getServer(plans.get(0).getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(new RebalanceTaskInfo(incorrectStealerId,plans.get(0).getDonorId(),plans.get(0).getStoreToPartitionIds(),plans.get(0).getInitialCluster()))));
     try {
       adminClient.rebalanceOps.rebalanceNode(plans.get(0));
       fail("Should have thrown an exception since the two plans eventhough have the same donor are different");
     }
  catch (    VoldemortException e) {
     }
-    for (    RebalancePartitionsInfo partitionPlan : plans) {
-      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalancePartitionsInfo.create(partitionPlan.toJsonString()))));
+    for (    RebalanceTaskInfo partitionPlan : plans) {
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalanceTaskInfo.create(partitionPlan.toJsonString()))));
     }
     for (    VoldemortServer server : servers) {
       server.getMetadataStore().put(MetadataStore.CLUSTER_KEY,finalCluster);
     }
     try {
-      for (      RebalancePartitionsInfo currentPlan : plans) {
+      for (      RebalanceTaskInfo currentPlan : plans) {
         int asyncId=adminClient.rebalanceOps.rebalanceNode(currentPlan);
         try {
           adminClient.rebalanceOps.rebalanceNode(currentPlan);
@@ -82,7 +82,7 @@
       assertEquals("entry value should match",new String(entry.getValue()),new String(storeTest2.get(entry.getKey(),null).get(0).getValue()));
     }
     for (    VoldemortServer server : servers) {
-      assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
+      assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalanceTaskInfo>()));
       assertEquals(server.getMetadataStore().getServerStateUnlocked(),MetadataStore.VoldemortState.NORMAL_SERVER);
     }
   }

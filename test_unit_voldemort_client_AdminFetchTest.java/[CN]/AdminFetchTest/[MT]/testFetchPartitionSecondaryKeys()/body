@@ -1,7 +1,6 @@
 {
-  HashMap<Integer,List<Integer>> replicaToPartitionList=new HashMap<Integer,List<Integer>>();
-  replicaToPartitionList.put(1,Arrays.asList(4,6));
-  Iterator<ByteArray> keysItr=adminClient.bulkFetchOps.fetchKeys(0,testStoreName,replicaToPartitionList,null,false,cluster,0);
+  List<Integer> partitionIds=Arrays.asList(4,6);
+  Iterator<ByteArray> keysItr=adminClient.bulkFetchOps.fetchKeys(0,testStoreName,partitionIds,null,false,cluster,0);
   Set<String> fetchedKeys=getKeys(keysItr);
   Set<String> partition4Keys=new HashSet<String>(partitionToKeysMap.get(4));
   Set<String> partition6Keys=new HashSet<String>(partitionToKeysMap.get(6));

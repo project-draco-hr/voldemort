@@ -25,16 +25,16 @@
         tertiaryEntriesMoved.put(entry.getKey(),entry.getValue());
       }
     }
-    for (    RebalancePartitionsInfo partitionPlan : plans) {
+    for (    RebalanceTaskInfo partitionPlan : plans) {
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
-      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalancePartitionsInfo.create(partitionPlan.toJsonString()))));
+      getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_STEAL_INFO,new RebalancerState(Lists.newArrayList(RebalanceTaskInfo.create(partitionPlan.toJsonString()))));
       getServer(partitionPlan.getStealerId()).getMetadataStore().put(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML,partitionPlan.getInitialCluster());
     }
     for (    VoldemortServer server : servers) {
       server.getMetadataStore().put(MetadataStore.CLUSTER_KEY,finalCluster);
     }
     try {
-      for (      RebalancePartitionsInfo currentPlan : plans) {
+      for (      RebalanceTaskInfo currentPlan : plans) {
         int asyncId=adminClient.rebalanceOps.rebalanceNode(currentPlan);
         assertNotSame("Got a valid rebalanceAsyncId",-1,asyncId);
         getAdminClient().rpcOps.waitForCompletion(currentPlan.getStealerId(),asyncId,300,TimeUnit.SECONDS);
@@ -75,7 +75,7 @@
       assertEquals("entry value should match",new String(entry.getValue()),new String(storeTest3.get(entry.getKey(),null).get(0).getValue()));
     }
     for (    VoldemortServer server : servers) {
-      assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalancePartitionsInfo>()));
+      assertEquals(server.getMetadataStore().getRebalancerState(),new RebalancerState(new ArrayList<RebalanceTaskInfo>()));
       assertEquals(server.getMetadataStore().getServerStateUnlocked(),MetadataStore.VoldemortState.NORMAL_SERVER);
     }
   }

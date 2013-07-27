@@ -2,5 +2,8 @@
   super(request,metadataStore,errorCodeMapper,voldemortConfig,storeRepository,networkClassLoader,operation);
   this.keyIterator=storageEngine.keys();
   this.partitionFetches=new HashMap<Integer,Long>();
+  for (  Integer partitionId : partitionIds) {
+    this.partitionFetches.put(partitionId,new Long(0));
+  }
   this.partitionsToFetch=new HashSet<Integer>(partitionIds);
 }

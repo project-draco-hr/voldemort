@@ -27,13 +27,13 @@
     HashMap<Integer,List<Integer>> dumbMap=Maps.newHashMap();
     dumbMap.put(0,Lists.newArrayList(100));
     try {
-      getAdminClient().readonlyOps.fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",dumbMap,tempDir.getAbsolutePath(),null,running);
+      getAdminClient().readonlyOps.fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",Lists.newArrayList(100),tempDir.getAbsolutePath(),null,running);
       fail("Should throw exception since partition map passed is bad");
     }
  catch (    VoldemortException e) {
     }
     tempDir=TestUtils.createTempDir();
-    getAdminClient().readonlyOps.fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",primaryNodeBuckets,tempDir.getAbsolutePath(),null,running);
+    getAdminClient().readonlyOps.fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",primaryNodeBuckets.get(0),tempDir.getAbsolutePath(),null,running);
     assertEquals(tempDir.list().length,2 * primaryPartitions * numChunks + 1);
     for (    Entry<Integer,List<Integer>> entry : primaryNodeBuckets.entrySet()) {
       int replicaType=entry.getKey();
@@ -51,7 +51,9 @@
     File metadataFile=new File(tempDir,".metadata");
     assertEquals(metadataFile.exists(),true);
     tempDir=TestUtils.createTempDir();
-    getAdminClient().readonlyOps.fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",replicaNodeBuckets,tempDir.getAbsolutePath(),null,running);
+    for (    Entry<Integer,List<Integer>> entry : replicaNodeBuckets.entrySet()) {
+      getAdminClient().readonlyOps.fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",entry.getValue(),tempDir.getAbsolutePath(),null,running);
+    }
     assertEquals(tempDir.list().length,2 * replicaPartitions * numChunks + 1);
     for (    Entry<Integer,List<Integer>> entry : replicaNodeBuckets.entrySet()) {
       int replicaType=entry.getKey();
@@ -69,7 +71,9 @@
     metadataFile=new File(tempDir,".metadata");
     assertEquals(metadataFile.exists(),true);
     tempDir=TestUtils.createTempDir();
-    getAdminClient().readonlyOps.fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",nodeBuckets,tempDir.getAbsolutePath(),null,running);
+    for (    Entry<Integer,List<Integer>> entry : nodeBuckets.entrySet()) {
+      getAdminClient().readonlyOps.fetchPartitionFiles(node.getId(),"test-readonly-fetchfiles",entry.getValue(),tempDir.getAbsolutePath(),null,running);
+    }
     assertEquals(tempDir.list().length,2 * (primaryPartitions + replicaPartitions) * numChunks + 1);
     for (    Entry<Integer,List<Integer>> entry : nodeBuckets.entrySet()) {
       int replicaType=entry.getKey();

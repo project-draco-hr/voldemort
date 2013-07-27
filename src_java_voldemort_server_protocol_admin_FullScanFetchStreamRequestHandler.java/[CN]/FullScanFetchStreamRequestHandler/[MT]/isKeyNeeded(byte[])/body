@@ -1,12 +1,9 @@
 {
-  if (!StoreRoutingPlan.checkKeyBelongsToPartitionIds(nodeId,key,initialCluster,storeDef)) {
+  if (!partitionsToFetch.contains(getMasterPartitionId(key))) {
     return false;
   }
   if (recordsPerPartition <= 0) {
     return true;
   }
-  if (partitionsToFetch.contains(getKeyPartitionId(key))) {
-    return true;
-  }
-  return false;
+  return true;
 }
