@@ -1,0 +1,13 @@
+{
+  boolean result=false;
+  String requestURI=this.request.getUri();
+  this.storeName=parseStoreName(requestURI);
+  if (storeName != null) {
+    result=true;
+  }
+ else {
+    logger.error("Error when validatig request. Missing store name.");
+    RestErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Missing store name. Critical error.");
+  }
+  return result;
+}

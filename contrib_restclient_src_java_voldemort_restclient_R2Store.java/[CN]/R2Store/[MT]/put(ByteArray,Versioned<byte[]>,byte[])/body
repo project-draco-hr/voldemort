@@ -21,7 +21,7 @@
     if (vc != null) {
       String serializedVC=null;
       if (!vc.getEntries().isEmpty()) {
-        serializedVC=CoordinatorUtils.getSerializedVectorClock(vc);
+        serializedVC=RestUtils.getSerializedVectorClock(vc);
       }
       if (serializedVC != null && serializedVC.length() > 0) {
         rb.setHeader(RestMessageHeaders.X_VOLD_VECTOR_CLOCK,serializedVC);
@@ -37,7 +37,7 @@
       }
     }
  else {
-      VectorClock updatedVC=CoordinatorUtils.deserializeVectorClock(serializedUpdatedVC);
+      VectorClock updatedVC=RestUtils.deserializeVectorClock(serializedUpdatedVC);
       VectorClock originalVC=(VectorClock)value.getVersion();
       originalVC.copyFromVectorClock(updatedVC);
     }

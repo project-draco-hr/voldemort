@@ -1,0 +1,19 @@
+{
+  CompositeVoldemortRequest<ByteArray,byte[]> requestObject=requestValidator.constructCompositeVoldemortRequestObject();
+  if (requestObject != null) {
+    DynamicTimeoutStoreClient<ByteArray,byte[]> storeClient=null;
+    if (!requestValidator.getStoreName().equalsIgnoreCase(RestMessageHeaders.SCHEMATA_STORE)) {
+      storeClient=this.fatClientMap.get(requestValidator.getStoreName());
+      if (storeClient == null) {
+        logger.error("Error when getting store. Non Existing store client.");
+        RestErrorHandler.writeErrorResponse(messageEvent,HttpResponseStatus.BAD_REQUEST,"Non Existing store client. Critical error.");
+        return;
+      }
+    }
+ else {
+      requestObject.setOperationType(VoldemortOpCode.GET_METADATA_OP_CODE);
+    }
+    CoordinatorStoreClientRequest coordinatorRequest=new CoordinatorStoreClientRequest(requestObject,storeClient);
+    Channels.fireMessageReceived(ctx,coordinatorRequest);
+  }
+}

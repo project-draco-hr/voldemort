@@ -11,17 +11,18 @@
     conn.setDoInput(true);
     conn.setRequestProperty("Content-Type","binary");
     conn.setRequestProperty("Content-Length","" + payload.length());
-    conn.setRequestProperty(VoldemortHttpRequestHandler.X_VOLD_REQUEST_TIMEOUT_MS,"1000");
+    conn.setRequestProperty(RestMessageHeaders.X_VOLD_REQUEST_TIMEOUT_MS,"1000");
+    conn.setRequestProperty(RestMessageHeaders.X_VOLD_REQUEST_ORIGIN_TIME_MS,Long.toString(System.currentTimeMillis()));
     if (options != null) {
       if (options.get("timeout") != null && options.get("timeout") instanceof String) {
-        conn.setRequestProperty(VoldemortHttpRequestHandler.X_VOLD_REQUEST_TIMEOUT_MS,(String)options.get("timeout"));
+        conn.setRequestProperty(RestMessageHeaders.X_VOLD_REQUEST_TIMEOUT_MS,(String)options.get("timeout"));
       }
       if (options.get("responseCode") != null && options.get("responseCode") instanceof Integer) {
         expectedResponseCode=(Integer)options.get("responseCode");
       }
     }
     if (vc != null) {
-      String eTag=CoordinatorUtils.getSerializedVectorClock(vc);
+      String eTag=RestUtils.getSerializedVectorClock(vc);
       conn.setRequestProperty("ETag",eTag);
     }
     OutputStream out=conn.getOutputStream();

@@ -1,0 +1,66 @@
+{
+  MimeMultipart multiPartKeys=new MimeMultipart();
+  ByteArrayOutputStream keysOutputStream=new ByteArrayOutputStream();
+  for (  Entry<ByteArray,List<Versioned<byte[]>>> entry : versionedResponses.entrySet()) {
+    ByteArray key=entry.getKey();
+    String contentLocationKey="/" + this.storeName + "/"+ new String(Base64.encodeBase64(key.get()));
+    MimeBodyPart keyBody=new MimeBodyPart();
+    try {
+      keyBody.addHeader(CONTENT_TYPE,"application/octet-stream");
+      keyBody.addHeader(CONTENT_TRANSFER_ENCODING,"binary");
+      keyBody.addHeader(CONTENT_LOCATION,contentLocationKey);
+    }
+ catch (    MessagingException me) {
+      logger.error("Exception while constructing key body headers",me);
+      keysOutputStream.close();
+      throw me;
+    }
+    MimeMultipart multiPartValues=new MimeMultipart();
+    for (    Versioned<byte[]> versionedValue : entry.getValue()) {
+      byte[] responseValue=versionedValue.getValue();
+      VectorClock vectorClock=(VectorClock)versionedValue.getVersion();
+      String eTag=RestUtils.getSerializedVectorClock(vectorClock);
+      MimeBodyPart valueBody=new MimeBodyPart();
+      try {
+        valueBody.addHeader(CONTENT_TYPE,"application/octet-stream");
+        valueBody.addHeader(CONTENT_TRANSFER_ENCODING,"binary");
+        valueBody.addHeader(RestMessageHeaders.X_VOLD_VECTOR_CLOCK,eTag);
+        valueBody.setContent(responseValue,"application/octet-stream");
+        multiPartValues.addBodyPart(valueBody);
+      }
+ catch (      MessagingException me) {
+        logger.error("Exception while constructing value body part",me);
+        keysOutputStream.close();
+        throw me;
+      }
+    }
+    try {
+      keyBody.setContent(multiPartValues);
+      multiPartKeys.addBodyPart(keyBody);
+    }
+ catch (    MessagingException me) {
+      logger.error("Exception while constructing key body part",me);
+      keysOutputStream.close();
+      throw me;
+    }
+  }
+  try {
+    multiPartKeys.writeTo(keysOutputStream);
+  }
+ catch (  Exception e) {
+    logger.error("Exception while writing mutipart to output stream",e);
+    throw e;
+  }
+  ChannelBuffer responseContent=ChannelBuffers.dynamicBuffer();
+  responseContent.writeBytes(keysOutputStream.toByteArray());
+  HttpResponse response=new DefaultHttpResponse(HTTP_1_1,OK);
+  response.setHeader(CONTENT_TYPE,"multipart/binary");
+  response.setHeader(CONTENT_TRANSFER_ENCODING,"binary");
+  response.setContent(responseContent);
+  response.setHeader(CONTENT_LENGTH,response.getContent().readableBytes());
+  this.messageEvent.getChannel().write(response);
+  if (performanceStats != null && isFromLocalZone) {
+    recordStats(performanceStats,startTimeInMs,Tracked.GET_ALL);
+  }
+  keysOutputStream.close();
+}

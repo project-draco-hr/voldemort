@@ -1,0 +1,8 @@
+{
+  this.fatClientMap=fatClientMap;
+  this.coordinatorPerfStats=coordinatorPerfStats;
+  this.threadPoolExecutor=new ThreadPoolExecutor(coordinatorConfig.getCoordinatorCoreThreads(),coordinatorConfig.getCoordinatorMaxThreads(),0L,TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>(coordinatorConfig.getCoordinatorQueuedRequestsSize()),threadFactory);
+  this.coordinatorMetadata=coordinatorMetadata;
+  coordinatorExecutionHandler=new CoordinatorExecutionHandler(threadPoolExecutor,this.coordinatorMetadata,this.coordinatorPerfStats);
+  this.connectionStatsHandler=new NettyConnectionStatsHandler(connectionStats);
+}

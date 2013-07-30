@@ -1,0 +1,13 @@
+{
+  boolean result=false;
+  String requestURI=this.request.getUri();
+  parseKeys(requestURI);
+  if (this.parsedKeys != null) {
+    result=true;
+  }
+ else {
+    logger.error("Error when validating request. No key specified.");
+    RestErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Error: No key specified !");
+  }
+  return result;
+}

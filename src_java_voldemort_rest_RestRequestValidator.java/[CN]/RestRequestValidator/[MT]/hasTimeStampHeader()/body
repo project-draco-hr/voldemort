@@ -1,0 +1,24 @@
+{
+  String originTime=request.getHeader(RestMessageHeaders.X_VOLD_REQUEST_ORIGIN_TIME_MS);
+  boolean result=false;
+  if (originTime != null) {
+    try {
+      this.parsedRequestOriginTimeInMs=Long.parseLong(originTime);
+      if (this.parsedRequestOriginTimeInMs < 0) {
+        RestErrorHandler.writeErrorResponse(messageEvent,HttpResponseStatus.BAD_REQUEST,"Origin time cannot be negative ");
+      }
+ else {
+        result=true;
+      }
+    }
+ catch (    NumberFormatException nfe) {
+      logger.error("Exception when validating request. Incorrect origin time parameter. Cannot parse this to long: " + originTime,nfe);
+      RestErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Incorrect origin time parameter. Cannot parse this to long: " + originTime);
+    }
+  }
+ else {
+    logger.error("Error when validating request. Missing origin time parameter.");
+    RestErrorHandler.writeErrorResponse(this.messageEvent,HttpResponseStatus.BAD_REQUEST,"Missing origin time parameter.");
+  }
+  return result;
+}
