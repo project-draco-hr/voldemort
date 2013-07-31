@@ -1,5 +1,5 @@
 {
-  List<Integer> routeToAllPartitionList=Arrays.asList(0);
+  List<Integer> emptyPartitionList=Lists.newArrayList();
   ClientConfig clientConfig=new ClientConfig().setMaxThreads(4).setMaxTotalConnections(4).setMaxConnectionsPerNode(4).setBootstrapUrls(SERVER_LOCAL_URL + serverPorts[1]).setClientContextName(CLIENT_CONTEXT_NAME).enableDefaultClient(false).setClientRegistryUpdateIntervalInSecs(CLIENT_REGISTRY_REFRESH_INTERVAL).setEnableLazy(false);
   SocketStoreClientFactory socketFactory1=new SocketStoreClientFactory(clientConfig);
   ClientConfig clientConfig2=new ClientConfig().setMaxThreads(4).setMaxTotalConnections(4).setMaxConnectionsPerNode(4).setBootstrapUrls(SERVER_LOCAL_URL + serverPorts[1]).setClientContextName(CLIENT_CONTEXT_NAME2).enableDefaultClient(false).setClientRegistryUpdateIntervalInSecs(CLIENT_REGISTRY_REFRESH_INTERVAL).setEnableLazy(false);
@@ -10,7 +10,7 @@
     client1.put("k1","v1");
     client2.put("k2","v2");
   }
-  Iterator<Pair<ByteArray,Versioned<byte[]>>> it=adminClient.bulkFetchOps.fetchEntries(1,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),routeToAllPartitionList,null,false);
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> it=adminClient.bulkFetchOps.fetchEntries(1,SystemStoreConstants.SystemStoreName.voldsys$_client_registry.name(),emptyPartitionList,null,false);
   ArrayList<ClientInfo> infoList=getClientRegistryContent(it);
   assertEquals("Incrrect # of entries created in client registry",6,infoList.size());
   socketFactory1.close();
