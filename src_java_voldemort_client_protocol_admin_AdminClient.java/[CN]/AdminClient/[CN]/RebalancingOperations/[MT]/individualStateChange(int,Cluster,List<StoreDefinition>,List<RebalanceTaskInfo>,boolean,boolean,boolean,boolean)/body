@@ -10,7 +10,7 @@
       RebalanceTaskInfoMap infoMap=ProtoUtils.encodeRebalanceTaskInfoMap(stealInfo);
       map.add(infoMap);
     }
-    getRebalanceStateChangeRequestBuilder.addAllRebalancePartitionTaskList(map);
+    getRebalanceStateChangeRequestBuilder.addAllRebalanceTaskList(map);
   }
   VAdminProto.RebalanceStateChangeRequest getRebalanceStateChangeRequest=getRebalanceStateChangeRequestBuilder.setSwapRo(swapRO).setChangeClusterMetadata(changeClusterMetadata).setChangeRebalanceState(changeRebalanceState).setClusterString(clusterMapper.writeCluster(cluster)).setRollback(rollback).setStoresString(new StoreDefinitionsMapper().writeStoreList(storeDefs)).build();
   VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setRebalanceStateChange(getRebalanceStateChangeRequest).setType(VAdminProto.AdminRequestType.REBALANCE_STATE_CHANGE).build();

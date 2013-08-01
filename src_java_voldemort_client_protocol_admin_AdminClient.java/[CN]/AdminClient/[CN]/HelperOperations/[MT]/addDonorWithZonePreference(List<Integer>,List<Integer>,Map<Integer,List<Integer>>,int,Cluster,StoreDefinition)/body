@@ -1,7 +1,7 @@
 {
   Map<Integer,Integer> partitionToNodeId=ClusterUtils.getCurrentPartitionMapping(cluster);
   int nodeId=-1;
-  int partition=-1;
+  int partitionId=-1;
   boolean found=false;
   int index=0;
   while (!found && index < remainderPartitions.size()) {
@@ -14,9 +14,9 @@
     }
   }
   if (!found) {
-    throw new VoldemortException("unable to find a node to fetch partition " + partition + " for store "+ storeDef.getName());
+    throw new VoldemortException("unable to find a node to fetch partition " + partitionId + " for store "+ storeDef.getName());
   }
-  partition=originalPartitions.get(0);
+  partitionId=originalPartitions.get(0);
   List<Integer> partitionIds=null;
   if (donorMap.containsKey(nodeId)) {
     partitionIds=donorMap.get(nodeId);
@@ -25,5 +25,5 @@
     partitionIds=new ArrayList<Integer>();
     donorMap.put(nodeId,partitionIds);
   }
-  partitionIds.add(partition);
+  partitionIds.add(partitionId);
 }

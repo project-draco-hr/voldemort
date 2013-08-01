@@ -1,11 +1,11 @@
 {
-  HashMap<Integer,List<RebalanceTaskInfo>> stealerNodeToPlan=RebalanceUtils.groupPartitionsTaskByNode(rebalanceTaskPlanList,true);
+  HashMap<Integer,List<RebalanceTaskInfo>> stealerNodeToRebalanceTasks=RebalanceUtils.groupPartitionsTaskByNode(rebalanceTaskPlanList,true);
   Set<Integer> completedNodeIds=Sets.newHashSet();
   HashMap<Integer,Exception> exceptions=Maps.newHashMap();
   try {
     for (    Node node : transitionCluster.getNodes()) {
       try {
-        individualStateChange(node.getId(),transitionCluster,targetStoreDefs,stealerNodeToPlan.get(node.getId()),swapRO,changeClusterMetadata,changeRebalanceState,false);
+        individualStateChange(node.getId(),transitionCluster,targetStoreDefs,stealerNodeToRebalanceTasks.get(node.getId()),swapRO,changeClusterMetadata,changeRebalanceState,false);
         completedNodeIds.add(node.getId());
       }
  catch (      Exception e) {
@@ -32,7 +32,7 @@
       logger.error("Got exceptions from nodes " + exceptions.keySet() + " while changing state. Rolling back state on "+ completedNodeIds);
       for (      int completedNodeId : completedNodeIds) {
         try {
-          individualStateChange(completedNodeId,existingCluster,existingStoreDefs,stealerNodeToPlan.get(completedNodeId),swapRO,changeClusterMetadata,changeRebalanceState,true);
+          individualStateChange(completedNodeId,existingCluster,existingStoreDefs,stealerNodeToRebalanceTasks.get(completedNodeId),swapRO,changeClusterMetadata,changeRebalanceState,true);
         }
  catch (        Exception exception) {
           logger.error("Error while reverting back state change for completed node " + completedNodeId,exception);
