@@ -7,7 +7,7 @@
   servers=new VoldemortServer[numServers];
   int partitionMap[][]={{0,1,2,3},{4,5,6,7},{}};
   currentCluster=ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,useNio,null,tempStoreXml.getAbsolutePath(),new Properties());
-  finalCluster=RebalanceUtils.createUpdatedCluster(currentCluster,2,Lists.newArrayList(0));
+  finalCluster=UpdateClusterUtils.createUpdatedCluster(currentCluster,2,Lists.newArrayList(0));
   RebalanceBatchPlan plan=new RebalanceBatchPlan(currentCluster,finalCluster,Lists.newArrayList(storeDef1,storeDef2));
   plans=Lists.newArrayList(plan.getBatchPlan());
   adminClient=ServerTestUtils.getAdminClient(currentCluster);

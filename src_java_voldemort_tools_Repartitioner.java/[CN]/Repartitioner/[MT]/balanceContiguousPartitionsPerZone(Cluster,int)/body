@@ -12,7 +12,7 @@
   System.out.println("Contiguous partitions");
   for (  Integer zoneId : nextCandidateCluster.getZoneIds()) {
     System.out.println("\tZone: " + zoneId);
-    Map<Integer,Integer> partitionToRunLength=ClusterUtils.getMapOfContiguousPartitions(nextCandidateCluster,zoneId);
+    Map<Integer,Integer> partitionToRunLength=PartitionBalanceUtils.getMapOfContiguousPartitions(nextCandidateCluster,zoneId);
     List<Integer> partitionsToRemoveFromThisZone=new ArrayList<Integer>();
     for (    Map.Entry<Integer,Integer> entry : partitionToRunLength.entrySet()) {
       if (entry.getValue() > maxContiguousPartitionsPerZone) {
@@ -27,7 +27,7 @@
     partitionsToRemoveFromZone.put(zoneId,partitionsToRemoveFromThisZone);
     System.out.println("\t\tPartitions to remove: " + partitionsToRemoveFromThisZone);
   }
-  Cluster returnCluster=ClusterUtils.copyCluster(nextCandidateCluster);
+  Cluster returnCluster=Cluster.cloneCluster(nextCandidateCluster);
   Random r=new Random();
   for (  int zoneId : returnCluster.getZoneIds()) {
     for (    int partitionId : partitionsToRemoveFromZone.get(zoneId)) {
@@ -40,7 +40,7 @@
       int whichOtherZoneId=otherZoneIds.get(r.nextInt(otherZoneIds.size()));
       int whichNodeOffset=r.nextInt(returnCluster.getNumberOfNodesInZone(whichOtherZoneId));
       int whichNodeId=new ArrayList<Integer>(returnCluster.getNodeIdsInZone(whichOtherZoneId)).get(whichNodeOffset);
-      returnCluster=RebalanceUtils.createUpdatedCluster(returnCluster,whichNodeId,Lists.newArrayList(partitionId));
+      returnCluster=UpdateClusterUtils.createUpdatedCluster(returnCluster,whichNodeId,Lists.newArrayList(partitionId));
     }
   }
   return returnCluster;

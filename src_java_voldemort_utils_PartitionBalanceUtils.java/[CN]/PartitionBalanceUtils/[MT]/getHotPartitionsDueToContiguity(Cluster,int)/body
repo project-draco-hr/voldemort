@@ -1,0 +1,14 @@
+{
+  StringBuilder sb=new StringBuilder();
+  for (  int zoneId : cluster.getZoneIds()) {
+    Map<Integer,Integer> idToRunLength=getMapOfContiguousPartitions(cluster,zoneId);
+    for (    Integer initialPartitionId : idToRunLength.keySet()) {
+      int runLength=idToRunLength.get(initialPartitionId);
+      if (runLength < hotContiguityCutoff)       continue;
+      int hotPartitionId=(initialPartitionId + runLength) % cluster.getNumberOfPartitions();
+      Node hotNode=cluster.getNodeForPartitionId(hotPartitionId);
+      sb.append("\tNode " + hotNode.getId() + " ("+ hotNode.getHost()+ ") has hot primary partition "+ hotPartitionId+ " that follows contiguous run of length "+ runLength+ Utils.NEWLINE);
+    }
+  }
+  return sb.toString();
+}

@@ -1,0 +1,29 @@
+{
+  List<Integer> partitionIds=new ArrayList<Integer>(cluster.getPartitionIdsInZone(zoneId));
+  Map<Integer,Integer> partitionIdToRunLength=Maps.newHashMap();
+  if (partitionIds.isEmpty()) {
+    return partitionIdToRunLength;
+  }
+  int lastPartitionId=partitionIds.get(0);
+  int initPartitionId=lastPartitionId;
+  for (int offset=1; offset < partitionIds.size(); offset++) {
+    int partitionId=partitionIds.get(offset);
+    if (partitionId == lastPartitionId + 1) {
+      lastPartitionId=partitionId;
+      continue;
+    }
+    int runLength=lastPartitionId - initPartitionId + 1;
+    partitionIdToRunLength.put(initPartitionId,runLength);
+    initPartitionId=partitionId;
+    lastPartitionId=initPartitionId;
+  }
+  int runLength=lastPartitionId - initPartitionId + 1;
+  if (lastPartitionId == cluster.getNumberOfPartitions() - 1 && partitionIdToRunLength.containsKey(0)) {
+    partitionIdToRunLength.put(initPartitionId,runLength + partitionIdToRunLength.get(0));
+    partitionIdToRunLength.remove(0);
+  }
+ else {
+    partitionIdToRunLength.put(initPartitionId,runLength);
+  }
+  return partitionIdToRunLength;
+}

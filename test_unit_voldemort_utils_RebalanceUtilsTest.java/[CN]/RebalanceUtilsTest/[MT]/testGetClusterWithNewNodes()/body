@@ -10,7 +10,7 @@
     nodes.add(node);
   }
   Cluster newCluster=new Cluster(cluster.getName(),nodes,Lists.newArrayList(cluster.getZones()));
-  Cluster generatedCluster=RebalanceUtils.getClusterWithNewNodes(cluster,newCluster);
+  Cluster generatedCluster=RebalanceUtils.getInterimCluster(cluster,newCluster);
   assertEquals(generatedCluster.getNumberOfNodes(),4);
   assertEquals(Utils.compareList(generatedCluster.getNodeById(0).getPartitionIds(),cluster.getNodeById(0).getPartitionIds()),true);
   assertEquals(Utils.compareList(generatedCluster.getNodeById(1).getPartitionIds(),cluster.getNodeById(1).getPartitionIds()),true);

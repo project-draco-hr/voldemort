@@ -28,7 +28,7 @@
   for (  String url : urls) {
     StoreDefinition storeDefinition=storeDefinitionMap.get(url);
     Cluster cluster=clusterMap.get(url);
-    Map<Integer,Integer> partitionToNodeMap=ClusterUtils.getCurrentPartitionMapping(cluster);
+    Map<Integer,Integer> partitionToNodeMap=cluster.getPartitionIdToNodeIdMap();
     List<Integer> partitionList=new RoutingStrategyFactory().updateRoutingStrategy(storeDefinition,cluster).getReplicatingPartitionList(partitionId);
     for (    int partition : partitionList) {
       Integer nodeId=partitionToNodeMap.get(partition);
