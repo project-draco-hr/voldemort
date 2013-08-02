@@ -1,6 +1,5 @@
 {
-  ClusterMapper mapper=new ClusterMapper();
-  Cluster updatedCluster=mapper.readCluster(new StringReader(mapper.writeCluster(currentCluster)));
+  Cluster updatedCluster=Cluster.cloneCluster(currentCluster);
   for (  int donatedPartition : donatedPartitions) {
     Node donorNode=updatedCluster.getNodeForPartitionId(donatedPartition);
     Node stealerNode=updatedCluster.getNodeById(stealerNodeId);
