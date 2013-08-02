@@ -1,9 +1,9 @@
 {
-  Versioned<Cluster> latestCluster=new Versioned<Cluster>(adminClient.getAdminClientCluster());
+  Versioned<Cluster> latestCluster=new Versioned<Cluster>(getAdminClientCluster());
   Cluster cluster=latestCluster.getValue();
   for (  Node node : cluster.getNodes()) {
     try {
-      Cluster nodesCluster=adminClient.metadataMgmtOps.getRemoteCluster(node.getId()).getValue();
+      Cluster nodesCluster=metadataMgmtOps.getRemoteCluster(node.getId()).getValue();
       if (!nodesCluster.equals(cluster)) {
         throw new VoldemortException("Cluster is in inconsistent state because cluster xml on node " + node.getId() + " does not match cluster xml of adminClient.");
       }

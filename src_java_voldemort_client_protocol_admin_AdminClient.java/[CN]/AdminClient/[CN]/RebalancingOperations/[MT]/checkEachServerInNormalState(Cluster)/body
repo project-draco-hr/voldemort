@@ -1,6 +1,6 @@
 {
   for (  Node node : cluster.getNodes()) {
-    Versioned<VoldemortState> versioned=adminClient.rebalanceOps.getRemoteServerState(node.getId());
+    Versioned<VoldemortState> versioned=rebalanceOps.getRemoteServerState(node.getId());
     if (!VoldemortState.NORMAL_SERVER.equals(versioned.getValue())) {
       throw new VoldemortRebalancingException("Cannot rebalance since node " + node.getId() + " ("+ node.getHost()+ ") is not in normal state, but in "+ versioned.getValue());
     }

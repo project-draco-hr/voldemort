@@ -1,7 +1,7 @@
 {
-  AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadata.getCluster(),voldemortConfig.getClientMaxConnectionsPerNode());
+  AdminClient adminClient=AdminClient.createTempAdminClient(voldemortConfig,metadata.getCluster(),voldemortConfig.getClientMaxConnectionsPerNode());
   try {
-    Versioned<Cluster> latestCluster=RebalanceUtils.getLatestCluster(new ArrayList<Integer>(),adminClient);
+    Versioned<Cluster> latestCluster=adminClient.rebalanceOps.getLatestCluster(new ArrayList<Integer>());
     metadata.put(MetadataStore.CLUSTER_KEY,latestCluster.getValue());
     checkAndAddNodeStore();
     routedStore.updateRoutingStrategy(metadata.getRoutingStrategy(getName()));

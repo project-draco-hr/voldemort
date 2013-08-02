@@ -1,6 +1,6 @@
 {
-  Versioned<Cluster> currentVersionedCluster=RebalanceUtils.getLatestCluster(Utils.nodeListToNodeIdList(Lists.newArrayList(adminClient.getAdminClientCluster().getNodes())),adminClient);
+  Versioned<Cluster> currentVersionedCluster=adminClient.rebalanceOps.getLatestCluster(Utils.nodeListToNodeIdList(Lists.newArrayList(adminClient.getAdminClientCluster().getNodes())));
   Cluster cluster=currentVersionedCluster.getValue();
-  List<StoreDefinition> storeDefs=RebalanceUtils.getCurrentStoreDefinitions(cluster,adminClient);
+  List<StoreDefinition> storeDefs=adminClient.rebalanceOps.getCurrentStoreDefinitions(cluster);
   return new Pair<Cluster,List<StoreDefinition>>(cluster,storeDefs);
 }

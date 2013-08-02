@@ -3,6 +3,6 @@
   Cluster finalCluster=rebalancePlan.getFinalCluster();
   List<StoreDefinition> finalStoreDefs=rebalancePlan.getFinalStores();
   adminClient.setAdminClientCluster(finalCluster);
-  RebalanceUtils.checkEachServerInNormalState(finalCluster,adminClient);
-  RebalanceUtils.validateReadOnlyStores(finalCluster,finalStoreDefs,adminClient);
+  adminClient.rebalanceOps.checkEachServerInNormalState(finalCluster);
+  adminClient.rebalanceOps.validateReadOnlyStores(finalCluster,finalStoreDefs);
 }

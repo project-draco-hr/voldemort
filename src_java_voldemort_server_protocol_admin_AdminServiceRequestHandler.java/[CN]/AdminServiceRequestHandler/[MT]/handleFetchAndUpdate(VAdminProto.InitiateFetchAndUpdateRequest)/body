@@ -16,7 +16,7 @@
         logger.info("Stopping fetch and update for store " + storeName + " from node "+ nodeId+ "( "+ partitionIds+ " )");
       }
       @Override public void operate(){
-        AdminClient adminClient=RebalanceUtils.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),voldemortConfig.getClientMaxConnectionsPerNode());
+        AdminClient adminClient=AdminClient.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),voldemortConfig.getClientMaxConnectionsPerNode());
         try {
           StorageEngine<ByteArray,byte[],byte[]> storageEngine=getStorageEngine(storeRepository,storeName);
           EventThrottler throttler=new EventThrottler(voldemortConfig.getStreamMaxWriteBytesPerSec());
