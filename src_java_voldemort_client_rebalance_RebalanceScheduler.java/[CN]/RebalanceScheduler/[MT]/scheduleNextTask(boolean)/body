@@ -2,7 +2,9 @@
   if (doneSignal.getCount() == 0) {
     return null;
   }
-  if (this.numTasksExecuting == maxParallelRebalancing)   return null;
+  if (this.numTasksExecuting >= maxParallelRebalancing) {
+    return null;
+  }
   List<Integer> stealerIds=new ArrayList<Integer>(tasksByStealer.keySet());
   Collections.shuffle(stealerIds);
   for (  int stealerId : stealerIds) {
@@ -19,7 +21,6 @@
       tasksByStealer.get(stealerId).remove(sbTask);
       try {
         if (executeService) {
-          System.out.println("here");
           service.execute(sbTask);
         }
       }
