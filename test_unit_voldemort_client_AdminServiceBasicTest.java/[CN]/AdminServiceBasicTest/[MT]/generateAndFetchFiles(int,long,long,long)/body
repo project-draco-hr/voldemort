@@ -1,9 +1,9 @@
 {
-  Map<Integer,Set<Pair<Integer,Integer>>> buckets=RebalanceUtils.getNodeIdToAllPartitions(cluster,StoreDefinitionUtils.getStoreDefinitionWithName(storeDefs,"test-readonly-fetchfiles"),true);
+  Map<Integer,Set<Pair<Integer,Integer>>> buckets=ROTestUtils.getNodeIdToAllPartitions(cluster,StoreDefinitionUtils.getStoreDefinitionWithName(storeDefs,"test-readonly-fetchfiles"),true);
   for (  Node node : cluster.getNodes()) {
     ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)getStore(node.getId(),"test-readonly-fetchfiles");
     Set<Pair<Integer,Integer>> nodeBucketsSet=buckets.get(node.getId());
-    HashMap<Integer,List<Integer>> nodeBuckets=RebalanceUtils.flattenPartitionTuples(nodeBucketsSet);
+    HashMap<Integer,List<Integer>> nodeBuckets=ROTestUtils.flattenPartitionTuples(nodeBucketsSet);
     HashMap<Integer,List<Integer>> primaryNodeBuckets=Maps.newHashMap();
     primaryNodeBuckets.put(0,nodeBuckets.get(0));
     int primaryPartitions=nodeBuckets.get(0).size();

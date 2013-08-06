@@ -1,11 +1,11 @@
 {
   for (  StoreDefinition storeDef : storeDefs) {
-    Map<Integer,Set<Pair<Integer,Integer>>> currentNodeToPartitionTuples=RebalanceUtils.getNodeIdToAllPartitions(currentCluster,storeDef,true);
-    Map<Integer,Set<Pair<Integer,Integer>>> finalNodeToPartitionTuples=RebalanceUtils.getNodeIdToAllPartitions(finalCluster,storeDef,true);
+    Map<Integer,Set<Pair<Integer,Integer>>> currentNodeToPartitionTuples=ROTestUtils.getNodeIdToAllPartitions(currentCluster,storeDef,true);
+    Map<Integer,Set<Pair<Integer,Integer>>> finalNodeToPartitionTuples=ROTestUtils.getNodeIdToAllPartitions(finalCluster,storeDef,true);
     for (    int nodeId : nodeCheckList) {
       Set<Pair<Integer,Integer>> currentPartitionTuples=currentNodeToPartitionTuples.get(nodeId);
       Set<Pair<Integer,Integer>> finalPartitionTuples=finalNodeToPartitionTuples.get(nodeId);
-      HashMap<Integer,List<Integer>> flattenedPresentTuples=RebalanceUtils.flattenPartitionTuples(Utils.getAddedInTarget(currentPartitionTuples,finalPartitionTuples));
+      HashMap<Integer,List<Integer>> flattenedPresentTuples=ROTestUtils.flattenPartitionTuples(Utils.getAddedInTarget(currentPartitionTuples,finalPartitionTuples));
       Store<ByteArray,byte[],byte[]> store=getSocketStore(storeDef.getName(),finalCluster.getNodeById(nodeId).getHost(),finalCluster.getNodeById(nodeId).getSocketPort());
       checkGetEntries(finalCluster.getNodeById(nodeId),finalCluster,storeDef,store,flattenedPresentTuples,baselineTuples,baselineVersions);
     }
