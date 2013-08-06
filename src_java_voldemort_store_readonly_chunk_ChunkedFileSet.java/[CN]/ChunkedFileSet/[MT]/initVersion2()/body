@@ -5,10 +5,10 @@
       for (      int partitionId : node.getPartitionIds()) {
         List<Integer> routingPartitionList=routingStrategy.getReplicatingPartitionList(partitionId);
         Pair<Integer,Integer> bucket=null;
-        for (int replicaType=0; replicaType < routingPartitionList.size(); replicaType++) {
-          if (nodePartitionIds.contains(routingPartitionList.get(replicaType))) {
+        for (int replicatingPartition=0; replicatingPartition < routingPartitionList.size(); replicatingPartition++) {
+          if (nodePartitionIds.contains(routingPartitionList.get(replicatingPartition))) {
             if (bucket == null) {
-              bucket=Pair.create(routingPartitionList.get(0),replicaType);
+              bucket=Pair.create(routingPartitionList.get(0),replicatingPartition);
               int chunkId=0;
               while (true) {
                 String fileName=Integer.toString(bucket.getFirst()) + "_" + Integer.toString(bucket.getSecond())+ "_"+ Integer.toString(chunkId);
@@ -19,10 +19,10 @@
                     try {
                       new File(baseDir,fileName + ".index").createNewFile();
                       new File(baseDir,fileName + ".data").createNewFile();
-                      logger.info("No index or data files found, creating empty files for partition " + routingPartitionList.get(0) + " and replica type "+ replicaType);
+                      logger.info("No index or data files found, creating empty files for partition " + routingPartitionList.get(0) + " and replicating partition "+ replicatingPartition);
                     }
  catch (                    IOException e) {
-                      throw new VoldemortException("Error creating empty read-only files for partition " + routingPartitionList.get(0) + " and replica type "+ replicaType,e);
+                      throw new VoldemortException("Error creating empty read-only files for partition " + routingPartitionList.get(0) + " and replicating partition "+ replicatingPartition,e);
                     }
                   }
  else {
