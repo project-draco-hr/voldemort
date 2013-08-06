@@ -13,8 +13,7 @@
     final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
     String bootstrapUrl=getBootstrapUrl(updatedCurrentCluster,0);
     int maxParallel=2;
-    boolean stealerBased=!useDonorBased;
-    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,stealerBased,finalCluster);
+    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,finalCluster);
     populateData(currentCluster,rwStoreDefWithReplication);
     final AdminClient adminClient=rebalanceKit.controller.getAdminClient();
     final List<ByteArray> movingKeysList=sampleKeysFromPartition(adminClient,1,rwStoreDefWithReplication.getName(),Arrays.asList(6),20);

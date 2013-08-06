@@ -10,8 +10,7 @@
   currentCluster=startServers(currentCluster,storeDefFileWithReplication,serverList,configProps);
   String bootstrapUrl=getBootstrapUrl(currentCluster,0);
   int maxParallel=5;
-  boolean stealerBased=!useDonorBased;
-  ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,stealerBased,finalCluster);
+  ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,finalCluster);
   try {
     populateData(currentCluster,rwStoreDefWithReplication);
     rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,Arrays.asList(0,1,2,3));

@@ -2,10 +2,6 @@
   setupParser();
   OptionSet options=getValidOptions(args);
   String bootstrapURL=(String)options.valueOf("url");
-  boolean stealerBased=true;
-  if (options.has("donor-based")) {
-    stealerBased=false;
-  }
   int parallelism=RebalanceController.MAX_PARALLEL_REBALANCING;
   if (options.has("parallelism")) {
     parallelism=(Integer)options.valueOf("parallelism");
@@ -14,7 +10,7 @@
   if (options.has("proxy-pause")) {
     proxyPauseSec=(Long)options.valueOf("proxy-pause");
   }
-  RebalanceController rebalanceController=new RebalanceController(bootstrapURL,parallelism,stealerBased,proxyPauseSec);
+  RebalanceController rebalanceController=new RebalanceController(bootstrapURL,parallelism,proxyPauseSec);
   Cluster currentCluster=rebalanceController.getCurrentCluster();
   List<StoreDefinition> currentStoreDefs=rebalanceController.getCurrentStoreDefs();
   RebalanceUtils.validateClusterStores(currentCluster,currentStoreDefs);

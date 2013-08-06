@@ -12,8 +12,7 @@
     final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
     String bootstrapUrl=getBootstrapUrl(currentCluster,0);
     int maxParallel=2;
-    boolean stealerBased=!useDonorBased;
-    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,stealerBased,finalCluster);
+    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,finalCluster);
     populateData(updatedCurrentCluster,roStoreDefWithReplication,rebalanceKit.controller.getAdminClient(),true);
     populateData(updatedCurrentCluster,rwStoreDefWithReplication,rebalanceKit.controller.getAdminClient(),false);
     Node node=updatedCurrentCluster.getNodeById(1);

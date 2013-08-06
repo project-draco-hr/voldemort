@@ -13,8 +13,7 @@
     final List<Exception> exceptions=Collections.synchronizedList(new ArrayList<Exception>());
     String bootstrapUrl=getBootstrapUrl(updatedCurrentCluster,0);
     int maxParallel=2;
-    boolean stealerBased=true;
-    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,stealerBased,finalCluster);
+    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,maxParallel,finalCluster);
     try {
       populateData(currentCluster,rwStoreDefWithReplication);
       final SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(getBootstrapUrl(currentCluster,0)).setEnableLazy(false).setSocketTimeout(120,TimeUnit.SECONDS));

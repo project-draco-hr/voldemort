@@ -10,11 +10,10 @@
     populateData(zzCurrent,storeDef);
   }
   String bootstrapUrl=getBootstrapUrl(interimCluster,0);
-  boolean stealerBased=!useDonorBased;
-  ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,zzShuffle,zzStores);
+  ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,zzShuffle,zzStores);
   rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,serverList);
   checkConsistentMetadata(zzShuffle,serverList);
-  rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,zzCurrent,zzStores);
+  rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,zzCurrent,zzStores);
   rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,serverList);
   checkConsistentMetadata(zzCurrent,serverList);
   stopServer(serverList);

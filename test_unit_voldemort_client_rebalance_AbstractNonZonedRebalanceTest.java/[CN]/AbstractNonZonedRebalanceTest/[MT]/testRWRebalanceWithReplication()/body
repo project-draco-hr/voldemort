@@ -6,8 +6,7 @@
     List<Integer> serverList=Arrays.asList(0,1);
     currentCluster=startServers(currentCluster,rwStoreDefFileWithReplication,serverList,null);
     String bootstrapUrl=getBootstrapUrl(currentCluster,0);
-    boolean stealerBased=!useDonorBased;
-    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,finalCluster);
+    final ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,finalCluster);
     try {
       populateData(currentCluster,rwStoreDefWithReplication,rebalanceKit.controller.getAdminClient(),false);
       rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,Arrays.asList(0,1));

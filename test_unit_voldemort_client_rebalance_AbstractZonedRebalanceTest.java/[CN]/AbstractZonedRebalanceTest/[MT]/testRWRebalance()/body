@@ -9,8 +9,7 @@
     configProps.put("admin.max.threads","5");
     currentCluster=startServers(currentCluster,storeDefFileWithoutReplication,serverList,configProps);
     String bootstrapUrl=getBootstrapUrl(currentCluster,0);
-    boolean stealerBased=!useDonorBased;
-    ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,stealerBased,finalCluster);
+    ClusterTestUtils.RebalanceKit rebalanceKit=ClusterTestUtils.getRebalanceKit(bootstrapUrl,finalCluster);
     try {
       populateData(currentCluster,rwStoreDefWithoutReplication);
       rebalanceAndCheck(rebalanceKit.plan,rebalanceKit.controller,Arrays.asList(1,2));
