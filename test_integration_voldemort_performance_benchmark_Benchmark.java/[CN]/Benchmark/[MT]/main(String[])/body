@@ -8,7 +8,6 @@
   parser.accepts(VERBOSE,"verbose");
   parser.accepts(THREADS,"max number concurrent worker threads; Default = " + MAX_WORKERS).withRequiredArg().describedAs("num-threads").ofType(Integer.class);
   parser.accepts(NUM_CONNECTIONS_PER_NODE,"max number of connections to any node; Default = " + MAX_CONNECTIONS_PER_NODE).withRequiredArg().describedAs("num-connections-per-node").ofType(Integer.class);
-  parser.accepts(MAX_TOTAL_CONNECTIONS,"max number of total connections to the entire cluster; Default = 5000").withRequiredArg().describedAs("max-total-connections").ofType(Integer.class);
   parser.accepts(ITERATIONS,"number of times to repeat benchmark phase; Default = 1").withRequiredArg().describedAs("num-iter").ofType(Integer.class);
   parser.accepts(VERIFY,"verify values read; runs only if warm-up phase is included");
   parser.accepts(PERCENT_CACHED,"percentage of requests to come from previously requested keys; valid values are in range [0..100]; 0 means caching disabled. Default = 0").withRequiredArg().describedAs("percent").ofType(Integer.class);
@@ -90,7 +89,6 @@
     mainProps.put(ITERATIONS,CmdUtils.valueOf(options,ITERATIONS,1));
     mainProps.put(THREADS,CmdUtils.valueOf(options,THREADS,MAX_WORKERS));
     mainProps.put(NUM_CONNECTIONS_PER_NODE,CmdUtils.valueOf(options,NUM_CONNECTIONS_PER_NODE,MAX_CONNECTIONS_PER_NODE));
-    mainProps.put(MAX_TOTAL_CONNECTIONS,CmdUtils.valueOf(options,MAX_TOTAL_CONNECTIONS,5000));
     mainProps.put(PERCENT_CACHED,CmdUtils.valueOf(options,PERCENT_CACHED,0));
     mainProps.put(INTERVAL,CmdUtils.valueOf(options,INTERVAL,0));
     mainProps.put(TARGET_THROUGHPUT,CmdUtils.valueOf(options,TARGET_THROUGHPUT,-1));

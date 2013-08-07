@@ -2,8 +2,10 @@
   boolean result=false;
   String vectorClockHeader=this.request.getHeader(RestMessageHeaders.X_VOLD_VECTOR_CLOCK);
   if (vectorClockHeader != null) {
+    ObjectMapper mapper=new ObjectMapper();
     try {
-      this.parsedVectorClock=RestUtils.deserializeVectorClock(vectorClockHeader);
+      VectorClockWrapper vcWrapper=mapper.readValue(vectorClockHeader,VectorClockWrapper.class);
+      this.parsedVectorClock=new VectorClock(vcWrapper.getVersions(),vcWrapper.getTimestamp());
       result=true;
     }
  catch (    Exception e) {

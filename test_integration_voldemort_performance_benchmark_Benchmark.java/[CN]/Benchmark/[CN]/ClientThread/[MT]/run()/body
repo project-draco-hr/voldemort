@@ -12,13 +12,11 @@
           break;
         }
       }
-      opsDone++;
     }
  catch (    Exception e) {
-      e.printStackTrace();
-      failureCount++;
-      System.err.println("Increasing failure count " + failureCount);
+      if (this.isVerbose)       e.printStackTrace();
     }
+    opsDone++;
     if (targetThroughputPerMs > 0) {
       double timePerOp=((double)opsDone) / targetThroughputPerMs;
       while (System.currentTimeMillis() - startTime < timePerOp) {
