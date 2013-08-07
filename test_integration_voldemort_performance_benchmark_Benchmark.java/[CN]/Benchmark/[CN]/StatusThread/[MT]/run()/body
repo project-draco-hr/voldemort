@@ -1,6 +1,6 @@
 {
   boolean testComplete=true;
-  int totalOps=0, prevTotalOps=0;
+  int totalOps=0, prevTotalOps=0, totalFailureCount=0;
   do {
     testComplete=true;
     totalOps=0;
@@ -9,9 +9,10 @@
         testComplete=false;
       }
       totalOps+=((ClientThread)thread).getOpsDone();
+      totalFailureCount+=((ClientThread)thread).getFailureCount();
     }
     if (totalOps != 0 && totalOps != prevTotalOps) {
-      System.out.println("[status]\tThroughput(ops/sec): " + Time.MS_PER_SECOND * ((double)totalOps / (double)(System.currentTimeMillis() - startTime)) + "\tOperations: " + totalOps);
+      System.out.println("[status]\tThroughput(ops/sec): " + Time.MS_PER_SECOND * ((double)totalOps / (double)(System.currentTimeMillis() - startTime)) + "\tTotal Failures:" + totalFailureCount + "\tOperations: " + totalOps);
       Metrics.getInstance().printReport(System.out);
     }
     prevTotalOps=totalOps;

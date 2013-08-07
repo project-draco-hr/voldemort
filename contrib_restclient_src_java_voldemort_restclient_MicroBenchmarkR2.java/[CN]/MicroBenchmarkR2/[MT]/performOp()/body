@@ -1,0 +1,31 @@
+{
+  HttpClientFactory _clientFactory=new HttpClientFactory();
+  Map<String,String> properties=new HashMap<String,String>();
+  properties.put(HttpClientFactory.POOL_SIZE_KEY,"1");
+  TransportClient transportClient=_clientFactory.getClient(properties);
+  Client client=new TransportClientAdapter(transportClient);
+  Future<RestResponse> newConnectionRequest=client.restRequest(createRequest());
+  Future<RestResponse> reuseConnectionRequest=client.restRequest(createRequest());
+  final FutureCallback<None> clientShutdownCallback=new FutureCallback<None>();
+  client.shutdown(clientShutdownCallback);
+  try {
+    clientShutdownCallback.get();
+  }
+ catch (  InterruptedException e) {
+    System.err.println("Interrupted while shutting down the HttpClientFactory: " + e.getMessage());
+  }
+catch (  ExecutionException e) {
+    System.err.println("Execution exception occurred while shutting down the HttpClientFactory: " + e.getMessage());
+  }
+  final FutureCallback<None> factoryShutdownCallback=new FutureCallback<None>();
+  _clientFactory.shutdown(factoryShutdownCallback);
+  try {
+    factoryShutdownCallback.get();
+  }
+ catch (  InterruptedException e) {
+    System.err.println("Interrupted while shutting down the HttpClientFactory: " + e.getMessage());
+  }
+catch (  ExecutionException e) {
+    System.err.println("Execution exception occurred while shutting down the HttpClientFactory: " + e.getMessage());
+  }
+}

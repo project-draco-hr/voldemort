@@ -1,0 +1,19 @@
+{
+  if (serializerDefinition != null) {
+    if ("string".equals(serializerDefinition.getName())) {
+      return Benchmark.STRING_KEY_TYPE;
+    }
+ else     if ("json".equals(serializerDefinition.getName())) {
+      if (serializerDefinition.getCurrentSchemaInfo().contains("int")) {
+        return Benchmark.JSONINT_KEY_TYPE;
+      }
+ else       if (serializerDefinition.getCurrentSchemaInfo().contains("string")) {
+        return Benchmark.JSONSTRING_KEY_TYPE;
+      }
+    }
+ else     if ("identity".equals(serializerDefinition.getName())) {
+      return Benchmark.IDENTITY_KEY_TYPE;
+    }
+  }
+  throw new Exception("Can't determine key type for key serializer " + serializerDefinition.getName());
+}

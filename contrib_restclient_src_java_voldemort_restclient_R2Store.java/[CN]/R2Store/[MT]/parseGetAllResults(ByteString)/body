@@ -23,9 +23,8 @@
         if (logger.isDebugEnabled()) {
           logger.debug("Received serialized Vector Clock : " + serializedVC);
         }
-        VectorClockWrapper vcWrapper=mapper.readValue(serializedVC,VectorClockWrapper.class);
+        VectorClock clock=RestUtils.deserializeVectorClock(serializedVC);
         byte[] bodyPartBytes=((String)valuePart.getContent()).getBytes();
-        VectorClock clock=new VectorClock(vcWrapper.getVersions(),vcWrapper.getTimestamp());
         valueResultList.add(new Versioned<byte[]>(bodyPartBytes,clock));
       }
       results.put(key,valueResultList);
