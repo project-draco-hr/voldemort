@@ -1,0 +1,20 @@
+{
+  List<Version> result=null;
+  long start=System.nanoTime();
+  try {
+    result=super.getVersions(key);
+    return result;
+  }
+ catch (  VoldemortException e) {
+    stats.recordTime(Tracked.EXCEPTION,System.nanoTime() - start);
+    throw e;
+  }
+ finally {
+    long duration=System.nanoTime() - start;
+    boolean returningEmpty=true;
+    if (result != null) {
+      returningEmpty=result.size() == 0;
+    }
+    stats.recordGetVersionsTime(duration,returningEmpty);
+  }
+}

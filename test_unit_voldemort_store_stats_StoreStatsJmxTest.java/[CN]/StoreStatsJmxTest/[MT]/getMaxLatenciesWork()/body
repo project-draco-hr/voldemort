@@ -1,5 +1,5 @@
 {
-  for (  Tracked op : EnumSet.of(GET,GET_ALL,DELETE,PUT)) {
+  for (  Tracked op : EnumSet.of(GET,GET_VERSIONS,GET_ALL,DELETE,PUT)) {
     StoreStats stats=new StoreStats();
     StoreStatsJmx jmx=new StoreStatsJmx(stats);
     stats.recordTime(op,5 * NS_PER_MS);
@@ -7,6 +7,7 @@
     stats.recordTime(op,7 * NS_PER_MS);
     assertEquals(op == PUT ? 15 : 0,jmx.getMaxPutLatency());
     assertEquals(op == GET ? 15 : 0,jmx.getMaxGetLatency());
+    assertEquals(op == GET_VERSIONS ? 15 : 0,jmx.getMaxGetVersionsLatency());
     assertEquals(op == GET_ALL ? 15 : 0,jmx.getMaxGetAllLatency());
     assertEquals(op == DELETE ? 15 : 0,jmx.getMaxDeleteLatency());
   }
