@@ -14,6 +14,9 @@ synchronized (lock) {
       }
       if (voldemortConfig.isJmxEnabled()) {
         JmxUtils.registerMbean(storeName,engine.getBdbEnvironmentStats());
+        if (useOneEnvPerStore) {
+          aggBdbStats.trackEnvironment(engine.getBdbEnvironmentStats());
+        }
       }
       return engine;
     }

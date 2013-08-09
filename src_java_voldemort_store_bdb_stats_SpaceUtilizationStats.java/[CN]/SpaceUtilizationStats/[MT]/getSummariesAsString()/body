@@ -7,9 +7,9 @@
       Map.Entry<Long,FileSummary> entry=fileItr.next();
       FileSummary fs=entry.getValue();
       long bytesUsed=fs.totalSize - fs.getObsoleteSize();
-      summaryDetails.append(String.format("%s,%f\n",Long.toHexString(entry.getKey().longValue()),BdbEnvironmentStats.safeGetPercentage(bytesUsed,fs.totalSize)));
+      summaryDetails.append(String.format("%s,%f\n",Long.toHexString(entry.getKey().longValue()),Utils.safeGetPercentage(bytesUsed,fs.totalSize)));
     }
-    summaryDetails.append(String.format("total,%f\n",BdbEnvironmentStats.safeGetPercentage(totalSpaceUtilized,totalSpaceUsed)));
+    summaryDetails.append(String.format("total,%f\n",Utils.safeGetPercentage(totalSpaceUtilized,totalSpaceUsed)));
   }
   return summaryDetails.toString();
 }

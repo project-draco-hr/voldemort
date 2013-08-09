@@ -43,4 +43,8 @@
   bdbMasterDir=config.getBdbDataDirectory();
   useOneEnvPerStore=config.isBdbOneEnvPerStore();
   unreservedStores=new HashSet<Environment>();
+  aggBdbStats=new AggregatedBdbEnvironmentStats();
+  if (config.isJmxEnabled()) {
+    JmxUtils.registerMbean("aggregated-bdb",aggBdbStats);
+  }
 }
