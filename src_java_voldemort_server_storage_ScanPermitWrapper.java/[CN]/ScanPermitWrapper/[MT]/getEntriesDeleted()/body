@@ -1,0 +1,12 @@
+{
+  long itemsDeleted=0;
+synchronized (permitOwnersDeleteProgressMap) {
+    for (    Map.Entry<String,AtomicLong> progressEntry : permitOwnersDeleteProgressMap.entrySet()) {
+      AtomicLong progress=progressEntry.getValue();
+      if (progress != null) {
+        itemsDeleted+=progress.get();
+      }
+    }
+  }
+  return totalEntriesDeleted + itemsDeleted;
+}

@@ -1,0 +1,13 @@
+{
+  this.scanPermits.release();
+synchronized (permitOwnersScanProgressMap) {
+    AtomicLong scannedCount=permitOwnersScanProgressMap.get(ownerName);
+    if (scannedCount != null)     totalEntriesScanned+=scannedCount.get();
+    permitOwnersScanProgressMap.remove(ownerName);
+  }
+synchronized (permitOwnersDeleteProgressMap) {
+    AtomicLong deletedCount=permitOwnersDeleteProgressMap.get(ownerName);
+    if (deletedCount != null)     totalEntriesDeleted+=deletedCount.get();
+    permitOwnersDeleteProgressMap.remove(ownerName);
+  }
+}

@@ -1,0 +1,27 @@
+{
+  ScanPermitWrapper wrapper=new ScanPermitWrapper(1);
+  for (int i=0; i < 3; i++) {
+    AtomicLong scanProgress=new AtomicLong(0);
+    AtomicLong deleteProgress=new AtomicLong(0);
+    try {
+      wrapper.acquire(scanProgress,deleteProgress,this.getClass().getCanonicalName());
+      scanProgress.incrementAndGet();
+      scanProgress.incrementAndGet();
+      scanProgress.incrementAndGet();
+      scanProgress.incrementAndGet();
+      scanProgress.incrementAndGet();
+      deleteProgress.incrementAndGet();
+      deleteProgress.incrementAndGet();
+      deleteProgress.incrementAndGet();
+      wrapper.release(this.getClass().getCanonicalName());
+    }
+ catch (    InterruptedException e) {
+      fail("Failure to acquire the Scan permit: " + e);
+    }
+catch (    Exception e) {
+      fail("Unexpected failure occurred : " + e);
+    }
+  }
+  assertEquals(15,wrapper.getEntriesScanned());
+  assertEquals(9,wrapper.getEntriesDeleted());
+}

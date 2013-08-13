@@ -1,0 +1,18 @@
+{
+  ScanPermitWrapper wrapper=new ScanPermitWrapper(1);
+  try {
+    wrapper.acquire(null,this.getClass().getCanonicalName());
+  }
+ catch (  InterruptedException e) {
+    fail("Failure to acquire the Scan permit: " + e);
+  }
+  try {
+    List<String> ownerList=wrapper.getPermitOwners();
+    assertEquals(ownerList.size(),1);
+    assertEquals(ownerList.get(0),this.getClass().getCanonicalName());
+    wrapper.release(this.getClass().getCanonicalName());
+  }
+ catch (  Exception e) {
+    fail("Failure to get correct owner list : " + e);
+  }
+}

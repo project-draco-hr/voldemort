@@ -10,8 +10,7 @@
   for (  StoreDefinition storeDef : metadataStore.getStoreDefList()) {
     localStats.put(storeDef.getName(),0L);
   }
-  AtomicLong progress=new AtomicLong(0);
-  if (!acquireRepairPermit(progress))   return;
+  if (!acquireRepairPermit())   return;
   try {
     RoutingStrategyFactory routingStrategyFactory=new RoutingStrategyFactory();
     for (    StoreDefinition storeDef : metadataStore.getStoreDefList()) {
@@ -27,14 +26,14 @@
           List<Node> nodes=routingStrategy.routeRequest(keyAndVal.getFirst().get());
           if (!hasDestination(nodes)) {
             engine.delete(keyAndVal.getFirst(),keyAndVal.getSecond().getVersion());
-            numDeletedKeys++;
+            numDeletedKeys=this.deleteProgress.incrementAndGet();
           }
-          long itemsScanned=progress.incrementAndGet();
+          long itemsScanned=this.scanProgress.incrementAndGet();
           if (itemsScanned % deleteBatchSize == 0)           logger.info("#Scanned:" + itemsScanned + " #Deleted:"+ numDeletedKeys);
         }
         closeIterator(iterator);
         localStats.put(storeDef.getName(),repairSlops);
-        logger.info("Completed store " + storeDef.getName() + " #Scanned:"+ progress.get()+ " #Deleted:"+ numDeletedKeys);
+        logger.info("Completed store " + storeDef.getName() + " #Scanned:"+ this.scanProgress.get()+ " #Deleted:"+ this.deleteProgress.get());
       }
     }
   }
@@ -43,7 +42,13 @@
   }
  finally {
     closeIterator(iterator);
-    this.repairPermits.release();
+    this.repairPermits.release(this.getClass().getCanonicalName());
+synchronized (this) {
+      totalEntriesScanned+=scanProgress.get();
+      scanProgress.set(0);
+      totalEntriesDeleted+=deleteProgress.get();
+      deleteProgress.set(0);
+    }
     logger.info("Completed repair job started at " + startTime);
   }
 }

@@ -48,6 +48,9 @@
       try {
         keyAndVal=iterator.next();
         Versioned<Slop> versioned=keyAndVal.getSecond();
+        if (this.streamStats != null) {
+          this.streamStats.reportStreamingSlopScan();
+        }
         int nodeId=versioned.getValue().getNodeId();
         Node node=cluster.getNodeById(nodeId);
         attemptedPushes.incrementAndGet();
@@ -126,6 +129,6 @@ catch (  Exception e) {
     consumerResults.clear();
     slopQueues.clear();
     stopAdminClient();
-    this.repairPermits.release();
+    this.repairPermits.release(this.getClass().getCanonicalName());
   }
 }

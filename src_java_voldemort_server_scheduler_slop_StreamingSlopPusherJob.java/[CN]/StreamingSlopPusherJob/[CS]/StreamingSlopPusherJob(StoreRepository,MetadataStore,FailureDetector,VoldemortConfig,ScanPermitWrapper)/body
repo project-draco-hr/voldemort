@@ -4,6 +4,12 @@
   this.failureDetector=failureDetector;
   this.voldemortConfig=voldemortConfig;
   this.repairPermits=Utils.notNull(repairPermits);
+  if (voldemortConfig.isJmxEnabled()) {
+    this.streamStats=storeRepo.getStreamingStats(this.storeRepo.getSlopStore().getName());
+  }
+ else {
+    this.streamStats=null;
+  }
   this.readThrottler=new EventThrottler(voldemortConfig.getSlopMaxReadBytesPerSec());
   this.adminClient=null;
   this.consumerResults=Lists.newArrayList();
