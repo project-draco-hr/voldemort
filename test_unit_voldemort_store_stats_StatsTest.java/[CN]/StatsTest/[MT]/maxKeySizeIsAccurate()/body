@@ -1,0 +1,10 @@
+{
+  RequestCounter rc=getTestRequestCounter();
+  assertEquals(0,rc.getMaxKeySizeInBytes());
+  for (  long requestKeySize : new long[]{42l,923423l,334l,99}) {
+    rc.addRequest(1,1,0,requestKeySize,0);
+  }
+  assertEquals(923423l,rc.getMaxKeySizeInBytes());
+  rc.addRequest(5,0,0,1414232l,0);
+  assertEquals(1414232l,rc.getMaxKeySizeInBytes());
+}

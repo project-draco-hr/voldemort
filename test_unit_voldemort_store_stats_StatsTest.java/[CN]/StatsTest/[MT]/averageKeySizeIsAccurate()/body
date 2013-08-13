@@ -1,0 +1,8 @@
+{
+  RequestCounter rc=getTestRequestCounter();
+  for (long i=0, sum=0; i < 100000; i++) {
+    sum+=i;
+    rc.addRequest(42,1,0,i,0);
+    assertEquals(sum / ((float)i + 1),rc.getAverageKeySizeInBytes(),0.05f);
+  }
+}

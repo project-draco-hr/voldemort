@@ -7,7 +7,7 @@
   when(stats.getThroughput(eq(Tracked.PUT))).thenReturn(50000.0f);
   StoreStatsJmx storeStatsJmx=new StoreStatsJmx(stats);
   assertEquals(54321.0f,storeStatsJmx.getOperationThroughput(),0.1f);
-  for (  Tracked op : EnumSet.of(Tracked.GET,Tracked.GET_ALL,Tracked.DELETE,Tracked.DELETE,Tracked.PUT)) {
+  for (  Tracked op : EnumSet.of(Tracked.GET,Tracked.GET_ALL,Tracked.DELETE,Tracked.GET_VERSIONS,Tracked.PUT)) {
     verify(stats,times(1)).getThroughput(op);
   }
 }

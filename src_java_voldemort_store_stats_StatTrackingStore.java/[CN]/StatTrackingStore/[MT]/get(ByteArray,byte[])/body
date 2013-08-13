@@ -11,14 +11,14 @@
   }
  finally {
     long duration=System.nanoTime() - start;
-    long totalBytes=0;
+    long totalValueBytes=0;
     boolean returningEmpty=true;
     if (result != null) {
       returningEmpty=result.size() == 0;
       for (      Versioned<byte[]> bytes : result) {
-        totalBytes+=bytes.getValue().length;
+        totalValueBytes+=bytes.getValue().length;
       }
     }
-    stats.recordGetTime(duration,returningEmpty,totalBytes);
+    stats.recordGetTime(duration,returningEmpty,totalValueBytes,key.get().length);
   }
 }

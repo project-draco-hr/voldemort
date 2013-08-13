@@ -11,20 +11,22 @@
   }
  finally {
     long duration=System.nanoTime() - start;
-    long totalBytes=0;
+    long totalValueBytes=0;
+    long totalKeyBytes=0;
     int requestedValues=0;
     int returnedValues=0;
     for (    ByteArray k : request.getIterableKeys()) {
+      totalKeyBytes+=k.get().length;
       requestedValues++;
     }
     if (result != null) {
       returnedValues=result.keySet().size();
       for (      List<Versioned<byte[]>> value : result.values()) {
         for (        Versioned<byte[]> bytes : value) {
-          totalBytes+=bytes.getValue().length;
+          totalValueBytes+=bytes.getValue().length;
         }
       }
     }
-    stats.recordGetAllTime(duration,requestedValues,returnedValues,totalBytes);
+    stats.recordGetAllTime(duration,requestedValues,returnedValues,totalValueBytes,totalKeyBytes);
   }
 }

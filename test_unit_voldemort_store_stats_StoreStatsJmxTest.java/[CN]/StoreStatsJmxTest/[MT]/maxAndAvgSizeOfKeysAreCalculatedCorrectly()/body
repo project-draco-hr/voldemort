@@ -1,0 +1,27 @@
+{
+  for (  Tracked op : EnumSet.of(GET,GET_ALL,PUT,DELETE)) {
+    StoreStats stats=new StoreStats();
+    StoreStatsJmx jmx=new StoreStatsJmx(stats);
+    long[] keySizes=new long[]{100,450,200,300};
+    long sum=0l;
+    long max=keySizes[0];
+    final long timeNS=1 * NS_PER_MS;
+    for (    long k : keySizes) {
+      if (op == GET)       stats.recordGetTime(timeNS,false,0,k);
+ else       if (op == GET_ALL)       stats.recordGetAllTime(timeNS,1,1,0,k);
+ else       if (op == DELETE)       stats.recordDeleteTime(timeNS,k);
+ else       stats.recordPutTimeAndSize(timeNS,0,k);
+      sum+=k;
+      max=Math.max(max,k);
+    }
+    double average=sum / (double)keySizes.length;
+    assertEquals(op == PUT ? max : 0,jmx.getMaxPutKeySizeInBytes());
+    assertEquals(op == PUT ? average : 0,jmx.getAveragePutKeySizeInBytes(),0.0);
+    assertEquals(op == GET ? max : 0,jmx.getMaxGetKeySizeInBytes());
+    assertEquals(op == GET ? average : 0,jmx.getAverageGetKeySizeInBytes(),0.0);
+    assertEquals(op == GET_ALL ? max : 0,jmx.getMaxGetAllKeySizeInBytes());
+    assertEquals(op == GET_ALL ? average : 0,jmx.getAverageGetAllKeySizeInBytes(),0.0);
+    assertEquals(op == DELETE ? max : 0,jmx.getMaxDeleteKeySizeInBytes());
+    assertEquals(op == DELETE ? average : 0,jmx.getAverageDeleteKeySizeInBytes(),0.0);
+  }
+}
