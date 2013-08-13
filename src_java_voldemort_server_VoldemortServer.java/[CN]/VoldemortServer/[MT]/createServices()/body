@@ -10,7 +10,7 @@
     services.add(new HttpService(this,storageService,storeRepository,RequestFormatType.VOLDEMORT_V1,voldemortConfig.getMaxThreads(),identityNode.getHttpPort()));
   }
   if (voldemortConfig.isRestServiceEnabled()) {
-    services.add(new RestService(voldemortConfig,8085,storeRepository,identityNode.getZoneId()));
+    services.add(new RestService(voldemortConfig,identityNode.getRestPort(),storeRepository,identityNode.getZoneId(),metadata.getStoreDefList()));
   }
   if (voldemortConfig.isSocketServerEnabled()) {
     RequestHandlerFactory socketRequestHandlerFactory=new SocketRequestHandlerFactory(storageService,this.storeRepository,this.metadata,this.voldemortConfig,this.asyncService,null);

@@ -12,6 +12,15 @@
  else {
       fromLocalZone=isLocalZoneId(storeRequestObject.getZoneId());
       this.store=storeRequestObject.getStore();
+      String storeName=store.getName();
+      performanceStats=storeStatsMap.get(storeName);
+      if (performanceStats == null) {
+        storeStatsMap.putIfAbsent(storeName,new StoreStats(aggregatedStoreStats));
+        performanceStats=storeStatsMap.get(storeName);
+        if (isJmxEnabled) {
+          JmxUtils.registerMbean(new StoreStatsJmx(performanceStats),JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()) + ".store.stats",storeName));
+        }
+      }
 switch (requestObject.getOperationType()) {
 case VoldemortOpCode.GET_OP_CODE:
         if (logger.isDebugEnabled()) {
@@ -20,7 +29,7 @@ case VoldemortOpCode.GET_OP_CODE:
       try {
         List<Versioned<byte[]>> versionedValues=store.get(requestObject.getKey(),null);
         if (versionedValues.size() > 0) {
-          GetResponseSender responseConstructor=new GetResponseSender(messageEvent,requestObject.getKey(),versionedValues,store.getName());
+          GetResponseSender responseConstructor=new GetResponseSender(messageEvent,requestObject.getKey(),versionedValues,storeName);
           responseConstructor.sendResponse(performanceStats,fromLocalZone,requestObject.getRequestOriginTimeInMs());
         }
  else {
@@ -46,7 +55,7 @@ try {
     }
   }
   if (hasAtleastOneValidKey) {
-    GetAllResponseSender responseConstructor=new GetAllResponseSender(messageEvent,keyValuesMap,store.getName());
+    GetAllResponseSender responseConstructor=new GetAllResponseSender(messageEvent,keyValuesMap,storeName);
     responseConstructor.sendResponse(performanceStats,fromLocalZone,requestObject.getRequestOriginTimeInMs());
   }
  else {
@@ -96,7 +105,7 @@ logger.debug("Incoming get version request");
 try {
 List<Version> versions=store.getVersions(requestObject.getKey());
 if (versions.size() > 0) {
-GetVersionResponseSender responseConstructor=new GetVersionResponseSender(messageEvent,requestObject.getKey(),versions,store.getName());
+GetVersionResponseSender responseConstructor=new GetVersionResponseSender(messageEvent,requestObject.getKey(),versions,storeName);
 responseConstructor.sendResponse(performanceStats,fromLocalZone,requestObject.getRequestOriginTimeInMs());
 }
  else {
