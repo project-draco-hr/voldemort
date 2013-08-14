@@ -18,7 +18,7 @@
     byte[] input=new byte[size];
     try {
       ByteUtils.read(inputStream,input);
-      networkTimeNs+=System.nanoTime() - startNs;
+      networkTimeNs+=Utils.elapsedTimeNs(startNs,System.nanoTime());
     }
  catch (    EOFException e) {
       if (logger.isTraceEnabled())       logger.trace("Incomplete read for message");
@@ -47,7 +47,7 @@ case PUT:
       byte[] value=ProtoUtils.decodeBytes(request.getValue()).get();
       startNs=System.nanoTime();
       storageEngine.put(key,Versioned.value(value,vectorClock),transforms);
-      if (isJmxEnabled)       streamStats.reportStorageTime(Operation.SLOP_UPDATE,System.nanoTime() - startNs);
+      if (isJmxEnabled)       streamStats.reportStorageTime(Operation.SLOP_UPDATE,Utils.elapsedTimeNs(startNs,System.nanoTime()));
       if (logger.isTraceEnabled())       logger.trace("updateSlopEntries (Streaming put) successful on key:" + key + " of store: "+ request.getStore());
     }
  catch (    ObsoleteVersionException e) {
