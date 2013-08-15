@@ -1,0 +1,11 @@
+{
+  VectorClock vc=new VectorClock();
+  vc.incrementVersion(this.nodeId,System.currentTimeMillis());
+  VectorClock initialVC=vc.clone();
+  assertFalse("Delete of non-existant key should be false.",client.delete("k",vc));
+  client.put("k",new Versioned<String>("v",vc));
+  assertFalse("Delete of a lesser version should be false.",client.delete("k",initialVC));
+  assertNotNull("After failed delete, value should still be there.",client.get("k"));
+  assertTrue("Delete of k, with the current version should succeed.",client.delete("k",initialVC.incremented(this.nodeId,time.getMilliseconds())));
+  assertNull("After a successful delete(k), get(k) should return null.",client.get("k"));
+}

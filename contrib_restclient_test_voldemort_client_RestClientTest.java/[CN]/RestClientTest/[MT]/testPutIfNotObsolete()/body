@@ -1,0 +1,9 @@
+{
+  VectorClock vc=new VectorClock();
+  vc.incrementVersion(this.nodeId,System.currentTimeMillis());
+  VectorClock initialVC=vc.clone();
+  client.putIfNotObsolete("k",new Versioned<String>("v",vc));
+  assertEquals("PUT of non-obsolete version should succeed.","v",client.getValue("k"));
+  assertFalse(client.putIfNotObsolete("k",new Versioned<String>("v2",initialVC)));
+  assertEquals("Failed PUT should not change the value stored.","v",client.getValue("k"));
+}

@@ -1,0 +1,20 @@
+{
+  VectorClock vc=new VectorClock();
+  vc.incrementVersion(this.nodeId,System.currentTimeMillis());
+  VectorClock initialVC=vc.clone();
+  client.put("k",new Versioned<String>("v",vc));
+  Versioned<String> v=client.get("k");
+  assertEquals("GET should return the version set by PUT.","v",v.getValue());
+  VectorClock expected=initialVC.clone();
+  expected.incrementVersion(this.nodeId,System.currentTimeMillis());
+  assertEquals("The version should be incremented after a put.",expected.getEntries(),((VectorClock)v.getVersion()).getEntries());
+  try {
+    client.put("k",new Versioned<String>("v",initialVC));
+    fail("Put of obsolete version should throw exception.");
+  }
+ catch (  ObsoleteVersionException e) {
+  }
+  client.put("k",new Versioned<String>("v2",new VectorClock().incremented(nodeId + 1,time.getMilliseconds())));
+  assertEquals("GET should return the new value set by PUT.","v2",client.getValue("k"));
+  assertEquals("GET should return the new version set by PUT.",expected.incremented(nodeId + 1,time.getMilliseconds()),client.get("k").getVersion());
+}
