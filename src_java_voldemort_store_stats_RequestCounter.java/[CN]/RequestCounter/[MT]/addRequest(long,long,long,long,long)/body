@@ -3,10 +3,12 @@
   if (logger.isTraceEnabled()) {
     startTimeNs=System.nanoTime();
   }
-  long timeMs=timeNS / Time.NS_PER_MS;
+  long timeHundredUs=timeNS / Time.NS_PER_US / 100;
+  long timeSecond=timeNS / Time.NS_PER_SECOND;
   if (this.useHistogram) {
-    histogram.insert(timeMs);
     maybeResetHistogram();
+    histogramHundredUs.insert(timeHundredUs);
+    histogramSecond.insert(timeSecond);
   }
   for (int i=0; i < 3; i++) {
     Accumulator oldv=getValidAccumulator();
