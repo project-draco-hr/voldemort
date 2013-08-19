@@ -3,8 +3,6 @@
   assertEquals("null should be an acceptable default value.",null,client.getValue("k",null));
   client.put("k","v");
   VectorClock expectedVC=new VectorClock().incremented(nodeId,time.getMilliseconds());
-  System.err.println("Expected VC = " + expectedVC);
-  System.err.println(client.get("k",new Versioned<String>("v2")));
   assertEquals("If there is a value for k, get(k) should return it.","v",client.get("k",new Versioned<String>("v2")).getValue());
   assertNotNull(client.get("k").getVersion());
 }

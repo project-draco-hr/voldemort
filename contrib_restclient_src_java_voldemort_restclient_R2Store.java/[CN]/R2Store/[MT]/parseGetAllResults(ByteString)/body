@@ -9,7 +9,7 @@
       MimeBodyPart part=(MimeBodyPart)mp.getBodyPart(i);
       String contentLocation=part.getHeader("Content-Location")[0];
       String base64Key=contentLocation.split("/")[2];
-      ByteArray key=new ByteArray(Base64.decodeBase64(base64Key.getBytes()));
+      ByteArray key=new ByteArray(RestUtils.decodeVoldemortKey(base64Key));
       if (logger.isDebugEnabled()) {
         logger.debug("Content-Location : " + contentLocation);
         logger.debug("Base 64 key : " + base64Key);
@@ -20,11 +20,14 @@
       for (int valueId=0; valueId < valueParts.getCount(); valueId++) {
         MimeBodyPart valuePart=(MimeBodyPart)valueParts.getBodyPart(valueId);
         String serializedVC=valuePart.getHeader(RestMessageHeaders.X_VOLD_VECTOR_CLOCK)[0];
+        int contentLength=Integer.parseInt(valuePart.getHeader(RestMessageHeaders.CONTENT_LENGTH)[0]);
         if (logger.isDebugEnabled()) {
           logger.debug("Received serialized Vector Clock : " + serializedVC);
         }
         VectorClockWrapper vcWrapper=mapper.readValue(serializedVC,VectorClockWrapper.class);
-        byte[] bodyPartBytes=((String)valuePart.getContent()).getBytes();
+        InputStream input=valuePart.getInputStream();
+        byte[] bodyPartBytes=new byte[contentLength];
+        input.read(bodyPartBytes);
         VectorClock clock=new VectorClock(vcWrapper.getVersions(),vcWrapper.getTimestamp());
         valueResultList.add(new Versioned<byte[]>(bodyPartBytes,clock));
       }

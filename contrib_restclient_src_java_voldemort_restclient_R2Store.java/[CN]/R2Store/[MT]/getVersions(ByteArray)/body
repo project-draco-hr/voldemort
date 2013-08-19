@@ -1,3 +1,41 @@
 {
-  return null;
+  List<Version> resultList=new ArrayList<Version>();
+  String base64Key=RestUtils.encodeVoldemortKey(key.get());
+  RestRequestBuilder rb=null;
+  try {
+    rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
+    String timeoutStr=Long.toString(this.config.getTimeoutConfig().getOperationTimeout(VoldemortOpCode.GET_VERSION_OP_CODE));
+    rb.setHeader(RestMessageHeaders.X_VOLD_GET_VERSION,"true");
+    RestResponse response=fetchGetResponse(rb,timeoutStr);
+    final ByteString entity=response.getEntity();
+    if (entity != null) {
+      resultList=parseGetVersionResponse(entity);
+    }
+ else {
+      if (logger.isDebugEnabled()) {
+        logger.debug("Did not get any response!");
+      }
+    }
+  }
+ catch (  ExecutionException e) {
+    if (e.getCause() instanceof RestException) {
+      RestException exception=(RestException)e.getCause();
+      if (logger.isDebugEnabled()) {
+        logger.debug("REST EXCEPTION STATUS : " + exception.getResponse().getStatus());
+      }
+    }
+ else {
+      throw new VoldemortException("Unknown HTTP request execution exception: " + e.getMessage(),e);
+    }
+  }
+catch (  InterruptedException e) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Operation interrupted : " + e.getMessage(),e);
+    }
+    throw new VoldemortException("Operation interrupted exception: " + e.getMessage(),e);
+  }
+catch (  URISyntaxException e) {
+    throw new VoldemortException("Illegal HTTP URL" + e.getMessage(),e);
+  }
+  return resultList;
 }

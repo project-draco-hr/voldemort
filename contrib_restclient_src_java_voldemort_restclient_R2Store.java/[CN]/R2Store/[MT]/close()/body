@@ -1,13 +1,19 @@
 {
   final FutureCallback<None> clientShutdownCallback=new FutureCallback<None>();
-  client.shutdown(clientShutdownCallback);
-  try {
-    clientShutdownCallback.get();
+  if (!this.isActive.get()) {
+    return;
   }
- catch (  InterruptedException e) {
-    logger.error("Interrupted while shutting down the HttpClientFactory: " + e.getMessage(),e);
-  }
-catch (  ExecutionException e) {
-    logger.error("Execution exception occurred while shutting down the HttpClientFactory: " + e.getMessage(),e);
+  if (client != null) {
+    client.shutdown(clientShutdownCallback);
+    try {
+      clientShutdownCallback.get();
+      this.isActive.compareAndSet(true,false);
+    }
+ catch (    InterruptedException e) {
+      logger.error("Interrupted while shutting down the HttpClientFactory: " + e.getMessage(),e);
+    }
+catch (    ExecutionException e) {
+      logger.error("Execution exception occurred while shutting down the HttpClientFactory: " + e.getMessage(),e);
+    }
   }
 }

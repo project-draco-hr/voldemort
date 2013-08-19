@@ -3,7 +3,8 @@
   ByteArrayOutputStream keysOutputStream=new ByteArrayOutputStream();
   for (  Entry<ByteArray,List<Versioned<byte[]>>> entry : versionedResponses.entrySet()) {
     ByteArray key=entry.getKey();
-    String contentLocationKey="/" + this.storeName + "/"+ new String(Base64.encodeBase64(key.get()));
+    String base64Key=RestUtils.encodeVoldemortKey(key.get());
+    String contentLocationKey="/" + this.storeName + "/"+ base64Key;
     MimeBodyPart keyBody=new MimeBodyPart();
     try {
       keyBody.addHeader(CONTENT_TYPE,"application/octet-stream");
@@ -26,6 +27,7 @@
         valueBody.addHeader(CONTENT_TRANSFER_ENCODING,"binary");
         valueBody.addHeader(RestMessageHeaders.X_VOLD_VECTOR_CLOCK,eTag);
         valueBody.setContent(responseValue,"application/octet-stream");
+        valueBody.addHeader(RestMessageHeaders.CONTENT_LENGTH,Integer.toString(responseValue.length));
         multiPartValues.addBodyPart(valueBody);
       }
  catch (      MessagingException me) {

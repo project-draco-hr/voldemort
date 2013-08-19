@@ -1,0 +1,23 @@
+{
+  final int numServers=1;
+  this.nodeId=0;
+  servers=new VoldemortServer[numServers];
+  int partitionMap[][]={{0,1,2,3,4,5,6,7}};
+  try {
+    Properties props=new Properties();
+    props.setProperty("rest.enable","true");
+    props.setProperty("http.enable","true");
+    cluster=ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,true,null,storesXmlfile,props);
+  }
+ catch (  IOException e) {
+    fail("Failure to setup the cluster");
+  }
+  RESTClientConfig restClientConfig=new RESTClientConfig();
+  restClientConfig.setHttpBootstrapURL("http://localhost:8085").setTimeoutMs(10000,TimeUnit.MILLISECONDS).setMaxR2ConnectionPoolSize(100);
+  clientFactory=new HttpClientFactory();
+  Map<String,String> properties=new HashMap<String,String>();
+  properties.put(HttpClientFactory.POOL_SIZE_KEY,Integer.toString(restClientConfig.getMaxR2ConnectionPoolSize()));
+  TransportClient transportClient=clientFactory.getClient(properties);
+  R2Store r2Store=new R2Store(STORE_NAME,restClientConfig.getHttpBootstrapURL(),"0",transportClient,restClientConfig,0);
+  store=r2Store;
+}

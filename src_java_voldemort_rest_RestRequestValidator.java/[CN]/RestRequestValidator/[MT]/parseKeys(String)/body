@@ -6,13 +6,13 @@
     this.parsedKeys=new ArrayList<ByteArray>();
     if (!base64KeyList.contains(",")) {
       String rawKey=base64KeyList.trim();
-      this.parsedKeys.add(new ByteArray(Base64.decodeBase64(rawKey.getBytes())));
+      this.parsedKeys.add(new ByteArray(RestUtils.decodeVoldemortKey(rawKey)));
     }
  else {
       String[] base64KeyArray=base64KeyList.split(",");
       for (      String base64Key : base64KeyArray) {
         String rawKey=base64Key.trim();
-        this.parsedKeys.add(new ByteArray(Base64.decodeBase64(rawKey.getBytes())));
+        this.parsedKeys.add(new ByteArray(RestUtils.decodeVoldemortKey(rawKey)));
       }
     }
   }

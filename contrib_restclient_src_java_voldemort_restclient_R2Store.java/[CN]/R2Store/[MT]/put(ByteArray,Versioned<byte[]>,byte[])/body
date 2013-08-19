@@ -2,7 +2,7 @@
   RestResponse response=null;
   try {
     byte[] payload=value.getValue();
-    String base64Key=new String(Base64.encodeBase64(key.get()));
+    String base64Key=RestUtils.encodeVoldemortKey(key.get());
     RestRequestBuilder rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
     rb.setMethod(POST);
     rb.setEntity(payload);
@@ -55,16 +55,17 @@
         logger.debug("REST EXCEPTION STATUS : " + exception.getResponse().getStatus());
       }
       int httpErrorStatus=exception.getResponse().getStatus();
-      if (httpErrorStatus == PRECONDITION_FAILED.getCode()) {
+      if (httpErrorStatus == BAD_REQUEST.getCode()) {
+        throw new VoldemortException("Bad request: " + e.getMessage(),e);
+      }
+ else       if (httpErrorStatus == PRECONDITION_FAILED.getCode()) {
         throw new ObsoleteVersionException(e.getMessage());
       }
  else       if (httpErrorStatus == REQUEST_TIMEOUT.getCode() || httpErrorStatus == INTERNAL_SERVER_ERROR.getCode()) {
         throw new InsufficientOperationalNodesException(e.getMessage());
       }
     }
- else {
-      throw new VoldemortException("Unknown HTTP request execution exception: " + e.getMessage(),e);
-    }
+    throw new VoldemortException("Unknown HTTP request execution exception: " + e.getMessage(),e);
   }
 catch (  InterruptedException e) {
     if (logger.isDebugEnabled()) {

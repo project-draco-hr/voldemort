@@ -1,0 +1,21 @@
+{
+  System.out.println("                    Testing Fetchhed equals put                    ");
+  ByteArray key=getKey();
+  Store<ByteArray,byte[],byte[]> store=getStore();
+  VectorClock clock=getClock(1,1,2,3,3,4);
+  byte[] value=getValue();
+  System.out.println("Value chosen : " + value);
+  List<Versioned<byte[]>> resultList=store.get(key,null);
+  assertNotNull("Null result list obtained from a get request",resultList);
+  assertEquals("Store not empty at start!",0,resultList.size());
+  Versioned<byte[]> versioned=new Versioned<byte[]>(value,clock);
+  store.put(key,versioned,null);
+  List<Versioned<byte[]>> found=store.get(key,null);
+  assertEquals("Should only be one version stored.",1,found.size());
+  System.out.println("individual bytes");
+  System.out.println("input");
+  printBytes(versioned.getValue());
+  System.out.println("found");
+  printBytes(found.get(0).getValue());
+  assertTrue("Values not equal!",valuesEqual(versioned.getValue(),found.get(0).getValue()));
+}

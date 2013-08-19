@@ -5,7 +5,7 @@
   createAndRegisterMBeansForAllStoreStats(config,storeDefinitions);
   storageExecutionHandler=new StorageExecutionHandler(threadPoolExecutor,storeStatsMap,aggregatedStoreStats,config.isJmxEnabled(),localZoneId);
   connectionStats=new NettyConnectionStats();
-  connectionStatsHandler=new NettyConnectionStatsHandler(connectionStats);
+  connectionStatsHandler=new NettyConnectionStatsHandler(connectionStats,allchannels);
   maxHttpContentLength=config.getMaxHttpAggregatedContentLength();
   if (config.isJmxEnabled()) {
     JmxUtils.registerMbean(this.storageExecutionHandler,JmxUtils.createObjectName(JmxUtils.getPackageName(this.storageExecutionHandler.getClass()),JmxUtils.getClassName(this.storageExecutionHandler.getClass())));

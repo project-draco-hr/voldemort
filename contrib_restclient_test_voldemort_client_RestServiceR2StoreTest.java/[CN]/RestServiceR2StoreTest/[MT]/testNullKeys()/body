@@ -1,0 +1,44 @@
+{
+  System.out.println("                    Testing null Keys                    ");
+  Store<ByteArray,byte[],byte[]> store=getStore();
+  try {
+    store.put(null,new Versioned<byte[]>(getValue(),getNewIncrementedVectorClock()),null);
+    fail("Store should not put null keys!");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+catch (  NullPointerException npe) {
+  }
+  try {
+    store.get(null,null);
+    fail("Store should not get null keys!");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+catch (  NullPointerException npe) {
+  }
+  try {
+    store.getAll(null,null);
+    fail("Store should not getAll null keys!");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+catch (  NullPointerException npe) {
+  }
+  try {
+    store.getAll(Collections.<ByteArray>singleton(null),Collections.<ByteArray,byte[]>singletonMap(null,null));
+    fail("Store should not getAll null keys!");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+catch (  NullPointerException npe) {
+  }
+  try {
+    store.delete(null,new VectorClock());
+    fail("Store should not delete null keys!");
+  }
+ catch (  IllegalArgumentException e) {
+  }
+catch (  NullPointerException npe) {
+  }
+}
