@@ -7,13 +7,14 @@
     Properties props=new Properties();
     props.setProperty("rest.enable","true");
     props.setProperty("http.enable","true");
-    cluster=ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,true,null,storesXmlfile,props);
+    Cluster customCluster=clusterMapper.readCluster(new FileReader(clusterXmlFile),false);
+    cluster=ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,true,clusterXmlFile,storesXmlfile,props,customCluster);
   }
  catch (  IOException e) {
     fail("Failure to setup the cluster");
   }
   RESTClientConfig restClientConfig=new RESTClientConfig();
-  restClientConfig.setHttpBootstrapURL("http://localhost:8085").setTimeoutMs(10000,TimeUnit.MILLISECONDS).setMaxR2ConnectionPoolSize(100);
+  restClientConfig.setHttpBootstrapURL("http://localhost:" + cluster.getNodeById(0).getRestPort()).setTimeoutMs(10000,TimeUnit.MILLISECONDS).setMaxR2ConnectionPoolSize(100);
   clientFactory=new HttpClientFactory();
   Map<String,String> properties=new HashMap<String,String>();
   properties.put(HttpClientFactory.POOL_SIZE_KEY,Integer.toString(restClientConfig.getMaxR2ConnectionPoolSize()));
