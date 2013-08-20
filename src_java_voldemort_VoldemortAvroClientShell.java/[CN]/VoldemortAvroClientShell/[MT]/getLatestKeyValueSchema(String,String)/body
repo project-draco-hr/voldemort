@@ -1,0 +1,23 @@
+{
+  AdminClient adminClient=null;
+  try {
+    adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());
+    List<StoreDefinition> storeDefs=adminClient.metadataMgmtOps.getRemoteStoreDefList(0).getValue();
+    for (    StoreDefinition storeDef : storeDefs) {
+      if (storeDef.getName().equals(storeName)) {
+        Schema keySchema=Schema.parse(storeDef.getKeySerializer().getCurrentSchemaInfo());
+        Schema valueSchema=Schema.parse(storeDef.getValueSerializer().getCurrentSchemaInfo());
+        return new Pair<Schema,Schema>(keySchema,valueSchema);
+      }
+    }
+  }
+ catch (  Exception e) {
+    System.err.println("Error while getting lastest key schema " + e.getMessage());
+  }
+ finally {
+    if (adminClient != null) {
+      adminClient.close();
+    }
+  }
+  return null;
+}

@@ -1,0 +1,54 @@
+{
+  if (args.length < 2 || args.length > 3) {
+    System.err.println("Usage: java VoldemortAvroClient store_name bootstrap_url [command_file]");
+    System.exit(-1);
+  }
+  String storeName=args[0];
+  String bootstrapUrl=args[1];
+  String commandsFileName="";
+  BufferedReader fileReader=null;
+  BufferedReader inputReader=null;
+  try {
+    if (args.length == 3) {
+      commandsFileName=args[2];
+      fileReader=new BufferedReader(new FileReader(commandsFileName));
+    }
+    inputReader=new BufferedReader(new InputStreamReader(System.in));
+  }
+ catch (  IOException e) {
+    Utils.croak("Failure to open input stream: " + e.getMessage());
+  }
+  ClientConfig clientConfig=new ClientConfig().setBootstrapUrls(bootstrapUrl).setEnableLazy(false).setRequestFormatType(RequestFormatType.VOLDEMORT_V3);
+  StoreClientFactory factory=null;
+  DefaultStoreClient<Object,Object> client=null;
+  try {
+    try {
+      factory=new SocketStoreClientFactory(clientConfig);
+      client=(DefaultStoreClient<Object,Object>)factory.getStoreClient(storeName);
+    }
+ catch (    Exception e) {
+      Utils.croak("Could not connect to server: " + e.getMessage());
+    }
+    System.out.println("Established connection to " + storeName + " via "+ bootstrapUrl);
+    System.out.print(PROMPT);
+    Pair<Schema,Schema> keyValueSchemaPair=getLatestKeyValueSchema(bootstrapUrl,storeName);
+    Schema latestKeySchema=keyValueSchemaPair.getFirst();
+    if (latestKeySchema == null) {
+      Utils.croak("Could not parse latest key schema for store name " + storeName);
+    }
+    Schema latestValueSchema=keyValueSchemaPair.getSecond();
+    if (latestValueSchema == null) {
+      Utils.croak("Could not parse latest value schema for store name " + storeName);
+    }
+    if (fileReader != null) {
+      processCommands(client,fileReader,latestKeySchema,latestValueSchema,true);
+    }
+ else {
+      processCommands(client,inputReader,latestKeySchema,latestValueSchema,false);
+    }
+  }
+  finally {
+    if (factory != null)     factory.close();
+    if (fileReader != null)     fileReader.close();
+  }
+}
