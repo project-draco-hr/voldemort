@@ -25,13 +25,15 @@
       long numPrunedKeys=0;
       while (iterator.hasNext()) {
         ByteArray key=iterator.next();
-        List<Versioned<byte[]>> vals=engine.get(key,null);
+        KeyLockHandle<byte[]> lockHandle=engine.getAndLock(key);
+        List<Versioned<byte[]>> vals=lockHandle.getValues();
         List<Integer> keyReplicas=routingPlan.getReplicationNodeList(routingPlan.getMasterPartitionId(key.get()));
         MutableBoolean didPrune=new MutableBoolean(false);
         List<Versioned<byte[]>> prunedVals=pruneNonReplicaEntries(vals,keyReplicas,didPrune);
         if (didPrune.booleanValue()) {
           List<Versioned<byte[]>> resolvedVals=VectorClockUtils.resolveVersions(prunedVals);
-          engine.rawPut(key,resolvedVals);
+          lockHandle.setValues(resolvedVals);
+          engine.putAndUnlock(key,lockHandle);
           numPrunedKeys=this.numKeysUpdatedThisRun.incrementAndGet();
         }
         itemsScanned=this.numKeysScannedThisRun.incrementAndGet();
