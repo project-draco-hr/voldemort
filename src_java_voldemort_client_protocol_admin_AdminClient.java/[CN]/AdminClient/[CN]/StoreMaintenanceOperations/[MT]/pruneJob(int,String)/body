@@ -1,0 +1,20 @@
+{
+  logger.info("Kicking off prune job on Node " + nodeId + " for store "+ store);
+  VAdminProto.PruneJobRequest.Builder jobRequest=VAdminProto.PruneJobRequest.newBuilder().setStoreName(store);
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setPruneJob(jobRequest).setType(VAdminProto.AdminRequestType.PRUNE_JOB).build();
+  Node node=AdminClient.this.getAdminClientCluster().getNodeById(nodeId);
+  SocketDestination destination=new SocketDestination(node.getHost(),node.getAdminPort(),RequestFormatType.ADMIN_PROTOCOL_BUFFERS);
+  SocketAndStreams sands=socketPool.checkout(destination);
+  try {
+    DataOutputStream outputStream=sands.getOutputStream();
+    ProtoUtils.writeMessage(outputStream,adminRequest);
+    outputStream.flush();
+  }
+ catch (  IOException e) {
+    helperOps.close(sands.getSocket());
+    throw new VoldemortException(e);
+  }
+ finally {
+    socketPool.checkin(destination,sands);
+  }
+}

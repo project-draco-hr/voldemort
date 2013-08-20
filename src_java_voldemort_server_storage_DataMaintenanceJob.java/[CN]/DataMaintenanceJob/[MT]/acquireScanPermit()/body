@@ -1,0 +1,11 @@
+{
+  getLogger().info("Acquiring lock to perform " + getJobName());
+  if (this.scanPermits.tryAcquire(this.numKeysScannedThisRun,this.numKeysUpdatedThisRun,this.getClass().getCanonicalName())) {
+    getLogger().info("Acquired lock to perform " + getJobName());
+    return true;
+  }
+ else {
+    getLogger().error("Aborting " + getJobName() + " since another instance is already running! ");
+    return false;
+  }
+}

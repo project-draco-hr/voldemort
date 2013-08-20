@@ -6,6 +6,10 @@
       @Override public void operate(){
         RepairJob job=storeRepository.getRepairJob();
         if (job != null) {
+          if (job.getIsRunning().get()) {
+            logger.info("Repair job already running .. backing off.. ");
+            return;
+          }
           logger.info("Starting the repair job now on ID : " + metadataStore.getNodeId());
           job.run();
         }

@@ -1,0 +1,22 @@
+{
+  List<Versioned<byte[]>> resolvedVersions=new ArrayList<Versioned<byte[]>>(values.size());
+  for (  Versioned<byte[]> value : values) {
+    Iterator<Versioned<byte[]>> iter=resolvedVersions.iterator();
+    boolean obsolete=false;
+    while (iter.hasNext()) {
+      Versioned<byte[]> curr=iter.next();
+      Occurred occurred=value.getVersion().compare(curr.getVersion());
+      if (occurred == Occurred.BEFORE) {
+        obsolete=true;
+        break;
+      }
+ else       if (occurred == Occurred.AFTER) {
+        iter.remove();
+      }
+    }
+    if (!obsolete) {
+      resolvedVersions.add(value);
+    }
+  }
+  return resolvedVersions;
+}

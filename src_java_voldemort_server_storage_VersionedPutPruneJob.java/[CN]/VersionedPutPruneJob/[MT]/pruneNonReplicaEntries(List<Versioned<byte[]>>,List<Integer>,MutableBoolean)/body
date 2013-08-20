@@ -1,0 +1,17 @@
+{
+  List<Versioned<byte[]>> prunedVals=new ArrayList<Versioned<byte[]>>(vals.size());
+  for (  Versioned<byte[]> val : vals) {
+    VectorClock clock=(VectorClock)val.getVersion();
+    List<ClockEntry> clockEntries=new ArrayList<ClockEntry>();
+    for (    ClockEntry clockEntry : clock.getEntries()) {
+      if (keyReplicas.contains((int)clockEntry.getNodeId())) {
+        clockEntries.add(clockEntry);
+      }
+ else {
+        didPrune.setValue(true);
+      }
+    }
+    prunedVals.add(new Versioned<byte[]>(val.getValue(),new VectorClock(clockEntries,clock.getTimestamp())));
+  }
+  return prunedVals;
+}

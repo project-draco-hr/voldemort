@@ -1,0 +1,23 @@
+{
+  byte[] key="key1".getBytes();
+  List<Versioned<byte[]>> vals=new ArrayList<Versioned<byte[]>>();
+  VectorClock clock1=TestUtils.getClock(0,2,1,3);
+  VectorClock clock2=TestUtils.getClock(9,4);
+  VectorClock clock3=TestUtils.getClock(0,1);
+  VectorClock clock4=TestUtils.getClock(8,0);
+  vals.add(new Versioned<byte[]>(key,clock1));
+  vals.add(new Versioned<byte[]>(key,clock2));
+  vals.add(new Versioned<byte[]>(key,clock3));
+  vals.add(new Versioned<byte[]>(key,clock4));
+  MutableBoolean didPrune=new MutableBoolean(false);
+  List<Versioned<byte[]>> prunedVals=VersionedPutPruneJob.pruneNonReplicaEntries(vals,Lists.newArrayList(0,2,1),didPrune);
+  assertEquals("Must have pruned some versions",true,didPrune.booleanValue());
+  assertEquals("Not pruned properly",TestUtils.getClock(0,1,2),prunedVals.get(0).getVersion());
+  assertEquals("Not pruned properly",TestUtils.getClock(),prunedVals.get(1).getVersion());
+  assertEquals("Not pruned properly",TestUtils.getClock(0,1),prunedVals.get(2).getVersion());
+  assertEquals("Not pruned properly",TestUtils.getClock(0),prunedVals.get(3).getVersion());
+  List<Versioned<byte[]>> resolvedVals=VectorClockUtils.resolveVersions(prunedVals);
+  assertEquals("Must be exactly one winning version",1,resolvedVals.size());
+  assertEquals("Incorrect winning version",TestUtils.getClock(0,1,2),resolvedVals.get(0).getVersion());
+  assertEquals("Incorrect winning version",clock1.getTimestamp(),((VectorClock)resolvedVals.get(0).getVersion()).getTimestamp());
+}

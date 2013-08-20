@@ -24,6 +24,7 @@
   parser.accepts("async","a) Get a list of async job ids [get] b) Stop async job ids [stop] ").withRequiredArg().describedAs("op-type").ofType(String.class);
   parser.accepts("async-id","Comma separated list of async ids to stop").withOptionalArg().describedAs("job-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("repair-job","Clean after rebalancing is done");
+  parser.accepts("prune-job","Prune versioned put data, after rebalancing");
   parser.accepts("native-backup","Perform a native backup").withRequiredArg().describedAs("store-name").ofType(String.class);
   parser.accepts("backup-dir").withRequiredArg().describedAs("backup-directory").ofType(String.class);
   parser.accepts("backup-timeout").withRequiredArg().describedAs("minutes to wait for backup completion, default 30 mins").ofType(Integer.class);
@@ -96,6 +97,9 @@
   if (options.has("clear-rebalancing-metadata")) {
     ops+="i";
   }
+  if (options.has("prune-job")) {
+    ops+="j";
+  }
   if (options.has("fetch-keys")) {
     ops+="k";
   }
@@ -139,12 +143,11 @@
     ops+="z";
   }
   if (ops.length() < 1) {
-    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, clear-rebalancing-metadata, async, "+ "repair-job, native-backup, rollback, reserve-memory, mirror-url, verify-metadata-version) must be specified");
+    Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, clear-rebalancing-metadata, async, "+ "repair-job, native-backup, rollback, reserve-memory, mirror-url, verify-metadata-version, prune-job) must be specified");
   }
   List<String> storeNames=null;
   if (options.has("stores")) {
-    List<String> temp=(List<String>)options.valuesOf("stores");
-    storeNames=temp;
+    storeNames=(List<String>)options.valuesOf("stores");
   }
   String outputDir=null;
   if (options.has("outdir")) {
@@ -278,6 +281,12 @@
     }
     if (ops.contains("l")) {
       executeRepairJob(nodeId,adminClient);
+    }
+    if (ops.contains("j")) {
+      if (storeNames == null) {
+        Utils.croak("Must specify --stores to run the prune job");
+      }
+      executePruneJob(nodeId,adminClient,storeNames);
     }
     if (ops.contains("n")) {
       String backupDir=(String)options.valueOf("backup-dir");

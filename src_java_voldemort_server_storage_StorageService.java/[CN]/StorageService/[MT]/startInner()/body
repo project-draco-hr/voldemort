@@ -24,6 +24,12 @@
       JmxUtils.registerMbean(job,JmxUtils.createObjectName(job.getClass()));
       storeRepository.registerRepairJob(job);
     }
+    if (voldemortConfig.isPruneJobEnabled()) {
+      logger.info("Intializing prune job");
+      VersionedPutPruneJob job=new VersionedPutPruneJob(storeRepository,metadata,scanPermitWrapper);
+      JmxUtils.registerMbean(job,JmxUtils.createObjectName(job.getClass()));
+      storeRepository.registerPruneJob(job);
+    }
   }
   List<StoreDefinition> storeDefs=new ArrayList<StoreDefinition>(this.metadata.getStoreDefList());
   logger.info("Initializing stores:");

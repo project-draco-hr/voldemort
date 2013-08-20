@@ -1,0 +1,32 @@
+{
+  if (v1 == null || v2 == null)   throw new IllegalArgumentException("Can't compare null vector clocks!");
+  boolean v1Bigger=false;
+  boolean v2Bigger=false;
+  SortedSet<Short> v1Nodes=v1.getVersionMap().navigableKeySet();
+  SortedSet<Short> v2Nodes=v2.getVersionMap().navigableKeySet();
+  SortedSet<Short> commonNodes=Sets.newTreeSet(v1Nodes);
+  commonNodes.retainAll(v2Nodes);
+  if (v1Nodes.size() > commonNodes.size()) {
+    v1Bigger=true;
+  }
+  if (v2Nodes.size() > commonNodes.size()) {
+    v2Bigger=true;
+  }
+  for (  Short nodeId : commonNodes) {
+    if (v1Bigger && v2Bigger) {
+      break;
+    }
+    long v1Version=v1.getVersionMap().get(nodeId);
+    long v2Version=v2.getVersionMap().get(nodeId);
+    if (v1Version > v2Version) {
+      v1Bigger=true;
+    }
+ else     if (v1Version < v2Version) {
+      v2Bigger=true;
+    }
+  }
+  if (!v1Bigger && !v2Bigger)   return Occurred.BEFORE;
+ else   if (v1Bigger && !v2Bigger)   return Occurred.AFTER;
+ else   if (!v1Bigger && v2Bigger)   return Occurred.BEFORE;
+ else   return Occurred.CONCURRENTLY;
+}

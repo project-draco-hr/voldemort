@@ -1,0 +1,33 @@
+{
+  VAdminProto.PruneJobResponse.Builder response=VAdminProto.PruneJobResponse.newBuilder();
+  try {
+    int requestId=asyncService.getUniqueRequestId();
+    final String storeName=request.getStoreName();
+    asyncService.submitOperation(requestId,new AsyncOperation(requestId,"Prune Job-" + storeName){
+      @Override public void operate(){
+        VersionedPutPruneJob job=storeRepository.getPruneJob();
+        if (job != null) {
+          if (job.getIsRunning().get()) {
+            logger.info("Prune job already running .. backing off.. ");
+            return;
+          }
+          job.setStoreName(storeName);
+          logger.info("Starting the prune job now on ID : " + metadataStore.getNodeId() + " for store "+ storeName);
+          job.run();
+        }
+ else {
+          logger.error("PruneJob is not initialized.");
+        }
+      }
+      @Override public void stop(){
+        status.setException(new VoldemortException("Prune job interrupted"));
+      }
+    }
+);
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("Prune job failed for request : " + request.toString() + ")",e);
+  }
+  return response.build();
+}
