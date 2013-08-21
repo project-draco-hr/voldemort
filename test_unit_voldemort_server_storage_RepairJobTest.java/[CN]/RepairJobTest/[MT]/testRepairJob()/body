@@ -1,0 +1,37 @@
+{
+  setUp();
+  storeMap=createSocketStore(storeDefs.get(0));
+  HashMap<String,String> testEntries=ServerTestUtils.createRandomKeyValueString(1024);
+  populateData(testEntries);
+  AdminClient admin=new AdminClient(cluster,new AdminClientConfig(),new ClientConfig());
+  for (int i=0; i < 9; i++) {
+    admin.storeMntOps.repairJob(i);
+  }
+  BaseStoreRoutingPlan storeInstance=new BaseStoreRoutingPlan(cluster,storeDefs.get(0));
+  for (  Entry<String,String> entry : testEntries.entrySet()) {
+    ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(entry.getKey(),"UTF-8"));
+    List<Integer> preferenceNodes=storeInstance.getReplicationNodeList(keyBytes.get());
+    List<Integer> allNodes=new ArrayList<Integer>(Arrays.asList(0,1,2,3,4,5,6,7,8));
+    allNodes.removeAll(preferenceNodes);
+    for (    int nodeId : allNodes) {
+      try {
+        List<Versioned<byte[]>> retVal=storeMap.get(nodeId).get(keyBytes,null);
+        assertEquals("Repair did not run properly as it left the key it should have" + " deleted",retVal.isEmpty(),true);
+      }
+ catch (      Exception e) {
+      }
+    }
+    for (    int nodeId : preferenceNodes) {
+      try {
+        List<Versioned<byte[]>> retVal=storeMap.get(nodeId).get(keyBytes,null);
+        assertEquals("Repair job has deleted keys that it should not have",retVal.isEmpty(),false);
+      }
+ catch (      Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
+  for (  Store<ByteArray,byte[],byte[]> store : storeMap.values()) {
+    store.close();
+  }
+}

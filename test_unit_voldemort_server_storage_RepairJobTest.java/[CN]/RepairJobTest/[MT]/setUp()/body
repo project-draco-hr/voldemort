@@ -1,0 +1,27 @@
+{
+  File temp=TestUtils.createTempDir();
+  VoldemortConfig config=new VoldemortConfig(0,temp.getAbsolutePath());
+  new File(config.getMetadataDirectory()).mkdir();
+  this.scheduler=new SchedulerService(1,new MockTime());
+  this.cluster=VoldemortTestConstants.getNineNodeCluster();
+  StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
+  this.storeDefs=mapper.readStoreList(new StringReader((VoldemortTestConstants.getSingleStore322Xml())));
+  this.storeRepository=new StoreRepository();
+  this.metadataStore=ServerTestUtils.createMetadataStore(cluster,storeDefs);
+  storage=new StorageService(storeRepository,metadataStore,scheduler,config);
+  storage.start();
+  this.scanPermitWrapper=new ScanPermitWrapper(1);
+  this.socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
+  String storeDefsString=mapper.writeStoreList(storeDefs);
+  File file=null;
+  try {
+    file=File.createTempFile("single-store-",".xml");
+    FileUtils.writeStringToFile(file,storeDefsString);
+    String storeDefFile=file.getAbsolutePath();
+    List<Integer> nodesToStart=Arrays.asList(0,1,2,3,4,5,6,7,8);
+    startServers(cluster,storeDefFile,nodesToStart,null);
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+}
