@@ -1,0 +1,26 @@
+{
+  if (!isServerNormal()) {
+    getLogger().error("Cannot run " + getJobName() + " since Voldemort server is not in normal state");
+    return;
+  }
+  isRunning.set(true);
+  Date startTime=new Date();
+  getLogger().info("Started " + getJobName() + " at "+ startTime);
+  if (!acquireScanPermit()) {
+    isRunning.set(false);
+    return;
+  }
+  try {
+    operate();
+  }
+ catch (  Exception e) {
+    getLogger().error("Error running " + getJobName(),e);
+  }
+ finally {
+    closeIterator(iterator);
+    this.scanPermits.release(this.getClass().getCanonicalName());
+    resetStats();
+    getLogger().info("Completed " + getJobName() + " started at "+ startTime);
+    isRunning.set(false);
+  }
+}

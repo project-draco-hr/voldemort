@@ -1,0 +1,50 @@
+{
+  long now=System.currentTimeMillis();
+  int recordCount=0;
+  String fetchedValue="fetched";
+  String onlineValue="online";
+  for (  Map.Entry<String,String> entry : testEntries.entrySet()) {
+    ByteArray key=new ByteArray(entry.getKey().getBytes());
+    Versioned<Object> fetchedVersion=new Versioned<Object>(fetchedValue,makeVersionedPutClock(oldRoutingPlan,key.get(),now));
+    storeClient.put(entry.getKey(),fetchedVersion);
+    if (recordCount < 50) {
+      Versioned<Object> onlineVersion=new Versioned<Object>(onlineValue,makeVersionedPutClock(currentRoutingPlan,key.get(),now + Time.MS_PER_SECOND));
+      storeClient.put(entry.getKey(),onlineVersion);
+    }
+    recordCount++;
+  }
+  AdminClient admin=new AdminClient(cluster,new AdminClientConfig(),new ClientConfig());
+  for (int nodeid=0; nodeid < servers.length; nodeid++) {
+    admin.storeMntOps.pruneJob(nodeid,"test");
+  }
+  for (  VoldemortServer server : servers) {
+    ServerTestUtils.waitForAsyncOperationOnServer(server,"Prune",5000);
+  }
+  recordCount=0;
+  for (  Map.Entry<String,String> entry : testEntries.entrySet()) {
+    ByteArray key=new ByteArray(entry.getKey().getBytes());
+    List<Integer> replicas=currentRoutingPlan.getReplicationNodeList(key.get());
+    Versioned<Object> val=storeClient.get(entry.getKey());
+    assertFalse("Clock must not contain any non replicas",clockContainsNonReplicas((VectorClock)val.getVersion(),replicas));
+    if (recordCount < 50) {
+      assertEquals("Must have online value",onlineValue,val.getValue());
+    }
+ else {
+      assertEquals("Must have fetched value",fetchedValue,val.getValue());
+    }
+    recordCount++;
+  }
+  String finalValue="final";
+  for (  Map.Entry<String,String> entry : testEntries.entrySet()) {
+    ByteArray key=new ByteArray(entry.getKey().getBytes());
+    List<Integer> replicas=currentRoutingPlan.getReplicationNodeList(key.get());
+    Versioned<Object> finalVersion=new Versioned<Object>(finalValue,makeVersionedPutClock(currentRoutingPlan,key.get(),now + 2 * Time.MS_PER_SECOND));
+    storeClient.put(entry.getKey(),finalVersion);
+    for (    Integer replica : replicas) {
+      Store<ByteArray,byte[],byte[]> socketStore=socketStoreMap.get(replica);
+      List<Versioned<byte[]>> vals=socketStore.get(key,null);
+      assertEquals("No more conflicts expected",1,vals.size());
+      assertEquals("Key should have the final value",finalValue,new String(vals.get(0).getValue()));
+    }
+  }
+}

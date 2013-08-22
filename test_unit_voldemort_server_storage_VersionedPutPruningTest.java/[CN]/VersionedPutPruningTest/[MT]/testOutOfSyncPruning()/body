@@ -1,0 +1,26 @@
+{
+  long now=System.currentTimeMillis();
+  byte[] onlineVal="online".getBytes();
+  ChainedResolver<Versioned<byte[]>> resolver=new ChainedResolver<Versioned<byte[]>>(new VectorClockInconsistencyResolver<byte[]>(),new TimeBasedInconsistencyResolver<byte[]>());
+  VectorClock fetchedClock=TestUtils.getVersionedPutClock(now,4,4,5,0);
+  VectorClock onlineClock1=TestUtils.getVersionedPutClock(now + Time.MS_PER_SECOND,0,0,2,1);
+  List<Versioned<byte[]>> vals1=new ArrayList<Versioned<byte[]>>();
+  vals1.add(new Versioned<byte[]>(key,fetchedClock));
+  vals1.add(new Versioned<byte[]>(onlineVal,onlineClock1));
+  List<Versioned<byte[]>> vals2=new ArrayList<Versioned<byte[]>>();
+  vals2.add(new Versioned<byte[]>(key,fetchedClock));
+  vals2.add(new Versioned<byte[]>(onlineVal,onlineClock1));
+  vals1=pruneAndResolve(vals1,new MutableBoolean());
+  assertEquals("Must have one winning version",1,vals1.size());
+  assertEquals("Must resolve to onlineClock",onlineClock1,vals1.get(0).getVersion());
+  List<Versioned<byte[]>> resolvedVersions=resolver.resolveConflicts(vals1);
+  assertEquals("Must read out latest timestamp version",onlineClock1.getTimestamp(),((VectorClock)resolvedVersions.get(0).getVersion()).getTimestamp());
+  assertEquals("Online value to be read out",new String(onlineVal),new String(resolvedVersions.get(0).getValue()));
+  resolvedVersions=resolver.resolveConflicts(vals2);
+  assertEquals("Online value to be read out",new String(onlineVal),new String(resolvedVersions.get(0).getValue()));
+  List<Versioned<byte[]>> vals=new ArrayList<Versioned<byte[]>>();
+  vals.addAll(vals1);
+  vals.addAll(vals2);
+  resolvedVersions=resolver.resolveConflicts(vals);
+  assertEquals("Online value to be read out",new String(onlineVal),new String(resolvedVersions.get(0).getValue()));
+}

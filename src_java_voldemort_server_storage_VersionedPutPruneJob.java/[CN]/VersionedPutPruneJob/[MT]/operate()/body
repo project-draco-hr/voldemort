@@ -1,0 +1,38 @@
+{
+  StoreDefinition storeDef=StoreDefinitionUtils.getStoreDefinitionWithName(metadataStore.getStoreDefList(),storeName);
+  if (storeDef == null) {
+    throw new VoldemortException("Unknown store " + storeName);
+  }
+  if (isWritableStore(storeDef)) {
+    StoreRoutingPlan routingPlan=new StoreRoutingPlan(metadataStore.getCluster(),storeDef);
+    logger.info("Pruning store " + storeDef.getName());
+    StorageEngine<ByteArray,byte[],byte[]> engine=storeRepo.getStorageEngine(storeDef.getName());
+    iterator=engine.keys();
+    long itemsScanned=0;
+    long numPrunedKeys=0;
+    while (iterator.hasNext()) {
+      ByteArray key=iterator.next();
+      KeyLockHandle<byte[]> lockHandle=engine.getAndLock(key);
+      List<Versioned<byte[]>> vals=lockHandle.getValues();
+      try {
+        List<Integer> keyReplicas=routingPlan.getReplicationNodeList(routingPlan.getMasterPartitionId(key.get()));
+        MutableBoolean didPrune=new MutableBoolean(false);
+        List<Versioned<byte[]>> prunedVals=pruneNonReplicaEntries(vals,keyReplicas,didPrune);
+        if (didPrune.booleanValue()) {
+          List<Versioned<byte[]>> resolvedVals=VectorClockUtils.resolveVersions(prunedVals);
+          lockHandle.setValues(resolvedVals);
+          engine.putAndUnlock(key,lockHandle);
+          numPrunedKeys=this.numKeysUpdatedThisRun.incrementAndGet();
+        }
+        itemsScanned=this.numKeysScannedThisRun.incrementAndGet();
+        throttler.maybeThrottle(Ints.checkedCast(itemsScanned));
+        if (itemsScanned % STAT_RECORDS_INTERVAL == 0)         logger.info("#Scanned:" + itemsScanned + " #Pruned:"+ numPrunedKeys);
+      }
+ catch (      Exception e) {
+        engine.releaseLock(lockHandle);
+        throw e;
+      }
+    }
+    logger.info("Completed store " + storeDef.getName() + " #Scanned:"+ itemsScanned+ " #Pruned:"+ numPrunedKeys);
+  }
+}

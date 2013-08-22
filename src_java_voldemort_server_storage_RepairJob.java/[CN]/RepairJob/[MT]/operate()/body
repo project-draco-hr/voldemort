@@ -1,0 +1,26 @@
+{
+  for (  StoreDefinition storeDef : metadataStore.getStoreDefList()) {
+    if (isWritableStore(storeDef)) {
+      StoreRoutingPlan routingPlan=new StoreRoutingPlan(metadataStore.getCluster(),storeDef);
+      logger.info("Repairing store " + storeDef.getName());
+      StorageEngine<ByteArray,byte[],byte[]> engine=storeRepo.getStorageEngine(storeDef.getName());
+      iterator=engine.keys();
+      long itemsScanned=0;
+      long numDeletedKeys=0;
+      while (iterator.hasNext()) {
+        ByteArray key=iterator.next();
+        if (!routingPlan.checkKeyBelongsToNode(key.get(),metadataStore.getNodeId())) {
+          engine.delete(key,null);
+          numDeletedKeys=this.numKeysUpdatedThisRun.incrementAndGet();
+        }
+        itemsScanned=this.numKeysScannedThisRun.incrementAndGet();
+        throttler.maybeThrottle(Ints.checkedCast(itemsScanned));
+        if (itemsScanned % STAT_RECORDS_INTERVAL == 0) {
+          logger.info("#Scanned:" + itemsScanned + " #Deleted:"+ numDeletedKeys);
+        }
+      }
+      closeIterator(iterator);
+      logger.info("Completed store " + storeDef.getName() + " #Scanned:"+ itemsScanned+ " #Deleted:"+ numDeletedKeys);
+    }
+  }
+}

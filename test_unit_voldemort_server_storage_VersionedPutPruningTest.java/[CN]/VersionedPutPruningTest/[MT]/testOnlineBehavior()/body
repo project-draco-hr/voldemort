@@ -1,0 +1,23 @@
+{
+  long now=System.currentTimeMillis();
+  VectorClock fetchedClock=TestUtils.getVersionedPutClock(now,4,4,5,0);
+  VectorClock onlineClock=TestUtils.getVersionedPutClock(now,0,0,2,1);
+  assertEquals("fetched and online versions should conflict",Occurred.CONCURRENTLY,VectorClockUtils.compare(fetchedClock,onlineClock));
+  List<Versioned<byte[]>> vals=new ArrayList<Versioned<byte[]>>();
+  vals.add(new Versioned<byte[]>(key,fetchedClock));
+  vals.add(new Versioned<byte[]>(key,onlineClock));
+  MutableBoolean didPrune=new MutableBoolean();
+  vals=pruneAndResolve(vals,didPrune);
+  assertEquals("Must have pruned something",true,didPrune.booleanValue());
+  assertEquals("Must have one winning version",1,vals.size());
+  assertEquals("Must resolve to onlineClock",onlineClock,vals.get(0).getVersion());
+  vals=new ArrayList<Versioned<byte[]>>();
+  vals.add(new Versioned<byte[]>(key,fetchedClock));
+  didPrune=new MutableBoolean();
+  vals=pruneAndResolve(vals,didPrune);
+  assertEquals("Must have pruned something",true,didPrune.booleanValue());
+  assertEquals("Must have one winning version",1,vals.size());
+  assertEquals("Must resolve to [0:ts] clock",TestUtils.getVersionedPutClock(now,-1,0),vals.get(0).getVersion());
+  VectorClock nextOnlineClock=TestUtils.getVersionedPutClock(now + Time.MS_PER_SECOND,0,0,2,1);
+  assertFalse("Next online write would not result in conflict",Occurred.CONCURRENTLY == VectorClockUtils.compare((VectorClock)vals.get(0).getVersion(),nextOnlineClock));
+}

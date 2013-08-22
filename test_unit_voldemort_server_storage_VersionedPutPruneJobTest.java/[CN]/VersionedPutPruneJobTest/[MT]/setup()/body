@@ -1,0 +1,22 @@
+{
+  socketStoreMap=new HashMap<Integer,Store<ByteArray,byte[],byte[]>>();
+  socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
+  final int numServers=4;
+  servers=new VoldemortServer[numServers];
+  int currentPartitionMap[][]={{0,4},{2,6},{1,5},{3,7}};
+  cluster=ServerTestUtils.startVoldemortCluster(numServers,servers,currentPartitionMap,socketStoreFactory,true,null,"test/common/voldemort/config/single-store-322.xml",new Properties());
+  StringReader reader=new StringReader(VoldemortTestConstants.getSingleStore322Xml());
+  StoreDefinition storeDef=new StoreDefinitionsMapper().readStoreList(reader).get(0);
+  currentRoutingPlan=new BaseStoreRoutingPlan(cluster,storeDef);
+  String bootStrapUrl="";
+  for (  VoldemortServer server : servers) {
+    Node node=server.getIdentityNode();
+    socketStoreMap.put(node.getId(),ServerTestUtils.getSocketStore(socketStoreFactory,"test",node.getHost(),node.getSocketPort(),RequestFormatType.PROTOCOL_BUFFERS,false,true));
+    bootStrapUrl="tcp://" + node.getHost() + ":"+ node.getSocketPort();
+  }
+  testEntries=ServerTestUtils.createRandomKeyValueString(100);
+  int oldPartitionMap[][]={{3,6},{1,4},{7,2},{5,0}};
+  oldRoutingPlan=new BaseStoreRoutingPlan(ServerTestUtils.getLocalCluster(numServers,oldPartitionMap),storeDef);
+  SocketStoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootStrapUrl));
+  storeClient=factory.getStoreClient("test");
+}
