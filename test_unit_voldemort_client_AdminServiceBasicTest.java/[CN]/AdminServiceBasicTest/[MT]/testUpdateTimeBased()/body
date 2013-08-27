@@ -1,0 +1,73 @@
+{
+  final long baseTimeMs=System.currentTimeMillis();
+  String storeName="test-replication-persistent";
+  final HashMap<ByteArray,byte[]> entries=ServerTestUtils.createRandomKeyValuePairs(5);
+  final List<ByteArray> keys=new ArrayList<ByteArray>(entries.keySet());
+  Store<ByteArray,byte[],byte[]> nodeStore=getStore(0,storeName);
+  for (int i=0; i < keys.size(); i++) {
+    ByteArray key=keys.get(i);
+    byte[] val=entries.get(key);
+    long ts=0;
+    if (i == 0) {
+      Versioned<byte[]> v1=new Versioned<byte[]>(val,TestUtils.getClockWithTs(baseTimeMs - 1,1));
+      nodeStore.put(key,v1,null);
+      Versioned<byte[]> v2=new Versioned<byte[]>(val,TestUtils.getClockWithTs(baseTimeMs + 1,2));
+      nodeStore.put(key,v2,null);
+    }
+ else {
+      if (i % 2 == 0) {
+        ts=baseTimeMs + i;
+      }
+ else {
+        ts=baseTimeMs - i;
+      }
+      nodeStore.put(key,new Versioned<byte[]>(val,new VectorClock(ts)),null);
+    }
+  }
+  Iterator<Pair<ByteArray,Versioned<byte[]>>> iterator=new AbstractIterator<Pair<ByteArray,Versioned<byte[]>>>(){
+    final Iterator<ByteArray> keysItr=keys.iterator();
+    int keyCount=0;
+    @Override protected Pair<ByteArray,Versioned<byte[]>> computeNext(){
+      while (keysItr.hasNext()) {
+        ByteArray key=keysItr.next();
+        byte[] val=entries.get(key);
+        long ts=0;
+        if (keyCount == 0) {
+          keyCount++;
+          return new Pair<ByteArray,Versioned<byte[]>>(key,new Versioned<byte[]>(val,new VectorClock(baseTimeMs)));
+        }
+ else {
+          if (keyCount % 2 == 0) {
+            ts=baseTimeMs - keyCount;
+          }
+ else {
+            ts=baseTimeMs + keyCount;
+          }
+          keyCount++;
+          return new Pair<ByteArray,Versioned<byte[]>>(key,new Versioned<byte[]>(val,new VectorClock(ts)));
+        }
+      }
+      return endOfData();
+    }
+  }
+;
+  getAdminClient().streamingOps.updateEntries(0,storeName,iterator,null,true);
+  for (int i=0; i < keys.size(); i++) {
+    ByteArray key=keys.get(i);
+    List<Versioned<byte[]>> vals=nodeStore.get(key,null);
+    if (i == 0) {
+      assertEquals("Must contain exactly two versions",2,vals.size());
+      Set<Long> storageTimeSet=new HashSet<Long>();
+      storageTimeSet.add(((VectorClock)vals.get(0).getVersion()).getTimestamp());
+      storageTimeSet.add(((VectorClock)vals.get(1).getVersion()).getTimestamp());
+      Set<Long> expectedTimeSet=new HashSet<Long>();
+      expectedTimeSet.add(baseTimeMs - 1);
+      expectedTimeSet.add(baseTimeMs + 1);
+      assertEquals("Streaming put should have backed off since atleast one version has greater timestamp",expectedTimeSet,storageTimeSet);
+    }
+ else {
+      assertEquals("Must contain exactly one version",1,vals.size());
+      assertEquals("Must contain the version the the maximum timestamp",baseTimeMs + i,((VectorClock)vals.get(0).getVersion()).getTimestamp());
+    }
+  }
+}

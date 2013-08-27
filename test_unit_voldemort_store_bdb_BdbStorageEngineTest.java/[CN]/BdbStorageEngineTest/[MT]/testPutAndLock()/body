@@ -1,0 +1,18 @@
+{
+  final ByteArray key=new ByteArray("putAndLock".getBytes());
+  final byte[] valueBytes="Lion".getBytes();
+  store.put(key,new Versioned<byte[]>(valueBytes),null);
+  KeyLockHandle<byte[]> handle=store.getAndLock(key);
+  try {
+    store.put(key,new Versioned<byte[]>("Mountain Lion".getBytes()),null);
+    fail("put(..) should have blocked and timedout");
+  }
+ catch (  PersistenceFailureException pfe) {
+    assertTrue("Should have had a LockTimeoutException",pfe.getCause() instanceof LockTimeoutException);
+  }
+  handle.setValues(Lists.newArrayList(new Versioned<byte[]>("Mavericks".getBytes())));
+  store.putAndUnlock(key,handle);
+  List<Versioned<byte[]>> vals=store.get(key,null);
+  assertEquals("Exactly one version",1,vals.size());
+  assertEquals("Should read back the version written by putAndUnlock","Mavericks",new String(vals.get(0).getValue()));
+}

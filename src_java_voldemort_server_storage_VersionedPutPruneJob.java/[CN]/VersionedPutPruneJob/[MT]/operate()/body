@@ -12,9 +12,10 @@
     long numPrunedKeys=0;
     while (iterator.hasNext()) {
       ByteArray key=iterator.next();
-      KeyLockHandle<byte[]> lockHandle=engine.getAndLock(key);
-      List<Versioned<byte[]>> vals=lockHandle.getValues();
+      KeyLockHandle<byte[]> lockHandle=null;
       try {
+        lockHandle=engine.getAndLock(key);
+        List<Versioned<byte[]>> vals=lockHandle.getValues();
         List<Integer> keyReplicas=routingPlan.getReplicationNodeList(routingPlan.getMasterPartitionId(key.get()));
         MutableBoolean didPrune=new MutableBoolean(false);
         List<Versioned<byte[]>> prunedVals=pruneNonReplicaEntries(vals,keyReplicas,didPrune);
@@ -29,7 +30,9 @@
         if (itemsScanned % STAT_RECORDS_INTERVAL == 0)         logger.info("#Scanned:" + itemsScanned + " #Pruned:"+ numPrunedKeys);
       }
  catch (      Exception e) {
-        engine.releaseLock(lockHandle);
+        if (lockHandle != null && !lockHandle.isClosed()) {
+          engine.releaseLock(lockHandle);
+        }
         throw e;
       }
     }

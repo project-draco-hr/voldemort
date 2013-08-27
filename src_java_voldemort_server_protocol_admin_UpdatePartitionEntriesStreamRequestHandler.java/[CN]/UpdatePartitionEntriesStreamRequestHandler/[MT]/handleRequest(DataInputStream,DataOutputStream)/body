@@ -12,7 +12,7 @@
     }
     if (size == -1) {
       long totalTime=(System.currentTimeMillis() - startTime) / 1000;
-      logger.info("Update entries successfully updated " + counter + " entries for store '"+ storageEngine.getName()+ "' in "+ totalTime+ " s");
+      logger.info(getHandlerName() + " successfully updated " + counter+ " entries for store '"+ storageEngine.getName()+ "' in "+ totalTime+ " s");
       if (logger.isTraceEnabled())       logger.trace("Message size -1, completed partition update");
       if (streamStats != null)       streamStats.reportNetworkTime(Operation.UPDATE_ENTRIES,Utils.elapsedTimeNs(startNs,System.nanoTime()));
       return StreamRequestHandlerState.COMPLETE;
@@ -39,22 +39,24 @@
   if (filter.accept(key,value)) {
     startNs=System.nanoTime();
     try {
-      storageEngine.put(key,value,null);
-      if (logger.isTraceEnabled())       logger.trace("updateEntries (Streaming put) successful");
+      processEntry(key,value);
+      if (logger.isTraceEnabled())       logger.trace(getHandlerName() + " (Streaming put) successful");
     }
  catch (    ObsoleteVersionException e) {
-      if (logger.isDebugEnabled())       logger.debug("updateEntries (Streaming put) threw ObsoleteVersionException, Ignoring.");
+      if (logger.isDebugEnabled())       logger.debug(getHandlerName() + " (Streaming put) threw ObsoleteVersionException, Ignoring.");
     }
  finally {
-      if (streamStats != null)       streamStats.reportStorageTime(Operation.UPDATE_ENTRIES,Utils.elapsedTimeNs(startNs,System.nanoTime()));
+      if (streamStats != null) {
+        streamStats.reportStreamingPut(Operation.UPDATE_ENTRIES);
+        streamStats.reportStorageTime(Operation.UPDATE_ENTRIES,Utils.elapsedTimeNs(startNs,System.nanoTime()));
+      }
     }
     throttler.maybeThrottle(key.length() + AdminServiceRequestHandler.valueSize(value));
   }
   counter++;
-  if (streamStats != null)   streamStats.reportStreamingPut(Operation.UPDATE_ENTRIES);
   if (0 == counter % STAT_RECORDS_INTERVAL) {
-    long totalTime=(System.currentTimeMillis() - startTime) / 1000;
-    logger.info("Update entries updated " + counter + " entries for store '"+ storageEngine.getName()+ "' in "+ totalTime+ " s");
+    long totalTime=(System.currentTimeMillis() - startTime) / Time.MS_PER_SECOND;
+    logger.info(getHandlerName() + " updated " + counter+ " entries for store '"+ storageEngine.getName()+ "' in "+ totalTime+ " s");
   }
   request=null;
   return StreamRequestHandlerState.READING;

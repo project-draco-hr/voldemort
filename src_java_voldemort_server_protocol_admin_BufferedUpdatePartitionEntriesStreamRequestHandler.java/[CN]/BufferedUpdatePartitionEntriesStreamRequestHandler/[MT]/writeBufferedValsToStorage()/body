@@ -1,23 +1,7 @@
 {
-  long startNs=System.nanoTime();
   List<Versioned<byte[]>> obsoleteVals=storageEngine.multiVersionPut(currBufferedKey,currBufferedVals);
-  currBufferedVals=new ArrayList<Versioned<byte[]>>(VALS_BUFFER_EXPECTED_SIZE);
-  if (streamStats != null) {
-    streamStats.reportStorageTime(Operation.UPDATE_ENTRIES,Utils.elapsedTimeNs(startNs,System.nanoTime()));
-    streamStats.reportStreamingPut(Operation.UPDATE_ENTRIES);
-  }
-  if (logger.isTraceEnabled())   logger.trace("updateEntries (Streaming multi-version-put) successful");
   if (logger.isDebugEnabled() && obsoleteVals.size() > 0) {
     logger.debug("updateEntries (Streaming multi-version-put) rejected these versions as obsolete : " + StoreUtils.getVersions(obsoleteVals) + " for key "+ currBufferedKey);
   }
-  counter++;
-  if (0 == counter % STAT_RECORDS_INTERVAL) {
-    long totalTime=(System.currentTimeMillis() - startTime) / 1000;
-    logger.info("Update entries updated " + counter + " entries for store '"+ storageEngine.getName()+ "' in "+ totalTime+ " s");
-  }
-  int totalValueSize=0;
-  for (  Versioned<byte[]> value : currBufferedVals) {
-    totalValueSize+=AdminServiceRequestHandler.valueSize(value);
-  }
-  throttler.maybeThrottle(currBufferedKey.length() + totalValueSize);
+  currBufferedVals=new ArrayList<Versioned<byte[]>>(VALS_BUFFER_EXPECTED_SIZE);
 }
