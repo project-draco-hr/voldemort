@@ -1,0 +1,31 @@
+{
+  KeyLockHandle<byte[]> handle=null;
+  try {
+    handle=storageEngine.getAndLock(key);
+    boolean foundGreaterTs=false;
+    VectorClock streamedClock=(VectorClock)value.getVersion();
+    for (    Versioned<byte[]> versioned : handle.getValues()) {
+      VectorClock storedClock=(VectorClock)versioned.getVersion();
+      if (storedClock.getTimestamp() >= streamedClock.getTimestamp()) {
+        foundGreaterTs=true;
+        break;
+      }
+    }
+    if (!foundGreaterTs) {
+      List<Versioned<byte[]>> streamedVals=new ArrayList<Versioned<byte[]>>(1);
+      streamedVals.add(value);
+      handle.setValues(streamedVals);
+      storageEngine.putAndUnlock(key,handle);
+    }
+ else {
+      storageEngine.releaseLock(handle);
+    }
+  }
+ catch (  PersistenceFailureException pfe) {
+    if (handle != null && !handle.isClosed()) {
+      storageEngine.releaseLock(handle);
+    }
+    logger.error("Error in time based update entries",pfe);
+    throw new IOException(pfe);
+  }
+}
