@@ -2,20 +2,24 @@
   ClientConfig clientConfig=new ClientConfig();
   clientConfig.setBootstrapUrls(this.coordinatorConfig.getBootstrapURLs());
   storeClientFactory=new SocketStoreClientFactory(clientConfig);
-  initializeFatClients();
-  SystemStoreRepository sysRepository=new SystemStoreRepository(clientConfig);
-  String clusterXml=storeClientFactory.bootstrapMetadataWithRetries(MetadataStore.CLUSTER_KEY);
-  sysRepository.createSystemStores(clientConfig,clusterXml,storeClientFactory.getFailureDetector());
-  Callable<Void> rebootstrapCallback=new Callable<Void>(){
-    @Override public Void call() throws Exception {
-      initializeFatClients();
-      return null;
+  try {
+    initializeFatClients();
+    SystemStoreRepository sysRepository=new SystemStoreRepository(clientConfig);
+    String clusterXml=storeClientFactory.bootstrapMetadataWithRetries(MetadataStore.CLUSTER_KEY);
+    sysRepository.createSystemStores(clientConfig,clusterXml,storeClientFactory.getFailureDetector());
+    Callable<Void> rebootstrapCallback=new Callable<Void>(){
+      @Override public Void call() throws Exception {
+        initializeFatClients();
+        return null;
+      }
     }
-  }
 ;
-  asyncMetadataManager=new AsyncMetadataVersionManager(sysRepository,rebootstrapCallback,null);
-  schedulerService=new SchedulerService(1,SystemTime.INSTANCE,true);
-  schedulerService.schedule(asyncMetadataManager.getClass().getName(),asyncMetadataManager,new Date(),this.coordinatorConfig.getMetadataCheckIntervalInMs());
+    asyncMetadataManager=new AsyncMetadataVersionManager(sysRepository,rebootstrapCallback,null);
+    schedulerService=new SchedulerService(1,SystemTime.INSTANCE,true);
+    schedulerService.schedule(asyncMetadataManager.getClass().getName(),asyncMetadataManager,new Date(),this.coordinatorConfig.getMetadataCheckIntervalInMs());
+  }
+ catch (  BootstrapFailureException be) {
+  }
   this.workerPool=(ThreadPoolExecutor)Executors.newCachedThreadPool();
   this.bootstrap=new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),workerPool));
   this.bootstrap.setOption("backlog",this.coordinatorConfig.getNettyServerBacklog());
