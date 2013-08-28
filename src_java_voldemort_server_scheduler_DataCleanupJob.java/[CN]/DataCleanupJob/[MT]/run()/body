@@ -1,4 +1,8 @@
 {
+  if (metadataStore != null && metadataStore.getServerStateUnlocked() != VoldemortState.NORMAL_SERVER) {
+    logger.info("Datacleanup on store " + store.getName() + " skipped since server is not normal..");
+    return;
+  }
   acquireCleanupPermit(scanProgressThisRun,deleteProgressThisRun);
   store.beginBatchModifications();
   ClosableIterator<Pair<K,Versioned<V>>> iterator=null;

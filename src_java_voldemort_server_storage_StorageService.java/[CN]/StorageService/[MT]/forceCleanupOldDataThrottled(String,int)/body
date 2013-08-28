@@ -8,7 +8,7 @@
         ExecutorService executor=Executors.newFixedThreadPool(1);
         try {
           if (scanPermitWrapper.availablePermits() >= 1) {
-            executor.execute(new DataCleanupJob<ByteArray,byte[],byte[]>(engine,scanPermitWrapper,storeDef.getRetentionDays() * Time.MS_PER_DAY,SystemTime.INSTANCE,new EventThrottler(entryScanThrottleRate)));
+            executor.execute(new DataCleanupJob<ByteArray,byte[],byte[]>(engine,scanPermitWrapper,storeDef.getRetentionDays() * Time.MS_PER_DAY,SystemTime.INSTANCE,new EventThrottler(entryScanThrottleRate),metadata));
           }
  else {
             logger.error("forceCleanupOldData() No permit available to run cleanJob already running multiple instance." + engine.getName());
