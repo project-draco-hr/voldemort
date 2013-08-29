@@ -20,6 +20,7 @@
   }
  catch (  DatabaseException e) {
     this.bdbEnvironmentStats.reportException(e);
+    attemptAbort(transaction);
     logger.error("Error in getAndLock for store " + this.getName(),e);
     throw new PersistenceFailureException(e);
   }
