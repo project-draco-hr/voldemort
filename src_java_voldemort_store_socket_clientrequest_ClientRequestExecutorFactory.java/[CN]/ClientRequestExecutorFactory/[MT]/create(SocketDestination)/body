@@ -3,6 +3,7 @@
   if (logger.isDebugEnabled())   logger.debug("Creating socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " using protocol "+ dest.getRequestFormatType().getCode());
   SocketChannel socketChannel=null;
   ClientRequestExecutor clientRequestExecutor=null;
+  long durationMs=0;
   try {
     socketChannel=SocketChannel.open();
     socketChannel.socket().setReceiveBufferSize(this.socketBufferSize);
@@ -13,7 +14,6 @@
     socketChannel.configureBlocking(false);
     socketChannel.connect(new InetSocketAddress(dest.getHost(),dest.getPort()));
     long startTimeMs=System.currentTimeMillis();
-    long durationMs=0;
     long currWaitTimeMs=1;
     long prevWaitTimeMS=1;
     while (!socketChannel.finishConnect()) {
@@ -59,6 +59,7 @@
   }
   if (stats != null) {
     stats.connectionCreate(dest);
+    stats.recordConnectionEstablishmentTimeUs(dest,durationMs * Time.US_PER_MS);
   }
   return clientRequestExecutor;
 }

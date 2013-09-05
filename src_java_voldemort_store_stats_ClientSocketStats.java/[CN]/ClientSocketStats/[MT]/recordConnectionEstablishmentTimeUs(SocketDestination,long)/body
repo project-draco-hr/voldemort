@@ -1,0 +1,11 @@
+{
+  if (dest != null) {
+    getOrCreateNodeStats(dest).recordConnectionEstablishmentTimeUs(null,connEstTimeUs);
+    recordConnectionEstablishmentTimeUs(null,connEstTimeUs);
+  }
+ else {
+    this.totalConnectionEstablishmentTimeUs.getAndAdd(connEstTimeUs);
+    this.connectionEstablishmentTimeHistogram.insert(connEstTimeUs);
+    checkMonitoringInterval();
+  }
+}
