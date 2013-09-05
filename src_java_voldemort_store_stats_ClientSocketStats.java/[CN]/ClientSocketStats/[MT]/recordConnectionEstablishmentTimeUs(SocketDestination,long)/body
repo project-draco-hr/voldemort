@@ -4,8 +4,6 @@
     recordConnectionEstablishmentTimeUs(null,connEstTimeUs);
   }
  else {
-    this.totalConnectionEstablishmentTimeUs.getAndAdd(connEstTimeUs);
-    this.connectionEstablishmentTimeHistogram.insert(connEstTimeUs);
-    checkMonitoringInterval();
+    this.connectionEstablishmentRequestCounter.addRequest(connEstTimeUs * Time.NS_PER_US);
   }
 }
