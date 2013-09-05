@@ -7,7 +7,7 @@
     ClientSocketStats socketStats=new ClientSocketStats(this,destination,pool,jmxId);
     stats=statsMap.putIfAbsent(destination,socketStats);
     if (stats == null) {
-      stats=statsMap.get(destination);
+      stats=socketStats;
       JmxUtils.registerMbean(new ClientSocketStatsJmx(stats),JmxUtils.createObjectName(JmxUtils.getPackageName(ClientRequestExecutor.class),"stats_" + destination.toString().replace(':','_') + JmxUtils.getJmxId(jmxId)));
     }
   }
