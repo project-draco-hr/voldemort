@@ -4,10 +4,12 @@
   }
   ClientSocketStats stats=statsMap.get(destination);
   if (stats == null) {
-    stats=new ClientSocketStats(this,destination,pool,jmxId);
-    statsMap.putIfAbsent(destination,stats);
-    stats=statsMap.get(destination);
-    JmxUtils.registerMbean(new ClientSocketStatsJmx(stats),JmxUtils.createObjectName(JmxUtils.getPackageName(ClientRequestExecutor.class),"stats_" + destination.toString().replace(':','_') + JmxUtils.getJmxId(jmxId)));
+    ClientSocketStats socketStats=new ClientSocketStats(this,destination,pool,jmxId);
+    stats=statsMap.putIfAbsent(destination,socketStats);
+    if (stats == null) {
+      stats=statsMap.get(destination);
+      JmxUtils.registerMbean(new ClientSocketStatsJmx(stats),JmxUtils.createObjectName(JmxUtils.getPackageName(ClientRequestExecutor.class),"stats_" + destination.toString().replace(':','_') + JmxUtils.getJmxId(jmxId)));
+    }
   }
   return stats;
 }
