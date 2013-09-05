@@ -4,9 +4,9 @@
   if (logger.isDebugEnabled()) {
     startTimeMs=System.currentTimeMillis();
   }
-  startTimeNs=System.nanoTime();
   ClientRequestExecutor clientRequestExecutor=pool.checkout(destination);
   String debugMsgStr="";
+  startTimeNs=System.nanoTime();
   BlockingClientRequest<T> blockingClientRequest=null;
   try {
     blockingClientRequest=new BlockingClientRequest<T>(delegate,timeoutMs);
@@ -31,8 +31,12 @@ catch (  IOException e) {
     if (blockingClientRequest != null && !blockingClientRequest.isComplete()) {
       clientRequestExecutor.close();
     }
+    long opTimeNs=System.nanoTime() - startTimeNs;
+    if (stats != null) {
+      stats.recordOpTimeUs(destination,opTimeNs * Time.NS_PER_US);
+    }
     if (logger.isDebugEnabled()) {
-      logger.debug("Sync request end, type: " + operationName + " requestRef: "+ System.identityHashCode(delegate)+ " totalTimeNs: "+ (System.nanoTime() - startTimeNs)+ " start time: "+ startTimeMs+ " end time: "+ System.currentTimeMillis()+ " client:"+ clientRequestExecutor.getSocketChannel().socket().getLocalAddress()+ ":"+ clientRequestExecutor.getSocketChannel().socket().getLocalPort()+ " server: "+ clientRequestExecutor.getSocketChannel().socket().getRemoteSocketAddress()+ " outcome: "+ debugMsgStr);
+      logger.debug("Sync request end, type: " + operationName + " requestRef: "+ System.identityHashCode(delegate)+ " totalTimeNs: "+ opTimeNs+ " start time: "+ startTimeMs+ " end time: "+ System.currentTimeMillis()+ " client:"+ clientRequestExecutor.getSocketChannel().socket().getLocalAddress()+ ":"+ clientRequestExecutor.getSocketChannel().socket().getLocalPort()+ " server: "+ clientRequestExecutor.getSocketChannel().socket().getRemoteSocketAddress()+ " outcome: "+ debugMsgStr);
     }
     pool.checkin(destination,clientRequestExecutor);
   }

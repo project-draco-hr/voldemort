@@ -1,0 +1,11 @@
+{
+  if (dest != null) {
+    getOrCreateNodeStats(dest).recordOpTimeUs(null,opTimeUs);
+    recordConnectionEstablishmentTimeUs(null,opTimeUs);
+  }
+ else {
+    this.totalOpTimeUs.getAndAdd(opTimeUs);
+    this.totalOpCount.getAndIncrement();
+    checkMonitoringInterval();
+  }
+}
