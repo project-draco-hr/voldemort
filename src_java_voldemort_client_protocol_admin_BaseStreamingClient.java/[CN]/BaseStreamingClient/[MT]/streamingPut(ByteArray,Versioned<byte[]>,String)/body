@@ -13,7 +13,13 @@
       if (blackListedNodes.contains(node.getId()))       continue;
     }
     VAdminProto.PartitionEntry partitionEntry=VAdminProto.PartitionEntry.newBuilder().setKey(ProtoUtils.encodeBytes(key)).setVersioned(ProtoUtils.encodeVersioned(value)).build();
-    VAdminProto.UpdatePartitionEntriesRequest.Builder updateRequest=VAdminProto.UpdatePartitionEntriesRequest.newBuilder().setStore(storeName).setPartitionEntry(partitionEntry);
+    VAdminProto.UpdatePartitionEntriesRequest.Builder updateRequest=null;
+    if (overWriteIfLatestTs) {
+      updateRequest=VAdminProto.UpdatePartitionEntriesRequest.newBuilder().setStore(storeName).setPartitionEntry(partitionEntry).setOverwriteIfLatestTs(overWriteIfLatestTs);
+    }
+ else {
+      updateRequest=VAdminProto.UpdatePartitionEntriesRequest.newBuilder().setStore(storeName).setPartitionEntry(partitionEntry);
+    }
     DataOutputStream outputStream=nodeIdStoreToOutputStreamRequest.get(new Pair(storeName,node.getId()));
     try {
       if (nodeIdStoreInitialized.get(new Pair(storeName,node.getId()))) {

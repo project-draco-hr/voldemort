@@ -1,4 +1,7 @@
 {
   if (batchSize < 0)   throw new IllegalArgumentException("streaming.platform.commit.batch cannot be less than 1");
   if (throttleQPS < 0)   throw new IllegalArgumentException("streaming.platform.throttle.qps cannot be less than 1");
+  if (failedNodesTolerated > 0 && overWriteIfLatestTs) {
+    throw new IllegalArgumentException("Cannot write slops and resolve based on time, at the same time." + " To move on either set streaming.platform.max.failed.nodes = 0 or " + " set streaming.platform.overwrite.if.latest.ts=false");
+  }
 }
