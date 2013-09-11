@@ -4,9 +4,6 @@
     recordCheckoutTimeUs(null,checkoutTimeUs);
   }
  else {
-    this.totalCheckoutTimeUs.getAndAdd(checkoutTimeUs);
-    this.checkoutTimeUsHistogram.insert(checkoutTimeUs);
-    this.checkoutCount.getAndIncrement();
-    checkMonitoringInterval();
+    this.checkoutTimeRequestCounter.addRequest(checkoutTimeUs * Time.NS_PER_US);
   }
 }

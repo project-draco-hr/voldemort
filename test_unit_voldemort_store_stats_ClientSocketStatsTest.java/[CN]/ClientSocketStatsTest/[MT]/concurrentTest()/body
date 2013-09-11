@@ -38,10 +38,10 @@ class TestThread implements Runnable {
   }
  catch (  Exception e) {
   }
-  assertEquals(masterStats.getCheckoutWaitUsHistogram().getQuantile(0.01),1000);
-  assertEquals(masterStats.getCheckoutWaitUsHistogram().getQuantile(0.5),5000);
-  assertEquals(masterStats.getStatsMap().get(dest1).getCheckoutWaitUsHistogram().getQuantile(0.01),1000);
-  assertEquals(masterStats.getStatsMap().get(dest1).getCheckoutWaitUsHistogram().getQuantile(0.5),5000);
-  assertEquals(masterStats.getStatsMap().get(dest2).getCheckoutWaitUsHistogram().getQuantile(0.01),1000);
-  assertEquals(masterStats.getStatsMap().get(dest2).getCheckoutWaitUsHistogram().getQuantile(0.5),5000);
+  assertEquals((int)(masterStats.getCheckoutTimeMsQ10th() * Time.US_PER_MS),1000);
+  assertEquals((int)(masterStats.getCheckoutTimeMsQ50th() * Time.US_PER_MS),5000);
+  assertEquals((int)(masterStats.getStatsMap().get(dest1).getCheckoutTimeMsQ10th() * Time.US_PER_MS),1000);
+  assertEquals((int)(masterStats.getStatsMap().get(dest1).getCheckoutTimeMsQ50th() * Time.US_PER_MS),5000);
+  assertEquals((int)(masterStats.getStatsMap().get(dest2).getCheckoutTimeMsQ10th() * Time.US_PER_MS),1000);
+  assertEquals((int)(masterStats.getStatsMap().get(dest2).getCheckoutTimeMsQ50th() * Time.US_PER_MS),5000);
 }

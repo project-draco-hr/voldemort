@@ -4,9 +4,6 @@
     recordResourceRequestTimeUs(null,resourceRequestTimeUs);
   }
  else {
-    this.totalResourceRequestTimeUs.getAndAdd(resourceRequestTimeUs);
-    this.resourceRequestTimeUsHistogram.insert(resourceRequestTimeUs);
-    this.resourceRequestCount.getAndIncrement();
-    checkMonitoringInterval();
+    this.resourceRequestTimeRequestCounter.addRequest(resourceRequestTimeUs * Time.NS_PER_US);
   }
 }

@@ -3,9 +3,9 @@
   assertEquals(0,stats.getCheckoutCount());
   stats.recordCheckoutTimeUs(dest1,100);
   assertEquals(1,stats.getCheckoutCount());
-  assertEquals(100,stats.getCheckoutWaitUsHistogram().getQuantile(0.99));
+  assertEquals(100,(int)(stats.getCheckoutTimeMsQ99th() * Time.US_PER_MS));
   ClientSocketStats child=stats.getStatsMap().get(dest1);
   assertNotNull(child);
   assertEquals(1,child.getCheckoutCount());
-  assertEquals(100,child.getCheckoutWaitUsHistogram().getQuantile(0.99));
+  assertEquals(100,(int)(child.getCheckoutTimeMsQ99th() * Time.US_PER_MS));
 }

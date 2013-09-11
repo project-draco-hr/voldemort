@@ -11,17 +11,17 @@
   stats.recordResourceRequestTimeUs(dest1,800);
   stats.recordResourceRequestTimeUs(dest2,900);
   assertEquals(9,stats.resourceRequestCount());
-  assertEquals(900,stats.getResourceRequestWaitUsHistogram().getQuantile(0.99));
+  assertEquals(900,(int)(stats.getResourceRequestTimeMsQ99th() * Time.US_PER_MS));
   ClientSocketStats child1=stats.getStatsMap().get(dest1);
   assertNotNull(child1);
   assertEquals(6,child1.resourceRequestCount());
-  assertEquals(100,child1.getResourceRequestWaitUsHistogram().getQuantile(0.1));
-  assertEquals(300,child1.getResourceRequestWaitUsHistogram().getQuantile(0.5));
-  assertEquals(800,child1.getResourceRequestWaitUsHistogram().getQuantile(0.99));
+  assertEquals(100,(int)(child1.getResourceRequestTimeMsQ10th() * Time.US_PER_MS));
+  assertEquals(300,(int)(child1.getResourceRequestTimeMsQ50th() * Time.US_PER_MS));
+  assertEquals(800,(int)(child1.getResourceRequestTimeMsQ99th() * Time.US_PER_MS));
   ClientSocketStats child2=stats.getStatsMap().get(dest2);
   assertNotNull(child2);
   assertEquals(3,child2.resourceRequestCount());
-  assertEquals(500,child2.getResourceRequestWaitUsHistogram().getQuantile(0.1));
-  assertEquals(600,child2.getResourceRequestWaitUsHistogram().getQuantile(0.5));
-  assertEquals(900,child2.getResourceRequestWaitUsHistogram().getQuantile(0.99));
+  assertEquals(500,(int)(child2.getResourceRequestTimeMsQ10th() * Time.US_PER_MS));
+  assertEquals(600,(int)(child2.getResourceRequestTimeMsQ50th() * Time.US_PER_MS));
+  assertEquals(900,(int)(child2.getResourceRequestTimeMsQ99th() * Time.US_PER_MS));
 }
