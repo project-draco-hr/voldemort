@@ -2,7 +2,9 @@
   updateStats();
   if (!(e instanceof UnreachableStoreException))   e=new UnreachableStoreException("Failure in " + operationName + ": "+ e.getMessage(),e);
   try {
-    callback.requestComplete(e,0);
+    if (callback != null) {
+      callback.requestComplete(e,0);
+    }
   }
  catch (  Exception ex) {
     if (logger.isEnabledFor(Level.WARN))     logger.warn(ex,ex);
