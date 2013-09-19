@@ -3,7 +3,7 @@
   String base64Key=RestUtils.encodeVoldemortKey(key.get());
   RestRequestBuilder rb=null;
   try {
-    rb=new RestRequestBuilder(new URI(this.baseURL + "/" + getName()+ "/"+ base64Key));
+    rb=new RestRequestBuilder(new URI(this.restBootstrapURL + "/" + getName()+ "/"+ base64Key));
     String timeoutStr=Long.toString(this.config.getTimeoutConfig().getOperationTimeout(VoldemortOpCode.GET_OP_CODE));
     rb.setHeader("Accept",MULTIPART_CONTENT_TYPE);
     RestResponse response=fetchGetResponse(rb,timeoutStr);
