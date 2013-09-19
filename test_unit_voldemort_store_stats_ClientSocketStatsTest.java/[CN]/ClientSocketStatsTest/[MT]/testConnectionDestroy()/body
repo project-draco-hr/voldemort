@@ -1,9 +1,9 @@
 {
   ClientSocketStats stats=masterStats;
-  stats.connectionDestroy(dest1);
-  stats.connectionDestroy(dest2);
-  stats.connectionDestroy(dest1);
-  assertEquals(3,stats.getConnectionsDestroyed());
-  assertEquals(2,stats.getStatsMap().get(dest1).getConnectionsDestroyed());
-  assertEquals(1,stats.getStatsMap().get(dest2).getConnectionsDestroyed());
+  stats.incrementCount(dest1,ClientSocketStats.Tracked.CONNECTION_DESTROYED_EVENT);
+  stats.incrementCount(dest2,ClientSocketStats.Tracked.CONNECTION_DESTROYED_EVENT);
+  stats.incrementCount(dest1,ClientSocketStats.Tracked.CONNECTION_DESTROYED_EVENT);
+  assertEquals(3,stats.getCount(ClientSocketStats.Tracked.CONNECTION_DESTROYED_EVENT));
+  assertEquals(2,stats.getStatsMap().get(dest1).getCount(ClientSocketStats.Tracked.CONNECTION_DESTROYED_EVENT));
+  assertEquals(1,stats.getStatsMap().get(dest2).getCount(ClientSocketStats.Tracked.CONNECTION_DESTROYED_EVENT));
 }

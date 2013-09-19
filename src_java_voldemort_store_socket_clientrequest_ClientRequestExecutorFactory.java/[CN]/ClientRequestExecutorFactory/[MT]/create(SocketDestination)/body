@@ -20,6 +20,7 @@
       durationMs=System.currentTimeMillis() - startTimeMs;
       long remaining=this.connectTimeoutMs - durationMs;
       if (remaining < 0) {
+        stats.incrementCount(dest,ClientSocketStats.Tracked.CONNECTION_EXCEPTION_EVENT);
         throw new ConnectException("Cannot connect socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " after "+ durationMs+ " ms");
       }
       if (logger.isTraceEnabled())       logger.trace("Still creating socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ ", "+ remaining+ " ms. remaining to connect");
@@ -58,7 +59,7 @@
     throw e;
   }
   if (stats != null) {
-    stats.connectionCreate(dest);
+    stats.incrementCount(dest,ClientSocketStats.Tracked.CONNECTION_CREATED_EVENT);
     stats.recordConnectionEstablishmentTimeUs(dest,durationMs * Time.US_PER_MS);
   }
   return clientRequestExecutor;

@@ -5,6 +5,10 @@
   this.pool=pool;
   this.jmxId=jmxId;
   this.startMs=SystemTime.INSTANCE.getMilliseconds();
+  counters=new EnumMap<Tracked,AtomicInteger>(Tracked.class);
+  for (  Tracked tracked : Tracked.values()) {
+    counters.put(tracked,new AtomicInteger(0));
+  }
   if (logger.isDebugEnabled()) {
     logger.debug("Constructed ClientSocketStatsStats object (" + System.identityHashCode(this) + ") with parent object("+ System.identityHashCode(parent)+ ")");
   }
