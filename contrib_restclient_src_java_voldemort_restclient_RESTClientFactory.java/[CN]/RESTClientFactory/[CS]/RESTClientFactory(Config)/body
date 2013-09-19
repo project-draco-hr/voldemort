@@ -1,9 +1,11 @@
 {
-  this.config=config;
+  this.config=new RESTClientConfig(config.getClientConfig());
+  this.d2Client=config.getD2Client();
   this.stats=new StoreStats();
   this.rawStoreList=new ArrayList<R2Store>();
   this._clientFactory=new HttpClientFactory();
   Map<String,String> properties=new HashMap<String,String>();
   properties.put(HttpClientFactory.POOL_SIZE_KEY,Integer.toString(this.config.getMaxR2ConnectionPoolSize()));
   transportClient=_clientFactory.getClient(properties);
+  this.RESTClientFactoryStats=new StoreClientFactoryStats();
 }

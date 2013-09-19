@@ -23,8 +23,10 @@
     e.printStackTrace();
     fail("Failure to start the Coordinator");
   }
-  RESTClientConfig config=new RESTClientConfig();
-  config.setHttpBootstrapURL("http://localhost:9999").setTimeoutMs(1500,TimeUnit.MILLISECONDS).setMaxR2ConnectionPoolSize(100);
-  RESTClientFactory factory=new RESTClientFactory(config);
+  Properties props=new Properties();
+  props.setProperty(ClientConfig.BOOTSTRAP_URLS_PROPERTY,"http://localhost:9999");
+  props.setProperty(ClientConfig.ROUTING_TIMEOUT_MS_PROPERTY,"1500");
+  RESTClientFactory.Config mainConfig=new RESTClientFactory.Config(props,null);
+  RESTClientFactory factory=new RESTClientFactory(mainConfig);
   this.client=factory.getStoreClient(STORE_NAME);
 }
