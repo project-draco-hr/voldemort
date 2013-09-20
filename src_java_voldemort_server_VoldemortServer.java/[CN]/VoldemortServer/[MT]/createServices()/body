@@ -44,5 +44,8 @@
     services.add(new GossipService(this.metadata,scheduler,voldemortConfig));
   }
   if (voldemortConfig.isJmxEnabled())   services.add(new JmxService(this,this.metadata.getCluster(),storeRepository,services));
+  if (voldemortConfig.isRestHdfsEnabled()) {
+    services.add(new RestHadoopAuth(voldemortConfig.getReadOnlyKerberosRealm(),voldemortConfig.getReadOnlyKerberosKdc(),voldemortConfig.getReadOnlyKerberosUser(),voldemortConfig.getReadOnlyKeytabPath()));
+  }
   return ImmutableList.copyOf(services);
 }

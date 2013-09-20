@@ -1,0 +1,11 @@
+{
+  long size=0;
+  RestFileStatus[] statuses=rfs.listStatus(path).toArray();
+  if (statuses != null) {
+    for (    RestFileStatus status : statuses) {
+      if (status.isDir())       size+=sizeOfPath(rfs,path + File.separator + status.getPathSuffix());
+ else       size+=status.getLength();
+    }
+  }
+  return size;
+}
