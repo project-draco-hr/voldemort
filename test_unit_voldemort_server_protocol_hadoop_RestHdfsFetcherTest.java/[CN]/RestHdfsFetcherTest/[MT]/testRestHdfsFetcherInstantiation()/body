@@ -1,0 +1,20 @@
+{
+  VoldemortServer server=null;
+  try {
+    ClientRequestExecutorPool socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
+    Cluster currentCluster=ServerTestUtils.getLocalCluster(1,new int[][]{{0,1,2,3,4,5,6}});
+    StoreDefinition store=new StoreDefinitionBuilder().setName("testRO").setType(ReadOnlyStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).build();
+    File file=File.createTempFile("ro-stores-",".xml");
+    FileUtils.writeStringToFile(file,new StoreDefinitionsMapper().writeStoreList(Lists.newArrayList(store)));
+    String storeXmlFile=file.getAbsolutePath();
+    Properties props=new Properties();
+    props.setProperty("enable.readonly.rest.hdfs","true");
+    props.setProperty("file.fetcher.class","voldemort.server.protocol.hadoop.RestHadoopFetcher");
+    VoldemortConfig config=ServerTestUtils.createServerConfig(true,0,TestUtils.createTempDir().getAbsolutePath(),null,storeXmlFile,props);
+    server=ServerTestUtils.startVoldemortServer(socketStoreFactory,config,currentCluster);
+    AdminClient adminClient=ServerTestUtils.getAdminClient(currentCluster);
+    adminClient.readonlyOps.getROMaxVersionDir(0,new ArrayList<String>());
+  }
+ catch (  IOException ioe) {
+  }
+}

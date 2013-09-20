@@ -14,4 +14,5 @@
   if (numRestServiceNettyServerBacklog < 0)   throw new ConfigurationException("num.rest.service.netty.server.backlog cannot be negative");
   if (restServiceStorageThreadPoolQueueSize < 0)   throw new ConfigurationException("rest.service.storage.thread.pool.queue.size cannot be negative.");
   if (maxHttpAggregatedContentLength <= 0)   throw new ConfigurationException("max.http.aggregated.content.length must be positive");
+  if (REST_HDFS_FETCHER_CLASS.equals(fileFetcherClass) && !enableReadOnlyRestHdfs || !REST_HDFS_FETCHER_CLASS.equals(fileFetcherClass) && enableReadOnlyRestHdfs)   throw new ConfigurationException("The values of \"file.fetcher.class\" and \"enable.readonly.rest.hdfs\" do not match: \n" + "  file.fetcher.class=" + fileFetcherClass + "\n  enable.readonly.rest.hdfs="+ enableReadOnlyRestHdfs);
 }
