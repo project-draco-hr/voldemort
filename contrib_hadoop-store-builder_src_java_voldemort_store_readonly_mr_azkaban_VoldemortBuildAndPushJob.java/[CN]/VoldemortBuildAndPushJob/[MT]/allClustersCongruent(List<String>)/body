@@ -1,0 +1,10 @@
+{
+  Validate.notEmpty(clusterUrls,"Clusterurls cannot be null");
+  AdminClient adminClientLhs=new AdminClient(clusterUrls.get(0),new AdminClientConfig(),new ClientConfig());
+  Cluster clusterLhs=adminClientLhs.getAdminClientCluster();
+  for (int index=1; index < clusterUrls.size(); index++) {
+    AdminClient adminClientRhs=new AdminClient(clusterUrls.get(index),new AdminClientConfig(),new ClientConfig());
+    Cluster clusterRhs=adminClientRhs.getAdminClientCluster();
+    if (!areClustersCongruent(clusterLhs,clusterRhs))     throw new VoldemortException("Cluster " + clusterLhs.getName() + "is not the same as "+ clusterRhs.getName());
+  }
+}
