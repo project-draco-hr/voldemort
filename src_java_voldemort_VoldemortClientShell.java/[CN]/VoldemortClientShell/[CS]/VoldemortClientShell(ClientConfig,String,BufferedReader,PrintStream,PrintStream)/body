@@ -1,0 +1,18 @@
+{
+  this.commandReader=commandReader;
+  this.commandOutput=commandOutput;
+  this.errorStream=errorStream;
+  String bootstrapUrl=clientConfig.getBootstrapUrls()[0];
+  try {
+    factory=new SocketStoreClientFactory(clientConfig);
+    client=(DefaultStoreClient<Object,Object>)factory.getStoreClient(storeName);
+    adminClient=new AdminClient(bootstrapUrl,new AdminClientConfig(),new ClientConfig());
+    storeDef=StoreUtils.getStoreDef(factory.getStoreDefs(),storeName);
+    commandOutput.println("Established connection to " + storeName + " via "+ bootstrapUrl);
+    commandOutput.print(PROMPT);
+  }
+ catch (  Exception e) {
+    safeClose();
+    Utils.croak("Could not connect to server: " + e.getMessage());
+  }
+}

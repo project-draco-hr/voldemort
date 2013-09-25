@@ -1,0 +1,28 @@
+{
+  Object obj=null;
+  try {
+    JsonReader jsonReader=new JsonReader(new StringReader(argStr));
+    obj=jsonReader.read();
+    parsePos.setValue(jsonReader.getCurrentLineOffset() - 1);
+    if (isAvroSchema(serializerDef.getName())) {
+      String avroString=(String)obj;
+      Schema latestSchema=Schema.parse(serializerDef.getCurrentSchemaInfo());
+      try {
+        JsonDecoder decoder=new JsonDecoder(latestSchema,avroString);
+        GenericDatumReader<Object> datumReader=new GenericDatumReader<Object>(latestSchema);
+        obj=datumReader.read(null,decoder);
+      }
+ catch (      IOException io) {
+        errorStream.println("Error parsing avro string " + avroString);
+        io.printStackTrace();
+      }
+    }
+ else {
+      obj=tightenNumericTypes(obj);
+    }
+  }
+ catch (  EndOfFileException eof) {
+    obj=null;
+  }
+  return obj;
+}

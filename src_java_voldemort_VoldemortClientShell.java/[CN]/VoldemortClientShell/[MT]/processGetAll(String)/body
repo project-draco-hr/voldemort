@@ -1,0 +1,23 @@
+{
+  List<Object> keys=new ArrayList<Object>();
+  MutableInt parsePos=new MutableInt(0);
+  while (true) {
+    Object key=parseKey(getAllArgStr,parsePos);
+    if (key == null) {
+      break;
+    }
+    keys.add(key);
+    getAllArgStr=getAllArgStr.substring(parsePos.intValue());
+  }
+  Map<Object,Versioned<Object>> vals=client.getAll(keys);
+  if (vals.size() > 0) {
+    for (    Map.Entry<Object,Versioned<Object>> entry : vals.entrySet()) {
+      commandOutput.print(entry.getKey());
+      commandOutput.print(" => ");
+      printVersioned(entry.getValue());
+    }
+  }
+ else {
+    commandOutput.println("null");
+  }
+}
