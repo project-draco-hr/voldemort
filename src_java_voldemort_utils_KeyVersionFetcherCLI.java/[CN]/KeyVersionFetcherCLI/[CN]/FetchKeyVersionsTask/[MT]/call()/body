@@ -7,13 +7,10 @@
     List<Versioned<byte[]>> values=adminClient.storeOps.getNodeKey(storeName,replicatingNodeId,new ByteArray(key));
     int zoneId=storeRoutingPlan.getCluster().getNodeById(replicatingNodeId).getZoneId();
     int zoneNAry=storeRoutingPlan.getZoneNAry(zoneId,replicatingNodeId,key);
-    TreeSet<Version> sortedVersions=new TreeSet<Version>();
-    for (    Versioned<byte[]> value : values) {
-      sortedVersions.add(value.getVersion());
-    }
     StringBuilder sb=new StringBuilder();
     sb.append(ByteUtils.toHexString(key));
-    for (    Version version : sortedVersions) {
+    for (    Versioned<byte[]> value : values) {
+      Version version=value.getVersion();
       sb.append(" : ").append(version.toString());
     }
     if (details) {
