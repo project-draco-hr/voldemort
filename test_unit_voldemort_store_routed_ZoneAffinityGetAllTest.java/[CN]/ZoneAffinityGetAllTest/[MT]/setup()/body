@@ -1,7 +1,6 @@
 {
   byte[] key1={(byte)'K',(byte)'1'};
   byte[] key2={(byte)'K',(byte)'2'};
-  byte[] key3={(byte)'K',(byte)'3'};
   byte[] bytes1={(byte)'A',(byte)'B'};
   byte[] bytes2={(byte)'C',(byte)'D'};
   List<StoreDefinition> stores=ClusterTestUtils.getZZZ322StoreDefs("memory");
@@ -17,6 +16,7 @@
     VoldemortConfig config=ServerTestUtils.createServerConfigWithDefs(true,nodeId,TestUtils.createTempDir().getAbsolutePath(),cluster,stores,new Properties());
     VoldemortServer vs=ServerTestUtils.startVoldemortServer(socketStoreFactory,config,cluster);
     vservers.put(nodeId,vs);
+    socketStoreFactories.put(nodeId,socketStoreFactory);
     Store<ByteArray,byte[],byte[]> store=vs.getStoreRepository().getLocalStore(storeDef.getName());
     Node node=cluster.getNodeById(nodeId);
     VectorClock version1=new VectorClock();
