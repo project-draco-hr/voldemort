@@ -1,0 +1,19 @@
+{
+  List<StoreDefinition> stores=ClusterTestUtils.getZZZ322StoreDefs("memory");
+  storeDef=stores.get(0);
+  Integer zoneCountWrite=1;
+  storeDef=new StoreDefinition(storeDef.getName(),storeDef.getType(),storeDef.getDescription(),storeDef.getKeySerializer(),storeDef.getValueSerializer(),storeDef.getTransformsSerializer(),storeDef.getRoutingPolicy(),storeDef.getRoutingStrategyType(),storeDef.getReplicationFactor(),storeDef.getPreferredReads(),storeDef.getRequiredReads(),storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),storeDef.getViewTargetStoreName(),storeDef.getValueTransformation(),storeDef.getZoneReplicationFactor(),storeDef.getZoneCountReads(),zoneCountWrite,storeDef.getRetentionDays(),storeDef.getRetentionScanThrottleRate(),storeDef.getRetentionFrequencyDays(),storeDef.getSerializerFactory(),storeDef.getHintedHandoffStrategyType(),storeDef.getHintPrefListSize(),storeDef.getOwners(),storeDef.getMemoryFootprintMB());
+  stores.set(0,storeDef);
+  cluster=ClusterTestUtils.getZZZCluster();
+  ClientConfig clientConfig=new ClientConfig();
+  clientConfig.setBootstrapUrls(cluster.getNodeById(0).getSocketUrl().toString());
+  clientConfig.getZoneAffinity().setEnableGetOpZoneAffinity(true);
+  SocketStoreClientFactory socketStoreClientFactory=new SocketStoreClientFactory(clientConfig);
+  for (  Integer nodeId : cluster.getNodeIds()) {
+    SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,1024);
+    VoldemortConfig config=ServerTestUtils.createServerConfigWithDefs(true,nodeId,TestUtils.createTempDir().getAbsolutePath(),cluster,stores,new Properties());
+    VoldemortServer vs=ServerTestUtils.startVoldemortServer(socketStoreFactory,config,cluster);
+    vservers.put(nodeId,vs);
+  }
+  client=socketStoreClientFactory.getRawStore(storeDef.getName(),null);
+}

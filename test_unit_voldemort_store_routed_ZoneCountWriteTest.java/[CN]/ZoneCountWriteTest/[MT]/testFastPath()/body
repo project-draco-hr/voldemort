@@ -1,0 +1,19 @@
+{
+  try {
+    client.put("AB",new Versioned<String>("CD"),null);
+    try {
+      Thread.sleep(100);
+    }
+ catch (    InterruptedException e) {
+    }
+    for (    Integer nodeId : vservers.keySet()) {
+      VoldemortServer vs=vservers.get(nodeId);
+      Store<ByteArray,byte[],byte[]> store=vs.getStoreRepository().getLocalStore(storeDef.getName());
+      byte[] real=store.get(new ByteArray("AB".getBytes()),null).get(0).getValue();
+      assertTrue(Arrays.equals(real,"CD".getBytes()));
+    }
+  }
+ catch (  InsufficientOperationalNodesException e) {
+    fail("Failed with exception: " + e);
+  }
+}
