@@ -108,6 +108,20 @@
       Response<ByteArray,Object> response=pipelineData.getSynchronizer().responseQueuePoll(0,TimeUnit.NANOSECONDS);
       processResponse(response,pipeline);
     }
+    if (!quorumSatisfied && pipelineData.getSuccesses() >= required) {
+      quorumSatisfied=true;
+    }
+    if (!quorumSatisfied) {
+      if (pipelineData.getZonesRequired() == null) {
+        zonesSatisfied=true;
+      }
+ else {
+        int numZonesSatisfied=pipelineData.getZoneResponses().size();
+        if (numZonesSatisfied >= (pipelineData.getZonesRequired() + 1)) {
+          zonesSatisfied=true;
+        }
+      }
+    }
     if (quorumSatisfied && zonesSatisfied) {
       if (logger.isDebugEnabled()) {
         logger.debug("PUT {key:" + key + "} succeeded at parellel put stage");
@@ -128,7 +142,7 @@
         if (logger.isDebugEnabled()) {
           logger.debug("PUT {key:" + key + "} failed due to insufficient zones. required="+ pipelineData.getZonesRequired()+ 1+ " success="+ pipelineData.getZoneResponses().size());
         }
-        fatalError=new InsufficientZoneResponsesException((pipelineData.getZonesRequired() + 1) + " " + pipeline.getOperation().getSimpleName()+ "s required zone, but only "+ zonesSatisfied+ " succeeded. Failing nodes : "+ pipelineData.getFailedNodes());
+        fatalError=new InsufficientZoneResponsesException((pipelineData.getZonesRequired() + 1) + " " + pipeline.getOperation().getSimpleName()+ "s required zone, but only "+ (pipelineData.getZoneResponses().size())+ " succeeded. Failing nodes : "+ pipelineData.getFailedNodes());
         pipelineData.setFatalError(fatalError);
       }
       pipeline.abort();
