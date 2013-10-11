@@ -1,0 +1,14 @@
+{
+  if (!build && !push) {
+    throw new RuntimeException(" Both build and push cannot be false ");
+  }
+ else   if (build && push && dataDirs.size() != 1) {
+    throw new RuntimeException(" Should have only one data directory ( which acts like root " + " directory ) since they are auto-generated during build phase ");
+  }
+ else   if (!build && push && dataDirs.size() != clusterUrl.size()) {
+    throw new RuntimeException(" Since we are only pushing, number of data directories" + " ( comma separated ) should be equal to number of cluster" + " urls ");
+  }
+  if ((!build && push) || (build && !push)) {
+    log.warn("DEPRECATED : Creating one build job and separate push job is a deprecated strategy. Instead create" + "just one job with both build and push set as true and pass a list of cluster urls.");
+  }
+}

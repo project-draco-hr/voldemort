@@ -1,89 +1,74 @@
 {
   boolean build=props.getBoolean("build",true);
   boolean push=props.getBoolean("push",true);
-  boolean multi=props.getBoolean("multi",true);
   jsonKeyField=props.getString("key.selection",null);
   jsonValueField=props.getString("value.selection",null);
-  if (build && push && dataDirs.size() != 1) {
-    throw new RuntimeException(" Should have only one data directory ( which acts like root " + " directory ) since they are auto-generated during build phase ");
+  checkForPreconditions(build,push);
+  try {
+    allClustersEqual(clusterUrl);
   }
- else   if (!build && push && dataDirs.size() != clusterUrl.size()) {
-    throw new RuntimeException(" Since we are only pushing, number of data directories" + " ( comma separated ) should be equal to number of cluster" + " urls ");
+ catch (  VoldemortException e) {
+    log.error("Exception during cluster equality check",e);
+    System.exit(-1);
   }
   HashMap<String,Exception> exceptions=Maps.newHashMap();
   String buildOutputDir=null;
   for (int index=0; index < clusterUrl.size(); index++) {
     String url=clusterUrl.get(index);
-    log.info("Working on " + url);
-    try {
-      if (isAvroJob)       verifyAvroSchemaAndVersions(url,isAvroVersioned);
- else       verifySchema(url);
-      if (!multi) {
-        if (build) {
+    if (isAvroJob) {
+      verifyOrAddStoreAvro(url,isAvroVersioned);
+    }
+ else {
+      verifyOrAddStore(url);
+    }
+    if (build) {
+      if (!push || buildOutputDir == null) {
+        try {
           buildOutputDir=runBuildStore(props,url);
         }
- else {
+ catch (        Exception e) {
+          log.error("Exception during build for url " + url,e);
+          exceptions.put(url,e);
+        }
+      }
+    }
+    if (push) {
+      if (log.isDebugEnabled()) {
+        log.debug("Informing about push start ...");
+      }
+      informedResults.add(this.informedExecutor.submit(new InformedClient(this.props,"Running",this.getId())));
+      log.info("Pushing to clusterURl" + clusterUrl.get(index));
+      try {
+        if (!build) {
           buildOutputDir=dataDirs.get(index);
         }
-        if (push) {
-          if (log.isDebugEnabled()) {
-            log.debug("Informing about push start ...");
-          }
-          informedResults.add(this.informedExecutor.submit(new InformedClient(this.props,"Running",this.getId())));
-          runPushStore(props,url,buildOutputDir);
-          if (log.isDebugEnabled()) {
-            log.debug("Informing about push finish ...");
-          }
-          informedResults.add(this.informedExecutor.submit(new InformedClient(this.props,"Finished",this.getId())));
-        }
+        runPushStore(props,url,buildOutputDir);
+        informedResults.add(this.informedExecutor.submit(new InformedClient(this.props,"Finished",this.getId())));
       }
- else {
-        try {
-          allClustersCongruent(clusterUrl);
-        }
- catch (        VoldemortException e) {
-          log.error("Exception during build and push " + e.getMessage(),e);
-          System.exit(-1);
-        }
-        if (buildOutputDir == null) {
-          buildOutputDir=runBuildStore(props,clusterUrl.get(index));
-        }
-        for (; index < clusterUrl.size(); index++) {
-          if (log.isDebugEnabled()) {
-            log.debug("Informing about push start ...");
-          }
-          informedResults.add(this.informedExecutor.submit(new InformedClient(this.props,"Running",this.getId())));
-          runPushStore(props,clusterUrl.get(index),buildOutputDir);
-          if (log.isDebugEnabled()) {
-            log.debug("Informing about push finish ...");
-          }
-          informedResults.add(this.informedExecutor.submit(new InformedClient(this.props,"Finished",this.getId())));
-        }
+ catch (      Exception e) {
+        log.error("Exception during push for url " + url,e);
+        exceptions.put(url,e);
       }
-      if (build && push && !props.getBoolean("build.output.keep",false)) {
-        JobConf jobConf=new JobConf();
-        if (props.containsKey("hadoop.job.ugi")) {
-          jobConf.set("hadoop.job.ugi",props.getString("hadoop.job.ugi"));
-        }
-        log.info("Informing about delete start ..." + buildOutputDir);
-        HadoopUtils.deletePathIfExists(jobConf,buildOutputDir);
-        log.info("Deleted " + buildOutputDir);
-      }
-      for (      Future result : informedResults) {
-        try {
-          result.get();
-        }
- catch (        Exception e) {
-          this.log.error("Exception in consumer",e);
-        }
-      }
-      this.informedExecutor.shutdownNow();
-    }
- catch (    Exception e) {
-      log.error("Exception during build and push for url " + url,e);
-      exceptions.put(url,e);
     }
   }
+  if (build && push && !props.getBoolean("build.output.keep",false)) {
+    JobConf jobConf=new JobConf();
+    if (props.containsKey("hadoop.job.ugi")) {
+      jobConf.set("hadoop.job.ugi",props.getString("hadoop.job.ugi"));
+    }
+    log.info("Informing about delete start ..." + buildOutputDir);
+    HadoopUtils.deletePathIfExists(jobConf,buildOutputDir);
+    log.info("Deleted " + buildOutputDir);
+  }
+  for (  Future result : informedResults) {
+    try {
+      result.get();
+    }
+ catch (    Exception e) {
+      this.log.error("Exception in consumer",e);
+    }
+  }
+  this.informedExecutor.shutdownNow();
   if (exceptions.size() > 0) {
     log.error("Got exceptions while pushing to " + Joiner.on(",").join(exceptions.keySet()) + " => "+ Joiner.on(",").join(exceptions.values()));
     System.exit(-1);

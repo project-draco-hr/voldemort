@@ -1,0 +1,45 @@
+{
+  JsonSchema schema=HadoopUtils.getSchemaFromPath(getInputPath());
+  int replicationFactor=props.getInt("build.replication.factor",2);
+  int requiredReads=props.getInt("build.required.reads",1);
+  int requiredWrites=props.getInt("build.required.writes",1);
+  String description=props.getString("push.store.description","");
+  String owners=props.getString("push.store.owners","");
+  String keySchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + schema.getKeyType() + "</schema-info>\n\t";
+  if (jsonKeyField != null && jsonKeyField.length() > 0) {
+    keySchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + schema.getKeyType().subtype(jsonKeyField) + "</schema-info>\n\t";
+  }
+  String valSchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + schema.getValueType() + "</schema-info>\n\t";
+  if (jsonValueField != null && jsonValueField.length() > 0) {
+    valSchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + schema.getValueType().subtype(jsonValueField) + "</schema-info>\n\t";
+  }
+  boolean hasCompression=false;
+  if (props.containsKey("build.compress.value")) {
+    hasCompression=true;
+  }
+  if (hasCompression) {
+    valSchema+="\t<compression><type>gzip</type></compression>\n\t";
+  }
+  if (props.containsKey("build.force.schema.key")) {
+    keySchema=props.get("build.force.schema.key");
+  }
+  if (props.containsKey("build.force.schema.value")) {
+    valSchema=props.get("build.force.schema.value");
+  }
+  String newStoreDefXml=VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,props.containsKey("build.preferred.reads") ? props.getInt("build.preferred.reads") : null,props.containsKey("build.preferred.writes") ? props.getInt("build.preferred.writes") : null,(props.containsKey("push.force.schema.key")) ? props.getString("push.force.schema.key") : keySchema,(props.containsKey("push.force.schema.value")) ? props.getString("push.force.schema.value") : valSchema,description,owners);
+  boolean foundStore=findAndVerify(url,newStoreDefXml,hasCompression,replicationFactor,requiredReads,requiredWrites);
+  if (!foundStore) {
+    try {
+      StoreDefinition newStoreDef=VoldemortUtils.getStoreDef(newStoreDefXml);
+      addStore(description,owners,url,newStoreDef);
+    }
+ catch (    RuntimeException e) {
+      log.error("Getting store definition from: " + url + " (node id "+ this.nodeId+ ")",e);
+      System.exit(-1);
+    }
+  }
+  AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());
+  storeDefs=ImmutableList.of(VoldemortUtils.getStoreDef(VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,props.containsKey("build.preferred.reads") ? props.getInt("build.preferred.reads") : null,props.containsKey("build.preferred.writes") ? props.getInt("build.preferred.writes") : null,keySchema,valSchema)));
+  cluster=adminClient.getAdminClientCluster();
+  adminClient.close();
+}
