@@ -9,6 +9,12 @@
   boolean invokeSetAvailable=false;
   boolean invokeSetUnavailable=false;
 synchronized (nodeStatus) {
+    if (nodeStatus.getNumConsecutiveCatastrophicErrors() != 0 && successDelta > 0) {
+      nodeStatus.setNumConsecutiveCatastrophicErrors(0);
+      if (logger.isTraceEnabled()) {
+        logger.trace("Resetting # consecutive connect errors for node : " + node);
+      }
+    }
     if (currentTime >= nodeStatus.getStartMillis() + getConfig().getThresholdInterval()) {
       nodeStatus.setStartMillis(currentTime);
       nodeStatus.setSuccess(successDelta);
@@ -20,8 +26,12 @@ synchronized (nodeStatus) {
       if (successDelta < 1)       nodeStatus.incrementFailure(1);
       nodeStatus.incrementTotal(1);
       if (catastrophicError != null) {
-        if (logger.isTraceEnabled())         logger.trace("Node " + node.getId() + " experienced catastrophic error: "+ catastrophicError);
-        invokeSetUnavailable=true;
+        if (logger.isTraceEnabled())         logger.trace("Node " + node.getId() + " experienced catastrophic error: "+ catastrophicError+ " on node : "+ node+ " # accumulated errors = "+ nodeStatus.getNumConsecutiveCatastrophicErrors());
+        nodeStatus.incrementConsecutiveCatastrophicErrors();
+        if (nodeStatus.getNumConsecutiveCatastrophicErrors() >= this.failureDetectorConfig.getMaximumTolerableFatalFailures()) {
+          invokeSetUnavailable=true;
+          logger.info("Node " + node.getId() + " experienced consecutive "+ this.failureDetectorConfig.getMaximumTolerableFatalFailures()+ " catastrophic errors. Marking it unavailable.");
+        }
       }
  else       if (nodeStatus.getFailure() >= getConfig().getThresholdCountMinimum()) {
         long percentage=(nodeStatus.getSuccess() * 100) / nodeStatus.getTotal();
