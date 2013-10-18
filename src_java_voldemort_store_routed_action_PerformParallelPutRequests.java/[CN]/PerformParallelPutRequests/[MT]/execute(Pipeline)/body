@@ -77,18 +77,8 @@
       if (numResponsesGot >= preferred - 1) {
         preferredSatisfied=true;
       }
-      if (pipelineData.getSuccesses() >= required) {
-        quorumSatisfied=true;
-      }
-      if (pipelineData.getZonesRequired() == null) {
-        zonesSatisfied=true;
-      }
- else {
-        int numZonesSatisfied=pipelineData.getZoneResponses().size();
-        if (numZonesSatisfied >= (pipelineData.getZonesRequired() + 1)) {
-          zonesSatisfied=true;
-        }
-      }
+      quorumSatisfied=isQuorumSatisfied();
+      zonesSatisfied=isZonesSatisfied();
       if (quorumSatisfied && zonesSatisfied && preferredSatisfied || remainingNs <= 0 || numNodesPendingResponse <= 0) {
         pipelineData.getSynchronizer().cutoffHandling();
         break;
@@ -108,20 +98,8 @@
       Response<ByteArray,Object> response=pipelineData.getSynchronizer().responseQueuePoll(0,TimeUnit.NANOSECONDS);
       processResponse(response,pipeline);
     }
-    if (!quorumSatisfied && pipelineData.getSuccesses() >= required) {
-      quorumSatisfied=true;
-    }
-    if (!quorumSatisfied) {
-      if (pipelineData.getZonesRequired() == null) {
-        zonesSatisfied=true;
-      }
- else {
-        int numZonesSatisfied=pipelineData.getZoneResponses().size();
-        if (numZonesSatisfied >= (pipelineData.getZonesRequired() + 1)) {
-          zonesSatisfied=true;
-        }
-      }
-    }
+    quorumSatisfied=isQuorumSatisfied();
+    zonesSatisfied=isZonesSatisfied();
     if (quorumSatisfied && zonesSatisfied) {
       if (logger.isDebugEnabled()) {
         logger.debug("PUT {key:" + key + "} succeeded at parellel put stage");
