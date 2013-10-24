@@ -3,6 +3,12 @@
     logger.debug("Trying to commit to Voldemort");
   }
   boolean hasError=false;
+  if (nodesToStream == null) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("No nodes to stream to. Returning.");
+    }
+    return;
+  }
   for (  Node node : nodesToStream) {
     for (    String store : storeNamesToCommit) {
       if (!nodeIdStoreInitialized.get(new Pair(store,node.getId())))       continue;
