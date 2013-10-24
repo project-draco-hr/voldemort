@@ -3,12 +3,13 @@
   logger.debug("Starting copy of " + source + " to "+ dest);
   FSDataInputStream input=null;
   OutputStream output=null;
-  for (int attempt=0; attempt < NUM_RETRIES; attempt++) {
+  for (int attempt=0; attempt < maxAttempts; attempt++) {
     boolean success=true;
     try {
       if (checkSumType != null) {
         fileCheckSumGenerator=CheckSum.getInstance(checkSumType);
       }
+      logger.info("Attempt " + attempt + " at copy of "+ source+ " to "+ dest);
       input=fs.open(source);
       output=new BufferedOutputStream(new FileOutputStream(dest));
       byte[] buffer=new byte[bufferSize];
@@ -39,24 +40,18 @@
       }
       logger.info("Completed copy of " + source + " to "+ dest);
     }
- catch (    IOException ioe) {
+ catch (    Throwable te) {
       success=false;
-      logger.error("Error during copying file ",ioe);
-      ioe.printStackTrace();
-      if (attempt < NUM_RETRIES - 1) {
-        logger.info("retrying copying");
+      logger.error("Error during copying file ",te);
+      te.printStackTrace();
+      if (attempt < maxAttempts - 1) {
+        logger.info("Will retry copying after " + retryDelayMs + " ms");
+        sleepForRetryDelayMs();
       }
  else {
-        throw ioe;
+        logger.info("Fetcher giving up copy after " + maxAttempts + " attempts");
+        throw te;
       }
-    }
-catch (    Exception e) {
-      logger.error("Error during copying file ",e);
-      return null;
-    }
-catch (    Throwable te) {
-      logger.error("Error during copying file ",te);
-      return null;
     }
  finally {
       IOUtils.closeQuietly(output);

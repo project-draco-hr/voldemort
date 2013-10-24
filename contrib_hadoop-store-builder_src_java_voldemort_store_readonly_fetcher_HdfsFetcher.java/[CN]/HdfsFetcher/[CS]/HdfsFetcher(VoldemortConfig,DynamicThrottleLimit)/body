@@ -1,5 +1,10 @@
 {
-  this(dynThrottleLimit,null,config.getReadOnlyFetcherReportingIntervalBytes(),config.getFetcherBufferSize(),config.getReadOnlyFetcherMinBytesPerSecond(),config.getReadOnlyKeytabPath(),config.getReadOnlyKerberosUser());
+  this(dynThrottleLimit,null,config.getReadOnlyFetcherReportingIntervalBytes(),config.getFetcherBufferSize(),config.getReadOnlyFetcherMinBytesPerSecond(),config.getReadOnlyKeytabPath(),config.getReadOnlyKerberosUser(),config.getReadOnlyFetchRetryCount(),config.getReadOnlyFetchRetryDelayMs());
   this.voldemortConfig=config;
-  logger.info("Created hdfs fetcher with throttle rate " + dynThrottleLimit.getRate() + ", buffer size "+ bufferSize+ ", reporting interval bytes "+ reportingIntervalBytes);
+  if (dynThrottleLimit == null) {
+    logger.info("Created hdfs fetcher with no dynamic throttler, buffer size " + bufferSize + ", reporting interval bytes "+ reportingIntervalBytes);
+  }
+ else {
+    logger.info("Created hdfs fetcher with throttle rate " + dynThrottleLimit.getRate() + ", buffer size "+ bufferSize+ ", reporting interval bytes "+ reportingIntervalBytes);
+  }
 }
