@@ -1,0 +1,57 @@
+{
+  String storeVersionKeys[]=new String[3];
+  for (int i=0; i < 3; i++) {
+    storeVersionKeys[i]="users" + i;
+  }
+  List<StoresVersionCallback> rebootstrapCallbacks=new ArrayList<AsyncMetadataVersionManagerTest.StoresVersionCallback>();
+  for (int i=0; i < 3; i++) {
+    StoresVersionCallback callback=new StoresVersionCallback(i);
+    rebootstrapCallbacks.add(callback);
+  }
+  try {
+    Properties versionProps=MetadataVersionStoreUtils.getProperties(this.sysVersionStore);
+    for (int i=0; i < 3; i++) {
+      versionProps.setProperty(storeVersionKeys[i],Long.toString(100));
+    }
+    MetadataVersionStoreUtils.setProperties(this.sysVersionStore,versionProps);
+    Thread.sleep(500);
+    for (int i=0; i < 3; i++) {
+      AsyncMetadataVersionManager versionManager=new AsyncMetadataVersionManager(this.repository,rebootstrapCallbacks.get(i),storeVersionKeys[i]);
+      asyncVersionManagers.add(versionManager);
+      scheduler.schedule(versionManager.getClass().getName(),versionManager,new Date(),500);
+    }
+    int maxRetries=0;
+    while (maxRetries < 3) {
+      boolean isActive=true;
+      for (int i=0; i < 3; i++) {
+        if (!asyncVersionManagers.get(i).isActive) {
+          isActive=false;
+        }
+      }
+      if (!isActive) {
+        Thread.sleep(500);
+      }
+      maxRetries++;
+    }
+    this.newVersion=101;
+    System.out.println("Incrementing the version for : " + storeVersionKeys[1]);
+    versionProps.setProperty(storeVersionKeys[1],Long.toString(this.newVersion));
+    MetadataVersionStoreUtils.setProperties(this.sysVersionStore,versionProps);
+    maxRetries=0;
+    while (maxRetries < 3) {
+      if (!callbacksDone[0] && !callbacksDone[1] && !callbacksDone[2]) {
+        Thread.sleep(2000);
+      }
+      maxRetries++;
+    }
+    assertEquals(false,(this.updatedVersions[1] == 0));
+    long updatedVersion=this.updatedVersions[1];
+    assertEquals(updatedVersion,this.newVersion);
+    assertEquals(true,(this.updatedVersions[0] == 0));
+    assertEquals(true,(this.updatedVersions[2] == 0));
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    fail("Failed to start the Metadata Version Manager : " + e.getMessage());
+  }
+}

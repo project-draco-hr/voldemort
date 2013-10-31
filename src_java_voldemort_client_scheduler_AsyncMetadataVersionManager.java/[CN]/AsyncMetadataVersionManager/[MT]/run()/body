@@ -1,8 +1,9 @@
 {
+  logger.debug("************* AsyncMetadataVersionManger running. Checking for " + CLUSTER_VERSION_KEY + " and  "+ storesVersionKey+ " *************");
   try {
     Properties versionProps=MetadataVersionStoreUtils.getProperties(this.systemStoreRepository.getMetadataVersionStore());
     Long newClusterVersion=fetchNewVersion(CLUSTER_VERSION_KEY,this.currentClusterVersion,versionProps);
-    Long newStoreVersion=fetchNewVersion(STORES_VERSION_KEY,this.currentStoreVersion,versionProps);
+    Long newStoreVersion=fetchNewVersion(storesVersionKey,this.currentStoreVersion,versionProps);
     if ((newClusterVersion != null) || (newStoreVersion != null)) {
       logger.info("Metadata version mismatch detected. Re-bootstrapping!");
       try {
@@ -11,15 +12,13 @@
           currentClusterVersion=newClusterVersion;
         }
         if (newStoreVersion != null) {
-          logger.info("Updating store : '" + STORES_VERSION_KEY + "' version");
+          logger.info("Updating store : '" + storesVersionKey + "' version");
           this.currentStoreVersion=newStoreVersion;
         }
         this.storeClientThunk.call();
       }
  catch (      Exception e) {
-        if (logger.isDebugEnabled()) {
-          logger.info("Exception occurred while invoking the rebootstrap callback.",e);
-        }
+        logger.info("Exception occurred while invoking the rebootstrap callback.",e);
       }
     }
   }

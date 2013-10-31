@@ -1,8 +1,8 @@
 {
   try {
-    Long storeVersion=this.asyncCheckMetadata.getStoreMetadataVersion();
+    Long storeVersion=this.asyncVersionManagers.get(index).getStoreMetadataVersion();
     if (storeVersion != null) {
-      this.updatedStoreVersion=storeVersion;
+      this.updatedVersions[index]=storeVersion;
     }
   }
  catch (  Exception e) {
@@ -10,6 +10,6 @@
     fail("Error in updating store version: " + e.getMessage());
   }
  finally {
-    this.callbackDone=true;
+    this.callbacksDone[index]=true;
   }
 }
