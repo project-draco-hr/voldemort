@@ -3,9 +3,9 @@
   ExecutorService service=RebalanceUtils.createExecutors(maxParallelRebalancing);
   final List<RebalanceTask> failedTasks=Lists.newArrayList();
   final List<RebalanceTask> incompleteTasks=Lists.newArrayList();
-  Semaphore[] donorPermits=new Semaphore[batchRollbackCluster.getNumberOfNodes()];
+  Map<Integer,Semaphore> donorPermits=new HashMap<Integer,Semaphore>();
   for (  Node node : batchRollbackCluster.getNodes()) {
-    donorPermits[node.getId()]=new Semaphore(1);
+    donorPermits.put(node.getId(),new Semaphore(1));
   }
   try {
     List<RebalanceTask> allTasks=executeTasks(batchId,progressBar,service,rebalanceTaskPlanList,donorPermits);
