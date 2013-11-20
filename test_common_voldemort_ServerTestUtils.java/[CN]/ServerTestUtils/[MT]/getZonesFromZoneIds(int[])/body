@@ -1,0 +1,14 @@
+{
+  List<Zone> zones=Lists.newArrayList();
+  Set<Integer> zoneIdsSet=new HashSet<Integer>();
+  for (  int i : zoneIds) {
+    zoneIdsSet.add(i);
+  }
+  Set<Integer> removeSet=new HashSet<Integer>();
+  for (int i=0; i < zoneIds.length; i++) {
+    removeSet.add(zoneIds[i]);
+    zones.add(new Zone(zoneIds[i],Lists.newLinkedList(Sets.symmetricDifference(zoneIdsSet,removeSet))));
+    removeSet.clear();
+  }
+  return zones;
+}

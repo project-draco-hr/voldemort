@@ -1,0 +1,10 @@
+{
+  List<StoreDefinition> storeDefs=new LinkedList<StoreDefinition>();
+  int totalReplicationFactor=0;
+  for (  Integer value : zoneRep.values()) {
+    totalReplicationFactor+=value;
+  }
+  StoreDefinition storeDef=new StoreDefinitionBuilder().setName(storeName).setType(storageType).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.ZONE_STRATEGY).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setReplicationFactor(totalReplicationFactor).setZoneReplicationFactor(zoneRep).setRequiredReads(requiredReads).setRequiredWrites(requiredWrites).setZoneCountReads(zoneCountReads).setZoneCountWrites(zoneCountWrites).build();
+  storeDefs.add(storeDef);
+  return storeDefs;
+}
