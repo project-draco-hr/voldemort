@@ -1,4 +1,12 @@
 {
+  if (beforeRebootstrapCallback != null) {
+    try {
+      beforeRebootstrapCallback.call();
+    }
+ catch (    Exception e) {
+      logger.warn("Exception caught when running callback before bootstrap",e);
+    }
+  }
   logger.info("Bootstrapping metadata for store " + this.storeName);
   this.store=storeFactory.getRawStore(storeName,resolver);
 }

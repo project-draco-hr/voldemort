@@ -1,5 +1,5 @@
 {
-  StoreClient<K,V> client=null;
+  DefaultStoreClient<K,V> client=null;
   if (this.config.isDefaultClientEnabled()) {
     client=new DefaultStoreClient<K,V>(storeName,resolver,this,3);
   }
@@ -11,5 +11,6 @@
     clientAsyncServiceRepo.add(service);
     client=new ZenStoreClient<K,V>(storeName,resolver,this,3,clientContextName,clientSequencer.getAndIncrement(),config,service);
   }
+  client.setBeforeRebootstrapCallback(this.storeRebootstrapCallback);
   return client;
 }

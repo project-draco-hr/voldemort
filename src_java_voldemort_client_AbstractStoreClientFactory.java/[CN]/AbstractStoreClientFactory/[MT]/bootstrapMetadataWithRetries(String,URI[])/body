@@ -5,7 +5,7 @@
       return bootstrapMetadata(key,urls);
     }
  catch (    BootstrapFailureException e) {
-      clientFactoryStats.incrementCount(StoreClientFactoryStats.Tracked.FAILED_BOOTSTRAP_EVENT);
+      storeClientFactoryStats.incrementCount(StoreClientFactoryStats.Tracked.FAILED_BOOTSTRAP_EVENT);
       logger.warn("Failed to bootstrap store");
       if (nTries < this.maxBootstrapRetries) {
         int backOffTime=5 * nTries;
@@ -19,7 +19,7 @@
       }
     }
  finally {
-      clientFactoryStats.incrementCount(StoreClientFactoryStats.Tracked.BOOTSTRAP_EVENT);
+      storeClientFactoryStats.incrementCount(StoreClientFactoryStats.Tracked.BOOTSTRAP_EVENT);
     }
   }
   throw new BootstrapFailureException("No available bootstrap servers found!");
