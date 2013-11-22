@@ -72,12 +72,12 @@
     indexes[partitionId][globalChunkId].writeInt(positions[partitionId][globalChunkId]);
     datas[partitionId][globalChunkId].write(value);
   }
-  File[] nodeDirs=new File[cluster.getNumberOfNodes()];
+  Map<Integer,File> nodeDirs=new HashMap<Integer,File>(cluster.getNumberOfNodes());
   for (  Node node : cluster.getNodes()) {
     int nodeId=node.getId();
     File nodeDir=new File(outputDir,"node-" + Integer.toString(nodeId));
     nodeDir.mkdirs();
-    nodeDirs[node.getId()]=nodeDir;
+    nodeDirs.put(node.getId(),nodeDir);
     BufferedWriter writer=new BufferedWriter(new FileWriter(new File(nodeDir,".metadata")));
     ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
     metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode());
@@ -100,7 +100,7 @@
       int partitionId=Integer.parseInt(props[0]);
       int replicaType=Integer.parseInt(props[1]);
       int nodeId=replicaMapping.get(strategy.getReplicatingPartitionList(partitionId).get(replicaType));
-      Utils.move(file,new File(nodeDirs[nodeId],fileName));
+      Utils.move(file,new File(nodeDirs.get(nodeId),fileName));
     }
   }
 }

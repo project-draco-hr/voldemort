@@ -1,9 +1,8 @@
 {
   logger.info("Building store " + storeDefinition.getName() + " for "+ cluster.getNumberOfNodes()+ " with "+ numChunks+ " chunks per node and type "+ ReadOnlyStorageFormat.READONLY_V0);
-  int numNodes=cluster.getNumberOfNodes();
-  DataOutputStream[][] indexes=new DataOutputStream[numNodes][numChunks];
-  DataOutputStream[][] datas=new DataOutputStream[numNodes][numChunks];
-  int[][] positions=new int[numNodes][numChunks];
+  Map<Integer,DataOutputStream[]> indexes=new HashMap<Integer,DataOutputStream[]>();
+  Map<Integer,DataOutputStream[]> datas=new HashMap<Integer,DataOutputStream[]>();
+  Map<Integer,Integer[]> positions=new HashMap<Integer,Integer[]>();
   for (  Node node : cluster.getNodes()) {
     int nodeId=node.getId();
     File nodeDir=new File(outputDir,"node-" + Integer.toString(nodeId));
@@ -13,12 +12,18 @@
     metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V0.getCode());
     writer.write(metadata.toJsonString());
     writer.close();
+    indexes.put(nodeId,new DataOutputStream[numChunks]);
+    datas.put(nodeId,new DataOutputStream[numChunks]);
+    positions.put(nodeId,new Integer[numChunks]);
     for (int chunk=0; chunk < numChunks; chunk++) {
       File indexFile=new File(nodeDir,chunk + ".index");
       File dataFile=new File(nodeDir,chunk + ".data");
-      positions[nodeId][chunk]=0;
-      indexes[nodeId][chunk]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(indexFile),ioBufferSize));
-      datas[nodeId][chunk]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dataFile),ioBufferSize));
+      Integer[] positionsArray=positions.get(nodeId);
+      positionsArray[chunk]=0;
+      DataOutputStream[] indexesOutputStreamArray=indexes.get(nodeId);
+      indexesOutputStreamArray[chunk]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(indexFile),ioBufferSize));
+      DataOutputStream[] datasOutputStreamArray=datas.get(nodeId);
+      datasOutputStreamArray[chunk]=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(dataFile),ioBufferSize));
     }
   }
   logger.info("Reading items...");
@@ -32,21 +37,26 @@
       int nodeId=nodes.get(i).getId();
       int chunk=ReadOnlyUtils.chunk(keyMd5,numChunks);
       int numBytes=pair.getValue().length;
-      datas[nodeId][chunk].writeInt(numBytes);
-      datas[nodeId][chunk].write(pair.getValue());
-      indexes[nodeId][chunk].write(keyMd5);
-      indexes[nodeId][chunk].writeInt(positions[nodeId][chunk]);
-      positions[nodeId][chunk]+=numBytes + 4;
-      checkOverFlow(chunk,positions[nodeId][chunk]);
+      DataOutputStream[] datasOutputStreamArray=datas.get(nodeId);
+      datasOutputStreamArray[chunk].writeInt(numBytes);
+      datasOutputStreamArray[chunk].write(pair.getValue());
+      DataOutputStream[] indexesOutputStreamArray=indexes.get(nodeId);
+      Integer[] positionsArray=positions.get(nodeId);
+      indexesOutputStreamArray[chunk].write(keyMd5);
+      indexesOutputStreamArray[chunk].writeInt(positionsArray[chunk]);
+      positionsArray[chunk]+=numBytes + 4;
+      checkOverFlow(chunk,positionsArray[chunk]);
     }
     count++;
   }
   logger.info(count + " items read.");
   logger.info("Closing all store files.");
-  for (int node=0; node < numNodes; node++) {
+  for (  int node : indexes.keySet()) {
     for (int chunk=0; chunk < numChunks; chunk++) {
-      indexes[node][chunk].close();
-      datas[node][chunk].close();
+      DataOutputStream[] indexesOutputStreamArray=indexes.get(node);
+      indexesOutputStreamArray[chunk].close();
+      DataOutputStream[] datasOutputStreamArray=datas.get(node);
+      datasOutputStreamArray[chunk].close();
     }
   }
 }
