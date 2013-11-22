@@ -1,0 +1,29 @@
+{
+  ArrayList<Integer> zoneIds=new ArrayList<Integer>();
+  zoneIds.add(1);
+  assertReplicationPartitions(getRouterForNonContiguousZones(zoneIds,1).getReplicatingPartitionList(0),0);
+  zoneIds.add(3);
+  assertReplicationPartitions(getRouterForNonContiguousZones(zoneIds,1,1).getReplicatingPartitionList(0),0,4);
+  zoneIds.add(5);
+  assertReplicationPartitions(getRouterForNonContiguousZones(zoneIds,1,1,1).getReplicatingPartitionList(0),0,4,22);
+  zoneIds.add(10);
+  assertReplicationPartitions(getRouterForNonContiguousZones(zoneIds,1,1,1,1).getReplicatingPartitionList(0),0,4,22,29);
+  zoneIds.clear();
+  zoneIds.add(1);
+  assertReplicationPartitions(getRouterForNonContiguousZones(zoneIds,2).getReplicatingPartitionList(0),0,1);
+  zoneIds.add(3);
+  assertReplicationPartitions(getRouterForNonContiguousZones(zoneIds,2,1).getReplicatingPartitionList(0),0,1,4);
+  zoneIds.add(5);
+  assertReplicationPartitions(getRouterForNonContiguousZones(zoneIds,2,1,1).getReplicatingPartitionList(0),0,1,4,22);
+  zoneIds.add(10);
+  assertReplicationPartitions(getRouterForNonContiguousZones(zoneIds,2,1,1,1).getReplicatingPartitionList(0),0,1,4,22,29);
+  zoneIds.clear();
+  zoneIds.add(1);
+  zoneIds.add(3);
+  assertReplicationPartitions(getRouterForNonContiguousZones(zoneIds,2,2).getReplicatingPartitionList(0),0,1,4,5);
+  zoneIds.add(5);
+  assertReplicationPartitions(getRouterForNonContiguousZones(zoneIds,2,2,1).getReplicatingPartitionList(0),0,1,4,5,22);
+  zoneIds.add(10);
+  assertReplicationPartitions(getRouterForNonContiguousZones(zoneIds,2,2,1,2).getReplicatingPartitionList(0),0,1,4,5,22,29,31);
+  assertReplicationPartitions(getRouterForNonContiguousZones(zoneIds,2,2,1,3).getReplicatingPartitionList(0),0,1,4,5,22,29,31);
+}
