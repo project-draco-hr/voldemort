@@ -1,0 +1,21 @@
+{
+  Cluster currentCluster=ClusterTestUtils.getZ1Z3ImbalancedClusterWithNonContiguousNodeIds();
+  List<StoreDefinition> storeDefs=ClusterTestUtils.getZ1Z3StoreDefsInMemory();
+  List<Integer> swapZoneIds=new ArrayList<Integer>();
+  swapZoneIds.add(1);
+  verifyRandomSwapsWithinZoneOnlyShufflesParitionsInThatZone(currentCluster,storeDefs,swapZoneIds);
+  currentCluster=ClusterTestUtils.getZ1Z3Z5ImbalancedClusterWithNonContiguousNodeIds();
+  storeDefs=ClusterTestUtils.getZ1Z3Z5StoreDefsInMemory();
+  swapZoneIds.clear();
+  swapZoneIds.add(3);
+  verifyRandomSwapsWithinZoneOnlyShufflesParitionsInThatZone(currentCluster,storeDefs,swapZoneIds);
+  swapZoneIds.clear();
+  swapZoneIds.add(1);
+  swapZoneIds.add(3);
+  verifyRandomSwapsWithinZoneOnlyShufflesParitionsInThatZone(currentCluster,storeDefs,swapZoneIds);
+  swapZoneIds.clear();
+  swapZoneIds.add(1);
+  swapZoneIds.add(3);
+  swapZoneIds.add(5);
+  verifyRandomSwapsWithinZoneOnlyShufflesParitionsInThatZone(currentCluster,storeDefs,swapZoneIds);
+}
