@@ -1,0 +1,31 @@
+{
+  VAdminProto.SlopPurgeJobResponse.Builder response=VAdminProto.SlopPurgeJobResponse.newBuilder();
+  try {
+    int requestId=asyncService.getUniqueRequestId();
+    asyncService.submitOperation(requestId,new AsyncOperation(requestId,"SlopPurgeJob"){
+      @Override public void operate(){
+        SlopPurgeJob job=storeRepository.getSlopPurgeJob();
+        if (job != null) {
+          if (job.getIsRunning().get()) {
+            logger.info(job.getJobName() + " already running .. backing off.. ");
+            return;
+          }
+          logger.info("Starting the " + job.getJobName() + " now on ID : "+ metadataStore.getNodeId());
+          job.run();
+        }
+ else {
+          logger.error("SlopPurgeJob is not initialized.");
+        }
+      }
+      @Override public void stop(){
+        status.setException(new VoldemortException("SlopPurgeJob interrupted"));
+      }
+    }
+);
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("Slop Purge Job failed for request : " + request.toString() + ")",e);
+  }
+  return response.build();
+}

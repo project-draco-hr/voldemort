@@ -18,18 +18,24 @@
       logger.info("Initializing slop pusher job type " + voldemortConfig.getPusherType() + " at "+ nextRun);
       scheduler.schedule("slop",(voldemortConfig.getPusherType().compareTo(BlockingSlopPusherJob.TYPE_NAME) == 0) ? new BlockingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig,scanPermitWrapper) : new StreamingSlopPusherJob(storeRepository,metadata,failureDetector,voldemortConfig,scanPermitWrapper),nextRun,voldemortConfig.getSlopFrequencyMs());
     }
-    if (voldemortConfig.isRepairEnabled()) {
-      logger.info("Initializing repair job.");
-      RepairJob job=new RepairJob(storeRepository,metadata,scanPermitWrapper,voldemortConfig.getRepairJobMaxKeysScannedPerSec());
+    if (voldemortConfig.isSlopPurgeJobEnabled()) {
+      logger.info("Initializing Slop Purge job");
+      SlopPurgeJob job=new SlopPurgeJob(storeRepository,metadata,scanPermitWrapper,voldemortConfig.getSlopPurgeJobMaxKeysScannedPerSec());
       JmxUtils.registerMbean(job,JmxUtils.createObjectName(job.getClass()));
-      storeRepository.registerRepairJob(job);
+      storeRepository.registerSlopPurgeJob(job);
     }
-    if (voldemortConfig.isPruneJobEnabled()) {
-      logger.info("Intializing prune job");
-      VersionedPutPruneJob job=new VersionedPutPruneJob(storeRepository,metadata,scanPermitWrapper,voldemortConfig.getPruneJobMaxKeysScannedPerSec());
-      JmxUtils.registerMbean(job,JmxUtils.createObjectName(job.getClass()));
-      storeRepository.registerPruneJob(job);
-    }
+  }
+  if (voldemortConfig.isRepairEnabled()) {
+    logger.info("Initializing repair job.");
+    RepairJob job=new RepairJob(storeRepository,metadata,scanPermitWrapper,voldemortConfig.getRepairJobMaxKeysScannedPerSec());
+    JmxUtils.registerMbean(job,JmxUtils.createObjectName(job.getClass()));
+    storeRepository.registerRepairJob(job);
+  }
+  if (voldemortConfig.isPruneJobEnabled()) {
+    logger.info("Intializing prune job");
+    VersionedPutPruneJob job=new VersionedPutPruneJob(storeRepository,metadata,scanPermitWrapper,voldemortConfig.getPruneJobMaxKeysScannedPerSec());
+    JmxUtils.registerMbean(job,JmxUtils.createObjectName(job.getClass()));
+    storeRepository.registerPruneJob(job);
   }
   List<StoreDefinition> storeDefs=new ArrayList<StoreDefinition>(this.metadata.getStoreDefList());
   logger.info("Initializing stores:");

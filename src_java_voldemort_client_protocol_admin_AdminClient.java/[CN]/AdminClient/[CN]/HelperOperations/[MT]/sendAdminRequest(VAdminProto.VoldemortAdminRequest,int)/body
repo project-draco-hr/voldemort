@@ -1,0 +1,17 @@
+{
+  Node node=AdminClient.this.getAdminClientCluster().getNodeById(destinationNodeId);
+  SocketDestination destination=new SocketDestination(node.getHost(),node.getAdminPort(),RequestFormatType.ADMIN_PROTOCOL_BUFFERS);
+  SocketAndStreams sands=socketPool.checkout(destination);
+  try {
+    DataOutputStream outputStream=sands.getOutputStream();
+    ProtoUtils.writeMessage(outputStream,adminRequest);
+    outputStream.flush();
+  }
+ catch (  IOException e) {
+    helperOps.close(sands.getSocket());
+    throw new VoldemortException(e);
+  }
+ finally {
+    socketPool.checkin(destination,sands);
+  }
+}
