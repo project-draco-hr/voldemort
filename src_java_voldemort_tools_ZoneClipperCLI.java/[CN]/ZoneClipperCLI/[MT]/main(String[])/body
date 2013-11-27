@@ -1,0 +1,43 @@
+{
+  setupParser();
+  OptionSet options=getValidOptions(args);
+  String initialClusterXML=(String)options.valueOf("current-cluster");
+  Cluster initialCluster=new ClusterMapper().readCluster(new File(initialClusterXML));
+  int dropZoneId=CmdUtils.valueOf(options,"drop-zoneid",Zone.UNSET_ZONE_ID);
+  String outputDir=null;
+  if (options.has("output-dir")) {
+    outputDir=(String)options.valueOf("output-dir");
+  }
+  Set<Integer> originalPartitions=new HashSet<Integer>();
+  for (  Integer zoneId : initialCluster.getZoneIds()) {
+    originalPartitions.addAll(initialCluster.getPartitionIdsInZone(zoneId));
+  }
+  Cluster intermediateCluster=RebalanceUtils.dropZone(initialCluster,dropZoneId);
+  Set<Node> nodes=new HashSet<Node>();
+  for (  int nodeId : intermediateCluster.getNodeIds()) {
+    if (intermediateCluster.getNodeById(nodeId).getZoneId() != dropZoneId) {
+      nodes.add(intermediateCluster.getNodeById(nodeId));
+    }
+  }
+  Set<Zone> zones=new HashSet<Zone>();
+  for (  int zoneId : intermediateCluster.getZoneIds()) {
+    if (zoneId == dropZoneId) {
+      continue;
+    }
+    LinkedList<Integer> proximityList=intermediateCluster.getZoneById(zoneId).getProximityList();
+    proximityList.remove(new Integer(dropZoneId));
+    zones.add(new Zone(zoneId,proximityList));
+  }
+  Cluster finalCluster=new Cluster(intermediateCluster.getName(),Utils.asSortedList(nodes),Utils.asSortedList(zones));
+  if (initialCluster.getNumberOfPartitions() != finalCluster.getNumberOfPartitions()) {
+    System.out.println("ERROR : The number of partitions in the initial and the final cluster is not equal \n");
+  }
+  Set<Integer> finalPartitions=new HashSet<Integer>();
+  for (  Integer zoneId : finalCluster.getZoneIds()) {
+    finalPartitions.addAll(finalCluster.getPartitionIdsInZone(zoneId));
+  }
+  if (!originalPartitions.equals(finalPartitions)) {
+    System.out.println("ERROR : The list of partition ids in the initial and the final cluster doesn't match \n ");
+  }
+  RebalanceUtils.dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName,finalCluster);
+}
