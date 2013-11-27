@@ -9,10 +9,12 @@
   this.clientId=generateClientId(clientInfo);
   this.config=config;
   this.sysRepository=new SystemStoreRepository(config);
-  this.scheduler=scheduler;
-  JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass()) + "." + storeName));
+  this.scheduler=new SchedulerService(config.getAsyncJobThreadPoolSize(),SystemTime.INSTANCE,true);
+  if (config.isJmxEnabled()) {
+    JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass()) + "." + storeName));
+  }
   bootStrap();
-  if (config != null) {
+  if (this.config != null) {
     asyncMetadataManager=scheduleAsyncMetadataVersionManager(clientId.toString(),config.getAsyncMetadataRefreshInMs());
     clientRegistryRefresher=registerClient(clientId,config.getClientRegistryUpdateIntervalInSecs());
   }

@@ -15,7 +15,6 @@
   this.routedStoreFactory=new RoutedStoreFactory();
   this.routedStoreFactory.setThreadPool(this.threadPool);
   this.clientSequencer=new AtomicInteger(0);
-  this.clientAsyncServiceRepo=new HashSet<SchedulerService>();
   this.storeRebootstrapCallback=new Callable<Object>(){
     @Override public Object call() throws Exception {
       storeClientFactoryStats.incrementCount(StoreClientFactoryStats.Tracked.REBOOTSTRAP_EVENT);
@@ -23,6 +22,7 @@
     }
   }
 ;
+  this.storeClientCache=new ConcurrentHashMap<Pair<String,Object>,DefaultStoreClient<?,?>>();
   if (this.isJmxEnabled) {
     JmxUtils.registerMbean(threadPool,JmxUtils.createObjectName(JmxUtils.getPackageName(threadPool.getClass()),JmxUtils.getClassName(threadPool.getClass()) + JmxUtils.getJmxId(jmxId)));
     JmxUtils.registerMbean(new StoreStatsJmx(aggregateStats),JmxUtils.createObjectName("voldemort.store.stats.aggregate","aggregate-perf" + JmxUtils.getJmxId(jmxId)));

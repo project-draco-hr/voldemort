@@ -1,0 +1,16 @@
+{
+  StoreClientFactory factory=getFactory(getValidBootstrapUrl());
+  StoreClient<Object,Object> testClient1=factory.getStoreClient("test");
+  StoreClient<Object,Object> testClient2=factory.getStoreClient("test");
+  StoreClient<Object,Object> bestClient1=factory.getStoreClient("best");
+  StoreClient<Object,Object> bestClient2=factory.getStoreClient("best");
+  if (useLazy) {
+    testClient1=((LazyStoreClient<Object,Object>)testClient1).getStoreClient();
+    testClient2=((LazyStoreClient<Object,Object>)testClient2).getStoreClient();
+    bestClient1=((LazyStoreClient<Object,Object>)bestClient1).getStoreClient();
+    bestClient2=((LazyStoreClient<Object,Object>)bestClient2).getStoreClient();
+  }
+  assertTrue("Client for store test should be reused",testClient1 == testClient2);
+  assertTrue("Client for store best should be reused",bestClient1 == bestClient2);
+  assertTrue("Clients cannot be the same for different stores",testClient1 != bestClient1);
+}

@@ -1,5 +1,9 @@
 {
   DefaultStoreClient<K,V> client=null;
+  Pair<String,Object> cacheKey=Pair.create(storeName,(Object)resolver);
+  if (this.config.getCacheStoreClients() && storeClientCache.containsKey(cacheKey)) {
+    return (StoreClient<K,V>)storeClientCache.get(cacheKey);
+  }
   if (this.config.isDefaultClientEnabled()) {
     client=new DefaultStoreClient<K,V>(storeName,resolver,this,3);
   }
@@ -7,9 +11,13 @@
     client=new DefaultStoreClient<K,V>(storeName,resolver,this,3);
   }
  else {
-    SchedulerService service=new SchedulerService(config.getAsyncJobThreadPoolSize(),SystemTime.INSTANCE,true);
-    clientAsyncServiceRepo.add(service);
-    client=new ZenStoreClient<K,V>(storeName,resolver,this,3,clientContextName,clientSequencer.getAndIncrement(),config,service);
+    client=new ZenStoreClient<K,V>(storeName,resolver,this,3,clientContextName,clientSequencer.getAndIncrement(),config);
+  }
+  if (config.getCacheStoreClients()) {
+    StoreClient<K,V> oldValue=(StoreClient<K,V>)storeClientCache.putIfAbsent(cacheKey,client);
+    if (oldValue != null) {
+      client=(DefaultStoreClient<K,V>)storeClientCache.get(cacheKey);
+    }
   }
   client.setBeforeRebootstrapCallback(this.storeRebootstrapCallback);
   return client;
