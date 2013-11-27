@@ -1,0 +1,28 @@
+{
+  byte[] bytes1={(byte)'A',(byte)'B'};
+  byte[] bytes2={(byte)'C',(byte)'D'};
+  clientConfig=new ClientConfig();
+  clientConfig.setBootstrapUrls(cluster.getNodes().iterator().next().getSocketUrl().toString());
+  clientConfig.setClientZoneId(clientZoneId);
+  setupZoneAffinitySettings();
+  SocketStoreClientFactory socketStoreClientFactory=new SocketStoreClientFactory(clientConfig);
+  for (  Integer nodeId : cluster.getNodeIds()) {
+    SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,1024);
+    VoldemortConfig config=ServerTestUtils.createServerConfigWithDefs(true,nodeId,TestUtils.createTempDir().getAbsolutePath(),cluster,stores,new Properties());
+    VoldemortServer vs=ServerTestUtils.startVoldemortServer(socketStoreFactory,config,cluster);
+    vservers.put(nodeId,vs);
+    socketStoreFactories.put(nodeId,socketStoreFactory);
+    Store<ByteArray,byte[],byte[]> store=vs.getStoreRepository().getLocalStore(storeDef.getName());
+    Node node=cluster.getNodeById(nodeId);
+    VectorClock version1=new VectorClock();
+    version1.incrementVersion(0,System.currentTimeMillis());
+    VectorClock version2=version1.incremented(0,System.currentTimeMillis());
+    if (node.getZoneId() == clientZoneId) {
+      store.put(new ByteArray(bytes1),new Versioned<byte[]>(bytes1,version1),null);
+    }
+ else {
+      store.put(new ByteArray(bytes1),new Versioned<byte[]>(bytes2,version2),null);
+    }
+  }
+  client=socketStoreClientFactory.getRawStore(storeDef.getName(),null);
+}
