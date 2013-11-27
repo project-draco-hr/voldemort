@@ -5,9 +5,10 @@
     assertEquals(def.getName(),repo.getLocalStore(def.getName()).getName());
     assertTrue("Missing storage engine '" + def.getName() + "'.",repo.hasStorageEngine(def.getName()));
     assertEquals(def.getName(),repo.getStorageEngine(def.getName()).getName());
-    for (int node=0; node < cluster.getNumberOfNodes(); node++) {
-      assertTrue("Missing node store '" + def.getName() + "'.",repo.hasNodeStore(def.getName(),node));
-      assertEquals(def.getName(),repo.getNodeStore(def.getName(),node).getName());
+    Integer[] nodeIds=cluster.getNodeIds().toArray(new Integer[0]);
+    for (int index=0; index < cluster.getNumberOfNodes(); index++) {
+      assertTrue("Missing node store '" + def.getName() + "'.",repo.hasNodeStore(def.getName(),nodeIds[index]));
+      assertEquals(def.getName(),repo.getNodeStore(def.getName(),nodeIds[index]).getName());
     }
   }
 }
