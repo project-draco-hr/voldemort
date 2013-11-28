@@ -59,20 +59,18 @@
       }
       writeAscii(outputFile,new Writable(){
         @Override public void writeTo(        BufferedWriter out) throws IOException {
-          final StringWriter stringWriter=new StringWriter();
-          final JsonGenerator generator=new JsonFactory(new ObjectMapper()).createJsonGenerator(stringWriter);
           while (keyIterator.hasNext()) {
+            final JsonGenerator generator=new JsonFactory(new ObjectMapper()).createJsonGenerator(out);
             byte[] keyBytes=keyIterator.next().get();
             Object keyObject=serializer.toObject((null == keysCompressionStrategy) ? keyBytes : keysCompressionStrategy.inflate(keyBytes));
-            generator.writeObject(keyObject);
-            StringBuffer buf=stringWriter.getBuffer();
-            if (buf.charAt(0) == ' ') {
-              buf.setCharAt(0,'\n');
+            if (keyObject instanceof GenericRecord) {
+              out.write(keyObject.toString());
             }
-            out.write(buf.toString());
-            buf.setLength(0);
+ else {
+              generator.writeObject(keyObject);
+            }
+            out.write('\n');
           }
-          out.write('\n');
         }
       }
 );
