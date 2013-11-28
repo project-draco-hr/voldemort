@@ -36,7 +36,7 @@
   parser.accepts("verify-metadata-version","Verify the version of Metadata on all the cluster nodes");
   parser.accepts("synchronize-metadata-version","Synchronize the metadata versions across all the nodes.");
   parser.accepts("reserve-memory","Memory in MB to reserve for the store").withRequiredArg().describedAs("size-in-mb").ofType(Long.class);
-  parser.accepts("query-keys","Get values of keys on specific nodes").withRequiredArg().describedAs("query-keys").withValuesSeparatedBy(',').ofType(String.class);
+  parser.accepts("query-key","Get values of a key on specific node").withRequiredArg().describedAs("query-key").ofType(String.class);
   parser.accepts("mirror-from-url","Cluster url to mirror data from").withRequiredArg().describedAs("mirror-cluster-bootstrap-url").ofType(String.class);
   parser.accepts("mirror-node","Node id in the mirror cluster to mirror from").withRequiredArg().describedAs("id-of-mirror-node").ofType(Integer.class);
   parser.accepts("fetch-orphaned","Fetch any orphaned keys/entries in the node");
@@ -121,7 +121,7 @@
     }
     ops+="o";
   }
-  if (options.has("query-keys")) {
+  if (options.has("query-key")) {
     ops+="q";
   }
   if (options.has("restore")) {
@@ -307,11 +307,13 @@
       adminClient.storeMntOps.reserveMemory(nodeId,storeNames,reserveMB);
     }
     if (ops.contains("q")) {
-      List<String> keyList=(List<String>)options.valuesOf("query-keys");
+      String key=(String)options.valueOf("query-key");
+      List<String> keysList=new ArrayList<String>();
+      keysList.add(key);
       if (storeNames == null || storeNames.size() == 0) {
         throw new VoldemortException("Must specify store name using --stores option");
       }
-      executeQueryKeys(nodeId,adminClient,storeNames,keyList,options.has("ascii"));
+      executeQueryKeys(nodeId,adminClient,storeNames,keysList,options.has("ascii"));
     }
     if (ops.contains("h")) {
       if (nodeId == -1) {
