@@ -1,14 +1,6 @@
 {
   try {
-    Set<Integer> stoppedServers=new HashSet<Integer>();
-    stoppedServers.add(1);
-    stoppedServers.add(2);
-    stoppedServers.add(3);
-    stoppedServers.add(4);
-    stoppedServers.add(5);
-    stoppedServers.add(6);
-    stoppedServers.add(7);
-    for (    Integer nodeId : stoppedServers) {
+    for (    Integer nodeId : stoppedServersForRemoteZoneNodeFail) {
       vservers.get(nodeId).stop();
     }
     client.put("AB",new Versioned<String>("CD"),null);
@@ -18,7 +10,7 @@
  catch (    InterruptedException e) {
     }
     for (    Integer nodeId : vservers.keySet()) {
-      if (stoppedServers.contains(nodeId)) {
+      if (stoppedServersForRemoteZoneNodeFail.contains(nodeId)) {
         continue;
       }
       VoldemortServer vs=vservers.get(nodeId);
