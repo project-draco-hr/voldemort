@@ -1,0 +1,39 @@
+{
+  if (this.storeDefinitionsManager == null) {
+    throw new VoldemortException("The store definitions directory is empty");
+  }
+  String allStoreDefinitions="<stores>";
+  Version finalStoresXmlVersion=null;
+  if (storesXmlVersion != null) {
+    finalStoresXmlVersion=storesXmlVersion;
+  }
+  this.storeNames.clear();
+  ClosableIterator<Pair<String,Versioned<String>>> storesIterator=this.storeDefinitionsManager.entries();
+  Map<String,Versioned<String>> storeNameToDefMap=new HashMap<String,Versioned<String>>();
+  Version maxVersion=null;
+  while (storesIterator.hasNext()) {
+    Pair<String,Versioned<String>> storeDetail=storesIterator.next();
+    String storeName=storeDetail.getFirst();
+    Versioned<String> versionedStoreDef=storeDetail.getSecond();
+    storeNameToDefMap.put(storeName,versionedStoreDef);
+    Version curVersion=versionedStoreDef.getVersion();
+    if (maxVersion == null) {
+      maxVersion=curVersion;
+    }
+ else     if (maxVersion.compare(curVersion) == Occurred.BEFORE) {
+      maxVersion=curVersion;
+    }
+  }
+  if (finalStoresXmlVersion == null) {
+    finalStoresXmlVersion=maxVersion;
+  }
+  for (  Entry<String,Versioned<String>> storeEntry : storeNameToDefMap.entrySet()) {
+    String storeName=storeEntry.getKey();
+    Versioned<String> versionedStoreDef=storeEntry.getValue();
+    this.storeNames.add(storeName);
+    this.metadataCache.put(storeName,new Versioned<Object>(versionedStoreDef.getValue(),versionedStoreDef.getVersion()));
+    allStoreDefinitions+=versionedStoreDef.getValue();
+  }
+  allStoreDefinitions+="</stores>";
+  metadataCache.put(STORES_KEY,convertStringToObject(STORES_KEY,new Versioned<String>(allStoreDefinitions,finalStoresXmlVersion)));
+}

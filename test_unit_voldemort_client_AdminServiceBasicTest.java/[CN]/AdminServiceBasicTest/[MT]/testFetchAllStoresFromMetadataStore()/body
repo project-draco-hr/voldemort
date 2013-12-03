@@ -1,0 +1,10 @@
+{
+  String storeName=MetadataStore.STORES_KEY;
+  String storeDefStr=bootstrapMetadata(storeName);
+  StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
+  List<StoreDefinition> storeDefList=mapper.readStoreList(new StringReader(storeDefStr));
+  assertEquals(storeDefList.size(),this.storeDefs.size());
+  Set<String> receivedStoreNames=getStoreNames(storeDefList);
+  Set<String> originalStoreNames=getStoreNames(this.storeDefs);
+  assertEquals(receivedStoreNames,originalStoreNames);
+}

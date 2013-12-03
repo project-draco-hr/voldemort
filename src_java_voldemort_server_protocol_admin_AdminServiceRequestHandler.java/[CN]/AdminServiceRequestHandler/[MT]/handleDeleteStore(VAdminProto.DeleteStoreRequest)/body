@@ -13,24 +13,17 @@ synchronized (lock) {
         }
  else {
           List<StoreDefinition> oldStoreDefList=metadataStore.getStoreDefList();
-          List<StoreDefinition> newStoreDefList=new ArrayList<StoreDefinition>();
           for (          StoreDefinition storeDef : oldStoreDefList) {
             boolean isReadOnly=storeDef.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0;
             if (storeDef.isView()) {
-              if (storeDef.getViewTargetStoreName().compareTo(storeName) != 0) {
-                newStoreDefList.add(storeDef);
-              }
- else {
+              if (storeDef.getViewTargetStoreName().compareTo(storeName) == 0) {
                 logger.info("Deleting view '" + storeDef.getName() + "'");
                 storageService.removeEngine(storeRepository.getStorageEngine(storeDef.getName()),isReadOnly,storeDef.getType(),false);
                 logger.info("Successfully deleted view '" + storeDef.getName() + "'");
               }
             }
  else {
-              if (storeDef.getName().compareTo(storeName) != 0) {
-                newStoreDefList.add(storeDef);
-              }
- else {
+              if (storeDef.getName().compareTo(storeName) == 0) {
                 logger.info("Deleting store '" + storeDef.getName() + "'");
                 storageService.removeEngine(storeRepository.getStorageEngine(storeDef.getName()),isReadOnly,storeDef.getType(),true);
                 logger.info("Successfully deleted store '" + storeDef.getName() + "'");
@@ -38,7 +31,7 @@ synchronized (lock) {
             }
           }
           try {
-            metadataStore.put(MetadataStore.STORES_KEY,newStoreDefList);
+            metadataStore.deleteStoreDefinition(storeName);
           }
  catch (          Exception e) {
             throw new VoldemortException(e);

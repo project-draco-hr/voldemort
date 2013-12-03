@@ -2,7 +2,12 @@
   logger.info("metadata init().");
   writeLock.lock();
   initCache(CLUSTER_KEY);
-  initCache(STORES_KEY);
+  if (this.storeDefinitionsManager != null) {
+    initStoreDefinitions(null);
+  }
+ else {
+    initCache(STORES_KEY);
+  }
   initSystemCache();
   initSystemRoutingStrategies(getCluster());
   initCache(NODE_ID_KEY,nodeId);

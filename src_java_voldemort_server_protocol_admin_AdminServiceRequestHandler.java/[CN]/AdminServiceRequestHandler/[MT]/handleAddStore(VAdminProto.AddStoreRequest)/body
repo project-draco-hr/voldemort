@@ -14,18 +14,8 @@ synchronized (lock) {
         }
         logger.info("Adding new store '" + def.getName() + "'");
         StorageEngine<ByteArray,byte[],byte[]> engine=storageService.openStore(def);
-        List<StoreDefinition> currentStoreDefs;
-        List<Versioned<byte[]>> v=metadataStore.get(MetadataStore.STORES_KEY,null);
-        if (((v.size() > 0) ? 1 : 0) > 0) {
-          Versioned<byte[]> currentValue=v.get(0);
-          currentStoreDefs=mapper.readStoreList(new StringReader(ByteUtils.getString(currentValue.getValue(),"UTF-8")));
-        }
- else {
-          currentStoreDefs=Lists.newArrayList();
-        }
-        currentStoreDefs.add(def);
         try {
-          metadataStore.put(MetadataStore.STORES_KEY,currentStoreDefs);
+          metadataStore.addStoreDefinition(def);
         }
  catch (        Exception e) {
           boolean isReadOnly=ReadOnlyStorageConfiguration.TYPE_NAME.equals(def.getType());

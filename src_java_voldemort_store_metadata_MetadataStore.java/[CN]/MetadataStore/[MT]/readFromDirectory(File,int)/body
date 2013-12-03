@@ -1,6 +1,34 @@
 {
   if (!Utils.isReadableDir(dir))   throw new IllegalArgumentException("Metadata directory " + dir.getAbsolutePath() + " does not exist or can not be read.");
-  if (dir.listFiles() == null)   throw new IllegalArgumentException("No configuration found in " + dir.getAbsolutePath() + ".");
+  String storeDefDirPath=dir.getAbsolutePath() + File.separator + MetadataStore.STORE_DEFINITIONS_STORE_NAME;
+  List<String> configurationFiles=Arrays.asList(dir.list());
+  if (configurationFiles == null)   throw new IllegalArgumentException("No configuration found in " + dir.getAbsolutePath() + ".");
+  if (!configurationFiles.contains(STORE_DEFINITIONS_STORE_NAME)) {
+    StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
+    List<StoreDefinition> storeDefinitions=null;
+    try {
+      storeDefinitions=mapper.readStoreList(new File(dir.getAbsolutePath() + File.separator + STORES_KEY));
+    }
+ catch (    IOException e) {
+      throw new VoldemortException("Cannot parse the store definitions from " + STORES_KEY + " file ",e);
+    }
+    if (storeDefinitions == null) {
+      throw new VoldemortException("Neither STORES nor stores.xml exist in the config directory");
+    }
+    File storeDefinitionsDir=new File(storeDefDirPath);
+    if (!storeDefinitionsDir.mkdir()) {
+      throw new VoldemortException("Unable to create " + STORE_DEFINITIONS_STORE_NAME + " sub directory");
+    }
+    for (    StoreDefinition storeDef : storeDefinitions) {
+      try {
+        FileUtils.writeStringToFile(new File(storeDefDirPath + File.separator + storeDef.getName()),mapper.writeStore(storeDef));
+      }
+ catch (      IOException e) {
+        throw new VoldemortException("Cannot write store definition to file: " + storeDef.getName(),e);
+      }
+    }
+  }
+  StorageEngine<String,String,String> storesEngine=new ConfigurationStorageEngine(MetadataStore.STORE_DEFINITIONS_STORE_NAME,storeDefDirPath);
   Store<String,String,String> innerStore=new ConfigurationStorageEngine(MetadataStore.METADATA_STORE_NAME,dir.getAbsolutePath());
-  return new MetadataStore(innerStore,nodeId);
+  return new MetadataStore(innerStore,storesEngine,nodeId);
 }

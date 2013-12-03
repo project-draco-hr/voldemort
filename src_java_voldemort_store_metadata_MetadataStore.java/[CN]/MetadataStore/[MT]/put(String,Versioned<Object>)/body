@@ -1,11 +1,31 @@
 {
   writeLock.lock();
   try {
-    if (METADATA_KEYS.contains(key)) {
-      if (STORES_KEY.equals(key)) {
-        List<StoreDefinition> storeDefs=(List<StoreDefinition>)value.getValue();
-        StoreDefinitionUtils.validateSchemasAsNeeded(storeDefs);
+    if (this.storeNames.contains(key) || key.equals(STORES_KEY)) {
+      List<StoreDefinition> storeDefs=(List<StoreDefinition>)value.getValue();
+      StoreDefinitionUtils.validateSchemasAsNeeded(storeDefs);
+      Set<String> storeNamesToDelete=new HashSet<String>();
+      for (      String storeName : this.storeNames) {
+        storeNamesToDelete.add(storeName);
       }
+      StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
+      List<StoreDefinition> storeDefinitions=(List<StoreDefinition>)value.getValue();
+      Set<String> specifiedStoreNames=new HashSet<String>();
+      for (      StoreDefinition storeDef : storeDefinitions) {
+        specifiedStoreNames.add(storeDef.getName());
+        String storeDefStr=mapper.writeStore(storeDef);
+        Versioned<String> versionedValueStr=new Versioned<String>(storeDefStr,value.getVersion());
+        this.storeDefinitionsManager.put(storeDef.getName(),versionedValueStr,"");
+        this.metadataCache.put(storeDef.getName(),new Versioned<Object>(storeDefStr,value.getVersion()));
+      }
+      if (key.equals(STORES_KEY)) {
+        storeNamesToDelete.removeAll(specifiedStoreNames);
+        resetStoreDefinitions(storeNamesToDelete);
+      }
+      initStoreDefinitions(value.getVersion());
+      updateRoutingStrategies(getCluster(),storeDefinitions);
+    }
+ else     if (METADATA_KEYS.contains(key)) {
       putInner(key,convertObjectToString(key,value));
       metadataCache.put(key,value);
       if (CLUSTER_KEY.equals(key)) {

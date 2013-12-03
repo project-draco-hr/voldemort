@@ -1,0 +1,18 @@
+{
+  writeLock.lock();
+  try {
+    if (this.storeNames.contains(storeDef.getName())) {
+      throw new VoldemortException("Store already exists !");
+    }
+    StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
+    String storeDefStr=mapper.writeStore(storeDef);
+    Versioned<String> versionedValueStr=new Versioned<String>(storeDefStr);
+    this.storeDefinitionsManager.put(storeDef.getName(),versionedValueStr,null);
+    this.metadataCache.put(storeDef.getName(),new Versioned<Object>(storeDefStr));
+    initStoreDefinitions(null);
+    updateRoutingStrategies(getCluster(),getStoreDefList());
+  }
+  finally {
+    writeLock.unlock();
+  }
+}

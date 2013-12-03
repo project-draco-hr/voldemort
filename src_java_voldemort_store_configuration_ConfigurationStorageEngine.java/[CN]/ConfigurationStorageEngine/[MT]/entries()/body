@@ -1,3 +1,10 @@
 {
-  throw new VoldemortException("Iteration  not supported in ConfigurationStorageEngine");
+  List<String> fileNameList=new ArrayList<String>();
+  for (  String fileName : this.directory.list()) {
+    if (fileName.equals(VERSION_DIRECTORY) || fileName.equals(TEMP_DIRECTORY)) {
+      continue;
+    }
+    fileNameList.add(fileName);
+  }
+  return new FilesIterator(fileNameList,this);
 }

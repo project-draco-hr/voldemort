@@ -1,0 +1,9 @@
+{
+  Node serverNode=servers[0].getIdentityNode();
+  Store<ByteArray,byte[],byte[]> remoteStore=socketStoreFactory.create(MetadataStore.METADATA_STORE_NAME,serverNode.getHost(),serverNode.getSocketPort(),RequestFormatType.VOLDEMORT_V2,RequestRoutingType.NORMAL);
+  Store<String,String,byte[]> store=SerializingStore.wrap(remoteStore,new StringSerializer("UTF-8"),new StringSerializer("UTF-8"),new IdentitySerializer());
+  List<Versioned<String>> found=store.get(metadataKey,null);
+  assertEquals(found.size(),1);
+  String valueStr=found.get(0).getValue();
+  return valueStr;
+}

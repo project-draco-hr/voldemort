@@ -1,0 +1,29 @@
+{
+  Set<String> storesNamesToBeUpdated=getStoreNames(storesToBeUpdatedList);
+  List<StoreDefinition> originalStoreDefinitionsList=new ArrayList<StoreDefinition>();
+  for (  StoreDefinition def : this.storeDefs) {
+    if (storesNamesToBeUpdated.contains(def.getName())) {
+      originalStoreDefinitionsList.add(def);
+    }
+  }
+  AdminClient adminClient=getAdminClient();
+  for (  int nodeId : this.cluster.getNodeIds()) {
+    adminClient.metadataMgmtOps.updateRemoteStoreDefList(nodeId,storesToBeUpdatedList);
+  }
+  String allStoresDefStr=bootstrapMetadata(MetadataStore.STORES_KEY);
+  StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
+  List<StoreDefinition> storeDefList=mapper.readStoreList(new StringReader(allStoresDefStr));
+  assertEquals(storeDefList.size(),this.storeDefs.size());
+  Map<String,StoreDefinition> storeNameToDefMap=new HashMap<String,StoreDefinition>();
+  for (  StoreDefinition def : this.storeDefs) {
+    storeNameToDefMap.put(def.getName(),def);
+  }
+  for (  StoreDefinition def : storeDefList) {
+    if (!storesNamesToBeUpdated.contains(def.getName())) {
+      assertEquals(def,storeNameToDefMap.get(def.getName()));
+    }
+  }
+  for (  int nodeId : this.cluster.getNodeIds()) {
+    adminClient.metadataMgmtOps.updateRemoteStoreDefList(nodeId,originalStoreDefinitionsList);
+  }
+}

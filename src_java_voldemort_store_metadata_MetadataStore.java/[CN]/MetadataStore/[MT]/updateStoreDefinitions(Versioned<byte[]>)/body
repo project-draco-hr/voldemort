@@ -1,0 +1,23 @@
+{
+  writeLock.lock();
+  try {
+    Versioned<String> value=new Versioned<String>(ByteUtils.getString(valueBytes.getValue(),"UTF-8"),valueBytes.getVersion());
+    Versioned<Object> valueObject=convertStringToObject(STORES_KEY,value);
+    StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
+    List<StoreDefinition> storeDefinitions=(List<StoreDefinition>)valueObject.getValue();
+    for (    StoreDefinition storeDef : storeDefinitions) {
+      if (!this.storeNames.contains(storeDef.getName())) {
+        throw new VoldemortException("Cannot update a store which does not exist !");
+      }
+      String storeDefStr=mapper.writeStore(storeDef);
+      Versioned<String> versionedValueStr=new Versioned<String>(storeDefStr,value.getVersion());
+      this.storeDefinitionsManager.put(storeDef.getName(),versionedValueStr,"");
+      this.metadataCache.put(storeDef.getName(),new Versioned<Object>(storeDefStr,value.getVersion()));
+    }
+    initStoreDefinitions(value.getVersion());
+    updateRoutingStrategies(getCluster(),storeDefinitions);
+  }
+  finally {
+    writeLock.unlock();
+  }
+}
