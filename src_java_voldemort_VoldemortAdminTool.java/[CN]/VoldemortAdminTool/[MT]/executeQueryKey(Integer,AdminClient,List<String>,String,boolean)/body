@@ -12,39 +12,37 @@
     @SuppressWarnings("unchecked") final Serializer<Object> keySerializer=(Serializer<Object>)serializerFactory.getSerializer(keySerializerDef);
     @SuppressWarnings("unchecked") final Serializer<Object> valueSerializer=(Serializer<Object>)serializerFactory.getSerializer(valueSerializerDef);
     List<ByteArray> listKeys=new ArrayList<ByteArray>();
-    for (    String keyString : keys) {
-      try {
-        if (useAscii) {
-          Object keyObject;
-          String keySerializerName=keySerializerDef.getName();
-          if (isAvroSchema(keySerializerName)) {
-            Schema keySchema=Schema.parse(keySerializerDef.getCurrentSchemaInfo());
-            JsonDecoder decoder=new JsonDecoder(keySchema,keyString);
-            GenericDatumReader<Object> datumReader=new GenericDatumReader<Object>(keySchema);
-            keyObject=datumReader.read(null,decoder);
-          }
- else           if (keySerializerName.equals(DefaultSerializerFactory.JSON_SERIALIZER_TYPE_NAME)) {
-            JsonReader jsonReader=new JsonReader(new StringReader(keyString));
-            keyObject=jsonReader.read();
-          }
- else {
-            keyObject=keyString;
-          }
-          listKeys.add(new ByteArray(keySerializer.toBytes(keyObject)));
+    try {
+      if (useAscii) {
+        Object keyObject;
+        String keySerializerName=keySerializerDef.getName();
+        if (isAvroSchema(keySerializerName)) {
+          Schema keySchema=Schema.parse(keySerializerDef.getCurrentSchemaInfo());
+          JsonDecoder decoder=new JsonDecoder(keySchema,keyString);
+          GenericDatumReader<Object> datumReader=new GenericDatumReader<Object>(keySchema);
+          keyObject=datumReader.read(null,decoder);
+        }
+ else         if (keySerializerName.equals(DefaultSerializerFactory.JSON_SERIALIZER_TYPE_NAME)) {
+          JsonReader jsonReader=new JsonReader(new StringReader(keyString));
+          keyObject=jsonReader.read();
         }
  else {
-          listKeys.add(new ByteArray(ByteUtils.fromHexString(keyString)));
+          keyObject=keyString;
         }
+        listKeys.add(new ByteArray(keySerializer.toBytes(keyObject)));
       }
- catch (      DecoderException de) {
-        System.err.println("Error decoding key " + keyString);
-        de.printStackTrace();
-        return;
+ else {
+        listKeys.add(new ByteArray(ByteUtils.fromHexString(keyString)));
       }
-catch (      IOException io) {
-        System.err.println("Error parsing avro string " + keyString);
-        io.printStackTrace();
-      }
+    }
+ catch (    DecoderException de) {
+      System.err.println("Error decoding key " + keyString);
+      de.printStackTrace();
+      return;
+    }
+catch (    IOException io) {
+      System.err.println("Error parsing avro string " + keyString);
+      io.printStackTrace();
     }
     final Iterator<QueryKeyResult> iterator=adminClient.streamingOps.queryKeys(nodeId.intValue(),storeName,listKeys.iterator());
     final CompressionStrategy keyCompressionStrategy;
