@@ -16,12 +16,27 @@ default :
   }
 case 8:
 {
-  setNodeId(input.readInt32());
+  addNodeIds(input.readInt32());
   break;
+}
+case 10:
+{
+int length=input.readRawVarint32();
+int limit=input.pushLimit(length);
+while (input.getBytesUntilLimit() > 0) {
+  addNodeIds(input.readInt32());
+}
+input.popLimit(limit);
+break;
 }
 case 16:
 {
 setZoneId(input.readInt32());
+break;
+}
+case 26:
+{
+addStoreNames(input.readString());
 break;
 }
 }

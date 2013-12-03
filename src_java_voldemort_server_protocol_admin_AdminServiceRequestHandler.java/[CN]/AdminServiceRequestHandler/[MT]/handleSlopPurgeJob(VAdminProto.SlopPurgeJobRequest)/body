@@ -10,7 +10,8 @@
             logger.info(job.getJobName() + " already running .. backing off.. ");
             return;
           }
-          logger.info("Starting the " + job.getJobName() + " now on ID : "+ metadataStore.getNodeId());
+          logger.info("Starting the " + job.getJobName() + " now on node ID : "+ metadataStore.getNodeId());
+          job.setFilter(request.getNodeIdsList(),request.hasZoneId() ? request.getZoneId() : Zone.UNSET_ZONE_ID,request.getStoreNamesList());
           job.run();
         }
  else {

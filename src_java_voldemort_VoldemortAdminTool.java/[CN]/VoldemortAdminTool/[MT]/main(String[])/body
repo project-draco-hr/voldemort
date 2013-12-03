@@ -9,6 +9,7 @@
   parser.accepts("fetch-keys","Fetch keys").withOptionalArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("fetch-entries","Fetch full entries").withOptionalArg().describedAs("partition-ids").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("outdir","Output directory").withRequiredArg().describedAs("output-directory").ofType(String.class);
+  parser.accepts("nodes","list of nodes").withRequiredArg().describedAs("nodes").withValuesSeparatedBy(',').ofType(Integer.class);
   parser.accepts("stores","Store names").withRequiredArg().describedAs("store-names").withValuesSeparatedBy(',').ofType(String.class);
   parser.accepts("store","Store name for querying keys").withRequiredArg().describedAs("store-name").ofType(String.class);
   parser.accepts("add-stores","Add stores in this stores.xml").withRequiredArg().describedAs("stores.xml containing just the new stores").ofType(String.class);
@@ -250,10 +251,14 @@
       executeFetchEntries(nodeId,adminClient,partitionIdList,outputDir,storeNames,useAscii,options.has("fetch-orphaned"));
     }
  else     if (options.has("purge-slops")) {
-      if (nodeId == -1 && zoneId == -1) {
-        Utils.croak("Must specify either --node or zone-id with --purge-slops");
+      List<Integer> nodesToPurge=null;
+      if (options.has("nodes")) {
+        nodesToPurge=(List<Integer>)options.valuesOf("nodes");
       }
-      executePurgeSlops(adminClient,nodeId,zoneId);
+      if (nodesToPurge == null && zoneId == -1 && storeNames == null) {
+        Utils.croak("Must specify atleast one of --nodes, --zone-id or --stores with --purge-slops");
+      }
+      executePurgeSlops(adminClient,nodesToPurge,zoneId,storeNames);
     }
  else     if (options.has("synchronize-metadata-version")) {
       synchronizeMetadataVersion(adminClient,nodeId);
