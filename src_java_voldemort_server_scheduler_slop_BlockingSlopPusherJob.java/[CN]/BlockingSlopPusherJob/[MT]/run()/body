@@ -5,6 +5,7 @@
   }
   logger.info("Started blocking slop pusher job at " + new Date());
   Cluster cluster=metadataStore.getCluster();
+  Set<String> storeNames=StoreDefinitionUtils.getStoreNamesSet(metadataStore.getStoreDefList());
   ClosableIterator<Pair<ByteArray,Versioned<Slop>>> iterator=null;
   Map<Integer,Long> attemptedByNode=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
   Map<Integer,Long> succeededByNode=Maps.newHashMapWithExpectedSize(cluster.getNumberOfNodes());
@@ -34,9 +35,15 @@
         Versioned<Slop> versioned=keyAndVal.getSecond();
         Slop slop=versioned.getValue();
         int nodeId=slop.getNodeId();
+        if (isSlopDead(cluster,storeNames,versioned.getValue())) {
+          handleDeadSlop(slopStorageEngine,keyAndVal);
+          continue;
+        }
         Node node=cluster.getNodeById(nodeId);
         attemptedPushes++;
-        if (attemptedPushes % 10000 == 0)         logger.info("Attempted pushing " + attemptedPushes + " slops");
+        if (attemptedPushes % 10000 == 0) {
+          logger.info("Attempted pushing " + attemptedPushes + " slops");
+        }
         Long attempted=attemptedByNode.get(nodeId);
         attemptedByNode.put(nodeId,attempted + 1L);
         if (failureDetector.isAvailable(node)) {

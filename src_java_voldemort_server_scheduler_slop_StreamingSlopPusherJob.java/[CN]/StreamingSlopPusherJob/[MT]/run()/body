@@ -39,6 +39,7 @@
     attemptedByNode.put(node.getId(),0L);
     succeededByNode.put(node.getId(),0L);
   }
+  Set<String> storeNames=StoreDefinitionUtils.getStoreNamesSet(metadataStore.getStoreDefList());
   acquireRepairPermit();
   try {
     StorageEngine<ByteArray,Slop,byte[]> slopStore=slopStorageEngine.asSlopStore();
@@ -52,6 +53,10 @@
           this.streamStats.reportStreamingSlopScan();
         }
         int nodeId=versioned.getValue().getNodeId();
+        if (isSlopDead(cluster,storeNames,versioned.getValue())) {
+          handleDeadSlop(slopStorageEngine,keyAndVal);
+          continue;
+        }
         Node node=cluster.getNodeById(nodeId);
         attemptedPushes.incrementAndGet();
         Long attempted=attemptedByNode.get(nodeId);

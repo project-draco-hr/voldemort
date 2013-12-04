@@ -1,0 +1,14 @@
+{
+  Versioned<Slop> versioned=keyAndVal.getSecond();
+  if (voldemortConfig.getAutoPurgeDeadSlops()) {
+    slopStorageEngine.delete(keyAndVal.getFirst(),versioned.getVersion());
+    if (getLogger().isDebugEnabled()) {
+      getLogger().debug("Auto purging dead slop :" + versioned.getValue());
+    }
+  }
+ else {
+    if (getLogger().isDebugEnabled()) {
+      getLogger().debug("Ignoring dead slop :" + versioned.getValue());
+    }
+  }
+}

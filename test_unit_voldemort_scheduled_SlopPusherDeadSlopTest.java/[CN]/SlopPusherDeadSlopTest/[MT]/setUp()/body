@@ -1,0 +1,16 @@
+{
+  try {
+    Properties serverProperties=new Properties();
+    serverProperties.setProperty("pusher.type",slopPusherType);
+    serverProperties.setProperty("slop.frequency.ms",SLOP_FREQUENCY_MS.toString());
+    serverProperties.setProperty("auto.purge.dead.slops","true");
+    server=ServerTestUtils.startStandAloneVoldemortServer(serverProperties,"test/common/voldemort/config/single-store.xml");
+    Properties adminProperties=new Properties();
+    adminProperties.setProperty("max_connections","2");
+    adminClient=new AdminClient(server.getMetadataStore().getCluster(),new AdminClientConfig(adminProperties),new ClientConfig());
+  }
+ catch (  Exception e) {
+    logger.error("Error in setup",e);
+    throw e;
+  }
+}

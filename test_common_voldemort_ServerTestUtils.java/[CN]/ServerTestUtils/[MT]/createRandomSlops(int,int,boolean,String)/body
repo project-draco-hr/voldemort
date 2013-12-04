@@ -1,0 +1,19 @@
+{
+  List<Versioned<Slop>> slops=new ArrayList<Versioned<Slop>>();
+  for (int cnt=0; cnt < numKeys; cnt++) {
+    int storeId=(int)Math.round(Math.random() * (storeNames.length - 1));
+    int operation=(int)Math.round(Math.random() + 1);
+    Slop.Operation operationType;
+    if (operation == 1)     operationType=Slop.Operation.PUT;
+ else     operationType=Slop.Operation.DELETE;
+    long keyInt=(long)(Math.random() * 1000000000L);
+    ByteArray key=new ByteArray(ByteUtils.getBytes("" + keyInt,"UTF-8"));
+    byte[] value=ByteUtils.getBytes("value-" + keyInt,"UTF-8");
+    Versioned<Slop> versioned=Versioned.value(new Slop(storeNames[storeId],operationType,key,value,null,nodeId,new Date()));
+    slops.add(versioned);
+    if (generateTwice) {
+      slops.add(versioned);
+    }
+  }
+  return slops;
+}

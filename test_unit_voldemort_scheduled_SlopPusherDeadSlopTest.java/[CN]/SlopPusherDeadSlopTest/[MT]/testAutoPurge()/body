@@ -1,0 +1,24 @@
+{
+  try {
+    List<Versioned<Slop>> deadNodeSlops=ServerTestUtils.createRandomSlops(1,40,false,"test");
+    List<Versioned<Slop>> deadStoreSlops=ServerTestUtils.createRandomSlops(0,40,false,"deleted_store");
+    List<Versioned<Slop>> slops=new ArrayList<Versioned<Slop>>();
+    slops.addAll(deadStoreSlops);
+    slops.addAll(deadNodeSlops);
+    SlopSerializer slopSerializer=new SlopSerializer();
+    for (    Versioned<Slop> slop : slops) {
+      VectorClock clock=TestUtils.getClock(1);
+      NodeValue<ByteArray,byte[]> nodeValue=new NodeValue<ByteArray,byte[]>(0,slop.getValue().makeKey(),new Versioned<byte[]>(slopSerializer.toBytes(slop.getValue()),clock));
+      adminClient.storeOps.putNodeKeyValue("slop",nodeValue);
+    }
+    Thread.sleep(SLOP_FREQUENCY_MS * 2);
+    for (    Versioned<Slop> slop : slops) {
+      List<Versioned<byte[]>> slopEntry=adminClient.storeOps.getNodeKey("slop",0,slop.getValue().makeKey());
+      assertEquals("Slop should be purged",0,slopEntry.size());
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Test failed with",e);
+    fail("unexpected exception");
+  }
+}

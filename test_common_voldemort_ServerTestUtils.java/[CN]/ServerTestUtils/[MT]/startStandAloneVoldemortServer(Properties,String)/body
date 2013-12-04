@@ -1,0 +1,12 @@
+{
+  VoldemortServer[] servers=new VoldemortServer[1];
+  int partitionMap[][]={{0,1,2,3}};
+  SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
+  try {
+    Cluster cluster=ServerTestUtils.startVoldemortCluster(1,servers,partitionMap,socketStoreFactory,true,null,storesXmlFile,serverProperties);
+  }
+  finally {
+    socketStoreFactory.close();
+  }
+  return servers[0];
+}
