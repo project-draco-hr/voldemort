@@ -8,8 +8,8 @@
   this.clientInfo=new ClientInfo(storeName,clientContext,clientSequence,System.currentTimeMillis(),ManifestFileReader.getReleaseVersion(),config);
   this.clientId=generateClientId(clientInfo);
   this.config=config;
-  this.sysRepository=new SystemStoreRepository(config);
-  this.scheduler=new SchedulerService(config.getAsyncJobThreadPoolSize(),SystemTime.INSTANCE,true);
+  this.sysRepository=sysRepository;
+  this.scheduler=scheduler;
   if (config.isJmxEnabled()) {
     JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass()) + "." + storeName));
   }

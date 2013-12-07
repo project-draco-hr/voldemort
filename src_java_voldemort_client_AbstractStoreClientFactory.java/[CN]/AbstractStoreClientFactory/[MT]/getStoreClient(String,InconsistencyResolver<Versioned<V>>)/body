@@ -11,7 +11,10 @@
     client=new DefaultStoreClient<K,V>(storeName,resolver,this,MAX_METADATA_REFRESH_ATTEMPTS);
   }
  else {
-    client=new ZenStoreClient<K,V>(storeName,resolver,this,MAX_METADATA_REFRESH_ATTEMPTS,clientContextName,clientSequencer.getAndIncrement(),config);
+    if (!isZenStoreResourcesInited.get()) {
+      initZenStoreResources();
+    }
+    client=new ZenStoreClient<K,V>(storeName,resolver,this,MAX_METADATA_REFRESH_ATTEMPTS,clientContextName,clientSequencer.getAndIncrement(),config,scheduler,sysRepository);
   }
   if (config.getCacheStoreClients()) {
     StoreClient<K,V> oldValue=(StoreClient<K,V>)storeClientCache.putIfAbsent(cacheKey,client);
