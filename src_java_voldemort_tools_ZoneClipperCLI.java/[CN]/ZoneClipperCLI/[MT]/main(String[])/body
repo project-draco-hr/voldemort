@@ -13,10 +13,10 @@
     originalPartitions.addAll(initialCluster.getPartitionIdsInZone(zoneId));
   }
   Cluster intermediateCluster=RebalanceUtils.dropZone(initialCluster,dropZoneId);
-  Set<Node> nodes=new HashSet<Node>();
+  Set<Node> survivingNodes=new HashSet<Node>();
   for (  int nodeId : intermediateCluster.getNodeIds()) {
     if (intermediateCluster.getNodeById(nodeId).getZoneId() != dropZoneId) {
-      nodes.add(intermediateCluster.getNodeById(nodeId));
+      survivingNodes.add(intermediateCluster.getNodeById(nodeId));
     }
   }
   Set<Zone> zones=new HashSet<Zone>();
@@ -28,16 +28,16 @@
     proximityList.remove(new Integer(dropZoneId));
     zones.add(new Zone(zoneId,proximityList));
   }
-  Cluster finalCluster=new Cluster(intermediateCluster.getName(),Utils.asSortedList(nodes),Utils.asSortedList(zones));
+  Cluster finalCluster=new Cluster(intermediateCluster.getName(),Utils.asSortedList(survivingNodes),Utils.asSortedList(zones));
   if (initialCluster.getNumberOfPartitions() != finalCluster.getNumberOfPartitions()) {
-    System.out.println("ERROR : The number of partitions in the initial and the final cluster is not equal \n");
+    logger.error("The number of partitions in the initial and the final cluster is not equal \n");
   }
   Set<Integer> finalPartitions=new HashSet<Integer>();
   for (  Integer zoneId : finalCluster.getZoneIds()) {
     finalPartitions.addAll(finalCluster.getPartitionIdsInZone(zoneId));
   }
   if (!originalPartitions.equals(finalPartitions)) {
-    System.out.println("ERROR : The list of partition ids in the initial and the final cluster doesn't match \n ");
+    logger.error("The list of partition ids in the initial and the final cluster doesn't match \n ");
   }
   RebalanceUtils.dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName,finalCluster);
 }
