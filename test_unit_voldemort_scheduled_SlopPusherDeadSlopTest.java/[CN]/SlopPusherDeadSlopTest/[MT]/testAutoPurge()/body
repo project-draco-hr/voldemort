@@ -2,9 +2,11 @@
   try {
     List<Versioned<Slop>> deadNodeSlops=ServerTestUtils.createRandomSlops(1,40,false,"test");
     List<Versioned<Slop>> deadStoreSlops=ServerTestUtils.createRandomSlops(0,40,false,"deleted_store");
+    List<Versioned<Slop>> validStoreSlops=ServerTestUtils.createRandomSlops(0,40,false,"test");
     List<Versioned<Slop>> slops=new ArrayList<Versioned<Slop>>();
     slops.addAll(deadStoreSlops);
     slops.addAll(deadNodeSlops);
+    slops.addAll(validStoreSlops);
     SlopSerializer slopSerializer=new SlopSerializer();
     for (    Versioned<Slop> slop : slops) {
       VectorClock clock=TestUtils.getClock(1);
@@ -12,9 +14,20 @@
       adminClient.storeOps.putNodeKeyValue("slop",nodeValue);
     }
     Thread.sleep(SLOP_FREQUENCY_MS * 2);
-    for (    Versioned<Slop> slop : slops) {
-      List<Versioned<byte[]>> slopEntry=adminClient.storeOps.getNodeKey("slop",0,slop.getValue().makeKey());
-      assertEquals("Slop should be purged",0,slopEntry.size());
+    for (    List<Versioned<Slop>> deadSlops : Arrays.asList(deadStoreSlops,deadNodeSlops)) {
+      for (      Versioned<Slop> slop : deadSlops) {
+        List<Versioned<byte[]>> slopEntry=adminClient.storeOps.getNodeKey("slop",0,slop.getValue().makeKey());
+        assertEquals("Slop should be purged",0,slopEntry.size());
+      }
+    }
+    for (    Versioned<Slop> slop : validStoreSlops) {
+      List<Versioned<byte[]>> slopEntry=adminClient.storeOps.getNodeKey("test",0,slop.getValue().getKey());
+      if (slop.getValue().getOperation() == Operation.DELETE) {
+        assertTrue("Delete Slop should have not reached destination",slopEntry.size() == 0);
+      }
+ else {
+        assertTrue("Put Slop should have reached destination",slopEntry.size() > 0);
+      }
     }
   }
  catch (  Exception e) {
