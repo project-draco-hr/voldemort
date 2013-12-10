@@ -1,8 +1,8 @@
 {
   try {
-    List<Versioned<Slop>> deadNodeSlops=ServerTestUtils.createRandomSlops(1,40,false,"test");
+    List<Versioned<Slop>> deadNodeSlops=ServerTestUtils.createRandomSlops(2,40,false,"test");
     List<Versioned<Slop>> deadStoreSlops=ServerTestUtils.createRandomSlops(0,40,false,"deleted_store");
-    List<Versioned<Slop>> validStoreSlops=ServerTestUtils.createRandomSlops(0,40,false,"test");
+    List<Versioned<Slop>> validStoreSlops=ServerTestUtils.createRandomSlops(1,40,false,"test");
     List<Versioned<Slop>> slops=new ArrayList<Versioned<Slop>>();
     slops.addAll(deadStoreSlops);
     slops.addAll(deadNodeSlops);
@@ -20,13 +20,19 @@
         assertEquals("Slop should be purged",0,slopEntry.size());
       }
     }
+    StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
+    List<StoreDefinition> storeDefs=mapper.readStoreList(new StringReader(VoldemortTestConstants.getSingleStoreDefinitionsXml()));
+    BaseStoreRoutingPlan rPlan=new BaseStoreRoutingPlan(adminClient.getAdminClientCluster(),StoreDefinitionUtils.getStoreDefinitionWithName(storeDefs,"test"));
     for (    Versioned<Slop> slop : validStoreSlops) {
-      List<Versioned<byte[]>> slopEntry=adminClient.storeOps.getNodeKey("test",0,slop.getValue().getKey());
-      if (slop.getValue().getOperation() == Operation.DELETE) {
-        assertTrue("Delete Slop should have not reached destination",slopEntry.size() == 0);
-      }
+      ByteArray key=slop.getValue().getKey();
+      if (rPlan.getReplicationNodeList(key.get()).contains(1)) {
+        List<Versioned<byte[]>> slopEntry=adminClient.storeOps.getNodeKey("test",1,key);
+        if (slop.getValue().getOperation() == Operation.DELETE) {
+          assertTrue("Delete Slop should have not reached destination",slopEntry.size() == 0);
+        }
  else {
-        assertTrue("Put Slop should have reached destination",slopEntry.size() > 0);
+          assertTrue("Put Slop should have reached destination",slopEntry.size() > 0);
+        }
       }
     }
   }

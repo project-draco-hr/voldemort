@@ -4,10 +4,13 @@
     serverProperties.setProperty("pusher.type",slopPusherType);
     serverProperties.setProperty("slop.frequency.ms",SLOP_FREQUENCY_MS.toString());
     serverProperties.setProperty("auto.purge.dead.slops","true");
-    server=ServerTestUtils.startStandAloneVoldemortServer(serverProperties,"test/common/voldemort/config/single-store.xml");
+    serverProperties.setProperty("enable.server.routing","true");
+    servers=new VoldemortServer[2];
+    int partitionMap[][]={{0,1},{2,3}};
+    cluster=ServerTestUtils.startVoldemortCluster(servers,partitionMap,serverProperties,"test/common/voldemort/config/single-store.xml");
     Properties adminProperties=new Properties();
     adminProperties.setProperty("max_connections","2");
-    adminClient=new AdminClient(server.getMetadataStore().getCluster(),new AdminClientConfig(adminProperties),new ClientConfig());
+    adminClient=new AdminClient(servers[0].getMetadataStore().getCluster(),new AdminClientConfig(adminProperties),new ClientConfig());
   }
  catch (  Exception e) {
     logger.error("Error in setup",e);
