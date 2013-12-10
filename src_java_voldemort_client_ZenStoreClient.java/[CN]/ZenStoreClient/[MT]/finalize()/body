@@ -1,0 +1,18 @@
+{
+  try {
+    if (scheduler.isStarted() && asyncMetadataManager != null) {
+      scheduler.terminate(makeAsyncMetadataManagerJobId());
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Error unscheduling AsyncMetadataManager for client " + clientId,e);
+  }
+  try {
+    if (scheduler.isStarted() && clientRegistryRefresher != null) {
+      scheduler.terminate(makeClientRegistryRefresherJobId());
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Error unscheduling ClientRegistryRefresher for client " + clientId,e);
+  }
+}
