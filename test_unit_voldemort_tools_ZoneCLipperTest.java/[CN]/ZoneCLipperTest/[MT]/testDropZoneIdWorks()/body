@@ -20,8 +20,7 @@
   assertEquals(rebalancePlan.getPartitionStoresMovedXZone(),0);
   assertEquals(rebalancePlan.getPartitionStoresMoved(),0);
   for (  Integer nodeId : interimCluster.getNodeIds()) {
-    Set<Integer> remainingNodes=interimCluster.getNodeIds();
-    remainingNodes.remove(nodeId);
+    Set<Integer> remainingNodes=Sets.symmetricDifference(interimCluster.getNodeIds(),Sets.newHashSet(nodeId));
     for (    Integer otherNodeId : remainingNodes) {
       assertTrue("Something went wrong as there is data movement between nodes",rebalancePlan.getNodeMoveMap().get(nodeId,otherNodeId) == 0);
     }
