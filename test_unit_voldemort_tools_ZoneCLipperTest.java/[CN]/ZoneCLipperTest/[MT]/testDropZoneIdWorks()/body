@@ -1,0 +1,29 @@
+{
+  Set<Integer> originalPartitions=new HashSet<Integer>();
+  for (  Integer zoneId : initialCluster.getZoneIds()) {
+    originalPartitions.addAll(initialCluster.getPartitionIdsInZone(zoneId));
+  }
+  Cluster interimCluster=RebalanceUtils.dropZone(initialCluster,dropZoneId);
+  RebalanceUtils.validateClusterPartitionCounts(initialCluster,interimCluster);
+  RebalanceUtils.validateClusterNodeCounts(initialCluster,interimCluster);
+  assertTrue("Zone being dropped has partitions. ZoneClipper didn't work properly",interimCluster.getPartitionIdsInZone(dropZoneId).isEmpty());
+  for (  Integer nodeId : interimCluster.getNodeIdsInZone(dropZoneId)) {
+    assertTrue("Nodes in the zone being dropped don't have empty partitions list",interimCluster.getNodeById(nodeId).getPartitionIds().isEmpty());
+  }
+  Set<Integer> finalPartitions=new HashSet<Integer>();
+  for (  Integer zoneId : interimCluster.getZoneIds()) {
+    finalPartitions.addAll(interimCluster.getPartitionIdsInZone(zoneId));
+  }
+  assertTrue("Original and interm partition ids don't match",originalPartitions.equals(finalPartitions));
+  RebalancePlan rebalancePlan=ClusterTestUtils.makePlan(initialCluster,storeDefs,interimCluster,storeDefs);
+  assertEquals(rebalancePlan.getPlan().size(),1);
+  assertEquals(rebalancePlan.getPartitionStoresMovedXZone(),0);
+  assertEquals(rebalancePlan.getPartitionStoresMoved(),0);
+  for (  Integer nodeId : interimCluster.getNodeIds()) {
+    Set<Integer> remainingNodes=interimCluster.getNodeIds();
+    remainingNodes.remove(nodeId);
+    for (    Integer otherNodeId : remainingNodes) {
+      assertTrue("Something went wrong as there is data movement between nodes",rebalancePlan.getNodeMoveMap().get(nodeId,otherNodeId) == 0);
+    }
+  }
+}
