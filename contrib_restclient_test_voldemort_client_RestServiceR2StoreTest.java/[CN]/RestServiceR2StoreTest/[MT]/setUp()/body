@@ -2,13 +2,12 @@
   final int numServers=1;
   this.nodeId=0;
   servers=new VoldemortServer[numServers];
-  int partitionMap[][]={{0,1,2,3,4,5,6,7}};
   try {
     Properties props=new Properties();
     props.setProperty("rest.enable","true");
     props.setProperty("http.enable","true");
     Cluster customCluster=clusterMapper.readCluster(new FileReader(clusterXmlFile),false);
-    cluster=ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,true,clusterXmlFile,storesXmlfile,props,customCluster);
+    cluster=ServerTestUtils.startVoldemortCluster(servers,null,clusterXmlFile,storesXmlfile,props,customCluster);
   }
  catch (  IOException e) {
     fail("Failure to setup the cluster");

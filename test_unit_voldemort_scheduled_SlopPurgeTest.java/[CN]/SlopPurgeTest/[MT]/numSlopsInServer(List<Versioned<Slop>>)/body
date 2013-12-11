@@ -1,0 +1,10 @@
+{
+  int count=0;
+  for (  Versioned<Slop> slop : slops) {
+    List<Versioned<byte[]>> slopEntry=adminClient.storeOps.getNodeKey("slop",PURGE_SERVER_ID,slop.getValue().makeKey());
+    if (slopEntry.size() > 0) {
+      count++;
+    }
+  }
+  return count;
+}

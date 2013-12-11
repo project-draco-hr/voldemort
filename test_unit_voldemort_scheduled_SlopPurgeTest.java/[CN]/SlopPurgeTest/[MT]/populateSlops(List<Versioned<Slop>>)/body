@@ -1,0 +1,7 @@
+{
+  for (  Versioned<Slop> slop : slops) {
+    VectorClock clock=TestUtils.getClock(1);
+    NodeValue<ByteArray,byte[]> nodeValue=new NodeValue<ByteArray,byte[]>(PURGE_SERVER_ID,slop.getValue().makeKey(),new Versioned<byte[]>(slopSerializer.toBytes(slop.getValue()),clock));
+    adminClient.storeOps.putNodeKeyValue("slop",nodeValue);
+  }
+}

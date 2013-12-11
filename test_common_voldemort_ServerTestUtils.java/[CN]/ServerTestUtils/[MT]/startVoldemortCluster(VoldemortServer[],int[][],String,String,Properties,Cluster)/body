@@ -1,0 +1,20 @@
+{
+  boolean started=false;
+  Cluster cluster=null;
+  SocketStoreFactory socketStoreFactory=new ClientRequestExecutorPool(2,10000,100000,32 * 1024);
+  try {
+    while (!started) {
+      try {
+        cluster=internalStartVoldemortCluster(voldemortServers.length,voldemortServers,partitionMap,socketStoreFactory,true,clusterFile,storeFile,properties,customCluster);
+        started=true;
+      }
+ catch (      BindException be) {
+        logger.debug("Caught BindException when starting cluster. Will retry.");
+      }
+    }
+  }
+  finally {
+    socketStoreFactory.close();
+  }
+  return cluster;
+}

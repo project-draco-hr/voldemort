@@ -1,19 +1,22 @@
 {
-  logger.info("Purging slops that match any of the following. 1) Nodes:" + nodesToPurge + ", 2) Zone:"+ zoneToPurge+ ", 3) Stores:"+ storesToPurge);
+  logger.info("Purging slops that match any of the following. {Nodes:" + nodesToPurge + "} {Zone:"+ zoneToPurge+ "} {Stores:"+ storesToPurge+ "}");
   SlopStorageEngine slopStorageEngine=storeRepo.getSlopStore();
   StorageEngine<ByteArray,Slop,byte[]> slopStore=slopStorageEngine.asSlopStore();
-  ClosableIterator<Pair<ByteArray,Versioned<Slop>>> iterator=slopStore.entries();
-  Set<Integer> nodesInPurgeZone=metadataStore.getCluster().getNodeIdsInZone(zoneToPurge);
+  ClosableIterator<Pair<ByteArray,Versioned<Slop>>> slopIterator=slopStore.entries();
+  Set<Integer> nodesInPurgeZone=null;
+  if (zoneToPurge != Zone.UNSET_ZONE_ID) {
+    nodesInPurgeZone=metadataStore.getCluster().getNodeIdsInZone(zoneToPurge);
+  }
   try {
-    while (iterator.hasNext()) {
-      Pair<ByteArray,Versioned<Slop>> keyAndVal=iterator.next();
+    while (slopIterator.hasNext()) {
+      Pair<ByteArray,Versioned<Slop>> keyAndVal=slopIterator.next();
       Versioned<Slop> versioned=keyAndVal.getSecond();
       Slop slop=versioned.getValue();
       boolean purge=false;
       if (nodesToPurge.contains(slop.getNodeId())) {
         purge=true;
       }
- else       if (nodesInPurgeZone.contains(slop.getNodeId())) {
+ else       if (nodesInPurgeZone != null && nodesInPurgeZone.contains(slop.getNodeId())) {
         purge=true;
       }
  else       if (storesToPurge.contains(slop.getStoreName())) {
@@ -32,6 +35,9 @@
   }
  catch (  Exception e) {
     logger.error("Error while purging slops",e);
+  }
+ finally {
+    slopIterator.close();
   }
   logger.info("Completed purging slops. " + "#Scanned:" + numKeysScannedThisRun + " #PurgedSlops:"+ numKeysUpdatedThisRun);
 }

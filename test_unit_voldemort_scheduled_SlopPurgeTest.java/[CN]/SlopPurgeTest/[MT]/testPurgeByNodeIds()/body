@@ -1,0 +1,19 @@
+{
+  List<Versioned<Slop>> node2Slops=ServerTestUtils.createRandomSlops(2,10,false,"astore");
+  List<Versioned<Slop>> node4Slops=ServerTestUtils.createRandomSlops(4,10,false,"cstore");
+  List<Versioned<Slop>> node1Slops=ServerTestUtils.createRandomSlops(1,10,false,"bstore");
+  List<Versioned<Slop>> node3Slops=ServerTestUtils.createRandomSlops(3,10,false,"bstore");
+  List<Versioned<Slop>> slops=new ArrayList<Versioned<Slop>>();
+  slops.addAll(node2Slops);
+  slops.addAll(node3Slops);
+  slops.addAll(node1Slops);
+  slops.addAll(node4Slops);
+  Collections.shuffle(slops);
+  populateSlops(slops);
+  adminClient.storeMntOps.slopPurgeJob(PURGE_SERVER_ID,Lists.newArrayList(2,4),-1,null);
+  ServerTestUtils.waitForAsyncOperationOnServer(purgedServer,"Purge",5000);
+  assertEquals("All slops from node 2 should be gone",0,numSlopsInServer(node2Slops));
+  assertEquals("All slops from node 4 should be gone",0,numSlopsInServer(node4Slops));
+  assertEquals("All slops from node 1 should be still there",node1Slops.size(),numSlopsInServer(node1Slops));
+  assertEquals("All slops from node 3 should be still there",node3Slops.size(),numSlopsInServer(node3Slops));
+}
