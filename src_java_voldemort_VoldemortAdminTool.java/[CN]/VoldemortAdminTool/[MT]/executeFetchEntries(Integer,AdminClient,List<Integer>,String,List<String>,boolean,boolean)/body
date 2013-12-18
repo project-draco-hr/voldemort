@@ -101,14 +101,14 @@
           while (entriesIterator.hasNext()) {
             Pair<ByteArray,Versioned<byte[]>> kvPair=entriesIterator.next();
             byte[] keyBytes=kvPair.getFirst().get();
-            byte[] versionBytes=((VectorClock)kvPair.getSecond().getVersion()).toBytes();
+            VectorClock clock=((VectorClock)kvPair.getSecond().getVersion());
             byte[] valueBytes=kvPair.getSecond().getValue();
-            out.writeInt(keyBytes.length);
-            out.write(keyBytes);
-            out.writeInt(versionBytes.length);
-            out.write(versionBytes);
-            out.writeInt(valueBytes.length);
-            out.write(valueBytes);
+            out.writeChars(ByteUtils.toHexString(keyBytes));
+            out.writeChars(",");
+            out.writeChars(clock.toString());
+            out.writeChars(",");
+            out.writeChars(ByteUtils.toHexString(valueBytes));
+            out.writeChars("\n");
           }
         }
       }

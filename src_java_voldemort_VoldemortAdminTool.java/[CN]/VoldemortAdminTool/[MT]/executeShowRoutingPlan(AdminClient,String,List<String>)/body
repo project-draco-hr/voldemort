@@ -1,0 +1,38 @@
+{
+  Cluster cluster=adminClient.getAdminClientCluster();
+  List<StoreDefinition> storeDefs=adminClient.metadataMgmtOps.getRemoteStoreDefList(0).getValue();
+  StoreDefinition storeDef=StoreDefinitionUtils.getStoreDefinitionWithName(storeDefs,storeName);
+  StoreRoutingPlan routingPlan=new StoreRoutingPlan(cluster,storeDef);
+  BaseStoreRoutingPlan bRoutingPlan=new BaseStoreRoutingPlan(cluster,storeDef);
+  for (  String keyStr : keyList) {
+    byte[] key=ByteUtils.fromHexString(keyStr);
+    System.out.println("Key :" + keyStr);
+    System.out.println("Replicating Partitions :" + routingPlan.getReplicatingPartitionList(key));
+    System.out.println("Replicating Nodes :");
+    List<Integer> nodeList=routingPlan.getReplicationNodeList(routingPlan.getMasterPartitionId(key));
+    for (int i=0; i < nodeList.size(); i++) {
+      System.out.println(nodeList.get(i) + "\t" + cluster.getNodeById(nodeList.get(i)).getHost());
+    }
+    System.out.println("Zone Nary information :");
+    HashMap<Integer,Integer> zoneRepMap=storeDef.getZoneReplicationFactor();
+    for (    Zone zone : cluster.getZones()) {
+      System.out.println("\tZone #" + zone.getId());
+      int numReplicas=-1;
+      if (zoneRepMap == null) {
+        numReplicas=storeDef.getReplicationFactor();
+      }
+ else {
+        if (!zoneRepMap.containsKey(zone.getId())) {
+          Utils.croak("Repfactor for Zone " + zone.getId() + " not found in storedef");
+        }
+        numReplicas=zoneRepMap.get(zone.getId());
+      }
+      for (int i=0; i < numReplicas; i++) {
+        System.out.println("\tReplica " + i + " Node "+ bRoutingPlan.getNodeIdForZoneNary(zone.getId(),i,key));
+      }
+      System.out.println();
+    }
+    System.out.println("-----------------------------------------------");
+    System.out.println();
+  }
+}
