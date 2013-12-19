@@ -1,0 +1,14 @@
+{
+  String bootstrapTime="";
+  try {
+    String clientInfo=clientRegistryStore.getSysStore(storeClient.getClientId()).getValue();
+    Properties props=new Properties();
+    props.load(new ByteArrayInputStream(clientInfo.getBytes()));
+    bootstrapTime=props.getProperty(propertyName);
+    assertNotNull(bootstrapTime);
+  }
+ catch (  Exception e) {
+    fail("Error in retrieving bootstrap time: " + e);
+  }
+  return bootstrapTime;
+}

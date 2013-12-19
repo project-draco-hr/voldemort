@@ -1,0 +1,26 @@
+{
+  List<Integer> nodeIds=Lists.newArrayList();
+  VectorClock updatedClusterVersion=null;
+  VectorClock updatedStoresVersion=null;
+  if (nodeId < 0) {
+    for (    Node node : adminClient.getAdminClientCluster().getNodes()) {
+      nodeIds.add(node.getId());
+      if (updatedClusterVersion == null && updatedStoresVersion == null) {
+        updatedClusterVersion=(VectorClock)adminClient.metadataMgmtOps.getRemoteMetadata(node.getId(),clusterKey).getVersion();
+        updatedStoresVersion=(VectorClock)adminClient.metadataMgmtOps.getRemoteMetadata(node.getId(),storesKey).getVersion();
+      }
+ else {
+        updatedClusterVersion=updatedClusterVersion.merge((VectorClock)adminClient.metadataMgmtOps.getRemoteMetadata(node.getId(),clusterKey).getVersion());
+        updatedStoresVersion=updatedStoresVersion.merge((VectorClock)adminClient.metadataMgmtOps.getRemoteMetadata(node.getId(),storesKey).getVersion());
+      }
+    }
+    updatedClusterVersion=updatedClusterVersion.incremented(0,System.currentTimeMillis());
+    updatedStoresVersion=updatedStoresVersion.incremented(0,System.currentTimeMillis());
+  }
+ else {
+    updatedClusterVersion=((VectorClock)adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,clusterKey).getVersion()).incremented(nodeId,System.currentTimeMillis());
+    updatedStoresVersion=((VectorClock)adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,storesKey).getVersion()).incremented(nodeId,System.currentTimeMillis());
+    nodeIds.add(nodeId);
+  }
+  adminClient.metadataMgmtOps.updateRemoteMetadataPair(nodeIds,clusterKey,Versioned.value(clusterValue.toString(),updatedClusterVersion),storesKey,Versioned.value(storesValue.toString(),updatedStoresVersion));
+}

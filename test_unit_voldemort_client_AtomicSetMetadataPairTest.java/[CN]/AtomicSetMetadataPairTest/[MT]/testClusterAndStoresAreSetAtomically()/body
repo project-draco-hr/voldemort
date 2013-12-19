@@ -1,0 +1,27 @@
+{
+  try {
+    AdminClient adminClient=new AdminClient(bootStrapUrls[0],new AdminClientConfig(),new ClientConfig());
+    StoreDefinitionsMapper storeDefsMapper=new StoreDefinitionsMapper();
+    List<StoreDefinition> storeDefs=storeDefsMapper.readStoreList(new File(newStoresXmlfile));
+    final int numServers=2;
+    int partitionMap[][]={{0,1,6,7},{4,5,2,3}};
+    Cluster newCluster=ServerTestUtils.getLocalCluster(numServers,partitionMap);
+    ClusterMapper clusterMapper=new ClusterMapper();
+    for (    Node node : oldCluster.getNodes()) {
+      VoldemortAdminTool.executeSetMetadataPair(node.getId(),adminClient,CLUSTER_KEY,clusterMapper.writeCluster(newCluster),STORES_KEY,storeDefsMapper.writeStoreList(storeDefs));
+    }
+    String dirPath=TestUtils.createTempDir().getAbsolutePath();
+    for (    Node node : oldCluster.getNodes()) {
+      VoldemortAdminTool.executeGetMetadata(node.getId(),adminClient,CLUSTER_KEY,dirPath);
+      Cluster newClusterFromMetadataRepo=clusterMapper.readCluster(new File(dirPath,CLUSTER_KEY + "_" + node.getId()));
+      assertTrue(newClusterFromMetadataRepo.getNodeById(0).getPartitionIds().equals(Lists.newArrayList(0,1,6,7)));
+      VoldemortAdminTool.executeGetMetadata(node.getId(),adminClient,STORES_KEY,dirPath);
+      List<StoreDefinition> newStoreDefsFromMetadatRepo=storeDefsMapper.readStoreList(new File(dirPath,STORES_KEY + "_" + node.getId()));
+      assertTrue(newStoreDefsFromMetadatRepo.size() == 2);
+      assertTrue(newStoreDefsFromMetadatRepo.get(1).getName().equals("best"));
+    }
+  }
+ catch (  Exception e) {
+    fail("Error in validating end to end client rebootstrap : " + e);
+  }
+}

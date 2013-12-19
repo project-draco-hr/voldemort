@@ -1,0 +1,16 @@
+{
+  getSerializedSize();
+  if (hasClusterKey()) {
+    output.writeBytes(1,getClusterKey());
+  }
+  if (hasClusterValue()) {
+    output.writeMessage(2,getClusterValue());
+  }
+  if (hasStoresKey()) {
+    output.writeBytes(3,getStoresKey());
+  }
+  if (hasStoresValue()) {
+    output.writeMessage(4,getStoresValue());
+  }
+  getUnknownFields().writeTo(output);
+}

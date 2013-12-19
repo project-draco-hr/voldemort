@@ -1,0 +1,24 @@
+{
+  for (  Integer currentNodeId : remoteNodeIds) {
+    logger.info("Setting " + clusterKey + " and "+ storesKey+ " for "+ getAdminClientCluster().getNodeById(currentNodeId).getHost()+ ":"+ getAdminClientCluster().getNodeById(currentNodeId).getId());
+    updateRemoteMetadataPair(currentNodeId,clusterKey,clusterValue,storesKey,storesValue);
+  }
+  if (clusterKey.equals(CLUSTER_VERSION_KEY)) {
+    metadataMgmtOps.updateMetadataversion(clusterKey);
+  }
+  if (storesKey.equals(STORES_VERSION_KEY)) {
+    StoreDefinitionsMapper storeDefsMapper=new StoreDefinitionsMapper();
+    List<StoreDefinition> storeDefs=storeDefsMapper.readStoreList(new StringReader(storesValue.getValue()));
+    if (storeDefs != null) {
+      try {
+        for (        StoreDefinition storeDef : storeDefs) {
+          logger.info("Updating metadata version for stores: " + storeDef.getName());
+          metadataMgmtOps.updateMetadataversion(storeDef.getName());
+        }
+      }
+ catch (      Exception e) {
+        System.err.println("Error while updating metadata version for the specified store.");
+      }
+    }
+  }
+}

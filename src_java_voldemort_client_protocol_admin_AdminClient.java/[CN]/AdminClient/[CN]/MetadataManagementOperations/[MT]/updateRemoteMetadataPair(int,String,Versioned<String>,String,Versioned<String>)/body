@@ -1,0 +1,9 @@
+{
+  ByteArray clusterKeyBytes=new ByteArray(ByteUtils.getBytes(clusterKey,"UTF-8"));
+  Versioned<byte[]> clusterValueBytes=new Versioned<byte[]>(ByteUtils.getBytes(clusterValue.getValue(),"UTF-8"),clusterValue.getVersion());
+  ByteArray storesKeyBytes=new ByteArray(ByteUtils.getBytes(storesKey,"UTF-8"));
+  Versioned<byte[]> storesValueBytes=new Versioned<byte[]>(ByteUtils.getBytes(storesValue.getValue(),"UTF-8"),storesValue.getVersion());
+  VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_METADATA_PAIR).setUpdateMetadataPair(VAdminProto.UpdateMetadataPairRequest.newBuilder().setClusterKey(ByteString.copyFrom(clusterKeyBytes.get())).setClusterValue(ProtoUtils.encodeVersioned(clusterValueBytes)).setStoresKey(ByteString.copyFrom(storesKeyBytes.get())).setStoresValue((ProtoUtils.encodeVersioned(storesValueBytes))).build()).build();
+  VAdminProto.UpdateMetadataPairResponse.Builder response=rpcOps.sendAndReceive(remoteNodeId,request,VAdminProto.UpdateMetadataPairResponse.newBuilder());
+  if (response.hasError())   helperOps.throwException(response.getError());
+}

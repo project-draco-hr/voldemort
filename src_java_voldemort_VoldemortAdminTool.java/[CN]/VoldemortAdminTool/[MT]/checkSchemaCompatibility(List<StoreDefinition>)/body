@@ -1,0 +1,13 @@
+{
+  String AVRO_GENERIC_VERSIONED_TYPE_NAME="avro-generic-versioned";
+  for (  StoreDefinition storeDef : storeDefs) {
+    SerializerDefinition keySerDef=storeDef.getKeySerializer();
+    SerializerDefinition valueSerDef=storeDef.getValueSerializer();
+    if (keySerDef.getName().equals(AVRO_GENERIC_VERSIONED_TYPE_NAME)) {
+      SchemaEvolutionValidator.checkSchemaCompatibility(keySerDef);
+    }
+    if (valueSerDef.getName().equals(AVRO_GENERIC_VERSIONED_TYPE_NAME)) {
+      SchemaEvolutionValidator.checkSchemaCompatibility(valueSerDef);
+    }
+  }
+}

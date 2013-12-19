@@ -1,0 +1,26 @@
+{
+  try {
+    sanityTestClientOps();
+    String bootstrapTime=getPropertyFromClientInfo("bootstrapTime");
+    AdminClient adminClient=new AdminClient(bootStrapUrls[0],new AdminClientConfig(),new ClientConfig(),CLIENT_ZONE_ID);
+    StoreDefinitionsMapper storeDefsMapper=new StoreDefinitionsMapper();
+    List<StoreDefinition> storeDefs=storeDefsMapper.readStoreList(new File(storesXmlfile));
+    for (    Node node : cluster.getNodes()) {
+      VoldemortAdminTool.executeSetMetadataPair(node.getId(),adminClient,CLUSTER_KEY,new ClusterMapper().writeCluster(cluster),STORES_KEY,storeDefsMapper.writeStoreList(storeDefs));
+    }
+    try {
+      Thread.sleep(15000);
+    }
+ catch (    Exception e) {
+      fail("Interrupted .");
+    }
+    String newBootstrapTime=getPropertyFromClientInfo("bootstrapTime");
+    assertFalse(bootstrapTime.equals(newBootstrapTime));
+    long origTime=Long.parseLong(bootstrapTime);
+    long newTime=Long.parseLong(newBootstrapTime);
+    assertTrue(newTime > origTime);
+  }
+ catch (  Exception e) {
+    fail("Error in validating end to end client rebootstrap : " + e);
+  }
+}
