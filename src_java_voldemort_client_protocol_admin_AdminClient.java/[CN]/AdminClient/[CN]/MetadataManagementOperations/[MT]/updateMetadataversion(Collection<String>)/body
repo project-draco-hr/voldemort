@@ -1,0 +1,19 @@
+{
+  helperOps.initSystemStoreClient();
+  Properties props=MetadataVersionStoreUtils.getProperties(AdminClient.this.sysStoreClient);
+  for (  String versionKey : versionKeys) {
+    long newValue=0;
+    if (props != null && props.getProperty(versionKey) != null) {
+      logger.debug("Version obtained = " + props.getProperty(versionKey));
+      newValue=System.currentTimeMillis();
+    }
+ else {
+      logger.debug("Current version is null. Assuming version 0.");
+      if (props == null) {
+        props=new Properties();
+      }
+    }
+    props.setProperty(versionKey,Long.toString(newValue));
+  }
+  MetadataVersionStoreUtils.setProperties(AdminClient.this.sysStoreClient,props);
+}

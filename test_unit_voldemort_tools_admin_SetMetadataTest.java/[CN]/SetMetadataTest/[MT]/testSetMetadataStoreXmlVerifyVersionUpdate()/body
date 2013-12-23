@@ -1,0 +1,51 @@
+{
+  final String newStoreXMLFilePrefix="updated.stores";
+  final String newStoreXMLFileSuffix="xml";
+  List<StoreDefinition> newStores=new ArrayList<StoreDefinition>();
+  for (  StoreDefinition storeDef : ClusterTestUtils.getZZZStoreDefsInMemory()) {
+    StoreDefinitionBuilder sb=storeDefToBuilder(storeDef);
+    Map<Integer,Integer> zrf=sb.getZoneReplicationFactor();
+    Integer zone0RepFactor=zrf.get(0);
+    zrf.remove(0);
+    sb.setReplicationFactor(sb.getReplicationFactor() - zone0RepFactor);
+    newStores.add(sb.build());
+  }
+  File newStoresXMLFolder=TestUtils.createTempDir();
+  File newStoreXMLFile=File.createTempFile(newStoreXMLFilePrefix,newStoreXMLFileSuffix,newStoresXMLFolder);
+  FileWriter fwriter=new FileWriter(newStoreXMLFile);
+  fwriter.write(new StoreDefinitionsMapper().writeStoreList(newStores));
+  fwriter.close();
+  String sysStoreName=SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name();
+  ByteArray metadataKey=new ByteArray(ByteUtils.getBytes(MetadataVersionStoreUtils.VERSIONS_METADATA_KEY,"utf-8"));
+  for (  VoldemortServer vs : vservers.values()) {
+    List<Versioned<byte[]>> result=vs.getStoreRepository().getLocalStore(sysStoreName).get(metadataKey,null);
+    String versionInfo=new String(result.get(0).getValue());
+    System.out.format("[INITIAL]Version values on node [%d] is: \n %s\n",vs.getIdentityNode().getId(),versionInfo);
+    Properties props=new Properties();
+    props.load(new ByteArrayInputStream(versionInfo.getBytes()));
+    for (    StoreDefinition sd : oldStores) {
+      if (!props.getProperty(sd.getName()).equals("0")) {
+        Assert.fail("Initial version of key [" + sd.getName() + "] on node ["+ vs.getIdentityNode().getId()+ "] is expected to be 0 but not");
+      }
+    }
+    if (!props.getProperty("cluster.xml").equals("0")) {
+      Assert.fail("Final version of key [stores.xml] on node [" + vs.getIdentityNode().getId() + "] is expected to greater than 0 but not");
+    }
+  }
+  VoldemortAdminTool.main(new String[]{"--set-metadata",MetadataStore.STORES_KEY,"--set-metadata-value",newStoreXMLFile.getAbsolutePath(),"--url",bsURL});
+  for (  VoldemortServer vs : vservers.values()) {
+    List<Versioned<byte[]>> result=vs.getStoreRepository().getLocalStore(sysStoreName).get(metadataKey,null);
+    String versionInfo=new String(result.get(0).getValue());
+    System.out.format("[FINAL]Version values on node [%d] is: \n %s\n",vs.getIdentityNode().getId(),versionInfo);
+    Properties props=new Properties();
+    props.load(new ByteArrayInputStream(versionInfo.getBytes()));
+    for (    StoreDefinition sd : oldStores) {
+      if (!(Long.parseLong(props.getProperty(sd.getName())) > 0)) {
+        Assert.fail("Final version of key [" + sd.getName() + "] on node ["+ vs.getIdentityNode().getId()+ "] is expected to greater than 0 but not");
+      }
+    }
+    if (!(Long.parseLong(props.getProperty("stores.xml")) > 0)) {
+      Assert.fail("Final version of key [stores.xml] on node [" + vs.getIdentityNode().getId() + "] is expected to greater than 0 but not");
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  Set<String> storeNamesUnion=new HashSet<String>();
+  Map<String,StoreDefinition> oldStoreDefinitionMap=new HashMap<String,StoreDefinition>();
+  Map<String,StoreDefinition> newStoreDefinitionMap=new HashMap<String,StoreDefinition>();
+  List<String> storesChanged=new ArrayList<String>();
+  for (  StoreDefinition storeDef : oldStoreDefs) {
+    String storeName=storeDef.getName();
+    storeNamesUnion.add(storeName);
+    oldStoreDefinitionMap.put(storeName,storeDef);
+  }
+  for (  StoreDefinition storeDef : newStoreDefs) {
+    String storeName=storeDef.getName();
+    storeNamesUnion.add(storeName);
+    newStoreDefinitionMap.put(storeName,storeDef);
+  }
+  for (  String storeName : storeNamesUnion) {
+    StoreDefinition oldStoreDef=oldStoreDefinitionMap.get(storeName);
+    StoreDefinition newStoreDef=newStoreDefinitionMap.get(storeName);
+    if (oldStoreDef == null && newStoreDef != null || oldStoreDef != null && newStoreDef == null || oldStoreDef != null && newStoreDef != null && !oldStoreDef.equals(newStoreDef)) {
+      storesChanged.add(storeName);
+    }
+  }
+  System.out.println("Updating metadata version for the following stores: " + storesChanged);
+  try {
+    adminClient.metadataMgmtOps.updateMetadataversion(storesChanged);
+  }
+ catch (  Exception e) {
+    System.err.println("Error while updating metadata version for the specified store.");
+  }
+}

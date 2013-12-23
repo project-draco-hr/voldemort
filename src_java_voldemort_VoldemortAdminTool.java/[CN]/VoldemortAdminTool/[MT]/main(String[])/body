@@ -158,18 +158,31 @@
           throw new VoldemortException("Missing set-metadata--value-pair values (only two values are needed and allowed)");
         }
         if (metadataKeyPair.contains(MetadataStore.CLUSTER_KEY) && metadataKeyPair.contains(MetadataStore.STORES_KEY)) {
+          ClusterMapper clusterMapper=new ClusterMapper();
+          StoreDefinitionsMapper storeDefsMapper=new StoreDefinitionsMapper();
+          Integer nodeIdToGetStoreXMLFrom=nodeId;
+          if (nodeId < 0) {
+            Collection<Node> nodes=adminClient.getAdminClientCluster().getNodes();
+            if (nodes.isEmpty()) {
+              throw new VoldemortException("No nodes in this cluster");
+            }
+ else {
+              nodeIdToGetStoreXMLFrom=nodes.iterator().next().getId();
+            }
+          }
+          Versioned<String> storesXML=adminClient.metadataMgmtOps.getRemoteMetadata(nodeIdToGetStoreXMLFrom,MetadataStore.STORES_KEY);
+          List<StoreDefinition> oldStoreDefs=storeDefsMapper.readStoreList(new StringReader(storesXML.getValue()));
           String clusterXMLPath=metadataValuePair.get(metadataKeyPair.indexOf(MetadataStore.CLUSTER_KEY));
           clusterXMLPath=clusterXMLPath.replace("~",System.getProperty("user.home"));
           if (!Utils.isReadableFile(clusterXMLPath))           throw new VoldemortException("Cluster xml file path incorrect");
-          ClusterMapper clusterMapper=new ClusterMapper();
           Cluster cluster=clusterMapper.readCluster(new File(clusterXMLPath));
           String storesXMLPath=metadataValuePair.get(metadataKeyPair.indexOf(MetadataStore.STORES_KEY));
           storesXMLPath=storesXMLPath.replace("~",System.getProperty("user.home"));
           if (!Utils.isReadableFile(storesXMLPath))           throw new VoldemortException("Stores definition xml file path incorrect");
-          StoreDefinitionsMapper storeDefsMapper=new StoreDefinitionsMapper();
-          List<StoreDefinition> storeDefs=storeDefsMapper.readStoreList(new File(storesXMLPath));
-          checkSchemaCompatibility(storeDefs);
-          executeSetMetadataPair(nodeId,adminClient,MetadataStore.CLUSTER_KEY,clusterMapper.writeCluster(cluster),MetadataStore.STORES_KEY,storeDefsMapper.writeStoreList(storeDefs));
+          List<StoreDefinition> newStoreDefs=storeDefsMapper.readStoreList(new File(storesXMLPath));
+          checkSchemaCompatibility(newStoreDefs);
+          executeSetMetadataPair(nodeId,adminClient,MetadataStore.CLUSTER_KEY,clusterMapper.writeCluster(cluster),MetadataStore.STORES_KEY,storeDefsMapper.writeStoreList(newStoreDefs));
+          executeUpdateMetadataVersionsOnStores(adminClient,oldStoreDefs,newStoreDefs);
         }
  else {
           throw new VoldemortException("set-metadata-pair keys should be <cluster.xml, stores.xml>");
@@ -196,20 +209,25 @@
  else         if (metadataKey.compareTo(MetadataStore.STORES_KEY) == 0) {
           if (!Utils.isReadableFile(metadataValue))           throw new VoldemortException("Stores definition xml file path incorrect");
           StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
-          List<StoreDefinition> storeDefs=mapper.readStoreList(new File(metadataValue));
-          checkSchemaCompatibility(storeDefs);
-          executeSetMetadata(nodeId,adminClient,MetadataStore.STORES_KEY,mapper.writeStoreList(storeDefs));
-          if (storeNames != null) {
-            System.out.println("Updating metadata version for the following stores: " + storeNames);
-            try {
-              for (              String name : storeNames) {
-                adminClient.metadataMgmtOps.updateMetadataversion(name);
-              }
+          List<StoreDefinition> newStoreDefs=mapper.readStoreList(new File(metadataValue));
+          checkSchemaCompatibility(newStoreDefs);
+          Integer nodeIdToGetStoreXMLFrom=nodeId;
+          if (nodeId < 0) {
+            Collection<Node> nodes=adminClient.getAdminClientCluster().getNodes();
+            if (nodes.isEmpty()) {
+              throw new VoldemortException("No nodes in this cluster");
             }
- catch (            Exception e) {
-              System.err.println("Error while updating metadata version for the specified store.");
+ else {
+              nodeIdToGetStoreXMLFrom=nodes.iterator().next().getId();
             }
           }
+          Versioned<String> storesXML=adminClient.metadataMgmtOps.getRemoteMetadata(nodeIdToGetStoreXMLFrom,MetadataStore.STORES_KEY);
+          List<StoreDefinition> oldStoreDefs=mapper.readStoreList(new StringReader(storesXML.getValue()));
+          executeSetMetadata(nodeId,adminClient,MetadataStore.STORES_KEY,mapper.writeStoreList(newStoreDefs));
+          if (nodeId >= 0) {
+            System.err.println("WARNING: Metadata version update of stores goes to all servers, " + "although this set-metadata oprations only goes to node " + nodeId);
+          }
+          executeUpdateMetadataVersionsOnStores(adminClient,oldStoreDefs,newStoreDefs);
         }
  else         if (metadataKey.compareTo(MetadataStore.REBALANCING_STEAL_INFO) == 0) {
           if (!Utils.isReadableFile(metadataValue))           throw new VoldemortException("Rebalancing steal info file path incorrect");
