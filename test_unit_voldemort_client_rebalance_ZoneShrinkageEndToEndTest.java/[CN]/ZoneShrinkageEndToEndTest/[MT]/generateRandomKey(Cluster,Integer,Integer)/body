@@ -1,0 +1,11 @@
+{
+  for (; ; ) {
+    byte[] candidate=TestUtils.randomString("ABCDEFGHIJKLMN",10).getBytes();
+    RoutingStrategy rs=new ConsistentRoutingStrategy(cluster,replicationFactor);
+    List<Node> routes=rs.routeRequest(candidate);
+    if (routes.get(0).getId() == nodeId) {
+      ByteArray key=new ByteArray(candidate);
+      return key;
+    }
+  }
+}

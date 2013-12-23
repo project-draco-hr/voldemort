@@ -1,0 +1,21 @@
+{
+  factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootstrapURL).setClientZoneId(clientZoneId));
+  client=factory.getStoreClient(storeName);
+  thread=new Thread(this);
+  this.clientName=clientName;
+  int i=0;
+  while (i < KV_POOL_SIZE) {
+    String k=TestUtils.randomString("ABCDEFGHIJKLMNOPQRSTUVWXYZ",40);
+    String v=TestUtils.randomString("abcdefghijklmnopqrstuvwxyz",40);
+    if (kvMap.containsKey(k)) {
+      continue;
+    }
+    kvMap.put(k,v);
+    kvUpdateCount.put(k,0);
+    keys.add(k);
+    i++;
+  }
+  requestCount.put("GET",0);
+  requestCount.put("PUT",0);
+  requestCount.put("GETALL",0);
+}

@@ -1,0 +1,128 @@
+{
+  List<DummyTestClient> clients=new ArrayList<DummyTestClient>();
+  clients.add(new DummyTestClient("1st_CLIENT_211_STORE_ZONE_1",bootstrapURL,STORE211_NAME,1));
+  clients.add(new DummyTestClient("1st_CLIENT_211_STORE_ZONE_2",bootstrapURL,STORE211_NAME,2));
+  clients.add(new DummyTestClient("1st_CLIENT_322_STORE_ZONE_1",bootstrapURL,STORE322_NAME,1));
+  clients.add(new DummyTestClient("1st_CLIENT_322_STORE_ZONE_2",bootstrapURL,STORE322_NAME,2));
+  clients.add(new DummyTestClient("2nd_CLIENT_211_STORE_ZONE_1",bootstrapURL,STORE211_NAME,1).setOperationMode(DummyTestClient.MODE_ALLOW_GET));
+  clients.add(new DummyTestClient("2nd_CLIENT_211_STORE_ZONE_2",bootstrapURL,STORE211_NAME,2).setOperationMode(DummyTestClient.MODE_ALLOW_GET));
+  clients.add(new DummyTestClient("2nd_CLIENT_322_STORE_ZONE_1",bootstrapURL,STORE322_NAME,1).setOperationMode(DummyTestClient.MODE_ALLOW_GET));
+  clients.add(new DummyTestClient("2nd_CLIENT_322_STORE_ZONE_2",bootstrapURL,STORE322_NAME,2).setOperationMode(DummyTestClient.MODE_ALLOW_GET));
+  clients.add(new DummyTestClient("3nd_CLIENT_211_STORE_ZONE_1",bootstrapURL,STORE211_NAME,1).setOperationMode(DummyTestClient.MODE_ALLOW_PUT));
+  clients.add(new DummyTestClient("3nd_CLIENT_211_STORE_ZONE_2",bootstrapURL,STORE211_NAME,2).setOperationMode(DummyTestClient.MODE_ALLOW_PUT));
+  clients.add(new DummyTestClient("3nd_CLIENT_322_STORE_ZONE_1",bootstrapURL,STORE322_NAME,1).setOperationMode(DummyTestClient.MODE_ALLOW_PUT));
+  clients.add(new DummyTestClient("3nd_CLIENT_322_STORE_ZONE_2",bootstrapURL,STORE322_NAME,2).setOperationMode(DummyTestClient.MODE_ALLOW_PUT));
+  clients.add(new DummyTestClient("4nd_CLIENT_211_STORE_ZONE_1",bootstrapURL,STORE211_NAME,1).setOperationMode(DummyTestClient.MODE_ALLOW_GETALL));
+  clients.add(new DummyTestClient("4nd_CLIENT_211_STORE_ZONE_2",bootstrapURL,STORE211_NAME,2).setOperationMode(DummyTestClient.MODE_ALLOW_GETALL));
+  clients.add(new DummyTestClient("4nd_CLIENT_322_STORE_ZONE_1",bootstrapURL,STORE322_NAME,1).setOperationMode(DummyTestClient.MODE_ALLOW_GETALL));
+  clients.add(new DummyTestClient("4nd_CLIENT_322_STORE_ZONE_2",bootstrapURL,STORE322_NAME,2).setOperationMode(DummyTestClient.MODE_ALLOW_GETALL));
+  try {
+    System.out.println("-------------------------------");
+    System.out.println("       STARTING CLIENT         ");
+    System.out.println("-------------------------------");
+    for (    DummyTestClient client : clients) {
+      client.initialize();
+      client.start();
+    }
+    System.out.println("-------------------------------");
+    System.out.println("        CLIENT STARTED         ");
+    System.out.println("-------------------------------");
+    Thread.sleep(5000);
+    executeShrinkZone();
+    Thread.sleep(15000);
+    System.out.println("-------------------------------");
+    System.out.println("         STOPPING CLIENT       ");
+    System.out.println("-------------------------------");
+    for (    DummyTestClient client : clients) {
+      client.stop();
+    }
+    System.out.println("-------------------------------");
+    System.out.println("         STOPPED CLIENT        ");
+    System.out.println("-------------------------------");
+    Integer failCount=0;
+    for (    DummyTestClient client : clients) {
+      if (client.client instanceof LazyStoreClient) {
+        LazyStoreClient<String,String> lsc=(LazyStoreClient<String,String>)client.client;
+        if (lsc.getStoreClient() instanceof ZenStoreClient) {
+          ZenStoreClient<String,String> zsc=(ZenStoreClient<String,String>)lsc.getStoreClient();
+          Long clusterMetadataVersion=zsc.getAsyncMetadataVersionManager().getClusterMetadataVersion();
+          if (clusterMetadataVersion == 0) {
+            failCount++;
+            System.err.format("The client %s did not pick up the new cluster metadata\n",client.clientName);
+          }
+        }
+ else {
+          Assert.fail("There is problem with DummyClient's real client's real client, which should be ZenStoreClient but not");
+        }
+      }
+ else {
+        Assert.fail("There is problem with DummyClient's real client which should be LazyStoreClient but not");
+      }
+    }
+    Assert.assertTrue(failCount.toString() + " client(s) did not pickup new metadata",failCount == 0);
+    System.out.println("-------------------------------");
+    System.out.println("   WAITING FOR SLOPS TO DRAIN  ");
+    System.out.println("-------------------------------");
+    long slopDrainTimoutMs=40000L;
+    long timeStart=System.currentTimeMillis();
+    boolean allSlopsEmpty=false;
+    while (System.currentTimeMillis() < timeStart + slopDrainTimoutMs) {
+      allSlopsEmpty=true;
+      for (      Integer nodeId : vservers.keySet()) {
+        VoldemortServer vs=vservers.get(nodeId);
+        SlopStorageEngine sse=vs.getStoreRepository().getSlopStore();
+        ClosableIterator<ByteArray> keys=sse.keys();
+        int count=0;
+        while (keys.hasNext()) {
+          keys.next();
+          count++;
+        }
+        keys.close();
+        if (count > 0) {
+          allSlopsEmpty=false;
+          System.out.format("Slop engine for node %d is not yet empty with %d slops\n",nodeId,count);
+        }
+      }
+      if (allSlopsEmpty) {
+        break;
+      }
+      Thread.sleep(1000);
+    }
+    if (!allSlopsEmpty) {
+      Assert.fail("Timeout while waiting for all slops to drain");
+    }
+    System.out.println("-------------------------------");
+    System.out.println("     SLOPS FINISHED DRAINED    ");
+    System.out.println("-------------------------------");
+  }
+ catch (  InterruptedException e) {
+    e.printStackTrace();
+    Assert.fail(e.toString());
+  }
+catch (  RuntimeException e) {
+    e.printStackTrace();
+    Assert.fail(e.toString());
+  }
+ finally {
+    for (    DummyTestClient client : clients) {
+      if (!client.stopped) {
+        client.stop();
+      }
+    }
+    for (    DummyTestClient client : clients) {
+      Map<String,Integer> eMap=client.exceptionCount;
+      System.out.println("-------------------------------------------------------------------");
+      System.out.println("Client Operation Info of [" + client.clientName + "]");
+      System.out.print(client.requestCount.toString());
+      if (eMap.size() == 0) {
+        System.out.println("No Exception reported by DummyTestClient(ObsoleteVersionException are ignored)");
+      }
+ else {
+        System.out.println("Exceptions Count Map of the client: ");
+        System.out.println(eMap.toString());
+        Assert.fail("Found Exceptions by Client");
+      }
+      System.out.println("-------------------------------------------------------------------");
+    }
+  }
+}
