@@ -1,0 +1,14 @@
+{
+  ClusterTestUtils.reset();
+  sourceCluster=ClusterTestUtils.getZZZCluster();
+  targetCluster=RebalanceUtils.vacateZone(sourceCluster,DROP_ZONE_ID);
+  sourceStoreDefs=ClusterTestUtils.getZZZStoreDefsBDB();
+  targetStoreDefs=RebalanceUtils.dropZone(sourceStoreDefs,DROP_ZONE_ID);
+  File sourceStoreDefsXml=File.createTempFile("zzz-stores-",".xml");
+  FileUtils.writeStringToFile(sourceStoreDefsXml,new StoreDefinitionsMapper().writeStoreList(sourceStoreDefs));
+  servers=new VoldemortServer[sourceCluster.getNumberOfNodes()];
+  ServerTestUtils.startVoldemortCluster(servers,null,null,sourceStoreDefsXml.getAbsolutePath(),new Properties(),sourceCluster);
+  Properties adminProperties=new Properties();
+  adminProperties.setProperty("max_connections","2");
+  adminClient=new AdminClient(servers[0].getMetadataStore().getCluster(),new AdminClientConfig(adminProperties),new ClientConfig());
+}

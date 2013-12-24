@@ -1,0 +1,42 @@
+{
+  ZoneAffinity zoneAffinity=new ZoneAffinity(true,true,true);
+  ClientConfig clientConfig=new ClientConfig().setBootstrapUrls(sourceCluster.getNodeById(0).getSocketUrl().toString()).setClientZoneId(DROP_ZONE_ID).setZoneAffinity(zoneAffinity);
+  SocketStoreClientFactory factory=new SocketStoreClientFactory(clientConfig);
+  StoreClient<String,String> client=factory.getStoreClient(sourceStoreDefs.get(sourceStoreDefs.size() - 1).getName());
+  for (int i=0; i < 10; i++) {
+    try {
+      client.put("key" + i,"val" + i);
+      assertEquals("Must read value back","val" + i,client.get("key" + i).getValue());
+    }
+ catch (    Exception e) {
+      fail("Should be not see any failures");
+    }
+  }
+  String clusterXmlString=new ClusterMapper().writeCluster(targetCluster);
+  String storesXmlString=new StoreDefinitionsMapper().writeStoreList(targetStoreDefs);
+  int[] remoteNodeList=new int[sourceCluster.getNumberOfNodes()];
+  int ni=0;
+  for (  Integer nodeId : sourceCluster.getNodeIds()) {
+    remoteNodeList[ni++]=nodeId;
+  }
+  adminClient.metadataMgmtOps.updateRemoteMetadataPair(new ArrayList<Integer>(sourceCluster.getNodeIds()),"cluster.xml",new Versioned<String>(clusterXmlString,TestUtils.getClock(remoteNodeList)),"stores.xml",new Versioned<String>(storesXmlString,TestUtils.getClock(remoteNodeList)));
+  try {
+    Thread.sleep(clientConfig.getAsyncMetadataRefreshInMs() * 2);
+  }
+ catch (  InterruptedException e) {
+    e.printStackTrace();
+  }
+  for (int i=0; i < 10; i++) {
+    long startMs=System.currentTimeMillis();
+    try {
+      client.put("key" + i,"val" + i);
+      assertEquals("Must read value back","val" + i,client.get("key" + i).getValue());
+      fail("Should be not see any successes");
+    }
+ catch (    Exception e) {
+      e.printStackTrace();
+      long elapsedMs=System.currentTimeMillis() - startMs;
+      assertTrue("Operation took longer than timeout to fail :" + elapsedMs + " ms.",elapsedMs < clientConfig.getRoutingTimeout(TimeUnit.MILLISECONDS));
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  List<StoreDefinition> adjustedStoreDefList=new ArrayList<StoreDefinition>();
+  for (  StoreDefinition storeDef : currentStoreDefs) {
+    HashMap<Integer,Integer> zoneRepFactorMap=storeDef.getZoneReplicationFactor();
+    if (!zoneRepFactorMap.containsKey(dropZoneId)) {
+      throw new VoldemortException("Store " + storeDef.getName() + " does not have replication factor for zone "+ dropZoneId);
+    }
+    StoreDefinitionBuilder adjustedStoreDefBuilder=StoreDefinitionUtils.getBuilderForStoreDef(storeDef);
+    HashMap<Integer,Integer> adjustedZoneRepFactorMap=new HashMap<Integer,Integer>();
+    for (    Integer zoneId : zoneRepFactorMap.keySet()) {
+      if (zoneId != dropZoneId) {
+        adjustedZoneRepFactorMap.put(zoneId,zoneRepFactorMap.get(zoneId));
+      }
+    }
+    adjustedStoreDefBuilder.setZoneReplicationFactor(adjustedZoneRepFactorMap);
+    int zoneRepFactor=zoneRepFactorMap.get(dropZoneId);
+    adjustedStoreDefBuilder.setReplicationFactor(adjustedStoreDefBuilder.getReplicationFactor() - zoneRepFactor);
+    adjustedStoreDefList.add(adjustedStoreDefBuilder.build());
+  }
+  return adjustedStoreDefList;
+}

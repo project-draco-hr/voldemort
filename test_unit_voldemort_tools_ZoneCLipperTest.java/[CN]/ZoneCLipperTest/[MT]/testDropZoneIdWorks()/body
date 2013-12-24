@@ -3,7 +3,7 @@
   for (  Integer zoneId : initialCluster.getZoneIds()) {
     originalPartitions.addAll(initialCluster.getPartitionIdsInZone(zoneId));
   }
-  Cluster interimCluster=RebalanceUtils.dropZone(initialCluster,dropZoneId);
+  Cluster interimCluster=RebalanceUtils.vacateZone(initialCluster,dropZoneId);
   RebalanceUtils.validateClusterPartitionCounts(initialCluster,interimCluster);
   RebalanceUtils.validateClusterNodeCounts(initialCluster,interimCluster);
   assertTrue("Zone being dropped has partitions. ZoneClipper didn't work properly",interimCluster.getPartitionIdsInZone(dropZoneId).isEmpty());
@@ -23,6 +23,23 @@
     Set<Integer> remainingNodes=Sets.symmetricDifference(interimCluster.getNodeIds(),Sets.newHashSet(nodeId));
     for (    Integer otherNodeId : remainingNodes) {
       assertTrue("Something went wrong as there is data movement between nodes",rebalancePlan.getNodeMoveMap().get(nodeId,otherNodeId) == 0);
+    }
+  }
+  Cluster finalCluster=RebalanceUtils.dropZone(interimCluster,dropZoneId);
+  List<StoreDefinition> clippedStoreDefs=RebalanceUtils.dropZone(storeDefs,dropZoneId);
+  for (  StoreDefinition storeDef : clippedStoreDefs) {
+    StoreDefinition orgStoreDef=StoreDefinitionUtils.getStoreDefinitionWithName(storeDefs,storeDef.getName());
+    assertFalse("Clipped storedef has replication for dropped zone",storeDef.getZoneReplicationFactor().containsKey(dropZoneId));
+    assertEquals("Clipped storedef has incorrect number of zones",initialCluster.getZones().size() - 1,storeDef.getZoneReplicationFactor().size());
+    assertEquals("Clipped storedef has incorrect total repfactor",orgStoreDef.getReplicationFactor() - orgStoreDef.getZoneReplicationFactor().get(dropZoneId),storeDef.getReplicationFactor());
+  }
+  Set<Integer> dropNodes=interimCluster.getNodeIdsInZone(dropZoneId);
+  for (  StoreDefinition storeDef : clippedStoreDefs) {
+    StoreRoutingPlan routingPlan=new StoreRoutingPlan(finalCluster,storeDef);
+    Node[] partitionToNode=finalCluster.getPartitionIdToNodeArray();
+    for (int p=0; p < partitionToNode.length; p++) {
+      List<Integer> replicaNodes=routingPlan.getReplicationNodeList(p);
+      assertFalse("Should not be routing to any dropped nodes",replicaNodes.removeAll(dropNodes));
     }
   }
 }

@@ -1,34 +1,19 @@
 {
   setupParser();
   OptionSet options=getValidOptions(args);
-  String initialClusterXML=(String)options.valueOf("current-cluster");
-  Cluster initialCluster=new ClusterMapper().readCluster(new File(initialClusterXML));
   int dropZoneId=CmdUtils.valueOf(options,"drop-zoneid",Zone.UNSET_ZONE_ID);
   String outputDir=null;
   if (options.has("output-dir")) {
     outputDir=(String)options.valueOf("output-dir");
   }
+  String initialClusterXML=(String)options.valueOf("current-cluster");
+  Cluster initialCluster=new ClusterMapper().readCluster(new File(initialClusterXML));
   Set<Integer> originalPartitions=new HashSet<Integer>();
   for (  Integer zoneId : initialCluster.getZoneIds()) {
     originalPartitions.addAll(initialCluster.getPartitionIdsInZone(zoneId));
   }
-  Cluster intermediateCluster=RebalanceUtils.dropZone(initialCluster,dropZoneId);
-  Set<Node> survivingNodes=new HashSet<Node>();
-  for (  int nodeId : intermediateCluster.getNodeIds()) {
-    if (intermediateCluster.getNodeById(nodeId).getZoneId() != dropZoneId) {
-      survivingNodes.add(intermediateCluster.getNodeById(nodeId));
-    }
-  }
-  Set<Zone> zones=new HashSet<Zone>();
-  for (  int zoneId : intermediateCluster.getZoneIds()) {
-    if (zoneId == dropZoneId) {
-      continue;
-    }
-    LinkedList<Integer> proximityList=intermediateCluster.getZoneById(zoneId).getProximityList();
-    proximityList.remove(new Integer(dropZoneId));
-    zones.add(new Zone(zoneId,proximityList));
-  }
-  Cluster finalCluster=new Cluster(intermediateCluster.getName(),Utils.asSortedList(survivingNodes),Utils.asSortedList(zones));
+  Cluster intermediateCluster=RebalanceUtils.vacateZone(initialCluster,dropZoneId);
+  Cluster finalCluster=RebalanceUtils.dropZone(intermediateCluster,dropZoneId);
   if (initialCluster.getNumberOfPartitions() != finalCluster.getNumberOfPartitions()) {
     logger.error("The number of partitions in the initial and the final cluster is not equal \n");
   }
@@ -40,4 +25,8 @@
     logger.error("The list of partition ids in the initial and the final cluster doesn't match \n ");
   }
   RebalanceUtils.dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName,finalCluster);
+  String initialStoresXML=(String)options.valueOf("current-stores");
+  List<StoreDefinition> initialStoreDefs=new StoreDefinitionsMapper().readStoreList(new File(initialStoresXML));
+  List<StoreDefinition> finalStoreDefs=RebalanceUtils.dropZone(initialStoreDefs,dropZoneId);
+  RebalanceUtils.dumpStoreDefsToFile(outputDir,RebalanceUtils.finalStoresFileName,finalStoreDefs);
 }
