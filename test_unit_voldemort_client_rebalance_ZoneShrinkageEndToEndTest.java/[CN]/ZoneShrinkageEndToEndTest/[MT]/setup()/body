@@ -1,13 +1,7 @@
 {
-  initialClusterXML=IOUtils.toString(ClusterTestUtils.class.getResourceAsStream(INITIAL_CLUSTER_XML_FILE));
-  initialStoresXML=IOUtils.toString(ClusterTestUtils.class.getResourceAsStream(INITIAL_STORES_XML_FILE));
-  finalClusterXML=IOUtils.toString(ClusterTestUtils.class.getResourceAsStream(FINAL_CLUSTER_XML_FILE));
-  finalStoresXML=IOUtils.toString(ClusterTestUtils.class.getResourceAsStream(FINAL_STORES_XML_FILE));
-  cluster=clusterMapper.readCluster(new StringReader(initialClusterXML));
-  storeDefs=storeDefinitionsMapper.readStoreList(new StringReader(initialStoresXML));
   for (  Node node : cluster.getNodes()) {
     String tempFolderPath=TestUtils.createTempDir().getAbsolutePath();
-    SocketStoreFactory ssf=new SocketStoreFactoryForTest();
+    SocketStoreFactory ssf=new TestSocketStoreFactory();
     VoldemortConfig config=ServerTestUtils.createServerConfigWithDefs(true,node.getId(),tempFolderPath,cluster,storeDefs,new Properties());
     Assert.assertTrue(config.isSlopEnabled());
     Assert.assertTrue(config.isSlopPusherJobEnabled());
@@ -19,10 +13,7 @@
     voldemortConfigs.put(node.getId(),config);
   }
   for (  Node node : cluster.getNodes()) {
-    if (node.getZoneId() == droppingZoneId) {
-      droppingNodes.add(node);
-    }
- else {
+    if (node.getZoneId() != droppingZoneId) {
       survivingNodes.add(node);
     }
   }

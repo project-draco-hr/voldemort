@@ -1,17 +1,16 @@
 {
   AdminClient adminClient;
-  System.out.println("-------------------------------");
-  System.out.println("        UPDATING BOTH XML      ");
-  System.out.println("-------------------------------");
+  logger.info("-------------------------------");
+  logger.info("        UPDATING BOTH XML      ");
+  logger.info("-------------------------------");
   AdminClientConfig adminClientConfig=new AdminClientConfig();
   ClientConfig clientConfigForAdminClient=new ClientConfig();
-  clientConfigForAdminClient.setClientZoneId(survivingNodes.get(0).getZoneId());
   adminClient=new AdminClient(bootstrapURL,adminClientConfig,clientConfigForAdminClient);
   String validatedStoresXML=storeDefinitionsMapper.writeStoreList(storeDefinitionsMapper.readStoreList(new StringReader(finalStoresXML)));
   String validatedClusterXML=clusterMapper.writeCluster(clusterMapper.readCluster(new StringReader(finalClusterXML)));
   VoldemortAdminTool.executeSetMetadataPair(-1,adminClient,"cluster.xml",validatedClusterXML,"stores.xml",validatedStoresXML);
   adminClient.close();
-  System.out.println("-------------------------------");
-  System.out.println("       UPDATED CLUSTER.XML     ");
-  System.out.println("-------------------------------");
+  logger.info("-------------------------------");
+  logger.info("        UPDATED BOTH XML       ");
+  logger.info("-------------------------------");
 }

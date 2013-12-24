@@ -10,7 +10,7 @@ case 0:
         }
       kvUpdateCount.put(k,kvUpdateCount.get(k) + 1);
     client.put(k,kvMap.get(k) + "_" + kvUpdateCount.get(k).toString());
-  requestCount.put("GET",requestCount.get("GET") + 1);
+  requestCount.put("PUT",requestCount.get("PUT") + 1);
 break;
 case 1:
 if ((operationMode & MODE_ALLOW_GET) == 0) {
@@ -29,7 +29,7 @@ throw new RuntimeException("Versioned has empty value inside for key [" + k + "]
 ;
 }
 }
-requestCount.put("PUT",requestCount.get("PUT") + 1);
+requestCount.put("GET",requestCount.get("GET") + 1);
 break;
 case 2:
 if ((operationMode & MODE_ALLOW_GETALL) == 0) {
@@ -68,7 +68,7 @@ break;
  catch (ObsoleteVersionException e) {
 }
 catch (Exception e) {
-System.out.println("CLIENT EXCEPTION FAILURE on key [" + k + "]"+ e.toString());
+logger.info("CLIENT EXCEPTION FAILURE on key [" + k + "]"+ e.toString());
 e.printStackTrace();
 String exceptionName=e.getClass().toString();
 if (exceptionCount.containsKey(exceptionName)) {

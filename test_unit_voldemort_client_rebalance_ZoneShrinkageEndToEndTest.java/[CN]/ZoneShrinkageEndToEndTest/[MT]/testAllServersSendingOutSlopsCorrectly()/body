@@ -3,7 +3,7 @@
   final Serializer<Slop> slopValueSerializer=new SlopSerializer();
   final SlopSerializer slopSerializer=new SlopSerializer();
   StoreDefinition storeDef=storeDefs.get(0);
-  SocketStoreFactoryForTest ssf=new SocketStoreFactoryForTest();
+  TestSocketStoreFactory ssf=new TestSocketStoreFactory();
   Map<Integer,SocketStore> slopStoresCreatedBeforeShrink=new HashMap<Integer,SocketStore>();
   Map<Integer,SocketStore> slopStoresCreatedAfterShrink=new HashMap<Integer,SocketStore>();
   Map<Integer,List<Pair<ByteArray,Integer>>> serverKeys=new HashMap<Integer,List<Pair<ByteArray,Integer>>>();
@@ -29,20 +29,20 @@
     }
   }
   executeShrinkZone();
-  System.out.println("-------------------------------");
-  System.out.println("    CONNECTING SLOP STORES     ");
-  System.out.println("-------------------------------");
+  logger.info("-------------------------------");
+  logger.info("    CONNECTING SLOP STORES     ");
+  logger.info("-------------------------------");
   for (  Integer nodeId : vservers.keySet()) {
     SocketStore slopStore=ssf.createSocketStore(vservers.get(nodeId).getIdentityNode(),"slop");
     SerializingStore.wrap(slopStore,slopKeySerializer,slopValueSerializer,new IdentitySerializer());
     slopStoresCreatedAfterShrink.put(nodeId,slopStore);
   }
-  System.out.println("-------------------------------");
-  System.out.println("     CONNECTED SLOP STORES     ");
-  System.out.println("-------------------------------");
-  System.out.println("-------------------------------");
-  System.out.println("         SENDING SLOPS         ");
-  System.out.println("-------------------------------");
+  logger.info("-------------------------------");
+  logger.info("     CONNECTED SLOP STORES     ");
+  logger.info("-------------------------------");
+  logger.info("-------------------------------");
+  logger.info("         SENDING SLOPS         ");
+  logger.info("-------------------------------");
   for (int i=0; i < 2; i++) {
     for (    Integer slopHostId : vservers.keySet()) {
       SocketStore slopStore=slopStoresCreatedAfterShrink.get(slopHostId);
@@ -56,43 +56,10 @@
       }
     }
   }
-  System.out.println("-------------------------------");
-  System.out.println("           SENT SLOPS          ");
-  System.out.println("-------------------------------");
-  System.out.println("-------------------------------");
-  System.out.println("  WAITING FOR SLOPS TO DRAIN   ");
-  System.out.println("-------------------------------");
-  long slopDrainTimoutMs=30000L;
-  long timeStart=System.currentTimeMillis();
-  boolean allSlopsEmpty=false;
-  while (System.currentTimeMillis() < timeStart + slopDrainTimoutMs) {
-    allSlopsEmpty=true;
-    for (    Integer nodeId : vservers.keySet()) {
-      VoldemortServer vs=vservers.get(nodeId);
-      SlopStorageEngine sse=vs.getStoreRepository().getSlopStore();
-      ClosableIterator<ByteArray> keys=sse.keys();
-      long count=0;
-      while (keys.hasNext()) {
-        keys.next();
-        count++;
-      }
-      keys.close();
-      if (count > 0) {
-        allSlopsEmpty=false;
-        System.out.format("Slop engine for node %d is not yet empty with %d slops\n",nodeId,count);
-      }
-    }
-    if (allSlopsEmpty) {
-      break;
-    }
-    Thread.sleep(1000);
-  }
-  if (!allSlopsEmpty) {
-    Assert.fail("Timeout while waiting for all slops to drain");
-  }
-  System.out.println("-------------------------------");
-  System.out.println("        ALL SLOPS DRAINED      ");
-  System.out.println("-------------------------------");
+  logger.info("-------------------------------");
+  logger.info("           SENT SLOPS          ");
+  logger.info("-------------------------------");
+  waitSlopDrain(vservers,30000L);
   boolean hasError=false;
   int goodCount=0;
   int errorCount=0;
@@ -107,7 +74,7 @@
       List<Versioned<byte[]>> result=store.get(key,null);
       if (cluster.getNodeById(nodeId).getZoneId() == droppingZoneId) {
         if (!result.isEmpty()) {
-          System.err.format("Key %s for Node %d (zone %d) slopped on Node %d should be gone but exists\n",key.toString(),nodeId,nodeZoneId,hostId);
+          logger.error(String.format("Key %s for Node %d (zone %d) slopped on Node %d should be gone but exists\n",key.toString(),nodeId,nodeZoneId,hostId));
           hasError=true;
           errorCount++;
         }
@@ -117,7 +84,7 @@
       }
  else {
         if (result.isEmpty()) {
-          System.err.format("Key %s for Node %d (zone %d) slopped on Node %d should exist but not\n",key.toString(),nodeId,nodeZoneId,hostId);
+          logger.error(String.format("Key %s for Node %d (zone %d) slopped on Node %d should exist but not\n",key.toString(),nodeId,nodeZoneId,hostId));
           hasError=true;
           errorCount++;
         }
@@ -127,6 +94,6 @@
       }
     }
   }
-  System.out.format("Good keys count: %d; Error keys count: %d",goodCount,errorCount);
+  logger.info(String.format("Good keys count: %d; Error keys count: %d",goodCount,errorCount));
   Assert.assertFalse("Error Occurred BAD:" + errorCount + "; GOOD: "+ goodCount+ ". Check log.",hasError);
 }

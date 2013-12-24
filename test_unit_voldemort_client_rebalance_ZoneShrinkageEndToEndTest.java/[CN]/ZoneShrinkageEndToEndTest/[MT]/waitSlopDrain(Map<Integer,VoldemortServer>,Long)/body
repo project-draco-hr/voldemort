@@ -1,0 +1,35 @@
+{
+  logger.info("-------------------------------");
+  logger.info("  WAITING FOR SLOPS TO DRAIN   ");
+  logger.info("-------------------------------");
+  long timeStart=System.currentTimeMillis();
+  boolean allSlopsEmpty=false;
+  while (System.currentTimeMillis() < timeStart + slopDrainTimoutMs) {
+    allSlopsEmpty=true;
+    for (    Integer nodeId : vservers.keySet()) {
+      VoldemortServer vs=vservers.get(nodeId);
+      SlopStorageEngine sse=vs.getStoreRepository().getSlopStore();
+      ClosableIterator<ByteArray> keys=sse.keys();
+      long count=0;
+      while (keys.hasNext()) {
+        keys.next();
+        count++;
+      }
+      keys.close();
+      if (count > 0) {
+        allSlopsEmpty=false;
+        logger.info(String.format("Slop engine for node %d is not yet empty with %d slops\n",nodeId,count));
+      }
+    }
+    if (allSlopsEmpty) {
+      break;
+    }
+    Thread.sleep(1000);
+  }
+  if (!allSlopsEmpty) {
+    Assert.fail("Timeout while waiting for all slops to drain");
+  }
+  logger.info("-------------------------------");
+  logger.info("        ALL SLOPS DRAINED      ");
+  logger.info("-------------------------------");
+}
