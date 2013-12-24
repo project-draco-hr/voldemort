@@ -1,8 +1,6 @@
 {
-  final int numServers=2;
-  servers=new VoldemortServer[numServers];
-  int partitionMap[][]={{0,1,2,3},{4,5,6,7}};
-  oldCluster=ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,true,null,oldStoresXmlfile,new Properties());
+  servers=new VoldemortServer[oldCluster.getNodes().size()];
+  oldCluster=ServerTestUtils.startVoldemortCluster(servers,null,null,oldStoresXmlfile,new Properties(),oldCluster);
   socketUrl=servers[0].getIdentityNode().getSocketUrl().toString();
   bootStrapUrls=new String[1];
   bootStrapUrls[0]=socketUrl;
