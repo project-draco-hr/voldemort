@@ -1,8 +1,7 @@
 {
   if (null == servers) {
-    servers=new VoldemortServer[TOTAL_SERVERS];
-    serverPorts=new int[TOTAL_SERVERS];
-    storeDef=new StoreDefinitionBuilder().setName(TEST_STORE_NAME).setType(BdbStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(2).setRequiredWrites(2).build();
+    servers=new VoldemortServer[numServers];
+    serverPorts=new int[numServers];
     File tempStoreXml=new File(TestUtils.createTempDir(),"stores.xml");
     try {
       FileUtils.writeStringToFile(tempStoreXml,new StoreDefinitionsMapper().writeStoreList(Lists.newArrayList(storeDef)));
@@ -10,14 +9,16 @@
  catch (    IOException e1) {
       e1.printStackTrace();
     }
-    for (int i=0; i < TOTAL_SERVERS; i++) {
+    int count=0;
+    for (    int nodeId : cluster.getNodeIds()) {
       try {
-        servers[i]=ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(true,i,TestUtils.createTempDir().getAbsolutePath(),null,tempStoreXml.getAbsolutePath(),new Properties()),cluster);
+        servers[count]=ServerTestUtils.startVoldemortServer(socketStoreFactory,ServerTestUtils.createServerConfig(true,nodeId,TestUtils.createTempDir().getAbsolutePath(),null,tempStoreXml.getAbsolutePath(),new Properties()),cluster);
       }
  catch (      IOException e) {
         e.printStackTrace();
       }
-      serverPorts[i]=servers[i].getIdentityNode().getSocketPort();
+      serverPorts[count]=servers[count].getIdentityNode().getSocketPort();
+      count++;
     }
     adminClient=ServerTestUtils.getAdminClient(cluster);
   }
