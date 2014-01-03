@@ -1,0 +1,65 @@
+{
+  Cluster cluster=adminClient.getAdminClientCluster();
+  List<StoreDefinition> storeDefs=adminClient.metadataMgmtOps.getRemoteStoreDefList(cluster.getNodes().iterator().next().getId()).getValue();
+  StoreDefinition storeDef=null;
+  for (  StoreDefinition sd : storeDefs) {
+    if (sd.getName() != null && sd.getName().equals(storeName)) {
+      storeDef=sd;
+    }
+  }
+  if (storeDef == null) {
+    throw new VoldemortException("StoreNotfound: " + storeName);
+  }
+  RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+  Map<Integer,UpdateEntriesIterator> updateIterators=new HashMap<Integer,UpdateEntriesIterator>();
+  Map<Integer,Thread> threads=new HashMap<Integer,Thread>();
+  for (  final Node node : targetNodeList) {
+    final UpdateEntriesIterator iterator=new UpdateEntriesIterator();
+    updateIterators.put(node.getId(),iterator);
+    Runnable runnable=new Runnable(){
+      @Override public void run(){
+        adminClient.streamingOps.updateEntries(node.getId(),storeName,iterator,null);
+      }
+    }
+;
+    String threadName=String.format("node-%02d-zone-%d-%s",node.getId(),node.getZoneId(),node.getHost());
+    Thread thread=new Thread(runnable,threadName);
+    threads.put(node.getId(),thread);
+  }
+  for (  Thread t : threads.values()) {
+    t.start();
+  }
+  try {
+    while (true) {
+      String line=reader.readLine();
+      if (line == null) {
+        break;
+      }
+      Pair<ByteArray,Versioned<byte[]>> entry;
+      try {
+        entry=lineToEntry(line);
+      }
+ catch (      Exception e) {
+        System.err.println("Skipping line: " + line);
+        e.printStackTrace();
+        continue;
+      }
+      ByteArray key=entry.getFirst();
+      List<Node> nodeList=routingStrategy.routeRequest(key.get());
+      for (      Node node : nodeList) {
+        UpdateEntriesIterator iter=updateIterators.get(node.getId());
+        if (iter != null) {
+          iter.bqueue.offer(new WrappedEntry(entry));
+        }
+      }
+    }
+  }
+  finally {
+    for (    UpdateEntriesIterator iterator : updateIterators.values()) {
+      iterator.bqueue.offer(new WrappedEntry(null));
+    }
+    for (    Thread t : threads.values()) {
+      t.join();
+    }
+  }
+}
