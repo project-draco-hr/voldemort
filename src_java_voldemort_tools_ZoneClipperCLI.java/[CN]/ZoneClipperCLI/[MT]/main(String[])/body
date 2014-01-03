@@ -25,6 +25,7 @@
     logger.error("The list of partition ids in the initial and the final cluster doesn't match \n ");
   }
   RebalanceUtils.dumpClusterToFile(outputDir,RebalanceUtils.finalClusterFileName,finalCluster);
+  logger.info("Generating the adjusted stores.xml..");
   String initialStoresXML=(String)options.valueOf("current-stores");
   List<StoreDefinition> initialStoreDefs=new StoreDefinitionsMapper().readStoreList(new File(initialStoresXML));
   List<StoreDefinition> finalStoreDefs=RebalanceUtils.dropZone(initialStoreDefs,dropZoneId);
