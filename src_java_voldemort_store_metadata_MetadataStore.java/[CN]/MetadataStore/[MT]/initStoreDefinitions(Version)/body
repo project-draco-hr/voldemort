@@ -1,5 +1,5 @@
 {
-  if (this.storeDefinitionsManager == null) {
+  if (this.storeDefinitionsStorageEngine == null) {
     throw new VoldemortException("The store definitions directory is empty");
   }
   String allStoreDefinitions="<stores>";
@@ -8,7 +8,7 @@
     finalStoresXmlVersion=storesXmlVersion;
   }
   this.storeNames.clear();
-  ClosableIterator<Pair<String,Versioned<String>>> storesIterator=this.storeDefinitionsManager.entries();
+  ClosableIterator<Pair<String,Versioned<String>>> storesIterator=this.storeDefinitionsStorageEngine.entries();
   Map<String,Versioned<String>> storeNameToDefMap=new HashMap<String,Versioned<String>>();
   Version maxVersion=null;
   while (storesIterator.hasNext()) {
