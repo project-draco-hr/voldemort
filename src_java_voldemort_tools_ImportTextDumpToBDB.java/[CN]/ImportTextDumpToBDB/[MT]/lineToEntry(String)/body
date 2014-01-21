@@ -1,0 +1,12 @@
+{
+  String[] components=line.split(" ");
+  String keyBytesString=components[0];
+  byte[] keyBytes=ByteUtils.fromHexString(keyBytesString);
+  ByteArray key=new ByteArray(keyBytes);
+  String versionBytesString=components[1];
+  byte[] versionBytes=ByteUtils.fromHexString(versionBytesString);
+  Version version=new VectorClock(versionBytes,0);
+  String valueBytesString=components[1];
+  byte[] value=ByteUtils.fromHexString(valueBytesString);
+  return new Pair<ByteArray,Versioned<byte[]>>(key,new Versioned<byte[]>(value,version));
+}

@@ -1,0 +1,114 @@
+{
+  OptionParser parser=getParser();
+  OptionSet options=parser.parse(argv);
+  validateOptions(options);
+  String inputPath=(String)options.valueOf("input");
+  String storeBdbFolderPath=(String)options.valueOf("bdb");
+  String clusterXmlPath=(String)options.valueOf("cluster-xml");
+  String storesXmlPath=(String)options.valueOf("stores-xml");
+  Integer nodeId=(Integer)options.valueOf("node-id");
+  File input=new File(inputPath);
+  List<File> dataFiles=new ArrayList<File>();
+  if (input.isDirectory()) {
+    File[] files=input.listFiles();
+    if (files != null)     Collections.addAll(dataFiles,files);
+  }
+ else   if (input.isFile()) {
+    dataFiles.add(input);
+  }
+ else {
+    System.err.println(inputPath + "is not file or directory");
+  }
+  File storeBdbFolder=new File(storeBdbFolderPath);
+  final String storeName=storeBdbFolder.getName();
+  Cluster cluster=new ClusterMapper().readCluster(new File(clusterXmlPath));
+  List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new File(storesXmlPath));
+  StoreDefinition storeDef=null;
+  for (  StoreDefinition sd : storeDefs) {
+    if (sd.getName() != null && sd.getName().equals(storeName)) {
+      storeDef=sd;
+    }
+  }
+  if (storeDef == null) {
+    throw new VoldemortException("StoreNotfound: " + storeName);
+  }
+  RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+  Properties properties=new Properties();
+  properties.put("node.id","0");
+  properties.put("voldemort.home",storeBdbFolder.getParent());
+  VoldemortConfig voldemortConfig=new VoldemortConfig(properties);
+  voldemortConfig.setBdbDataDirectory(storeBdbFolder.getParent());
+  voldemortConfig.setEnableJmx(false);
+  voldemortConfig.setBdbOneEnvPerStore(true);
+  BdbStorageConfiguration bdbConfiguration=new BdbStorageConfiguration(voldemortConfig);
+class MockStoreDefinition extends StoreDefinition {
+    public MockStoreDefinition(){
+      super(storeName,null,null,null,null,null,null,null,0,null,0,null,0,null,null,null,null,null,null,null,null,null,null,null,null,0);
+    }
+    @Override public boolean hasMemoryFootprint(){
+      return false;
+    }
+  }
+  StoreDefinition mockStoreDef=new MockStoreDefinition();
+  StorageEngine<ByteArray,byte[],byte[]> engine=bdbConfiguration.getStore(mockStoreDef,routingStrategy);
+  long reportIntervalMs=10000L;
+  long lastCount=0;
+  Reporter<Boolean> rp=new Reporter<Boolean>(reportIntervalMs);
+  long count=0;
+  for (  File f : dataFiles) {
+    try {
+      BufferedReader bufferedReader=new BufferedReader(new FileReader(f),READER_BUFFER_SIZE);
+      engine.beginBatchModifications();
+      while (true) {
+        String line=bufferedReader.readLine();
+        if (line == null) {
+          break;
+        }
+        Pair<ByteArray,Versioned<byte[]>> entry;
+        try {
+          entry=lineToEntry(line);
+        }
+ catch (        Exception e) {
+          System.err.println("Skipping line: " + line);
+          e.printStackTrace();
+          continue;
+        }
+        ByteArray key=entry.getFirst();
+        List<Node> nodeList=routingStrategy.routeRequest(key.get());
+        for (        Node node : nodeList) {
+          if (nodeId == node.getId()) {
+            try {
+              engine.put(key,entry.getSecond(),null);
+            }
+ catch (            ObsoleteVersionException e) {
+              e.printStackTrace();
+            }
+            break;
+          }
+        }
+        count++;
+        final Long countObject=count;
+        Boolean reported=rp.tryReport(new Callable<Boolean>(){
+          @Override public Boolean call() throws Exception {
+            System.out.print(String.format("Imported %15d entries",countObject));
+            return true;
+          }
+        }
+);
+        if (reported != null) {
+          System.out.println(String.format("; Speed: %8d/s",(count - lastCount) / (reportIntervalMs / 1000)));
+          lastCount=count;
+        }
+      }
+      bufferedReader.close();
+    }
+ catch (    IOException e) {
+      e.printStackTrace();
+    }
+ finally {
+      engine.endBatchModifications();
+    }
+  }
+  engine.close();
+  System.out.println(String.format("Finished exporting %d entries",count));
+}
