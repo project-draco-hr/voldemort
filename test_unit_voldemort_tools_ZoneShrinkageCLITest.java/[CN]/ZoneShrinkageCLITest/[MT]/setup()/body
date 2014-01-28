@@ -1,0 +1,10 @@
+{
+  bsURL=cluster.getNodes().iterator().next().getSocketUrl().toString();
+  for (  Node node : cluster.getNodes()) {
+    SocketStoreFactory ssf=new TestSocketStoreFactory();
+    VoldemortConfig config=ServerTestUtils.createServerConfigWithDefs(true,node.getId(),TestUtils.createTempDir().getAbsolutePath(),cluster,oldStores,new Properties());
+    VoldemortServer vs=ServerTestUtils.startVoldemortServer(ssf,config,cluster);
+    vservers.put(node.getId(),vs);
+    socketStoreFactories.put(node.getId(),ssf);
+  }
+}

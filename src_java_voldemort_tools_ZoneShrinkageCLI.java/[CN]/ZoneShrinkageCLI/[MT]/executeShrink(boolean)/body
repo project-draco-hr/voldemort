@@ -1,0 +1,57 @@
+{
+  Cluster initialCluster=adminClient.getAdminClientCluster();
+  Collection<Node> initialClusterNodes=initialCluster.getNodes();
+  Integer initialClusterFirstNodeId=initialCluster.getNodes().iterator().next().getId();
+  boolean shouldContinue;
+  logger.info("Start fetching metadata for server " + initialClusterFirstNodeId);
+  String initialClusterXml=adminClient.metadataMgmtOps.getRemoteMetadata(initialClusterFirstNodeId,CLUSTER_KEY).getValue();
+  String initialStoresXml=adminClient.metadataMgmtOps.getRemoteMetadata(initialClusterFirstNodeId,STORES_KEY).getValue();
+  logger.info("End fetching metadata for server " + initialClusterFirstNodeId);
+  shouldContinue=verifyMetadataConsistency(adminClient,initialClusterNodes,initialClusterXml,initialStoresXml);
+  if (!shouldContinue) {
+    logAbort();
+    return;
+  }
+  String newStoresXml=shrinkStoresXml(initialStoresXml,droppingZoneId);
+  String newClusterXml=shrinkClusterXml(initialClusterXml,droppingZoneId);
+  logger.info("New cluster.xml: \n" + newClusterXml);
+  logger.info("New stores.xml: \n" + newStoresXml);
+  shouldContinue=verifyRebalanceState(adminClient,initialClusterNodes);
+  if (!shouldContinue) {
+    logAbort();
+    return;
+  }
+  if (realRun) {
+    logger.info("Updating metadata(cluster.xml, stores.xml) on all nodes");
+    executeSetMetadataPair(-1,adminClient,MetadataStore.CLUSTER_KEY,newClusterXml,MetadataStore.STORES_KEY,newStoresXml);
+  }
+ else {
+    logger.info("(dry-run)Skipping updating metadata");
+  }
+  if (realRun) {
+    shouldContinue=verifyMetadataConsistency(adminClient,initialClusterNodes,newClusterXml,newStoresXml);
+    if (!shouldContinue) {
+      logAbort();
+      return;
+    }
+  }
+ else {
+    logger.info("(dry-run)Skipping verifying new metadata");
+  }
+  shouldContinue=verifyRebalanceState(adminClient,initialClusterNodes);
+  if (!shouldContinue) {
+    logAbort();
+  }
+ else {
+    logger.info("Shrinkage on " + bootstrapUrl + " is completed");
+    logger.info("=========================================================");
+    logger.info("||     DDDDDDD        OOO       NN    NN    EEEEEEEE   ||");
+    logger.info("||     DD    DD     OO   OO     NNN   NN    EE         ||");
+    logger.info("||     DD     DD   OO     OO    NNNN  NN    EE         ||");
+    logger.info("||     DD     DD   OO     OO    NN NN NN    EEEEEEEE   ||");
+    logger.info("||     DD     DD   OO     OO    NN  NNNN    EE         ||");
+    logger.info("||     DD    DD     OO   OO     NN   NNN    EE         ||");
+    logger.info("||     DDDDDDD        OOO       NN    NN    EEEEEEEE   ||");
+    logger.info("=========================================================");
+  }
+}

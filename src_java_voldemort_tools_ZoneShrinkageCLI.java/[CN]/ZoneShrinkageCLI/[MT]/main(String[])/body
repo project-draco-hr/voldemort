@@ -1,0 +1,13 @@
+{
+  OptionParser parser=getParser();
+  OptionSet options=parser.parse(argv);
+  validateOptions(options);
+  ZoneShrinkageCLI cli=new ZoneShrinkageCLI((String)options.valueOf("url"),(Integer)options.valueOf("drop-zoneid"));
+  try {
+    cli.executeShrink(options.has("real-run"));
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    logAbort();
+  }
+}

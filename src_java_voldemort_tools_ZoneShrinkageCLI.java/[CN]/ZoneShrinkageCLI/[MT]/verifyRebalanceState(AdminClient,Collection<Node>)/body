@@ -1,0 +1,23 @@
+{
+  boolean success=true;
+  logger.info("Checking server states on all nodes");
+  for (  Node node : nodes) {
+    Integer nodeId=node.getId();
+    Versioned<String> stateVersioned=adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,MetadataStore.SERVER_STATE_KEY);
+    if (stateVersioned == null) {
+      logger.error("Node " + nodeId + " State object is null");
+      success=false;
+    }
+ else {
+      if (!stateVersioned.getValue().equals("NORMAL_SERVER")) {
+        logger.error("Node " + nodeId + " Server state is not normal");
+        success=false;
+      }
+ else {
+        logger.info("Node " + nodeId + " is GOOD (rebalance state)");
+      }
+    }
+  }
+  logger.info("Finished checking server states on all nodes");
+  return success;
+}

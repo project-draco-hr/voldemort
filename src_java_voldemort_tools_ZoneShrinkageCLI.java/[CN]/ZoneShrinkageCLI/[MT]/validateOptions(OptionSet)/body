@@ -1,0 +1,20 @@
+{
+  Integer exitStatus=null;
+  if (options.has("help")) {
+    exitStatus=0;
+    System.out.println("This tool changes the targeted cluster topology by shrinking one zone. The replication of data in other zones will not change and the targeted zone will disappear from current routing strategy");
+  }
+ else   if (!options.has("url")) {
+    System.err.println("Option \"url\" is required");
+    exitStatus=1;
+  }
+ else   if (!options.has("drop-zoneid")) {
+    System.err.println("Option \"drop-zoneid\" is required");
+    exitStatus=1;
+  }
+  if (exitStatus != null) {
+    if (exitStatus == 0)     getParser().printHelpOn(System.out);
+ else     getParser().printHelpOn(System.err);
+    System.exit(exitStatus);
+  }
+}

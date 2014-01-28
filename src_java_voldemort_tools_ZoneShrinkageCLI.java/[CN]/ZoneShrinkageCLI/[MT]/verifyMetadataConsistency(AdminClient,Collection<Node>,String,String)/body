@@ -1,0 +1,39 @@
+{
+  boolean success=true;
+  logger.info("Checking metadata consistency on all servers");
+  for (  Node node : nodes) {
+    int nodeId=node.getId();
+    boolean nodeGood=true;
+    Versioned<String> currentClusterXmlVersioned=adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,CLUSTER_KEY);
+    Versioned<String> currentStoresXmlVersioned=adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,STORES_KEY);
+    if (currentClusterXmlVersioned == null) {
+      logger.error("Cluster XML does not exist on node " + nodeId);
+      nodeGood=false;
+    }
+ else {
+      if (clusterXml.equals(currentClusterXmlVersioned.getValue())) {
+        logger.info("Node " + nodeId + " cluster.xml is GOOD (cluster xml)");
+      }
+ else {
+        logger.info("Node " + nodeId + " cluster.xml is BAD (cluster xml)");
+        nodeGood=false;
+      }
+    }
+    if (currentStoresXmlVersioned == null) {
+      logger.error("Stores XML does not exist on node " + nodeId);
+      nodeGood=false;
+    }
+ else {
+      if (storesXml.equals(currentStoresXmlVersioned.getValue())) {
+        logger.info("Node " + nodeId + " stores.xml is GOOD (stores xml)");
+      }
+ else {
+        logger.info("Node " + nodeId + " stores.xml is BAD (stores xml)");
+        nodeGood=false;
+      }
+    }
+    success=success && nodeGood;
+  }
+  logger.info("Finished checking metadata consistency on all servers");
+  return success;
+}

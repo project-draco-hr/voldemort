@@ -1,0 +1,14 @@
+{
+  cluster=ClusterTestUtils.getZZZCluster();
+  oldStores=ClusterTestUtils.getZZZStoreDefsInMemory();
+  setup();
+  String[] argv=("--url " + bsURL + " --drop-zoneid 0 --real-run").split(" ");
+  ZoneShrinkageCLI.main(argv);
+  AdminClient adminClient=new AdminClient(bsURL,new AdminClientConfig(),new ClientConfig());
+  assertEquals(2,adminClient.getAdminClientCluster().getZoneIds().size());
+  String bootstrapUrl=adminClient.getAdminClientCluster().getNodes().iterator().next().getSocketUrl().toString();
+  StoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootstrapUrl));
+  StoreClient<String,String> client=factory.getStoreClient(oldStores.get(0).getName());
+  client.put("k1","v1");
+  assertEquals("v1",client.get("k1").getValue());
+}

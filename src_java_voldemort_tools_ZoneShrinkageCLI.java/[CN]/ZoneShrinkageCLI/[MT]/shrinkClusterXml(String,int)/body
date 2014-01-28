@@ -1,0 +1,7 @@
+{
+  Cluster initialCluster=new ClusterMapper().readCluster(new StringReader(clusterXml));
+  Cluster intermediateCluster=RebalanceUtils.vacateZone(initialCluster,droppingZoneId);
+  Cluster finalCluster=RebalanceUtils.dropZone(intermediateCluster,droppingZoneId);
+  String newClusterXml=new ClusterMapper().writeCluster(finalCluster);
+  return newClusterXml;
+}
