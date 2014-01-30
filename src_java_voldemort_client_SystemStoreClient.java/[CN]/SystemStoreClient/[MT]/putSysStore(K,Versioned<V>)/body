@@ -1,7 +1,9 @@
 {
   Version version=null;
   try {
-    logger.debug("Invoking Put for key : " + key + " on store name : "+ this.storeName);
+    if (logger.isDebugEnabled()) {
+      logger.debug("Invoking Put for key : " + key + " on store name : "+ this.storeName);
+    }
     this.sysStore.put(key,value,null);
     version=value.getVersion();
   }
@@ -9,6 +11,7 @@
     if (logger.isDebugEnabled()) {
       logger.debug("Exception caught during putSysStore: " + e);
     }
+    logger.info("Exception during put",e);
   }
   return version;
 }

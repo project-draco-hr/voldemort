@@ -1,6 +1,7 @@
 {
+  BufferedReader reader=null;
   try {
-    BufferedReader reader=new BufferedReader(new FileReader(new File(this.inputPath)));
+    reader=new BufferedReader(new FileReader(new File(this.inputPath)));
     String line=reader.readLine();
     while (line != null) {
       if (line.startsWith(NEW_PROPERTY_SEPARATOR.toString())) {
@@ -29,6 +30,16 @@
     logger.debug("File used for persistence does not exist !!");
   }
 catch (  IOException e) {
-    logger.debug("Error in flushing data to file : " + e);
+    logger.info("Error in flushing data to file for store " + getName(),e);
+  }
+ finally {
+    if (reader != null) {
+      try {
+        reader.close();
+      }
+ catch (      IOException e) {
+        logger.debug("Error closing reader!",e);
+      }
+    }
   }
 }

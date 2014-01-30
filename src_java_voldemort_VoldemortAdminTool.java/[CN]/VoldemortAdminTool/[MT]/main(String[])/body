@@ -45,6 +45,10 @@
   parser.accepts("mirror-from-url","Cluster url to mirror data from").withRequiredArg().describedAs("mirror-cluster-bootstrap-url").ofType(String.class);
   parser.accepts("mirror-node","Node id in the mirror cluster to mirror from").withRequiredArg().describedAs("id-of-mirror-node").ofType(Integer.class);
   parser.accepts("fetch-orphaned","Fetch any orphaned keys/entries in the node");
+  parser.accepts("set-quota","Enforce some quota on the servers").withRequiredArg().describedAs("quota-type").ofType(String.class);
+  parser.accepts("quota-value","Value of the quota enforced on the servers").withRequiredArg().describedAs("quota-value").ofType(String.class);
+  parser.accepts("unset-quota","Remove some quota already enforced on the servers").withRequiredArg().describedAs("quota-type").ofType(String.class);
+  parser.accepts("get-quota","Retrieve some quota already enforced on the servers").withRequiredArg().describedAs("quota-type").ofType(String.class);
   OptionSet options=parser.parse(args);
   if (options.has("help")) {
     printHelp(System.out,parser);
@@ -52,7 +56,7 @@
   }
   Set<String> missing=CmdUtils.missing(options,"url","node");
   if (missing.size() > 0) {
-    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store") || options.has("ro-metadata")|| options.has("set-metadata")|| options.has("set-metadata-pair")|| options.has("get-metadata")|| options.has("check-metadata")) || options.has("truncate") || options.has("clear-rebalancing-metadata") || options.has("async") || options.has("native-backup") || options.has("rollback") || options.has("verify-metadata-version") || options.has("reserve-memory") || options.has("purge-slops") || options.has("show-routing-plan"))) {
+    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store") || options.has("ro-metadata")|| options.has("set-metadata")|| options.has("set-metadata-pair")|| options.has("get-metadata")|| options.has("check-metadata")) || options.has("truncate") || options.has("clear-rebalancing-metadata") || options.has("async") || options.has("native-backup") || options.has("rollback") || options.has("verify-metadata-version") || options.has("reserve-memory") || options.has("purge-slops") || options.has("show-routing-plan") || options.has("set-quota") || options.has("unset-quota") || options.has("get-quota"))) {
       System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
       printHelp(System.err,parser);
       System.exit(1);
@@ -101,7 +105,7 @@
         Utils.croak("Specify the list of stores to reserve memory");
       }
       long reserveMB=(Long)options.valueOf("reserve-memory");
-      adminClient.storeMntOps.reserveMemory(nodeId,storeNames,reserveMB);
+      adminClient.quotaMgmtOps.reserveMemory(nodeId,storeNames,reserveMB);
     }
  else     if (options.has("get-metadata")) {
       String metadataKey=ALL_METADATA;
@@ -318,6 +322,46 @@
         Utils.croak("Must specify comma separated keys list in hex format");
       }
       executeShowRoutingPlan(adminClient,storeName,keysToRoute);
+    }
+ else     if (options.has("set-quota")) {
+      String quotaType=(String)options.valueOf("set-quota");
+      Set<String> validQuotaTypes=QuotaUtils.validQuotaTypes();
+      if (!validQuotaTypes.contains(quotaType)) {
+        Utils.croak("Specify a valid quota type from :" + validQuotaTypes);
+      }
+      if (!options.has("store")) {
+        Utils.croak("Must specify the store to enforce the quota on. ");
+      }
+      if (!options.has("quota-value")) {
+        Utils.croak("Must specify the value of the quota being set");
+      }
+      String storeName=(String)options.valueOf("store");
+      String quotaValue=(String)options.valueOf("quota-value");
+      executeSetQuota(adminClient,storeName,quotaType,quotaValue);
+    }
+ else     if (options.has("unset-quota")) {
+      String quotaType=(String)options.valueOf("unset-quota");
+      Set<String> validQuotaTypes=QuotaUtils.validQuotaTypes();
+      if (!validQuotaTypes.contains(quotaType)) {
+        Utils.croak("Specify a valid quota type from :" + validQuotaTypes);
+      }
+      if (!options.has("store")) {
+        Utils.croak("Must specify the store to enforce the quota on. ");
+      }
+      String storeName=(String)options.valueOf("store");
+      executeUnsetQuota(adminClient,storeName,quotaType);
+    }
+ else     if (options.has("get-quota")) {
+      String quotaType=(String)options.valueOf("get-quota");
+      Set<String> validQuotaTypes=QuotaUtils.validQuotaTypes();
+      if (!validQuotaTypes.contains(quotaType)) {
+        Utils.croak("Specify a valid quota type from :" + validQuotaTypes);
+      }
+      if (!options.has("store")) {
+        Utils.croak("Must specify the store to enforce the quota on. ");
+      }
+      String storeName=(String)options.valueOf("store");
+      executeGetQuota(adminClient,storeName,quotaType);
     }
  else {
       Utils.croak("At least one of (delete-partitions, restore, add-node, fetch-entries, " + "fetch-keys, add-stores, delete-store, update-entries, get-metadata, ro-metadata, " + "set-metadata, check-metadata, clear-rebalancing-metadata, async, "+ "repair-job, native-backup, rollback, reserve-memory, mirror-url,"+ " verify-metadata-version, prune-job, purge-slops) must be specified");

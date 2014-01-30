@@ -31,7 +31,9 @@ synchronized (mbeanServer) {
         }
       }
     }
-    if (voldemortConfig.isMetadataCheckingEnabled() && !isMetadata)     store=new InvalidMetadataCheckingStore(metadata.getNodeId(),store,metadata);
+    if (voldemortConfig.isMetadataCheckingEnabled() && !isMetadata) {
+      store=new InvalidMetadataCheckingStore(metadata.getNodeId(),store,metadata);
+    }
   }
   if (voldemortConfig.isStatTrackingEnabled()) {
     StatTrackingStore statStore=new StatTrackingStore(store,this.storeStats);
@@ -45,6 +47,15 @@ synchronized (mbeanServer) {
         if (mbeanServer.isRegistered(name))         JmxUtils.unregisterMbean(mbeanServer,name);
         JmxUtils.registerMbean(mbeanServer,JmxUtils.createModelMBean(new StoreStatsJmx(statStore.getStats())),name);
       }
+    }
+    if (voldemortConfig.isEnableQuotaLimiting() && !isMetadata) {
+      FileBackedCachingStorageEngine quotaStore=(FileBackedCachingStorageEngine)storeRepository.getStorageEngine(SystemStoreConstants.SystemStoreName.voldsys$_store_quotas.toString());
+      QuotaLimitStats quotaStats=new QuotaLimitStats(this.aggregatedQuotaStats);
+      QuotaLimitingStore rateLimitingStore=new QuotaLimitingStore(store,this.storeStats,quotaStats,quotaStore);
+      if (voldemortConfig.isJmxEnabled()) {
+        JmxUtils.registerMbean(this.aggregatedQuotaStats,JmxUtils.createObjectName("voldemort.store.quota",store.getName() + "-quota-limit-stats"));
+      }
+      store=rateLimitingStore;
     }
   }
   storeRepository.addLocalStore(store);

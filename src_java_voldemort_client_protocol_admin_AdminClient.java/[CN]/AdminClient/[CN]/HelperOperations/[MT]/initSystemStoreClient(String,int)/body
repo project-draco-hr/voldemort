@@ -1,0 +1,17 @@
+{
+  String[] bootstrapUrls=new String[1];
+  bootstrapUrls[0]=bootstrapURL;
+  try {
+    if (systemStoreFactory == null) {
+      ClientConfig clientConfig=new ClientConfig();
+      clientConfig.setBootstrapUrls(bootstrapUrls);
+      clientConfig.setClientZoneId(zoneId);
+      systemStoreFactory=new SystemStoreClientFactory<String,String>(clientConfig);
+    }
+    metadataVersionSysStoreClient=systemStoreFactory.createSystemStore(SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name());
+    quotaSysStoreClient=systemStoreFactory.createSystemStore(SystemStoreConstants.SystemStoreName.voldsys$_store_quotas.name());
+  }
+ catch (  Exception e) {
+    logger.debug("Error while creating a system store client for metadata version store/quota store.");
+  }
+}

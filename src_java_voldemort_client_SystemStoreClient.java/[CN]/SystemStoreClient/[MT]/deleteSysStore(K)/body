@@ -1,0 +1,19 @@
+{
+  try {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Invoking Delete for key : " + key + " on store name : "+ this.storeName);
+    }
+    Versioned<V> versioned=getSysStore(key);
+    if (versioned == null) {
+      return true;
+    }
+    return this.sysStore.delete(key,versioned.getVersion());
+  }
+ catch (  Exception e) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Exception caught during deleteSysStore: " + e);
+    }
+    logger.info("Exception during delete",e);
+    return false;
+  }
+}

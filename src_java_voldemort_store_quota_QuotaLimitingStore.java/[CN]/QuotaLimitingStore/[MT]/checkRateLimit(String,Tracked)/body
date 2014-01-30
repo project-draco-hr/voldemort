@@ -1,0 +1,18 @@
+{
+  String quotaValue=null;
+  try {
+    quotaValue=quotaStore.cacheGet(quotaKey);
+    if (quotaValue == null) {
+      return;
+    }
+    float currentRate=this.storeStats.getThroughput(trackedOp);
+    float allowedRate=Float.parseFloat(quotaValue);
+    if (currentRate > allowedRate) {
+      quotaStats.reportRateLimitedOp(trackedOp);
+      throw new VoldemortApplicationException("Exceeded rate limit for " + quotaKey + ". Maximum allowed : "+ allowedRate+ " Current: "+ currentRate);
+    }
+  }
+ catch (  NumberFormatException nfe) {
+    logger.debug("Invalid formatting of quota value for key " + quotaKey + " : "+ quotaValue);
+  }
+}
