@@ -15,11 +15,15 @@
       StoreRoutingPlan currentSRP=currentStoreRoutingPlans.get(storeDef.getName());
       StoreRoutingPlan finalSRP=finalStoreRoutingPlans.get(storeDef.getName());
       for (      int stealerPartitionId : finalSRP.getZoneNAryPartitionIds(stealerNodeId)) {
-        if (currentSRP.getReplicationNodeList(stealerPartitionId).contains(stealerNodeId)) {
-          continue;
+        if (!storeDef.getType().equalsIgnoreCase(ReadOnlyStorageConfiguration.TYPE_NAME)) {
+          if (currentSRP.getReplicationNodeList(stealerPartitionId).contains(stealerNodeId)) {
+            continue;
+          }
         }
         int donorNodeId=getDonorId(currentSRP,finalSRP,stealerZoneId,stealerNodeId,stealerPartitionId);
-        rpiBuilder.addPartitionStoreMove(stealerNodeId,donorNodeId,storeDef.getName(),stealerPartitionId);
+        if (donorNodeId != stealerNodeId) {
+          rpiBuilder.addPartitionStoreMove(stealerNodeId,donorNodeId,storeDef.getName(),stealerPartitionId);
+        }
       }
     }
   }
