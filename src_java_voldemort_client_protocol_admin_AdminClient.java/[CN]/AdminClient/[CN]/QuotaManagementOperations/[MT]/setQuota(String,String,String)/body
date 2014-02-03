@@ -1,4 +1,5 @@
 {
-  quotaSysStoreClient.putSysStore(QuotaUtils.makeQuotaKey(storeName,QuotaType.valueOf(quotaType)),quotaValue);
+  VectorClock denseClock=VectorClockUtils.makeClock(currentCluster.getNodeIds(),System.currentTimeMillis(),System.currentTimeMillis());
+  quotaSysStoreClient.putSysStore(QuotaUtils.makeQuotaKey(storeName,QuotaType.valueOf(quotaType)),new Versioned<String>(quotaValue,denseClock));
   logger.info("Set quota " + quotaType + " to "+ quotaValue+ " for store "+ storeName);
 }
