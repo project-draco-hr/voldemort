@@ -1,0 +1,14 @@
+{
+  adminClient.quotaMgmtOps.setQuota("test",QuotaType.GET_THROUGHPUT.toString(),"2");
+  adminClient.quotaMgmtOps.setQuota("test",QuotaType.PUT_THROUGHPUT.toString(),"2");
+  ensureThrottled();
+  adminClient.quotaMgmtOps.setQuota("test",QuotaType.GET_THROUGHPUT.toString(),Integer.MAX_VALUE + "");
+  adminClient.quotaMgmtOps.setQuota("test",QuotaType.PUT_THROUGHPUT.toString(),Integer.MAX_VALUE + "");
+  ensureNotThrottled();
+  adminClient.quotaMgmtOps.setQuota("test",QuotaType.GET_THROUGHPUT.toString(),"2");
+  adminClient.quotaMgmtOps.setQuota("test",QuotaType.PUT_THROUGHPUT.toString(),"2");
+  ensureThrottled();
+  adminClient.quotaMgmtOps.unsetQuota("test",QuotaType.GET_THROUGHPUT.toString());
+  adminClient.quotaMgmtOps.unsetQuota("test",QuotaType.PUT_THROUGHPUT.toString());
+  ensureNotThrottled();
+}

@@ -1,0 +1,16 @@
+{
+  for (int i=0; i < 1000; i++) {
+    try {
+      storeClient.put("key","value");
+    }
+ catch (    VoldemortApplicationException vae) {
+      fail("Put throttled when rate is :" + Integer.MAX_VALUE);
+    }
+    try {
+      storeClient.get("key");
+    }
+ catch (    VoldemortApplicationException vae) {
+      fail("Get throttled when rate is :" + Integer.MAX_VALUE);
+    }
+  }
+}

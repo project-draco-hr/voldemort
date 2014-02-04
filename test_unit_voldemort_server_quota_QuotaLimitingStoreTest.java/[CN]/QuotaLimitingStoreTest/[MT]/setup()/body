@@ -1,0 +1,9 @@
+{
+  Properties props=new Properties();
+  props.put("enable.quota.limiting","true");
+  server=ServerTestUtils.startStandAloneVoldemortServer(props,"test/common/voldemort/config/single-store.xml");
+  adminClient=new AdminClient(server.getMetadataStore().getCluster(),new AdminClientConfig(),new ClientConfig());
+  String bootStrapUrl="tcp://" + server.getIdentityNode().getHost() + ":"+ server.getIdentityNode().getSocketPort();
+  factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootStrapUrl));
+  storeClient=factory.getStoreClient("test");
+}
