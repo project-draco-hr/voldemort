@@ -1,0 +1,23 @@
+{
+  Map<String,StoreDefinition> updatedStoresMap=new HashMap<String,StoreDefinition>();
+  Versioned<List<StoreDefinition>> originalStoreDefinitions=getRemoteStoreDefList(nodeId);
+  if (originalStoreDefinitions == null) {
+    throw new VoldemortException("No stores found at this node ID : " + nodeId);
+  }
+  List<StoreDefinition> originalstoreDefList=originalStoreDefinitions.getValue();
+  List<StoreDefinition> finalStoreDefList=new ArrayList<StoreDefinition>();
+  VectorClock oldClock=(VectorClock)originalStoreDefinitions.getVersion();
+  for (  StoreDefinition def : updatedStores) {
+    updatedStoresMap.put(def.getName(),def);
+  }
+  for (  StoreDefinition def : originalstoreDefList) {
+    StoreDefinition updatedDef=updatedStoresMap.get(def.getName());
+    if (updatedDef == null) {
+      finalStoreDefList.add(def);
+    }
+ else {
+      finalStoreDefList.add(updatedDef);
+    }
+  }
+  updateRemoteMetadata(nodeId,MetadataStore.STORES_KEY,new Versioned<String>(storeMapper.writeStoreList(finalStoreDefList),oldClock.incremented(nodeId,1)));
+}
