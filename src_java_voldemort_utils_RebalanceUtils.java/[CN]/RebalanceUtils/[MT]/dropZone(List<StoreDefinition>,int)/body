@@ -6,6 +6,12 @@
       throw new VoldemortException("Store " + storeDef.getName() + " does not have replication factor for zone "+ dropZoneId);
     }
     StoreDefinitionBuilder adjustedStoreDefBuilder=StoreDefinitionUtils.getBuilderForStoreDef(storeDef);
+    if (!storeDef.hasPreferredReads()) {
+      adjustedStoreDefBuilder.setPreferredReads(null);
+    }
+    if (!storeDef.hasPreferredWrites()) {
+      adjustedStoreDefBuilder.setPreferredWrites(null);
+    }
     HashMap<Integer,Integer> adjustedZoneRepFactorMap=new HashMap<Integer,Integer>();
     for (    Integer zoneId : zoneRepFactorMap.keySet()) {
       if (zoneId != dropZoneId) {
