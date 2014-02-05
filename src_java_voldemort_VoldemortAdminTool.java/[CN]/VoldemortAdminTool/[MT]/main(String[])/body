@@ -41,6 +41,7 @@
   parser.accepts("synchronize-metadata-version","Synchronize the metadata versions across all the nodes.");
   parser.accepts("reserve-memory","Memory in MB to reserve for the store").withRequiredArg().describedAs("size-in-mb").ofType(Long.class);
   parser.accepts("query-key","Get values of a key on specific node").withRequiredArg().describedAs("query-key").ofType(String.class);
+  parser.accepts("query-key-format","Format of the query key. Can be one of [hex|readable]").withRequiredArg().describedAs("key-format").ofType(String.class);
   parser.accepts("show-routing-plan","Routing plan of the specified keys").withRequiredArg().describedAs("keys-to-be-routed").withValuesSeparatedBy(',').ofType(String.class);
   parser.accepts("mirror-from-url","Cluster url to mirror data from").withRequiredArg().describedAs("mirror-cluster-bootstrap-url").ofType(String.class);
   parser.accepts("mirror-node","Node id in the mirror cluster to mirror from").withRequiredArg().describedAs("id-of-mirror-node").ofType(Integer.class);
@@ -56,7 +57,7 @@
   }
   Set<String> missing=CmdUtils.missing(options,"url","node");
   if (missing.size() > 0) {
-    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store") || options.has("ro-metadata")|| options.has("set-metadata")|| options.has("set-metadata-pair")|| options.has("get-metadata")|| options.has("check-metadata")) || options.has("truncate") || options.has("clear-rebalancing-metadata") || options.has("async") || options.has("native-backup") || options.has("rollback") || options.has("verify-metadata-version") || options.has("reserve-memory") || options.has("purge-slops") || options.has("show-routing-plan") || options.has("set-quota") || options.has("unset-quota") || options.has("get-quota"))) {
+    if (!(missing.equals(ImmutableSet.of("node")) && (options.has("add-stores") || options.has("delete-store") || options.has("ro-metadata")|| options.has("set-metadata")|| options.has("set-metadata-pair")|| options.has("get-metadata")|| options.has("check-metadata")) || options.has("truncate") || options.has("clear-rebalancing-metadata") || options.has("async") || options.has("native-backup") || options.has("rollback") || options.has("verify-metadata-version") || options.has("reserve-memory") || options.has("purge-slops") || options.has("show-routing-plan") || options.has("query-key") || options.has("set-quota") || options.has("unset-quota") || options.has("get-quota"))) {
       System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
       printHelp(System.err,parser);
       System.exit(1);
@@ -69,8 +70,14 @@
     Integer zoneId=CmdUtils.valueOf(options,"zone",-1);
     AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());
     List<String> storeNames=null;
-    if (options.has("stores")) {
+    if (options.has("store") && options.has("stores")) {
+      throw new VoldemortException("Must not specify both --stores and --store options");
+    }
+ else     if (options.has("stores")) {
       storeNames=(List<String>)options.valuesOf("stores");
+    }
+ else     if (options.has("store")) {
+      storeNames=Arrays.asList((String)options.valueOf("store"));
     }
     String outputDir=null;
     if (options.has("outdir")) {
@@ -261,12 +268,16 @@
       long pushVersion=(Long)options.valueOf("version");
       executeRollback(nodeId,storeName,pushVersion,adminClient);
     }
- else     if (options.has("query-keys")) {
+ else     if (options.has("query-key")) {
       String key=(String)options.valueOf("query-key");
-      if (storeNames == null || storeNames.size() == 0) {
-        throw new VoldemortException("Must specify store name using --stores option");
+      String keyFormat=(String)options.valueOf("query-key-format");
+      if (keyFormat == null) {
+        keyFormat="hex";
       }
-      executeQueryKey(nodeId,adminClient,storeNames,key,options.has("ascii"));
+      if (!keyFormat.equals("hex") && !keyFormat.equals("readable")) {
+        throw new VoldemortException("--query-key-format must be hex or readable");
+      }
+      executeQueryKey(nodeId,adminClient,storeNames,key,keyFormat);
     }
  else     if (options.has("restore")) {
       if (nodeId == -1) {
