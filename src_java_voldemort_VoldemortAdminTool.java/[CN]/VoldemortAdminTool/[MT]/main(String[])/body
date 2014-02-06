@@ -1,5 +1,6 @@
 {
   OptionParser parser=new OptionParser();
+  parser.accepts("auto","enable auto mode. Useful for scripting");
   parser.accepts("help","print help information");
   parser.accepts("url","[REQUIRED] bootstrap URL").withRequiredArg().describedAs("bootstrap-url").ofType(String.class);
   parser.accepts("node","node id").withRequiredArg().describedAs("node-id").ofType(Integer.class);
@@ -204,7 +205,15 @@
           if (!Utils.isReadableFile(metadataValue))           throw new VoldemortException("Cluster xml file path incorrect");
           ClusterMapper mapper=new ClusterMapper();
           Cluster newCluster=mapper.readCluster(new File(metadataValue));
-          executeSetMetadata(nodeId,adminClient,metadataKey,mapper.writeCluster(newCluster));
+          if (!options.has("auto")) {
+            if (metadataUpdateSummary(nodeId,adminClient,mapper.writeCluster(newCluster))) {
+              executeSetMetadata(nodeId,adminClient,metadataKey,mapper.writeCluster(newCluster));
+            }
+ else {
+              System.out.println("New metadata has not been set");
+            }
+          }
+ else           executeSetMetadata(nodeId,adminClient,metadataKey,mapper.writeCluster(newCluster));
         }
  else         if (metadataKey.compareTo(MetadataStore.SERVER_STATE_KEY) == 0) {
           VoldemortState newState=VoldemortState.valueOf(metadataValue);
@@ -227,7 +236,15 @@
           }
           Versioned<String> storesXML=adminClient.metadataMgmtOps.getRemoteMetadata(nodeIdToGetStoreXMLFrom,MetadataStore.STORES_KEY);
           List<StoreDefinition> oldStoreDefs=mapper.readStoreList(new StringReader(storesXML.getValue()));
-          executeSetMetadata(nodeId,adminClient,MetadataStore.STORES_KEY,mapper.writeStoreList(newStoreDefs));
+          if (!options.has("auto")) {
+            if (metadataUpdateSummary(nodeId,adminClient,storesXML.getValue())) {
+              executeSetMetadata(nodeId,adminClient,MetadataStore.STORES_KEY,mapper.writeStoreList(newStoreDefs));
+            }
+ else {
+              System.out.println("New metadata has not been set");
+            }
+          }
+ else           executeSetMetadata(nodeId,adminClient,MetadataStore.STORES_KEY,mapper.writeStoreList(newStoreDefs));
           if (nodeId >= 0) {
             System.err.println("WARNING: Metadata version update of stores goes to all servers, " + "although this set-metadata oprations only goes to node " + nodeId);
           }
