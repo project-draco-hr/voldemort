@@ -1,16 +1,23 @@
 {
-  int storeDefNodeId=nodeId;
-  List<Integer> queryingNodes=Arrays.asList(nodeId);
+  int storeDefNodeId;
   if (nodeId < 0) {
     Iterator<Node> nodeIterator=adminClient.getAdminClientCluster().getNodes().iterator();
     if (!nodeIterator.hasNext()) {
       throw new VoldemortException("No nodes in this cluster");
     }
     storeDefNodeId=nodeIterator.next().getId();
-    queryingNodes=new ArrayList<Integer>();
+  }
+ else {
+    storeDefNodeId=nodeId;
+  }
+  List<Integer> queryingNodes=new ArrayList<Integer>();
+  if (nodeId < 0) {
     for (    Node node : adminClient.getAdminClientCluster().getNodes()) {
       queryingNodes.add(node.getId());
     }
+  }
+ else {
+    queryingNodes.add(nodeId);
   }
   List<StoreDefinition> storeDefinitionList=adminClient.metadataMgmtOps.getRemoteStoreDefList(storeDefNodeId).getValue();
   Map<String,StoreDefinition> storeDefinitions=new HashMap<String,StoreDefinition>();
@@ -23,7 +30,7 @@
     if (storeDefinition == null) {
       throw new StoreNotFoundException("Store " + storeName + " not found");
     }
-    out.write("STORE_NAME: " + storeDefinition.getName());
+    out.write("STORE_NAME: " + storeDefinition.getName() + "\n");
     final SerializerDefinition keySerializerDef=storeDefinition.getKeySerializer();
     final SerializerDefinition valueSerializerDef=storeDefinition.getValueSerializer();
     SerializerFactory serializerFactory=new DefaultSerializerFactory();
@@ -51,7 +58,7 @@
     }
     out.write("KEY_SERIALIZER_NAME: " + keySerializerDef.getName() + "\n");
     for (    Map.Entry<Integer,String> entry : keySerializerDef.getAllSchemaInfoVersions().entrySet()) {
-      out.write(String.format("KEY_SCHEMA %d\n",entry.getKey()));
+      out.write(String.format("KEY_SCHEMA VERSION=%d\n",entry.getKey()));
       out.write("====================================\n");
       out.write(entry.getValue());
       out.write("\n====================================\n");
