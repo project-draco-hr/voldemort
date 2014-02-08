@@ -1,0 +1,9 @@
+{
+  if (!(currentLatest instanceof VersionValue)) {
+    throw new VoldemortException(" Expected type VersionValue found type " + currentLatest.getClass().getCanonicalName());
+  }
+  VersionValue latestVersion=(VersionValue)currentLatest;
+  long latestTimeStamp=((VectorClock)latestVersion.version).getTimestamp();
+  long myTimeStamp=((VectorClock)version).getTimestamp();
+  return myTimeStamp > latestTimeStamp;
+}

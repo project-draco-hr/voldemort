@@ -1,5 +1,5 @@
 {
-  Map<Version,Set<ConsistencyCheck.ClusterNode>> versionNodeSetMap=new HashMap<Version,Set<ConsistencyCheck.ClusterNode>>();
+  Map<ConsistencyCheck.Value,Set<ConsistencyCheck.ClusterNode>> versionNodeSetMap=new HashMap<ConsistencyCheck.Value,Set<ConsistencyCheck.ClusterNode>>();
   int replicationFactor=4;
   Version v1=new VectorClock();
   ((VectorClock)v1).incrementVersion(1,100000001);
@@ -13,9 +13,9 @@
   Versioned<byte[]> versioned1=new Versioned<byte[]>(value1,v1);
   Versioned<byte[]> versioned2=new Versioned<byte[]>(value2,v2);
   Versioned<byte[]> versioned3=new Versioned<byte[]>(value3,v3);
-  Version hv1=new ConsistencyCheck.HashedValue(versioned1);
-  Version hv2=new ConsistencyCheck.HashedValue(versioned2);
-  Version hv3=new ConsistencyCheck.HashedValue(versioned3);
+  ConsistencyCheck.Value hv1=new ConsistencyCheck.HashedValue(versioned1);
+  ConsistencyCheck.Value hv2=new ConsistencyCheck.HashedValue(versioned2);
+  ConsistencyCheck.Value hv3=new ConsistencyCheck.HashedValue(versioned3);
   versionNodeSetMap.clear();
   versionNodeSetMap.put(hv1,setFourNodes);
   assertEquals(ConsistencyCheck.ConsistencyLevel.FULL,ConsistencyCheck.determineConsistency(versionNodeSetMap,replicationFactor));
@@ -30,5 +30,5 @@
   versionNodeSetMap.clear();
   versionNodeSetMap.put(hv1,setFourNodes);
   versionNodeSetMap.put(hv2,setThreeNodes);
-  assertEquals(ConsistencyCheck.ConsistencyLevel.INCONSISTENT,ConsistencyCheck.determineConsistency(versionNodeSetMap,replicationFactor));
+  assertEquals(ConsistencyCheck.ConsistencyLevel.LATEST_CONSISTENT,ConsistencyCheck.determineConsistency(versionNodeSetMap,replicationFactor));
 }

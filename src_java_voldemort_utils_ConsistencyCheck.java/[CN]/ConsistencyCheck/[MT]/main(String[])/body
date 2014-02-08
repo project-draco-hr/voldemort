@@ -12,6 +12,10 @@
   String storeName=(String)options.valueOf("store");
   List<Integer> partitionIds=(List<Integer>)options.valuesOf("partitions");
   String badKeyFile=(String)options.valueOf("bad-key-file");
+  ComparisonType comparisonType=ComparisonType.VERSION;
+  if (options.hasArgument(ComparisonTypeArgument)) {
+    comparisonType=(ComparisonType)options.valueOf(ComparisonTypeArgument);
+  }
   BufferedWriter badKeyWriter=null;
   try {
     badKeyWriter=new BufferedWriter(new FileWriter(badKeyFile));
@@ -22,7 +26,7 @@
   Map<Integer,Reporter> partitionStatsMap=new HashMap<Integer,Reporter>();
   try {
     for (    Integer partitionId : partitionIds) {
-      ConsistencyCheck checker=new ConsistencyCheck(urls,storeName,partitionId,badKeyWriter);
+      ConsistencyCheck checker=new ConsistencyCheck(urls,storeName,partitionId,badKeyWriter,comparisonType);
       checker.connect();
       Reporter reporter=checker.execute();
       partitionStatsMap.put(partitionId,reporter);

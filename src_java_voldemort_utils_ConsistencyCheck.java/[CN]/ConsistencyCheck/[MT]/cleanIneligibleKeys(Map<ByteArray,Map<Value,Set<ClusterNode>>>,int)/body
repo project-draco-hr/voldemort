@@ -1,0 +1,23 @@
+{
+  Set<ByteArray> keysToDelete=new HashSet<ByteArray>();
+  for (  Map.Entry<ByteArray,Map<Value,Set<ClusterNode>>> entry : keyVersionNodeSetMap.entrySet()) {
+    Set<Value> valuesToDelete=new HashSet<Value>();
+    ByteArray key=entry.getKey();
+    Map<Value,Set<ClusterNode>> valueNodeSetMap=entry.getValue();
+    for (    Map.Entry<Value,Set<ClusterNode>> versionNodeSetEntry : valueNodeSetMap.entrySet()) {
+      Set<ClusterNode> nodeSet=versionNodeSetEntry.getValue();
+      if (nodeSet.size() < requiredWrite) {
+        valuesToDelete.add(versionNodeSetEntry.getKey());
+      }
+    }
+    for (    Value v : valuesToDelete) {
+      valueNodeSetMap.remove(v);
+    }
+    if (valueNodeSetMap.size() == 0) {
+      keysToDelete.add(key);
+    }
+  }
+  for (  ByteArray k : keysToDelete) {
+    keyVersionNodeSetMap.remove(k);
+  }
+}

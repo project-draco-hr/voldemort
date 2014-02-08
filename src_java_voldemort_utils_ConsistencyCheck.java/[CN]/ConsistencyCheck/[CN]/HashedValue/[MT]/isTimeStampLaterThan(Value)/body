@@ -1,0 +1,9 @@
+{
+  if (!(currentLatest instanceof HashedValue)) {
+    throw new VoldemortException(" Expected type HashedValue found type " + currentLatest.getClass().getCanonicalName());
+  }
+  HashedValue latestVersion=(HashedValue)currentLatest;
+  long latestTimeStamp=((VectorClock)latestVersion.innerVersion).getTimestamp();
+  long myTimeStamp=((VectorClock)innerVersion).getTimestamp();
+  return myTimeStamp > latestTimeStamp;
+}

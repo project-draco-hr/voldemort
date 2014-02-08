@@ -1,0 +1,24 @@
+{
+  boolean fullyConsistent=true;
+  Value latestVersion=null;
+  for (  Map.Entry<Value,Set<ClusterNode>> versionNodeSetEntry : versionNodeSetMap.entrySet()) {
+    Value value=versionNodeSetEntry.getKey();
+    if (latestVersion == null) {
+      latestVersion=value;
+    }
+ else     if (value.isTimeStampLaterThan(latestVersion)) {
+      latestVersion=value;
+    }
+    Set<ClusterNode> nodeSet=versionNodeSetEntry.getValue();
+    fullyConsistent=fullyConsistent && (nodeSet.size() == replicationFactor);
+  }
+  if (fullyConsistent) {
+    return ConsistencyLevel.FULL;
+  }
+ else {
+    if (latestVersion != null && versionNodeSetMap.get(latestVersion).size() == replicationFactor) {
+      return ConsistencyLevel.LATEST_CONSISTENT;
+    }
+    return ConsistencyLevel.INCONSISTENT;
+  }
+}

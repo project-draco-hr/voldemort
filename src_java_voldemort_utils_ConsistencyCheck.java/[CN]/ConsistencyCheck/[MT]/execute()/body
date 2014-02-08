@@ -29,11 +29,11 @@
         keyFetchTracker.recordFetch(clusterNode,key);
         if (logger.isTraceEnabled()) {
           logger.trace("fetched " + new String(key.get()));
-          logger.trace("map has keys: " + keyVersionNodeSetMap.size());
+          logger.trace("map has keys: " + keyValueNodeSetMap.size());
         }
         trySweepAll();
         if (logger.isTraceEnabled()) {
-          logger.trace("sweeped; keys left: " + keyVersionNodeSetMap.size());
+          logger.trace("sweeped; keys left: " + keyValueNodeSetMap.size());
         }
       }
     }
@@ -52,9 +52,9 @@
       adminClient.close();
     }
   }
-  cleanIneligibleKeys(keyVersionNodeSetMap,requiredWrites);
+  cleanIneligibleKeys(keyValueNodeSetMap,requiredWrites);
   keyFetchTracker.finishAll();
   trySweepAll();
-  reporter.processInconsistentKeys(storeName,partitionId,keyVersionNodeSetMap);
+  reporter.processInconsistentKeys(storeName,partitionId,keyValueNodeSetMap);
   return reporter;
 }

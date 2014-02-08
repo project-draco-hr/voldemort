@@ -1,0 +1,16 @@
+{
+  if (logger.isDebugEnabled()) {
+    logger.debug("TYPE,Store,ParId,Key,ServerSet,VersionTS,VectorClock[,ValueHash]");
+  }
+  for (  Map.Entry<ByteArray,Map<Value,Set<ClusterNode>>> entry : keyVersionNodeSetMap.entrySet()) {
+    ByteArray key=entry.getKey();
+    if (badKeyWriter != null) {
+      badKeyWriter.write(ByteUtils.toHexString(key.get()) + "\n");
+    }
+    if (logger.isDebugEnabled()) {
+      Map<Value,Set<ClusterNode>> versionMap=entry.getValue();
+      logger.debug(keyVersionToString(key,versionMap,storeName,partitionId));
+    }
+  }
+  recordInconsistentKey(keyVersionNodeSetMap.size());
+}

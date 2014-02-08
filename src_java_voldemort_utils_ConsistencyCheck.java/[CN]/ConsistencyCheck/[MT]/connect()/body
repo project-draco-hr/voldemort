@@ -10,7 +10,8 @@
     adminClients.add(adminClient);
     Cluster cluster=adminClient.getAdminClientCluster();
     clusterMap.put(url,cluster);
-    Versioned<List<StoreDefinition>> storeDefinitions=adminClient.metadataMgmtOps.getRemoteStoreDefList(0);
+    Integer nodeId=cluster.getNodeIds().iterator().next();
+    Versioned<List<StoreDefinition>> storeDefinitions=adminClient.metadataMgmtOps.getRemoteStoreDefList(nodeId);
     StoreDefinition storeDefinition=StoreDefinitionUtils.getStoreDefinitionWithName(storeDefinitions.getValue(),storeName);
     storeDefinitionMap.put(url,storeDefinition);
   }

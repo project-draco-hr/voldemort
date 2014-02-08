@@ -1,0 +1,14 @@
+{
+  StringBuilder record=new StringBuilder();
+  for (  Map.Entry<Value,Set<ClusterNode>> versionSet : versionMap.entrySet()) {
+    Value value=versionSet.getKey();
+    Set<ClusterNode> nodeSet=versionSet.getValue();
+    record.append("BAD_KEY,");
+    record.append(storeName + ",");
+    record.append(partitionId + ",");
+    record.append(ByteUtils.toHexString(key.get()) + ",");
+    record.append(nodeSet.toString().replace(", ",";") + ",");
+    record.append(value.toString());
+  }
+  return record.toString();
+}
