@@ -1,9 +1,21 @@
 {
   this.enforceMlock=enforceMlock;
   this.baseDir=directory;
-  if (!Utils.isReadableDir(directory))   throw new VoldemortException(directory.getAbsolutePath() + " is not a readable directory.");
+  if (!Utils.isReadableDir(directory)) {
+    throw new VoldemortException(directory.getAbsolutePath() + " is not a readable directory.");
+  }
   File metadataFile=new File(baseDir,".metadata");
   ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
+  if (!metadataFile.exists()) {
+    metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode());
+    try {
+      FileUtils.writeStringToFile(metadataFile,metadata.toJsonString());
+    }
+ catch (    IOException e) {
+      logger.error("Cannot create metadata file ",e);
+      throw new IOException("Unable to create metadata file " + metadataFile);
+    }
+  }
   if (Utils.isReadableFile(metadataFile)) {
     try {
       metadata=new ReadOnlyStorageMetadata(metadataFile);
@@ -12,10 +24,7 @@
       logger.warn("Cannot read metadata file, assuming default values");
     }
   }
- else {
-    logger.warn("Metadata file not found. Assuming default settings");
-  }
-  this.storageFormat=ReadOnlyStorageFormat.fromCode((String)metadata.get(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V0.getCode()));
+  this.storageFormat=ReadOnlyStorageFormat.fromCode((String)metadata.get(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode()));
   this.indexFileSizes=new ArrayList<Integer>();
   this.dataFileSizes=new ArrayList<Integer>();
   this.indexFiles=new ArrayList<MappedByteBuffer>();

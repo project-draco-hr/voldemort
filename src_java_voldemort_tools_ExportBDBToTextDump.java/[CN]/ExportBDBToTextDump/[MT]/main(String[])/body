@@ -1,0 +1,66 @@
+{
+  OptionParser parser=getParser();
+  OptionSet options=parser.parse(argv);
+  validateOptions(options);
+  String storeBdbFolderPath=(String)options.valueOf("bdb");
+  String outputFolderPath=(String)options.valueOf("output");
+  File storeBdbFolder=new File(storeBdbFolderPath);
+  File outputFolder=new File(outputFolderPath);
+  final String storeName=storeBdbFolder.getName();
+  Properties properties=new Properties();
+  properties.put("node.id","0");
+  properties.put("voldemort.home",storeBdbFolder.getParent());
+  VoldemortConfig voldemortConfig=new VoldemortConfig(properties);
+  voldemortConfig.setBdbDataDirectory(storeBdbFolder.getParent());
+  voldemortConfig.setEnableJmx(false);
+  voldemortConfig.setBdbOneEnvPerStore(true);
+  BdbStorageConfiguration bdbConfiguration=new BdbStorageConfiguration(voldemortConfig);
+class MockStoreDefinition extends StoreDefinition {
+    public MockStoreDefinition(){
+      super(storeName,null,null,null,null,null,null,null,0,null,0,null,0,null,null,null,null,null,null,null,null,null,null,null,null,0);
+    }
+    @Override public boolean hasMemoryFootprint(){
+      return false;
+    }
+  }
+  StoreDefinition storeDef=new MockStoreDefinition();
+  StorageEngine<ByteArray,byte[],byte[]> engine=bdbConfiguration.getStore(storeDef,null);
+  long reportIntervalMs=10000L;
+  long lastCount=0;
+  Reporter<Boolean> rp=new Reporter<Boolean>(reportIntervalMs);
+  long count=0;
+  BufferedWriter splitFileWriter=null;
+  ClosableIterator<Pair<ByteArray,Versioned<byte[]>>> entries=engine.entries();
+  while (entries.hasNext()) {
+    if (splitFileWriter == null) {
+      long splitId=count / SPLIT_SIZE;
+      File splitFile=new File(outputFolder,makeSplitFileName(splitId));
+      splitFileWriter=new BufferedWriter(new FileWriter(splitFile),WRITER_BUFFER_SIZE);
+    }
+    Pair<ByteArray,Versioned<byte[]>> pair=entries.next();
+    String line=makeLine(pair);
+    splitFileWriter.write(line);
+    if ((count + 1) % SPLIT_SIZE == 0) {
+      splitFileWriter.close();
+      splitFileWriter=null;
+    }
+    count++;
+    final Long countObject=count;
+    Boolean reported=rp.tryReport(new Callable<Boolean>(){
+      @Override public Boolean call() throws Exception {
+        System.out.print(String.format("Exported %15d entries",countObject));
+        return true;
+      }
+    }
+);
+    if (reported != null) {
+      System.out.println(String.format("; Speed: %8d/s",(count - lastCount) / (reportIntervalMs / 1000)));
+      lastCount=count;
+    }
+  }
+  entries.close();
+  if (splitFileWriter != null) {
+    splitFileWriter.close();
+  }
+  System.out.println(String.format("Finished exporting %d entries",count));
+}

@@ -1,0 +1,14 @@
+{
+  if (lastReport == null) {
+    lastReport=System.currentTimeMillis();
+    return null;
+  }
+ else {
+    if (lastReport + intervalMs < System.currentTimeMillis()) {
+      T result=callable.call();
+      lastReport=System.currentTimeMillis();
+      return result;
+    }
+  }
+  return null;
+}

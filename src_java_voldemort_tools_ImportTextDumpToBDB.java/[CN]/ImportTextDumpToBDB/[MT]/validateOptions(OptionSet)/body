@@ -1,0 +1,43 @@
+{
+  Integer exitStatus=null;
+  if (options.has("help")) {
+    exitStatus=0;
+    System.out.println("This programs loads a data dump to a Voldemort Store.");
+    System.out.println("Supported data dump should be a file or a folder containing files with lines of data.");
+    System.out.println("Each line should be in the format of the following (all in Hex Decimal format)");
+    System.out.println("\n\tKEY_BINARY VECTOR_CLOCK_BINARY VALUE_BINARY\n");
+  }
+ else   if (!options.has("input")) {
+    System.err.println("Option \"input\" is required");
+    exitStatus=1;
+  }
+ else   if (!new File((String)options.valueOf("input")).isDirectory()) {
+    System.err.println("Not a directory: " + options.valueOf("input"));
+    exitStatus=1;
+  }
+ else   if (!options.has("bdb")) {
+    System.err.println("Option \"bdb\" is required");
+    exitStatus=1;
+  }
+ else   if (!options.has("stores-xml")) {
+    System.err.println("Option \"stores-xml\" is required");
+    exitStatus=1;
+  }
+ else   if (!new File((String)options.valueOf("stores-xml")).isFile()) {
+    System.err.println("Not a file: " + options.valueOf("stores-xml"));
+    exitStatus=1;
+  }
+ else   if (!options.has("cluster-xml")) {
+    System.err.println("Option \"cluster-xml\" is required");
+    exitStatus=1;
+  }
+ else   if (!new File((String)options.valueOf("cluster-xml")).isFile()) {
+    System.err.println("Not a file: " + options.valueOf("cluster-xml"));
+    exitStatus=1;
+  }
+  if (exitStatus != null) {
+    if (exitStatus == 0)     getParser().printHelpOn(System.out);
+ else     getParser().printHelpOn(System.err);
+    System.exit(exitStatus);
+  }
+}
