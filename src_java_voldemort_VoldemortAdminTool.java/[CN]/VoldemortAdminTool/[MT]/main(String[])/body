@@ -247,6 +247,7 @@
           List<StoreDefinition> oldStoreDefs=mapper.readStoreList(new StringReader(storesXML.getValue()));
           if (options.has("auto")) {
             executeSetMetadata(nodeId,adminClient,MetadataStore.STORES_KEY,mapper.writeStoreList(newStoreDefs));
+            executeUpdateMetadataVersionsOnStores(adminClient,oldStoreDefs,newStoreDefs);
           }
  else {
             if (confirmMetadataUpdate(nodeId,adminClient,storesXML.getValue())) {
