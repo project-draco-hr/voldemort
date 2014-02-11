@@ -251,15 +251,15 @@
  else {
             if (confirmMetadataUpdate(nodeId,adminClient,storesXML.getValue())) {
               executeSetMetadata(nodeId,adminClient,MetadataStore.STORES_KEY,mapper.writeStoreList(newStoreDefs));
+              if (nodeId >= 0) {
+                System.err.println("WARNING: Metadata version update of stores goes to all servers, " + "although this set-metadata oprations only goes to node " + nodeId);
+              }
+              executeUpdateMetadataVersionsOnStores(adminClient,oldStoreDefs,newStoreDefs);
             }
  else {
               System.out.println("New metadata has not been set");
             }
           }
-          if (nodeId >= 0) {
-            System.err.println("WARNING: Metadata version update of stores goes to all servers, " + "although this set-metadata oprations only goes to node " + nodeId);
-          }
-          executeUpdateMetadataVersionsOnStores(adminClient,oldStoreDefs,newStoreDefs);
         }
  else         if (metadataKey.compareTo(MetadataStore.REBALANCING_STEAL_INFO) == 0) {
           if (!Utils.isReadableFile(metadataValue))           throw new VoldemortException("Rebalancing steal info file path incorrect");
