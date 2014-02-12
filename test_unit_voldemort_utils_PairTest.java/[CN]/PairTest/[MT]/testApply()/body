@@ -1,0 +1,14 @@
+{
+  for (int i=0; i < TIMES; i++) {
+    final int first=randomGenerator.nextInt();
+    final long second=randomGenerator.nextLong();
+    final Pair<Integer,Long> pair=new Pair<Integer,Long>(first,second);
+    assertThat(pair.apply(first),is(second));
+    assertThat((new Pair<Integer,Long>(null,second)).apply(null),is(second));
+    assertNull(pair.apply(first + 1));
+    assertNull((new Pair<Integer,Long>(first,null)).apply(first));
+    assertNull((new Pair<Integer,Long>(first,null)).apply(null));
+    assertNull((new Pair<Integer,Long>(null,second)).apply(first));
+    assertNull((new Pair<Integer,Long>(null,null)).apply(null));
+  }
+}
