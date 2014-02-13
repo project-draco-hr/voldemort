@@ -32,7 +32,7 @@
       Assert.fail("Final version of key [stores.xml] on node [" + vs.getIdentityNode().getId() + "] is expected to greater than 0 but not");
     }
   }
-  VoldemortAdminTool.main(new String[]{"--set-metadata",MetadataStore.STORES_KEY,"--set-metadata-value",newStoreXMLFile.getAbsolutePath(),"--url",bsURL});
+  VoldemortAdminTool.main(new String[]{"--auto","--set-metadata",MetadataStore.STORES_KEY,"--set-metadata-value",newStoreXMLFile.getAbsolutePath(),"--url",bsURL});
   for (  VoldemortServer vs : vservers.values()) {
     List<Versioned<byte[]>> result=vs.getStoreRepository().getLocalStore(sysStoreName).get(metadataKey,null);
     String versionInfo=new String(result.get(0).getValue());

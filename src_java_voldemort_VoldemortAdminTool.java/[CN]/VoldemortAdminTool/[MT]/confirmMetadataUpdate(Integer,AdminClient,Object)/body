@@ -1,0 +1,28 @@
+{
+  List<Integer> nodeIds=Lists.newArrayList();
+  System.out.print("\nNew metadata: \n" + value.toString() + "\n");
+  System.out.print("\nAffected nodes:\n");
+  System.out.format("+-------+------+---------------------------------+----------+---------+------------------+%n");
+  System.out.printf("|Id     |Zone  |Host                             |SocketPort|AdminPort|NumberOfPartitions|%n");
+  System.out.format("+-------+------+---------------------------------+----------+---------+------------------+%n");
+  if (nodeId < 0) {
+    for (    Node node : adminClient.getAdminClientCluster().getNodes()) {
+      nodeIds.add(node.getId());
+      System.out.format("| %-5d | %-4d | %-31s | %-5d    | %-5d   | %-5d            |%n",node.getId(),node.getZoneId(),node.getHost(),node.getSocketPort(),node.getAdminPort(),node.getNumberOfPartitions());
+      System.out.format("+-------+------+---------------------------------+----------+---------+------------------+%n");
+    }
+  }
+  System.out.print("Do you want to proceed? [Y/N]: ");
+  Scanner in=new Scanner(System.in);
+  String choice=in.nextLine();
+  if (choice.equals("Y") || choice.equals("y")) {
+    return true;
+  }
+ else   if (choice.equals("N") || choice.equals("n")) {
+    return false;
+  }
+ else {
+    System.out.println("Incorrect response detected. Exiting.");
+    return false;
+  }
+}
