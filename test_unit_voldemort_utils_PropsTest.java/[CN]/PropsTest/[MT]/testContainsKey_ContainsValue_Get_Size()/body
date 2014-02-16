@@ -1,0 +1,16 @@
+{
+  Props props=new Props();
+  for (int i=0; i < TIMES; i++) {
+    final String randomKey=generateString();
+    final String randomValue=generateString();
+    final int size=props.size();
+    props.put(randomKey,randomValue);
+    assertThat(props.containsKey(randomKey),is(true));
+    assertThat(props.containsKey(randomValue),is(false));
+    assertThat(props.containsValue(randomValue),is(true));
+    assertThat(props.containsValue(randomKey),is(false));
+    assertThat(props.get(randomKey),is(randomValue));
+    assertNull(props.get(randomValue));
+    assertThat(props.size(),is(size + 1));
+  }
+}
