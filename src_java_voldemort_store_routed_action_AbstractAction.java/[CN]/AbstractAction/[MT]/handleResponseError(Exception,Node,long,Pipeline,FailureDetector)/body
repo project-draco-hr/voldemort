@@ -6,7 +6,15 @@
   }
  else {
     if (logger.isEnabledFor(Level.WARN)) {
-      logger.warn("Error in " + pipeline.getOperation().getSimpleName() + " on node "+ node.getId()+ " ("+ node.getHost()+ ")",e);
+      String errorMessage="Error in " + pipeline.getOperation().getSimpleName() + " on node "+ node.getId()+ " ("+ node.getHost()+ ")";
+      if (logger.isEnabledFor(Level.DEBUG) || e.getCause() != null) {
+        logger.warn(errorMessage,e);
+      }
+ else {
+        errorMessage+=" : ExceptionType " + e.getClass().getSimpleName();
+        errorMessage+=" : ExceptionMessage " + e.getMessage();
+        logger.warn(errorMessage);
+      }
     }
   }
   if (e instanceof UnreachableStoreException) {
