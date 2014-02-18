@@ -1,0 +1,17 @@
+{
+  for (int i=0; i < TIMES; i++) {
+    final Props props=generateProps();
+    final String randomKey=generateString();
+    final String randomValue=generateString();
+    final int size=props.size();
+    final String key=props.keySet().iterator().next();
+    assertThat(props.with(randomKey,randomValue).get(randomKey),is(randomValue));
+    props.remove(key);
+    assumeThat(props.size(),is(size - 1));
+    assumeThat(props.size() > 0,is(true));
+    assumeThat(props.isEmpty(),is(false));
+    props.clear();
+    assumeThat(props.size() == 0,is(true));
+    assumeThat(props.isEmpty(),is(true));
+  }
+}
