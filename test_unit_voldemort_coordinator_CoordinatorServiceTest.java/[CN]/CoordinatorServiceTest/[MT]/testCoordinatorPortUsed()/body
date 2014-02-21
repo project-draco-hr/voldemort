@@ -1,0 +1,26 @@
+{
+  System.out.println("Starting test: is coordinator port used correctly");
+  ServerSocket socket1=null;
+  try {
+    socket1=new ServerSocket();
+    socket1.setReuseAddress(false);
+  }
+ catch (  IOException e) {
+    fail("Failed even beofre trying to bind to the coordinator port");
+    e.printStackTrace();
+  }
+  try {
+    socket1.bind(new InetSocketAddress("localhost",nettyServerPort));
+  }
+ catch (  IOException e) {
+    if (e instanceof BindException) {
+      e.printStackTrace();
+      System.out.println("Test succeeeded");
+      return;
+    }
+ else {
+      fail("The netty server port did not throw bind exception as expected.");
+      e.printStackTrace();
+    }
+  }
+}
