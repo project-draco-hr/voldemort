@@ -1,0 +1,13 @@
+{
+  Props property=new Props();
+  property.put("streaming.platform.bootstrapURL",SERVER_LOCAL_URL + serverPorts[0]);
+  StreamingClientConfig config=new StreamingClientConfig(property);
+  BaseStreamingClient streamer=new BaseStreamingClient(config);
+  try {
+    streamer.commitToVoldemort();
+  }
+ catch (  NullPointerException e) {
+    e.printStackTrace();
+    Assert.fail("Should not throw NPE at this stage even though streamingSession not initialized");
+  }
+}

@@ -3,7 +3,7 @@
     logger.debug("Trying to commit to Voldemort");
   }
   boolean hasError=false;
-  if (nodesToStream == null) {
+  if (nodesToStream == null || nodesToStream.size() == 0) {
     if (logger.isDebugEnabled()) {
       logger.debug("No nodes to stream to. Returning.");
     }
@@ -30,8 +30,12 @@
       }
     }
   }
+  if (streamingresults == null) {
+    logger.warn("StreamingSession may not have been initialized since Variable streamingresults is null. Skipping callback ");
+    return;
+  }
   if (hasError) {
-    logger.warn("Invoking the Recovery Callback");
+    logger.info("Invoking the Recovery Callback");
     Future future=streamingresults.submit(recoveryCallback);
     try {
       future.get();
