@@ -1,8 +1,9 @@
 {
   try {
-    Connector connector=new SelectChannelConnector();
+    SelectChannelConnector connector=new SelectChannelConnector();
     connector.setLowResourceMaxIdleTime(3000);
     connector.setPort(this.port);
+    connector.setReuseAddress(true);
     QueuedThreadPool threadPool=new QueuedThreadPool();
     threadPool.setName("VoldemortHttp");
     threadPool.setMaxThreads(this.numberOfThreads);

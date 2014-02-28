@@ -1,6 +1,11 @@
 {
   try {
-    if (httpServer != null)     httpServer.stop();
+    if (httpServer != null) {
+      httpServer.stop();
+      for (      Connector c : httpServer.getConnectors()) {
+        c.close();
+      }
+    }
     if (context != null)     context.destroy();
   }
  catch (  Exception e) {
