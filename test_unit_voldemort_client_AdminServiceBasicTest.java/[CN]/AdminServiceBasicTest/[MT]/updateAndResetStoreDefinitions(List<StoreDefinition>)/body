@@ -7,9 +7,7 @@
     }
   }
   AdminClient adminClient=getAdminClient();
-  for (  int nodeId : this.cluster.getNodeIds()) {
-    adminClient.metadataMgmtOps.updateRemoteStoreDefList(nodeId,storesToBeUpdatedList);
-  }
+  adminClient.metadataMgmtOps.updateRemoteStoreDefList(storesToBeUpdatedList);
   String allStoresDefStr=bootstrapMetadata(MetadataStore.STORES_KEY);
   StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
   List<StoreDefinition> storeDefList=mapper.readStoreList(new StringReader(allStoresDefStr));
