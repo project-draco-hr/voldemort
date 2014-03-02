@@ -11,6 +11,10 @@
   String serializerInfoXml=r2store.getSerializerInfoXml();
   SerializerDefinition keySerializerDefinition=RestUtils.parseKeySerializerDefinition(serializerInfoXml);
   SerializerDefinition valueSerializerDefinition=RestUtils.parseValueSerializerDefinition(serializerInfoXml);
+synchronized (this) {
+    keySerializerMap.put(storeName,keySerializerDefinition);
+    valueSerializerMap.put(storeName,valueSerializerDefinition);
+  }
   if (logger.isDebugEnabled()) {
     logger.debug("Bootstrapping for " + storeName + ": Key serializer "+ keySerializerDefinition);
     logger.debug("Bootstrapping for " + storeName + ": Value serializer "+ valueSerializerDefinition);

@@ -1,0 +1,28 @@
+{
+  OptionParser parser=new OptionParser();
+  OptionSet options=parser.parse(args);
+  List<String> nonOptions=options.nonOptionArguments();
+  if (nonOptions.size() < 2 || nonOptions.size() > 3) {
+    System.err.println("Usage: java VoldemortThinClientShell store_name coordinator_url [command_file] [options]");
+    parser.printHelpOn(System.err);
+    System.exit(-1);
+  }
+  String storeName=nonOptions.get(0);
+  String bootstrapUrl=nonOptions.get(1);
+  BufferedReader inputReader=null;
+  boolean fileInput=false;
+  try {
+    if (nonOptions.size() == 3) {
+      inputReader=new BufferedReader(new FileReader(nonOptions.get(2)));
+      fileInput=true;
+    }
+ else {
+      inputReader=new BufferedReader(new InputStreamReader(System.in));
+    }
+  }
+ catch (  IOException e) {
+    Utils.croak("Failure to open input stream: " + e.getMessage());
+  }
+  VoldemortThinClientShell shell=new VoldemortThinClientShell(storeName,bootstrapUrl,inputReader,System.out,System.err);
+  shell.process(fileInput);
+}
