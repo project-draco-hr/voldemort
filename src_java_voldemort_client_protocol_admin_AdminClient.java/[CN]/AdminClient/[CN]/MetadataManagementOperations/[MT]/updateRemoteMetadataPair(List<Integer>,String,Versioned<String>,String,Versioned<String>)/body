@@ -1,8 +1,4 @@
 {
-  for (  Integer currentNodeId : remoteNodeIds) {
-    logger.info("Setting " + clusterKey + " and "+ storesKey+ " for "+ getAdminClientCluster().getNodeById(currentNodeId).getHost()+ ":"+ getAdminClientCluster().getNodeById(currentNodeId).getId());
-    updateRemoteMetadataPair(currentNodeId,clusterKey,clusterValue,storesKey,storesValue);
-  }
   if (clusterKey.equals(CLUSTER_VERSION_KEY)) {
     metadataMgmtOps.updateMetadataversion(clusterKey);
   }
@@ -20,5 +16,9 @@
         System.err.println("Error while updating metadata version for the specified store.");
       }
     }
+  }
+  for (  Integer currentNodeId : remoteNodeIds) {
+    logger.info("Setting " + clusterKey + " and "+ storesKey+ " for "+ getAdminClientCluster().getNodeById(currentNodeId).getHost()+ ":"+ getAdminClientCluster().getNodeById(currentNodeId).getId());
+    updateRemoteMetadataPair(currentNodeId,clusterKey,clusterValue,storesKey,storesValue);
   }
 }

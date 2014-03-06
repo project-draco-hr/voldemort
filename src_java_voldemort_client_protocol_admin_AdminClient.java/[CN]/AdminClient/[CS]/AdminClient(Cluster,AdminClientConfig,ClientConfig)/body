@@ -1,7 +1,6 @@
 {
   this(adminClientConfig,clientConfig);
+  this.mainBootstrapUrl=cluster.getNodes().iterator().next().getSocketUrl().toString();
   this.currentCluster=cluster;
-  Node node=cluster.getNodeById(cluster.getNodeIds().iterator().next());
-  String bootstrapURL="tcp://" + node.getHost() + ":"+ node.getSocketPort();
-  helperOps.initSystemStoreClient(bootstrapURL,Zone.UNSET_ZONE_ID);
+  helperOps.initSystemStoreClient(mainBootstrapUrl,Zone.UNSET_ZONE_ID);
 }

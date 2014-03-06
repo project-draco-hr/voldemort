@@ -17,4 +17,11 @@
   this.adminClientConfig=adminClientConfig;
   this.socketPool=helperOps.createSocketPool(adminClientConfig);
   this.adminStoreClient=new AdminStoreClient(clientConfig);
+  try {
+    if (clientConfig.getBootstrapUrls().length > 0) {
+      this.mainBootstrapUrl=clientConfig.getBootstrapUrls()[0];
+    }
+  }
+ catch (  IllegalStateException e) {
+  }
 }

@@ -8,8 +8,10 @@
       clientConfig.setClientZoneId(zoneId);
       systemStoreFactory=new SystemStoreClientFactory<String,String>(clientConfig);
     }
-    metadataVersionSysStoreClient=systemStoreFactory.createSystemStore(SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name());
-    quotaSysStoreClient=systemStoreFactory.createSystemStore(SystemStoreConstants.SystemStoreName.voldsys$_store_quotas.name());
+    String metadataVersionStoreName=SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name();
+    String quotaStoreName=SystemStoreConstants.SystemStoreName.voldsys$_store_quotas.name();
+    metadataVersionSysStoreClient=systemStoreFactory.createSystemStore(metadataVersionStoreName,null,null);
+    quotaSysStoreClient=systemStoreFactory.createSystemStore(quotaStoreName,null,null);
   }
  catch (  Exception e) {
     logger.debug("Error while creating a system store client for metadata version store/quota store.");
