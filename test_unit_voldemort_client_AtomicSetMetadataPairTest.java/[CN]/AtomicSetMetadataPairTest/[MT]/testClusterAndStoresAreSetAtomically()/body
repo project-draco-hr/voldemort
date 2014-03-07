@@ -15,8 +15,8 @@
       assertTrue(newClusterFromMetadataRepo.getNodeById(5).getPartitionIds().equals(newPartitionIds));
       VoldemortAdminTool.executeGetMetadata(node.getId(),adminClient,STORES_KEY,dirPath);
       List<StoreDefinition> newStoreDefsFromMetadatRepo=storeDefsMapper.readStoreList(new File(dirPath,STORES_KEY + "_" + node.getId()));
-      assertTrue(newStoreDefsFromMetadatRepo.size() == 2);
-      assertTrue(newStoreDefsFromMetadatRepo.get(1).getName().equals("zstore"));
+      assertTrue(newStoreDefsFromMetadatRepo.get(1).getRequiredReads() == 2);
+      assertTrue(newStoreDefsFromMetadatRepo.get(1).getRequiredWrites() == 2);
     }
   }
  catch (  Exception e) {
