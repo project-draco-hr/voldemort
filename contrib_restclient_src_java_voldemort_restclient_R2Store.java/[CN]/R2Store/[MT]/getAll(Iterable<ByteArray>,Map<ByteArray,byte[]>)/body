@@ -1,5 +1,6 @@
 {
   Map<ByteArray,List<Versioned<byte[]>>> resultMap=new HashMap<ByteArray,List<Versioned<byte[]>>>();
+  int numberOfKeys=0;
   try {
     Iterator<ByteArray> it=keys.iterator();
     String keyArgs=null;
@@ -12,6 +13,19 @@
  else {
         keyArgs+="," + base64Key;
       }
+      numberOfKeys++;
+    }
+    if (numberOfKeys == 1) {
+      List<Versioned<byte[]>> resultList=new ArrayList<Versioned<byte[]>>();
+      it=keys.iterator();
+      ByteArray key=it.next();
+      byte[] singleKeyTransforms=null;
+      if (transforms != null) {
+        singleKeyTransforms=transforms.get(key);
+      }
+      resultList=this.get(key,singleKeyTransforms);
+      resultMap.put(key,resultList);
+      return resultMap;
     }
     RestRequestBuilder rb=new RestRequestBuilder(new URI(this.restBootstrapURL + "/" + getName()+ "/"+ keyArgs));
     rb.setMethod(GET);
