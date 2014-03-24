@@ -13,7 +13,7 @@ synchronized (lock) {
           throw new StoreOperationFailureException("Cannot add a store whose replication factor ( " + def.getReplicationFactor() + " ) is greater than the number of nodes ( "+ metadataStore.getCluster().getNumberOfNodes()+ " )");
         }
         logger.info("Adding new store '" + def.getName() + "'");
-        storageService.openStore(def);
+        StorageEngine<ByteArray,byte[],byte[]> engine=storageService.openStore(def);
         List<StoreDefinition> currentStoreDefs;
         List<Versioned<byte[]>> v=metadataStore.get(MetadataStore.STORES_KEY,null);
         if (((v.size() > 0) ? 1 : 0) > 0) {
@@ -28,6 +28,8 @@ synchronized (lock) {
           metadataStore.put(MetadataStore.STORES_KEY,currentStoreDefs);
         }
  catch (        Exception e) {
+          boolean isReadOnly=ReadOnlyStorageConfiguration.TYPE_NAME.equals(def.getType());
+          storageService.removeEngine(engine,isReadOnly,def.getType(),true);
           throw new VoldemortException(e);
         }
         logger.info("Successfully added new store '" + def.getName() + "'");

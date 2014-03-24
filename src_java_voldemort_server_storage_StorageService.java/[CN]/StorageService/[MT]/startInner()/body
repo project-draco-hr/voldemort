@@ -40,17 +40,7 @@
   List<StoreDefinition> storeDefs=new ArrayList<StoreDefinition>(this.metadata.getStoreDefList());
   logger.info("Initializing stores:");
   logger.info("Validating schemas:");
-  String AVRO_GENERIC_VERSIONED_TYPE_NAME="avro-generic-versioned";
-  for (  StoreDefinition storeDef : storeDefs) {
-    SerializerDefinition keySerDef=storeDef.getKeySerializer();
-    SerializerDefinition valueSerDef=storeDef.getValueSerializer();
-    if (keySerDef.getName().equals(AVRO_GENERIC_VERSIONED_TYPE_NAME)) {
-      SchemaEvolutionValidator.checkSchemaCompatibility(keySerDef);
-    }
-    if (valueSerDef.getName().equals(AVRO_GENERIC_VERSIONED_TYPE_NAME)) {
-      SchemaEvolutionValidator.checkSchemaCompatibility(valueSerDef);
-    }
-  }
+  StoreDefinitionUtils.validateSchemaBackwardCompatibilityIfNeeded(storeDefs);
   for (  StoreDefinition def : storeDefs)   if (!def.isView())   openStore(def);
   for (  StoreDefinition def : storeDefs) {
     if (def.isView())     openStore(def);

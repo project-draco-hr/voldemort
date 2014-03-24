@@ -1,0 +1,13 @@
+{
+  cluster=ClusterTestUtils.getZZZCluster();
+  oldStores=ClusterTestUtils.getZZZStoreDefsInMemory();
+  bsURL=cluster.getNodes().iterator().next().getSocketUrl().toString();
+  for (  Node node : cluster.getNodes()) {
+    SocketStoreFactory ssf=new ClientRequestExecutorPool(2,10000,100000,1024);
+    VoldemortConfig config=ServerTestUtils.createServerConfigWithDefs(true,node.getId(),TestUtils.createTempDir().getAbsolutePath(),cluster,oldStores,new Properties());
+    VoldemortServer vs=ServerTestUtils.startVoldemortServer(ssf,config,cluster);
+    vservers.put(node.getId(),vs);
+    socketStoreFactories.put(node.getId(),ssf);
+  }
+  adminClient=new AdminClient(cluster,new AdminClientConfig(),new ClientConfig());
+}

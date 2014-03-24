@@ -4,17 +4,7 @@
     if (METADATA_KEYS.contains(key)) {
       if (STORES_KEY.equals(key)) {
         List<StoreDefinition> storeDefs=(List<StoreDefinition>)value.getValue();
-        String AVRO_GENERIC_VERSIONED_TYPE_NAME="avro-generic-versioned";
-        for (        StoreDefinition storeDef : storeDefs) {
-          SerializerDefinition keySerDef=storeDef.getKeySerializer();
-          SerializerDefinition valueSerDef=storeDef.getValueSerializer();
-          if (keySerDef.getName().equals(AVRO_GENERIC_VERSIONED_TYPE_NAME)) {
-            SchemaEvolutionValidator.checkSchemaCompatibility(keySerDef);
-          }
-          if (valueSerDef.getName().equals(AVRO_GENERIC_VERSIONED_TYPE_NAME)) {
-            SchemaEvolutionValidator.checkSchemaCompatibility(valueSerDef);
-          }
-        }
+        StoreDefinitionUtils.validateSchemaBackwardCompatibilityIfNeeded(storeDefs);
       }
       putInner(key,convertObjectToString(key,value));
       metadataCache.put(key,value);

@@ -1,0 +1,17 @@
+{
+  try {
+    logger.info("Now inserting stores with non backward compatible schema. Should see exception");
+    adminClient.storeMgmtOps.addStore(new StoreDefinitionsMapper().readStore(new StringReader(storeXmlWithBackwardIncompatibleSchema)));
+    Assert.fail("Did not throw exception");
+  }
+ catch (  VoldemortException e) {
+  }
+  for (  VoldemortServer vs : vservers.values()) {
+    assertNull(vs.getStoreRepository().getLocalStore("test"));
+  }
+  logger.info("Now inserting stores with backward compatible schema. Should not see exception");
+  adminClient.storeMgmtOps.addStore(new StoreDefinitionsMapper().readStore(new StringReader(storeXmlWithBackwardCompatibleSchema)));
+  for (  VoldemortServer vs : vservers.values()) {
+    assertNotNull(vs.getStoreRepository().getLocalStore("test"));
+  }
+}
