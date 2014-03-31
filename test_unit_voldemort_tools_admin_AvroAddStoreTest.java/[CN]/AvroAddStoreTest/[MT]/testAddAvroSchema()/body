@@ -6,6 +6,22 @@
   }
  catch (  VoldemortException e) {
   }
+  try {
+    logger.info("Now inserting stores with int32 avro key. Should see exception");
+    adminClient.storeMgmtOps.addStore(new StoreDefinitionsMapper().readStore(new StringReader(storeXmlWithInvalidAvroKeySchema)));
+    Assert.fail("Did not throw exception for invalid key schema");
+  }
+ catch (  VoldemortException e) {
+    logger.error("As expected",e);
+  }
+  try {
+    logger.info("Now inserting stores with html characters in avro value schema");
+    adminClient.storeMgmtOps.addStore(new StoreDefinitionsMapper().readStore(new StringReader(storeXmlWithInvalidAvroValueSchema)));
+    Assert.fail("Did not throw exception for invalid value schema");
+  }
+ catch (  VoldemortException e) {
+    logger.error("As expected",e);
+  }
   for (  VoldemortServer vs : vservers.values()) {
     assertNull(vs.getStoreRepository().getLocalStore("test"));
   }

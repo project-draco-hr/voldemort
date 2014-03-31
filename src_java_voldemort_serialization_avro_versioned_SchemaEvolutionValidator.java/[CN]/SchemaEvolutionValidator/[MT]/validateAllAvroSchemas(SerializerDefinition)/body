@@ -1,0 +1,15 @@
+{
+  Map<Integer,String> schemaVersions=avroSerDef.getAllSchemaInfoVersions();
+  if (schemaVersions.size() < 1) {
+    throw new VoldemortException("No schema specified");
+  }
+  for (  Integer schemaVersionNumber : schemaVersions.keySet()) {
+    String schemaStr=schemaVersions.get(schemaVersionNumber);
+    try {
+      Schema.parse(schemaStr);
+    }
+ catch (    Exception e) {
+      throw new VoldemortException("Unable to parse Avro schema version :" + schemaVersionNumber + ", schema string :"+ schemaStr);
+    }
+  }
+}

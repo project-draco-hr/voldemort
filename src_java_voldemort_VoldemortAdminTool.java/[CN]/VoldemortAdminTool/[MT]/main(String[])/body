@@ -192,7 +192,7 @@
           storesXMLPath=storesXMLPath.replace("~",System.getProperty("user.home"));
           if (!Utils.isReadableFile(storesXMLPath))           throw new VoldemortException("Stores definition xml file path incorrect");
           List<StoreDefinition> newStoreDefs=storeDefsMapper.readStoreList(new File(storesXMLPath));
-          StoreDefinitionUtils.validateSchemaBackwardCompatibilityIfNeeded(newStoreDefs);
+          StoreDefinitionUtils.validateSchemasAsNeeded(newStoreDefs);
           executeSetMetadataPair(nodeId,adminClient,MetadataStore.CLUSTER_KEY,clusterMapper.writeCluster(cluster),MetadataStore.STORES_KEY,storeDefsMapper.writeStoreList(newStoreDefs));
           executeUpdateMetadataVersionsOnStores(adminClient,oldStoreDefs,newStoreDefs);
         }
@@ -232,7 +232,7 @@
           if (!Utils.isReadableFile(metadataValue))           throw new VoldemortException("Stores definition xml file path incorrect");
           StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
           List<StoreDefinition> newStoreDefs=mapper.readStoreList(new File(metadataValue));
-          StoreDefinitionUtils.validateSchemaBackwardCompatibilityIfNeeded(newStoreDefs);
+          StoreDefinitionUtils.validateSchemasAsNeeded(newStoreDefs);
           Integer nodeIdToGetStoreXMLFrom=nodeId;
           if (nodeId < 0) {
             Collection<Node> nodes=adminClient.getAdminClientCluster().getNodes();
