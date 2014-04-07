@@ -1,0 +1,30 @@
+{
+  String storeName=engine.getName();
+synchronized (lock) {
+    if (useOneEnvPerStore) {
+      Environment environment=this.environments.get(storeName);
+      if (environment == null) {
+        return;
+      }
+      if (this.unreservedStores.remove(environment)) {
+        logger.info("Removed environment for store name: " + storeName + " from unreserved stores");
+      }
+ else {
+        logger.info("No environment found in unreserved stores for store name: " + storeName);
+      }
+      File bdbDir=environment.getHome();
+      if (bdbDir.exists() && bdbDir.isDirectory()) {
+        String bdbDirPath=bdbDir.getPath();
+        try {
+          FileUtils.deleteDirectory(bdbDir);
+          logger.info("Successfully deleted BDB directory : " + bdbDirPath + " for store name: "+ storeName);
+        }
+ catch (        IOException e) {
+          logger.error("Unable to delete BDB directory: " + bdbDirPath + " for store name: "+ storeName);
+        }
+      }
+      environment.close();
+      this.environments.remove(storeName);
+    }
+  }
+}
