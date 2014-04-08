@@ -1,5 +1,6 @@
 {
   String storeName=engine.getName();
+  BdbStorageEngine bdbEngine=(BdbStorageEngine)engine;
 synchronized (lock) {
     if (useOneEnvPerStore) {
       Environment environment=this.environments.get(storeName);
@@ -23,8 +24,15 @@ synchronized (lock) {
           logger.error("Unable to delete BDB directory: " + bdbDirPath + " for store name: "+ storeName);
         }
       }
+      BdbEnvironmentStats bdbEnvStats=bdbEngine.getBdbEnvironmentStats();
+      this.aggBdbStats.unTrackEnvironment(bdbEnvStats);
+      if (voldemortConfig.isJmxEnabled()) {
+        ObjectName name=JmxUtils.createObjectName(JmxUtils.getPackageName(bdbEnvStats.getClass()),storeName);
+        JmxUtils.unregisterMbean(name);
+      }
       environment.close();
       this.environments.remove(storeName);
+      logger.info("Successfully closed the environment for store name : " + storeName);
     }
   }
 }

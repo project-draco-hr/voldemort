@@ -30,11 +30,11 @@ synchronized (mbeanServer) {
     }
   }
   storeRepository.removeStorageEngine(storeName);
+  if (truncate)   engine.truncate();
+  engine.close();
   StorageConfiguration config=storageConfigs.get(storeType);
   if (config == null) {
     throw new ConfigurationException("Attempt to close storage engine " + engine.getName() + " but "+ storeType+ " storage engine has not been enabled.");
   }
   config.removeStorageEngine(engine);
-  if (truncate)   engine.truncate();
-  engine.close();
 }
