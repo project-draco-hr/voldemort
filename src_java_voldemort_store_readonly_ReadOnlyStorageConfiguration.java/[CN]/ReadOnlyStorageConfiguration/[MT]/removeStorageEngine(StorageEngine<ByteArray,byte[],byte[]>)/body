@@ -1,5 +1,7 @@
 {
   ReadOnlyStorageEngine store=(ReadOnlyStorageEngine)engine;
-  ObjectName objName=JmxUtils.createObjectName(JmxUtils.getPackageName(store.getClass()),store.getName() + nodeId);
-  JmxUtils.unregisterMbean(ManagementFactory.getPlatformMBeanServer(),objName);
+  if (this.voldConfig.isJmxEnabled()) {
+    ObjectName objName=JmxUtils.createObjectName(JmxUtils.getPackageName(store.getClass()),store.getName() + nodeId);
+    JmxUtils.unregisterMbean(ManagementFactory.getPlatformMBeanServer(),objName);
+  }
 }
