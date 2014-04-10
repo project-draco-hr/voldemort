@@ -1,0 +1,53 @@
+{
+  OptionParser parser=getParser();
+  Integer srcNodeId=null, destNodeId=null;
+  String srcUrl=null, destUrl=null;
+  List<String> storeNames=null;
+  Boolean allStores=false;
+  Boolean confirm=false;
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,OPT_FROM_NODE);
+  AdminParserUtils.checkRequired(options,OPT_FROM_URL);
+  AdminParserUtils.checkRequired(options,OPT_TO_NODE);
+  AdminParserUtils.checkRequired(options,OPT_TO_URL);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_STORE,AdminParserUtils.OPT_ALL_STORES);
+  srcUrl=(String)options.valueOf(OPT_FROM_URL);
+  destUrl=(String)options.valueOf(OPT_TO_URL);
+  srcNodeId=(Integer)options.valueOf(OPT_FROM_NODE);
+  destNodeId=(Integer)options.valueOf(OPT_TO_NODE);
+  if (options.has(AdminParserUtils.OPT_STORE)) {
+    storeNames=(List<String>)options.valuesOf(AdminParserUtils.OPT_STORE);
+    allStores=false;
+  }
+ else {
+    allStores=true;
+  }
+  if (options.has(AdminParserUtils.OPT_CONFIRM)) {
+    confirm=true;
+  }
+  System.out.println("Mirror data from one node to another");
+  System.out.println("Store:");
+  if (allStores) {
+    System.out.println("  all stores");
+  }
+ else {
+    System.out.println("  " + Joiner.on(", ").join(storeNames));
+  }
+  System.out.println("Location:");
+  System.out.println("  source bootstrap url = " + srcUrl);
+  System.out.println("  source node = " + srcNodeId);
+  System.out.println("  destination bootstrap url = " + destUrl);
+  System.out.println("  destination node = " + destNodeId);
+  if (!AdminUtils.askConfirm(confirm,"mirror stores")) {
+    return;
+  }
+  AdminClient srcAdminClient=AdminUtils.getAdminClient(srcUrl);
+  AdminClient destAdminClient=AdminUtils.getAdminClient(destUrl);
+  Node srcNode=srcAdminClient.getAdminClientCluster().getNodeById(srcNodeId);
+  storeNames=AdminUtils.getUserStoresOnNode(srcAdminClient,srcNode,storeNames,allStores);
+  destAdminClient.restoreOps.mirrorData(destNodeId,srcNodeId,srcUrl,storeNames);
+}

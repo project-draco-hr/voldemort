@@ -1,0 +1,28 @@
+{
+  OptionParser parser=getParser();
+  String keyType=null;
+  List<String> keyStrings=null;
+  String storeName=null;
+  String url=null;
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_STORE);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_HEX,AdminParserUtils.OPT_JSON);
+  if (options.has(AdminParserUtils.OPT_HEX)) {
+    keyType=AdminParserUtils.OPT_HEX;
+    keyStrings=(List<String>)options.valuesOf(AdminParserUtils.OPT_HEX);
+  }
+ else   if (options.has(AdminParserUtils.OPT_JSON)) {
+    keyType=AdminParserUtils.OPT_JSON;
+    keyStrings=(List<String>)options.valuesOf(AdminParserUtils.OPT_JSON);
+    throw new VoldemortException("Key type OPT_JSON not supported.");
+  }
+  storeName=(String)options.valueOf(AdminParserUtils.OPT_STORE);
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  AdminClient adminClient=AdminUtils.getAdminClient(url);
+  doDebugRoute(adminClient,storeName,keyStrings,keyType);
+}

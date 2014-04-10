@@ -1,0 +1,21 @@
+{
+  OptionParser parser=getParser();
+  String url=null;
+  List<Integer> nodeIds=null;
+  Boolean allNodes=true;
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  AdminParserUtils.checkOptional(options,AdminParserUtils.OPT_NODE,AdminParserUtils.OPT_ALL_NODES);
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  if (options.has(AdminParserUtils.OPT_NODE)) {
+    nodeIds=(List<Integer>)options.valuesOf(AdminParserUtils.OPT_NODE);
+    allNodes=false;
+  }
+  AdminClient adminClient=AdminUtils.getAdminClient(url);
+  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
+  doAsyncJobList(adminClient,nodes);
+}

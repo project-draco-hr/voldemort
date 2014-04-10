@@ -1,0 +1,46 @@
+{
+  OptionParser parser=getParser();
+  String storeName=null;
+  String url=null;
+  Long pushVersion=null;
+  List<Integer> nodeIds=null;
+  Boolean allNodes=true;
+  Boolean confirm=false;
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_STORE);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  AdminParserUtils.checkRequired(options,OPT_VERSION);
+  AdminParserUtils.checkOptional(options,AdminParserUtils.OPT_NODE,AdminParserUtils.OPT_ALL_NODES);
+  storeName=(String)options.valueOf(AdminParserUtils.OPT_STORE);
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  pushVersion=(Long)options.valueOf(OPT_VERSION);
+  if (options.has(AdminParserUtils.OPT_NODE)) {
+    nodeIds=(List<Integer>)options.valuesOf(AdminParserUtils.OPT_NODE);
+    allNodes=false;
+  }
+  if (options.has(AdminParserUtils.OPT_CONFIRM)) {
+    confirm=true;
+  }
+  System.out.println("Rollback read-only stores");
+  System.out.println("Push Version = " + pushVersion);
+  System.out.println("Store:");
+  System.out.println("  " + storeName);
+  System.out.println("Location:");
+  System.out.println("  bootstrap url = " + url);
+  if (allNodes) {
+    System.out.println("  node = allnodes");
+  }
+ else {
+    System.out.println("  node = " + Joiner.on(", ").join(nodeIds));
+  }
+  if (!AdminUtils.askConfirm(confirm,"rollback read-only store")) {
+    return;
+  }
+  AdminClient adminClient=AdminUtils.getAdminClient(url);
+  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
+  doStoreRollbackReadOnly(adminClient,nodes,storeName,pushVersion);
+}

@@ -1,0 +1,22 @@
+{
+  List<String> optCopy=Lists.newArrayList();
+  for (  String opt : opts) {
+    if (options.has(opt)) {
+      optCopy.add(opt);
+    }
+  }
+  if (optCopy.size() < 1) {
+    System.err.println("Please specify one of the following options:");
+    for (    String opt : opts) {
+      System.err.println("--" + opt);
+    }
+    Utils.croak("Missing required option.");
+  }
+  if (optCopy.size() > 1) {
+    System.err.println("Conflicting options:");
+    for (    String opt : optCopy) {
+      System.err.println("--" + opt);
+    }
+    Utils.croak("Conflicting options detected.");
+  }
+}

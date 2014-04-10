@@ -1,0 +1,42 @@
+{
+  Cluster cluster=adminClient.getAdminClientCluster();
+  List<StoreDefinition> storeDefs=adminClient.metadataMgmtOps.getRemoteStoreDefList(0).getValue();
+  StoreDefinition storeDef=StoreDefinitionUtils.getStoreDefinitionWithName(storeDefs,storeName);
+  StoreRoutingPlan routingPlan=new StoreRoutingPlan(cluster,storeDef);
+  BaseStoreRoutingPlan bRoutingPlan=new BaseStoreRoutingPlan(cluster,storeDef);
+  final int COLUMN_WIDTH=30;
+  for (  String keyStr : keyStrings) {
+    byte[] key=ByteUtils.fromHexString(keyStr);
+    System.out.println("Key :" + keyStr);
+    System.out.println("Replicating Partitions :" + routingPlan.getReplicatingPartitionList(key));
+    System.out.println("Replicating Nodes :");
+    List<Integer> nodeList=routingPlan.getReplicationNodeList(routingPlan.getMasterPartitionId(key));
+    for (int i=0; i < nodeList.size(); i++) {
+      System.out.println(nodeList.get(i) + "\t" + cluster.getNodeById(nodeList.get(i)).getHost());
+    }
+    System.out.println("Zone Nary information :");
+    HashMap<Integer,Integer> zoneRepMap=storeDef.getZoneReplicationFactor();
+    for (    Zone zone : cluster.getZones()) {
+      System.out.println("\tZone #" + zone.getId());
+      int numReplicas=-1;
+      if (zoneRepMap == null) {
+        numReplicas=storeDef.getReplicationFactor();
+      }
+ else {
+        if (!zoneRepMap.containsKey(zone.getId())) {
+          Utils.croak("Repfactor for Zone " + zone.getId() + " not found in storedef");
+        }
+        numReplicas=zoneRepMap.get(zone.getId());
+      }
+      System.out.format("%s%s%s\n",Utils.paddedString("REPLICA#",COLUMN_WIDTH),Utils.paddedString("PARTITION",COLUMN_WIDTH),Utils.paddedString("NODE",COLUMN_WIDTH));
+      for (int i=0; i < numReplicas; i++) {
+        Integer nodeId=bRoutingPlan.getNodeIdForZoneNary(zone.getId(),i,key);
+        Integer partitionId=routingPlan.getNodesPartitionIdForKey(nodeId,key);
+        System.out.format("%s%s%s\n",Utils.paddedString(i + "",COLUMN_WIDTH),Utils.paddedString(partitionId.toString(),COLUMN_WIDTH),Utils.paddedString(nodeId + "(" + cluster.getNodeById(nodeId).getHost()+ ")",COLUMN_WIDTH));
+      }
+      System.out.println();
+    }
+    System.out.println("-----------------------------------------------");
+    System.out.println();
+  }
+}

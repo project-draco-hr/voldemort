@@ -1,0 +1,32 @@
+{
+  String subCmd=(args.length > 0) ? args[0] : "";
+  args=AdminUtils.copyArrayCutFirst(args);
+  if (subCmd.equals("async-job")) {
+    AdminCommandAsyncJob.executeCommand(args);
+  }
+ else   if (subCmd.equals("cleanup")) {
+    AdminCommandCleanup.executeCommand(args);
+  }
+ else   if (subCmd.equals("debug")) {
+    AdminCommandDebug.executeCommand(args);
+  }
+ else   if (subCmd.equals("meta")) {
+    AdminCommandMeta.executeCommand(args);
+  }
+ else   if (subCmd.equals("quota")) {
+    AdminCommandQuota.executeCommand(args);
+  }
+ else   if (subCmd.equals("store")) {
+    AdminCommandStore.executeCommand(args);
+  }
+ else   if (subCmd.equals("stream")) {
+    AdminCommandStream.executeCommand(args);
+  }
+ else   if (subCmd.equals("help") || subCmd.equals("--help") || subCmd.equals("-h")) {
+    executeHelp(args,System.out);
+  }
+ else {
+    args=AdminUtils.copyArrayAddFirst(args,subCmd);
+    AdminCommandOther.executeCommand(args);
+  }
+}

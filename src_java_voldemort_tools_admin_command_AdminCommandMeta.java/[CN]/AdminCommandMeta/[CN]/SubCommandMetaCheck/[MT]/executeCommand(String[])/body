@@ -1,0 +1,23 @@
+{
+  OptionParser parser=getParser();
+  List<String> metaKeys=null;
+  String url=null;
+  args=AdminUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_META_CHECK);
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,OPT_HEAD_META_CHECK);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  metaKeys=(List<String>)options.valuesOf(OPT_HEAD_META_CHECK);
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  if (metaKeys.size() == 1 && metaKeys.get(0).equals(METAKEY_ALL)) {
+    metaKeys=Lists.newArrayList();
+    metaKeys.add(MetadataStore.CLUSTER_KEY);
+    metaKeys.add(MetadataStore.STORES_KEY);
+    metaKeys.add(MetadataStore.SERVER_STATE_KEY);
+  }
+  AdminClient adminClient=AdminUtils.getAdminClient(url);
+  doMetaCheck(adminClient,metaKeys);
+}

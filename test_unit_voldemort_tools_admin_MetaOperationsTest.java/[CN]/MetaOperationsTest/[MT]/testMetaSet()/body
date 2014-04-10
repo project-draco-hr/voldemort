@@ -1,0 +1,34 @@
+{
+  Set<Object> storesValues=Sets.newHashSet();
+  for (  Node node : adminClient.getAdminClientCluster().getNodes()) {
+    Versioned<String> versioned=adminClient.metadataMgmtOps.getRemoteMetadata(node.getId(),MetadataStore.STORES_KEY);
+    assertTrue(versioned != null && versioned.getValue() != null);
+    storesValues.add(new StoreDefinitionsMapper().readStoreList(new StringReader(versioned.getValue())));
+  }
+  assertTrue(storesValues.size() == 1);
+  final String newStoreXMLFilePrefix="updated.stores";
+  final String newStoreXMLFileSuffix="xml";
+  List<StoreDefinition> newStoresToUpload=new ArrayList<StoreDefinition>();
+  for (  StoreDefinition storeDef : stores) {
+    StoreDefinitionBuilder sb=AdminToolTestUtils.storeDefToBuilder(storeDef);
+    sb.setName(sb.getName() + "_new");
+    newStoresToUpload.add(sb.build());
+  }
+  File newStoresXMLFolder=TestUtils.createTempDir();
+  File newStoreXMLFile=File.createTempFile(newStoreXMLFilePrefix,newStoreXMLFileSuffix,newStoresXMLFolder);
+  FileWriter fwriter=new FileWriter(newStoreXMLFile);
+  fwriter.write(new StoreDefinitionsMapper().writeStoreList(newStoresToUpload));
+  fwriter.close();
+  AdminCommand.executeCommand(new String[]{"meta","set",MetadataStore.STORES_KEY + "=" + newStoreXMLFile.getAbsolutePath(),"-u",bsURL,"--confirm"});
+  List<StoreDefinition> newStoresToVerify=adminClient.metadataMgmtOps.getRemoteStoreDefList(adminClient.getAdminClientCluster().getNodes().iterator().next().getId()).getValue();
+  assertTrue(!newStoresToVerify.equals(stores));
+  assertTrue(newStoresToVerify.equals(newStoresToUpload));
+  storesValues.clear();
+  for (  Node node : adminClient.getAdminClientCluster().getNodes()) {
+    Versioned<String> versioned=adminClient.metadataMgmtOps.getRemoteMetadata(node.getId(),MetadataStore.STORES_KEY);
+    assertTrue(versioned != null && versioned.getValue() != null);
+    storesValues.add(new StoreDefinitionsMapper().readStoreList(new StringReader(versioned.getValue())));
+  }
+  System.out.println(storesValues.size());
+  assertTrue(storesValues.size() == 1);
+}

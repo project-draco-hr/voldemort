@@ -1,0 +1,12 @@
+{
+  for (  String storeName : storeNames) {
+    if (adminClient.helperOps.checkStoreExistsInCluster(storeName)) {
+      for (      String quotaType : quotaTypes) {
+        adminClient.quotaMgmtOps.unsetQuota(storeName,quotaType);
+      }
+    }
+ else {
+      System.err.println("Store " + storeName + " not in cluster.");
+    }
+  }
+}

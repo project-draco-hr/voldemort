@@ -1,0 +1,26 @@
+{
+  Map<Properties,Integer> versionsNodeMap=new HashMap<Properties,Integer>();
+  for (  Node node : adminClient.getAdminClientCluster().getNodes()) {
+    String valueObject=doMetaGetVersionsForNode(adminClient,node);
+    Properties props=new Properties();
+    try {
+      props.load(new ByteArrayInputStream(valueObject.getBytes()));
+    }
+ catch (    IOException e) {
+      System.err.println("Error while parsing Metadata versions for node : " + node.getId() + ". Exception = \n");
+      e.printStackTrace();
+      System.exit(-1);
+    }
+    versionsNodeMap.put(props,node.getId());
+  }
+  if (versionsNodeMap.keySet().size() > 1) {
+    System.err.println("Mismatching versions detected !!!");
+    for (    Entry<Properties,Integer> entry : versionsNodeMap.entrySet()) {
+      System.out.println("**************************** Node: " + entry.getValue() + " ****************************");
+      System.out.println(entry.getKey());
+    }
+  }
+ else {
+    System.err.println("All the nodes have the same metadata versions.");
+  }
+}

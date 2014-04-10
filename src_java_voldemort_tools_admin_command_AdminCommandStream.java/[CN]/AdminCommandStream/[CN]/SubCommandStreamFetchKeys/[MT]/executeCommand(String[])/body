@@ -1,0 +1,58 @@
+{
+  OptionParser parser=getParser();
+  Integer nodeId=null;
+  List<Integer> partIds=null;
+  Boolean allParts=false;
+  Boolean orphaned=false;
+  List<String> storeNames=null;
+  Boolean allStores=false;
+  String url=null;
+  String dir=null;
+  String format=null;
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_NODE);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_PARTITION,AdminParserUtils.OPT_ALL_PARTITIONS,AdminParserUtils.OPT_ORPHANED);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_STORE,AdminParserUtils.OPT_ALL_STORES);
+  nodeId=(Integer)options.valueOf(AdminParserUtils.OPT_NODE);
+  if (options.has(AdminParserUtils.OPT_PARTITION)) {
+    partIds=(List<Integer>)options.valuesOf(AdminParserUtils.OPT_PARTITION);
+    allParts=false;
+    orphaned=false;
+  }
+ else   if (options.has(AdminParserUtils.OPT_ALL_PARTITIONS)) {
+    allParts=true;
+    orphaned=false;
+  }
+ else   if (options.has(AdminParserUtils.OPT_ORPHANED)) {
+    allParts=false;
+    orphaned=true;
+  }
+  if (options.has(AdminParserUtils.OPT_STORE)) {
+    storeNames=(List<String>)options.valuesOf(AdminParserUtils.OPT_STORE);
+    allStores=false;
+  }
+ else {
+    allStores=true;
+  }
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  if (options.has(AdminParserUtils.OPT_DIR)) {
+    dir=(String)options.valueOf(AdminParserUtils.OPT_DIR);
+  }
+  if (options.has(AdminParserUtils.OPT_FORMAT)) {
+    format=(String)options.valueOf(AdminParserUtils.OPT_FORMAT);
+  }
+ else {
+    format=AdminParserUtils.ARG_FORMAT_JSON;
+  }
+  File directory=AdminUtils.createDir(dir);
+  AdminClient adminClient=AdminUtils.getAdminClient(url);
+  Node node=adminClient.getAdminClientCluster().getNodeById(nodeId);
+  if (!orphaned)   partIds=AdminUtils.getPartitions(adminClient,partIds,allParts);
+  storeNames=AdminUtils.getUserStoresOnNode(adminClient,node,storeNames,allStores);
+  doStreamFetchKeys(adminClient,node,storeNames,partIds,orphaned,directory,format);
+}

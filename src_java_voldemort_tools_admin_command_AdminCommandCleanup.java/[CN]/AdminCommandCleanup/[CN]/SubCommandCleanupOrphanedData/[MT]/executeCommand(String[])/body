@@ -1,0 +1,35 @@
+{
+  OptionParser parser=getParser();
+  String url=null;
+  List<Integer> nodeIds=null;
+  Boolean allNodes=true;
+  Boolean confirm=false;
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  AdminParserUtils.checkOptional(options,AdminParserUtils.OPT_NODE,AdminParserUtils.OPT_ALL_NODES);
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  if (options.has(AdminParserUtils.OPT_NODE)) {
+    nodeIds=(List<Integer>)options.valuesOf(AdminParserUtils.OPT_NODE);
+    allNodes=false;
+  }
+  if (options.has(AdminParserUtils.OPT_CONFIRM)) {
+    confirm=true;
+  }
+  System.out.println("Remove orphaned data after rebalancing");
+  System.out.println("Location:");
+  System.out.println("  bootstrap url = " + url);
+  if (allNodes) {
+    System.out.println("  node = all nodes");
+  }
+ else {
+    System.out.println("  node = " + Joiner.on(", ").join(nodeIds));
+  }
+  if (!AdminUtils.askConfirm(confirm,"cleanup orphaned data"))   return;
+  AdminClient adminClient=AdminUtils.getAdminClient(url);
+  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
+  doCleanupOrphanedData(adminClient,nodes);
+}

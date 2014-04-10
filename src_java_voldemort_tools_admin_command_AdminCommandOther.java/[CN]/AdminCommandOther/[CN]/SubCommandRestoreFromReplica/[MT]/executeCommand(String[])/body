@@ -1,0 +1,39 @@
+{
+  OptionParser parser=getParser();
+  Integer nodeId=null;
+  String url=null;
+  Integer zoneId=null;
+  Integer parallel=5;
+  Boolean confirm=false;
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_NODE);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_ZONE);
+  nodeId=(Integer)options.valueOf(AdminParserUtils.OPT_NODE);
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  zoneId=(Integer)options.valueOf(AdminParserUtils.OPT_ZONE);
+  if (options.has(OPT_PARALLEL)) {
+    parallel=(Integer)options.valueOf(OPT_PARALLEL);
+  }
+  if (options.has(AdminParserUtils.OPT_CONFIRM)) {
+    confirm=true;
+  }
+  System.out.println("Restore from peer replica");
+  System.out.println("Location:");
+  System.out.println("  zone = " + zoneId);
+  System.out.println("  bootstrap url = " + url);
+  System.out.println("  node = " + nodeId);
+  System.out.println("Settings:");
+  System.out.println("  parallelism is " + parallel);
+  if (!AdminUtils.askConfirm(confirm,"restore node from replica")) {
+    return;
+  }
+  AdminClient adminClient=AdminUtils.getAdminClient(url);
+  System.out.println("Starting restore");
+  adminClient.restoreOps.restoreDataFromReplications(nodeId,parallel,zoneId);
+  System.out.println("Finished restore");
+}

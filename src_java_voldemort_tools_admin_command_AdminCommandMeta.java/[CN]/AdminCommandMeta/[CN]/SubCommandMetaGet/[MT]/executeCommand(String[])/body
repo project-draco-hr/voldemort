@@ -1,0 +1,40 @@
+{
+  OptionParser parser=getParser();
+  List<String> metaKeys=null;
+  String url=null;
+  String dir=null;
+  List<Integer> nodeIds=null;
+  Boolean allNodes=true;
+  Boolean verbose=false;
+  args=AdminUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_META_GET);
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,OPT_HEAD_META_GET);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  AdminParserUtils.checkOptional(options,AdminParserUtils.OPT_NODE,AdminParserUtils.OPT_ALL_NODES);
+  metaKeys=(List<String>)options.valuesOf(OPT_HEAD_META_GET);
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  if (options.has(AdminParserUtils.OPT_DIR)) {
+    dir=(String)options.valueOf(AdminParserUtils.OPT_DIR);
+  }
+  if (options.has(AdminParserUtils.OPT_NODE)) {
+    nodeIds=(List<Integer>)options.valuesOf(AdminParserUtils.OPT_NODE);
+    allNodes=false;
+  }
+  if (options.has(OPT_VERBOSE)) {
+    verbose=true;
+  }
+  File directory=AdminUtils.createDir(dir);
+  AdminClient adminClient=AdminUtils.getAdminClient(url);
+  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
+  if (metaKeys.size() == 1 && metaKeys.get(0).equals(METAKEY_ALL)) {
+    metaKeys=Lists.newArrayList();
+    for (    Object key : MetadataStore.METADATA_KEYS) {
+      metaKeys.add((String)key);
+    }
+  }
+  doMetaGet(adminClient,nodes,metaKeys,directory,verbose);
+}

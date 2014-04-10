@@ -1,0 +1,35 @@
+{
+  OptionParser parser=getParser();
+  String keyType=null;
+  List<String> keyStrings=null;
+  List<String> storeNames=null;
+  String url=null;
+  List<Integer> nodeIds=null;
+  Boolean allNodes=true;
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_STORE);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_HEX,AdminParserUtils.OPT_JSON);
+  AdminParserUtils.checkOptional(options,AdminParserUtils.OPT_NODE,AdminParserUtils.OPT_ALL_NODES);
+  if (options.has(AdminParserUtils.OPT_HEX)) {
+    keyType=AdminParserUtils.OPT_HEX;
+    keyStrings=(List<String>)options.valuesOf(AdminParserUtils.OPT_HEX);
+  }
+ else   if (options.has(AdminParserUtils.OPT_JSON)) {
+    keyType=AdminParserUtils.OPT_JSON;
+    keyStrings=(List<String>)options.valuesOf(AdminParserUtils.OPT_JSON);
+  }
+  storeNames=(List<String>)options.valuesOf(AdminParserUtils.OPT_STORE);
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  if (options.has(AdminParserUtils.OPT_NODE)) {
+    nodeIds=(List<Integer>)options.valuesOf(AdminParserUtils.OPT_NODE);
+    allNodes=false;
+  }
+  AdminClient adminClient=AdminUtils.getAdminClient(url);
+  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
+  doDebugQueryKeys(adminClient,nodes,storeNames,keyStrings,keyType);
+}

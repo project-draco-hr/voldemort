@@ -1,0 +1,34 @@
+{
+  Set<Object> metaValues=Sets.newHashSet();
+  for (  String key : metaKeys) {
+    metaValues.clear();
+    System.out.println("Metadata: " + key);
+    for (    Node node : adminClient.getAdminClientCluster().getNodes()) {
+      System.out.println(node.getHost() + ":" + node.getId());
+      Versioned<String> versioned=adminClient.metadataMgmtOps.getRemoteMetadata(node.getId(),key);
+      if (versioned == null || versioned.getValue() == null) {
+        throw new VoldemortException("Value returned from node " + node.getId() + " was null");
+      }
+ else {
+        if (key.equals(MetadataStore.CLUSTER_KEY) || key.equals(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML)) {
+          metaValues.add(new ClusterMapper().readCluster(new StringReader(versioned.getValue())));
+        }
+ else         if (key.equals(MetadataStore.STORES_KEY)) {
+          metaValues.add(new StoreDefinitionsMapper().readStoreList(new StringReader(versioned.getValue())));
+        }
+ else         if (key.equals(MetadataStore.SERVER_STATE_KEY)) {
+          metaValues.add(VoldemortState.valueOf(versioned.getValue()));
+        }
+ else {
+          throw new VoldemortException("Incorrect metadata key");
+        }
+      }
+    }
+    if (metaValues.size() == 1) {
+      System.out.println(key + " on all nodes are the same.");
+    }
+ else {
+      System.out.println("different " + key + " found!");
+    }
+  }
+}

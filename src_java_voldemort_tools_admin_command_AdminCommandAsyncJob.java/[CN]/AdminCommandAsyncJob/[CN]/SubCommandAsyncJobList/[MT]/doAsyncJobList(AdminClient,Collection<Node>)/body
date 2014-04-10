@@ -1,0 +1,11 @@
+{
+  for (  Node node : nodes) {
+    System.out.println("Retrieving async jobs from node " + node.getId());
+    List<Integer> asyncIds=adminClient.rpcOps.getAsyncRequestList(node.getId());
+    System.out.println("Async Job Ids on node " + node.getId() + " : "+ asyncIds);
+    for (    int asyncId : asyncIds) {
+      System.out.println("Async Job Id " + asyncId + " ] "+ adminClient.rpcOps.getAsyncRequestStatus(node.getId(),asyncId));
+      System.out.println();
+    }
+  }
+}

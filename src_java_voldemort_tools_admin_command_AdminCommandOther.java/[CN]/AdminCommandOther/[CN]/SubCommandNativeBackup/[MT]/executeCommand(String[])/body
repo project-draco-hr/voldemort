@@ -1,0 +1,62 @@
+{
+  OptionParser parser=getParser();
+  String dir=null;
+  Integer nodeId=null;
+  String storeName=null;
+  String url=null;
+  Integer timeout=30;
+  Boolean confirm=false;
+  Boolean incremental=false;
+  Boolean verify=false;
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_DIR);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_NODE);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_STORE);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  dir=(String)options.valueOf(AdminParserUtils.OPT_DIR);
+  nodeId=(Integer)options.valueOf(AdminParserUtils.OPT_NODE);
+  storeName=(String)options.valueOf(AdminParserUtils.OPT_STORE);
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  if (options.has(OPT_TIMEOUT)) {
+    timeout=(Integer)options.valueOf(OPT_TIMEOUT);
+  }
+  if (options.has(AdminParserUtils.OPT_CONFIRM)) {
+    confirm=true;
+  }
+  if (options.has(OPT_INCREMENTAL)) {
+    incremental=true;
+  }
+  if (options.has(OPT_VERIFY)) {
+    verify=true;
+  }
+  System.out.println("Backup bdb data natively");
+  System.out.println("Store:");
+  System.out.println("  " + storeName);
+  System.out.println("Location:");
+  System.out.println("  bootstrap url = " + url);
+  System.out.println("  node = " + nodeId);
+  System.out.println("Settings:");
+  System.out.println("  backup directory is \'" + dir + "\'");
+  System.out.println("  timeout is " + timeout + " minutes");
+  if (options.has(OPT_INCREMENTAL)) {
+    System.out.println("  incremental backup");
+  }
+ else {
+    System.out.println("  do not backup incrementally");
+  }
+  if (options.has(OPT_VERIFY)) {
+    System.out.println("  verify backup checksum");
+  }
+ else {
+    System.out.println("  do not verify backup checksum");
+  }
+  if (!AdminUtils.askConfirm(confirm,"backup bdb data natively")) {
+    return;
+  }
+  AdminClient adminClient=AdminUtils.getAdminClient(url);
+  adminClient.storeMntOps.nativeBackup(nodeId,storeName,dir,timeout,verify,incremental);
+}

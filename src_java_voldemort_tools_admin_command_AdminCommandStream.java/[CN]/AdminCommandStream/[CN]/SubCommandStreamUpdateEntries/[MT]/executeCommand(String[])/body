@@ -1,0 +1,47 @@
+{
+  OptionParser parser=getParser();
+  String dir=null;
+  Integer nodeId=null;
+  String url=null;
+  List<String> storeNames=null;
+  Boolean confirm=false;
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_DIR);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_NODE);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  dir=(String)options.valueOf(AdminParserUtils.OPT_DIR);
+  nodeId=(Integer)options.valueOf(AdminParserUtils.OPT_NODE);
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  if (options.has(AdminParserUtils.OPT_STORE)) {
+    storeNames=(List<String>)options.valuesOf(AdminParserUtils.OPT_STORE);
+  }
+  if (options.has(AdminParserUtils.OPT_CONFIRM)) {
+    confirm=true;
+  }
+  System.out.println("Update entries from file");
+  System.out.println("Input directory = \'" + dir + "\'");
+  System.out.println("Store:");
+  if (storeNames == null) {
+    System.out.println("  all stores available from input files");
+  }
+ else {
+    System.out.println("  " + Joiner.on(", ").join(storeNames));
+  }
+  System.out.println("Location:");
+  System.out.println("  bootstrap url = " + url);
+  System.out.println("  node = " + nodeId);
+  if (!AdminUtils.askConfirm(confirm,"update entries")) {
+    return;
+  }
+  AdminClient adminClient=AdminUtils.getAdminClient(url);
+  Node node=adminClient.getAdminClientCluster().getNodeById(nodeId);
+  File inDir=new File(dir);
+  if (!inDir.exists()) {
+    throw new FileNotFoundException("Input directory " + dir + " doesn't exist");
+  }
+  doStreamUpdateEntries(adminClient,node,storeNames,inDir);
+}

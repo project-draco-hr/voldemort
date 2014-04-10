@@ -1,0 +1,28 @@
+{
+  final String newStoreXMLFilePrefix="updated.stores";
+  final String newStoreXMLFileSuffix="xml";
+  List<StoreDefinition> newStores=new ArrayList<StoreDefinition>();
+  List<String> newStoreNames=Lists.newArrayList();
+  for (  StoreDefinition storeDef : stores) {
+    StoreDefinitionBuilder sb=AdminToolTestUtils.storeDefToBuilder(storeDef);
+    sb.setName(sb.getName() + "_new");
+    newStores.add(sb.build());
+    newStoreNames.add(sb.getName());
+  }
+  File newStoresXMLFolder=TestUtils.createTempDir();
+  File newStoreXMLFile=File.createTempFile(newStoreXMLFilePrefix,newStoreXMLFileSuffix,newStoresXMLFolder);
+  FileWriter fwriter=new FileWriter(newStoreXMLFile);
+  fwriter.write(new StoreDefinitionsMapper().writeStoreList(newStores));
+  fwriter.close();
+  AdminCommand.executeCommand(new String[]{"store","add","-f",newStoreXMLFile.getAbsolutePath(),"-u",bsURL});
+  Integer nodeId=adminClient.getAdminClientCluster().getNodes().iterator().next().getId();
+  List<StoreDefinition> newStoresToVerify=adminClient.metadataMgmtOps.getRemoteStoreDefList(nodeId).getValue();
+  for (  StoreDefinition newStore : newStores) {
+    assertTrue(newStoresToVerify.contains(newStore));
+  }
+  AdminCommand.executeCommand(new String[]{"store","delete","-s",Joiner.on(",").join(newStoreNames),"-u",bsURL,"--confirm"});
+  newStoresToVerify=adminClient.metadataMgmtOps.getRemoteStoreDefList(nodeId).getValue();
+  for (  StoreDefinition newStore : newStores) {
+    assertTrue(!newStoresToVerify.contains(newStore));
+  }
+}

@@ -1,0 +1,53 @@
+{
+  OptionParser parser=getParser();
+  List<Integer> partIds=null;
+  Integer nodeId=null;
+  List<String> storeNames=null;
+  Boolean allStores=false;
+  String url=null;
+  Boolean confirm=false;
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_PARTITION);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_NODE);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_STORE,AdminParserUtils.OPT_ALL_STORES);
+  partIds=(List<Integer>)options.valuesOf(AdminParserUtils.OPT_PARTITION);
+  nodeId=(Integer)options.valueOf(AdminParserUtils.OPT_NODE);
+  if (options.has(AdminParserUtils.OPT_STORE)) {
+    storeNames=(List<String>)options.valuesOf(AdminParserUtils.OPT_STORE);
+    allStores=false;
+  }
+ else {
+    allStores=true;
+  }
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  if (options.has(AdminParserUtils.OPT_CONFIRM)) {
+    confirm=true;
+  }
+  System.out.println("Remove contents of partitions");
+  System.out.println("Partition:");
+  for (  Integer partId : partIds) {
+    System.out.println("  " + partId);
+  }
+  System.out.println("Store:");
+  if (allStores) {
+    System.out.println("  all stores");
+  }
+ else {
+    System.out.println("  " + Joiner.on(", ").join(storeNames));
+  }
+  System.out.println("Location:");
+  System.out.println("  bootstrap url = " + url);
+  System.out.println("  node = " + nodeId);
+  if (!AdminUtils.askConfirm(confirm,"truncate partition")) {
+    return;
+  }
+  AdminClient adminClient=AdminUtils.getAdminClient(url);
+  Node node=adminClient.getAdminClientCluster().getNodeById(nodeId);
+  storeNames=AdminUtils.getUserStoresOnNode(adminClient,node,storeNames,allStores);
+  doStoreTruncatePartition(adminClient,node,storeNames,partIds);
+}

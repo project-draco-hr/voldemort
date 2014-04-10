@@ -1,0 +1,72 @@
+{
+  HashMap<String,StoreDefinition> storeDefinitionMap=Maps.newHashMap();
+  storeDefinitionMap.putAll(AdminUtils.getUserStoreDefs(adminClient,node));
+  storeDefinitionMap.putAll(AdminUtils.getSystemStoreDefs());
+  for (  String store : storeNames) {
+    StoreDefinition storeDefinition=storeDefinitionMap.get(store);
+    if (null == storeDefinition) {
+      System.out.println("No store found under the name \'" + store + "\'");
+      continue;
+    }
+    Iterator<ByteArray> keyIteratorRef=null;
+    if (orphaned) {
+      System.out.println("Fetching orphaned keys of " + store);
+      keyIteratorRef=adminClient.bulkFetchOps.fetchOrphanedKeys(node.getId(),store);
+    }
+ else {
+      System.out.println("Fetching keys in partitions " + Joiner.on(", ").join(partIds) + " of "+ store);
+      keyIteratorRef=adminClient.bulkFetchOps.fetchKeys(node.getId(),store,partIds,null,false);
+    }
+    final Iterator<ByteArray> keyIterator=keyIteratorRef;
+    File outFile=null;
+    if (directory != null) {
+      outFile=new File(directory,store + ".keys");
+    }
+    if (format.equals(AdminParserUtils.ARG_FORMAT_JSON)) {
+      final SerializerDefinition serializerDef=storeDefinition.getKeySerializer();
+      final SerializerFactory serializerFactory=new DefaultSerializerFactory();
+      @SuppressWarnings("unchecked") final Serializer<Object> serializer=(Serializer<Object>)serializerFactory.getSerializer(serializerDef);
+      final CompressionStrategy keysCompressionStrategy;
+      if (serializerDef != null && serializerDef.hasCompression()) {
+        keysCompressionStrategy=new CompressionStrategyFactory().get(serializerDef.getCompression());
+      }
+ else {
+        keysCompressionStrategy=null;
+      }
+      writeAscii(outFile,new Writable(){
+        @Override public void writeTo(        BufferedWriter out) throws IOException {
+          while (keyIterator.hasNext()) {
+            final JsonGenerator generator=new JsonFactory(new ObjectMapper()).createJsonGenerator(out);
+            byte[] keyBytes=keyIterator.next().get();
+            Object keyObject=serializer.toObject((null == keysCompressionStrategy) ? keyBytes : keysCompressionStrategy.inflate(keyBytes));
+            if (keyObject instanceof GenericRecord) {
+              out.write(keyObject.toString());
+            }
+ else {
+              generator.writeObject(keyObject);
+            }
+            out.write('\n');
+          }
+        }
+      }
+);
+    }
+ else     if (format.equals(AdminParserUtils.ARG_FORMAT_HEX)) {
+      writeBinary(outFile,new Printable(){
+        @Override public void printTo(        DataOutputStream out) throws IOException {
+          while (keyIterator.hasNext()) {
+            byte[] keyBytes=keyIterator.next().get();
+            out.writeChars(ByteUtils.toHexString(keyBytes) + "\n");
+          }
+        }
+      }
+);
+    }
+ else {
+      throw new VoldemortException("Invalid format \'" + format + "\'.");
+    }
+    if (outFile != null) {
+      System.out.println("Fetched keys from " + store + " to "+ outFile);
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  OptionParser parser=getParser();
+  long memoryMBSize=0;
+  List<String> storeNames=null;
+  String url=null;
+  List<Integer> nodeIds=null;
+  Boolean allNodes=true;
+  Boolean confirm=false;
+  args=AdminUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_QUOTA_RESERVE_MEMORY);
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,OPT_HEAD_QUOTA_RESERVE_MEMORY);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_STORE);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  AdminParserUtils.checkOptional(options,AdminParserUtils.OPT_NODE,AdminParserUtils.OPT_ALL_NODES);
+  memoryMBSize=(Integer)options.valueOf(OPT_HEAD_QUOTA_RESERVE_MEMORY);
+  storeNames=(List<String>)options.valuesOf(AdminParserUtils.OPT_STORE);
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  if (options.has(AdminParserUtils.OPT_NODE)) {
+    nodeIds=(List<Integer>)options.valuesOf(AdminParserUtils.OPT_NODE);
+    allNodes=false;
+  }
+  if (options.has(AdminParserUtils.OPT_CONFIRM)) {
+    confirm=true;
+  }
+  System.out.println("Reserve memory for stores");
+  System.out.println("Memory to reserve = " + memoryMBSize + " MBytes");
+  System.out.println("Store:");
+  System.out.println("  " + Joiner.on(", ").join(storeNames));
+  System.out.println("Location:");
+  System.out.println("  bootstrap url = " + url);
+  if (allNodes) {
+    System.out.println("  node = all nodes");
+  }
+ else {
+    System.out.println("  node = " + Joiner.on(", ").join(nodeIds));
+  }
+  if (!AdminUtils.askConfirm(confirm,"reserve memory"))   return;
+  AdminClient adminClient=AdminUtils.getAdminClient(url);
+  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
+  doQuotaReserveMemory(adminClient,nodes,storeNames,memoryMBSize);
+}

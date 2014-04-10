@@ -1,0 +1,18 @@
+{
+  Integer nodeId=0;
+  String tempDir=System.getProperty("java.io.tmpdir") + "temp" + System.currentTimeMillis();
+  AdminCommand.executeCommand(new String[]{"meta","get",MetadataStore.CLUSTER_KEY + "," + MetadataStore.STORES_KEY,"-u",bsURL,"-n",nodeId.toString(),"-d",tempDir});
+  String clusterFile=tempDir + "/" + MetadataStore.CLUSTER_KEY+ "_"+ nodeId;
+  String storesFile=tempDir + "/" + MetadataStore.STORES_KEY+ "_"+ nodeId;
+  assertTrue(Utils.isReadableFile(clusterFile));
+  assertTrue(Utils.isReadableFile(storesFile));
+  ClusterMapper clusterMapper=new ClusterMapper();
+  StoreDefinitionsMapper storeDefsMapper=new StoreDefinitionsMapper();
+  Cluster newCluster=clusterMapper.readCluster(new File(clusterFile));
+  List<StoreDefinition> newStores=storeDefsMapper.readStoreList(new File(storesFile));
+  assertTrue(newCluster.equals(cluster));
+  assertTrue(newStores.size() == stores.size());
+  for (  StoreDefinition store : stores) {
+    assertTrue(newStores.contains(store));
+  }
+}

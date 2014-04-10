@@ -1,0 +1,9 @@
+{
+  String quotaValueToSet="1000";
+  AdminCommand.executeCommand(new String[]{"quota","set",quotaType + "=" + quotaValueToSet,"-s",storeName,"-u",bsURL,"--confirm"});
+  String quotaValueToVerify=adminClient.quotaMgmtOps.getQuota(storeName,quotaType).getValue();
+  assertTrue(quotaValueToVerify.equals(quotaValueToSet));
+  AdminCommand.executeCommand(new String[]{"quota","unset",quotaType,"-s",storeName,"-u",bsURL,"--confirm"});
+  Versioned<String> versionedQuotaValueToVerify=adminClient.quotaMgmtOps.getQuota(storeName,quotaType);
+  assertTrue(versionedQuotaValueToVerify == null);
+}

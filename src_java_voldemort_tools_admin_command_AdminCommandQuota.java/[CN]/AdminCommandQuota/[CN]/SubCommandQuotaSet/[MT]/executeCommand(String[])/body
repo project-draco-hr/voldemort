@@ -1,0 +1,47 @@
+{
+  OptionParser parser=getParser();
+  List<String> quota=null;
+  List<String> storeNames=null;
+  String url=null;
+  Boolean confirm=false;
+  args=AdminUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_QUOTA_SET);
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,OPT_HEAD_QUOTA_SET);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_STORE);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  quota=AdminUtils.getValueList((List<String>)options.valuesOf(OPT_HEAD_QUOTA_SET),"=");
+  if (quota.size() % 2 != 0) {
+    throw new VoldemortException("Invalid quota type-value pair.");
+  }
+  Set<String> validQuotaTypes=QuotaUtils.validQuotaTypes();
+  for (Integer i=0; i < quota.size(); i+=2) {
+    if (!validQuotaTypes.contains(quota.get(i))) {
+      Utils.croak("Invalid quota type: " + quota.get(i));
+    }
+  }
+  storeNames=(List<String>)options.valuesOf(AdminParserUtils.OPT_STORE);
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  if (options.has(AdminParserUtils.OPT_CONFIRM)) {
+    confirm=true;
+  }
+  System.out.println("Set quota for stores");
+  System.out.println("Quota:");
+  for (Integer i=0; i < quota.size(); i+=2) {
+    System.out.println("  set " + quota.get(i) + " = "+ quota.get(i + 1));
+  }
+  System.out.println("Store:");
+  System.out.println("  " + Joiner.on(", ").join(storeNames));
+  System.out.println("Location:");
+  System.out.println("  bootstrap url = " + url);
+  System.out.println("  node = all nodes");
+  if (!AdminUtils.askConfirm(confirm,"set quota")) {
+    return;
+  }
+  AdminClient adminClient=AdminUtils.getAdminClient(url);
+  Map<String,String> quotaMap=AdminUtils.convertListToMap(quota);
+  doQuotaSet(adminClient,storeNames,quotaMap);
+}
