@@ -11,9 +11,8 @@
   store.put(key,v2,null);
   assertTrue("Delete failed!",store.delete(key,v1.getVersion()));
   List<Versioned<V>> found=store.get(key,null);
-  assertEquals(1,found.size());
+  assertValueEquals(v2.getValue(),found);
   assertEquals(v2.getVersion(),found.get(0).getVersion());
-  assertTrue(valuesEqual(v2.getValue(),found.get(0).getValue()));
   assertTrue("Delete failed!",store.delete(key,c2));
   assertEquals(0,store.get(key,null).size());
 }

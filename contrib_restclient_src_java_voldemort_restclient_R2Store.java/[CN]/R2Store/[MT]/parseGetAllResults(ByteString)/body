@@ -15,7 +15,7 @@
         logger.debug("Base 64 key : " + base64Key);
       }
       List<Versioned<byte[]>> valueResultList=new ArrayList<Versioned<byte[]>>();
-      ByteArrayDataSource nestedDS=new ByteArrayDataSource((String)part.getContent(),"multipart/mixed");
+      ByteArrayDataSource nestedDS=new ByteArrayDataSource(part.getRawInputStream(),"multipart/mixed");
       MimeMultipart valueParts=new MimeMultipart(nestedDS);
       for (int valueId=0; valueId < valueParts.getCount(); valueId++) {
         MimeBodyPart valuePart=(MimeBodyPart)valueParts.getBodyPart(valueId);

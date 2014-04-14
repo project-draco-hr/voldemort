@@ -9,11 +9,5 @@
   List<K> keysForGet=keys.subList(0,countForGet);
   List<V> valuesForGet=values.subList(0,countForGet);
   Map<K,List<Versioned<V>>> result=store.getAll(keysForGet,null);
-  assertEquals(countForGet,result.size());
-  for (int i=0; i < keysForGet.size(); ++i) {
-    K key=keysForGet.get(i);
-    V expectedValue=valuesForGet.get(i);
-    List<Versioned<V>> versioneds=result.get(key);
-    assertGetAllValues(expectedValue,versioneds);
-  }
+  assertGetAllValues(keysForGet,valuesForGet,result);
 }

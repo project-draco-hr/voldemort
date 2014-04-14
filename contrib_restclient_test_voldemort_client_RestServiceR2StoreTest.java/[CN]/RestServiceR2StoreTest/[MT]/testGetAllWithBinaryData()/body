@@ -1,0 +1,21 @@
+{
+  Store<ByteArray,byte[],byte[]> store=getStore();
+  List<ByteArray> keys=Lists.newArrayList();
+  List<byte[]> values=Lists.newArrayList();
+  byte[] interestingByte=new byte[]{(byte)0x8c};
+  ByteArray interestingKey=new ByteArray(interestingByte);
+  keys.add(interestingKey);
+  values.add(interestingByte);
+  byte[] allPossibleBytes=getAllPossibleBytes();
+  ByteArray allPossibleKey=new ByteArray(allPossibleBytes);
+  keys.add(allPossibleKey);
+  values.add(allPossibleBytes);
+  assertEquals(keys.size(),values.size());
+  int count=keys.size();
+  for (int i=0; i < count; i++) {
+    VectorClock vc=getClock(0,0);
+    store.put(keys.get(i),new Versioned<byte[]>(values.get(i),vc),null);
+  }
+  Map<ByteArray,List<Versioned<byte[]>>> result=store.getAll(keys,null);
+  assertGetAllValues(keys,values,result);
+}
