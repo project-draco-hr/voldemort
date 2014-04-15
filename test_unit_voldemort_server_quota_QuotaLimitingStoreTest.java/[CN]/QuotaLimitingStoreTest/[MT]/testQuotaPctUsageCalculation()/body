@@ -1,0 +1,23 @@
+{
+  File tempDir=TestUtils.createTempDir();
+  FileBackedCachingStorageEngine quotaStore=new FileBackedCachingStorageEngine("quota-usage-test-store",tempDir.getAbsolutePath());
+  InMemoryStorageEngine<ByteArray,byte[],byte[]> inMemoryEngine=new InMemoryStorageEngine<ByteArray,byte[],byte[]>("inMemoryBackingStore");
+  QuotaLimitStats quotaStats=new QuotaLimitStats(null,1000);
+  StatTrackingStore statTrackingStore=new StatTrackingStore(inMemoryEngine,null);
+  QuotaLimitingStore quotaLimitingStore=new QuotaLimitingStore(statTrackingStore,statTrackingStore.getStats(),quotaStats,quotaStore);
+  int targetRate=50;
+  quotaStore.put(new ByteArray(QuotaUtils.makeQuotaKey(statTrackingStore.getName(),QuotaType.GET_THROUGHPUT).getBytes()),new Versioned<byte[]>("100.0".getBytes()),null);
+  long testIntervalMs=5000;
+  long timeToSleepMs=1000 / targetRate;
+  long startMs=System.currentTimeMillis();
+  ByteArray key=new ByteArray("some key".getBytes());
+  while ((System.currentTimeMillis() - startMs) <= testIntervalMs) {
+    quotaLimitingStore.get(key,null);
+    Thread.sleep(timeToSleepMs);
+  }
+  assertEquals("No get operations should be throttled",0,quotaStats.getRateLimitedGets());
+  assertEquals("Put usage should be 0",0,quotaStats.getQuotaPctUsedPut());
+  assertEquals("delete usage should be 0",0,quotaStats.getQuotaPctUsedDelete());
+  assertEquals("getall usage should be 0",0,quotaStats.getQuotaPctUsedGetAll());
+  assertEquals("Computed usage pct must be close to actual observed qps",statTrackingStore.getStats().getThroughput(Tracked.GET),quotaStats.getQuotaPctUsedGet(),1.0);
+}

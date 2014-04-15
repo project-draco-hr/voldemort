@@ -7,6 +7,7 @@
     }
     float currentRate=this.storeStats.getThroughput(trackedOp);
     float allowedRate=Float.parseFloat(quotaValue);
+    quotaStats.reportQuotaUsed(trackedOp,Utils.safeGetPercentage(currentRate,allowedRate));
     if (currentRate > allowedRate) {
       quotaStats.reportRateLimitedOp(trackedOp);
       throw new VoldemortApplicationException("Exceeded rate limit for " + quotaKey + ". Maximum allowed : "+ allowedRate+ " Current: "+ currentRate);
