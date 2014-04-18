@@ -4,6 +4,7 @@
     if (this.storeNames.contains(storeDef.getName())) {
       throw new VoldemortException("Store already exists !");
     }
+    StoreDefinitionUtils.validateSchemaAsNeeded(storeDef);
     StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
     String storeDefStr=mapper.writeStore(storeDef);
     Versioned<String> versionedValueStr=new Versioned<String>(storeDefStr);
