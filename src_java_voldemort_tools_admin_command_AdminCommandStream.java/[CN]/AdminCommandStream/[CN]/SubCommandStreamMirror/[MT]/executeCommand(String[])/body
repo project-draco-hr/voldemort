@@ -49,5 +49,7 @@
   AdminClient destAdminClient=AdminUtils.getAdminClient(destUrl);
   Node srcNode=srcAdminClient.getAdminClientCluster().getNodeById(srcNodeId);
   storeNames=AdminUtils.getUserStoresOnNode(srcAdminClient,srcNode,storeNames,allStores);
+  AdminUtils.checkServerInNormalState(srcAdminClient,srcAdminClient.getAdminClientCluster().getNodeById(srcNodeId));
+  AdminUtils.checkServerInNormalState(destAdminClient,destAdminClient.getAdminClientCluster().getNodeById(destNodeId));
   destAdminClient.restoreOps.mirrorData(destNodeId,srcNodeId,srcUrl,storeNames);
 }

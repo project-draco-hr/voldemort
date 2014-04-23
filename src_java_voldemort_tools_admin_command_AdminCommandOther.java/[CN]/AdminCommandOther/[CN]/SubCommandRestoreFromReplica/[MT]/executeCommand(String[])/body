@@ -33,6 +33,7 @@
     return;
   }
   AdminClient adminClient=AdminUtils.getAdminClient(url);
+  AdminUtils.checkServerInNormalState(adminClient,adminClient.getAdminClientCluster().getNodeById(nodeId));
   System.out.println("Starting restore");
   adminClient.restoreOps.restoreDataFromReplications(nodeId,parallel,zoneId);
   System.out.println("Finished restore");

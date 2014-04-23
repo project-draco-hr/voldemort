@@ -39,10 +39,13 @@
   }
   if (!AdminUtils.askConfirm(confirm,"cleanup slops"))   return;
   AdminClient adminClient=AdminUtils.getAdminClient(url);
+  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
   if (allNodes) {
-    Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
     nodeIds=Lists.newArrayList();
-    for (    Node node : nodes)     nodeIds.add(node.getId());
+    for (    Node node : nodes) {
+      nodeIds.add(node.getId());
+    }
   }
+  AdminUtils.checkServerInNormalState(adminClient,nodes);
   adminClient.storeMntOps.slopPurgeJob(nodeIds,zoneId,storeNames);
 }
