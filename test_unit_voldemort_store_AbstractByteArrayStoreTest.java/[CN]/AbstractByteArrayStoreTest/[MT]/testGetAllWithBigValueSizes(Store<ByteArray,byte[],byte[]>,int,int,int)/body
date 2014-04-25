@@ -1,0 +1,19 @@
+{
+  List<ByteArray> keys=Lists.newArrayList();
+  List<byte[]> values=Lists.newArrayList();
+  int putCount=numKeys;
+  System.out.println("<<<<<<<<<<< numkeys: " + putCount + " >>>>>>>>>>>>>>>");
+  for (  ByteArray key : getKeys(putCount,keySize)) {
+    keys.add(key);
+  }
+  for (  byte[] val : getValues(putCount,valueSize)) {
+    values.add(val);
+  }
+  assertEquals(putCount,values.size());
+  for (int i=0; i < putCount; i++) {
+    VectorClock vc=getClock(0,0);
+    store.put(keys.get(i),new Versioned<byte[]>(values.get(i),vc),null);
+  }
+  Map<ByteArray,List<Versioned<byte[]>>> result=store.getAll(keys,null);
+  assertGetAllValues(keys,values,result);
+}

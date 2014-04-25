@@ -1,0 +1,14 @@
+{
+  List<ByteArray> keys=getKeys(1,keySize);
+  ByteArray key=keys.get(0);
+  VectorClock vc=getClock(0,0);
+  List<byte[]> values=getValues(1,valueSize);
+  byte[] value=values.get(0);
+  Versioned<byte[]> versioned=new Versioned<byte[]>(value,vc);
+  store.put(key,versioned,null);
+  List<Versioned<byte[]>> found=store.get(key,null);
+  Assert.assertEquals("Should only be one version stored.",1,found.size());
+  System.out.println("input: " + versioned.getValue().length + " bytes");
+  System.out.println("found " + found.get(0).getValue().length + " bytes");
+  Assert.assertTrue("Values not equal!",valuesEqual(versioned.getValue(),found.get(0).getValue()));
+}
