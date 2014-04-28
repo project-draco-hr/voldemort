@@ -9,7 +9,7 @@
 synchronized (this) {
       result=failureDetector;
       if (result == null) {
-        logger.info("Failure detector is null. Creating a new FD.");
+        logger.debug("Creating a new FailureDetector.");
         failureDetector=result=initFailureDetector(config,this.cluster);
         if (isJmxEnabled) {
           JmxUtils.registerMbean(failureDetector,JmxUtils.createObjectName(JmxUtils.getPackageName(failureDetector.getClass()),JmxUtils.getClassName(failureDetector.getClass()) + JmxUtils.getJmxId(jmxId)));
@@ -18,7 +18,7 @@ synchronized (this) {
     }
   }
  else {
-    logger.info("Failure detector already exists. Updating the state and flushing cached verifier stores.");
+    logger.debug("Failure detector already exists. Updating the state and flushing cached verifier stores.");
 synchronized (this) {
       failureDetector.getConfig().setCluster(this.cluster);
       failureDetector.getConfig().getStoreVerifier().flushCachedStores();

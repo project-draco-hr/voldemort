@@ -14,10 +14,13 @@
     this.clientInfo.setBootstrapTime(System.currentTimeMillis());
   }
   if (this.clientRegistryRefresher == null) {
-    logger.error("Unable to publish the client registry after bootstrap. Client Registry Refresher is NULL.");
+    if (everBootstrapped) {
+      logger.error("Unable to publish the client registry after bootstrap. Client Registry Refresher is NULL.");
+    }
   }
  else {
     logger.info("Publishing client registry after Bootstrap.");
     this.clientRegistryRefresher.publishRegistry();
   }
+  everBootstrapped=true;
 }

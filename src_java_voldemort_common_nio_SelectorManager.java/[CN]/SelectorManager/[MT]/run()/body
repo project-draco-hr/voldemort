@@ -2,7 +2,7 @@
   try {
     while (true) {
       if (isClosed.get()) {
-        if (logger.isInfoEnabled())         logger.info("Closed, exiting");
+        logger.debug("SelectorManager is closed, exiting");
         break;
       }
       processEvents();
@@ -12,7 +12,7 @@
         selectTimeMs=System.currentTimeMillis() - selectTimeMs;
         selectCount=selected;
         if (isClosed.get()) {
-          if (logger.isInfoEnabled())           logger.info("Closed, exiting");
+          logger.debug("SelectorManager is closed, exiting");
           break;
         }
         if (selected > 0) {
@@ -30,7 +30,7 @@
         }
       }
  catch (      ClosedSelectorException e) {
-        if (logger.isDebugEnabled())         logger.debug("Selector is closed, exiting");
+        logger.debug("SelectorManager is closed, exiting");
         break;
       }
 catch (      Throwable t) {

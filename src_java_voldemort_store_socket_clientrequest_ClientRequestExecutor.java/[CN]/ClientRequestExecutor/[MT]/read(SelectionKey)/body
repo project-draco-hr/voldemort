@@ -18,5 +18,6 @@
     if (logger.isTraceEnabled())     logger.trace("Finished read for " + socketChannel.socket());
     selectionKey.interestOps(0);
   }
-  completeClientRequest();
+  ClientRequest<?> originalRequest=completeClientRequest();
+  if (originalRequest == null && logger.isEnabledFor(Level.WARN))   logger.warn("No client associated with " + socketChannel.socket());
 }
