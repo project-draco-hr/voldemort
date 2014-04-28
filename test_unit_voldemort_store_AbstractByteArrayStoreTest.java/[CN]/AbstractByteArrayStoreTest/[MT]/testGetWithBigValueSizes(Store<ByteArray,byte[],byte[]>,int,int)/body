@@ -8,7 +8,13 @@
   store.put(key,versioned,null);
   List<Versioned<byte[]>> found=store.get(key,null);
   Assert.assertEquals("Should only be one version stored.",1,found.size());
-  System.out.println("input: " + versioned.getValue().length + " bytes");
-  System.out.println("found " + found.get(0).getValue().length + " bytes");
+  logger.info("input: " + versioned.getValue().length + " bytes");
+  logger.info("found " + found.get(0).getValue().length + " bytes");
+  if (logger.isDebugEnabled()) {
+    logger.debug("Input: ");
+    printBytes(versioned.getValue());
+    logger.debug("found: ");
+    printBytes(found.get(0).getValue());
+  }
   Assert.assertTrue("Values not equal!",valuesEqual(versioned.getValue(),found.get(0).getValue()));
 }
