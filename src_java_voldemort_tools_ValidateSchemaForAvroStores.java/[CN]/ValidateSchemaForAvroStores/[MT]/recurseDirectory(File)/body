@@ -1,0 +1,25 @@
+{
+  if (inputFile.isDirectory()) {
+    try {
+      File[] directoryListing=inputFile.listFiles();
+      logger.info("\n\nInside directory " + inputFile.getAbsolutePath());
+      for (      File storesFile : directoryListing) {
+        if (storesFile.isFile() && storesFile.getName().equals(MetadataStore.STORES_KEY)) {
+          validate(storesFile);
+        }
+ else {
+          recurseDirectory(storesFile);
+        }
+      }
+    }
+ catch (    Exception ex) {
+      logger.error("Either no read permission for the directory or an I/O error occured");
+      ex.printStackTrace();
+    }
+  }
+ else {
+    if (inputFile.getName().equals(MetadataStore.STORES_KEY)) {
+      validate(inputFile);
+    }
+  }
+}
