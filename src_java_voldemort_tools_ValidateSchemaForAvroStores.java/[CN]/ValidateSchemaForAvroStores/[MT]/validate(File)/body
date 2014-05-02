@@ -1,0 +1,21 @@
+{
+  logger.info("Stores-xml file name: " + storesXMLFile.getName());
+  StoreDefinitionsMapper storeDefsMapper=new StoreDefinitionsMapper();
+  List<StoreDefinition> newStoreDefs=null;
+  try {
+    newStoreDefs=storeDefsMapper.readStoreList(storesXMLFile);
+  }
+ catch (  IOException e) {
+    logger.error("An IO Exception occured");
+    e.printStackTrace();
+  }
+  for (  StoreDefinition storeDefinition : newStoreDefs) {
+    try {
+      StoreDefinitionUtils.validateSchemaAsNeeded(storeDefinition);
+    }
+ catch (    VoldemortException ex) {
+      logger.error("A VoldemortException occured");
+      ex.printStackTrace();
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  if (args.length < 1) {
+    logger.error("Error in usage: \n 1. java ValidateSchemaForAvroStores <absolute path to your directory>     OR \n 2. java ValidateSchemaForAvroStores <absolute path to your stores.xml>");
+    System.exit(-1);
+  }
+  logger.info("Validation starting...");
+  File inputFile=new File(args[0]);
+  if (inputFile.isDirectory()) {
+    try {
+      File[] directoryListing=inputFile.listFiles();
+      logger.info("Inside directory " + inputFile.getAbsolutePath());
+      for (      File storesFile : directoryListing) {
+        if (storesFile.isFile()) {
+          validate(storesFile);
+        }
+ else {
+          logger.error("Cannot check for files in sub directory - " + storesFile.getName() + "\n Please put all your stores.xml into one directory and retry");
+        }
+      }
+    }
+ catch (    Exception ex) {
+      logger.error("Either no read permission for the directory or an I/O error occured");
+      ex.printStackTrace();
+    }
+  }
+ else {
+    validate(inputFile);
+  }
+}
