@@ -1,5 +1,6 @@
 {
   AdminClient adminClient=getAdminClient();
+  doClientOperation();
   StoreDefinition definition=new StoreDefinitionBuilder().setName("updateTest").setType(InMemoryStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(3).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).build();
   try {
     adminClient.storeMgmtOps.addStore(definition);
@@ -38,4 +39,5 @@
   for (  String storeName : storeToStorageFormat.keySet()) {
     assertEquals(storeToStorageFormat.get(storeName),"ro2");
   }
+  doClientOperation();
 }

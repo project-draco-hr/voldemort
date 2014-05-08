@@ -2,14 +2,13 @@
   writeLock.lock();
   try {
     if (this.storeNames.contains(key) || key.equals(STORES_KEY)) {
-      List<StoreDefinition> storeDefs=(List<StoreDefinition>)value.getValue();
-      StoreDefinitionUtils.validateSchemasAsNeeded(storeDefs);
+      List<StoreDefinition> storeDefinitions=(List<StoreDefinition>)value.getValue();
+      StoreDefinitionUtils.validateSchemasAsNeeded(storeDefinitions);
       Set<String> storeNamesToDelete=new HashSet<String>();
       for (      String storeName : this.storeNames) {
         storeNamesToDelete.add(storeName);
       }
       StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
-      List<StoreDefinition> storeDefinitions=(List<StoreDefinition>)value.getValue();
       Set<String> specifiedStoreNames=new HashSet<String>();
       for (      StoreDefinition storeDef : storeDefinitions) {
         specifiedStoreNames.add(storeDef.getName());
