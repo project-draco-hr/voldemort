@@ -1,5 +1,6 @@
 {
   status.setStatus("Determining the last backed up file...");
+  System.out.println("Backup directory is \'" + backupDir.getPath() + "\'.");
   File[] backupFiles=backupDir.listFiles(new FilenameFilter(){
     public boolean accept(    File dir,    String name){
       if (!name.endsWith(BDB_EXT)) {
@@ -17,6 +18,9 @@
     }
   }
 );
+  if (backupFiles == null) {
+    throw new VoldemortException("Failed to read backup directory. Please check" + "if the directory exists, or permission is granted.");
+  }
   if (backupFiles.length == 0) {
     status.setStatus("No backup files found, assuming a full backup is required.");
     return null;
