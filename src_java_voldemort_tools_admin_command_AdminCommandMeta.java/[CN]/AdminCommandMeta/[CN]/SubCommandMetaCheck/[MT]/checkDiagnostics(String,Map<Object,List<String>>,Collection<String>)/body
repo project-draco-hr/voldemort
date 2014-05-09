@@ -1,0 +1,31 @@
+{
+  Collection<String> nodesInResult=new ArrayList<String>();
+  Boolean checkResult=true;
+  if (metadataValues.size() == 1) {
+    Map.Entry<Object,List<String>> entry=metadataValues.entrySet().iterator().next();
+    nodesInResult.addAll(entry.getValue());
+  }
+ else {
+    checkResult=false;
+    int groupCount=0;
+    for (    Map.Entry<Object,List<String>> entry : metadataValues.entrySet()) {
+      groupCount++;
+      System.err.println("Nodes with same value for " + keyName + ". Id :"+ groupCount);
+      nodesInResult.addAll(entry.getValue());
+      for (      String nodeName : entry.getValue()) {
+        System.err.println("Node " + nodeName);
+      }
+      System.out.println();
+    }
+  }
+  Collection<String> nodesDiff=new ArrayList<String>(allNodeNames.size());
+  nodesDiff.addAll(allNodeNames);
+  nodesDiff.removeAll(nodesInResult);
+  if (nodesDiff.size() > 0) {
+    checkResult=false;
+    for (    String nodeName : nodesDiff) {
+      System.err.println("key " + keyName + " is missing in the Node "+ nodeName);
+    }
+  }
+  return checkResult;
+}
