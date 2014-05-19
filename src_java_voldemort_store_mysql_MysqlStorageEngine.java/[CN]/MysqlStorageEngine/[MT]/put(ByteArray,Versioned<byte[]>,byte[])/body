@@ -6,7 +6,7 @@
   PreparedStatement select=null;
   ResultSet results=null;
   String insertSql="insert into " + getName() + " (key_, version_, value_) values (?, ?, ?)";
-  String selectSql="select key_, version_ from " + getName() + " where key_ = ?";
+  String selectSql="select version_ from " + getName() + " where key_ = ?";
   try {
     conn=datasource.getConnection();
     conn.setAutoCommit(false);
@@ -14,11 +14,10 @@
     select.setBytes(1,key.get());
     results=select.executeQuery();
     while (results.next()) {
-      byte[] thisKey=results.getBytes("key_");
       VectorClock version=new VectorClock(results.getBytes("version_"));
       Occurred occurred=value.getVersion().compare(version);
       if (occurred == Occurred.BEFORE)       throw new ObsoleteVersionException("Attempt to put version " + value.getVersion() + " which is superceeded by "+ version+ ".");
- else       if (occurred == Occurred.AFTER)       delete(conn,thisKey,version.toBytes());
+ else       if (occurred == Occurred.AFTER)       delete(conn,key.get(),version.toBytes());
     }
     insert=conn.prepareStatement(insertSql);
     insert.setBytes(1,key.get());

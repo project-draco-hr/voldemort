@@ -3,7 +3,7 @@
   Connection conn=null;
   PreparedStatement selectStmt=null;
   ResultSet rs=null;
-  String select="select key_, version_ from " + getName() + " where key_ = ? for update";
+  String select="select version_ from " + getName() + " where key_ = ? for update";
   try {
     conn=datasource.getConnection();
     selectStmt=conn.prepareStatement(select);
@@ -11,10 +11,9 @@
     rs=selectStmt.executeQuery();
     boolean deletedSomething=false;
     while (rs.next()) {
-      byte[] theKey=rs.getBytes("key_");
       byte[] version=rs.getBytes("version_");
       if ((maxVersion == null) || (new VectorClock(version).compare(maxVersion) == Occurred.BEFORE)) {
-        delete(conn,theKey,version);
+        delete(conn,key.get(),version);
         deletedSomething=true;
       }
     }
