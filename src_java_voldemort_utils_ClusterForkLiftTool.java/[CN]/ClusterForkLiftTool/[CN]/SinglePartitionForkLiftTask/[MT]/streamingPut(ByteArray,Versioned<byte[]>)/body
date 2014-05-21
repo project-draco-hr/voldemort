@@ -1,11 +1,11 @@
 {
-  if (overwrite == false) {
-    dstStreamingClient.streamingPut(key,value);
-  }
- else {
+  if (overwrite) {
     VectorClock denseClock=VectorClockUtils.makeClockWithCurrentTime(dstServerIds);
     Versioned<byte[]> updatedValue=new Versioned<byte[]>(value.getValue(),denseClock);
     dstStreamingClient.streamingPut(key,updatedValue);
+  }
+ else {
+    dstStreamingClient.streamingPut(key,value);
   }
   entriesForkLifted++;
   if (entriesForkLifted % progressOps == 0) {
