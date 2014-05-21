@@ -45,7 +45,19 @@
     mode=Utils.getEnumFromString(ForkLiftTaskMode.class,(String)options.valueOf("mode"));
     if (mode == null)     mode=ForkLiftTaskMode.primary_resolution;
   }
-  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootstrapUrl,dstBootstrapUrl,maxPutsPerSecond,partitionParallelism,progressOps,storesList,partitions,mode);
+  Boolean overwrite=false;
+  if (options.has("overwrite")) {
+    if (options.hasArgument("overwrite")) {
+      overwrite=(Boolean)options.valueOf("overwrite");
+    }
+ else {
+      overwrite=true;
+    }
+  }
+  if (overwrite) {
+    logger.warn(OVERWRITE_WARNING_MESSAGE);
+  }
+  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootstrapUrl,dstBootstrapUrl,overwrite,maxPutsPerSecond,partitionParallelism,progressOps,storesList,partitions,mode);
   forkLiftTool.run();
   System.exit(0);
 }

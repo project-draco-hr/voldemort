@@ -1,0 +1,14 @@
+{
+  if (overwrite == false) {
+    dstStreamingClient.streamingPut(key,value);
+  }
+ else {
+    VectorClock denseClock=VectorClockUtils.makeClockWithCurrentTime(dstServerIds);
+    Versioned<byte[]> updatedValue=new Versioned<byte[]>(value.getValue(),denseClock);
+    dstStreamingClient.streamingPut(key,updatedValue);
+  }
+  entriesForkLifted++;
+  if (entriesForkLifted % progressOps == 0) {
+    logger.info(workName + " fork lifted " + entriesForkLifted+ " entries successfully");
+  }
+}

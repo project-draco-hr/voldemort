@@ -9,21 +9,22 @@
   srcAdminClient.storeOps.putNodeKeyValue(GLOBALLY_RESOLVING_STORE_NAME,new NodeValue<ByteArray,byte[]>(nodeList.get(0),new ByteArray(conflictKey.getBytes("UTF-8")),new Versioned<byte[]>("losing value".getBytes("UTF-8"),losingClock)));
   srcAdminClient.storeOps.putNodeKeyValue(GLOBALLY_RESOLVING_STORE_NAME,new NodeValue<ByteArray,byte[]>(nodeList.get(1),new ByteArray(conflictKey.getBytes("UTF-8")),new Versioned<byte[]>("winning value".getBytes("UTF-8"),winningClock)));
   dstGloballyResolvingStoreClient.put(firstKey,"before forklift");
-  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootStrapUrl,dstBootStrapUrl,false,10000,1,1000,Lists.newArrayList(GLOBALLY_RESOLVING_STORE_NAME),null,ClusterForkLiftTool.ForkLiftTaskMode.global_resolution);
+  Thread.sleep(2);
+  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootStrapUrl,dstBootStrapUrl,true,10000,1,1000,Lists.newArrayList(GLOBALLY_RESOLVING_STORE_NAME),null,ClusterForkLiftTool.ForkLiftTaskMode.global_resolution);
   forkLiftTool.run();
   dstGloballyResolvingStoreClient.put(lastKey,"after forklift");
   for (  Map.Entry<String,String> entry : kvPairs.entrySet()) {
-    if (entry.getKey().equals(firstKey)) {
-      assertEquals("Online write overwritten",dstGloballyResolvingStoreClient.get(firstKey).getValue(),"before forklift");
-    }
- else     if (entry.getKey().equals(lastKey)) {
-      assertEquals("can't update value after forklift",dstGloballyResolvingStoreClient.get(lastKey).getValue(),"after forklift");
+    String dstClusterValue=dstGloballyResolvingStoreClient.get(entry.getKey()).getValue();
+    if (entry.getKey().equals(lastKey)) {
+      assertEquals("can't update value after forklift",dstClusterValue,"after forklift");
     }
  else     if (entry.getKey().equals(conflictKey)) {
-      assertEquals("Conflict resolution incorrect",dstGloballyResolvingStoreClient.get(conflictKey).getValue(),"winning value");
+      assertEquals("Conflict resolution incorrect",dstClusterValue,"winning value");
     }
  else {
-      assertEquals("fork lift data missing",dstGloballyResolvingStoreClient.get(entry.getKey()).getValue(),entry.getValue());
+      if (!dstClusterValue.equals(entry.getValue())) {
+        assertEquals("fork lift data missing",dstClusterValue,entry.getValue());
+      }
     }
   }
 }
