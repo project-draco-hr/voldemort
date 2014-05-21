@@ -1,6 +1,5 @@
 {
   String storeName=this.storeInstance.getStoreDefinition().getName();
-  long entriesForkLifted=0;
   try {
     logger.info(workName + "Starting processing");
     ChainedResolver<Versioned<byte[]>> resolver=new ChainedResolver<Versioned<byte[]>>(new VectorClockInconsistencyResolver<byte[]>(),new TimeBasedInconsistencyResolver<byte[]>());
@@ -23,13 +22,10 @@
       if (resolvedVersions.size() > 1) {
         throw new VoldemortException("More than one resolved versions, key: " + ByteUtils.toHexString(keyToResolve.get()) + " vals:"+ resolvedVersions);
       }
-      dstStreamingClient.streamingPut(keyToResolve,new Versioned<byte[]>(resolvedVersions.get(0).getValue()));
-      entriesForkLifted++;
-      if (entriesForkLifted % progressOps == 0) {
-        logger.info(workName + " fork lifted " + entriesForkLifted+ " entries successfully");
-      }
+      Versioned<byte[]> value=new Versioned<byte[]>(resolvedVersions.get(0).getValue());
+      streamingPut(keyToResolve,value);
     }
-    logger.info(workName + "Completed processing " + entriesForkLifted+ " records");
+    printSummary();
   }
  catch (  Exception e) {
     logger.error(workName + "Error forklifting data ",e);

@@ -1,7 +1,7 @@
 {
-  List<StoreDefinition> srcStoreDefs=srcAdminClient.metadataMgmtOps.getRemoteStoreDefList(0).getValue();
+  List<StoreDefinition> srcStoreDefs=getStoreDefinitions(srcAdminClient);
   HashMap<String,StoreDefinition> srcStoreDefMap=StoreUtils.getStoreDefsAsMap(srcStoreDefs);
-  List<StoreDefinition> dstStoreDefs=dstStreamingClient.getAdminClient().metadataMgmtOps.getRemoteStoreDefList(0).getValue();
+  List<StoreDefinition> dstStoreDefs=getStoreDefinitions(dstStreamingClient.getAdminClient());
   HashMap<String,StoreDefinition> dstStoreDefMap=StoreUtils.getStoreDefsAsMap(dstStoreDefs);
   Set<String> storesToSkip=new HashSet<String>();
   for (  String store : storesList) {
@@ -14,7 +14,9 @@
       storesToSkip.add(store);
     }
   }
-  logger.warn("List of stores that will be skipped :" + storesToSkip);
-  storesList.removeAll(storesToSkip);
+  if (storesToSkip.size() > 0) {
+    logger.warn("List of stores that will be skipped :" + storesToSkip);
+    storesList.removeAll(storesToSkip);
+  }
   return srcStoreDefMap;
 }

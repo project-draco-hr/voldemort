@@ -6,11 +6,12 @@
   StreamingClientConfig config=new StreamingClientConfig(props);
   this.dstStreamingClient=new BaseStreamingClient(config);
   this.mode=mode;
+  this.overwrite=overwrite;
   if (storesList != null) {
     this.storesList=storesList;
   }
  else {
-    this.storesList=StoreUtils.getStoreNames(srcAdminClient.metadataMgmtOps.getRemoteStoreDefList(0).getValue(),true);
+    this.storesList=StoreUtils.getStoreNames(getStoreDefinitions(srcAdminClient),true);
   }
   this.srcStoreDefMap=checkStoresOnBothSides();
   if (partitions != null) {
