@@ -1,5 +1,8 @@
 {
   if (parseAndValidateRequest()) {
+    if (logger.isDebugEnabled()) {
+      debugLog("DELETE",System.currentTimeMillis());
+    }
     this.requestObject=new CompositeDeleteVoldemortRequest<ByteArray,byte[]>(this.parsedKeys.get(0),this.parsedVectorClock,this.parsedTimeoutInMs,this.parsedRequestOriginTimeInMs,this.parsedRoutingType);
     return this.requestObject;
   }

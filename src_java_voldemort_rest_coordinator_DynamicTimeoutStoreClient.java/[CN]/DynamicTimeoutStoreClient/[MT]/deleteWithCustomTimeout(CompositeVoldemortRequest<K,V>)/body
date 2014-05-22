@@ -1,8 +1,15 @@
 {
   List<Versioned<V>> versionedValues;
   validateTimeout(deleteRequestObject.getRoutingTimeoutInMs());
-  if (deleteRequestObject.getVersion() == null) {
+  boolean hasVersion=deleteRequestObject.getVersion() == null ? false : true;
+  String keyHexString="";
+  if (!hasVersion) {
     long startTimeInMs=System.currentTimeMillis();
+    if (logger.isDebugEnabled()) {
+      ByteArray key=(ByteArray)deleteRequestObject.getKey();
+      keyHexString=RestUtils.getKeyHexString(key);
+      logger.debug("DELETE without version requested for key: " + keyHexString + " , for store: "+ this.storeName+ " at time(in ms): "+ startTimeInMs+ " . Nested GET and DELETE requests to follow ---");
+    }
     deleteRequestObject.setResolveConflicts(true);
     versionedValues=getWithCustomTimeout(deleteRequestObject);
     Versioned<V> versioned=getItemOrThrow(deleteRequestObject.getKey(),null,versionedValues);
@@ -16,5 +23,18 @@
     deleteRequestObject.setVersion(versioned.getVersion());
     deleteRequestObject.setRoutingTimeoutInMs(timeLeft);
   }
-  return store.delete(deleteRequestObject);
+  long deleteVersionStartTimeInNs=System.currentTimeMillis();
+  if (logger.isDebugEnabled()) {
+    ByteArray key=(ByteArray)deleteRequestObject.getKey();
+    keyHexString=RestUtils.getKeyHexString(key);
+    debugLogStart("DELETE",deleteRequestObject.getRequestOriginTimeInMs(),deleteVersionStartTimeInNs,keyHexString);
+  }
+  boolean result=store.delete(deleteRequestObject);
+  if (logger.isDebugEnabled()) {
+    debugLogEnd("DELETE",deleteRequestObject.getRequestOriginTimeInMs(),deleteVersionStartTimeInNs,System.currentTimeMillis(),keyHexString,0);
+  }
+  if (!hasVersion && logger.isDebugEnabled()) {
+    logger.debug("DELETE without version response recieved for key: " + keyHexString + ", for store: "+ this.storeName+ " at time(in ms): "+ System.currentTimeMillis());
+  }
+  return result;
 }

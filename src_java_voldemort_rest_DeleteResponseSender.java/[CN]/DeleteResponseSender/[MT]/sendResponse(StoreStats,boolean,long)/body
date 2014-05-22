@@ -1,6 +1,10 @@
 {
   HttpResponse response=new DefaultHttpResponse(HTTP_1_1,NO_CONTENT);
   response.setHeader(CONTENT_LENGTH,"0");
+  if (logger.isDebugEnabled()) {
+    String keyStr=RestUtils.getKeyHexString(key);
+    debugLog("DELETE",this.storeName,keyStr,startTimeInMs,System.currentTimeMillis(),0);
+  }
   this.messageEvent.getChannel().write(response);
   if (performanceStats != null && isFromLocalZone) {
     recordStats(performanceStats,startTimeInMs,Tracked.DELETE);

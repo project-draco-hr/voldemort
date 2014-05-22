@@ -117,7 +117,7 @@ successfulPutVC=((VectorClock)this.storeClient.putVersionedWithCustomTimeout(thi
  else {
 successfulPutVC=((VectorClock)this.storeClient.putWithCustomTimeout(this.requestObject)).clone();
 }
-PutResponseSender responseConstructor=new PutResponseSender(messageEvent,successfulPutVC);
+PutResponseSender responseConstructor=new PutResponseSender(messageEvent,successfulPutVC,this.storeClient.getStoreName(),this.requestObject.getKey());
 responseConstructor.sendResponse(this.coordinatorPerfStats,true,this.requestObject.getRequestOriginTimeInMs());
 if (logger.isDebugEnabled()) {
 logger.debug("PUT successful !");
@@ -137,7 +137,7 @@ logger.debug("Incoming delete request");
 try {
 boolean isDeleted=this.storeClient.deleteWithCustomTimeout(this.requestObject);
 if (isDeleted) {
-DeleteResponseSender responseConstructor=new DeleteResponseSender(messageEvent);
+DeleteResponseSender responseConstructor=new DeleteResponseSender(messageEvent,this.storeClient.getStoreName(),this.requestObject.getKey());
 responseConstructor.sendResponse(this.coordinatorPerfStats,true,this.requestObject.getRequestOriginTimeInMs());
 if (logger.isDebugEnabled()) {
 logger.debug("DELETE request successful !");

@@ -1,12 +1,21 @@
 {
   if (parseAndValidateRequest()) {
     if (this.isGetVersionRequest) {
+      if (logger.isDebugEnabled()) {
+        debugLog("GET_VERSION",System.currentTimeMillis());
+      }
       this.requestObject=new CompositeGetVersionVoldemortRequest<ByteArray,byte[]>(this.parsedKeys.get(0),this.parsedTimeoutInMs,this.parsedRequestOriginTimeInMs,this.parsedRoutingType);
     }
  else     if (this.parsedKeys.size() > 1) {
+      if (logger.isDebugEnabled()) {
+        debugLog("GET_ALL",System.currentTimeMillis());
+      }
       this.requestObject=new CompositeGetAllVoldemortRequest<ByteArray,byte[]>(this.parsedKeys,this.parsedTimeoutInMs,this.parsedRequestOriginTimeInMs,this.parsedRoutingType);
     }
  else {
+      if (logger.isDebugEnabled()) {
+        debugLog("GET",System.currentTimeMillis());
+      }
       this.requestObject=new CompositeGetVoldemortRequest<ByteArray,byte[]>(this.parsedKeys.get(0),this.parsedTimeoutInMs,this.parsedRequestOriginTimeInMs,this.parsedRoutingType);
     }
     return this.requestObject;

@@ -2,7 +2,17 @@
   validateTimeout(requestWrapper.getRoutingTimeoutInMs());
   for (int attempts=0; attempts < this.metadataRefreshAttempts; attempts++) {
     try {
+      String keyHexString="";
+      long startTimeInMs=System.currentTimeMillis();
+      if (logger.isDebugEnabled()) {
+        ByteArray key=(ByteArray)requestWrapper.getKey();
+        keyHexString=RestUtils.getKeyHexString(key);
+        debugLogStart("PUT_VERSION",requestWrapper.getRequestOriginTimeInMs(),startTimeInMs,keyHexString);
+      }
       store.put(requestWrapper);
+      if (logger.isDebugEnabled()) {
+        debugLogEnd("PUT_VERSION",requestWrapper.getRequestOriginTimeInMs(),startTimeInMs,System.currentTimeMillis(),keyHexString,0);
+      }
       return requestWrapper.getValue().getVersion();
     }
  catch (    InvalidMetadataException e) {

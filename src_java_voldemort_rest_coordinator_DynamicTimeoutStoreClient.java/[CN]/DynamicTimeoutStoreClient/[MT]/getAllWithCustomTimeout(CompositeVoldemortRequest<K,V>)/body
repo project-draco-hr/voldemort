@@ -4,7 +4,23 @@
   for (int attempts=0; ; attempts++) {
     if (attempts >= this.metadataRefreshAttempts)     throw new VoldemortException(this.metadataRefreshAttempts + " metadata refresh attempts failed.");
     try {
+      String KeysHexString="";
+      long startTimeInMs=System.currentTimeMillis();
+      if (logger.isDebugEnabled()) {
+        Iterable<ByteArray> keys=(Iterable<ByteArray>)requestWrapper.getIterableKeys();
+        KeysHexString=getKeysHexString(keys);
+        debugLogStart("GET_ALL",requestWrapper.getRequestOriginTimeInMs(),startTimeInMs,KeysHexString);
+      }
       items=store.getAll(requestWrapper);
+      if (logger.isDebugEnabled()) {
+        int vcEntrySize=0;
+        for (        List<Versioned<V>> item : items.values()) {
+          for (          Versioned<V> vc : item) {
+            vcEntrySize+=((VectorClock)vc.getVersion()).getVersionMap().size();
+          }
+        }
+        debugLogEnd("GET_ALL",requestWrapper.getRequestOriginTimeInMs(),startTimeInMs,System.currentTimeMillis(),KeysHexString,vcEntrySize);
+      }
       return items;
     }
  catch (    InvalidMetadataException e) {

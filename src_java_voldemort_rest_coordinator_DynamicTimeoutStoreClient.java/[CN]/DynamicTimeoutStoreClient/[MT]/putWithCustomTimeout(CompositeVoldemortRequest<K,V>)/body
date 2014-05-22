@@ -2,6 +2,12 @@
   validateTimeout(requestWrapper.getRoutingTimeoutInMs());
   List<Versioned<V>> versionedValues;
   long startTime=System.currentTimeMillis();
+  String keyHexString="";
+  if (logger.isDebugEnabled()) {
+    ByteArray key=(ByteArray)requestWrapper.getKey();
+    keyHexString=RestUtils.getKeyHexString(key);
+    logger.debug("PUT requested for key: " + keyHexString + " , for store: "+ this.storeName+ " at time(in ms): "+ startTime+ " . Nested GET and PUT VERSION requests to follow ---");
+  }
   requestWrapper.setResolveConflicts(true);
   versionedValues=getWithCustomTimeout(requestWrapper);
   Versioned<V> versioned=getItemOrThrow(requestWrapper.getKey(),null,versionedValues);
@@ -12,5 +18,12 @@
   if (timeLeft <= 0) {
     throw new StoreTimeoutException("PUT request timed out");
   }
-  return putVersionedWithCustomTimeout(new CompositeVersionedPutVoldemortRequest<K,V>(requestWrapper.getKey(),versioned,timeLeft));
+  CompositeVersionedPutVoldemortRequest<K,V> putVersionedRequestObject=new CompositeVersionedPutVoldemortRequest<K,V>(requestWrapper.getKey(),versioned,timeLeft);
+  putVersionedRequestObject.setRequestOriginTimeInMs(requestWrapper.getRequestOriginTimeInMs());
+  Version result=putVersionedWithCustomTimeout(putVersionedRequestObject);
+  long endTimeInMs=System.currentTimeMillis();
+  if (logger.isDebugEnabled()) {
+    logger.debug("PUT response recieved for key: " + keyHexString + " , for store: "+ this.storeName+ " at time(in ms): "+ endTimeInMs);
+  }
+  return result;
 }

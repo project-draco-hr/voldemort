@@ -4,9 +4,15 @@
     parseValue();
     if (this.parsedValue != null) {
       if (this.parsedVectorClock == null || this.parsedVectorClock.getEntries().size() == 0) {
+        if (logger.isDebugEnabled()) {
+          debugLog("PUT",System.currentTimeMillis());
+        }
         requestObject=new CompositePutVoldemortRequest<ByteArray,byte[]>(this.parsedKeys.get(0),this.parsedValue,this.parsedTimeoutInMs,this.parsedRequestOriginTimeInMs,this.parsedRoutingType);
       }
  else {
+        if (logger.isDebugEnabled()) {
+          debugLog("PUT_VERSION",System.currentTimeMillis());
+        }
         requestObject=new CompositeVersionedPutVoldemortRequest<ByteArray,byte[]>(this.parsedKeys.get(0),new Versioned<byte[]>(this.parsedValue,this.parsedVectorClock),this.parsedTimeoutInMs,this.parsedRequestOriginTimeInMs,this.parsedRoutingType);
       }
       return requestObject;

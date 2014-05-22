@@ -21,6 +21,7 @@
       byte[] responseValue=versionedValue.getValue();
       VectorClock vectorClock=(VectorClock)versionedValue.getVersion();
       String eTag=RestUtils.getSerializedVectorClock(vectorClock);
+      numVectorClockEntries+=vectorClock.getVersionMap().size();
       MimeBodyPart valueBody=new MimeBodyPart();
       try {
         valueBody.addHeader(CONTENT_TYPE,"application/octet-stream");
@@ -60,6 +61,10 @@
   response.setHeader(CONTENT_TRANSFER_ENCODING,"binary");
   response.setContent(responseContent);
   response.setHeader(CONTENT_LENGTH,response.getContent().readableBytes());
+  if (logger.isDebugEnabled()) {
+    String keyStr=getKeysHexString(this.versionedResponses.keySet());
+    debugLog("GET_ALL",this.storeName,keyStr,startTimeInMs,System.currentTimeMillis(),numVectorClockEntries);
+  }
   this.messageEvent.getChannel().write(response);
   if (performanceStats != null && isFromLocalZone) {
     recordStats(performanceStats,startTimeInMs,Tracked.GET_ALL);

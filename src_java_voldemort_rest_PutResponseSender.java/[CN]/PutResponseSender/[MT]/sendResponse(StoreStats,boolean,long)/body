@@ -2,8 +2,13 @@
   HttpResponse response=new DefaultHttpResponse(HTTP_1_1,CREATED);
   response.setHeader(CONTENT_LENGTH,0);
   if (this.successfulPutVC != null) {
+    numVectorClockEntries+=successfulPutVC.getVersionMap().size();
     String serializedVC=RestUtils.getSerializedVectorClock(successfulPutVC);
     response.setHeader(RestMessageHeaders.X_VOLD_VECTOR_CLOCK,serializedVC);
+  }
+  if (logger.isDebugEnabled()) {
+    String keyStr=RestUtils.getKeyHexString(key);
+    debugLog("PUT",this.storeName,keyStr,startTimeInMs,System.currentTimeMillis(),numVectorClockEntries);
   }
   this.messageEvent.getChannel().write(response);
   if (performanceStats != null && isFromLocalZone) {
