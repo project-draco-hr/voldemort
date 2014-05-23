@@ -6,7 +6,7 @@
   List<Integer> nodeIds=null;
   Boolean allNodes=true;
   Boolean confirm=false;
-  args=AdminUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_QUOTA_RESERVE_MEMORY);
+  args=AdminToolUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_QUOTA_RESERVE_MEMORY);
   OptionSet options=parser.parse(args);
   if (options.has(AdminParserUtils.OPT_HELP)) {
     printHelp(System.out);
@@ -38,9 +38,13 @@
  else {
     System.out.println("  node = " + Joiner.on(", ").join(nodeIds));
   }
-  if (!AdminUtils.askConfirm(confirm,"reserve memory"))   return;
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
-  AdminUtils.checkServerInNormalState(adminClient,nodes);
-  doQuotaReserveMemory(adminClient,nodes,storeNames,memoryMBSize);
+  if (!AdminToolUtils.askConfirm(confirm,"reserve memory")) {
+    return;
+  }
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  if (allNodes) {
+    nodeIds=AdminToolUtils.getAllNodeIds(adminClient);
+  }
+  AdminToolUtils.assertServerInNormalState(adminClient,nodeIds);
+  adminClient.quotaMgmtOps.reserveMemory(nodeIds,storeNames,memoryMBSize);
 }

@@ -18,8 +18,10 @@
     nodeIds=(List<Integer>)options.valuesOf(AdminParserUtils.OPT_NODE);
     allNodes=false;
   }
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
-  AdminUtils.checkServerInNormalState(adminClient,nodes);
-  doStoreAdd(adminClient,nodes,storesFile);
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  if (allNodes) {
+    nodeIds=AdminToolUtils.getAllNodeIds(adminClient);
+  }
+  AdminToolUtils.assertServerInNormalState(adminClient,nodeIds);
+  doStoreAdd(adminClient,nodeIds,storesFile);
 }

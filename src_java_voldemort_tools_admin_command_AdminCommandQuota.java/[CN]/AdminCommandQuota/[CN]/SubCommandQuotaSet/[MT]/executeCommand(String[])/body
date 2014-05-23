@@ -4,7 +4,7 @@
   List<String> storeNames=null;
   String url=null;
   Boolean confirm=false;
-  args=AdminUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_QUOTA_SET);
+  args=AdminToolUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_QUOTA_SET);
   OptionSet options=parser.parse(args);
   if (options.has(AdminParserUtils.OPT_HELP)) {
     printHelp(System.out);
@@ -13,7 +13,7 @@
   AdminParserUtils.checkRequired(options,OPT_HEAD_QUOTA_SET);
   AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_STORE);
   AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
-  quota=AdminUtils.getValueList((List<String>)options.valuesOf(OPT_HEAD_QUOTA_SET),"=");
+  quota=AdminToolUtils.getValueList((List<String>)options.valuesOf(OPT_HEAD_QUOTA_SET),"=");
   if (quota.size() % 2 != 0) {
     throw new VoldemortException("Invalid quota type-value pair.");
   }
@@ -38,11 +38,11 @@
   System.out.println("Location:");
   System.out.println("  bootstrap url = " + url);
   System.out.println("  node = all nodes");
-  if (!AdminUtils.askConfirm(confirm,"set quota")) {
+  if (!AdminToolUtils.askConfirm(confirm,"set quota")) {
     return;
   }
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Map<String,String> quotaMap=AdminUtils.convertListToMap(quota);
-  AdminUtils.checkServerInNormalState(adminClient);
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  Map<String,String> quotaMap=AdminToolUtils.convertListToMap(quota);
+  AdminToolUtils.assertServerInNormalState(adminClient);
   doQuotaSet(adminClient,storeNames,quotaMap);
 }

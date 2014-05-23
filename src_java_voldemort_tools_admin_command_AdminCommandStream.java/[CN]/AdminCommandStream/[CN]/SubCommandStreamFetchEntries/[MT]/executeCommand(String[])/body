@@ -49,10 +49,16 @@
  else {
     format=AdminParserUtils.ARG_FORMAT_JSON;
   }
-  File directory=AdminUtils.createDir(dir);
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Node node=adminClient.getAdminClientCluster().getNodeById(nodeId);
-  if (!orphaned)   partIds=AdminUtils.getPartitions(adminClient,partIds,allParts);
-  storeNames=AdminUtils.getUserStoresOnNode(adminClient,node,storeNames,allStores);
-  doStreamFetchEntries(adminClient,node,storeNames,partIds,orphaned,directory,format);
+  File directory=AdminToolUtils.createDir(dir);
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  if (!orphaned && allParts) {
+    partIds=AdminToolUtils.getAllPartitions(adminClient);
+  }
+  if (allStores) {
+    storeNames=AdminToolUtils.getAllUserStoreNamesOnNode(adminClient,nodeId);
+  }
+ else {
+    AdminToolUtils.validateUserStoreNamesOnNode(adminClient,nodeId,storeNames);
+  }
+  doStreamFetchEntries(adminClient,nodeId,storeNames,partIds,orphaned,directory,format);
 }

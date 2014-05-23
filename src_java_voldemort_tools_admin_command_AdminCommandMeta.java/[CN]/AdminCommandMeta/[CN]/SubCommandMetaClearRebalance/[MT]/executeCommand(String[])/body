@@ -28,11 +28,13 @@
  else {
     System.out.println("  node = " + Joiner.on(", ").join(nodeIds));
   }
-  if (!AdminUtils.askConfirm(confirm,"remove metadata related to rebalancing")) {
+  if (!AdminToolUtils.askConfirm(confirm,"remove metadata related to rebalancing")) {
     return;
   }
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
-  AdminUtils.checkServerInNormalState(adminClient,nodes);
-  doMetaClearRebalance(adminClient,nodes);
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  if (allNodes) {
+    nodeIds=AdminToolUtils.getAllNodeIds(adminClient);
+  }
+  AdminToolUtils.assertServerInNormalState(adminClient,nodeIds);
+  doMetaClearRebalance(adminClient,nodeIds);
 }

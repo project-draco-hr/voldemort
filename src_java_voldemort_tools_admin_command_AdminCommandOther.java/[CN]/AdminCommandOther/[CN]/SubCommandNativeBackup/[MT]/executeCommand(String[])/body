@@ -54,10 +54,10 @@
  else {
     System.out.println("  do not verify backup checksum");
   }
-  if (!AdminUtils.askConfirm(confirm,"backup bdb data natively")) {
+  if (!AdminToolUtils.askConfirm(confirm,"backup bdb data natively")) {
     return;
   }
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  AdminUtils.checkServerInNormalState(adminClient,adminClient.getAdminClientCluster().getNodeById(nodeId));
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  AdminToolUtils.assertServerInNormalState(adminClient,nodeId);
   adminClient.storeMntOps.nativeBackup(nodeId,storeName,dir,timeout,verify,incremental);
 }

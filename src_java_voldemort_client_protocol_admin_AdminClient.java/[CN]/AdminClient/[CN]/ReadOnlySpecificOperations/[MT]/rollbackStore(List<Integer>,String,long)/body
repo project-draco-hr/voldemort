@@ -1,0 +1,10 @@
+{
+  VAdminProto.RollbackStoreRequest.Builder rollbackStoreRequest=VAdminProto.RollbackStoreRequest.newBuilder().setStoreName(storeName).setPushVersion(pushVersion);
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setRollbackStore(rollbackStoreRequest).setType(VAdminProto.AdminRequestType.ROLLBACK_STORE).build();
+  for (  Integer nodeId : nodeIds) {
+    VAdminProto.RollbackStoreResponse.Builder response=rpcOps.sendAndReceive(nodeId,adminRequest,VAdminProto.RollbackStoreResponse.newBuilder());
+    if (response.hasError()) {
+      helperOps.throwException(response.getError());
+    }
+  }
+}

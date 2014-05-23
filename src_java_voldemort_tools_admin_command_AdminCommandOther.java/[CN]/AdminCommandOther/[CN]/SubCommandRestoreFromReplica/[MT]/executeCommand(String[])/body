@@ -29,11 +29,11 @@
   System.out.println("  node = " + nodeId);
   System.out.println("Settings:");
   System.out.println("  parallelism is " + parallel);
-  if (!AdminUtils.askConfirm(confirm,"restore node from replica")) {
+  if (!AdminToolUtils.askConfirm(confirm,"restore node from replica")) {
     return;
   }
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  AdminUtils.checkServerInNormalState(adminClient,adminClient.getAdminClientCluster().getNodeById(nodeId));
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  AdminToolUtils.assertServerInNormalState(adminClient,nodeId);
   System.out.println("Starting restore");
   adminClient.restoreOps.restoreDataFromReplications(nodeId,parallel,zoneId);
   System.out.println("Finished restore");

@@ -37,11 +37,13 @@
  else {
     System.out.println("  node = " + Joiner.on(", ").join(nodeIds));
   }
-  if (!AdminUtils.askConfirm(confirm,"rollback read-only store")) {
+  if (!AdminToolUtils.askConfirm(confirm,"rollback read-only store")) {
     return;
   }
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
-  AdminUtils.checkServerInNormalState(adminClient,nodes);
-  doStoreRollbackReadOnly(adminClient,nodes,storeName,pushVersion);
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  if (allNodes) {
+    nodeIds=AdminToolUtils.getAllNodeIds(adminClient);
+  }
+  AdminToolUtils.assertServerInNormalState(adminClient,nodeIds);
+  adminClient.readonlyOps.rollbackStore(nodeIds,storeName,pushVersion);
 }

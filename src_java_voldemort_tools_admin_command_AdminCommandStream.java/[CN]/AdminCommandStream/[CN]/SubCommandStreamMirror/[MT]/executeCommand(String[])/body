@@ -42,14 +42,18 @@
   System.out.println("  source node = " + srcNodeId);
   System.out.println("  destination bootstrap url = " + destUrl);
   System.out.println("  destination node = " + destNodeId);
-  if (!AdminUtils.askConfirm(confirm,"mirror stores")) {
+  if (!AdminToolUtils.askConfirm(confirm,"mirror stores")) {
     return;
   }
-  AdminClient srcAdminClient=AdminUtils.getAdminClient(srcUrl);
-  AdminClient destAdminClient=AdminUtils.getAdminClient(destUrl);
-  Node srcNode=srcAdminClient.getAdminClientCluster().getNodeById(srcNodeId);
-  storeNames=AdminUtils.getUserStoresOnNode(srcAdminClient,srcNode,storeNames,allStores);
-  AdminUtils.checkServerInNormalState(srcAdminClient,srcAdminClient.getAdminClientCluster().getNodeById(srcNodeId));
-  AdminUtils.checkServerInNormalState(destAdminClient,destAdminClient.getAdminClientCluster().getNodeById(destNodeId));
+  AdminClient srcAdminClient=AdminToolUtils.getAdminClient(srcUrl);
+  AdminClient destAdminClient=AdminToolUtils.getAdminClient(destUrl);
+  if (allStores) {
+    storeNames=AdminToolUtils.getAllUserStoreNamesOnNode(srcAdminClient,srcNodeId);
+  }
+ else {
+    AdminToolUtils.validateUserStoreNamesOnNode(srcAdminClient,srcNodeId,storeNames);
+  }
+  AdminToolUtils.assertServerInNormalState(srcAdminClient,srcNodeId);
+  AdminToolUtils.assertServerInNormalState(destAdminClient,destNodeId);
   destAdminClient.restoreOps.mirrorData(destNodeId,srcNodeId,srcUrl,storeNames);
 }

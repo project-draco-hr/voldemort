@@ -4,7 +4,7 @@
   Integer nodeId=null;
   String url=null;
   Boolean confirm=false;
-  args=AdminUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_ASYNC_JOB_STOP);
+  args=AdminToolUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_ASYNC_JOB_STOP);
   OptionSet options=parser.parse(args);
   if (options.has(AdminParserUtils.OPT_HELP)) {
     printHelp(System.out);
@@ -28,11 +28,9 @@
   System.out.println("  node = " + nodeId);
   System.out.println("Jobs to stop:");
   System.out.println("  " + Joiner.on(", ").join(jobIds));
-  if (!AdminUtils.askConfirm(confirm,"stop async job")) {
+  if (!AdminToolUtils.askConfirm(confirm,"stop async job")) {
     return;
   }
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Node node=adminClient.getAdminClientCluster().getNodeById(nodeId);
-  AdminUtils.checkServerInNormalState(adminClient,node);
-  doAsyncJobStop(adminClient,node,jobIds);
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  doAsyncJobStop(adminClient,nodeId,jobIds);
 }

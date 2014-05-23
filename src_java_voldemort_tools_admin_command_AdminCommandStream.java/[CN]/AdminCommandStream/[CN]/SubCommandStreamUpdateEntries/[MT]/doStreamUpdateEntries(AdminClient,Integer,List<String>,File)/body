@@ -1,0 +1,16 @@
+{
+  if (storeNames == null) {
+    storeNames=Lists.newArrayList();
+    for (    File storeFile : inDir.listFiles()) {
+      String fileName=storeFile.getName();
+      if (fileName.endsWith(".entries")) {
+        int extPosition=fileName.lastIndexOf(".entries");
+        storeNames.add(fileName.substring(0,extPosition));
+      }
+    }
+  }
+  for (  String storeName : storeNames) {
+    Iterator<Pair<ByteArray,Versioned<byte[]>>> iterator=readEntriesBinary(inDir,storeName);
+    adminClient.streamingOps.updateEntries(nodeId,storeName,iterator,null);
+  }
+}

@@ -33,9 +33,13 @@
  else {
     System.out.println("  node = " + Joiner.on(", ").join(nodeIds));
   }
-  if (!AdminUtils.askConfirm(confirm,"cleanup vector clocks"))   return;
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
-  AdminUtils.checkServerInNormalState(adminClient,nodes);
-  doCleanupVectorClocks(adminClient,nodes,storeNames);
+  if (!AdminToolUtils.askConfirm(confirm,"cleanup vector clocks")) {
+    return;
+  }
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  if (allNodes) {
+    nodeIds=AdminToolUtils.getAllNodeIds(adminClient);
+  }
+  AdminToolUtils.assertServerInNormalState(adminClient,nodeIds);
+  doCleanupVectorClocks(adminClient,nodeIds,storeNames);
 }

@@ -1,0 +1,17 @@
+{
+  VectorClock updatedClusterVersion=null;
+  VectorClock updatedStoresVersion=null;
+  for (  Integer nodeId : nodeIds) {
+    if (updatedClusterVersion == null && updatedStoresVersion == null) {
+      updatedClusterVersion=(VectorClock)adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,MetadataStore.CLUSTER_KEY).getVersion();
+      updatedStoresVersion=(VectorClock)adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,MetadataStore.STORES_KEY).getVersion();
+    }
+ else {
+      updatedClusterVersion=updatedClusterVersion.merge((VectorClock)adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,MetadataStore.CLUSTER_KEY).getVersion());
+      updatedStoresVersion=updatedStoresVersion.merge((VectorClock)adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,MetadataStore.STORES_KEY).getVersion());
+    }
+    updatedClusterVersion=updatedClusterVersion.incremented(nodeIds.iterator().next(),System.currentTimeMillis());
+    updatedStoresVersion=updatedStoresVersion.incremented(nodeIds.iterator().next(),System.currentTimeMillis());
+  }
+  adminClient.metadataMgmtOps.updateRemoteMetadataPair(nodeIds,MetadataStore.CLUSTER_KEY,Versioned.value(clusterValue.toString(),updatedClusterVersion),MetadataStore.STORES_KEY,Versioned.value(storesValue.toString(),updatedStoresVersion));
+}

@@ -28,9 +28,13 @@
  else {
     System.out.println("  node = " + Joiner.on(", ").join(nodeIds));
   }
-  if (!AdminUtils.askConfirm(confirm,"cleanup orphaned data"))   return;
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
-  AdminUtils.checkServerInNormalState(adminClient,nodes);
-  doCleanupOrphanedData(adminClient,nodes);
+  if (!AdminToolUtils.askConfirm(confirm,"cleanup orphaned data")) {
+    return;
+  }
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  if (allNodes) {
+    nodeIds=AdminToolUtils.getAllNodeIds(adminClient);
+  }
+  AdminToolUtils.assertServerInNormalState(adminClient,nodeIds);
+  doCleanupOrphanedData(adminClient,nodeIds);
 }

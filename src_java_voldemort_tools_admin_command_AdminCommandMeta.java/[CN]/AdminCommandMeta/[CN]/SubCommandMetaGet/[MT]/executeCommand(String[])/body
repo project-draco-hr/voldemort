@@ -6,7 +6,7 @@
   List<Integer> nodeIds=null;
   Boolean allNodes=true;
   Boolean verbose=false;
-  args=AdminUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_META_GET);
+  args=AdminToolUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_META_GET);
   OptionSet options=parser.parse(args);
   if (options.has(AdminParserUtils.OPT_HELP)) {
     printHelp(System.out);
@@ -27,14 +27,16 @@
   if (options.has(OPT_VERBOSE)) {
     verbose=true;
   }
-  File directory=AdminUtils.createDir(dir);
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
+  File directory=AdminToolUtils.createDir(dir);
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  if (allNodes) {
+    nodeIds=AdminToolUtils.getAllNodeIds(adminClient);
+  }
   if (metaKeys.size() == 1 && metaKeys.get(0).equals(METAKEY_ALL)) {
     metaKeys=Lists.newArrayList();
     for (    Object key : MetadataStore.METADATA_KEYS) {
       metaKeys.add((String)key);
     }
   }
-  doMetaGet(adminClient,nodes,metaKeys,directory,verbose);
+  doMetaGet(adminClient,nodeIds,metaKeys,directory,verbose);
 }

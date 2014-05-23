@@ -1,0 +1,11 @@
+{
+  for (  String storeName : storeNames) {
+    for (    Integer nodeId : nodeIds) {
+      VAdminProto.ReserveMemoryRequest reserveRequest=VAdminProto.ReserveMemoryRequest.newBuilder().setStoreName(storeName).setSizeInMb(sizeInMB).build();
+      VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setReserveMemory(reserveRequest).setType(VAdminProto.AdminRequestType.RESERVE_MEMORY).build();
+      VAdminProto.ReserveMemoryResponse.Builder response=rpcOps.sendAndReceive(nodeId,adminRequest,VAdminProto.ReserveMemoryResponse.newBuilder());
+      if (response.hasError())       helperOps.throwException(response.getError());
+    }
+    logger.info("Finished reserving memory for store : " + storeName);
+  }
+}

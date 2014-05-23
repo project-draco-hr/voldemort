@@ -20,9 +20,8 @@
   System.out.println("Location:");
   System.out.println("  bootstrap url = " + url);
   System.out.println("  node = all nodes");
-  if (!AdminUtils.askConfirm(confirm,"synchronize metadata version"))   return;
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Node node=adminClient.getAdminClientCluster().getNodeById(nodeId);
-  AdminUtils.checkServerInNormalState(adminClient);
-  doMetaSyncVersion(adminClient,node);
+  if (!AdminToolUtils.askConfirm(confirm,"synchronize metadata version"))   return;
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  AdminToolUtils.assertServerInNormalState(adminClient);
+  doMetaSyncVersion(adminClient,nodeId);
 }

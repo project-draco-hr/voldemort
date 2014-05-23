@@ -5,7 +5,7 @@
   List<Integer> nodeIds=null;
   Boolean allNodes=true;
   Boolean confirm=false;
-  args=AdminUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_META_SET);
+  args=AdminToolUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_META_SET);
   OptionSet options=parser.parse(args);
   if (options.has(AdminParserUtils.OPT_HELP)) {
     printHelp(System.out);
@@ -14,7 +14,7 @@
   AdminParserUtils.checkRequired(options,OPT_HEAD_META_SET);
   AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
   AdminParserUtils.checkOptional(options,AdminParserUtils.OPT_NODE,AdminParserUtils.OPT_ALL_NODES);
-  meta=AdminUtils.getValueList((List<String>)options.valuesOf(OPT_HEAD_META_SET),"=");
+  meta=AdminToolUtils.getValueList((List<String>)options.valuesOf(OPT_HEAD_META_SET),"=");
   if (meta.size() != 2 && meta.size() != 4) {
     throw new VoldemortException("Invalid metakey-metafile pairs.");
   }
@@ -39,12 +39,14 @@
  else {
     System.out.println("  node = " + Joiner.on(", ").join(nodeIds));
   }
-  if (!AdminUtils.askConfirm(confirm,"set metadata")) {
+  if (!AdminToolUtils.askConfirm(confirm,"set metadata")) {
     return;
   }
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
-  AdminUtils.checkServerInNormalState(adminClient,nodes);
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  if (allNodes) {
+    nodeIds=AdminToolUtils.getAllNodeIds(adminClient);
+  }
+  AdminToolUtils.assertServerInNormalState(adminClient,nodeIds);
   if (meta.size() == 2) {
     String metaKey=meta.get(0), metaFile=meta.get(1);
     metaFile=metaFile.replace("~",System.getProperty("user.home"));
@@ -54,11 +56,11 @@
       }
       ClusterMapper mapper=new ClusterMapper();
       Cluster newCluster=mapper.readCluster(new File(metaFile));
-      doMetaSet(adminClient,nodes,metaKey,mapper.writeCluster(newCluster));
+      doMetaSet(adminClient,nodeIds,metaKey,mapper.writeCluster(newCluster));
     }
  else     if (metaKey.equals(MetadataStore.SERVER_STATE_KEY)) {
       VoldemortState newState=VoldemortState.valueOf(metaFile);
-      doMetaSet(adminClient,nodes,metaKey,newState.toString());
+      doMetaSet(adminClient,nodeIds,metaKey,newState.toString());
     }
  else     if (metaKey.equals(MetadataStore.STORES_KEY)) {
       if (!Utils.isReadableFile(metaFile)) {
@@ -67,14 +69,14 @@
       StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
       List<StoreDefinition> newStoreDefs=mapper.readStoreList(new File(metaFile));
       StoreDefinitionUtils.validateSchemasAsNeeded(newStoreDefs);
-      Integer nodeIdToGetStoreXMLFrom=nodes.iterator().next().getId();
+      Integer nodeIdToGetStoreXMLFrom=nodeIds.iterator().next();
       Versioned<String> storesXML=adminClient.metadataMgmtOps.getRemoteMetadata(nodeIdToGetStoreXMLFrom,MetadataStore.STORES_KEY);
       List<StoreDefinition> oldStoreDefs=mapper.readStoreList(new StringReader(storesXML.getValue()));
-      doMetaSet(adminClient,nodes,metaKey,mapper.writeStoreList(newStoreDefs));
+      doMetaSet(adminClient,nodeIds,metaKey,mapper.writeStoreList(newStoreDefs));
       if (!allNodes) {
         System.err.println("WARNING: Metadata version update of stores goes to all servers, " + "although this set-metadata oprations only goes to node: ");
-        for (        Node node : nodes) {
-          System.err.println(node.getId());
+        for (        Integer nodeId : nodeIds) {
+          System.err.println(nodeId);
         }
       }
       doMetaUpdateVersionsOnStores(adminClient,oldStoreDefs,newStoreDefs);
@@ -85,7 +87,7 @@
       }
       String rebalancingStealInfoJsonString=FileUtils.readFileToString(new File(metaFile));
       RebalancerState state=RebalancerState.create(rebalancingStealInfoJsonString);
-      doMetaSet(adminClient,nodes,metaKey,state.toJsonString());
+      doMetaSet(adminClient,nodeIds,metaKey,state.toJsonString());
     }
  else {
       throw new VoldemortException("Incorrect metadata key");
@@ -108,7 +110,7 @@
     storesFile=storesFile.replace("~",System.getProperty("user.home"));
     ClusterMapper clusterMapper=new ClusterMapper();
     StoreDefinitionsMapper storeDefsMapper=new StoreDefinitionsMapper();
-    Integer nodeIdToGetStoreXMLFrom=nodes.iterator().next().getId();
+    Integer nodeIdToGetStoreXMLFrom=nodeIds.iterator().next();
     Versioned<String> storesXML=adminClient.metadataMgmtOps.getRemoteMetadata(nodeIdToGetStoreXMLFrom,MetadataStore.STORES_KEY);
     List<StoreDefinition> oldStoreDefs=storeDefsMapper.readStoreList(new StringReader(storesXML.getValue()));
     if (!Utils.isReadableFile(clusterFile)) {
@@ -120,11 +122,11 @@
     }
     List<StoreDefinition> newStoreDefs=storeDefsMapper.readStoreList(new File(storesFile));
     StoreDefinitionUtils.validateSchemasAsNeeded(newStoreDefs);
-    doMetaSetPair(adminClient,nodes,clusterMapper.writeCluster(cluster),storeDefsMapper.writeStoreList(newStoreDefs));
+    doMetaSetPair(adminClient,nodeIds,clusterMapper.writeCluster(cluster),storeDefsMapper.writeStoreList(newStoreDefs));
     if (!allNodes) {
       System.err.println("WARNING: Metadata version update of stores goes to all servers, " + "although this set-metadata oprations only goes to node: ");
-      for (      Node node : nodes) {
-        System.err.println(node.getId());
+      for (      Integer nodeId : nodeIds) {
+        System.err.println(nodeId);
       }
     }
     doMetaUpdateVersionsOnStores(adminClient,oldStoreDefs,newStoreDefs);

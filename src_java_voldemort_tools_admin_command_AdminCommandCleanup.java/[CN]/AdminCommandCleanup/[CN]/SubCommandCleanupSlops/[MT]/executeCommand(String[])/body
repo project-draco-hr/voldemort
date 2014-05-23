@@ -37,15 +37,11 @@
  else {
     System.out.println("  node = " + Joiner.on(",").join(nodeIds));
   }
-  if (!AdminUtils.askConfirm(confirm,"cleanup slops"))   return;
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
+  if (!AdminToolUtils.askConfirm(confirm,"cleanup slops"))   return;
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
   if (allNodes) {
-    nodeIds=Lists.newArrayList();
-    for (    Node node : nodes) {
-      nodeIds.add(node.getId());
-    }
+    nodeIds=AdminToolUtils.getAllNodeIds(adminClient);
   }
-  AdminUtils.checkServerInNormalState(adminClient,nodes);
+  AdminToolUtils.assertServerInNormalState(adminClient,nodeIds);
   adminClient.storeMntOps.slopPurgeJob(nodeIds,zoneId,storeNames);
 }

@@ -43,12 +43,16 @@
   System.out.println("Location:");
   System.out.println("  bootstrap url = " + url);
   System.out.println("  node = " + nodeId);
-  if (!AdminUtils.askConfirm(confirm,"truncate partition")) {
+  if (!AdminToolUtils.askConfirm(confirm,"truncate partition")) {
     return;
   }
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Node node=adminClient.getAdminClientCluster().getNodeById(nodeId);
-  storeNames=AdminUtils.getUserStoresOnNode(adminClient,node,storeNames,allStores);
-  AdminUtils.checkServerInNormalState(adminClient,node);
-  doStoreTruncatePartition(adminClient,node,storeNames,partIds);
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  if (allStores) {
+    storeNames=AdminToolUtils.getAllUserStoreNamesOnNode(adminClient,nodeId);
+  }
+ else {
+    AdminToolUtils.validateUserStoreNamesOnNode(adminClient,nodeId,storeNames);
+  }
+  AdminToolUtils.assertServerInNormalState(adminClient,nodeId);
+  doStoreTruncatePartition(adminClient,nodeId,storeNames,partIds);
 }

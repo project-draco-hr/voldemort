@@ -4,7 +4,7 @@
   List<String> storeNames=null;
   String url=null;
   Boolean confirm=false;
-  args=AdminUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_QUOTA_UNSET);
+  args=AdminToolUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_QUOTA_UNSET);
   OptionSet options=parser.parse(args);
   if (options.has(AdminParserUtils.OPT_HELP)) {
     printHelp(System.out);
@@ -13,7 +13,7 @@
   AdminParserUtils.checkRequired(options,OPT_HEAD_QUOTA_UNSET);
   AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_STORE);
   AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
-  quotaTypes=AdminUtils.getQuotaTypes((List<String>)options.valuesOf(OPT_HEAD_QUOTA_UNSET));
+  quotaTypes=AdminToolUtils.getQuotaTypes((List<String>)options.valuesOf(OPT_HEAD_QUOTA_UNSET));
   storeNames=(List<String>)options.valuesOf(AdminParserUtils.OPT_STORE);
   url=(String)options.valueOf(AdminParserUtils.OPT_URL);
   if (options.has(AdminParserUtils.OPT_CONFIRM)) {
@@ -27,10 +27,10 @@
   System.out.println("Location:");
   System.out.println("  bootstrap url = " + url);
   System.out.println("  node = all nodes");
-  if (!AdminUtils.askConfirm(confirm,"unset quota")) {
+  if (!AdminToolUtils.askConfirm(confirm,"unset quota")) {
     return;
   }
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  AdminUtils.checkServerInNormalState(adminClient);
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  AdminToolUtils.assertServerInNormalState(adminClient);
   doQuotaUnset(adminClient,storeNames,quotaTypes);
 }

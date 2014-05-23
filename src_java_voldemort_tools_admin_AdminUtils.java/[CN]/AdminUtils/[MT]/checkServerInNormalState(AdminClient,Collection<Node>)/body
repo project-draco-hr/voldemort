@@ -1,9 +1,0 @@
-{
-  for (  Node node : nodes) {
-    Versioned<String> versioned=adminClient.metadataMgmtOps.getRemoteMetadata(node.getId(),MetadataStore.SERVER_STATE_KEY);
-    VoldemortState state=VoldemortState.valueOf(versioned.getValue());
-    if (!state.equals(VoldemortState.NORMAL_SERVER)) {
-      throw new VoldemortException("Cannot execute admin operation: " + node.getId() + " ("+ node.getHost()+ ") is not in normal state, but in "+ versioned.getValue());
-    }
-  }
-}

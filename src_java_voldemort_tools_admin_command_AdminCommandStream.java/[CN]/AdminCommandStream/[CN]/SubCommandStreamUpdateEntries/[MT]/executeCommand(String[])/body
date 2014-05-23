@@ -34,15 +34,14 @@
   System.out.println("Location:");
   System.out.println("  bootstrap url = " + url);
   System.out.println("  node = " + nodeId);
-  if (!AdminUtils.askConfirm(confirm,"update entries")) {
+  if (!AdminToolUtils.askConfirm(confirm,"update entries")) {
     return;
   }
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Node node=adminClient.getAdminClientCluster().getNodeById(nodeId);
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
   File inDir=new File(dir);
   if (!inDir.exists()) {
     throw new FileNotFoundException("Input directory " + dir + " doesn't exist");
   }
-  AdminUtils.checkServerInNormalState(adminClient,node);
-  doStreamUpdateEntries(adminClient,node,storeNames,inDir);
+  AdminToolUtils.assertServerInNormalState(adminClient,nodeId);
+  doStreamUpdateEntries(adminClient,nodeId,storeNames,inDir);
 }

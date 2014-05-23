@@ -29,7 +29,9 @@
     nodeIds=(List<Integer>)options.valuesOf(AdminParserUtils.OPT_NODE);
     allNodes=false;
   }
-  AdminClient adminClient=AdminUtils.getAdminClient(url);
-  Collection<Node> nodes=AdminUtils.getNodes(adminClient,nodeIds,allNodes);
-  doDebugQueryKeys(adminClient,nodes,storeNames,keyStrings,keyType);
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  if (allNodes) {
+    nodeIds=AdminToolUtils.getAllNodeIds(adminClient);
+  }
+  doDebugQueryKeys(adminClient,nodeIds,storeNames,keyStrings,keyType);
 }

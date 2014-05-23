@@ -1,0 +1,12 @@
+{
+  List<StoreDefinition> storeDefList=adminClient.metadataMgmtOps.getRemoteStoreDefList(nodeId).getValue();
+  List<String> storeNameList=Lists.newArrayList();
+  for (  StoreDefinition storeDef : storeDefList) {
+    storeNameList.add(storeDef.getName());
+  }
+  for (  String storeName : storeNames) {
+    if (!storeNameList.contains(storeName)) {
+      Utils.croak("Store " + storeName + " does not exist!");
+    }
+  }
+}
