@@ -1,19 +1,18 @@
 {
-  Node node=AdminClient.this.getAdminClientCluster().getNodeById(nodeId);
+  Node node=currentCluster.getNodeById(nodeId);
   SocketDestination destination=new SocketDestination(node.getHost(),node.getAdminPort(),RequestFormatType.ADMIN_PROTOCOL_BUFFERS);
-  SocketAndStreams sands=socketPool.checkout(destination);
+  SocketAndStreams sands=null;
   try {
-    DataOutputStream outputStream=sands.getOutputStream();
-    DataInputStream inputStream=sands.getInputStream();
-    ProtoUtils.writeMessage(outputStream,message);
-    outputStream.flush();
-    return ProtoUtils.readToBuilder(inputStream,builder);
+    sands=getSocketAndStreams(destination);
+    return innerSendAndReceive(sands,message,builder);
   }
  catch (  IOException e) {
     helperOps.close(sands.getSocket());
     throw new VoldemortException(e);
   }
  finally {
-    socketPool.checkin(destination,sands);
+    if (sands != null) {
+      socketPool.checkin(destination,sands);
+    }
   }
 }

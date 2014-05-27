@@ -1,0 +1,15 @@
+{
+  ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(MetadataStore.SERVER_STATE_KEY,"UTF-8"));
+  VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.GET_METADATA).setGetMetadata(VAdminProto.GetMetadataRequest.newBuilder().setKey(ByteString.copyFrom(keyBytes.get()))).build();
+  SocketAndStreams sands=socketPool.checkout(destination);
+  try {
+    rpcOps.innerSendAndReceive(sands,request,VAdminProto.GetMetadataResponse.newBuilder());
+  }
+ catch (  EOFException eofe) {
+    helperOps.close(sands.getSocket());
+    socketPool.checkin(destination,sands);
+    socketPool.close(destination);
+    sands=socketPool.checkout(destination);
+  }
+  return sands;
+}
