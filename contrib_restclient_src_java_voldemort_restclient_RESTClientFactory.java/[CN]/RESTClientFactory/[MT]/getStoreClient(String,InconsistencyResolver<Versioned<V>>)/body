@@ -1,4 +1,9 @@
 {
-  Store<K,V,Object> clientStore=getRawStore(storeName,resolver);
-  return new RESTClient<K,V>(storeName,clientStore);
+  return new LazyStoreClient<K,V>(new Callable<StoreClient<K,V>>(){
+    @Override public StoreClient<K,V> call() throws Exception {
+      Store<K,V,Object> clientStore=getRawStore(storeName,resolver);
+      return new RESTClient<K,V>(storeName,clientStore);
+    }
+  }
+,true);
 }

@@ -2,6 +2,19 @@
   for (  R2Store store : this.rawStoreList) {
     store.close();
   }
+  if (this.transportClient != null) {
+    final FutureCallback<None> clientShutdownCallback=new FutureCallback<None>();
+    this.transportClient.shutdown(clientShutdownCallback);
+    try {
+      clientShutdownCallback.get();
+    }
+ catch (    InterruptedException e) {
+      logger.error("Interrupted while shutting down the TransportClient: " + e.getMessage(),e);
+    }
+catch (    ExecutionException e) {
+      logger.error("Execution exception occurred while shutting down the TransportClient: " + e.getMessage(),e);
+    }
+  }
   final FutureCallback<None> factoryShutdownCallback=new FutureCallback<None>();
   this._clientFactory.shutdown(factoryShutdownCallback);
   try {
