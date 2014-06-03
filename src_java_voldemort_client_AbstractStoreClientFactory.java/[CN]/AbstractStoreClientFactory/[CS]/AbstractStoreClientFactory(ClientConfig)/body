@@ -1,4 +1,5 @@
 {
+  String str;
   this.config=config;
   this.threadPool=new ClientThreadPool(config.getMaxThreads(),config.getThreadIdleTime(TimeUnit.MILLISECONDS),config.getMaxQueuedRequests());
   this.serializerFactory=config.getSerializerFactory();
@@ -6,12 +7,22 @@
   this.isJmxEnabled=config.isJmxEnabled();
   this.requestFormatType=config.getRequestFormatType();
   this.jmxId=getNextJmxId();
+  str=config.getIdentifierString();
+  if (str == null) {
+    str=JmxUtils.getJmxId(jmxId);
+  }
+  if (str.equals("")) {
+    this.identifierString=str;
+  }
+ else {
+    this.identifierString="-" + str;
+  }
   this.maxBootstrapRetries=config.getMaxBootstrapRetries();
   this.aggregateStats=new StoreStats();
   this.storeClientFactoryStats=new StoreClientFactoryStats();
   this.clientContextName=config.getClientContextName();
   this.routedStoreConfig=new RoutedStoreConfig(config);
-  this.routedStoreConfig.setJmxId(this.jmxId);
+  this.routedStoreConfig.setIdentifierString(this.identifierString);
   this.routedStoreFactory=new RoutedStoreFactory();
   this.routedStoreFactory.setThreadPool(this.threadPool);
   this.clientSequencer=new AtomicInteger(0);
@@ -24,9 +35,9 @@
 ;
   this.storeClientCache=new ConcurrentHashMap<Pair<String,Object>,DefaultStoreClient<?,?>>();
   if (this.isJmxEnabled) {
-    JmxUtils.registerMbean(threadPool,JmxUtils.createObjectName(JmxUtils.getPackageName(threadPool.getClass()),JmxUtils.getClassName(threadPool.getClass()) + JmxUtils.getJmxId(jmxId)));
-    JmxUtils.registerMbean(new StoreStatsJmx(aggregateStats),JmxUtils.createObjectName("voldemort.store.stats.aggregate","aggregate-perf" + JmxUtils.getJmxId(jmxId)));
-    JmxUtils.registerMbean(new StoreClientFactoryStatsJmx(storeClientFactoryStats),JmxUtils.createObjectName("voldemort.store.client.factory.stats","bootstrap-stats" + JmxUtils.getJmxId(jmxId)));
+    JmxUtils.registerMbean(threadPool,JmxUtils.createObjectName(JmxUtils.getPackageName(threadPool.getClass()),JmxUtils.getClassName(threadPool.getClass()) + identifierString));
+    JmxUtils.registerMbean(new StoreStatsJmx(aggregateStats),JmxUtils.createObjectName("voldemort.store.stats.aggregate","aggregate-perf" + identifierString));
+    JmxUtils.registerMbean(new StoreClientFactoryStatsJmx(storeClientFactoryStats),JmxUtils.createObjectName("voldemort.store.client.factory.stats","bootstrap-stats" + identifierString));
   }
   this.isZenStoreResourcesInited=new AtomicBoolean(false);
   this.scheduler=null;

@@ -4,11 +4,11 @@
   }
   ClientSocketStats stats=statsMap.get(destination);
   if (stats == null) {
-    ClientSocketStats socketStats=new ClientSocketStats(this,destination,pool,jmxId);
+    ClientSocketStats socketStats=new ClientSocketStats(this,destination,pool,identifierString);
     stats=statsMap.putIfAbsent(destination,socketStats);
     if (stats == null) {
       stats=socketStats;
-      JmxUtils.registerMbean(new ClientSocketStatsJmx(stats),JmxUtils.createObjectName(JmxUtils.getPackageName(ClientRequestExecutor.class),"stats_" + destination.toString().replace(':','_') + JmxUtils.getJmxId(jmxId)));
+      JmxUtils.registerMbean(new ClientSocketStatsJmx(stats),JmxUtils.createObjectName(JmxUtils.getPackageName(ClientRequestExecutor.class),"stats_" + destination.toString().replace(':','_') + identifierString));
     }
   }
   return stats;

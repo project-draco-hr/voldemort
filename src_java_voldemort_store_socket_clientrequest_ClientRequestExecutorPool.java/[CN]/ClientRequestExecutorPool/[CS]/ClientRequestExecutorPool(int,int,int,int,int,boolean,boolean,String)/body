@@ -1,10 +1,10 @@
 {
   ResourcePoolConfig config=new ResourcePoolConfig().setIsFair(true).setMaxPoolSize(maxConnectionsPerNode).setMaxInvalidAttempts(maxConnectionsPerNode).setTimeout(connectionTimeoutMs,TimeUnit.MILLISECONDS);
   this.jmxEnabled=jmxEnabled;
-  this.jmxId=jmxId;
+  this.identifierString=identifierString;
   if (this.jmxEnabled) {
-    stats=new ClientSocketStats(jmxId);
-    JmxUtils.registerMbean(new ClientSocketStatsJmx(stats),JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),"aggregated" + JmxUtils.getJmxId(this.jmxId)));
+    stats=new ClientSocketStats(identifierString);
+    JmxUtils.registerMbean(new ClientSocketStatsJmx(stats),JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),"aggregated" + identifierString));
   }
  else {
     stats=null;
