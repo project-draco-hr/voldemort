@@ -17,7 +17,7 @@
   restClientConfig.setHttpBootstrapURL("http://localhost:" + cluster.getNodeById(0).getRestPort()).setTimeoutMs(10000,TimeUnit.MILLISECONDS).setMaxR2ConnectionPoolSize(100);
   clientFactory=new HttpClientFactory();
   Map<String,String> properties=new HashMap<String,String>();
-  properties.put(HttpClientFactory.POOL_SIZE_KEY,Integer.toString(restClientConfig.getMaxR2ConnectionPoolSize()));
+  properties.put(HttpClientFactory.HTTP_POOL_SIZE,Integer.toString(restClientConfig.getMaxR2ConnectionPoolSize()));
   TransportClient transportClient=clientFactory.getClient(properties);
   R2Store r2Store=new R2Store(STORE_NAME,restClientConfig.getHttpBootstrapURL(),"0",transportClient,restClientConfig,0);
   store=r2Store;
