@@ -54,7 +54,7 @@ synchronized (mbeanServer) {
       QuotaLimitStats quotaStats=new QuotaLimitStats(this.aggregatedQuotaStats);
       QuotaLimitingStore rateLimitingStore=new QuotaLimitingStore(store,currentStoreStats,quotaStats,quotaStore);
       if (voldemortConfig.isJmxEnabled()) {
-        JmxUtils.registerMbean(this.aggregatedQuotaStats,JmxUtils.createObjectName("voldemort.store.quota",store.getName() + "-quota-limit-stats"));
+        JmxUtils.registerMbean(quotaStats,JmxUtils.createObjectName("voldemort.store.quota",store.getName() + "-quota-limit-stats"));
       }
       store=rateLimitingStore;
     }
