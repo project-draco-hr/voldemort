@@ -1,4 +1,5 @@
 {
+  MimeMessage message=new MimeMessage(Session.getDefaultInstance(new Properties()));
   MimeMultipart multiPartKeys=new MimeMultipart();
   ByteArrayOutputStream keysOutputStream=new ByteArrayOutputStream();
   for (  Entry<ByteArray,List<Versioned<byte[]>>> entry : versionedResponses.entrySet()) {
@@ -47,6 +48,8 @@
       throw me;
     }
   }
+  message.setContent(multiPartKeys);
+  message.saveChanges();
   try {
     multiPartKeys.writeTo(keysOutputStream);
   }

@@ -1,4 +1,5 @@
 {
+  MimeMessage message=new MimeMessage(Session.getDefaultInstance(new Properties()));
   MimeMultipart multiPart=new MimeMultipart();
   ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
   String base64Key=RestUtils.encodeVoldemortKey(key.get());
@@ -23,6 +24,8 @@
       throw me;
     }
   }
+  message.setContent(multiPart);
+  message.saveChanges();
   try {
     multiPart.writeTo(outputStream);
   }
