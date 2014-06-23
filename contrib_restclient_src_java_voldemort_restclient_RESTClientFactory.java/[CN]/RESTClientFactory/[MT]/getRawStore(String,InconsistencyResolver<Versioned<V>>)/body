@@ -3,9 +3,14 @@
   R2Store r2store=null;
   this.d2Client=restClientFactoryConfig.getD2Client();
   if (this.d2Client == null) {
+    logger.info("Using transportclient since d2client is not available");
+    Map<String,String> properties=new HashMap<String,String>();
+    properties.put(HttpClientFactory.HTTP_POOL_SIZE,Integer.toString(this.config.getMaxR2ConnectionPoolSize()));
+    transportClient=_clientFactory.getClient(properties);
     r2store=new R2Store(storeName,this.config.getHttpBootstrapURL(),this.transportClient,this.config);
   }
  else {
+    logger.info("Using d2client");
     r2store=new R2Store(storeName,this.config.getHttpBootstrapURL(),this.d2Client,this.config);
   }
   this.rawStoreList.add(r2store);
