@@ -31,7 +31,10 @@
     assertEquals("The number of body parts expected is not 1",1,mp.getCount());
     MimeBodyPart part=(MimeBodyPart)mp.getBodyPart(0);
     VectorClock vc=RestUtils.deserializeVectorClock(part.getHeader(RestMessageHeaders.X_VOLD_VECTOR_CLOCK)[0]);
-    response=(String)part.getContent();
+    int contentLength=Integer.parseInt(part.getHeader(RestMessageHeaders.CONTENT_LENGTH)[0]);
+    byte[] bodyPartBytes=new byte[contentLength];
+    part.getInputStream().read(bodyPartBytes);
+    response=new String(bodyPartBytes);
     responseObj=new TestVersionedValue(response,vc);
   }
  catch (  Exception e) {
