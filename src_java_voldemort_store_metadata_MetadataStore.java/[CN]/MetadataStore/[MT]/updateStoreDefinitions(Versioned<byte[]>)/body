@@ -5,6 +5,7 @@
     Versioned<Object> valueObject=convertStringToObject(STORES_KEY,value);
     StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
     List<StoreDefinition> storeDefinitions=(List<StoreDefinition>)valueObject.getValue();
+    StoreDefinitionUtils.validateSchemasAsNeeded(storeDefinitions);
     for (    StoreDefinition storeDef : storeDefinitions) {
       if (!this.storeNames.contains(storeDef.getName())) {
         throw new VoldemortException("Cannot update a store which does not exist !");
