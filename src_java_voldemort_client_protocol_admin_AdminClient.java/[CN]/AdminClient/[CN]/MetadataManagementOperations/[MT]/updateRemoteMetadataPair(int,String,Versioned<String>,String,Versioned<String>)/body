@@ -1,6 +1,9 @@
 {
   ByteArray clusterKeyBytes=new ByteArray(ByteUtils.getBytes(clusterKey,"UTF-8"));
   Versioned<byte[]> clusterValueBytes=new Versioned<byte[]>(ByteUtils.getBytes(clusterValue.getValue(),"UTF-8"),clusterValue.getVersion());
+  StoreDefinitionsMapper storeDefsMapper=new StoreDefinitionsMapper();
+  List<StoreDefinition> storeDefs=storeDefsMapper.readStoreList(new StringReader(storesValue.getValue()));
+  StoreDefinitionUtils.validateSchemasAsNeeded(storeDefs);
   ByteArray storesKeyBytes=new ByteArray(ByteUtils.getBytes(storesKey,"UTF-8"));
   Versioned<byte[]> storesValueBytes=new Versioned<byte[]>(ByteUtils.getBytes(storesValue.getValue(),"UTF-8"),storesValue.getVersion());
   VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_METADATA_PAIR).setUpdateMetadataPair(VAdminProto.UpdateMetadataPairRequest.newBuilder().setClusterKey(ByteString.copyFrom(clusterKeyBytes.get())).setClusterValue(ProtoUtils.encodeVersioned(clusterValueBytes)).setStoresKey(ByteString.copyFrom(storesKeyBytes.get())).setStoresValue((ProtoUtils.encodeVersioned(storesValueBytes))).build()).build();

@@ -1,4 +1,9 @@
 {
+  if (key.equals(STORES_VERSION_KEY)) {
+    StoreDefinitionsMapper storeDefsMapper=new StoreDefinitionsMapper();
+    List<StoreDefinition> storeDefs=storeDefsMapper.readStoreList(new StringReader(value.getValue()));
+    StoreDefinitionUtils.validateSchemasAsNeeded(storeDefs);
+  }
   ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(key,"UTF-8"));
   Versioned<byte[]> valueBytes=new Versioned<byte[]>(ByteUtils.getBytes(value.getValue(),"UTF-8"),value.getVersion());
   VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_METADATA).setUpdateMetadata(VAdminProto.UpdateMetadataRequest.newBuilder().setKey(ByteString.copyFrom(keyBytes.get())).setVersioned(ProtoUtils.encodeVersioned(valueBytes)).build()).build();
