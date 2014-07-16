@@ -1,0 +1,37 @@
+{
+  Properties adminProperties=new Properties();
+  adminProperties.setProperty("max_connections","2");
+  adminClient=new AdminClient(cluster,new AdminClientConfig(adminProperties),new ClientConfig());
+  VectorClock clock=VectorClockUtils.makeClockWithCurrentTime(cluster.getNodeIds());
+  NodeValue<ByteArray,byte[]> putNodeValueForNode0=new NodeValue<ByteArray,byte[]>(0,new ByteArray(getKeyBytes(QuotaType.PUT_THROUGHPUT)),new Versioned<byte[]>(ByteUtils.getBytes("5",encodingType),clock));
+  try {
+    adminClient.storeOps.putNodeKeyValue(quotaStoreName,putNodeValueForNode0);
+  }
+ catch (  Exception e) {
+    throw new Exception("Exception when setting put quota for node 0. " + e.getMessage());
+  }
+  clock=VectorClockUtils.makeClockWithCurrentTime(cluster.getNodeIds());
+  NodeValue<ByteArray,byte[]> getNodeValueForNode0=new NodeValue<ByteArray,byte[]>(0,new ByteArray(getKeyBytes(QuotaType.GET_THROUGHPUT)),new Versioned<byte[]>(ByteUtils.getBytes("20",encodingType),clock));
+  try {
+    adminClient.storeOps.putNodeKeyValue(quotaStoreName,getNodeValueForNode0);
+  }
+ catch (  Exception e) {
+    throw new Exception("Exception when setting get quota for node 0. " + e.getMessage());
+  }
+  clock=VectorClockUtils.makeClockWithCurrentTime(cluster.getNodeIds());
+  NodeValue<ByteArray,byte[]> putNodeValueForNode1=new NodeValue<ByteArray,byte[]>(1,new ByteArray(getKeyBytes(QuotaType.PUT_THROUGHPUT)),new Versioned<byte[]>(ByteUtils.getBytes("2",encodingType),clock));
+  try {
+    adminClient.storeOps.putNodeKeyValue(quotaStoreName,putNodeValueForNode1);
+  }
+ catch (  Exception e) {
+    throw new Exception("Exception when setting put quota for node 1. " + e.getMessage());
+  }
+  clock=VectorClockUtils.makeClockWithCurrentTime(cluster.getNodeIds());
+  NodeValue<ByteArray,byte[]> getNodeValueForNode1=new NodeValue<ByteArray,byte[]>(1,new ByteArray(getKeyBytes(QuotaType.GET_THROUGHPUT)),new Versioned<byte[]>(ByteUtils.getBytes("20",encodingType),clock));
+  try {
+    adminClient.storeOps.putNodeKeyValue(quotaStoreName,getNodeValueForNode1);
+  }
+ catch (  Exception e) {
+    throw new Exception("Exception when setting get quota for node 1. " + e.getMessage());
+  }
+}

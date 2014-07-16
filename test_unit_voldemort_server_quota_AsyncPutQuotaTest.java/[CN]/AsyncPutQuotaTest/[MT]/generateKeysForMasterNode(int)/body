@@ -1,0 +1,19 @@
+{
+  HashMap<String,String> keyValuePairs=new HashMap<String,String>();
+  StoreDefinitionsMapper storedDefMapper=new StoreDefinitionsMapper();
+  List<StoreDefinition> storeDefs=storedDefMapper.readStoreList(new File(storesxml));
+  StoreDefinition testStoreDef=storeDefs.get(0);
+  BaseStoreRoutingPlan baseStoreRoutingPlan=new BaseStoreRoutingPlan(cluster,testStoreDef);
+  int key=0;
+  int partiionId=-1;
+  for (int count=0; count < numKeys; ) {
+    byte[] keyBytes=Integer.toString(key).getBytes();
+    partiionId=baseStoreRoutingPlan.getMasterPartitionId(keyBytes);
+    if (partitionToNodeMap.get(partiionId) == 0) {
+      keyValuePairs.put(String.valueOf(key),String.valueOf(key));
+      count++;
+    }
+    key++;
+  }
+  return keyValuePairs;
+}

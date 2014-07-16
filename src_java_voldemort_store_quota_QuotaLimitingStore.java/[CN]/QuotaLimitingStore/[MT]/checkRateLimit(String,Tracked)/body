@@ -10,7 +10,7 @@
     quotaStats.reportQuotaUsed(trackedOp,Utils.safeGetPercentage(currentRate,allowedRate));
     if (currentRate > allowedRate) {
       quotaStats.reportRateLimitedOp(trackedOp);
-      throw new VoldemortApplicationException("Exceeded rate limit for " + quotaKey + ". Maximum allowed : "+ allowedRate+ " Current: "+ currentRate);
+      throw new QuotaExceededException("Exceeded rate limit for " + quotaKey + ". Maximum allowed : "+ allowedRate+ " Current: "+ currentRate);
     }
   }
  catch (  NumberFormatException nfe) {

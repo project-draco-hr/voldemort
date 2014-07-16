@@ -25,7 +25,7 @@
           if (logger.isDebugEnabled()) {
             logger.debug("PUT {key:" + key + "} Master thread did not accept the response: will handle in worker thread");
           }
-          if (PipelineRoutedStore.isSlopableFailure(response.getValue())) {
+          if (PipelineRoutedStore.isSlopableFailure(response.getValue()) || response.getValue() instanceof QuotaExceededException) {
             if (logger.isDebugEnabled())             logger.debug("PUT {key:" + key + "} failed on node={id:"+ node.getId()+ ",host:"+ node.getHost()+ "}");
             if (isHintedHandoffEnabled()) {
               boolean triedDelegateSlop=pipelineData.getSynchronizer().tryDelegateSlop(node);
@@ -55,6 +55,9 @@
             if (response.getValue() instanceof InvalidMetadataException) {
               pipelineData.reportException((InvalidMetadataException)response.getValue());
               logger.warn("Received invalid metadata problem after a successful " + pipeline.getOperation().getSimpleName() + " call on node "+ node.getId()+ ", store '"+ pipelineData.getStoreName()+ "'");
+            }
+ else             if (response.getValue() instanceof QuotaExceededException) {
+              logger.warn("Received QuotaExceededException after a succesful " + pipeline.getOperation().getSimpleName() + " call on node "+ node.getId()+ ", store '"+ pipelineData.getStoreName()+ "', master-node '"+ masterNode.getId()+ "'");
             }
  else {
               handleResponseError(response,pipeline,failureDetector);

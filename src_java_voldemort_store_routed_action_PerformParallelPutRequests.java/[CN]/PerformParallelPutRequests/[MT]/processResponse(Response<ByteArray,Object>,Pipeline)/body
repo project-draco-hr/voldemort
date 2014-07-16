@@ -9,13 +9,18 @@
       if (logger.isDebugEnabled()) {
         logger.debug("PUT {key:" + key + "} handling async put error");
       }
-      if (handleResponseError(response,pipeline,failureDetector)) {
+      if (response.getValue() instanceof QuotaExceededException) {
+        if (logger.isDebugEnabled()) {
+          logger.debug("Received quota exceeded exception after a succesful " + pipeline.getOperation().getSimpleName() + " call on node "+ response.getNode().getId()+ ", store '"+ pipelineData.getStoreName()+ "', master-node '"+ pipelineData.getMaster().getId()+ "'");
+        }
+      }
+ else       if (handleResponseError(response,pipeline,failureDetector)) {
         if (logger.isDebugEnabled()) {
           logger.debug("PUT {key:" + key + "} severe async put error, exiting parallel put stage");
         }
         return;
       }
-      if (PipelineRoutedStore.isSlopableFailure(response.getValue())) {
+      if (PipelineRoutedStore.isSlopableFailure(response.getValue()) || response.getValue() instanceof QuotaExceededException) {
         pipelineData.getSynchronizer().tryDelegateSlop(response.getNode());
       }
       if (logger.isDebugEnabled()) {
