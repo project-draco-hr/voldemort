@@ -1,0 +1,19 @@
+{
+  StoreUtils.assertValidKey(key);
+  List<Versioned<byte[]>> value=null;
+  try {
+    byte[] result=this.rdb.get(key.get());
+    if (result != null) {
+      value=StoreBinaryFormat.fromByteArray(result);
+    }
+ else {
+      return Collections.emptyList();
+    }
+  }
+ catch (  RocksDBException rocksdbException) {
+    throw new PersistenceFailureException(rocksdbException);
+  }
+ finally {
+  }
+  return value;
+}
