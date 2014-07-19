@@ -6,7 +6,7 @@
     Options rdbOptions=new Options().setCreateIfMissing(true).createStatistics().setWriteBufferSize(8 * SizeUnit.KB).setMaxWriteBufferNumber(3).setDisableSeekCompaction(true).setBlockSize(64 * SizeUnit.KB).setMaxBackgroundCompactions(10).setFilter(new BloomFilter(10)).setCompressionType(CompressionType.SNAPPY_COMPRESSION);
     try {
       RocksDB rdbStore=RocksDB.open(rdbOptions,dataDir);
-      RocksDbStorageEngine rdbStorageEngine=new RocksDbStorageEngine(storeName,rdbStore);
+      RocksDbStorageEngine rdbStorageEngine=new RocksDbStorageEngine(storeName,rdbStore,lockStripes);
       stores.put(storeName,rdbStorageEngine);
     }
  catch (    Exception e) {

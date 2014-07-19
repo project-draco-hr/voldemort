@@ -1,0 +1,31 @@
+{
+  StoreUtils.assertValidKey(key);
+synchronized (this.locks.lockFor(key.get())) {
+    List<Versioned<byte[]>> currentValues=get(key,transforms);
+    if (currentValues.size() > 0) {
+      Iterator<Versioned<byte[]>> iter=currentValues.iterator();
+      while (iter.hasNext()) {
+        Versioned<byte[]> curr=iter.next();
+        Occurred occured=value.getVersion().compare(curr.getVersion());
+        if (occured == Occurred.BEFORE) {
+          throw new ObsoleteVersionException("Key " + new String(hexCodec.encode(key.get())) + " "+ value.getVersion().toString()+ " is obsolete, it is no greater than the current version of "+ curr.getVersion().toString()+ ".");
+        }
+ else         if (occured == Occurred.AFTER) {
+          iter.remove();
+        }
+      }
+    }
+ else {
+      currentValues=new ArrayList<Versioned<byte[]>>(1);
+    }
+    currentValues.add(value);
+    try {
+      getRocksDB().put(key.get(),StoreBinaryFormat.toByteArray(currentValues));
+    }
+ catch (    RocksDBException rocksdbException) {
+      throw new PersistenceFailureException(rocksdbException);
+    }
+ finally {
+    }
+  }
+}
