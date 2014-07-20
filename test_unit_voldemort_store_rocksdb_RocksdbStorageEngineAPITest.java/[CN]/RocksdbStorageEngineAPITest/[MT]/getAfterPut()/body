@@ -1,0 +1,29 @@
+{
+  byte[] keyBytes=new byte[100];
+  random.nextBytes(keyBytes);
+  ByteArray key=new ByteArray(keyBytes);
+  byte[] value=new byte[100];
+  random.nextBytes(value);
+  Versioned<byte[]> versionedValue=new Versioned<byte[]>(value);
+  try {
+    this.rocksDbStore.put(key,versionedValue,null);
+  }
+ catch (  PersistenceFailureException pfe) {
+    Assert.fail("initial put failed unexpectedly. Exception: " + pfe.getMessage());
+  }
+  List<Versioned<byte[]>> found=null;
+  try {
+    found=this.rocksDbStore.get(key,null);
+  }
+ catch (  PersistenceFailureException pfe) {
+    Assert.fail("read after write unexpectedly throws Exception - " + pfe.getMessage());
+  }
+  if (found != null && found.size() > 0) {
+    if (ByteUtils.compare(versionedValue.getValue(),found.get(0).getValue()) != 0) {
+      Assert.fail("The returned value and the expected value is not same");
+    }
+  }
+ else {
+    Assert.fail("Either returned value is null or empty");
+  }
+}
