@@ -1,7 +1,7 @@
 {
   ChannelPipeline pipeline=pipeline();
   pipeline.addLast("connectionStats",connectionStatsHandler);
-  pipeline.addLast("decoder",new HttpRequestDecoder());
+  pipeline.addLast("decoder",new HttpRequestDecoder(this.coordinatorConfig.getHttpMessageDecoderMaxInitialLength(),this.coordinatorConfig.getHttpMessageDecoderMaxHeaderSize(),this.coordinatorConfig.getHttpMessageDecoderMaxChunkSize()));
   pipeline.addLast("aggregator",new HttpChunkAggregator(1048576));
   pipeline.addLast("encoder",new HttpResponseEncoder());
   pipeline.addLast("deflater",new HttpContentCompressor());
