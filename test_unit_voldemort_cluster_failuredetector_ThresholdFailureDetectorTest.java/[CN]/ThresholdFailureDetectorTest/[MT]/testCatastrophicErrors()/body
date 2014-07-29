@@ -1,9 +1,26 @@
 {
   Node node=Iterables.get(cluster.getNodes(),8);
-  failureDetector.recordException(node,0,new UnreachableStoreException("intentionalerror",new UnknownHostException("intentionalerror")));
+  for (int i=0; i < 1000; i++) {
+    failureDetector.recordSuccess(node,1);
+  }
+  UnreachableStoreException normalError=new UnreachableStoreException("intentionalerror");
+  for (int i=0; i < 10; i++) {
+    failureDetector.recordException(node,0,normalError);
+  }
+  assertAvailable(node);
+  UnreachableStoreException catastrophicError=new UnreachableStoreException("intentionalerror",new UnknownHostException("intentionalerror"));
+  for (int i=0; i < 10; i++) {
+    failureDetector.recordException(node,0,catastrophicError);
+  }
   assertEquals(false,failureDetector.isAvailable(node));
   failureDetector.waitForAvailability(node);
-  failureDetector.recordException(node,0,new UnreachableStoreException("intentionalerror",new NoRouteToHostException("intentionalerror")));
+  for (int i=0; i < 10; i++) {
+    failureDetector.recordException(node,0,catastrophicError);
+  }
+  assertEquals(false,failureDetector.isAvailable(node));
+  failureDetector.recordSuccess(node,failureDetector.getConfig().getRequestLengthThreshold() + 1);
+  assertEquals(false,failureDetector.isAvailable(node));
+  failureDetector.recordException(node,0,normalError);
   assertEquals(false,failureDetector.isAvailable(node));
   failureDetector.waitForAvailability(node);
 }

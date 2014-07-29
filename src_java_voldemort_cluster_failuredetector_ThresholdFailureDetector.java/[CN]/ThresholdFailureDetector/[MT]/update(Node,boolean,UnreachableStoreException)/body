@@ -1,0 +1,58 @@
+{
+  if (logger.isTraceEnabled()) {
+    if (e != null)     logger.trace("Node " + node.getId() + " updated, isSuccess: "+ isSuccess,e);
+ else     logger.trace("Node " + node.getId() + " updated, isSuccess: "+ isSuccess);
+  }
+  final long currentTime=getConfig().getTime().getMilliseconds();
+  String catastrophicError=null;
+  if (!isSuccess) {
+    catastrophicError=getCatastrophicError(e);
+  }
+  NodeStatus nodeStatus=getNodeStatus(node);
+  boolean invokeSetAvailable=false;
+  boolean invokeSetUnavailable=false;
+synchronized (nodeStatus) {
+    if (currentTime >= nodeStatus.getStartMillis() + getConfig().getThresholdInterval()) {
+      nodeStatus.resetCounters(currentTime);
+    }
+    nodeStatus.recordOperation(isSuccess);
+    int numCatastrophicErrors;
+    if (catastrophicError != null) {
+      numCatastrophicErrors=nodeStatus.incrementConsecutiveCatastrophicErrors();
+      if (logger.isTraceEnabled()) {
+        logger.trace("Node " + node.getId() + " experienced catastrophic error: "+ catastrophicError+ " on node : "+ node+ " # accumulated errors = "+ numCatastrophicErrors);
+      }
+    }
+ else {
+      numCatastrophicErrors=nodeStatus.getNumConsecutiveCatastrophicErrors();
+      if (numCatastrophicErrors > 0 && isSuccess) {
+        numCatastrophicErrors=0;
+        nodeStatus.resetNumConsecutiveCatastrophicErrors();
+        if (logger.isTraceEnabled()) {
+          logger.trace("Resetting # consecutive connect errors for node : " + node);
+        }
+      }
+    }
+    if (numCatastrophicErrors > 0 && numCatastrophicErrors >= this.failureDetectorConfig.getMaximumTolerableFatalFailures()) {
+      invokeSetUnavailable=true;
+    }
+ else     if (nodeStatus.getFailure() >= getConfig().getThresholdCountMinimum()) {
+      long successPercentage=(nodeStatus.getSuccess() * 100) / nodeStatus.getTotal();
+      if (logger.isTraceEnabled()) {
+        logger.trace("Node " + node.getId() + " success percentage: "+ successPercentage+ "%");
+      }
+      if (successPercentage >= getConfig().getThreshold()) {
+        invokeSetAvailable=true;
+      }
+ else {
+        invokeSetUnavailable=true;
+      }
+    }
+  }
+  if (isSuccess && invokeSetAvailable) {
+    setAvailable(node);
+  }
+ else   if (invokeSetUnavailable) {
+    setUnavailable(node,e);
+  }
+}

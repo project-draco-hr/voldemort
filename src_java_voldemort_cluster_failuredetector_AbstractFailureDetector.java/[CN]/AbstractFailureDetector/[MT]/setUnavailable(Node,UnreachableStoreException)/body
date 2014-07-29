@@ -6,7 +6,10 @@
   }
   boolean previouslyAvailable=setAvailable(nodeStatus,false);
   if (previouslyAvailable) {
-    if (logger.isInfoEnabled())     logger.info("Node " + node.getId() + " now unavailable");
+    if (logger.isEnabledFor(Level.WARN)) {
+      long elapsedMs=System.currentTimeMillis() - nodeStatus.getStartMillis();
+      logger.warn("Node " + node.getId() + " now unavailable . Node metrics. "+ " Catastrophic errors "+ nodeStatus.getNumConsecutiveCatastrophicErrors()+ " Successes "+ nodeStatus.getSuccess()+ " Failure "+ nodeStatus.getFailure()+ " Total "+ nodeStatus.getTotal()+ " Threshold success percentage "+ failureDetectorConfig.getThreshold()+ " Threshold Minimum errors "+ failureDetectorConfig.getThresholdCountMinimum()+ " Threshold Interval "+ failureDetectorConfig.getThresholdInterval()+ " Interval elapsed ms "+ elapsedMs);
+    }
     for (    FailureDetectorListener fdl : listeners.keySet()) {
       try {
         fdl.nodeUnavailable(node);

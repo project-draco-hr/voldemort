@@ -1,10 +1,10 @@
 {
   checkArgs(node,requestTime);
-  int successDelta=1;
+  boolean isSuccess=true;
   UnreachableStoreException e=null;
   if (requestTime > getConfig().getRequestLengthThreshold()) {
     e=new UnreachableStoreException("Node " + node.getId() + " recording success, but request time ("+ requestTime+ ") exceeded threshold ("+ getConfig().getRequestLengthThreshold()+ ")");
-    successDelta=0;
+    isSuccess=false;
   }
-  update(node,successDelta,e);
+  update(node,isSuccess,e);
 }
