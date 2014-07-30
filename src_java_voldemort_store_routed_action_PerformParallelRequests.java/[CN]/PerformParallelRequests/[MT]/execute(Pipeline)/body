@@ -4,6 +4,7 @@
   final Map<Integer,Response<ByteArray,Object>> responses=new ConcurrentHashMap<Integer,Response<ByteArray,Object>>();
   final CountDownLatch latch=new CountDownLatch(attempts);
   if (logger.isTraceEnabled())   logger.trace("Attempting " + attempts + " "+ pipeline.getOperation().getSimpleName()+ " operations in parallel for key "+ key);
+  final AtomicBoolean isResponseProcessed=new AtomicBoolean(false);
   for (int i=0; i < attempts; i++) {
     final Node node=nodes.get(i);
     pipelineData.incrementNodeIndex();
@@ -15,7 +16,7 @@
         if (logger.isDebugEnabled())         logger.debug("Finished " + pipeline.getOperation().getSimpleName() + " for key "+ ByteUtils.toHexString(key.get())+ " (keyRef: "+ System.identityHashCode(key)+ "); started at "+ startMs+ " took "+ requestTime+ " ms on node "+ node.getId()+ "("+ node.getHost()+ ")");
         responses.put(node.getId(),response);
         latch.countDown();
-        if (pipeline.isFinished() && response.getValue() instanceof Exception) {
+        if (isResponseProcessed.get() && response.getValue() instanceof Exception) {
           if (response.getValue() instanceof InvalidMetadataException) {
             pipelineData.reportException((InvalidMetadataException)response.getValue());
             logger.warn("Received invalid metadata problem after a successful " + pipeline.getOperation().getSimpleName() + " call on node "+ node.getId()+ ", store '"+ pipelineData.getStoreName()+ "' for key "+ key);
@@ -51,6 +52,7 @@
       pipelineData.getZoneResponses().add(response.getNode().getZoneId());
     }
   }
+  isResponseProcessed.set(true);
   if (logger.isDebugEnabled())   logger.debug("GET for key " + ByteUtils.toHexString(key.get()) + " (keyRef: "+ System.identityHashCode(key)+ "); successes: "+ pipelineData.getSuccesses()+ " preferred: "+ preferred+ " required: "+ required);
   if (pipelineData.getSuccesses() < required) {
     if (insufficientSuccessesEvent != null) {

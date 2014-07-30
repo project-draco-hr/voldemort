@@ -4,6 +4,7 @@
   final CountDownLatch latch=new CountDownLatch(attempts);
   if (logger.isTraceEnabled())   logger.trace("Attempting " + attempts + " "+ pipeline.getOperation().getSimpleName()+ " operations in parallel");
   Map<ByteArray,byte[]> transforms=pipelineData.getTransforms();
+  final AtomicBoolean isResponseProcessed=new AtomicBoolean(false);
   for (  Map.Entry<Node,List<ByteArray>> entry : pipelineData.getNodeToKeysMap().entrySet()) {
     final Node node=entry.getKey();
     final Collection<ByteArray> keys=entry.getValue();
@@ -13,7 +14,7 @@
         Response<Iterable<ByteArray>,Object> response=new Response<Iterable<ByteArray>,Object>(node,keys,result,requestTime);
         responses.put(node.getId(),response);
         latch.countDown();
-        if (pipeline.isFinished() && response.getValue() instanceof Exception)         if (response.getValue() instanceof InvalidMetadataException) {
+        if (isResponseProcessed.get() && response.getValue() instanceof Exception)         if (response.getValue() instanceof InvalidMetadataException) {
           pipelineData.reportException((InvalidMetadataException)response.getValue());
           logger.warn("Received invalid metadata problem after a successful " + pipeline.getOperation().getSimpleName() + " call on node "+ node.getId()+ ", store '"+ pipelineData.getStoreName()+ "'");
         }
@@ -62,5 +63,6 @@
       failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
     }
   }
+  isResponseProcessed.set(true);
   pipeline.addEvent(completeEvent);
 }
