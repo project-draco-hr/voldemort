@@ -1,18 +1,16 @@
 {
   if (logger.isTraceEnabled())   logger.trace("Associating client with " + socketChannel.socket());
   this.clientRequest=clientRequest;
-  if (timeoutMs == -1) {
-    this.expiration=-1;
+  startTime=System.nanoTime();
+  if (elapsedNs > (Time.NS_PER_MS * timeoutMs)) {
+    this.expiration=startTime;
   }
  else {
-    long nowNs=System.nanoTime();
-    if (elapsedNs > (Time.NS_PER_MS * timeoutMs)) {
-      this.expiration=nowNs;
-    }
- else {
-      this.expiration=nowNs + (Time.NS_PER_MS * timeoutMs) - elapsedNs;
-    }
-    if (this.expiration < nowNs)     throw new IllegalArgumentException("timeout " + timeoutMs + " not valid");
+    this.expiration=startTime + (Time.NS_PER_MS * timeoutMs) - elapsedNs;
+  }
+  if (this.expiration < startTime) {
+    String errorMessage=String.format("Invalid timeout specified. startTime (%d) ns expiration (%d) ns timeout (%d) ms elapsed (%d) ns",startTime,expiration,timeoutMs,elapsedNs);
+    throw new IllegalArgumentException(errorMessage);
   }
   outputStream.getBuffer().clear();
   boolean wasSuccessful=clientRequest.formatRequest(new DataOutputStream(outputStream));

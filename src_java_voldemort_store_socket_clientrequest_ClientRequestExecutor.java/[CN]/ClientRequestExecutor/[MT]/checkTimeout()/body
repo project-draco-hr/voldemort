@@ -1,7 +1,12 @@
 {
   if (expiration <= 0)   return true;
-  if (System.nanoTime() <= expiration)   return true;
-  if (logger.isEnabledFor(Level.WARN))   logger.warn("Client request associated with " + socketChannel.socket() + " timed out");
+  long nowNs=System.nanoTime();
+  if (nowNs <= expiration)   return true;
+  if (logger.isEnabledFor(Level.WARN)) {
+    long allowedTime=expiration - startTime;
+    long elapsedTime=nowNs - startTime;
+    logger.warn("Client request associated with " + socketChannel.socket() + " timed out. Start time(ns) "+ startTime+ " allowed time(ns) "+ allowedTime+ " elapsed time(ns) "+ elapsedTime);
+  }
   isExpired=true;
   close();
   return false;
