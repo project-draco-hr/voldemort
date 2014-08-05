@@ -38,10 +38,10 @@ class TestThread implements Runnable {
   }
  catch (  Exception e) {
   }
-  assertEquals((int)(masterStats.getCheckoutTimeMsQ10th() * Time.US_PER_MS),1000);
-  assertEquals((int)(masterStats.getCheckoutTimeMsQ50th() * Time.US_PER_MS),5000);
-  assertEquals((int)(masterStats.getStatsMap().get(dest1).getCheckoutTimeMsQ10th() * Time.US_PER_MS),1000);
-  assertEquals((int)(masterStats.getStatsMap().get(dest1).getCheckoutTimeMsQ50th() * Time.US_PER_MS),5000);
-  assertEquals((int)(masterStats.getStatsMap().get(dest2).getCheckoutTimeMsQ10th() * Time.US_PER_MS),1000);
-  assertEquals((int)(masterStats.getStatsMap().get(dest2).getCheckoutTimeMsQ50th() * Time.US_PER_MS),5000);
+  assertEqualsWithErrorBound(1000,(int)(masterStats.getCheckoutTimeMsQ10th() * Time.US_PER_MS));
+  assertEqualsWithErrorBound(5000,(int)(masterStats.getCheckoutTimeMsQ50th() * Time.US_PER_MS));
+  assertEqualsWithErrorBound(1000,(int)(masterStats.getStatsMap().get(dest1).getCheckoutTimeMsQ10th() * Time.US_PER_MS));
+  assertEqualsWithErrorBound(5000,(int)(masterStats.getStatsMap().get(dest1).getCheckoutTimeMsQ50th() * Time.US_PER_MS));
+  assertEqualsWithErrorBound(1000,(int)(masterStats.getStatsMap().get(dest2).getCheckoutTimeMsQ10th() * Time.US_PER_MS));
+  assertEqualsWithErrorBound(5000,(int)(masterStats.getStatsMap().get(dest2).getCheckoutTimeMsQ50th() * Time.US_PER_MS));
 }

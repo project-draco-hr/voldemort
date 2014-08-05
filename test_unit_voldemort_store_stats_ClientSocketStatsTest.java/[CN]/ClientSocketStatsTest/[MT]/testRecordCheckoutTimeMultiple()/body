@@ -10,18 +10,19 @@
   stats.recordCheckoutTimeUs(dest1,700);
   stats.recordCheckoutTimeUs(dest1,800);
   stats.recordCheckoutTimeUs(dest2,900);
-  assertEquals(9,stats.getCheckoutCount());
-  assertEquals(900,(int)(stats.getCheckoutTimeMsQ99th() * Time.US_PER_MS));
+  stats.recordCheckoutTimeUs(dest1,1000);
+  assertEquals(10,stats.getCheckoutCount());
+  assertEqualsWithErrorBound(1000,(int)(stats.getCheckoutTimeMsQ99th() * Time.US_PER_MS));
   ClientSocketStats child1=stats.getStatsMap().get(dest1);
   assertNotNull(child1);
-  assertEquals(6,child1.getCheckoutCount());
-  assertEquals(100,(int)(child1.getCheckoutTimeMsQ10th() * Time.US_PER_MS));
-  assertEquals(300,(int)(child1.getCheckoutTimeMsQ50th() * Time.US_PER_MS));
-  assertEquals(800,(int)(child1.getCheckoutTimeMsQ99th() * Time.US_PER_MS));
+  assertEquals(7,child1.getCheckoutCount());
+  assertEqualsWithErrorBound(100,(int)(child1.getCheckoutTimeMsQ10th() * Time.US_PER_MS));
+  assertEqualsWithErrorBound(400,(int)(child1.getCheckoutTimeMsQ50th() * Time.US_PER_MS));
+  assertEqualsWithErrorBound(1000,(int)(child1.getCheckoutTimeMsQ99th() * Time.US_PER_MS));
   ClientSocketStats child2=stats.getStatsMap().get(dest2);
   assertNotNull(child2);
   assertEquals(3,child2.getCheckoutCount());
-  assertEquals(500,(int)(child2.getCheckoutTimeMsQ10th() * Time.US_PER_MS));
-  assertEquals(600,(int)(child2.getCheckoutTimeMsQ50th() * Time.US_PER_MS));
-  assertEquals(900,(int)(child2.getCheckoutTimeMsQ99th() * Time.US_PER_MS));
+  assertEqualsWithErrorBound(500,(int)(child2.getCheckoutTimeMsQ10th() * Time.US_PER_MS));
+  assertEqualsWithErrorBound(600,(int)(child2.getCheckoutTimeMsQ50th() * Time.US_PER_MS));
+  assertEqualsWithErrorBound(900,(int)(child2.getCheckoutTimeMsQ99th() * Time.US_PER_MS));
 }

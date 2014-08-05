@@ -3,9 +3,9 @@
   assertEquals(0,stats.resourceRequestCount());
   stats.recordResourceRequestTimeUs(dest1,100);
   assertEquals(1,stats.resourceRequestCount());
-  assertEquals(100,(int)(stats.getResourceRequestTimeMsQ99th() * Time.US_PER_MS));
+  assertEqualsWithErrorBound(100,(int)(stats.getResourceRequestTimeMsQ99th() * Time.US_PER_MS));
   ClientSocketStats child=stats.getStatsMap().get(dest1);
   assertNotNull(child);
   assertEquals(1,child.resourceRequestCount());
-  assertEquals(100,(int)(child.getResourceRequestTimeMsQ99th() * Time.US_PER_MS));
+  assertEqualsWithErrorBound(100,(int)(child.getResourceRequestTimeMsQ99th() * Time.US_PER_MS));
 }
