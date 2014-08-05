@@ -1,0 +1,23 @@
+{
+  if (storeName == null) {
+    throw new IllegalArgumentException("StoreStats.storeName cannot be null !!");
+  }
+  this.storeName=storeName;
+  counters=new EnumMap<Tracked,RequestCounter>(Tracked.class);
+  for (  Tracked tracked : Tracked.values()) {
+    String requestCounterName="store-stats" + "." + storeName + "."+ tracked.toString();
+    RequestCounter requestCounter;
+    if (parent == null) {
+      requestCounter=new RequestCounter(requestCounterName,timeWindow,useHistogram);
+    }
+ else {
+      requestCounterName=parent.storeName + "." + requestCounterName;
+      requestCounter=new RequestCounter(requestCounterName,timeWindow,useHistogram,parent.counters.get(tracked));
+    }
+    counters.put(tracked,requestCounter);
+  }
+  this.parent=parent;
+  if (logger.isDebugEnabled()) {
+    logger.debug("Constructed StoreStats object (" + System.identityHashCode(this) + ") with parent object ("+ System.identityHashCode(parent)+ ")");
+  }
+}

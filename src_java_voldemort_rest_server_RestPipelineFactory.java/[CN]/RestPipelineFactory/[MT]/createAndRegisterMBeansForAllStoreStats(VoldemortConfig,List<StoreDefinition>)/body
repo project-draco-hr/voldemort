@@ -3,7 +3,7 @@
   boolean isJmxEnabled=config.isJmxEnabled();
   for (  StoreDefinition storeDefinition : Utils.nonNull(storeDefinitions)) {
     String storeName=storeDefinition.getName();
-    storeStatsMap.put(storeName,new StoreStats(aggregatedStoreStats));
+    storeStatsMap.put(storeName,new StoreStats(storeName,aggregatedStoreStats));
     if (isJmxEnabled) {
       JmxUtils.registerMbean(new StoreStatsJmx(storeStatsMap.get(storeName)),JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()) + ".store.stats",storeName));
     }

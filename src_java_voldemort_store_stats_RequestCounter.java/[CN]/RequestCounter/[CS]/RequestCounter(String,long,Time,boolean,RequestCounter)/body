@@ -1,0 +1,61 @@
+{
+  this.time=time;
+  this.metricsRepository=new Metrics(time);
+  int amountOfParentSensors=0;
+  if (parents != null) {
+    amountOfParentSensors=parents.length;
+  }
+  Sensor[] timeParentSensors=null;
+  Sensor[] emptyResponseKeysParentSensors=null;
+  Sensor[] getAllKeysCountParentSensors=null;
+  Sensor[] valueBytesParentSensors=new Sensor[amountOfParentSensors + 1];
+  Sensor[] keyBytesParentSensors=new Sensor[amountOfParentSensors + 1];
+  if (parents != null && parents.length > 0) {
+    timeParentSensors=new Sensor[parents.length];
+    emptyResponseKeysParentSensors=new Sensor[parents.length];
+    getAllKeysCountParentSensors=new Sensor[parents.length];
+    for (int i=0; i < parents.length; i++) {
+      timeParentSensors[i]=parents[i].timeSensor;
+      emptyResponseKeysParentSensors[i]=parents[i].emptyResponseKeysSensor;
+      getAllKeysCountParentSensors[i]=parents[i].getAllKeysCountSensor;
+      valueBytesParentSensors[i]=parents[i].valueBytesSensor;
+      keyBytesParentSensors[i]=parents[i].keyBytesSensor;
+    }
+  }
+  MetricConfig metricConfig=new MetricConfig().timeWindow(durationMs,TimeUnit.MILLISECONDS);
+  String timeSensorName=name + ".time";
+  this.timeSensor=metricsRepository.sensor(timeSensorName,metricConfig,timeParentSensors);
+  if (useHistogram) {
+    Percentiles timePercentiles=new Percentiles(40000,10000,Percentiles.BucketSizing.LINEAR,new Percentile(timeSensorName + ".10thPercentile",0.10),new Percentile(timeSensorName + ".50thPercentile",0.50),new Percentile(timeSensorName + ".95thPercentile",0.95),new Percentile(timeSensorName + ".99thPercentile",0.99));
+    Map<String,Metric> percentiles=this.timeSensor.add(timePercentiles);
+    this.latency10thPercentile=percentiles.get(timeSensorName + ".10thPercentile");
+    this.latency50thPercentile=percentiles.get(timeSensorName + ".50thPercentile");
+    this.latency95thPercentile=percentiles.get(timeSensorName + ".95thPercentile");
+    this.latency99thPercentile=percentiles.get(timeSensorName + ".99thPercentile");
+  }
+  this.latencyMax=this.timeSensor.add(timeSensorName + ".max",new Max());
+  this.latencyAverage=this.timeSensor.add(timeSensorName + ".avg",new Avg());
+  this.requestSampledCount=this.timeSensor.add(name + ".sampled-count",new SampledCount());
+  this.requestAllTimeCount=this.timeSensor.add(name + ".count",new Count());
+  this.requestThroughput=this.timeSensor.add(name + ".throughput",new OccurrenceRate());
+  String emptyResponseKeysSensorName=name + ".empty-response-keys";
+  this.emptyResponseKeysSensor=metricsRepository.sensor(emptyResponseKeysSensorName,metricConfig,emptyResponseKeysParentSensors);
+  this.emptyResponseKeysSampledCount=this.emptyResponseKeysSensor.add(emptyResponseKeysSensorName + ".sampled-count",new SampledCount());
+  String keyAndValueBytesSensorName=name + ".key-and-value-bytes";
+  Sensor keyAndValueBytesSensor=metricsRepository.sensor(keyAndValueBytesSensorName,metricConfig);
+  this.requestThroughputInBytes=keyAndValueBytesSensor.add(keyAndValueBytesSensorName + ".bytes-throughput",new Rate());
+  valueBytesParentSensors[amountOfParentSensors]=keyAndValueBytesSensor;
+  keyBytesParentSensors[amountOfParentSensors]=keyAndValueBytesSensor;
+  String valueBytesSensorName=name + ".value-bytes";
+  this.valueBytesSensor=metricsRepository.sensor(valueBytesSensorName,metricConfig,valueBytesParentSensors);
+  this.valueBytesMax=this.valueBytesSensor.add(valueBytesSensorName + ".max",new Max());
+  this.valueBytesAverage=this.valueBytesSensor.add(valueBytesSensorName + ".avg",new Avg());
+  String keyBytesSensorName=name + ".key-bytes";
+  this.keyBytesSensor=metricsRepository.sensor(keyBytesSensorName,metricConfig,keyBytesParentSensors);
+  this.keyBytesMax=this.keyBytesSensor.add(keyBytesSensorName + ".max",new Max());
+  this.keyBytesAverage=this.keyBytesSensor.add(keyBytesSensorName + ".avg",new Avg());
+  String getAllKeysCountSensorName=name + ".get-all-keys-count";
+  this.getAllKeysCountSensor=metricsRepository.sensor(getAllKeysCountSensorName,metricConfig,getAllKeysCountParentSensors);
+  this.getAllKeysCountSampledTotal=this.getAllKeysCountSensor.add(getAllKeysCountSensorName + ".sampled-total",new SampledTotal());
+  this.getAllKeysCountMax=this.getAllKeysCountSensor.add(getAllKeysCountSensorName + ".max",new Max());
+}

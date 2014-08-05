@@ -15,7 +15,7 @@
       String storeName=store.getName();
       performanceStats=storeStatsMap.get(storeName);
       if (performanceStats == null) {
-        storeStatsMap.putIfAbsent(storeName,new StoreStats(aggregatedStoreStats));
+        storeStatsMap.putIfAbsent(storeName,new StoreStats(storeName,aggregatedStoreStats));
         performanceStats=storeStatsMap.get(storeName);
         if (isJmxEnabled) {
           JmxUtils.registerMbean(new StoreStatsJmx(performanceStats),JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()) + ".store.stats",storeName));

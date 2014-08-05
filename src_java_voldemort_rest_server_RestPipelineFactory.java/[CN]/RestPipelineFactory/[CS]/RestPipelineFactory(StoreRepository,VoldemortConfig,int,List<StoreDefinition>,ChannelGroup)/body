@@ -1,7 +1,7 @@
 {
   this.storeRepository=storeRepository;
   this.threadPoolExecutor=new ThreadPoolExecutor(config.getNumRestServiceStorageThreads(),config.getNumRestServiceStorageThreads(),0L,TimeUnit.MILLISECONDS,new LinkedBlockingQueue<Runnable>(config.getRestServiceStorageThreadPoolQueueSize()),threadFactory);
-  this.aggregatedStoreStats=new StoreStats();
+  this.aggregatedStoreStats=new StoreStats("aggregate.rest-pipeline-factory");
   createAndRegisterMBeansForAllStoreStats(config,storeDefinitions);
   storageExecutionHandler=new StorageExecutionHandler(threadPoolExecutor,storeStatsMap,aggregatedStoreStats,config.isJmxEnabled(),localZoneId);
   connectionStats=new NettyConnectionStats();

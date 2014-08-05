@@ -3,24 +3,12 @@
   if (logger.isTraceEnabled()) {
     startTimeNs=System.nanoTime();
   }
-  long timeHundredUs=timeNS / Time.NS_PER_US / 100;
-  long timeSecond=timeNS / Time.NS_PER_SECOND;
-  if (this.useHistogram) {
-    maybeResetHistogram();
-    histogramHundredUs.insert(timeHundredUs);
-    histogramSecond.insert(timeSecond);
-  }
-  for (int i=0; i < 3; i++) {
-    Accumulator oldv=getValidAccumulator();
-    Accumulator newv=new Accumulator(oldv.startTimeMS,oldv.count + 1,oldv.totalTimeNS + timeNS,oldv.total + 1,oldv.numEmptyResponses + numEmptyResponses,Math.max(timeNS,oldv.maxLatencyNS),oldv.totalValueBytes + valueBytes,Math.max(oldv.maxValueBytes,valueBytes),oldv.totalKeyBytes + keyBytes,Math.max(oldv.maxKeyBytes,keyBytes),oldv.getAllAggregatedCount + getAllAggregatedCount,getAllAggregatedCount > oldv.getAllMaxCount ? getAllAggregatedCount : oldv.getAllMaxCount);
-    if (values.compareAndSet(oldv,newv)) {
-      if (logger.isTraceEnabled()) {
-        logger.trace("addRequest (histogram.insert and accumulator update) took " + (System.nanoTime() - startTimeNs) + " ns.");
-      }
-      return;
-    }
-  }
-  logger.info("addRequest lost timing instrumentation data because three retries was insufficient to update the accumulator.");
+  long currentTime=time.getMilliseconds();
+  timeSensor.record((double)timeNS / Time.NS_PER_MS,currentTime);
+  emptyResponseKeysSensor.record(numEmptyResponses,currentTime);
+  valueBytesSensor.record(valueBytes,currentTime);
+  keyBytesSensor.record(keyBytes,currentTime);
+  getAllKeysCountSensor.record(getAllAggregatedCount,currentTime);
   if (logger.isTraceEnabled()) {
     logger.trace("addRequest (histogram.insert and accumulator update) took " + (System.nanoTime() - startTimeNs) + " ns.");
   }
