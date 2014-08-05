@@ -1,0 +1,18 @@
+{
+  StoreUtils.assertValidKey(key);
+  List<Versioned<byte[]>> valuesInStorage=null;
+  List<Versioned<byte[]>> obsoleteVals=null;
+synchronized (this.locks.lockFor(key.get())) {
+    valuesInStorage=get(key,null);
+    obsoleteVals=resolveAndConstructVersionsToPersist(valuesInStorage,values);
+    try {
+      getRocksDB().put(key.get(),StoreBinaryFormat.toByteArray(valuesInStorage));
+    }
+ catch (    RocksDBException rocksdbException) {
+      throw new PersistenceFailureException(rocksdbException);
+    }
+ finally {
+    }
+  }
+  return obsoleteVals;
+}
