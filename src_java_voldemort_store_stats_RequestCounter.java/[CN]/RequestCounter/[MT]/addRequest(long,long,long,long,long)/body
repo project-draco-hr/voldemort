@@ -3,13 +3,13 @@
   if (logger.isTraceEnabled()) {
     startTimeNs=System.nanoTime();
   }
-  long currentTime=time.getMilliseconds();
-  timeSensor.record((double)timeNS / Time.NS_PER_MS,currentTime);
+  long currentTime=time.milliseconds();
+  timeSensor.record((double)timeNS / voldemort.utils.Time.NS_PER_MS,currentTime);
   emptyResponseKeysSensor.record(numEmptyResponses,currentTime);
   valueBytesSensor.record(valueBytes,currentTime);
   keyBytesSensor.record(keyBytes,currentTime);
   getAllKeysCountSensor.record(getAllAggregatedCount,currentTime);
   if (logger.isTraceEnabled()) {
-    logger.trace("addRequest (histogram.insert and accumulator update) took " + (System.nanoTime() - startTimeNs) + " ns.");
+    logger.trace("addRequest took " + (System.nanoTime() - startTimeNs) + " ns.");
   }
 }
