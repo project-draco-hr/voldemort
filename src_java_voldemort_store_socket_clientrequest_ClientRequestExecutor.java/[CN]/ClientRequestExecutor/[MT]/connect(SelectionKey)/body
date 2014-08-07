@@ -1,0 +1,15 @@
+{
+  if (!checkTimeout())   return;
+  if (socketChannel.finishConnect() == false) {
+    return;
+  }
+  if (logger.isDebugEnabled()) {
+    if (socketChannel.socket().getReceiveBufferSize() != this.socketBufferSize) {
+      logger.debug("Requested socket receive buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getReceiveBufferSize()+ " bytes.");
+    }
+    if (socketChannel.socket().getSendBufferSize() != this.socketBufferSize) {
+      logger.debug("Requested socket send buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getSendBufferSize()+ " bytes.");
+    }
+  }
+  addClientRequest(clientRequest,timeoutMs,0);
+}

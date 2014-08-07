@@ -5,26 +5,39 @@
   }
   Pool<V> resourcePool=getResourcePoolForKey(key);
   V resource=null;
+  Exception ex=null;
   try {
     resource=attemptNonBlockingCheckout(key,resourcePool);
   }
  catch (  Exception e) {
     destroyResource(key,resourcePool,resource);
+    ex=e;
     resource=null;
   }
-  if (resource == null) {
+  if (resource == null && ex == null) {
     return false;
   }
   AsyncResourceRequest<V> resourceRequest=getNextUnexpiredResourceRequest(requestQueue);
   if (resourceRequest == null) {
-    try {
-      super.checkin(key,resource);
+    if (resource != null) {
+      try {
+        super.checkin(key,resource);
+      }
+ catch (      Exception e) {
+        logger.error("Exception checking in resource: ",e);
+      }
     }
- catch (    Exception e) {
-      logger.error("Exception checking in resource: ",e);
+ else {
     }
     return false;
   }
-  resourceRequest.useResource(resource);
-  return true;
+ else {
+    if (resource != null) {
+      resourceRequest.useResource(resource);
+    }
+ else {
+      resourceRequest.handleException(ex);
+    }
+    return true;
+  }
 }

@@ -1,0 +1,14 @@
+{
+  this.timeoutMs=timeoutMs;
+  startTime=System.nanoTime();
+  if (elapsedNs > (Time.NS_PER_MS * timeoutMs)) {
+    this.expiration=startTime;
+  }
+ else {
+    this.expiration=startTime + (Time.NS_PER_MS * timeoutMs) - elapsedNs;
+  }
+  if (this.expiration < startTime) {
+    String errorMessage=String.format("Invalid timeout specified. startTime (%d) ns expiration (%d) ns timeout (%d) ms elapsed (%d) ns",startTime,expiration,timeoutMs,elapsedNs);
+    throw new IllegalArgumentException(errorMessage);
+  }
+}

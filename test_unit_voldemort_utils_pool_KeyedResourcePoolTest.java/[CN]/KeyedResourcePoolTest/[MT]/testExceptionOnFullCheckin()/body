@@ -10,10 +10,8 @@
     this.pool.checkin("a",resources.poll());
   }
   assertEquals(POOL_SIZE,this.pool.getTotalResourceCount());
-  TestResource extraResource=this.factory.create("a");
   try {
-    this.pool.checkin("a",extraResource);
-    fail("Checking in an extra resource should throw an exception.");
+    this.factory.createAsync("a",this.pool);
   }
  catch (  IllegalStateException ise) {
   }

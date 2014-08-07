@@ -1,0 +1,53 @@
+{
+  int numCreated=created.incrementAndGet();
+  if (logger.isDebugEnabled())   logger.debug("Creating socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " using protocol "+ dest.getRequestFormatType().getCode());
+  SocketChannel socketChannel=null;
+  ClientRequestExecutor clientRequestExecutor=null;
+  long durationMs=0;
+  try {
+    socketChannel=SocketChannel.open();
+    socketChannel.socket().setReceiveBufferSize(this.socketBufferSize);
+    socketChannel.socket().setSendBufferSize(this.socketBufferSize);
+    socketChannel.socket().setTcpNoDelay(true);
+    socketChannel.socket().setSoTimeout(soTimeoutMs);
+    socketChannel.socket().setKeepAlive(this.socketKeepAlive);
+    socketChannel.configureBlocking(false);
+    socketChannel.connect(new InetSocketAddress(dest.getHost(),dest.getPort()));
+    if (logger.isDebugEnabled()) {
+      logger.debug("Created socket " + numCreated + " for "+ dest.getHost()+ ":"+ dest.getPort()+ " using protocol "+ dest.getRequestFormatType().getCode()+ " after "+ durationMs+ " ms.");
+    }
+    ClientRequestSelectorManager selectorManager=selectorManagers[counter.getAndIncrement() % selectorManagers.length];
+    Selector selector=selectorManager.getSelector();
+    clientRequestExecutor=new ClientRequestExecutor(selector,socketChannel,socketBufferSize);
+    int timeoutMs=this.getTimeout();
+    ProtocolNegotiatorClientRequest protocolRequest=new ProtocolNegotiatorClientRequest(dest.getRequestFormatType());
+    NonblockingStoreCallback callback=new NonblockingStoreCallback(){
+      @Override public void requestComplete(      Object result,      long requestTime){
+        if (result instanceof Exception) {
+          logger.info("Reporting exception to pool " + result.getClass());
+          pool.reportException(dest,(Exception)result);
+        }
+      }
+    }
+;
+    NonblockingStoreCallbackClientRequest<String> clientRequest=new NonblockingStoreCallbackClientRequest<String>(pool,dest,protocolRequest,clientRequestExecutor,callback,stats);
+    clientRequestExecutor.setConnectRequest(clientRequest,timeoutMs);
+    selectorManager.add(clientRequestExecutor);
+    selector.wakeup();
+  }
+ catch (  Exception e) {
+    if (socketChannel != null) {
+      try {
+        socketChannel.close();
+      }
+ catch (      Exception ex) {
+        if (logger.isEnabledFor(Level.WARN))         logger.warn(ex,ex);
+      }
+    }
+    throw e;
+  }
+  if (stats != null) {
+    stats.incrementCount(dest,ClientSocketStats.Tracked.CONNECTION_CREATED_EVENT);
+    stats.recordConnectionEstablishmentTimeUs(dest,durationMs * Time.US_PER_MS);
+  }
+}

@@ -1,4 +1,5 @@
 {
+  throwReportedExceptions();
   V v;
   try {
     blockingGets.incrementAndGet();
@@ -6,6 +7,9 @@
   }
   finally {
     blockingGets.decrementAndGet();
+  }
+  if (v == null) {
+    throwReportedExceptions();
   }
   return v;
 }

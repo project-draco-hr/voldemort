@@ -1,23 +1,34 @@
 {
   checkNotClosed();
   long startNs=System.nanoTime();
+  long timeoutNs=resourcePoolConfig.getTimeout(TimeUnit.NANOSECONDS);
+  long endNs=startNs + timeoutNs;
   Pool<V> resourcePool=getResourcePoolForKey(key);
   V resource=null;
   try {
     checkNotClosed();
-    resource=attemptNonBlockingCheckout(key,resourcePool);
+    long totalNonBlockingElapsedNs=0;
+    long iterStartTime=0;
+    long totalBlockingElapsedNs=0;
+    final long MAX_WAIT_TIME=300 * Time.NS_PER_MS;
+    while (resource == null && (iterStartTime=System.nanoTime()) < endNs) {
+      resource=attemptNonBlockingCheckout(key,resourcePool);
+      if (resource != null)       break;
+      long nonBlockingFinishTime=System.nanoTime();
+      totalNonBlockingElapsedNs+=(nonBlockingFinishTime - iterStartTime);
+      long timeRemainingNs=endNs - nonBlockingFinishTime;
+      long waitNs=timeRemainingNs;
+      if (resourcePool.size.get() < resourcePool.maxPoolSize) {
+        waitNs=Math.min(timeRemainingNs,MAX_WAIT_TIME);
+      }
+      if (waitNs > 0) {
+        resource=resourcePool.blockingGet(waitNs);
+        totalBlockingElapsedNs+=(System.nanoTime() - nonBlockingFinishTime);
+      }
+    }
     if (resource == null) {
-      long nonBlockingElapsedNs=System.nanoTime() - startNs;
-      long timeRemainingNs=resourcePoolConfig.getTimeout(TimeUnit.NANOSECONDS) - nonBlockingElapsedNs;
-      if (timeRemainingNs > 0) {
-        resource=resourcePool.blockingGet(timeRemainingNs);
-      }
-      if (resource == null) {
-        long totalElapsedNs=System.nanoTime() - startNs;
-        long blockingElapsedNs=totalElapsedNs - nonBlockingElapsedNs;
-        String errorMessage=String.format("Timeout while checking out resource (%s). Configured time (%d) ns NonBlocking time (%d) ns Blocking time (%d) ns ",key,resourcePoolConfig.getTimeout(TimeUnit.NANOSECONDS),nonBlockingElapsedNs,blockingElapsedNs);
-        throw new TimeoutException(errorMessage);
-      }
+      String errorMessage=String.format("Timeout while checking out resource (%s). Configured time (%d) ns NonBlocking time (%d) ns Blocking time (%d) ns ",key,timeoutNs,totalNonBlockingElapsedNs,totalBlockingElapsedNs);
+      throw new TimeoutException(errorMessage);
     }
     if (!objectFactory.validate(key,resource))     throw new ExcessiveInvalidResourcesException(1);
   }

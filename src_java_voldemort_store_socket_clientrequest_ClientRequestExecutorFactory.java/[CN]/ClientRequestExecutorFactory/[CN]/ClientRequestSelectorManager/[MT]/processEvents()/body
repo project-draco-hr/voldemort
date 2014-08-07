@@ -9,12 +9,17 @@
       SocketChannel socketChannel=clientRequestExecutor.getSocketChannel();
       try {
         if (logger.isDebugEnabled())         logger.debug("Registering connection from " + socketChannel.socket());
-        socketChannel.register(selector,SelectionKey.OP_WRITE,clientRequestExecutor);
+        socketChannel.register(selector,SelectionKey.OP_CONNECT,clientRequestExecutor);
       }
  catch (      ClosedSelectorException e) {
         if (logger.isDebugEnabled())         logger.debug("Selector is closed, exiting");
         close();
         break;
+      }
+catch (      ClosedChannelException ex) {
+        if (logger.isEnabledFor(Level.ERROR)) {
+          logger.error("ClosedChannelException " + socketChannel.socket(),ex);
+        }
       }
 catch (      Exception e) {
         if (logger.isEnabledFor(Level.ERROR))         logger.error(e.getMessage(),e);

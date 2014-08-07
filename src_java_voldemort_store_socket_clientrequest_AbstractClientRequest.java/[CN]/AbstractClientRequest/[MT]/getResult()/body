@@ -1,6 +1,8 @@
 {
-  if (error instanceof IOException)   throw (IOException)error;
- else   if (error instanceof VoldemortException)   throw (VoldemortException)error;
+  if (error != null) {
+    if (error instanceof IOException)     throw new UnreachableStoreException("Error while executing client operation",error);
+ else     if (error instanceof VoldemortException)     throw (VoldemortException)error;
+  }
   if (isTimedOut)   throw new StoreTimeoutException("Request timed out");
   if (!isComplete)   throw new IllegalStateException("Client response not complete, cannot determine result");
   if (!isParsed)   throw new UnreachableStoreException("Client response not read/parsed, cannot determine result");

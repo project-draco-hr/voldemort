@@ -3,7 +3,8 @@
   if (wasOpen) {
     for (    Entry<K,Pool<V>> entry : resourcePoolMap.entrySet()) {
       Pool<V> pool=entry.getValue();
-      for (V value=pool.nonBlockingGet(); value != null; value=pool.nonBlockingGet())       destroyResource(entry.getKey(),entry.getValue(),value);
+      List<V> values=pool.close();
+      for (      V value : values)       destroyResource(entry.getKey(),entry.getValue(),value);
       resourcePoolMap.remove(entry.getKey());
     }
   }

@@ -1,0 +1,19 @@
+{
+  if (pool.size.get() >= pool.maxPoolSize) {
+    return false;
+  }
+  if (pool.size.incrementAndGet() <= pool.maxPoolSize) {
+    try {
+      objectFactory.createAsync(key,this);
+    }
+ catch (    Exception e) {
+      pool.size.decrementAndGet();
+      throw e;
+    }
+  }
+ else {
+    pool.size.decrementAndGet();
+    return false;
+  }
+  return true;
+}

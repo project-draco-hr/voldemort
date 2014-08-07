@@ -1,9 +1,16 @@
 {
-  V resource=pool.nonBlockingGet();
+  V resource=null;
+  if (connectionsInProgress.get() == 0) {
+    resource=pool.nonBlockingGet();
+  }
   if (resource == null) {
-    while (pool.attemptGrow(key,this.objectFactory)) {
+    connectionsInProgress.incrementAndGet();
+    try {
+      attemptGrow(key,this.objectFactory,pool);
       resource=pool.nonBlockingGet();
-      if (resource != null)       break;
+    }
+  finally {
+      connectionsInProgress.decrementAndGet();
     }
   }
   return resource;

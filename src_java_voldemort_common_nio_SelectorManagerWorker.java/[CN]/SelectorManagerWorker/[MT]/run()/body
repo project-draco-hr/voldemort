@@ -1,21 +1,25 @@
 {
   try {
     SelectionKey selectionKey=socketChannel.keyFor(selector);
-    if (selectionKey.isReadable())     read(selectionKey);
+    if (selectionKey.isConnectable())     connect(selectionKey);
+ else     if (selectionKey.isReadable())     read(selectionKey);
  else     if (selectionKey.isWritable())     write(selectionKey);
  else     if (!selectionKey.isValid())     throw new IllegalStateException("Selection key not valid for " + socketChannel.socket());
  else     throw new IllegalStateException("Unknown state, not readable, writable, or valid for " + socketChannel.socket());
   }
  catch (  ClosedByInterruptException e) {
+    reportException(e);
     close();
   }
 catch (  CancelledKeyException e) {
     close();
   }
 catch (  EOFException e) {
+    reportException(e);
     close();
   }
 catch (  IOException e) {
+    reportException(e);
     logger.info("Connection reset from " + socketChannel.socket() + " with message - "+ e.getMessage());
     close();
   }
