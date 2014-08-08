@@ -5,13 +5,15 @@
     validateIfAvroSchema(keySerDef);
   }
  catch (  Exception e) {
-    throw new VoldemortException("Error validating key schema, " + e.getMessage(),e);
+    logger.error("Validating key schema failed for store:  " + storeDefinition.getName());
+    throw new VoldemortException("Error validating key schema for store:  " + storeDefinition.getName() + " "+ e.getMessage(),e);
   }
   SerializerDefinition valueSerDef=storeDefinition.getValueSerializer();
   try {
     validateIfAvroSchema(valueSerDef);
   }
  catch (  Exception e) {
-    throw new VoldemortException("Error validating value schema, " + e.getMessage(),e);
+    logger.error("Validating value schema failed for store:  " + storeDefinition.getName());
+    throw new VoldemortException("Error validating value schema for store:  " + storeDefinition.getName() + " "+ e.getMessage(),e);
   }
 }
