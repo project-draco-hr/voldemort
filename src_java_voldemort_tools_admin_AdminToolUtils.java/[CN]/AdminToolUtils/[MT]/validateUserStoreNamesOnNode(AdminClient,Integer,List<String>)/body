@@ -1,11 +1,11 @@
 {
   List<StoreDefinition> storeDefList=adminClient.metadataMgmtOps.getRemoteStoreDefList(nodeId).getValue();
-  List<String> storeNameList=Lists.newArrayList();
+  Map<String,Boolean> existingStoreNames=new HashMap<String,Boolean>();
   for (  StoreDefinition storeDef : storeDefList) {
-    storeNameList.add(storeDef.getName());
+    existingStoreNames.put(storeDef.getName(),true);
   }
   for (  String storeName : storeNames) {
-    if (!storeNameList.contains(storeName)) {
+    if (!Boolean.TRUE.equals(existingStoreNames.get(storeName))) {
       Utils.croak("Store " + storeName + " does not exist!");
     }
   }
