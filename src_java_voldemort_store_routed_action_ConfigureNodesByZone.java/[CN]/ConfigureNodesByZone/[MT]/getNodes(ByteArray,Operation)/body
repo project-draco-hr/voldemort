@@ -8,26 +8,10 @@
     return null;
   }
   if (logger.isDebugEnabled())   logger.debug("Adding " + nodes.size() + " node(s) to preference list");
-  if (pipelineData.getZonesRequired() > this.clientZone.getProximityList().size()) {
-    throw new VoldemortException("Number of zones required should be less than the total number of zones");
-  }
-  if (pipelineData.getZonesRequired() > required) {
-    throw new VoldemortException("Number of zones required should be less than the required number of " + op.getSimpleName() + "s");
-  }
-  Map<Integer,List<Node>> zoneIdToNode=new HashMap<Integer,List<Node>>();
-  for (  Node node : nodes) {
-    List<Node> nodesList=null;
-    if (zoneIdToNode.containsKey(node.getZoneId())) {
-      nodesList=zoneIdToNode.get(node.getZoneId());
-    }
- else {
-      nodesList=new ArrayList<Node>();
-      zoneIdToNode.put(node.getZoneId(),nodesList);
-    }
-    nodesList.add(node);
-  }
+  validateZonesRequired(this.clientZone,pipelineData.getZonesRequired());
+  Map<Integer,List<Node>> zoneIdToNode=convertToZoneNodeMap(nodes);
   nodes=new ArrayList<Node>();
-  LinkedList<Integer> zoneProximityList=this.clientZone.getProximityList();
+  List<Integer> zoneProximityList=this.clientZone.getProximityList();
   if (op != Operation.PUT) {
     for (int index=0; index < pipelineData.getZonesRequired(); index++) {
       List<Node> zoneNodes=zoneIdToNode.get(zoneProximityList.get(index));
