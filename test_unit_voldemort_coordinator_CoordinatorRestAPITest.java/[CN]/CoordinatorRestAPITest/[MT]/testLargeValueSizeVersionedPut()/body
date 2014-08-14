@@ -1,0 +1,22 @@
+{
+  String key="amigo";
+  String payload=generateRandomString(new CoordinatorConfig().getHttpMessageDecoderMaxChunkSize() * 10,ValueType.ALPHA);
+  String newPayload=generateRandomString(new CoordinatorConfig().getHttpMessageDecoderMaxChunkSize() * 10,ValueType.ALPHA);
+  doPut(key,payload,null);
+  TestVersionedValue response=doGet(key,null);
+  if (response == null) {
+    fail("key does not exist after a put. ");
+  }
+  System.out.println("Received value: " + response.getValue());
+  doPut(key,newPayload,response.getVc());
+  TestVersionedValue newResponse=doGet(key);
+  if (newResponse == null) {
+    fail("key does not exist after the versioned put. ");
+  }
+  assertEquals("Returned response does not have a higer version",Occurred.AFTER,newResponse.getVc().compare(response.getVc()));
+  assertEquals("Returned response does not have a higer version",Occurred.BEFORE,response.getVc().compare(newResponse.getVc()));
+  System.out.println("Received value after the Versioned put: " + newResponse.getValue());
+  if (!newResponse.getValue().equals(newPayload)) {
+    fail("Received value is incorrect ! Expected : " + newPayload + " but got : "+ newResponse.getValue());
+  }
+}

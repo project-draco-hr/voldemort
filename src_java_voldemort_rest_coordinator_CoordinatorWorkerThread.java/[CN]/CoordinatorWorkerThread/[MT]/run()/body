@@ -24,7 +24,9 @@ case VoldemortOpCode.GET_METADATA_OP_CODE:
         if (System.currentTimeMillis() >= (this.requestObject.getRequestOriginTimeInMs() + this.requestObject.getRoutingTimeoutInMs())) {
           RestErrorHandler.writeErrorResponse(this.messageEvent,REQUEST_TIMEOUT,"GET METADATA request timed out: " + e.getMessage());
         }
-        getErrorHandler.handleExceptions(messageEvent,e);
+ else {
+          getErrorHandler.handleExceptions(messageEvent,e);
+        }
       }
     break;
 case VoldemortOpCode.GET_OP_CODE:
@@ -61,7 +63,9 @@ try {
   if (System.currentTimeMillis() >= (this.requestObject.getRequestOriginTimeInMs() + this.requestObject.getRoutingTimeoutInMs())) {
     RestErrorHandler.writeErrorResponse(this.messageEvent,REQUEST_TIMEOUT,"GET request timed out: " + e.getMessage());
   }
-  getErrorHandler.handleExceptions(messageEvent,e);
+ else {
+    getErrorHandler.handleExceptions(messageEvent,e);
+  }
 }
 break;
 case VoldemortOpCode.GET_ALL_OP_CODE:
@@ -86,7 +90,9 @@ logger.debug("GET ALL successful !");
 if (System.currentTimeMillis() >= (this.requestObject.getRequestOriginTimeInMs() + this.requestObject.getRoutingTimeoutInMs())) {
 RestErrorHandler.writeErrorResponse(this.messageEvent,REQUEST_TIMEOUT,"GET ALL request timed out: " + e.getMessage());
 }
+ else {
 getErrorHandler.handleExceptions(messageEvent,e);
+}
 }
 break;
 case VoldemortOpCode.GET_VERSION_OP_CODE:
@@ -102,7 +108,9 @@ logger.debug("GET versions request successful !");
 if (System.currentTimeMillis() >= (this.requestObject.getRequestOriginTimeInMs() + this.requestObject.getRoutingTimeoutInMs())) {
 RestErrorHandler.writeErrorResponse(this.messageEvent,REQUEST_TIMEOUT,"GET VERSION request timed out: " + e.getMessage());
 }
+ else {
 getVersionErrorHandler.handleExceptions(messageEvent,e);
+}
 }
 break;
 case VoldemortOpCode.PUT_OP_CODE:
@@ -127,7 +135,9 @@ logger.debug("PUT successful !");
 if (System.currentTimeMillis() >= (this.requestObject.getRequestOriginTimeInMs() + this.requestObject.getRoutingTimeoutInMs())) {
 RestErrorHandler.writeErrorResponse(this.messageEvent,REQUEST_TIMEOUT,"PUT request timed out: " + e.getMessage());
 }
+ else {
 putErrorHandler.handleExceptions(messageEvent,e);
+}
 }
 break;
 case VoldemortOpCode.DELETE_OP_CODE:
@@ -152,7 +162,9 @@ RestErrorHandler.writeErrorResponse(this.messageEvent,NOT_FOUND,"Requested Key w
 if (System.currentTimeMillis() >= (this.requestObject.getRequestOriginTimeInMs() + this.requestObject.getRoutingTimeoutInMs())) {
 RestErrorHandler.writeErrorResponse(this.messageEvent,REQUEST_TIMEOUT,"DELETE request timed out: " + e.getMessage());
 }
+ else {
 deleteErrorHandler.handleExceptions(messageEvent,e);
+}
 }
 break;
 default :
