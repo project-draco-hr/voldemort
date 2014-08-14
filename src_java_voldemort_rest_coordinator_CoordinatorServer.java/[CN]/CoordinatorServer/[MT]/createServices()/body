@@ -1,0 +1,9 @@
+{
+  List<VoldemortService> services=new ArrayList<VoldemortService>();
+  CoordinatorService coordinator=new CoordinatorService(config);
+  services.add(coordinator);
+  if (config.isAdminServiceEnabled()) {
+    services.add(new CoordinatorAdminService(config));
+  }
+  return ImmutableList.copyOf(services);
+}
