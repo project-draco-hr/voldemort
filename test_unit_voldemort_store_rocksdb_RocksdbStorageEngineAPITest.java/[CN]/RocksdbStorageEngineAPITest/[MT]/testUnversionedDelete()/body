@@ -1,0 +1,12 @@
+{
+  System.out.println("*********** testing unversioned delete ***********");
+  ByteArray key=generateRandomKeys(100);
+  Versioned<byte[]> versionedValue=generateVersionedValue(100);
+  try {
+    this.rocksDbStore.put(key,versionedValue,null);
+  }
+ catch (  PersistenceFailureException pfe) {
+    Assert.fail("initial put failed unexpectedly. Exception: " + pfe.getMessage());
+  }
+  testDelete(key,null);
+}

@@ -1,0 +1,9 @@
+{
+  System.out.println("*********** testing versioned delete ***********");
+  ByteArray key=new ByteArray("keyOne".getBytes());
+  List<Versioned<byte[]>> conflictingVersions=generatePutWithConflictionVersions(key);
+  if (conflictingVersions.size() == 0) {
+    Assert.fail("Could not generate conflicting versions ");
+  }
+  testDelete(key,conflictingVersions.get(0).getVersion());
+}

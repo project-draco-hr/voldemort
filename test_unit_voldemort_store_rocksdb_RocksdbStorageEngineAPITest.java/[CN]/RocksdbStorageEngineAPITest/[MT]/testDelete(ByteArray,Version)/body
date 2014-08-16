@@ -1,0 +1,33 @@
+{
+  System.out.println("version to delete: " + (versionToDelete == null ? "null" : versionToDelete.toString()));
+  List<Versioned<byte[]>> found=null;
+  try {
+    found=this.rocksDbStore.get(key,null);
+  }
+ catch (  PersistenceFailureException pfe) {
+    Assert.fail("read after write unexpectedly throws Exception - " + pfe.getMessage());
+  }
+  try {
+    this.rocksDbStore.delete(key,versionToDelete);
+  }
+ catch (  PersistenceFailureException pfe) {
+    Assert.fail("delete operation on an existing key unexpectedly threw an exception - " + pfe.getMessage());
+  }
+  try {
+    found=this.rocksDbStore.get(key,null);
+    if (versionToDelete == null) {
+      if (found.size() > 0) {
+        Assert.fail("The key still has some value even after an unversioned delete");
+      }
+      return;
+    }
+    for (    Versioned<byte[]> versionedValue1 : found) {
+      if (versionedValue1.getVersion().compare(versionToDelete) == Occurred.BEFORE) {
+        Assert.fail("Delete operation did not work as expected. The key still has versions lower than the specified version");
+      }
+    }
+  }
+ catch (  PersistenceFailureException pfe) {
+    Assert.fail("read after delete failed unexpectedly with the exception - " + pfe.getMessage());
+  }
+}

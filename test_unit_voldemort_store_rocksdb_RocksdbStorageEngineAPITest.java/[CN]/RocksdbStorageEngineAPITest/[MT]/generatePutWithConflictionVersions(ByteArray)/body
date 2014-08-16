@@ -1,0 +1,24 @@
+{
+  List<Versioned<byte[]>> versionedList=new ArrayList<Versioned<byte[]>>();
+  VectorClock vectorClock1=new VectorClock();
+  vectorClock1.incrementVersion(voldemortConfig.getNodeId(),System.currentTimeMillis());
+  Versioned<byte[]> value1=new Versioned<byte[]>("valueOne".getBytes(),vectorClock1);
+  try {
+    this.rocksDbStore.put(key,value1,null);
+  }
+ catch (  PersistenceFailureException pfe) {
+    Assert.fail("initial put failed unexpectedly. Exception: " + pfe.getMessage());
+  }
+  versionedList.add(value1);
+  VectorClock vectorClock2=new VectorClock();
+  vectorClock2.incrementVersion(1,System.currentTimeMillis());
+  Versioned<byte[]> value2=new Versioned<byte[]>("valueTwo".getBytes(),vectorClock2);
+  try {
+    this.rocksDbStore.put(key,value2,null);
+  }
+ catch (  PersistenceFailureException pfe) {
+    Assert.fail("initial put failed unexpectedly. Exception: " + pfe.getMessage());
+  }
+  versionedList.add(value2);
+  return versionedList;
+}
