@@ -1,5 +1,7 @@
 {
   StoreUtils.assertValidKey(key);
+  long startTimeNs=-1;
+  if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
 synchronized (this.locks.lockFor(key.get())) {
     List<Versioned<byte[]>> currentValues;
     try {
@@ -11,8 +13,9 @@ synchronized (this.locks.lockFor(key.get())) {
         currentValues=Collections.emptyList();
       }
     }
- catch (    RocksDBException rocksdbException) {
-      throw new PersistenceFailureException(rocksdbException);
+ catch (    RocksDBException e) {
+      logger.error(e);
+      throw new PersistenceFailureException(e);
     }
     if (currentValues.size() > 0) {
       Iterator<Versioned<byte[]>> iter=currentValues.iterator();
@@ -34,10 +37,14 @@ synchronized (this.locks.lockFor(key.get())) {
     try {
       getRocksDB().put(key.get(),StoreBinaryFormat.toByteArray(currentValues));
     }
- catch (    RocksDBException rocksdbException) {
-      throw new PersistenceFailureException(rocksdbException);
+ catch (    RocksDBException e) {
+      logger.error(e);
+      throw new PersistenceFailureException(e);
     }
  finally {
+      if (logger.isTraceEnabled()) {
+        logger.trace("Completed PUT (" + getName() + ") to key "+ key+ " (keyRef: "+ System.identityHashCode(key)+ " value "+ value+ " in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
+      }
     }
   }
 }

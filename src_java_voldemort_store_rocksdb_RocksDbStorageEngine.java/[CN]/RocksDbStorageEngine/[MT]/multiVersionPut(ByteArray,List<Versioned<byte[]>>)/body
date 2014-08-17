@@ -1,5 +1,7 @@
 {
   StoreUtils.assertValidKey(key);
+  long startTimeNs=-1;
+  if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
   List<Versioned<byte[]>> currentValues=null;
   List<Versioned<byte[]>> obsoleteVals=null;
 synchronized (this.locks.lockFor(key.get())) {
@@ -12,17 +14,26 @@ synchronized (this.locks.lockFor(key.get())) {
         currentValues=new ArrayList<Versioned<byte[]>>();
       }
     }
- catch (    RocksDBException rocksdbException) {
-      throw new PersistenceFailureException(rocksdbException);
+ catch (    RocksDBException e) {
+      logger.error(e);
+      throw new PersistenceFailureException(e);
     }
     obsoleteVals=resolveAndConstructVersionsToPersist(currentValues,values);
     try {
       getRocksDB().put(key.get(),StoreBinaryFormat.toByteArray(currentValues));
     }
- catch (    RocksDBException rocksdbException) {
-      throw new PersistenceFailureException(rocksdbException);
+ catch (    RocksDBException e) {
+      logger.error(e);
+      throw new PersistenceFailureException(e);
     }
  finally {
+      if (logger.isTraceEnabled()) {
+        String valueStr="";
+        for (        Versioned<byte[]> val : currentValues) {
+          valueStr+=val + ",";
+        }
+        logger.trace("Completed PUT (" + getName() + ") to key "+ key+ " (keyRef: "+ System.identityHashCode(key)+ " values "+ valueStr+ " in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
+      }
     }
   }
   return obsoleteVals;

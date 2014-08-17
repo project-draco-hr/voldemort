@@ -1,13 +1,21 @@
 {
   StoreUtils.assertValidKeys(keys);
+  long startTimeNs=-1;
+  if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
   Map<ByteArray,List<Versioned<byte[]>>> results=null;
   try {
     results=StoreUtils.getAll(this,keys,transforms);
   }
- catch (  PersistenceFailureException pfe) {
-    throw pfe;
+ catch (  PersistenceFailureException e) {
+    logger.error(e);
+    throw new PersistenceFailureException(e);
   }
  finally {
+    if (logger.isTraceEnabled()) {
+      String keyStr="";
+      for (      ByteArray key : keys)       keyStr+=key + " ";
+      logger.trace("Completed GETALL (" + getName() + ") from keys "+ keyStr+ " in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
+    }
   }
   return results;
 }

@@ -1,7 +1,7 @@
 {
   StoreUtils.assertValidKey(key);
   long startTimeNs=-1;
-  startTimeNs=System.nanoTime();
+  if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
 synchronized (this.locks.lockFor(key.get())) {
     try {
       byte[] value=getRocksDB().get(key.get());
