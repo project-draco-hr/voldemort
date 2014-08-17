@@ -3,6 +3,9 @@
   props.setProperty("node.id","0");
   props.setProperty("voldemort.home","tmp/voldemort");
   voldemortConfig=new VoldemortConfig(props);
+  if (this.prefixPartitionId) {
+    voldemortConfig.setRocksdbPrefixKeysWithPartitionId(true);
+  }
   this.rocksDbConfig=new RocksDbStorageConfiguration(voldemortConfig);
   this.rocksDbStore=(RocksDbStorageEngine)rocksDbConfig.getStore(TestUtils.makeStoreDefinition("test"),TestUtils.makeSingleNodeRoutingStrategy());
   random=new Random();
