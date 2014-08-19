@@ -1,0 +1,14 @@
+{
+  initialize();
+  this.workerPool=(ThreadPoolExecutor)Executors.newCachedThreadPool();
+  this.bootstrap=new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),workerPool));
+  this.bootstrap.setOption("backlog",this.coordinatorConfig.getNettyServerBacklog());
+  this.bootstrap.setOption("child.tcpNoDelay",true);
+  this.bootstrap.setOption("child.keepAlive",true);
+  this.bootstrap.setOption("child.reuseAddress",true);
+  this.bootstrap.setPipelineFactory(getPipelineFactory());
+  JmxUtils.registerMbean(this,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.getClass())));
+  JmxUtils.registerMbean(this.connectionStats,JmxUtils.createObjectName(JmxUtils.getPackageName(this.getClass()),JmxUtils.getClassName(this.connectionStats.getClass())));
+  this.channel=this.bootstrap.bind(new InetSocketAddress(getServicePort()));
+  logger.info(getServiceName() + " service started on port " + getServicePort());
+}
