@@ -1,0 +1,47 @@
+{
+  int numGetExceptions=0;
+  int numPutExceptions=0;
+  Map<String,String> populatedValues=new HashMap<String,String>();
+  for (int i=0; i < 1000; i++) {
+    String key="key" + i;
+    String value="value" + i;
+    try {
+      storeClient.put(key,value);
+      populatedValues.put(key,value);
+    }
+ catch (    QuotaExceededException qee) {
+      numPutExceptions++;
+    }
+  }
+  if (isThrottled) {
+    assertTrue("No put operations rate limited",numPutExceptions > 0);
+  }
+ else {
+    assertTrue("Put throttled when rate is :" + Integer.MAX_VALUE,numPutExceptions == 0);
+  }
+  for (int i=0; i < 1000; i++) {
+    String key="key" + i;
+    String expectedValue="value" + i;
+    try {
+      Versioned<Object> actualValue=storeClient.get(key);
+      if (actualValue == null) {
+        if (populatedValues.containsKey(key) == false) {
+          continue;
+        }
+ else {
+          fail("Put successfully wrote the key, but get was not able to retrieve it, nor it got a quota exception");
+        }
+      }
+      assertEquals(expectedValue,actualValue.getValue());
+    }
+ catch (    QuotaExceededException qee) {
+      numGetExceptions++;
+    }
+  }
+  if (isThrottled) {
+    assertTrue("No get operations rate limited",numGetExceptions > 0);
+  }
+ else {
+    assertTrue("Get throttled when rate is :" + Integer.MAX_VALUE,numGetExceptions == 0);
+  }
+}
