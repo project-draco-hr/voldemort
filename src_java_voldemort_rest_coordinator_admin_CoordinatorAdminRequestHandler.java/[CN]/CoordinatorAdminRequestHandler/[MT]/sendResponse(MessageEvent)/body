@@ -1,7 +1,14 @@
 {
-  HttpResponse response=new DefaultHttpResponse(HTTP_1_1,NO_CONTENT);
-  response.setHeader(CONTENT_LENGTH,"0");
-  response.setHeader(RestMessageHeaders.X_VOLD_VECTOR_CLOCK,"Sid");
-  messageEvent.getChannel().write(response);
-  logger.info("Sent");
+  HttpResponse response=new DefaultHttpResponse(HTTP_1_1,OK);
+  response.setHeader(CONTENT_LENGTH,"4");
+  ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
+  try {
+    outputStream.write("allo".getBytes());
+  }
+ catch (  IOException e) {
+    e.printStackTrace();
+  }
+  ChannelBuffer responseContent=ChannelBuffers.dynamicBuffer();
+  responseContent.writeBytes(outputStream.toByteArray());
+  response.setContent(responseContent);
 }
