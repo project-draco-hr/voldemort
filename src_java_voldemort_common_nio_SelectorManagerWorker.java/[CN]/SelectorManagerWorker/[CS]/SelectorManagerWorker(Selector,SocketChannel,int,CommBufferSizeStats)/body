@@ -3,8 +3,10 @@
   this.socketChannel=socketChannel;
   this.socketBufferSize=socketBufferSize;
   this.resizeThreshold=socketBufferSize * 2;
-  this.inputStream=new ByteBufferBackedInputStream(ByteBuffer.allocate(socketBufferSize),commBufferStats.getCommReadBufferSizeTracker());
-  this.outputStream=new ByteBufferBackedOutputStream(ByteBuffer.allocate(socketBufferSize),commBufferStats.getCommWriteBufferSizeTracker());
+  initializeStreams(socketBufferSize,commBufferStats);
+  if (this.inputStream == null || this.outputStream == null) {
+    throw new VoldemortApplicationException("InputStream or OuputStream is null after initialization");
+  }
   this.createTimestamp=System.nanoTime();
   this.isClosed=new AtomicBoolean(false);
   if (logger.isDebugEnabled())   logger.debug("Accepting remote connection from " + socketChannel.socket());

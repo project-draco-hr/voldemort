@@ -4,7 +4,7 @@
   inputStream.getBuffer().limit(inputStream.getBuffer().capacity());
   if (logger.isTraceEnabled())   traceInputBufferState("Incomplete read request detected, after update");
   if (!inputStream.getBuffer().hasRemaining()) {
-    inputStream.setBuffer(ByteUtils.expand(inputStream.getBuffer(),inputStream.getBuffer().capacity() * 2));
+    inputStream.growBuffer();
     if (logger.isTraceEnabled())     traceInputBufferState("Expanded input buffer");
   }
 }

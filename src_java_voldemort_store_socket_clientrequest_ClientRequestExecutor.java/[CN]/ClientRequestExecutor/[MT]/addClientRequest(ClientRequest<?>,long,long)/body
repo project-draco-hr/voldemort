@@ -12,12 +12,8 @@
     String errorMessage=String.format("Invalid timeout specified. startTime (%d) ns expiration (%d) ns timeout (%d) ms elapsed (%d) ns",startTime,expiration,timeoutMs,elapsedNs);
     throw new IllegalArgumentException(errorMessage);
   }
-  outputStream.getBuffer().clear();
+  resetStreams();
   boolean wasSuccessful=clientRequest.formatRequest(new DataOutputStream(outputStream));
-  if (logger.isTraceEnabled())   traceInputBufferState("About to clear read buffer");
-  if (inputStream.getBuffer().capacity() >= resizeThreshold)   inputStream.setBuffer(ByteBuffer.allocate(socketBufferSize));
- else   inputStream.getBuffer().clear();
-  if (logger.isTraceEnabled())   traceInputBufferState("Cleared read buffer");
   outputStream.getBuffer().flip();
   if (wasSuccessful) {
     SelectionKey selectionKey=socketChannel.keyFor(selector);

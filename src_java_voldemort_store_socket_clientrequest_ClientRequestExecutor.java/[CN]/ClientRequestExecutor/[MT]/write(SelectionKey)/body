@@ -8,7 +8,6 @@
     if (logger.isTraceEnabled())     logger.trace("Wrote no bytes for " + socketChannel.socket());
   }
   if (outputStream.getBuffer().hasRemaining())   return;
-  if (outputStream.getBuffer().capacity() >= resizeThreshold)   outputStream.setBuffer(ByteBuffer.allocate(socketBufferSize));
- else   outputStream.getBuffer().clear();
+  resetStreams();
   selectionKey.interestOps(SelectionKey.OP_READ);
 }

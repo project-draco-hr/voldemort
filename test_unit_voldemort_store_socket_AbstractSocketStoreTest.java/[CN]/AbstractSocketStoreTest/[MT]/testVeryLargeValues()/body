@@ -7,7 +7,8 @@
     rand.nextBytes(biggie);
     Versioned<byte[]> versioned=new Versioned<byte[]>(biggie);
     store.put(key,versioned,null);
-    assertNotNull(store.get(key,null));
+    Versioned<byte[]> result=store.get(key,null).get(0);
+    assertArrayEquals("Get returned different value after put",result.getValue(),versioned.getValue());
     assertTrue(store.delete(key,versioned.getVersion()));
   }
 }

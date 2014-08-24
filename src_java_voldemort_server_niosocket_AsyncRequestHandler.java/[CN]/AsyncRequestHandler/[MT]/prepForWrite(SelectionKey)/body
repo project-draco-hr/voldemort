@@ -1,7 +1,6 @@
 {
   if (logger.isTraceEnabled())   traceInputBufferState("About to clear read buffer");
-  if (inputStream.getBuffer().capacity() >= resizeThreshold)   inputStream.setBuffer(ByteBuffer.allocate(socketBufferSize));
- else   inputStream.getBuffer().clear();
+  inputStream.clear();
   if (logger.isTraceEnabled())   traceInputBufferState("Cleared read buffer");
   outputStream.getBuffer().flip();
   selectionKey.interestOps(SelectionKey.OP_WRITE);
