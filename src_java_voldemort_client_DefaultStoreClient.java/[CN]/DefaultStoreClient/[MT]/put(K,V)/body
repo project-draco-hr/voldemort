@@ -1,12 +1,5 @@
 {
-  List<Version> versions=getVersions(key);
-  Versioned<V> versioned;
-  if (versions.isEmpty())   versioned=Versioned.value(value,new VectorClock());
- else   if (versions.size() == 1)   versioned=Versioned.value(value,versions.get(0));
- else {
-    versioned=get(key,null);
-    if (versioned == null)     versioned=Versioned.value(value,new VectorClock());
- else     versioned.setObject(value);
-  }
+  Version version=getVersionForPut(key);
+  Versioned<V> versioned=Versioned.value(value,version);
   return put(key,versioned);
 }
