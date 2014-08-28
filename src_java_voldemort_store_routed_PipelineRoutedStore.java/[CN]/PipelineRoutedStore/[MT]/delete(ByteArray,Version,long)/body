@@ -14,12 +14,15 @@
   Pipeline pipeline=new Pipeline(Operation.DELETE,deleteOpTimeout,TimeUnit.MILLISECONDS);
   pipeline.setEnableHintedHandoff(isHintedHandoffEnabled());
   HintedHandoff hintedHandoff=null;
-  if (isHintedHandoffEnabled())   hintedHandoff=new HintedHandoff(failureDetector,slopStores,nonblockingSlopStores,handoffStrategy,pipelineData.getFailedNodes(),deleteOpTimeout);
-  pipeline.addEventAction(Event.STARTED,new ConfigureNodes<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key,clientZone));
-  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelDeleteRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,isHintedHandoffEnabled() ? Event.RESPONSES_RECEIVED : Event.COMPLETED,key,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),deleteOpTimeout,nonblockingStores,hintedHandoff,version));
+  PerformDeleteHintedHandoff deleteHintedHandoffAction=null;
   if (isHintedHandoffEnabled()) {
-    pipeline.addEventAction(Event.RESPONSES_RECEIVED,new PerformDeleteHintedHandoff(pipelineData,Event.COMPLETED,key,version,hintedHandoff));
-    pipeline.addEventAction(Event.ABORTED,new PerformDeleteHintedHandoff(pipelineData,Event.ERROR,key,version,hintedHandoff));
+    hintedHandoff=new HintedHandoff(failureDetector,slopStores,nonblockingSlopStores,handoffStrategy,pipelineData.getFailedNodes(),deleteOpTimeout);
+    deleteHintedHandoffAction=new PerformDeleteHintedHandoff(pipelineData,Event.COMPLETED,key,version,hintedHandoff);
+  }
+  pipeline.addEventAction(Event.STARTED,new ConfigureNodes<Boolean,BasicPipelineData<Boolean>>(pipelineData,Event.CONFIGURED,failureDetector,storeDef.getRequiredWrites(),routingStrategy,key,clientZone));
+  pipeline.addEventAction(Event.CONFIGURED,new PerformParallelDeleteRequests<Boolean,BasicPipelineData<Boolean>>(pipelineData,isHintedHandoffEnabled() ? Event.RESPONSES_RECEIVED : Event.COMPLETED,key,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),deleteOpTimeout,nonblockingStores,hintedHandoff,deleteHintedHandoffAction,version));
+  if (isHintedHandoffEnabled()) {
+    pipeline.addEventAction(Event.RESPONSES_RECEIVED,deleteHintedHandoffAction);
   }
   pipeline.addEvent(Event.STARTED);
   if (logger.isDebugEnabled()) {

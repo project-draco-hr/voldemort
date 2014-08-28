@@ -1,20 +1,3 @@
 {
-  int numGetExceptions=0;
-  int numPutExceptions=0;
-  for (int i=0; i < 1000; i++) {
-    try {
-      storeClient.put("key","value");
-    }
- catch (    QuotaExceededException qee) {
-      numPutExceptions++;
-    }
-    try {
-      storeClient.get("key");
-    }
- catch (    QuotaExceededException qee) {
-      numGetExceptions++;
-    }
-  }
-  assertTrue("No get operations rate limited",numGetExceptions > 0);
-  assertTrue("No put operations rate limited",numPutExceptions > 0);
+  verifyThrottling(true);
 }
