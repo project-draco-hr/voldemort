@@ -1,6 +1,6 @@
 {
   setGetPutQuotasForEachServer();
-  HashMap<String,String> keyValuePairsToMasterNode=generateKeysForMasterNode(15);
+  HashMap<String,String> keyValuePairsToMasterNode=generateKeysForMasterNode(100);
   String bootStrapUrl="tcp://" + cluster.getNodeById(0).getHost() + ":"+ cluster.getNodeById(0).getSocketPort();
   factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootStrapUrl));
   storeClient=factory.getStoreClient(storeName);
@@ -11,22 +11,37 @@
       storeClient.put(entry.getKey(),entry.getValue());
       putKeysThatSucceeded.add(entry.getValue());
     }
- catch (    QuotaExceededException quotaexception) {
+ catch (    VoldemortException e) {
+      logger.warn(e,e);
       numPutExceptions++;
     }
   }
-  logger.info("#Puts that failed due to QuotaExceededException: " + numPutExceptions);
+  logger.info("#Puts that failed due to Exception: " + numPutExceptions);
   Thread.sleep(2 * SLOP_FREQUENCY_MS);
-  int numNullEmptyIncoorectValue=0;
   for (  String val : putKeysThatSucceeded) {
     int nodeId=1;
     List<Versioned<byte[]>> valueBytes=adminClient.storeOps.getNodeKey(storeName,nodeId,new ByteArray(ByteUtils.getBytes(val,encodingType)));
-    if (valueBytes == null || valueBytes.size() == 0 || !(val.equals(ByteUtils.getString(valueBytes.get(0).getValue(),encodingType)))) {
-      logger.info("Either the value returned for key: " + val + " is null/empty/not same as that put");
-      numNullEmptyIncoorectValue++;
-      continue;
-    }
-    logger.info("key: " + val + " value: "+ ByteUtils.getString(valueBytes.get(0).getValue(),encodingType));
+    assertEquals("Expect 1 value from PUT " + val,1,valueBytes.size());
+    assertEquals("GET returned different value than put",val,ByteUtils.getString(valueBytes.get(0).getValue(),encodingType));
   }
-  assertTrue("Not all expected keys found in secondary node",numNullEmptyIncoorectValue == 0);
+  int numDeleteExceptions=0;
+  ArrayList<String> deleteKeysThatSucceeded=new ArrayList<String>();
+  for (  Entry<String,String> entry : keyValuePairsToMasterNode.entrySet()) {
+    try {
+      storeClient.delete(entry.getKey());
+      deleteKeysThatSucceeded.add(entry.getValue());
+    }
+ catch (    VoldemortException e) {
+      logger.warn(e,e);
+      numDeleteExceptions++;
+    }
+  }
+  logger.info("#Deletes that failed due to Exceptions: " + numDeleteExceptions);
+  Thread.sleep(2 * SLOP_FREQUENCY_MS);
+  for (  String val : deleteKeysThatSucceeded) {
+    for (    int nodeId : cluster.getNodeIds()) {
+      List<Versioned<byte[]>> valueBytes=adminClient.storeOps.getNodeKey(storeName,nodeId,new ByteArray(ByteUtils.getBytes(val,encodingType)));
+      assertTrue("Deleted value should be null or zero on node " + nodeId,valueBytes == null || valueBytes.size() == 0);
+    }
+  }
 }

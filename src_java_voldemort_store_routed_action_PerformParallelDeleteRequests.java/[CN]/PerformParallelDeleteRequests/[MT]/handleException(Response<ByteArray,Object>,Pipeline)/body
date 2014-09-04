@@ -5,9 +5,6 @@
     return false;
   }
   ex=(Exception)response.getValue();
-  if (ex instanceof ObsoleteVersionException) {
-    return false;
-  }
   if (enableHintedHandoff) {
     if (ex instanceof UnreachableStoreException || ex instanceof QuotaExceededException) {
       Slop slop=new Slop(pipelineData.getStoreName(),Slop.Operation.DELETE,key,null,null,node.getId(),new Date());
@@ -18,6 +15,12 @@
         hintedHandoff.sendHintParallel(node,version,slop);
       }
     }
+  }
+  if (ex instanceof ObsoleteVersionException) {
+    return false;
+  }
+ else   if (ex instanceof QuotaExceededException) {
+    return false;
   }
   if (ex instanceof InvalidMetadataException && isOperationCompleted.get()) {
     pipelineData.reportException(ex);
