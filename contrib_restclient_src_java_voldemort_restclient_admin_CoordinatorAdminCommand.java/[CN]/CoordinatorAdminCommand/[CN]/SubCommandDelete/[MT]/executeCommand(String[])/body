@@ -2,13 +2,31 @@
   OptionParser parser=getParser();
   List<String> urls=null;
   List<String> storeNames=null;
+  Boolean confirm=false;
   OptionSet options=parser.parse(args);
-  if (options.has(AdminParserUtils.OPT_HELP)) {
+  if (options.has(CoordinatorAdminUtils.OPT_HELP)) {
     printHelp(System.out);
     return;
   }
-  AdminParserUtils.checkRequired(options,CoordinatorAdminUtils.OPT_URL);
-  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_STORE);
+  CoordinatorAdminUtils.checkRequired(options,CoordinatorAdminUtils.OPT_URL);
+  CoordinatorAdminUtils.checkRequired(options,CoordinatorAdminUtils.OPT_STORE);
   urls=(List<String>)options.valuesOf(CoordinatorAdminUtils.OPT_URL);
-  storeNames=(List<String>)options.valuesOf(AdminParserUtils.OPT_STORE);
+  storeNames=(List<String>)options.valuesOf(CoordinatorAdminUtils.OPT_STORE);
+  if (options.has(CoordinatorAdminUtils.OPT_CONFIRM)) {
+    confirm=true;
+  }
+  if (!CoordinatorAdminUtils.askConfirm(confirm,"delete store config on coordinators")) {
+    return;
+  }
+  CoordinatorAdminClient client=new CoordinatorAdminClient();
+  Boolean succeedAll=true;
+  for (  String url : urls) {
+    succeedAll=succeedAll && client.deleteStoreClientConfig(storeNames,url);
+  }
+  if (!succeedAll) {
+    System.out.println("Failed to delete config avro on some coordinators.");
+  }
+ else {
+    System.out.println("Successfully deleted config on all coordinators.");
+  }
 }

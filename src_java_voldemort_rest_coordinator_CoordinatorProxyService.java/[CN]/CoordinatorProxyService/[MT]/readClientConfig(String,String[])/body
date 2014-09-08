@@ -3,26 +3,14 @@
   Map<String,SocketStoreClientFactory> storeFactoryMap=new HashMap<String,SocketStoreClientFactory>();
   try {
     line=Joiner.on(" ").join(IOUtils.readLines(new FileReader(new File(configFilePath)))).trim();
-    JsonDecoder decoder=new JsonDecoder(CLIENT_CONFIGS_AVRO_SCHEMA,line);
-    GenericDatumReader<Object> datumReader=new GenericDatumReader<Object>(CLIENT_CONFIGS_AVRO_SCHEMA);
-    GenericData.Array<Map<Utf8,Utf8>> flowMaps=(GenericData.Array<Map<Utf8,Utf8>>)datumReader.read(null,decoder);
-    if (flowMaps != null && flowMaps.size() > 0) {
-      for (      Map<Utf8,Utf8> flowMap : flowMaps) {
-        Properties props=new Properties();
-        for (        Utf8 key : flowMap.keySet()) {
-          props.put(key.toString(),flowMap.get(key).toString());
-        }
-        String storeName=flowMap.get(new Utf8(STORE_NAME_KEY)).toString();
-        storeName=props.getProperty(STORE_NAME_KEY);
-        if (storeName == null || storeName.length() == 0) {
-          throw new Exception("Illegal Store Name !!!");
-        }
-        ClientConfig fatClientConfig=new ClientConfig(props);
-        fatClientConfig.setBootstrapUrls(bootstrapURLs).setEnableCompressionLayer(false).setEnableSerializationLayer(false).enableDefaultClient(true).setEnableLazy(false).setIdentifierString(props.getProperty(IDENTIFIER_STRING_KEY,null));
-        logger.info("Creating a Fat client for store: " + storeName);
-        logger.info("Using config: " + fatClientConfig);
-        storeFactoryMap.put(storeName,new SocketStoreClientFactory(fatClientConfig));
-      }
+    Map<String,Properties> mapStoreToProps=readClientConfigAvro(line);
+    for (    String storeName : mapStoreToProps.keySet()) {
+      Properties props=mapStoreToProps.get(storeName);
+      ClientConfig fatClientConfig=new ClientConfig(props);
+      fatClientConfig.setBootstrapUrls(bootstrapURLs).setEnableCompressionLayer(false).setEnableSerializationLayer(false).enableDefaultClient(true).setEnableLazy(false).setIdentifierString(props.getProperty(IDENTIFIER_STRING_KEY,null));
+      logger.info("Creating a Fat client for store: " + storeName);
+      logger.info("Using config: " + fatClientConfig);
+      storeFactoryMap.put(storeName,new SocketStoreClientFactory(fatClientConfig));
     }
   }
  catch (  FileNotFoundException e) {
