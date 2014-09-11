@@ -1,0 +1,42 @@
+{
+  String result=null;
+  try {
+    RestRequestBuilder requestBuilder=new RestRequestBuilder(new URI(coordinatorUrl + URL_SEPARATOR + STORE_CLIENT_CONFIG_OPS+ URL_SEPARATOR+ Joiner.on(",").join(storeNames)));
+    String timeoutStr=Long.toString(this.config.getTimeoutConfig().getOperationTimeout(VoldemortOpCode.GET_OP_CODE));
+    requestBuilder.setMethod(GET);
+    requestBuilder.setHeader(RestMessageHeaders.X_VOLD_REQUEST_TIMEOUT_MS,timeoutStr);
+    requestBuilder.setHeader(RestMessageHeaders.X_VOLD_REQUEST_ORIGIN_TIME_MS,String.valueOf(System.currentTimeMillis()));
+    if (this.routingTypeCode != null) {
+      requestBuilder.setHeader(RestMessageHeaders.X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
+    }
+    if (this.zoneId != INVALID_ZONE_ID) {
+      requestBuilder.setHeader(RestMessageHeaders.X_VOLD_ZONE_ID,String.valueOf(this.zoneId));
+    }
+    RestRequest request=requestBuilder.build();
+    Future<RestResponse> future=client.restRequest(request);
+    RestResponse response=future.get();
+    ByteString entity=response.getEntity();
+    result=entity.asString("UTF-8");
+  }
+ catch (  ExecutionException e) {
+    if (e.getCause() instanceof RestException) {
+      RestException exception=(RestException)e.getCause();
+      if (logger.isDebugEnabled()) {
+        logger.debug("REST EXCEPTION STATUS : " + exception.getResponse().getStatus());
+      }
+    }
+ else {
+      throw new VoldemortException("Unknown HTTP request execution exception: " + e.getMessage(),e);
+    }
+  }
+catch (  InterruptedException e) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Operation interrupted : " + e.getMessage(),e);
+    }
+    throw new VoldemortException("Operation interrupted exception: " + e.getMessage(),e);
+  }
+catch (  URISyntaxException e) {
+    throw new VoldemortException("Illegal HTTP URL" + e.getMessage(),e);
+  }
+  return result;
+}

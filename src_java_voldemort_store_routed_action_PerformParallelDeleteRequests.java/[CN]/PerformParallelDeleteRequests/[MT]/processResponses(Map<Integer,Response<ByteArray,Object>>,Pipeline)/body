@@ -1,0 +1,19 @@
+{
+  for (  Entry<Integer,Response<ByteArray,Object>> responseEntry : responses.entrySet()) {
+    Response<ByteArray,Object> response=responseEntry.getValue();
+    responses.remove(responseEntry.getKey());
+    if (response.getValue() instanceof Exception) {
+      if (handleException(response,pipeline)) {
+        return true;
+      }
+    }
+ else {
+      pipelineData.incrementSuccesses();
+      failureDetector.recordSuccess(response.getNode(),response.getRequestTime());
+      pipelineData.getZoneResponses().add(response.getNode().getZoneId());
+      Response<ByteArray,V> rCast=Utils.uncheckedCast(response);
+      pipelineData.getResponses().add(rCast);
+    }
+  }
+  return false;
+}

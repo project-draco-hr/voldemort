@@ -1,0 +1,23 @@
+{
+  Properties adminProperties=new Properties();
+  adminProperties.setProperty("max_connections","2");
+  adminClient=new AdminClient(cluster,new AdminClientConfig(adminProperties),new ClientConfig());
+  Map<Pair<Integer,QuotaType>,Integer> throughPutMap=new HashMap<Pair<Integer,QuotaType>,Integer>();
+  throughPutMap.put(new Pair<Integer,QuotaType>(0,QuotaType.PUT_THROUGHPUT),5);
+  throughPutMap.put(new Pair<Integer,QuotaType>(0,QuotaType.GET_THROUGHPUT),20);
+  throughPutMap.put(new Pair<Integer,QuotaType>(1,QuotaType.PUT_THROUGHPUT),2);
+  throughPutMap.put(new Pair<Integer,QuotaType>(1,QuotaType.GET_THROUGHPUT),20);
+  for (  Entry<Pair<Integer,QuotaType>,Integer> throughPut : throughPutMap.entrySet()) {
+    int nodeId=throughPut.getKey().getFirst();
+    QuotaType type=throughPut.getKey().getSecond();
+    int value=throughPut.getValue();
+    VectorClock clock=VectorClockUtils.makeClockWithCurrentTime(cluster.getNodeIds());
+    NodeValue<ByteArray,byte[]> operationValue=new NodeValue<ByteArray,byte[]>(nodeId,new ByteArray(getKeyBytes(type)),new Versioned<byte[]>(ByteUtils.getBytes(Integer.toString(value),encodingType),clock));
+    try {
+      adminClient.storeOps.putNodeKeyValue(quotaStoreName,operationValue);
+    }
+ catch (    Exception e) {
+      throw new Exception("Exception when setting put quota for node " + nodeId + " Operation "+ type+ "."+ e.getMessage());
+    }
+  }
+}

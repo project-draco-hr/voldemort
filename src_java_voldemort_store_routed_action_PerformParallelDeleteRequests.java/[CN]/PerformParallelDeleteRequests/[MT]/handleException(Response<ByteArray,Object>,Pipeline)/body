@@ -1,0 +1,35 @@
+{
+  Node node=response.getNode();
+  Exception ex=null;
+  if (!(response.getValue() instanceof Exception)) {
+    return false;
+  }
+  ex=(Exception)response.getValue();
+  if (enableHintedHandoff) {
+    if (ex instanceof UnreachableStoreException || ex instanceof QuotaExceededException) {
+      Slop slop=new Slop(pipelineData.getStoreName(),Slop.Operation.DELETE,key,null,null,node.getId(),new Date());
+      if (isOperationCompleted.get() == false) {
+        hintedHandoffAction.rememberSlopForLaterEvent(node,slop);
+      }
+ else       if (isDeleteSuccessful.get() == true) {
+        hintedHandoff.sendHintParallel(node,version,slop);
+      }
+    }
+  }
+  if (ex instanceof ObsoleteVersionException) {
+    return false;
+  }
+ else   if (ex instanceof QuotaExceededException) {
+    return false;
+  }
+  if (ex instanceof InvalidMetadataException && isOperationCompleted.get()) {
+    pipelineData.reportException(ex);
+    if (logger.isInfoEnabled()) {
+      logger.info("Received invalid metadata problem after a successful " + pipeline.getOperation().getSimpleName() + " call on node "+ node.getId()+ ", store '"+ pipelineData.getStoreName()+ "'");
+    }
+  }
+ else {
+    return handleResponseError(response,pipeline,failureDetector);
+  }
+  return false;
+}

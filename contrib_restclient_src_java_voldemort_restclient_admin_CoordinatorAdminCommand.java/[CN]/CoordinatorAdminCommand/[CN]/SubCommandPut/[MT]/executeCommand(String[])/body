@@ -1,0 +1,43 @@
+{
+  OptionParser parser=getParser();
+  List<String> urls=null;
+  String storeConfigAvro=null;
+  String storeConfigPath=null;
+  Boolean confirm=false;
+  OptionSet options=parser.parse(args);
+  if (options.has(CoordinatorAdminUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  CoordinatorAdminUtils.checkRequired(options,CoordinatorAdminUtils.OPT_URL);
+  CoordinatorAdminUtils.checkRequired(options,OPT_DEFINITION,OPT_FILE);
+  urls=(List<String>)options.valuesOf(CoordinatorAdminUtils.OPT_URL);
+  if (options.has(OPT_DEFINITION)) {
+    storeConfigAvro=(String)options.valueOf(OPT_DEFINITION);
+  }
+  if (options.has(OPT_FILE)) {
+    storeConfigPath=(String)options.valueOf(OPT_FILE);
+    File storeConfigFile=new File(storeConfigPath);
+    if (!storeConfigFile.exists()) {
+      throw new VoldemortException("cannot find config file: '" + storeConfigPath + "'.");
+    }
+    storeConfigAvro=Joiner.on(" ").join(IOUtils.readLines(new FileReader(storeConfigFile))).trim();
+  }
+  if (options.has(CoordinatorAdminUtils.OPT_CONFIRM)) {
+    confirm=true;
+  }
+  if (!CoordinatorAdminUtils.askConfirm(confirm,"put store config to coordinators")) {
+    return;
+  }
+  CoordinatorAdminClient client=new CoordinatorAdminClient();
+  Boolean succeedAll=true;
+  for (  String url : urls) {
+    succeedAll=succeedAll && client.putStoreClientConfigString(storeConfigAvro,url);
+  }
+  if (!succeedAll) {
+    System.out.println("Failed to put config avro to some coordinators.");
+  }
+ else {
+    System.out.println("Successfully put config to all coordinators.");
+  }
+}

@@ -1,0 +1,15 @@
+{
+  if (trackedOp.equals(Tracked.GET)) {
+    float getThroughPut=this.storeStats.getThroughput(Tracked.GET);
+    float getAllThroughPut=this.storeStats.getGetAllKeysThroughput();
+    return getThroughPut + getAllThroughPut;
+  }
+ else   if (trackedOp.equals(Tracked.PUT)) {
+    float putThroughPut=this.storeStats.getThroughput(Tracked.PUT);
+    float deleteThroughPut=this.storeStats.getThroughput(Tracked.DELETE);
+    return putThroughPut + deleteThroughPut;
+  }
+ else {
+    throw new IllegalArgumentException("Expected GET or PUT, received " + trackedOp);
+  }
+}

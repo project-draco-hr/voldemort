@@ -1,6 +1,6 @@
 {
   this.time=time;
-  this.metricsRepository=new Metrics(time);
+  this.metricsRepository=new MetricsRepository(time);
   int amountOfParentSensors=0;
   if (parents != null) {
     amountOfParentSensors=parents.length;
@@ -58,4 +58,5 @@
   this.getAllKeysCountSensor=metricsRepository.sensor(getAllKeysCountSensorName,metricConfig,getAllKeysCountParentSensors);
   this.getAllKeysCountSampledTotal=this.getAllKeysCountSensor.add(getAllKeysCountSensorName + ".sampled-total",new SampledTotal());
   this.getAllKeysCountMax=this.getAllKeysCountSensor.add(getAllKeysCountSensorName + ".max",new Max(0));
+  this.getAllKeysThroughput=this.getAllKeysCountSensor.add(getAllKeysCountSensorName + ".throughput",new Rate());
 }

@@ -1,0 +1,21 @@
+{
+  System.out.println("==============String store example=================");
+  String bootstrapUrl="tcp://localhost:6666";
+  StoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootstrapUrl));
+  StoreClient<String,String> client=factory.getStoreClient("test");
+  System.out.println("Putting an initial value");
+  client.put("some_key","initial value");
+  System.out.println("Getting Initial value");
+  Versioned<String> versioned=client.get("some_key");
+  System.out.println("Initial Versioned Object: " + String.valueOf(versioned));
+  System.out.println("           Initial Value: " + String.valueOf(versioned.getValue()));
+  System.out.println("Modifying the value");
+  versioned.setObject("new_value");
+  System.out.println("Putting the new value");
+  client.put("some_key",versioned);
+  System.out.println("Getting the new value");
+  versioned=client.get("some_key");
+  System.out.println("Putting the value");
+  System.out.println("    New Versioned Object: " + String.valueOf(versioned));
+  System.out.println("               New Value: " + String.valueOf(versioned.getValue()));
+}
