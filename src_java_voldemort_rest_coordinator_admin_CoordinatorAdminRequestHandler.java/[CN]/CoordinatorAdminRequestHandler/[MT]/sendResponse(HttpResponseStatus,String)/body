@@ -1,9 +1,9 @@
 {
-  HttpResponse response=new DefaultHttpResponse(HTTP_1_1,OK);
-  response.setHeader(CONTENT_LENGTH,"4");
+  HttpResponse response=new DefaultHttpResponse(HTTP_1_1,responseCode);
+  response.setHeader(CONTENT_LENGTH,responseBody.length());
   ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
   try {
-    outputStream.write("allo".getBytes());
+    outputStream.write(responseBody.getBytes());
   }
  catch (  IOException e) {
     e.printStackTrace();
@@ -11,6 +11,6 @@
   ChannelBuffer responseContent=ChannelBuffers.dynamicBuffer();
   responseContent.writeBytes(outputStream.toByteArray());
   response.setContent(responseContent);
-  messageEvent.getChannel().write(response);
-  logger.info("Sent");
+  logger.info("Sent " + response);
+  return response;
 }

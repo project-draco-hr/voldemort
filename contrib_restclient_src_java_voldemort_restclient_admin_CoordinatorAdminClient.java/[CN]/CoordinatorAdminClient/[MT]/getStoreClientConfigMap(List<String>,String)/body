@@ -1,10 +1,10 @@
 {
   String configAvro=getStoreClientConfigString(storeNames,coordinatorUrl);
-  Map<String,Properties> mapStoreToProps=CoordinatorProxyService.readMultipleClientConfigAvro(configAvro);
+  Map<String,Properties> mapStoreToProps=ClientConfigUtil.readMultipleClientConfigAvro(configAvro);
   Map<String,String> mapStoreToConfig=Maps.newHashMap();
   for (  String storeName : mapStoreToProps.keySet()) {
     Properties props=mapStoreToProps.get(storeName);
-    mapStoreToConfig.put(storeName,CoordinatorProxyService.writeSingleClientConfigAvro(props));
+    mapStoreToConfig.put(storeName,ClientConfigUtil.writeSingleClientConfigAvro(props));
   }
   return mapStoreToConfig;
 }
