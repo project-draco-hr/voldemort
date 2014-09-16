@@ -13,28 +13,18 @@
       HttpResponse response;
       HttpMethod httpMethod=request.getMethod();
       if (httpMethod.equals(HttpMethod.GET)) {
-        if (logger.isDebugEnabled()) {
-          logger.debug("Received a Http GET request at " + System.currentTimeMillis() + " ms");
-        }
         response=handleGet();
       }
  else       if (httpMethod.equals(HttpMethod.POST)) {
-        if (logger.isDebugEnabled()) {
-          logger.debug("Recieved a Http POST request at " + System.currentTimeMillis() + " ms");
-        }
         response=handlePut();
       }
  else       if (httpMethod.equals(HttpMethod.DELETE)) {
-        if (logger.isDebugEnabled()) {
-          logger.debug("Received a Http DELETE request at " + System.currentTimeMillis() + " ms");
-        }
         response=handleDelete();
       }
  else {
-        String errorMessage="Illegal Http request received at " + System.currentTimeMillis() + " ms";
+        String errorMessage="Illegal Http Admin request received";
         logger.error(errorMessage);
-        RestErrorHandler.writeErrorResponse(messageEvent,BAD_REQUEST,errorMessage);
-        return;
+        response=sendResponse(BAD_REQUEST,errorMessage);
       }
       messageEvent.getChannel().write(response);
     }
