@@ -1,4 +1,38 @@
 {
   logger.info("messageReceived!! (omg)");
-  sendResponse(messageEvent);
+  if (!readingChunks) {
+    HttpRequest request=this.request=(HttpRequest)messageEvent.getMessage();
+    String requestURI=this.request.getUri();
+    if (logger.isDebugEnabled()) {
+      logger.debug("Request URI: " + requestURI);
+    }
+    if (request.isChunked()) {
+      readingChunks=true;
+    }
+ else {
+      HttpResponse response;
+      HttpMethod httpMethod=request.getMethod();
+      if (httpMethod.equals(HttpMethod.GET)) {
+        response=handleGet();
+      }
+ else       if (httpMethod.equals(HttpMethod.POST)) {
+        response=handlePut();
+      }
+ else       if (httpMethod.equals(HttpMethod.DELETE)) {
+        response=handleDelete();
+      }
+ else {
+        String errorMessage="Illegal Http Admin request received";
+        logger.error(errorMessage);
+        response=sendResponse(BAD_REQUEST,errorMessage);
+      }
+      messageEvent.getChannel().write(response);
+    }
+  }
+ else {
+    HttpChunk chunk=(HttpChunk)messageEvent.getMessage();
+    if (chunk.isLast()) {
+      readingChunks=false;
+    }
+  }
 }

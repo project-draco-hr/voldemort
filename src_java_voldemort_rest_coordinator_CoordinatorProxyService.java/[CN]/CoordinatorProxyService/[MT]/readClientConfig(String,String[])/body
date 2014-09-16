@@ -3,11 +3,11 @@
   Map<String,SocketStoreClientFactory> storeFactoryMap=new HashMap<String,SocketStoreClientFactory>();
   try {
     line=Joiner.on(" ").join(IOUtils.readLines(new FileReader(new File(configFilePath)))).trim();
-    Map<String,Properties> mapStoreToProps=readMultipleClientConfigAvro(line);
+    Map<String,Properties> mapStoreToProps=ClientConfigUtil.readMultipleClientConfigAvro(line);
     for (    String storeName : mapStoreToProps.keySet()) {
       Properties props=mapStoreToProps.get(storeName);
       ClientConfig fatClientConfig=new ClientConfig(props);
-      fatClientConfig.setBootstrapUrls(bootstrapURLs).setEnableCompressionLayer(false).setEnableSerializationLayer(false).enableDefaultClient(true).setEnableLazy(false).setIdentifierString(props.getProperty(IDENTIFIER_STRING_KEY,null));
+      fatClientConfig.setBootstrapUrls(bootstrapURLs).setEnableCompressionLayer(false).setEnableSerializationLayer(false).enableDefaultClient(true).setEnableLazy(false).setIdentifierString(props.getProperty(ClientConfigUtil.IDENTIFIER_STRING_KEY,null));
       logger.info("Creating a Fat client for store: " + storeName);
       logger.info("Using config: " + fatClientConfig);
       storeFactoryMap.put(storeName,new SocketStoreClientFactory(fatClientConfig));

@@ -1,0 +1,17 @@
+{
+  HttpResponse response=new DefaultHttpResponse(HTTP_1_1,responseCode);
+  response.setHeader(CONTENT_LENGTH,responseBody.length());
+  ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
+  try {
+    outputStream.write(responseBody.getBytes());
+  }
+ catch (  IOException e) {
+    logger.error("IOException while trying to write the outputStream for an admin response",e);
+    throw new RuntimeException(e);
+  }
+  ChannelBuffer responseContent=ChannelBuffers.dynamicBuffer();
+  responseContent.writeBytes(outputStream.toByteArray());
+  response.setContent(responseContent);
+  logger.debug("Sent " + response);
+  return response;
+}
