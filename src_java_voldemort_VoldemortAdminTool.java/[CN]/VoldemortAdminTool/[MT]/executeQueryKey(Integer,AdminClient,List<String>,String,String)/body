@@ -108,62 +108,72 @@ catch (    IOException io) {
       return;
     }
     boolean printedKey=false;
+    List<Entry<List<Versioned<byte[]>>,List<Integer>>> nodeValues=new ArrayList<Entry<List<Versioned<byte[]>>,List<Integer>>>();
     for (    final Integer queryNodeId : queryingNodes) {
       Iterator<QueryKeyResult> iterator;
       iterator=adminClient.streamingOps.queryKeys(queryNodeId,storeName,Arrays.asList(key).iterator());
       final StringWriter stringWriter=new StringWriter();
       QueryKeyResult queryKeyResult=iterator.next();
-      byte[] keyBytes=queryKeyResult.getKey().get();
-      Object keyObject=keySerializer.toObject((null == keyCompressionStrategy) ? keyBytes : keyCompressionStrategy.inflate(keyBytes));
       if (!printedKey) {
-        out.write("KEY_BYTES\n====================================\n");
-        out.write(queryKeyResult.getKey().toString());
-        out.write("\n====================================\n");
-        out.write("KEY_TEXT\n====================================\n");
-        if (keyObject instanceof GenericRecord) {
-          out.write(keyObject.toString());
-        }
- else {
-          new JsonFactory(new ObjectMapper()).createJsonGenerator(out).writeObject(keyObject);
-        }
-        out.write("\n====================================\n\n");
+        byte[] keyBytes=queryKeyResult.getKey().get();
+        Object keyObject=keySerializer.toObject((null == keyCompressionStrategy) ? keyBytes : keyCompressionStrategy.inflate(keyBytes));
+        writeVoldKeyOrValueInternal(keyBytes,keySerializer,keyCompressionStrategy,"KEY",out);
         printedKey=true;
       }
-      out.write(String.format("\nQueried node %d on store %s\n",queryNodeId,storeName));
       if (queryKeyResult.hasValues() && queryKeyResult.getValues().size() > 0) {
+        int elementId=-1;
+        for (int i=0; i < nodeValues.size(); i++) {
+          if (Objects.equal(nodeValues.get(i).getKey(),queryKeyResult.getValues())) {
+            elementId=i;
+            break;
+          }
+        }
+        if (elementId == -1) {
+          ArrayList<Integer> nodes=new ArrayList<Integer>();
+          nodes.add(queryNodeId);
+          nodeValues.add(new AbstractMap.SimpleEntry<List<Versioned<byte[]>>,List<Integer>>(queryKeyResult.getValues(),nodes));
+        }
+ else {
+          nodeValues.get(elementId).getValue().add(queryNodeId);
+        }
+        out.write(String.format("\nQueried node %d on store %s\n",queryNodeId,storeName));
         int versionCount=0;
-        out.write("VALUE " + versionCount + "\n");
+        if (queryKeyResult.getValues().size() > 1) {
+          out.write("VALUE " + versionCount + "\n");
+        }
         for (        Versioned<byte[]> versioned : queryKeyResult.getValues()) {
           VectorClock version=(VectorClock)versioned.getVersion();
           out.write("VECTOR_CLOCK_BYTE: " + ByteUtils.toHexString(version.toBytes()) + "\n");
           out.write("VECTOR_CLOCK_TEXT: " + version.toString() + '['+ new Date(version.getTimestamp()).toString()+ "]\n");
           byte[] valueBytes=versioned.getValue();
-          out.write("VALUE_BYTE\n====================================\n");
-          out.write(ByteUtils.toHexString(valueBytes));
-          out.write("\n====================================\n");
-          out.write("VALUE_TEXT\n====================================\n");
-          Object valueObject=valueSerializer.toObject((null == valueCompressionStrategy) ? valueBytes : valueCompressionStrategy.inflate(valueBytes));
-          if (valueObject instanceof GenericRecord) {
-            out.write(valueObject.toString());
-          }
- else {
-            new JsonFactory(new ObjectMapper()).createJsonGenerator(out).writeObject(valueObject);
-          }
-          out.write("\n====================================\n");
+          writeVoldKeyOrValueInternal(valueBytes,valueSerializer,valueCompressionStrategy,"VALUE",out);
           versionCount++;
         }
       }
- else {
-        out.write("VALUE_RESPONSE\n====================================\n");
-        if (queryKeyResult.hasException()) {
+ else       if (queryKeyResult.hasException()) {
+        boolean isInvalidMetadataException=queryKeyResult.getException() instanceof InvalidMetadataException;
+        if (!isInvalidMetadataException || queryingNodes.size() == 1) {
+          out.write(String.format("\nNode %d on store %s returned exception\n",queryNodeId,storeName));
           out.write(queryKeyResult.getException().toString());
+          out.write("\n====================================\n");
         }
+      }
  else {
-          out.write("null");
+        if (queryingNodes.size() == 1) {
+          out.write("\nNode %d on store %s returned NULL\n");
+          out.write("\n====================================\n");
         }
-        out.write("\n====================================\n");
       }
       out.flush();
     }
+    out.write("\n====================================\n");
+    for (    Map.Entry<List<Versioned<byte[]>>,List<Integer>> nodeValue : nodeValues) {
+      out.write("Nodes with same Value " + Arrays.toString(nodeValue.getValue().toArray()));
+      out.write("\n====================================\n");
+    }
+    if (nodeValues.size() > 1) {
+      out.write("\n*** Multiple (" + nodeValues.size() + ") versions of key/value exist for the key ***\n");
+    }
+    out.flush();
   }
 }
