@@ -1,0 +1,18 @@
+{
+  logger.info("Received a Http GET Admin request");
+  String response;
+  if (storeList == null || storeList.isEmpty()) {
+    response=StoreClientConfigService.getAllConfigs();
+  }
+ else {
+    response=StoreClientConfigService.getSpecificConfigs(storeList);
+  }
+  HttpResponseStatus responseStatus;
+  if (response.contains(StoreClientConfigService.ERROR_MESSAGE_PARAM_KEY) && response.contains(StoreClientConfigService.STORE_NOT_FOUND_ERROR)) {
+    responseStatus=NOT_FOUND;
+  }
+ else {
+    responseStatus=OK;
+  }
+  return sendResponse(responseStatus,response);
+}

@@ -6,9 +6,14 @@
       firstProp=false;
     }
  else {
-      avroConfig=avroConfig + ", ";
+      avroConfig=avroConfig + ",\n";
     }
-    avroConfig=avroConfig + "\"" + key+ "\": \""+ props.getProperty(key)+ "\"";
+    avroConfig=avroConfig + "\t\t\"" + key+ "\": \""+ props.getProperty(key)+ "\"";
   }
-  return "{" + avroConfig + "}";
+  if (avroConfig.isEmpty()) {
+    return "{}";
+  }
+ else {
+    return "{\n" + avroConfig + "\n\t}";
+  }
 }
