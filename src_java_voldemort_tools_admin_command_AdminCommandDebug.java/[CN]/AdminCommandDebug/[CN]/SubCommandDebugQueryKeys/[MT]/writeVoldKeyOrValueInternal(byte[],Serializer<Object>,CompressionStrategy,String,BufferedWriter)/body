@@ -1,0 +1,18 @@
+{
+  out.write(prefix + "_BYTES\n====================================\n");
+  out.write(ByteUtils.toHexString(input));
+  out.write("\n====================================\n");
+  try {
+    Object inputObject=serializer.toObject((null == compressionStrategy) ? input : compressionStrategy.inflate(input));
+    out.write(prefix + "_TEXT\n====================================\n");
+    if (inputObject instanceof GenericRecord) {
+      out.write(inputObject.toString());
+    }
+ else {
+      new JsonFactory(new ObjectMapper()).createJsonGenerator(out).writeObject(inputObject);
+    }
+    out.write("\n====================================\n\n");
+  }
+ catch (  SerializationException e) {
+  }
+}

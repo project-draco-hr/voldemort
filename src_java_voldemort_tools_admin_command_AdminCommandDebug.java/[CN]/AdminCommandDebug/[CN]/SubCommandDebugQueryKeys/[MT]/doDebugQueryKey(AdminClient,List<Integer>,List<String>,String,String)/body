@@ -1,18 +1,5 @@
 {
-  List<Integer> queryingNodes=new ArrayList<Integer>();
-  if (nodeId < 0) {
-    for (    Node node : adminClient.getAdminClientCluster().getNodes()) {
-      queryingNodes.add(node.getId());
-    }
-  }
- else {
-    queryingNodes.add(nodeId);
-  }
-  List<StoreDefinition> storeDefinitionList=getStoreDefinitions(adminClient,nodeId);
-  Map<String,StoreDefinition> storeDefinitions=new HashMap<String,StoreDefinition>();
-  for (  StoreDefinition storeDef : storeDefinitionList) {
-    storeDefinitions.put(storeDef.getName(),storeDef);
-  }
+  Map<String,StoreDefinition> storeDefinitions=AdminToolUtils.getUserStoreDefMapOnNode(adminClient,queryingNodes.get(0));
   BufferedWriter out=new BufferedWriter(new OutputStreamWriter(System.out));
   for (  final String storeName : storeNames) {
     StoreDefinition storeDefinition=storeDefinitions.get(storeName);
@@ -69,7 +56,7 @@
     out.write("\n");
     ByteArray key;
     try {
-      if (keyFormat.equals("readable")) {
+      if (keyFormat.equals(AdminParserUtils.OPT_JSON)) {
         Object keyObject;
         String keySerializerName=keySerializerDef.getName();
         if (isAvroSchema(keySerializerName)) {

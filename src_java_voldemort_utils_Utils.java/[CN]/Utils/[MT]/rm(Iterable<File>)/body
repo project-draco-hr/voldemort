@@ -2,7 +2,13 @@
   if (files != null) {
     for (    File f : files) {
       if (f.isDirectory()) {
-        rm(Arrays.asList(f.listFiles()));
+        File[] contents=null;
+        for (int i=0; contents == null && i < 2; i++) {
+          contents=f.listFiles();
+        }
+        if (contents != null) {
+          rm(Arrays.asList(contents));
+        }
         f.delete();
       }
  else {
