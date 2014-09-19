@@ -1,0 +1,15 @@
+{
+  StoreDefinitionUtils.validateSchemasAsNeeded(storeDefs);
+  for (  Integer nodeId : nodeIds) {
+    logger.info("Updating stores.xml for " + currentCluster.getNodeById(nodeId).getHost() + ":"+ nodeId);
+    VectorClock oldClock=(VectorClock)metadataMgmtOps.getRemoteStoreDefList(nodeId).getVersion();
+    Versioned<String> value=new Versioned<String>(storeMapper.writeStoreList(storeDefs),oldClock.incremented(nodeId,1));
+    ByteArray keyBytes=new ByteArray(ByteUtils.getBytes(MetadataStore.STORES_KEY,"UTF-8"));
+    Versioned<byte[]> valueBytes=new Versioned<byte[]>(ByteUtils.getBytes(value.getValue(),"UTF-8"),value.getVersion());
+    VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.UPDATE_STORE_DEFINITIONS).setUpdateMetadata(VAdminProto.UpdateMetadataRequest.newBuilder().setKey(ByteString.copyFrom(keyBytes.get())).setVersioned(ProtoUtils.encodeVersioned(valueBytes)).build()).build();
+    VAdminProto.UpdateMetadataResponse.Builder response=rpcOps.sendAndReceive(nodeId,request,VAdminProto.UpdateMetadataResponse.newBuilder());
+    if (response.hasError()) {
+      helperOps.throwException(response.getError());
+    }
+  }
+}
