@@ -1,0 +1,10 @@
+{
+  String putConfigAvro="{\"test\": {\"connection_timeout_ms\": \"500\", \"socket_timeout_ms\": \"1500\"}}";
+  String getConfigAvro;
+  getConfigAvro=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
+  adminClient.deleteStoreClientConfig(Arrays.asList(STORE_NAME),ADMIN_URL);
+  getConfigAvro=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
+  adminClient.putStoreClientConfigString(putConfigAvro,ADMIN_URL);
+  getConfigAvro=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
+  assertEquals(putConfigAvro,getConfigAvro);
+}
