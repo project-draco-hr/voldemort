@@ -3,28 +3,36 @@
   if (!readingChunks) {
     HttpRequest request=this.request=(HttpRequest)messageEvent.getMessage();
     String requestURI=this.request.getUri();
-    if (logger.isDebugEnabled()) {
-      logger.debug("Request URI: " + requestURI);
-    }
+    logger.debug("Admin Request URI: " + requestURI);
     if (request.isChunked()) {
       readingChunks=true;
     }
  else {
+      String[] requestUriSegments=requestURI.split("/");
       HttpResponse response;
-      HttpMethod httpMethod=request.getMethod();
-      if (httpMethod.equals(HttpMethod.GET)) {
-        response=handleGet();
-      }
- else       if (httpMethod.equals(HttpMethod.POST)) {
-        response=handlePut();
-      }
- else       if (httpMethod.equals(HttpMethod.DELETE)) {
-        response=handleDelete();
+      if (requestUriSegments.length > 0 && requestUriSegments[1].equals(STORE_OPS_NAMESPACE)) {
+        List<String> storeList=null;
+        if (requestUriSegments.length > 2) {
+          String csvStoreList=requestUriSegments[2];
+          String[] storeArray=csvStoreList.split(",");
+          storeList=Lists.newArrayList(storeArray);
+        }
+        HttpMethod httpMethod=request.getMethod();
+        if (httpMethod.equals(HttpMethod.GET)) {
+          response=handleGet(storeList);
+        }
+ else         if (httpMethod.equals(HttpMethod.POST)) {
+          response=handlePut();
+        }
+ else         if (httpMethod.equals(HttpMethod.DELETE)) {
+          response=handleDelete();
+        }
+ else {
+          response=handleBadRequest("Unsupported HTTP method. Only GET, POST and DELETE are supported.");
+        }
       }
  else {
-        String errorMessage="Illegal Http Admin request received";
-        logger.error(errorMessage);
-        response=sendResponse(BAD_REQUEST,errorMessage);
+        response=handleBadRequest("Unsupported namespace. Only /" + STORE_OPS_NAMESPACE + "/ is supported.");
       }
       messageEvent.getChannel().write(response);
     }
