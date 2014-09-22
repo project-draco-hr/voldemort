@@ -1,0 +1,17 @@
+{
+  Map<String,Properties> mapStoreToProps1=readMultipleClientConfigAvro(configAvro1);
+  Map<String,Properties> mapStoreToProps2=readMultipleClientConfigAvro(configAvro2);
+  Set<String> keySet1=mapStoreToProps1.keySet();
+  Set<String> keySet2=mapStoreToProps2.keySet();
+  if (!keySet1.equals(keySet2)) {
+    return false;
+  }
+  for (  String storeName : keySet1) {
+    Properties props1=mapStoreToProps1.get(storeName);
+    Properties props2=mapStoreToProps2.get(storeName);
+    if (!props1.equals(props2)) {
+      return false;
+    }
+  }
+  return true;
+}
