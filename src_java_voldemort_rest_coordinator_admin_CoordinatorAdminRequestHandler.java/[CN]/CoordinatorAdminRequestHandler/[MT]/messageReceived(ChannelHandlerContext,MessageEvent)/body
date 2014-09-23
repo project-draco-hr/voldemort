@@ -22,10 +22,17 @@
           response=handleGet(storeList);
         }
  else         if (httpMethod.equals(HttpMethod.POST)) {
-          response=handlePut();
+          Map<String,Properties> configsToPut=Maps.newHashMap();
+          ChannelBuffer content=this.request.getContent();
+          if (content != null) {
+            byte[] postBody=new byte[content.capacity()];
+            content.readBytes(postBody);
+            configsToPut=ClientConfigUtil.readMultipleClientConfigAvro(new String(postBody));
+          }
+          response=handlePut(configsToPut);
         }
  else         if (httpMethod.equals(HttpMethod.DELETE)) {
-          response=handleDelete();
+          response=handleDelete(storeList);
         }
  else {
           response=handleBadRequest("Unsupported HTTP method. Only GET, POST and DELETE are supported.");

@@ -1,0 +1,23 @@
+{
+  Map<String,Properties> allConfigs=getAllConfigsImpl();
+  Map<String,Properties> newConfigs=Maps.newHashMap(allConfigs);
+  Map<String,Properties> response=Maps.newHashMap();
+  for (  String storeNameToPut : configsToPut.keySet()) {
+    if (allConfigs.containsKey(storeNameToPut)) {
+      Properties existingProperties=allConfigs.get(storeNameToPut);
+      if (existingProperties.equals(configsToPut.get(storeNameToPut))) {
+        response.put(storeNameToPut,STORE_UNCHANGED_PROPS);
+      }
+ else {
+        newConfigs.put(storeNameToPut,configsToPut.get(storeNameToPut));
+        response.put(storeNameToPut,STORE_UPDATED_PROPS);
+      }
+    }
+ else {
+      newConfigs.put(storeNameToPut,configsToPut.get(storeNameToPut));
+      response.put(storeNameToPut,STORE_CREATED_PROPS);
+    }
+  }
+  persistNewConfigFile(newConfigs);
+  return response;
+}

@@ -1,9 +1,10 @@
 {
   try {
-    return Joiner.on("\n").join(IOUtils.readLines(new FileReader(new File(coordinatorConfig.getFatClientConfigPath())))).trim();
+    String rawConfigContent=Joiner.on("\n").join(IOUtils.readLines(new FileReader(getConfigFile()))).trim();
+    return ClientConfigUtil.readMultipleClientConfigAvro(rawConfigContent);
   }
  catch (  IOException e) {
-    logger.error("Problem reading the config file:\n",e);
-    throw new RuntimeException("Problem reading the config file",e);
+    logger.error(PROBLEM_READING_CONFIG_FILE,e);
+    throw new RuntimeException(PROBLEM_READING_CONFIG_FILE,e);
   }
 }

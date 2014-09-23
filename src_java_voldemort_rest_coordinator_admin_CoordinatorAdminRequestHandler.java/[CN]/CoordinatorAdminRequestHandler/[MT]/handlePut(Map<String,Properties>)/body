@@ -1,0 +1,12 @@
+{
+  logger.info("Received a Http POST Admin request");
+  String response=StoreClientConfigService.putConfigs(configsToPut);
+  HttpResponseStatus responseStatus;
+  if (response.contains(StoreClientConfigService.ERROR_MESSAGE_PARAM_KEY)) {
+    responseStatus=BAD_REQUEST;
+  }
+ else {
+    responseStatus=OK;
+  }
+  return sendResponse(responseStatus,response);
+}
