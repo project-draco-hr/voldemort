@@ -1,9 +1,7 @@
 {
-  String line;
   Map<String,SocketStoreClientFactory> storeFactoryMap=new HashMap<String,SocketStoreClientFactory>();
   try {
-    line=Joiner.on(" ").join(IOUtils.readLines(new FileReader(new File(configFilePath)))).trim();
-    Map<String,Properties> mapStoreToProps=ClientConfigUtil.readMultipleClientConfigAvro(line);
+    Map<String,Properties> mapStoreToProps=StoreClientConfigService.getAllConfigsMap();
     for (    String storeName : mapStoreToProps.keySet()) {
       Properties props=mapStoreToProps.get(storeName);
       ClientConfig fatClientConfig=new ClientConfig(props);
@@ -13,13 +11,7 @@
       storeFactoryMap.put(storeName,new SocketStoreClientFactory(fatClientConfig));
     }
   }
- catch (  FileNotFoundException e) {
-    e.printStackTrace();
-  }
-catch (  IOException e) {
-    e.printStackTrace();
-  }
-catch (  Exception e) {
+ catch (  Exception e) {
     e.printStackTrace();
   }
   return storeFactoryMap;
