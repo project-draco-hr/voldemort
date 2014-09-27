@@ -1,0 +1,16 @@
+{
+  Map<String,Properties> allConfigs=getAllConfigsMap();
+  Map<String,Properties> newConfigs=Maps.newHashMap(allConfigs);
+  Map<String,Properties> response=Maps.newHashMap();
+  for (  String storeNameToDelete : storeNames) {
+    if (allConfigs.containsKey(storeNameToDelete)) {
+      newConfigs.remove(storeNameToDelete);
+      response.put(storeNameToDelete,STORE_DELETED_PROPS);
+    }
+ else {
+      response.put(storeNameToDelete,STORE_ALREADY_DOES_NOT_EXIST_PROPS);
+    }
+  }
+  persistNewConfigFile(newConfigs);
+  return response;
+}
