@@ -2,8 +2,19 @@
   Map<String,Properties> allConfigs=getAllConfigsMap();
   Map<String,Properties> newConfigs=Maps.newHashMap(allConfigs);
   Map<String,Properties> response=Maps.newHashMap();
+  StoreClientConfigServiceListener listener=this.storeClientConfigListeners.get(ServiceType.COORDINATOR_PROXY.getDisplayName());
   for (  String storeNameToDelete : storeNames) {
     if (allConfigs.containsKey(storeNameToDelete)) {
+      try {
+        listener.onStoreConfigDelte(storeNameToDelete);
+      }
+ catch (      Exception e) {
+        String errorMessage="Got exception when trying to remove the fat client for store " + storeNameToDelete + ". Exception Message - "+ e.getMessage();
+        logger.debug(errorMessage);
+        STORE_NOT_DELETED_PROPS.put(ERROR_MESSAGE_PARAM_KEY,errorMessage);
+        response.put(storeNameToDelete,STORE_NOT_DELETED_PROPS);
+        continue;
+      }
       newConfigs.remove(storeNameToDelete);
       response.put(storeNameToDelete,STORE_DELETED_PROPS);
     }

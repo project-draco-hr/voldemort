@@ -2,6 +2,7 @@
   Map<String,Properties> allConfigs=getAllConfigsMap();
   Map<String,Properties> newConfigs=Maps.newHashMap(allConfigs);
   Map<String,Properties> response=Maps.newHashMap();
+  StoreClientConfigServiceListener listener=this.storeClientConfigListeners.get(ServiceType.COORDINATOR_PROXY.getDisplayName());
   for (  String storeNameToPut : configsToPut.keySet()) {
     if (allConfigs.containsKey(storeNameToPut)) {
       Properties existingProperties=allConfigs.get(storeNameToPut);
@@ -9,11 +10,36 @@
         response.put(storeNameToPut,STORE_UNCHANGED_PROPS);
       }
  else {
+        try {
+          listener.onStoreConfigAddOrUpdate(storeNameToPut,configsToPut.get(storeNameToPut));
+        }
+ catch (        Exception e) {
+          String errorMessage="Got exception when trying to update the fat client for store " + storeNameToPut + " - "+ e.getMessage();
+          logger.error(errorMessage);
+          STORE_NOT_UPDATED_PROPS.put(ERROR_MESSAGE_PARAM_KEY,errorMessage);
+          response.put(storeNameToPut,STORE_NOT_UPDATED_PROPS);
+          continue;
+        }
         newConfigs.put(storeNameToPut,configsToPut.get(storeNameToPut));
         response.put(storeNameToPut,STORE_UPDATED_PROPS);
       }
     }
  else {
+      try {
+        listener.onStoreConfigAddOrUpdate(storeNameToPut,configsToPut.get(storeNameToPut));
+      }
+ catch (      BootstrapFailureException bootstrapException) {
+        logger.error("The store " + storeNameToPut + " is not served by Voldemort currently. Exception Message - "+ bootstrapException.getMessage());
+        response.put(storeNameToPut,STORE_NOT_SERVED_BY_VOLDEMORT_PROPS);
+        continue;
+      }
+catch (      Exception e) {
+        String errorMessage="Got exception when trying to create fat client for store " + storeNameToPut + ". Exception Message - "+ e.getMessage();
+        logger.error(errorMessage);
+        STORE_NOT_CREATED_PROPS.put(ERROR_MESSAGE_PARAM_KEY,errorMessage);
+        response.put(storeNameToPut,STORE_NOT_CREATED_PROPS);
+        continue;
+      }
       newConfigs.put(storeNameToPut,configsToPut.get(storeNameToPut));
       response.put(storeNameToPut,STORE_CREATED_PROPS);
     }
