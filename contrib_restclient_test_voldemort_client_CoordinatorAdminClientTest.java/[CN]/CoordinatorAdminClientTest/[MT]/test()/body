@@ -1,11 +1,14 @@
 {
-  String putConfigAvro="{\"test\": {\"connection_timeout_ms\": \"1111\", \"socket_timeout_ms\": \"1024\"}}";
-  String getConfigAvro1, getConfigAvro2;
-  getConfigAvro1=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
-  adminClient.deleteStoreClientConfig(Arrays.asList(STORE_NAME),ADMIN_URL);
-  getConfigAvro2=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
-  assertFalse(ClientConfigUtil.compareMultipleClientConfigAvro(getConfigAvro1,getConfigAvro2));
-  adminClient.putStoreClientConfigString(putConfigAvro,ADMIN_URL);
-  getConfigAvro1=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
-  assertTrue(ClientConfigUtil.compareMultipleClientConfigAvro(putConfigAvro,getConfigAvro1));
+  String configAvro1="{\"test\": {\"connection_timeout_ms\": \"1111\", \"socket_timeout_ms\": \"1024\"}}";
+  String configAvro2="{\"test\": {\"connection_timeout_ms\": \"1111\", \"socket_timeout_ms\": \"1024\"}}";
+  String getConfigAvro;
+  assertTrue(adminClient.putStoreClientConfigString(configAvro1,ADMIN_URL));
+  getConfigAvro=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
+  assertTrue(ClientConfigUtil.compareMultipleClientConfigAvro(configAvro1,getConfigAvro));
+  assertTrue(adminClient.putStoreClientConfigString(configAvro2,ADMIN_URL));
+  getConfigAvro=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
+  assertTrue(ClientConfigUtil.compareMultipleClientConfigAvro(configAvro2,getConfigAvro));
+  assertTrue(adminClient.deleteStoreClientConfig(Arrays.asList(STORE_NAME),ADMIN_URL));
+  getConfigAvro=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
+  assertFalse(ClientConfigUtil.compareMultipleClientConfigAvro(configAvro2,getConfigAvro));
 }

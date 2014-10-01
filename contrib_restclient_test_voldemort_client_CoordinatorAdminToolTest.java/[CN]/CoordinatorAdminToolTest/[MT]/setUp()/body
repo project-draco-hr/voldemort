@@ -14,25 +14,15 @@
   CoordinatorConfig coordinatorConfig=new CoordinatorConfig();
   coordinatorConfig.setBootstrapURLs(bootstrapUrls).setCoordinatorCoreThreads(100).setCoordinatorMaxThreads(100).setFatClientConfigPath(FAT_CLIENT_CONFIG_PATH).setServerPort(SERVER_PORT).setAdminPort(ADMIN_PORT);
   try {
-    StoreClientConfigService storeClientConfigs=null;
-switch (coordinatorConfig.getFatClientConfigSource()) {
-case FILE:
-      storeClientConfigs=new FileBasedStoreClientConfigService(coordinatorConfig);
-    break;
-case ZOOKEEPER:
-  throw new UnsupportedOperationException("Zookeeper-based configs are not implemented yet!");
-default :
-storeClientConfigs=null;
-}
-coordinator=new CoordinatorAdminService(coordinatorConfig,storeClientConfigs);
-coordinator.start();
-}
- catch (Exception e) {
-e.printStackTrace();
-fail("Failure to start the Coordinator");
-}
-Properties props=new Properties();
-props.setProperty(ClientConfig.BOOTSTRAP_URLS_PROPERTY,BOOTSTRAP_URL);
-props.setProperty(ClientConfig.ROUTING_TIMEOUT_MS_PROPERTY,"1500");
-this.adminClient=new CoordinatorAdminClient(new RESTClientConfig(props));
+    coordinator=new CoordinatorServer(coordinatorConfig);
+    coordinator.start();
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+    fail("Failure to start the Coordinator");
+  }
+  Properties props=new Properties();
+  props.setProperty(ClientConfig.BOOTSTRAP_URLS_PROPERTY,BOOTSTRAP_URL);
+  props.setProperty(ClientConfig.ROUTING_TIMEOUT_MS_PROPERTY,"1500");
+  this.adminClient=new CoordinatorAdminClient(new RESTClientConfig(props));
 }

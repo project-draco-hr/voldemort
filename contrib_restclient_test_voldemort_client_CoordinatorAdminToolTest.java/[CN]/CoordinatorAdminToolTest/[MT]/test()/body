@@ -1,21 +1,29 @@
 {
-  String putConfigAvro="{\"test\": {\"connection_timeout_ms\": \"1111\", \"socket_timeout_ms\": \"1024\"}}";
-  String getConfigAvro1, getConfigAvro2;
-  getConfigAvro1=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
+  String configAvro1="{\"test\": {\"connection_timeout_ms\": \"1111\", \"socket_timeout_ms\": \"1024\"}}";
+  String configAvro2="{\"test\": {\"connection_timeout_ms\": \"1111\", \"socket_timeout_ms\": \"1024\"}}";
+  String getConfigAvro;
+  try {
+    CoordinatorAdminCommand.executeCommand(new String[]{"put","-d",configAvro1,"-u",ADMIN_URL,"--confirm"});
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+  getConfigAvro=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
+  assertTrue(ClientConfigUtil.compareMultipleClientConfigAvro(configAvro1,getConfigAvro));
+  try {
+    CoordinatorAdminCommand.executeCommand(new String[]{"put","-d",configAvro2,"-u",ADMIN_URL,"--confirm"});
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+  getConfigAvro=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
+  assertTrue(ClientConfigUtil.compareMultipleClientConfigAvro(configAvro2,getConfigAvro));
   try {
     CoordinatorAdminCommand.executeCommand(new String[]{"delete","-s",STORE_NAME,"-u",ADMIN_URL,"--confirm"});
   }
  catch (  Exception e) {
     e.printStackTrace();
   }
-  getConfigAvro2=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
-  assertFalse(ClientConfigUtil.compareMultipleClientConfigAvro(getConfigAvro1,getConfigAvro2));
-  try {
-    CoordinatorAdminCommand.executeCommand(new String[]{"put","-d",putConfigAvro,"-u",ADMIN_URL,"--confirm"});
-  }
- catch (  Exception e) {
-    e.printStackTrace();
-  }
-  getConfigAvro1=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
-  assertTrue(ClientConfigUtil.compareMultipleClientConfigAvro(putConfigAvro,getConfigAvro1));
+  getConfigAvro=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
+  assertFalse(ClientConfigUtil.compareMultipleClientConfigAvro(configAvro2,getConfigAvro));
 }
