@@ -1,42 +1,22 @@
 {
-  String result=null;
   try {
-    RestRequestBuilder requestBuilder=new RestRequestBuilder(new URI(coordinatorUrl + URL_SEPARATOR + STORE_CLIENT_CONFIG_OPS+ URL_SEPARATOR+ Joiner.on(",").join(storeNames)));
+    StringBuilder URIStringBuilder=new StringBuilder().append(coordinatorUrl).append(URL_SEPARATOR).append(STORE_CLIENT_CONFIG_OPS).append(URL_SEPARATOR).append(Joiner.on(",").join(storeNames));
+    RestRequestBuilder requestBuilder=new RestRequestBuilder(new URI(URIStringBuilder.toString()));
     String timeoutStr=Long.toString(this.config.getTimeoutConfig().getOperationTimeout(VoldemortOpCode.GET_OP_CODE));
-    requestBuilder.setMethod(GET);
+    requestBuilder.setMethod(requestType.GET.toString());
     requestBuilder.setHeader(RestMessageHeaders.X_VOLD_REQUEST_TIMEOUT_MS,timeoutStr);
-    requestBuilder.setHeader(RestMessageHeaders.X_VOLD_REQUEST_ORIGIN_TIME_MS,String.valueOf(System.currentTimeMillis()));
-    if (this.routingTypeCode != null) {
-      requestBuilder.setHeader(RestMessageHeaders.X_VOLD_ROUTING_TYPE_CODE,this.routingTypeCode);
-    }
-    if (this.zoneId != INVALID_ZONE_ID) {
-      requestBuilder.setHeader(RestMessageHeaders.X_VOLD_ZONE_ID,String.valueOf(this.zoneId));
-    }
+    requestBuilder=setCommonRequestHeader(requestBuilder);
     RestRequest request=requestBuilder.build();
     Future<RestResponse> future=client.restRequest(request);
     RestResponse response=future.get();
     ByteString entity=response.getEntity();
-    result=entity.asString("UTF-8");
+    return entity.asString("UTF-8");
   }
- catch (  ExecutionException e) {
+ catch (  Exception e) {
     if (e.getCause() instanceof RestException) {
-      RestException exception=(RestException)e.getCause();
-      if (logger.isDebugEnabled()) {
-        logger.debug("REST EXCEPTION STATUS : " + exception.getResponse().getStatus());
-      }
+      return ((RestException)e.getCause()).getResponse().getEntity().asString("UTF-8");
     }
- else {
-      throw new VoldemortException("Unknown HTTP request execution exception: " + e.getMessage(),e);
-    }
+    handleRequestAndResponseException(e);
   }
-catch (  InterruptedException e) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("Operation interrupted : " + e.getMessage(),e);
-    }
-    throw new VoldemortException("Operation interrupted exception: " + e.getMessage(),e);
-  }
-catch (  URISyntaxException e) {
-    throw new VoldemortException("Illegal HTTP URL" + e.getMessage(),e);
-  }
-  return result;
+  return null;
 }
