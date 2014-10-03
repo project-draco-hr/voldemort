@@ -1,0 +1,10 @@
+{
+  try {
+    String rawConfigContent=Joiner.on("\n").join(IOUtils.readLines(new FileReader(getConfigFile()))).trim();
+    return ClientConfigUtil.readMultipleClientConfigAvro(rawConfigContent);
+  }
+ catch (  IOException e) {
+    logger.error(PROBLEM_READING_CONFIG_FILE,e);
+    throw new RuntimeException(PROBLEM_READING_CONFIG_FILE,e);
+  }
+}

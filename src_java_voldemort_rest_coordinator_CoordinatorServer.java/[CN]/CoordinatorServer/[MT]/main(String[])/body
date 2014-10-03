@@ -1,0 +1,18 @@
+{
+  CoordinatorConfig config=null;
+  try {
+    if (args.length != 1) {
+      croak("USAGE: java " + CoordinatorProxyService.class.getName() + " <coordinator_config_file>");
+      System.exit(-1);
+    }
+    config=new CoordinatorConfig(new File(args[0]));
+  }
+ catch (  Exception e) {
+    logger.error(e);
+    Utils.croak("Error while loading configuration: " + e.getMessage());
+  }
+  final CoordinatorServer coordinatorServer=new CoordinatorServer(config);
+  if (!coordinatorServer.isStarted()) {
+    coordinatorServer.start();
+  }
+}

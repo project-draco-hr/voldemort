@@ -1,0 +1,55 @@
+{
+  OptionParser parser=getParser();
+  List<String> storeNames=null;
+  List<String> urls=null;
+  Boolean verbose=false;
+  OptionSet options=parser.parse(args);
+  if (options.has(CoordinatorAdminUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  CoordinatorAdminUtils.checkRequired(options,CoordinatorAdminUtils.OPT_URL);
+  CoordinatorAdminUtils.checkRequired(options,CoordinatorAdminUtils.OPT_STORE);
+  urls=(List<String>)options.valuesOf(CoordinatorAdminUtils.OPT_URL);
+  storeNames=(List<String>)options.valuesOf(CoordinatorAdminUtils.OPT_STORE);
+  if (options.has(OPT_VERBOSE)) {
+    verbose=true;
+  }
+  CoordinatorAdminClient client=new CoordinatorAdminClient();
+  Map<String,Map<String,String>> mapUrlToStoreToConfig=Maps.newHashMap();
+  for (  String url : urls) {
+    Map<String,String> mapStoreToConfig=client.getStoreClientConfigMap(storeNames,url);
+    mapUrlToStoreToConfig.put(url,mapStoreToConfig);
+  }
+  for (  String storeName : storeNames) {
+    System.out.println("Config for store \"" + storeName + "\"");
+    if (verbose) {
+      for (      String url : urls) {
+        String config=mapUrlToStoreToConfig.get(url).get(storeName);
+        System.out.println("  on host " + url + ":");
+        System.out.println(config);
+      }
+    }
+ else {
+      Map<String,List<String>> mapConfigToUrls=Maps.newHashMap();
+      for (      String url : urls) {
+        String config=mapUrlToStoreToConfig.get(url).get(storeName);
+        if (!mapConfigToUrls.containsKey(config)) {
+          mapConfigToUrls.put(config,new ArrayList<String>());
+        }
+        mapConfigToUrls.get(config).add(url);
+      }
+      if (!mapConfigToUrls.isEmpty()) {
+        Set<String> configs=mapConfigToUrls.keySet();
+        for (        String config : configs) {
+          List<String> urlList=mapConfigToUrls.get(config);
+          for (          String url : urlList) {
+            System.out.println("- on host " + url + ":");
+          }
+          System.out.println(config);
+        }
+      }
+    }
+    System.out.println();
+  }
+}

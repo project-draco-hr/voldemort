@@ -1,0 +1,28 @@
+{
+  if (e instanceof ExecutionException) {
+    if (e.getCause() instanceof RestException) {
+      RestException re=(RestException)e.getCause();
+      if (logger.isDebugEnabled()) {
+        logger.debug("REST Exception Status: " + re.getResponse().getStatus());
+      }
+    }
+ else {
+      throw new VoldemortException("Unknown HTTP request execution exception: " + e.getMessage(),e);
+    }
+  }
+ else   if (e instanceof InterruptedException) {
+    if (logger.isDebugEnabled()) {
+      logger.debug("Operation interrupted : " + e.getMessage(),e);
+    }
+    throw new VoldemortException("Operation interrupted exception: " + e.getMessage(),e);
+  }
+ else   if (e instanceof URISyntaxException) {
+    throw new VoldemortException("Illegal HTTP URL " + e.getMessage(),e);
+  }
+ else   if (e instanceof UnsupportedEncodingException) {
+    throw new VoldemortException("Illegal Encoding Type " + e.getMessage());
+  }
+ else {
+    throw new VoldemortException("Unknown exception: " + e.getMessage(),e);
+  }
+}

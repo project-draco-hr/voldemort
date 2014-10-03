@@ -1,0 +1,14 @@
+{
+  String newConfigFileContent=ClientConfigUtil.writeMultipleClientConfigAvro(newConfigs);
+  try {
+    File configFile=getConfigFile();
+    FileWriter fw=new FileWriter(configFile.getAbsoluteFile());
+    BufferedWriter bw=new BufferedWriter(fw);
+    bw.write(newConfigFileContent);
+    bw.close();
+  }
+ catch (  IOException e) {
+    logger.error(PROBLEM_WRITING_CONFIG_FILE,e);
+    throw new RuntimeException(PROBLEM_WRITING_CONFIG_FILE,e);
+  }
+}

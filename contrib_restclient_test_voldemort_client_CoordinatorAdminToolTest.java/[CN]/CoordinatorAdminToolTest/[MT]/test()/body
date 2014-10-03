@@ -1,0 +1,29 @@
+{
+  String configAvro1="{\"test\": {\"connection_timeout_ms\": \"1111\", \"socket_timeout_ms\": \"1024\"}}";
+  String configAvro2="{\"test\": {\"connection_timeout_ms\": \"2222\", \"socket_timeout_ms\": \"2048\"}}";
+  String getConfigAvro;
+  try {
+    CoordinatorAdminCommand.executeCommand(new String[]{"put","-d",configAvro1,"-u",ADMIN_URL,"--confirm"});
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+  getConfigAvro=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
+  assertTrue(ClientConfigUtil.compareMultipleClientConfigAvro(configAvro1,getConfigAvro));
+  try {
+    CoordinatorAdminCommand.executeCommand(new String[]{"put","-d",configAvro2,"-u",ADMIN_URL,"--confirm"});
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+  getConfigAvro=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
+  assertTrue(ClientConfigUtil.compareMultipleClientConfigAvro(configAvro2,getConfigAvro));
+  try {
+    CoordinatorAdminCommand.executeCommand(new String[]{"delete","-s",STORE_NAME,"-u",ADMIN_URL,"--confirm"});
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+  getConfigAvro=adminClient.getStoreClientConfigString(Arrays.asList(STORE_NAME),ADMIN_URL);
+  assertFalse(ClientConfigUtil.compareMultipleClientConfigAvro(configAvro2,getConfigAvro));
+}

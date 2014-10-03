@@ -1,0 +1,14 @@
+{
+  super(ServiceType.COORDINATOR_SERVER);
+switch (config.getFatClientConfigSource()) {
+case FILE:
+    storeClientConfigs=new FileBasedStoreClientConfigService(config);
+  break;
+case ZOOKEEPER:
+throw new UnsupportedOperationException("Zookeeper-based configs are not implemented yet!");
+default :
+storeClientConfigs=null;
+}
+this.config=config;
+this.services=createServices();
+}

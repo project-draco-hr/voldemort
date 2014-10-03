@@ -1,0 +1,15 @@
+{
+  String avroConfig="";
+  Boolean firstStore=true;
+  for (  String storeName : mapStoreToProps.keySet()) {
+    if (firstStore) {
+      firstStore=false;
+    }
+ else {
+      avroConfig=avroConfig + ",\n";
+    }
+    Properties props=mapStoreToProps.get(storeName);
+    avroConfig=avroConfig + "\t\"" + storeName+ "\": "+ writeSingleClientConfigAvro(props);
+  }
+  return "{\n" + avroConfig + "\n}";
+}

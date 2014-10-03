@@ -1,0 +1,59 @@
+{
+  if (!readingChunks) {
+    HttpRequest request=this.request=(HttpRequest)messageEvent.getMessage();
+    String requestURI=this.request.getUri();
+    if (logger.isDebugEnabled()) {
+      logger.debug("Admin Request URI: " + requestURI);
+    }
+    if (request.isChunked()) {
+      readingChunks=true;
+    }
+ else {
+      String[] requestUriSegments=requestURI.split("/");
+      HttpResponse response;
+      if (requestUriSegments.length > 0 && requestUriSegments[1].equals(STORE_OPS_NAMESPACE)) {
+        List<String> storeList=Lists.newArrayList();
+        if (requestUriSegments.length > 2) {
+          String csvStoreList=requestUriSegments[2];
+          String[] storeArray=csvStoreList.split(",");
+          storeList=Lists.newArrayList(storeArray);
+        }
+        HttpMethod httpMethod=request.getMethod();
+        if (httpMethod.equals(HttpMethod.GET)) {
+          response=handleGet(storeList);
+        }
+ else         if (httpMethod.equals(HttpMethod.POST)) {
+          Map<String,Properties> configsToPut=Maps.newHashMap();
+          ChannelBuffer content=this.request.getContent();
+          if (content != null) {
+            byte[] postBody=new byte[content.capacity()];
+            content.readBytes(postBody);
+            configsToPut=ClientConfigUtil.readMultipleClientConfigAvro(new String(postBody));
+          }
+          response=handlePut(configsToPut);
+        }
+ else         if (httpMethod.equals(HttpMethod.DELETE)) {
+          if (storeList.size() == 0) {
+            response=handleBadRequest("Cannot delete config for all stores. Please specify at least one store name.");
+          }
+ else {
+            response=handleDelete(storeList);
+          }
+        }
+ else {
+          response=handleBadRequest("Unsupported HTTP method. Only GET, POST and DELETE are supported.");
+        }
+      }
+ else {
+        response=handleBadRequest("Unsupported namespace. Only /" + STORE_OPS_NAMESPACE + "/ is supported.");
+      }
+      messageEvent.getChannel().write(response);
+    }
+  }
+ else {
+    HttpChunk chunk=(HttpChunk)messageEvent.getMessage();
+    if (chunk.isLast()) {
+      readingChunks=false;
+    }
+  }
+}

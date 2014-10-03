@@ -1,0 +1,22 @@
+{
+  try {
+    StringBuilder URIStringBuilder=new StringBuilder().append(coordinatorUrl).append(URL_SEPARATOR).append(STORE_CLIENT_CONFIG_OPS).append(URL_SEPARATOR).append(Joiner.on(",").join(storeNames));
+    RestRequestBuilder requestBuilder=new RestRequestBuilder(new URI(URIStringBuilder.toString()));
+    String timeoutStr=Long.toString(this.config.getTimeoutConfig().getOperationTimeout(VoldemortOpCode.GET_OP_CODE));
+    requestBuilder.setMethod(requestType.GET.toString());
+    requestBuilder.setHeader(RestMessageHeaders.X_VOLD_REQUEST_TIMEOUT_MS,timeoutStr);
+    requestBuilder=setCommonRequestHeader(requestBuilder);
+    RestRequest request=requestBuilder.build();
+    Future<RestResponse> future=client.restRequest(request);
+    RestResponse response=future.get();
+    ByteString entity=response.getEntity();
+    return entity.asString("UTF-8");
+  }
+ catch (  Exception e) {
+    if (e.getCause() instanceof RestException) {
+      return ((RestException)e.getCause()).getResponse().getEntity().asString("UTF-8");
+    }
+    handleRequestAndResponseException(e);
+  }
+  return null;
+}

@@ -1,0 +1,10 @@
+{
+  updateCoordinatorMetadataWithLatestState();
+  Map<String,Properties> storeClientConfigsMap=storeClientConfigs.getAllConfigsMap();
+  for (  StoreDefinition storeDef : this.coordinatorMetadata.getStoresDefs()) {
+    String storeName=storeDef.getName();
+    if (storeClientConfigsMap.get(storeName) != null) {
+      initializeFatClient(storeName,storeClientConfigsMap.get(storeName));
+    }
+  }
+}

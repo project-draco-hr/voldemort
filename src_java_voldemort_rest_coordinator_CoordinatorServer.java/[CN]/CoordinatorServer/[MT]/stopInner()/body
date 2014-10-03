@@ -1,0 +1,15 @@
+{
+  List<VoldemortException> exceptions=new ArrayList<VoldemortException>();
+  for (  VoldemortService service : Utils.reversed(services)) {
+    try {
+      service.stop();
+    }
+ catch (    VoldemortException e) {
+      exceptions.add(e);
+      logger.error(e);
+    }
+  }
+  if (exceptions.size() > 0) {
+    throw exceptions.get(0);
+  }
+}

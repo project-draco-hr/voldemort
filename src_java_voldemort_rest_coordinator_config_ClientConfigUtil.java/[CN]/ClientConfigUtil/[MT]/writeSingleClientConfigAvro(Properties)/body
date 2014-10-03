@@ -1,0 +1,19 @@
+{
+  String avroConfig="";
+  Boolean firstProp=true;
+  for (  String key : props.stringPropertyNames()) {
+    if (firstProp) {
+      firstProp=false;
+    }
+ else {
+      avroConfig=avroConfig + ",\n";
+    }
+    avroConfig=avroConfig + "\t\t\"" + key+ "\": \""+ props.getProperty(key)+ "\"";
+  }
+  if (avroConfig.isEmpty()) {
+    return "{}";
+  }
+ else {
+    return "{\n" + avroConfig + "\n\t}";
+  }
+}

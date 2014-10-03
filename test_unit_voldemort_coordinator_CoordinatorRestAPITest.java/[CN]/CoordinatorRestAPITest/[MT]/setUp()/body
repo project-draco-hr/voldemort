@@ -16,8 +16,18 @@
   System.out.println("\n\n************************ Starting the Coordinator *************************");
   config.setBootstrapURLs(bootstrapUrls);
   config.setFatClientConfigPath(FAT_CLIENT_CONFIG_FILE_PATH);
-  this.coordinator=new CoordinatorService(config);
-  if (!this.coordinator.isStarted()) {
-    this.coordinator.start();
-  }
+  StoreClientConfigService storeClientConfigs=null;
+switch (config.getFatClientConfigSource()) {
+case FILE:
+    storeClientConfigs=new FileBasedStoreClientConfigService(config);
+  break;
+case ZOOKEEPER:
+throw new UnsupportedOperationException("Zookeeper-based configs are not implemented yet!");
+default :
+storeClientConfigs=null;
+}
+this.coordinator=new CoordinatorProxyService(config,storeClientConfigs);
+if (!this.coordinator.isStarted()) {
+this.coordinator.start();
+}
 }

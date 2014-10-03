@@ -1,0 +1,15 @@
+{
+  Properties props=new Properties();
+  try {
+    JsonDecoder decoder=new JsonDecoder(CLIENT_CONFIG_AVRO_SCHEMA,configAvro);
+    GenericDatumReader<Object> datumReader=new GenericDatumReader<Object>(CLIENT_CONFIG_AVRO_SCHEMA);
+    Map<Utf8,Utf8> flowMap=(Map<Utf8,Utf8>)datumReader.read(null,decoder);
+    for (    Utf8 key : flowMap.keySet()) {
+      props.put(key.toString(),flowMap.get(key).toString());
+    }
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+  return props;
+}

@@ -1,0 +1,10 @@
+{
+  updateCoordinatorMetadataWithLatestState();
+  logger.info("Creating a Fat client for store: " + storeName);
+  SocketStoreClientFactory fatClientFactory=getFatClientFactory(this.coordinatorConfig.getBootstrapURLs(),storeClientProps);
+  if (this.fatClientMap == null) {
+    this.fatClientMap=new HashMap<String,DynamicTimeoutStoreClient<ByteArray,byte[]>>();
+  }
+  DynamicTimeoutStoreClient<ByteArray,byte[]> fatClient=new DynamicTimeoutStoreClient<ByteArray,byte[]>(storeName,fatClientFactory,1,this.coordinatorMetadata.getStoreDefs(),this.coordinatorMetadata.getClusterXmlStr());
+  this.fatClientMap.put(storeName,fatClient);
+}
