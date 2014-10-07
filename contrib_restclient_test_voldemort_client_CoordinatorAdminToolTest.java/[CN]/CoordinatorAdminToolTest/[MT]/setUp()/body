@@ -11,9 +11,11 @@
   socketUrl=servers[0].getIdentityNode().getSocketUrl().toString();
   List<String> bootstrapUrls=new ArrayList<String>();
   bootstrapUrls.add(socketUrl);
-  RestClientTestUtils.copyFile(FAT_CLIENT_CONFIG_PATH_ORIGINAL,FAT_CLIENT_CONFIG_PATH);
+  File src=new File(FAT_CLIENT_CONFIG_PATH_ORIGINAL);
+  COPY_OF_FAT_CLIENT_CONFIG_FILE=new File(TestUtils.createTempDir(),"clientConfigs_" + System.currentTimeMillis() + ".avro");
+  FileUtils.copyFile(src,COPY_OF_FAT_CLIENT_CONFIG_FILE);
   CoordinatorConfig coordinatorConfig=new CoordinatorConfig();
-  coordinatorConfig.setBootstrapURLs(bootstrapUrls).setCoordinatorCoreThreads(100).setCoordinatorMaxThreads(100).setFatClientConfigPath(FAT_CLIENT_CONFIG_PATH).setServerPort(SERVER_PORT).setAdminPort(ADMIN_PORT);
+  coordinatorConfig.setBootstrapURLs(bootstrapUrls).setCoordinatorCoreThreads(100).setCoordinatorMaxThreads(100).setFatClientConfigPath(COPY_OF_FAT_CLIENT_CONFIG_FILE.getAbsolutePath()).setServerPort(SERVER_PORT).setAdminPort(ADMIN_PORT);
   try {
     coordinator=new CoordinatorServer(coordinatorConfig);
     coordinator.start();
