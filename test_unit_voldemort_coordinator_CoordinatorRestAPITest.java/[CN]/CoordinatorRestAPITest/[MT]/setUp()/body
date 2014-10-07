@@ -9,6 +9,9 @@
   props.setProperty("testing.slow.queueing.put.ms","4");
   props.setProperty("testing.slow.queueing.delete.ms","4");
   ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,true,null,STORES_XML,props);
+  File src=new File(FAT_CLIENT_CONFIG_FILE_PATH_ORIGINAL);
+  File dest=new File(FAT_CLIENT_CONFIG_FILE_PATH);
+  FileUtils.copyFile(src,dest);
   CoordinatorConfig config=new CoordinatorConfig();
   List<String> bootstrapUrls=new ArrayList<String>();
   socketUrl=servers[0].getIdentityNode().getSocketUrl().toString();
