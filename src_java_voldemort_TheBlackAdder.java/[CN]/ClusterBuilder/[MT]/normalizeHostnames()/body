@@ -1,0 +1,20 @@
+{
+  LinkedList<Node> newNodes=new LinkedList<Node>();
+  int numChanged=0;
+  for (  Node node : cluster.getNodes()) {
+    String newHostname=node.getHost();
+    for (int i=0; i < normalizationRules.length; i+=2) {
+      newHostname=Pattern.compile(normalizationRules[i]).matcher(newHostname).replaceFirst(normalizationRules[i + 1]);
+    }
+    if (!newHostname.equals(node.getHost())) {
+      node=new Node(node.getId(),newHostname,node.getHttpPort(),node.getSocketPort(),node.getAdminPort(),node.getZoneId(),node.getPartitionIds(),node.getRestPort());
+      numChanged++;
+    }
+    newNodes.add(node);
+  }
+  if (numChanged > 0) {
+    cluster=new Cluster(cluster.getName(),newNodes,new LinkedList<Zone>(cluster.getZones()));
+    System.out.println("Normalized " + numChanged + " hostnames");
+  }
+  return this;
+}

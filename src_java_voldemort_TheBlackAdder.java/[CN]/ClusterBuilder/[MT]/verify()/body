@@ -1,0 +1,35 @@
+{
+  for (  Zone zone : cluster.getZones()) {
+    if (NamedZone.getById(zone.getId()) == null)     throw new Exception("Zone " + zone.getId() + " has unexpected zone id");
+  }
+  for (  Zone zone : cluster.getZones()) {
+    HashSet<Integer> seenProximates=new HashSet<Integer>();
+    for (    Integer proxZoneId : zone.getProximityList()) {
+      Integer id=new Integer(proxZoneId);
+      if (seenProximates.contains(id))       throw new Exception("Zone " + zone.getId() + " has duplicate proximate "+ proxZoneId);
+      seenProximates.add(id);
+    }
+  }
+  for (  Zone zone : cluster.getZones()) {
+    for (    Integer proxZoneId : zone.getProximityList()) {
+      if (proxZoneId == zone.getId())       throw new Exception("Zone " + zone.getId() + " is proximate to itself");
+    }
+  }
+  HashSet<Integer> seenZones=new HashSet<Integer>();
+  for (  Zone zone : cluster.getZones())   seenZones.add(new Integer(zone.getId()));
+  for (  Zone zone : cluster.getZones()) {
+    HashSet<Integer> expectProxes=(HashSet<Integer>)seenZones.clone();
+    expectProxes.remove(new Integer(zone.getId()));
+    for (    Integer proxZoneId : zone.getProximityList()) {
+      Integer id=new Integer(proxZoneId);
+      if (!expectProxes.contains(id))       throw new Exception("Zone " + zone.getId() + " has unknown proximate zone "+ proxZoneId);
+      expectProxes.remove(id);
+    }
+    if (expectProxes.size() > 0) {
+      StringBuffer buf=new StringBuffer();
+      for (      Integer id : expectProxes)       buf.append(" ").append(id);
+      throw new Exception("Zone " + zone.getId() + " is missing proximates to "+ buf);
+    }
+  }
+  return this;
+}
