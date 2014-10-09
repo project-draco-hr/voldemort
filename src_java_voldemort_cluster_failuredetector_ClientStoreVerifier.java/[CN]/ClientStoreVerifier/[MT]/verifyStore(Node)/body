@@ -3,9 +3,18 @@
 synchronized (stores) {
     store=stores.get(node.getId());
     if (store == null) {
+      if (logger.isDebugEnabled()) {
+        logger.debug("Getting metadata store for node " + node.getId());
+      }
       store=getStoreInternal(node);
+      if (logger.isDebugEnabled()) {
+        logger.debug("Successfully retrieved metadata store for node " + node.getId());
+      }
       stores.put(node.getId(),store);
     }
+  }
+  if (logger.isDebugEnabled()) {
+    logger.debug("Trying to get node id from metadata store for node " + node.getId());
   }
   store.get(KEY,null);
 }
