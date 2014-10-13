@@ -1,0 +1,13 @@
+{
+  writeLock.lock();
+  try {
+    if (ByteUtils.getString(get(SERVER_STATE_KEY,null).get(0).getValue(),"UTF-8").compareTo(VoldemortState.OFFLINE_SERVER.toString()) == 0) {
+      put(SERVER_STATE_KEY,VoldemortState.NORMAL_SERVER);
+      initCache(SERVER_STATE_KEY);
+    }
+    init(getNodeId());
+  }
+  finally {
+    writeLock.unlock();
+  }
+}

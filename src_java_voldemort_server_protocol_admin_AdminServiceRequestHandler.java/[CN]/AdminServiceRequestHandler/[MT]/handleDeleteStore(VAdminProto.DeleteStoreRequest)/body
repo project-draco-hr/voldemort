@@ -1,7 +1,7 @@
 {
   VAdminProto.DeleteStoreResponse.Builder response=VAdminProto.DeleteStoreResponse.newBuilder();
-  if (!metadataStore.getServerStateUnlocked().equals(MetadataStore.VoldemortState.NORMAL_SERVER)) {
-    response.setError(ProtoUtils.encodeError(errorCodeMapper,new VoldemortException("Voldemort server is not in normal state")));
+  if (!metadataStore.getServerStateUnlocked().equals(MetadataStore.VoldemortState.NORMAL_SERVER) && !metadataStore.getServerStateUnlocked().equals(MetadataStore.VoldemortState.OFFLINE_SERVER)) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,new VoldemortException("Voldemort server is not in normal state nor offline state")));
     return response.build();
   }
   try {
