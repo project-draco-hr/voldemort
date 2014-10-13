@@ -1,0 +1,13 @@
+{
+  VAdminProto.SetOfflineStateResponse.Builder response=VAdminProto.SetOfflineStateResponse.newBuilder();
+  try {
+    Boolean setToOffline=request.getOfflineMode();
+    logger.info("Setting OFFLINE_SERVER state to " + setToOffline.toString());
+    metadataStore.setOfflineState(setToOffline);
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleSetOfflineState failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

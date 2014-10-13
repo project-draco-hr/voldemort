@@ -1,5 +1,5 @@
 {
-  if (isServerInNormalStateOrOfflineState() == false) {
+  if (!isServerInNormalState() && !isServerInOfflineState()) {
     return;
   }
   acquireCleanupPermit(scanProgressThisRun,deleteProgressThisRun);
@@ -17,7 +17,7 @@
       final long INETERVAL=10000;
       long entriesScanned=scanProgressThisRun.get();
       if (entriesScanned % INETERVAL == 0) {
-        if (isServerInNormalStateOrOfflineState() == false) {
+        if (!isServerInNormalState() && !isServerInOfflineState()) {
           return;
         }
       }

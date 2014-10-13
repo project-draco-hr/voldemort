@@ -1,0 +1,7 @@
+{
+  VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.SET_OFFLINE_STATE).setSetOfflineState(VAdminProto.SetOfflineStateRequest.newBuilder().setOfflineMode(setOffline).build()).build();
+  VAdminProto.SetOfflineStateResponse.Builder response=rpcOps.sendAndReceive(remoteNodeId,request,VAdminProto.SetOfflineStateResponse.newBuilder());
+  if (response.hasError()) {
+    helperOps.throwException(response.getError());
+  }
+}

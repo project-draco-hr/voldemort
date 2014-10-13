@@ -12,10 +12,10 @@
   updateRemoteServerState(client,getVoldemortServer(0).getIdentityNode().getId(),MetadataStore.VoldemortState.NORMAL_SERVER,((VectorClock)client.rebalanceOps.getRemoteServerState(0).getVersion()).incremented(0,System.currentTimeMillis()));
   state=getVoldemortServer(0).getMetadataStore().getServerStateUnlocked();
   assertEquals("State should be changed correctly to normal state",MetadataStore.VoldemortState.NORMAL_SERVER,state);
-  updateRemoteServerState(client,getVoldemortServer(0).getIdentityNode().getId(),MetadataStore.VoldemortState.OFFLINE_SERVER,((VectorClock)client.rebalanceOps.getRemoteServerState(0).getVersion()).incremented(0,System.currentTimeMillis()));
+  client.metadataMgmtOps.setRemoteOfflineState(getVoldemortServer(0).getIdentityNode().getId(),true);
   state=getVoldemortServer(0).getMetadataStore().getServerStateUnlocked();
   assertEquals("State should be changed correctly to offline state",MetadataStore.VoldemortState.OFFLINE_SERVER,state);
-  updateRemoteServerState(client,getVoldemortServer(0).getIdentityNode().getId(),MetadataStore.VoldemortState.NORMAL_SERVER,((VectorClock)client.rebalanceOps.getRemoteServerState(0).getVersion()).incremented(0,System.currentTimeMillis()));
+  client.metadataMgmtOps.setRemoteOfflineState(getVoldemortServer(0).getIdentityNode().getId(),false);
   state=getVoldemortServer(0).getMetadataStore().getServerStateUnlocked();
   assertEquals("State should be changed correctly to normal state",MetadataStore.VoldemortState.NORMAL_SERVER,state);
 }
