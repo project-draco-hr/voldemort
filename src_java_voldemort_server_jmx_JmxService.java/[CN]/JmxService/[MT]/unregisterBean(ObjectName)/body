@@ -1,0 +1,16 @@
+{
+synchronized (registeredBeans) {
+    try {
+      if (mbeanServer.isRegistered(name)) {
+        logger.warn("Overwriting mbean " + name);
+        JmxUtils.unregisterMbean(mbeanServer,name);
+      }
+      if (registeredBeans.contains(name)) {
+        registeredBeans.remove(name);
+      }
+    }
+ catch (    Exception e) {
+      logger.error("Error unregistering bean with name '" + name + "':",e);
+    }
+  }
+}

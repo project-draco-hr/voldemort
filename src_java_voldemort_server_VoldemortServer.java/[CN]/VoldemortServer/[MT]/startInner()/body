@@ -1,8 +1,11 @@
 {
   JNAUtils.tryMlockall();
-  logger.info("Starting " + services.size() + " services.");
+  logger.info("Starting " + basicServices.size() + " services.");
   long start=System.currentTimeMillis();
-  for (  VoldemortService service : services)   service.start();
+  for (  VoldemortService service : basicServices) {
+    service.start();
+  }
+  startOnlineServices();
   long end=System.currentTimeMillis();
   logger.info("Startup completed in " + (end - start) + " ms.");
 }

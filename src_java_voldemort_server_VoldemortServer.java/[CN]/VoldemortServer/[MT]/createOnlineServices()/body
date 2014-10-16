@@ -1,0 +1,24 @@
+{
+  onlineServices=Lists.newArrayList();
+  if (voldemortConfig.isHttpServerEnabled()) {
+    HttpService httpService=new HttpService(this,storageService,storeRepository,RequestFormatType.VOLDEMORT_V1,voldemortConfig.getMaxThreads(),identityNode.getHttpPort());
+    onlineServices.add(httpService);
+  }
+  if (voldemortConfig.isRestServiceEnabled()) {
+    RestService restService=new RestService(voldemortConfig,identityNode.getRestPort(),storeRepository,identityNode.getZoneId(),metadata.getStoreDefList());
+    onlineServices.add(restService);
+  }
+  if (voldemortConfig.isSocketServerEnabled()) {
+    RequestHandlerFactory socketRequestHandlerFactory=new SocketRequestHandlerFactory(storageService,this.storeRepository,this.metadata,this.voldemortConfig,this.asyncService,null,null);
+    if (voldemortConfig.getUseNioConnector()) {
+      logger.info("Using NIO Connector.");
+      NioSocketService nioSocketService=new NioSocketService(socketRequestHandlerFactory,identityNode.getSocketPort(),voldemortConfig.getSocketBufferSize(),voldemortConfig.getNioConnectorSelectors(),"nio-socket-server",voldemortConfig.isJmxEnabled(),voldemortConfig.getNioAcceptorBacklog());
+      onlineServices.add(nioSocketService);
+    }
+ else {
+      logger.info("Using BIO Connector.");
+      SocketService socketService=new SocketService(socketRequestHandlerFactory,identityNode.getSocketPort(),voldemortConfig.getCoreThreads(),voldemortConfig.getMaxThreads(),voldemortConfig.getSocketBufferSize(),"socket-server",voldemortConfig.isJmxEnabled());
+      onlineServices.add(socketService);
+    }
+  }
+}

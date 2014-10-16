@@ -1,7 +1,8 @@
 {
   List<VoldemortException> exceptions=new ArrayList<VoldemortException>();
   logger.info("Stopping services:" + getIdentityNode().getId());
-  for (  VoldemortService service : Utils.reversed(services)) {
+  exceptions.addAll(stopOnlineServices());
+  for (  VoldemortService service : Utils.reversed(basicServices)) {
     try {
       service.stop();
     }

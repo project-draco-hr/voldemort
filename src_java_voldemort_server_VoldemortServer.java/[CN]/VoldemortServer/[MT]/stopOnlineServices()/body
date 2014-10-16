@@ -1,0 +1,16 @@
+{
+  List<VoldemortException> exceptions=Lists.newArrayList();
+  for (  VoldemortService service : Utils.reversed(onlineServices)) {
+    try {
+      service.stop();
+    }
+ catch (    VoldemortException e) {
+      exceptions.add(e);
+      logger.error(e);
+    }
+  }
+  if (jmxService != null) {
+    jmxService.unregisterServices(onlineServices);
+  }
+  return exceptions;
+}

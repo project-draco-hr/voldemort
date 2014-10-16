@@ -1,28 +1,12 @@
 {
   List<VoldemortService> services=new ArrayList<VoldemortService>();
   SchedulerService scheduler=new SchedulerService(voldemortConfig.getSchedulerThreads(),SystemTime.INSTANCE,voldemortConfig.canInterruptService());
-  StorageService storageService=new StorageService(storeRepository,metadata,scheduler,voldemortConfig);
+  storageService=new StorageService(storeRepository,metadata,scheduler,voldemortConfig);
   asyncService=new AsyncOperationService(scheduler,ASYNC_REQUEST_CACHE_SIZE);
+  jmxService=null;
   services.add(storageService);
   services.add(scheduler);
   services.add(asyncService);
-  if (voldemortConfig.isHttpServerEnabled()) {
-    services.add(new HttpService(this,storageService,storeRepository,RequestFormatType.VOLDEMORT_V1,voldemortConfig.getMaxThreads(),identityNode.getHttpPort()));
-  }
-  if (voldemortConfig.isRestServiceEnabled()) {
-    services.add(new RestService(voldemortConfig,identityNode.getRestPort(),storeRepository,identityNode.getZoneId(),metadata.getStoreDefList()));
-  }
-  if (voldemortConfig.isSocketServerEnabled()) {
-    RequestHandlerFactory socketRequestHandlerFactory=new SocketRequestHandlerFactory(storageService,this.storeRepository,this.metadata,this.voldemortConfig,this.asyncService,null);
-    if (voldemortConfig.getUseNioConnector()) {
-      logger.info("Using NIO Connector.");
-      services.add(new NioSocketService(socketRequestHandlerFactory,identityNode.getSocketPort(),voldemortConfig.getSocketBufferSize(),voldemortConfig.getNioConnectorSelectors(),"nio-socket-server",voldemortConfig.isJmxEnabled(),voldemortConfig.getNioAcceptorBacklog()));
-    }
- else {
-      logger.info("Using BIO Connector.");
-      services.add(new SocketService(socketRequestHandlerFactory,identityNode.getSocketPort(),voldemortConfig.getCoreThreads(),voldemortConfig.getMaxThreads(),voldemortConfig.getSocketBufferSize(),"socket-server",voldemortConfig.isJmxEnabled()));
-    }
-  }
   if (voldemortConfig.isAdminServerEnabled()) {
     Rebalancer rebalancer=null;
     if (voldemortConfig.isEnableRebalanceService()) {
@@ -30,7 +14,7 @@
       services.add(rebalancerService);
       rebalancer=rebalancerService.getRebalancer();
     }
-    SocketRequestHandlerFactory adminRequestHandlerFactory=new SocketRequestHandlerFactory(storageService,this.storeRepository,this.metadata,this.voldemortConfig,this.asyncService,rebalancer);
+    SocketRequestHandlerFactory adminRequestHandlerFactory=new SocketRequestHandlerFactory(storageService,this.storeRepository,this.metadata,this.voldemortConfig,this.asyncService,rebalancer,this);
     if (voldemortConfig.getUseNioConnector()) {
       logger.info("Using NIO Connector for Admin Service.");
       services.add(new NioSocketService(adminRequestHandlerFactory,identityNode.getAdminPort(),voldemortConfig.getAdminSocketBufferSize(),voldemortConfig.getNioAdminConnectorSelectors(),"admin-server",voldemortConfig.isJmxEnabled(),voldemortConfig.getNioAcceptorBacklog()));
@@ -43,7 +27,10 @@
   if (voldemortConfig.isGossipEnabled()) {
     services.add(new GossipService(this.metadata,scheduler,voldemortConfig));
   }
-  if (voldemortConfig.isJmxEnabled())   services.add(new JmxService(this,this.metadata.getCluster(),storeRepository,services));
+  if (voldemortConfig.isJmxEnabled()) {
+    jmxService=new JmxService(this,this.metadata.getCluster(),storeRepository,services);
+    services.add(jmxService);
+  }
   if (voldemortConfig.isRestHdfsEnabled()) {
     services.add(new RestHadoopAuth(voldemortConfig.getReadOnlyKerberosRealm(),voldemortConfig.getReadOnlyKerberosKdc(),voldemortConfig.getReadOnlyKerberosUser(),voldemortConfig.getReadOnlyKeytabPath()));
   }

@@ -1,0 +1,14 @@
+{
+  String key="k-e-y", value=Long.toString(System.nanoTime());
+  try {
+    storeClient.put(key,value);
+    Versioned<String> versioned=storeClient.get(key);
+    if (versioned.getValue().equals(value)) {
+      return true;
+    }
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+  return false;
+}

@@ -1,0 +1,6 @@
+{
+  client.metadataMgmtOps.setRemoteOfflineState(getVoldemortServer(0).getIdentityNode().getId(),false);
+  MetadataStore.VoldemortState state=getVoldemortServer(0).getMetadataStore().getServerStateUnlocked();
+  assertEquals("State should be changed correctly to normal state",MetadataStore.VoldemortState.NORMAL_SERVER,state);
+  assertTrue(testOnlineTraffic());
+}
