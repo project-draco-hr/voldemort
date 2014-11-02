@@ -1,0 +1,23 @@
+{
+  final List<Versioned<Slop>> entrySet=ServerTestUtils.createRandomSlops(0,10000,testStoreName,"users","test-replication-persistent","test-readrepair-memory","test-consistent","test-consistent-with-pref-list");
+  Iterator<Versioned<Slop>> slopIterator=entrySet.iterator();
+  try {
+    getAdminClient().streamingOps.updateSlopEntries(0,slopIterator);
+  }
+ catch (  VoldemortException e) {
+    return false;
+  }
+  Iterator<Versioned<Slop>> entrysetItr=entrySet.iterator();
+  while (entrysetItr.hasNext()) {
+    Versioned<Slop> versioned=entrysetItr.next();
+    Slop nextSlop=versioned.getValue();
+    Store<ByteArray,byte[],byte[]> store=getStore(0,nextSlop.getStoreName());
+    if (nextSlop.getOperation().equals(Slop.Operation.PUT)) {
+      return store.get(nextSlop.getKey(),null).size() != 0;
+    }
+ else     if (nextSlop.getOperation().equals(Slop.Operation.DELETE)) {
+      return store.get(nextSlop.getKey(),null).size() == 0;
+    }
+  }
+  return false;
+}

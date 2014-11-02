@@ -1,14 +1,14 @@
 {
   StorageEngine<ByteArray,byte[],byte[]> storageEngine=AdminServiceRequestHandler.getStorageEngine(storeRepository,request.getStore());
   if (request.hasOverwriteIfLatestTs() && request.getOverwriteIfLatestTs()) {
-    return new TimeBasedUpdatePartitionEntriesStreamRequestHandler(request,errorCodeMapper,voldemortConfig,storageEngine,storeRepository,networkClassLoader);
+    return new TimeBasedUpdatePartitionEntriesStreamRequestHandler(request,errorCodeMapper,voldemortConfig,storageEngine,storeRepository,networkClassLoader,metadataStore);
   }
  else {
     if (doesStorageEngineSupportMultiVersionPuts(storageEngine)) {
-      return new BufferedUpdatePartitionEntriesStreamRequestHandler(request,errorCodeMapper,voldemortConfig,storageEngine,storeRepository,networkClassLoader);
+      return new BufferedUpdatePartitionEntriesStreamRequestHandler(request,errorCodeMapper,voldemortConfig,storageEngine,storeRepository,networkClassLoader,metadataStore);
     }
  else {
-      return new UpdatePartitionEntriesStreamRequestHandler(request,errorCodeMapper,voldemortConfig,storageEngine,storeRepository,networkClassLoader);
+      return new UpdatePartitionEntriesStreamRequestHandler(request,errorCodeMapper,voldemortConfig,storageEngine,storeRepository,networkClassLoader,metadataStore);
     }
   }
 }
