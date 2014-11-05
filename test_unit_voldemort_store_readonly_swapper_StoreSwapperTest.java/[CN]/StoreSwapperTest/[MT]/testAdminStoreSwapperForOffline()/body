@@ -1,0 +1,14 @@
+{
+  ExecutorService executor=Executors.newCachedThreadPool();
+  try {
+    StoreSwapper swapper=new AdminStoreSwapper(cluster,executor,adminClient,1000000,true,true);
+    adminClient.metadataMgmtOps.setRemoteOfflineState(0,true);
+    testFetchSwap(swapper);
+    fail("RO Fetcher should fail on offline state.");
+  }
+ catch (  Exception e) {
+  }
+ finally {
+    executor.shutdown();
+  }
+}
