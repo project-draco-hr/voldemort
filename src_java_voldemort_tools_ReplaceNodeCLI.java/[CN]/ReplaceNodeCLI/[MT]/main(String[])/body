@@ -1,0 +1,39 @@
+{
+  OptionParser parser=null;
+  OptionSet options=null;
+  try {
+    parser=getParser();
+    options=parser.parse(args);
+  }
+ catch (  OptionException oe) {
+    parser.printHelpOn(System.out);
+    printUsageAndDie("Exception when parsing arguments : " + oe.getMessage());
+    return;
+  }
+  if (options.hasArgument("help")) {
+    parser.printHelpOn(System.out);
+    printUsage();
+    return;
+  }
+  if (!options.hasArgument("url") || !options.hasArgument("node") || !options.hasArgument("newurl")) {
+    parser.printHelpOn(System.out);
+    printUsageAndDie("Missing a required argument.");
+    return;
+  }
+  String url=(String)options.valueOf("url");
+  String newUrl=(String)options.valueOf("newurl");
+  int nodeId=((Integer)options.valueOf("node")).intValue();
+  boolean skipRestore=options.has("skip-restore");
+  int parallelism=((Integer)options.valueOf("parallelism")).intValue();
+  if (parallelism <= 0) {
+    Utils.croak(" parallelism " + parallelism + " should be a positive integer ");
+  }
+  ReplaceNodeCLI nodeReplacer=new ReplaceNodeCLI(url,nodeId,newUrl,skipRestore,parallelism);
+  nodeReplacer.verifyPreConditions();
+  nodeReplacer.makeServersOffline();
+  nodeReplacer.modifyTopology();
+  if (skipRestore == false) {
+    nodeReplacer.restoreFromReplica();
+  }
+  nodeReplacer.enableSlopStreaming();
+}

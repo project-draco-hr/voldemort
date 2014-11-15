@@ -1,0 +1,22 @@
+{
+  boolean isAdminPortUsed=false;
+  for (  Node node : nodes) {
+    int adminPort=node.getAdminPort();
+    URI bootstrapUrl=null;
+    try {
+      bootstrapUrl=new URI(url);
+    }
+ catch (    Exception e) {
+      logger.error("error parsing url " + url,e);
+      Utils.croak("error parsing url " + url + "  "+ e.getMessage());
+    }
+    int urlPort=bootstrapUrl.getPort();
+    if (urlPort == adminPort) {
+      isAdminPortUsed=true;
+      break;
+    }
+  }
+  if (isAdminPortUsed == false) {
+    Utils.croak("The bootstrap URL should point to the admin port as the client port will be made offline ... aborting " + " url " + url);
+  }
+}

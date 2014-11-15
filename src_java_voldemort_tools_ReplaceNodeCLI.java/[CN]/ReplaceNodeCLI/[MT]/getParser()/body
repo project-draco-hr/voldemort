@@ -1,0 +1,10 @@
+{
+  OptionParser parser=new OptionParser();
+  parser.accepts("help","print help information");
+  parser.accepts("url","[REQUIRED] bootstrap URL").withRequiredArg().describedAs("bootstrap-url for the cluster in which a node is to be replaced").ofType(String.class);
+  parser.accepts("node","[REQUIRED] node id.").withRequiredArg().describedAs("node id which needs to be replaced by the new node").ofType(Integer.class);
+  parser.accepts("newurl","[REQUIRED] new bootstrap-url").withRequiredArg().describedAs("bootstrap-url for the new cluster, which will replace the node id").ofType(String.class);
+  parser.accepts("skip-restore","do not restore data from existing machine");
+  parser.accepts("parallelism","parallel data restores.").withRequiredArg().describedAs("number of data restores to happen in parallel").ofType(Integer.class).defaultsTo(3);
+  return parser;
+}
