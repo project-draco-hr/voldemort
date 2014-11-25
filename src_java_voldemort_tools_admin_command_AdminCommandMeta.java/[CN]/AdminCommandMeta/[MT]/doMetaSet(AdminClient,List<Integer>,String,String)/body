@@ -1,13 +1,3 @@
 {
-  VectorClock updatedVersion=null;
-  for (  Integer nodeId : nodeIds) {
-    if (updatedVersion == null) {
-      updatedVersion=(VectorClock)adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,metaKey).getVersion();
-    }
- else {
-      updatedVersion=updatedVersion.merge((VectorClock)adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,metaKey).getVersion());
-    }
-    updatedVersion=updatedVersion.incremented(nodeIds.iterator().next(),System.currentTimeMillis());
-  }
-  adminClient.metadataMgmtOps.updateRemoteMetadata(nodeIds,metaKey,Versioned.value(metaValue,updatedVersion));
+  adminClient.metadataMgmtOps.updateRemoteMetadata(nodeIds,metaKey,metaValue);
 }

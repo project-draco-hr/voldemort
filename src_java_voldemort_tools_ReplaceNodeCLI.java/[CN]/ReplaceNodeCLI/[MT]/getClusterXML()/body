@@ -1,0 +1,18 @@
+{
+  ClusterMapper clusterMapper=new ClusterMapper();
+  Cluster existingCluster=null;
+  String clusterXML=null;
+  Map<Integer,String> clusterXMLInNodes=getMetadataXML(MetadataStore.CLUSTER_KEY);
+  for (  Map.Entry<Integer,String> clusterNodeId : clusterXMLInNodes.entrySet()) {
+    String xml=clusterNodeId.getValue();
+    Cluster cluster=clusterMapper.readCluster(new StringReader(xml),false);
+    if (existingCluster == null) {
+      existingCluster=cluster;
+      clusterXML=xml;
+    }
+ else     if (existingCluster.equals(cluster) == false) {
+      Utils.croak("Cluster XMLs are different across nodes, fix that before the node swap...aborting " + clusterNodeId.getKey());
+    }
+  }
+  return clusterXML;
+}

@@ -1,0 +1,22 @@
+{
+  Node nodeToAdd=newCluster.getNodeById(newNodeId);
+  List<Node> nodes=new ArrayList<Node>(cluster.getNodes());
+  List<Zone> zones=new ArrayList<Zone>(cluster.getZones());
+  Node nodeToRemove=cluster.getNodeById(nodeId);
+  Node newNode=new Node(nodeId,nodeToAdd.getHost(),nodeToAdd.getHttpPort(),nodeToAdd.getSocketPort(),nodeToAdd.getAdminPort(),nodeToRemove.getZoneId(),nodeToRemove.getPartitionIds(),nodeToAdd.getRestPort());
+  boolean isInserted=false;
+  for (int i=0; i < nodes.size(); i++) {
+    if (nodes.get(i).getId() == nodeId) {
+      nodes.remove(i);
+      nodes.add(i,newNode);
+      isInserted=true;
+      break;
+    }
+  }
+  if (isInserted == false) {
+    logger.error("Unable to insert the new node, something odd happened");
+    Utils.croak("Unable to insert the new node, something odd happened");
+  }
+  Cluster updatedCluster=new Cluster(cluster.getName(),nodes,zones);
+  return new ClusterMapper().writeCluster(updatedCluster);
+}

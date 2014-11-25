@@ -1,0 +1,28 @@
+{
+  StringBuilder help=new StringBuilder();
+  help.append("ReplaceNodeCLI Tool\n");
+  help.append("  Replace a node in the cluster with a new node.\n");
+  help.append("Options:\n");
+  help.append("  Required:\n");
+  help.append("    --url <bootstrap-url>\n");
+  help.append("    --node <nodeIdToBeReplaced>\n");
+  help.append("    --newurl <newVoldemortClusterWithSingleNode>\n");
+  help.append("  Optional:\n");
+  help.append("    --skip-restore \n");
+  help.append("    --parallelism <numberOfRestoresInParallel> \n");
+  help.append("    --help\n");
+  help.append("  Notes:\n");
+  help.append("    use this command to replace a node in the voldemort cluster\n");
+  help.append("    There are two recommended ways to set up the new node that replaces old node.\n");
+  help.append("    1) Make the new node as only node in voldemort cluster without any data.\n");
+  help.append("       The data will be restored from other nodes in the cluster during replacement.\n");
+  help.append("    2) Move the hard disk from the failed node to the new node or restore the data, \n");
+  help.append("       config( cluster.xml, stores) manually. Fix the host, port in the \n");
+  help.append("       cluster.xml to reflect the new node instead of old node. \n");
+  help.append("       use --skip-restore option to disable data restore in this case. \n");
+  help.append("       Second way is the only way to restore a node in read only cluster. \n");
+  help.append("    After the node is replaced, the new node will be left in offline state and slop enabled. \n");
+  help.append("    Wait for slops to drain to an acceptable level. Make the new node online via admin shell \n");
+  help.append("    to complete the operation. \n");
+  System.out.print(help.toString());
+}

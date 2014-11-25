@@ -1,0 +1,13 @@
+{
+  String updatedClusterXML=updateClusterXML();
+  String storesXML=new StoreDefinitionsMapper().writeStoreList(storeDefinitions);
+  List<Integer> newNodeIdAsList=new ArrayList<Integer>();
+  newNodeIdAsList.add(newNodeId);
+  newAdminClient.metadataMgmtOps.updateRemoteMetadata(newNodeIdAsList,MetadataStore.CLUSTER_KEY,updatedClusterXML);
+  newAdminClient.metadataMgmtOps.updateRemoteMetadata(newNodeIdAsList,MetadataStore.STORES_KEY,storesXML);
+  newAdminClient.metadataMgmtOps.updateRemoteMetadata(newNodeIdAsList,MetadataStore.NODE_ID_KEY,Integer.toString(nodeId));
+  List<Integer> oldNodeIds=new ArrayList<Integer>(cluster.getNodeIds());
+  oldNodeIds.remove(nodeId);
+  adminClient.metadataMgmtOps.updateRemoteMetadata(oldNodeIds,MetadataStore.CLUSTER_KEY,updatedClusterXML);
+  init();
+}

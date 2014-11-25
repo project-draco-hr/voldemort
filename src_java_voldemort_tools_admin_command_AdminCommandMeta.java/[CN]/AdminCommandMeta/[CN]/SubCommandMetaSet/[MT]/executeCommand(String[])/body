@@ -81,8 +81,12 @@
       doMetaSet(adminClient,nodeIds,metaKey,metaValue);
     }
  else     if (metaKey.equals(KEY_OFFLINE)) {
+      boolean setOffline=Boolean.parseBoolean(metaValue);
+      if (setOffline && nodeIds.size() > 1) {
+        throw new VoldemortException("Setting more than one node to offline is not allowed.");
+      }
       for (      Integer nodeId : nodeIds) {
-        adminClient.metadataMgmtOps.setRemoteOfflineState(nodeId,Boolean.parseBoolean(metaValue));
+        adminClient.metadataMgmtOps.setRemoteOfflineState(nodeId,setOffline);
       }
     }
  else     if (metaKey.equals(MetadataStore.REBALANCING_STEAL_INFO)) {

@@ -1,0 +1,18 @@
+{
+  StoreDefinitionsMapper storeMapper=new StoreDefinitionsMapper();
+  Map<Integer,String> storeXMLInNodes=getMetadataXML(MetadataStore.STORES_KEY);
+  List<StoreDefinition> storeList=null;
+  String storeXML=null;
+  for (  Map.Entry<Integer,String> storeNodeId : storeXMLInNodes.entrySet()) {
+    String xml=storeNodeId.getValue();
+    List<StoreDefinition> storeDefinitions=storeMapper.readStoreList(new StringReader(xml),false);
+    if (storeList == null) {
+      storeList=storeDefinitions;
+      storeXML=xml;
+    }
+ else     if (storeList.equals(storeDefinitions) == false) {
+      Utils.croak("Store XMLs are different across nodes, fix that before the node swap...aborting " + storeNodeId.getKey());
+    }
+  }
+  return storeXML;
+}

@@ -1,0 +1,22 @@
+{
+  Map<Integer,String> metadataXMLsInNodes=new HashMap<Integer,String>();
+  for (  Integer i : cluster.getNodeIds()) {
+    try {
+      Versioned<String> xmlVersionedValue=adminClient.metadataMgmtOps.getRemoteMetadata(i.intValue(),key);
+      String xml=xmlVersionedValue.getValue();
+      metadataXMLsInNodes.put(i.intValue(),xml);
+    }
+ catch (    UnreachableStoreException e) {
+      if (i.intValue() == nodeId) {
+        logger.info("Ignoring unreachable store error on the node being replaced " + nodeId,e);
+      }
+ else {
+        throw e;
+      }
+    }
+  }
+  if (metadataXMLsInNodes.size() < 1) {
+    Utils.croak("No XML found or only one node in cluster for Key " + key);
+  }
+  return metadataXMLsInNodes;
+}
