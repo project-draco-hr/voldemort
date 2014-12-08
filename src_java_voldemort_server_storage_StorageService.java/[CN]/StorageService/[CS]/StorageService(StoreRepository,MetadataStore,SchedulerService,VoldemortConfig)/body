@@ -8,8 +8,8 @@
   this.storageConfigs=new ConcurrentHashMap<String,StorageConfiguration>();
   this.clientThreadPool=new ClientThreadPool(config.getClientMaxThreads(),config.getClientThreadIdleMs(),config.getClientMaxQueuedRequests());
   this.storeFactory=new ClientRequestExecutorPool(config.getClientSelectors(),config.getClientMaxConnectionsPerNode(),config.getClientConnectionTimeoutMs(),config.getSocketTimeoutMs(),config.getSocketBufferSize(),config.getSocketKeepAlive());
-  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig(voldemortConfig).setCluster(metadata.getCluster()).setStoreVerifier(new ServerStoreVerifier(storeFactory,metadata,config));
-  FailureDetectorConfig slopStreamingFailureDetectorConfig=new FailureDetectorConfig(voldemortConfig).setImplementationClassName(AsyncRecoveryFailureDetector.class.getName()).setCluster(metadata.getCluster()).setStoreVerifier(new AdminSlopStreamingVerifier(this.metadata.getCluster()));
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig(voldemortConfig).setCluster(metadata.getCluster()).setConnectionVerifier(new ServerStoreConnectionVerifier(storeFactory,metadata,config));
+  FailureDetectorConfig slopStreamingFailureDetectorConfig=new FailureDetectorConfig(voldemortConfig).setImplementationClassName(AsyncRecoveryFailureDetector.class.getName()).setCluster(metadata.getCluster()).setConnectionVerifier(new AdminSlopStreamingVerifier(this.metadata.getCluster()));
   this.failureDetector=create(failureDetectorConfig,config.isJmxEnabled());
   this.slopStreamingFailureDetector=create(slopStreamingFailureDetectorConfig,config.isJmxEnabled());
   this.storeStats=new StoreStats("aggregate.storage-service");

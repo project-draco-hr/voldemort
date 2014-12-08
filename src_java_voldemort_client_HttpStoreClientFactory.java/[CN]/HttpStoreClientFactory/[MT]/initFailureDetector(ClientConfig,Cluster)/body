@@ -1,10 +1,10 @@
 {
-  ClientStoreVerifier storeVerifier=new ClientStoreVerifier(){
+  ClientStoreConnectionVerifier verifier=new ClientStoreConnectionVerifier(){
     @Override protected Store<ByteArray,byte[],byte[]> getStoreInternal(    Node node){
       return HttpStoreClientFactory.this.getStore(MetadataStore.METADATA_STORE_NAME,node.getHost(),node.getHttpPort(),config.getRequestFormatType());
     }
   }
 ;
-  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig(config).setCluster(cluster).setStoreVerifier(storeVerifier);
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig(config).setCluster(cluster).setConnectionVerifier(verifier);
   return create(failureDetectorConfig,config.isJmxEnabled());
 }

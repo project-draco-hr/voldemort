@@ -9,7 +9,7 @@
     InMemoryStorageEngine<ByteArray,byte[],byte[]> subStore=new InMemoryStorageEngine<ByteArray,byte[],byte[]>("test");
     subStores.put(id,subStore);
   }
-  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setImplementationClassName(failureDetectorClass.getName()).setBannagePeriod(1000).setCluster(cluster).setStoreVerifier(create(subStores)).setTime(time);
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig().setImplementationClassName(failureDetectorClass.getName()).setBannagePeriod(1000).setCluster(cluster).setConnectionVerifier(create(subStores)).setTime(time);
   failureDetector=create(failureDetectorConfig,false);
   routedStoreThreadPool=Executors.newFixedThreadPool(1);
   RoutedStoreFactory routedStoreFactory=new RoutedStoreFactory(routedStoreThreadPool);

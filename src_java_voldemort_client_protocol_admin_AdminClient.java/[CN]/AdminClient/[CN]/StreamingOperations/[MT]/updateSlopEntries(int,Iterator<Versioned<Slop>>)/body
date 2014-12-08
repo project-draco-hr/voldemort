@@ -43,7 +43,12 @@
   }
  catch (  IOException e) {
     helperOps.close(sands.getSocket());
-    throw new VoldemortException(e);
+    if (e instanceof SocketException) {
+      throw new SlopStreamingDisabledException("Failed to update slop entries to node " + node.getId(),e);
+    }
+ else {
+      throw new VoldemortException(e);
+    }
   }
  finally {
     socketPool.checkin(destination,sands);

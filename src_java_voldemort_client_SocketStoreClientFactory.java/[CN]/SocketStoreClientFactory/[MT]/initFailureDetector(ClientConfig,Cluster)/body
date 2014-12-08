@@ -9,13 +9,13 @@
     }
   }
 ;
-  ClientStoreVerifier storeVerifier=new ClientStoreVerifier(){
+  ClientStoreConnectionVerifier verifier=new ClientStoreConnectionVerifier(){
     @Override protected Store<ByteArray,byte[],byte[]> getStoreInternal(    Node node){
       logger.debug("Returning a new store verifier for node: " + node);
       return SocketStoreClientFactory.this.getStore(MetadataStore.METADATA_STORE_NAME,node.getHost(),node.getSocketPort(),config.getRequestFormatType());
     }
   }
 ;
-  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig(config).setCluster(cluster).setStoreVerifier(storeVerifier);
+  FailureDetectorConfig failureDetectorConfig=new FailureDetectorConfig(config).setCluster(cluster).setConnectionVerifier(verifier);
   return create(failureDetectorConfig,false,failureDetectorListener);
 }
