@@ -40,6 +40,12 @@
     failureDetector.recordException(metadataStore.getCluster().getNodeById(nodeId),System.currentTimeMillis() - this.startTime,e);
     throw e;
   }
+catch (  Exception e) {
+    if (e.getCause() instanceof SocketException) {
+      failureDetector.recordException(metadataStore.getCluster().getNodeById(nodeId),System.currentTimeMillis() - this.startTime,new SlopStreamingDisabledException("Slop streaming is disabled on node " + nodeId));
+    }
+    throw new VoldemortException(e);
+  }
  finally {
     slopQueue.clear();
     slopQueues.remove(nodeId);
