@@ -1,7 +1,4 @@
 {
-  logger.info("-------------------------------");
-  logger.info("  WAITING FOR SLOPS TO DRAIN   ");
-  logger.info("-------------------------------");
   long timeStart=System.currentTimeMillis();
   boolean allSlopsEmpty=false;
   while (System.currentTimeMillis() < timeStart + slopDrainTimoutMs) {
@@ -27,9 +24,6 @@
     Thread.sleep(1000);
   }
   if (!allSlopsEmpty) {
-    Assert.fail("Timeout while waiting for all slops to drain");
+    throw new RuntimeException("Timeout while waiting for all slops to drain");
   }
-  logger.info("-------------------------------");
-  logger.info("        ALL SLOPS DRAINED      ");
-  logger.info("-------------------------------");
 }
