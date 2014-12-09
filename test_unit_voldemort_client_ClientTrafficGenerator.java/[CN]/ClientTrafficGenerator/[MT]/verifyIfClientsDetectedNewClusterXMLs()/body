@@ -1,0 +1,25 @@
+{
+  Integer failCount=0;
+  for (  ClientTrafficVerifier verifier : verifiers) {
+    if (verifier.client instanceof LazyStoreClient) {
+      LazyStoreClient<String,String> lsc=(LazyStoreClient<String,String>)verifier.client;
+      if (lsc.getStoreClient() instanceof ZenStoreClient) {
+        ZenStoreClient<String,String> zsc=(ZenStoreClient<String,String>)lsc.getStoreClient();
+        Long clusterMetadataVersion=zsc.getAsyncMetadataVersionManager().getClusterMetadataVersion();
+        if (clusterMetadataVersion == 0) {
+          failCount++;
+          logger.error(String.format("The client %s did not pick up the new cluster metadata\n",verifier.clientName));
+        }
+      }
+ else {
+        throw new RuntimeException("There is problem with DummyClient's real client's real client, which should be ZenStoreClient but not");
+      }
+    }
+ else {
+      throw new RuntimeException("There is problem with DummyClient's real client which should be LazyStoreClient but not");
+    }
+  }
+  if (failCount > 0) {
+    throw new RuntimeException(failCount.toString() + " client(s) did not pickup new metadata");
+  }
+}

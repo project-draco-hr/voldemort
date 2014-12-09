@@ -1,0 +1,15 @@
+{
+  this.bootstrapURL=bootstrapURL;
+  this.storeNames=storeNames;
+  this.threads=threads;
+  this.zones=zones;
+  for (  Integer zone : zones) {
+    for (    String storeName : storeNames) {
+      for (int thread=0; thread < threads; thread++) {
+        String clientName=storeName + "_Zone_" + zone+ "_Thread_"+ thread;
+        ClientTrafficVerifier verifier=new ClientTrafficVerifier(clientName,bootstrapURL,storeName,zone.intValue());
+        verifiers.add(verifier);
+      }
+    }
+  }
+}
