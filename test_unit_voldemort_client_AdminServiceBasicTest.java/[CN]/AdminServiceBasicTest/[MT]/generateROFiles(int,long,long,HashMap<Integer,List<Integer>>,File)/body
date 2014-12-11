@@ -9,8 +9,9 @@
     int replicaType=entry.getKey();
     for (    int partitionId : entry.getValue()) {
       for (int chunkId=0; chunkId < numChunks; chunkId++) {
-        File index=new File(versionDir,Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId)+ ".index");
-        File data=new File(versionDir,Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId)+ ".data");
+        String fileName=Integer.toString(partitionId) + "_" + Integer.toString(replicaType)+ "_"+ Integer.toString(chunkId);
+        File index=new File(versionDir,fileName + ".index");
+        File data=new File(versionDir,fileName + ".data");
         FileOutputStream dataOs=new FileOutputStream(data);
         for (int i=0; i < dataSize; i++)         dataOs.write(i);
         dataOs.close();

@@ -1,0 +1,14 @@
+{
+  String storeName=request.getStoreName();
+  VAdminProto.GetROStorageFileListResponse.Builder response=VAdminProto.GetROStorageFileListResponse.newBuilder();
+  try {
+    ReadOnlyStorageEngine store=getReadOnlyStorageEngine(metadataStore,storeRepository,storeName);
+    ChunkedFileSet chunkedFileSet=store.getChunkedFileSet();
+    response.addAllFileName(chunkedFileSet.getFileNames());
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleGetROStorageFileList failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

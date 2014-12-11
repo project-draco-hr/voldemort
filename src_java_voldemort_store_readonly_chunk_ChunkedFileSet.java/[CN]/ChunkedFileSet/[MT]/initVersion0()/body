@@ -11,8 +11,9 @@
   }
   int chunkId=0;
   while (true) {
-    File index=new File(baseDir,Integer.toString(chunkId) + ".index");
-    File data=new File(baseDir,Integer.toString(chunkId) + ".data");
+    String fileName=Integer.toString(chunkId);
+    File index=new File(baseDir,fileName + ".index");
+    File data=new File(baseDir,fileName + ".data");
     if (!index.exists() && !data.exists())     break;
  else     if (index.exists() ^ data.exists())     throw new VoldemortException("One of the following does not exist: " + index.toString() + " and "+ data.toString()+ ".");
     long indexLength=index.length();
@@ -20,6 +21,7 @@
     validateFileSizes(indexLength,dataLength);
     indexFileSizes.add((int)indexLength);
     dataFileSizes.add((int)dataLength);
+    fileNames.add(fileName);
     dataFiles.add(openChannel(data));
     MappedFileReader idxFileReader=null;
     try {
