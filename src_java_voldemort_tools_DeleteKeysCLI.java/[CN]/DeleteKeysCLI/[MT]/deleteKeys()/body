@@ -1,0 +1,39 @@
+{
+  Map<String,Thread> workers=new HashMap<String,Thread>();
+  Map<String,DeleteKeysTask> tasks=new HashMap<String,DeleteKeysTask>();
+  BufferedWriter statusWriter=new BufferedWriter(new FileWriter("status.txt",true));
+  for (  String store : this.stores) {
+    DeleteKeysTask task=new DeleteKeysTask(store,storeClients.get(store),this.adminClient,serializerDefs.get(store),this.keyFile,this.qps,this.nodeid,this.deleteAllVersions,this.checkKeysCount);
+    Thread worker=new Thread(task);
+    workers.put(store,worker);
+    tasks.put(store,task);
+    statusWriter.write("Created thread " + worker.getId() + " for store "+ store+ "\n");
+    System.out.println("Created thread " + worker.getId() + " for store "+ store);
+    worker.start();
+  }
+  statusWriter.flush();
+  boolean isAllCompleted=false;
+  while (isAllCompleted == false) {
+    isAllCompleted=true;
+    for (    String store : stores) {
+      Thread worker=workers.get(store);
+      DeleteKeysTask task=tasks.get(store);
+      System.out.print(task.getStatus());
+      statusWriter.write(task.getStatus());
+      if (task.isComplete()) {
+        continue;
+      }
+      if (worker.isAlive() == false) {
+        System.out.println("Thread processing it has died " + store);
+        statusWriter.write("Thread processing it has died " + store + "\n");
+        continue;
+      }
+      isAllCompleted=false;
+    }
+    statusWriter.flush();
+    if (isAllCompleted == false) {
+      Thread.sleep(1000 * 15);
+    }
+  }
+  statusWriter.close();
+}

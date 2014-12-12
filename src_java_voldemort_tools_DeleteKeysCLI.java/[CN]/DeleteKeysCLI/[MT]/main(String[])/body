@@ -1,0 +1,50 @@
+{
+  OptionParser parser=null;
+  OptionSet options=null;
+  try {
+    parser=setupParser();
+    options=parser.parse(args);
+  }
+ catch (  OptionException oe) {
+    parser.printHelpOn(System.out);
+    printUsageAndDie("Exception when parsing arguments : " + oe.getMessage());
+    return;
+  }
+  if (options.has("help")) {
+    printUsage();
+    return;
+  }
+  if (!options.hasArgument("url") || !options.hasArgument("stores") || !options.hasArgument("keyfile")) {
+    printUsageAndDie("Missing a required argument.");
+    return;
+  }
+  boolean deleteAllVersions=options.has("delete-all-versions");
+  System.out.println("New Delete All versions value " + deleteAllVersions);
+  String url=(String)options.valueOf("url");
+  String keyFile=(String)options.valueOf("keyfile");
+  keyFile.replace("~",System.getProperty("user.home"));
+  int zoneId=Zone.DEFAULT_ZONE_ID;
+  if (options.hasArgument("zone")) {
+    zoneId=((Integer)options.valueOf("zone")).intValue();
+  }
+  int qps=((Integer)options.valueOf("qps")).intValue();
+  int nodeid=((Integer)options.valueOf("nodeid")).intValue();
+  String adminUrl="";
+  if (nodeid != -1) {
+    adminUrl=(String)options.valueOf("admin-url");
+  }
+  List<String> stores=null;
+  if (options.hasArgument("stores")) {
+    @SuppressWarnings("unchecked") List<String> list=(List<String>)options.valuesOf("stores");
+    stores=list;
+  }
+  int checkKeysCount=0;
+  if (options.hasArgument("check-keys-exist")) {
+    checkKeysCount=((Integer)options.valueOf("check-keys-exist")).intValue();
+    if (checkKeysCount <= 0) {
+      throw new Exception("Expect a positive value for check-keys-exist");
+    }
+  }
+  DeleteKeysCLI deleteKeysCLI=new DeleteKeysCLI(url,adminUrl,stores,keyFile,zoneId,qps,nodeid,deleteAllVersions,checkKeysCount);
+  deleteKeysCLI.deleteKeys();
+}

@@ -1,0 +1,103 @@
+{
+  long currentQps=0;
+  final long BATCH_SIZE=1000;
+  long nextProcessed=BATCH_SIZE;
+  String keyStr;
+  long totalTimeProcessed=0;
+  long currentTimeMS=System.currentTimeMillis();
+  while ((keyStr=keyFileReader.readLine()) != null) {
+    if (keyStr.length() == 0) {
+      System.out.println("Skipping empty line");
+    }
+    MutableInt nextParsePos=new MutableInt(0);
+    Object key=VoldemortClientShell.parseObject(serializerDef,keyStr,nextParsePos,parseErrorStream);
+    if (key == null) {
+      outputError(failedKeyWriter,errorWriter,"Failed to parse Key ####",null,keyStr);
+      continue;
+    }
+    keysProcessed++;
+    if (shouldProcessKey(key) == false) {
+      skipKeyWriter.write(keyStr + "\n");
+      continue;
+    }
+    if (currentQps >= this.qps) {
+      long elapsedTime=System.currentTimeMillis() - currentTimeMS;
+      currentQps=0;
+      totalTimeProcessed+=elapsedTime;
+      if (elapsedTime <= millisInSeconds) {
+        long remainingMillis=millisInSeconds - elapsedTime;
+        try {
+          Thread.sleep(remainingMillis);
+        }
+ catch (        InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+      currentTimeMS=System.currentTimeMillis();
+    }
+    if (totalProcessed >= nextProcessed) {
+      System.out.println("Store " + store + " Processed record count "+ keysProcessed+ " elapsed time "+ totalTimeProcessed+ " qps "+ qps);
+      nextProcessed+=BATCH_SIZE;
+      flushStreams();
+    }
+    currentQps++;
+    totalProcessed++;
+    try {
+      List<Version> versions=null;
+      boolean hasFetchedVersions=false;
+      if (this.nodeid != -1) {
+        hasFetchedVersions=true;
+        List<Versioned<byte[]>> versionedValues=adminClient.storeOps.getNodeKey(this.store,this.nodeid,new ByteArray(this.keySerializer.toBytes(key)));
+        versionCallsMade++;
+        if (versionedValues != null && versionedValues.size() > 0) {
+          versions=new ArrayList<Version>();
+          for (          Versioned<byte[]> versionedValue : versionedValues) {
+            versions.add(versionedValue.getVersion());
+          }
+        }
+      }
+ else       if (this.deleteAllVersions == true || this.checkKeysCount > 0) {
+        hasFetchedVersions=true;
+        versions=getAllVersions(key);
+        versionCallsMade++;
+      }
+      if (hasFetchedVersions) {
+        if (versions != null && versions.size() > 0) {
+          totalVersions+=versions.size();
+        }
+ else {
+          writeKeyResult(keyStr,false);
+          continue;
+        }
+      }
+      boolean isKeyDeleted=true;
+      if (this.checkKeysCount > 0) {
+        for (        Version v : versions) {
+          updateKeyCounters(v);
+          String message="Key " + keyStr + " Version "+ v+ "\n";
+          findKeyWriter.write(message);
+        }
+        totalKeysFound++;
+        if (totalKeysFound > this.checkKeysCount) {
+          break;
+        }
+      }
+ else       if (hasFetchedVersions) {
+        isKeyDeleted=true;
+        for (        Version v : versions) {
+          boolean result=client.delete(key,v);
+          isKeyDeleted=isKeyDeleted && result;
+        }
+      }
+ else {
+        isKeyDeleted=client.delete(key);
+      }
+      writeKeyResult(keyStr,isKeyDeleted);
+    }
+ catch (    Exception e) {
+      outputError(failedKeyWriter,errorWriter,"Error during client delete operation",e,keyStr);
+    }
+  }
+  isComplete=true;
+  closeStreams();
+}

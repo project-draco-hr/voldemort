@@ -1,0 +1,29 @@
+{
+  ClientConfig clientConfig=new ClientConfig().setBootstrapUrls(url).setEnableLazy(false).setRequestFormatType(RequestFormatType.VOLDEMORT_V3).setMaxConnectionsPerNode(15);
+  if (zoneId != Zone.DEFAULT_ZONE_ID) {
+    clientConfig.setClientZoneId(zoneId);
+  }
+  this.stores=stores;
+  if (nodeid != -1) {
+    if (adminUrl == null || adminUrl.length() == 0) {
+      throw new Exception("When deleting from a specific node admin URL is expected");
+    }
+    adminClient=new AdminClient(adminUrl,new AdminClientConfig(),clientConfig);
+  }
+ else {
+    adminClient=null;
+  }
+  factory=new SocketStoreClientFactory(clientConfig);
+  storeClients=new HashMap<String,StoreClient<Object,Object>>();
+  serializerDefs=new HashMap<String,SerializerDefinition>();
+  for (  String store : stores) {
+    storeClients.put(store,factory.getStoreClient(store));
+    StoreDefinition storeDef=StoreUtils.getStoreDef(factory.getStoreDefs(),store);
+    serializerDefs.put(store,storeDef.getKeySerializer());
+  }
+  this.qps=qps;
+  this.nodeid=nodeid;
+  this.deleteAllVersions=deleteAllVersions;
+  this.keyFile=keyFile;
+  this.checkKeysCount=checkKeysCount;
+}

@@ -1,0 +1,14 @@
+{
+  if (!(v instanceof VectorClock))   throw new IllegalArgumentException("Cannot compare Versions of different types.");
+  VectorClock vClock=(VectorClock)v;
+  long timeStamp=vClock.getTimestamp();
+  if (isTimeStampInitialized == false) {
+    isTimeStampInitialized=true;
+    minTimeStamp=timeStamp;
+    maxTimeStamp=timeStamp;
+  }
+ else {
+    minTimeStamp=Math.min(minTimeStamp,timeStamp);
+    maxTimeStamp=Math.max(maxTimeStamp,timeStamp);
+  }
+}

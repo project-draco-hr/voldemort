@@ -1,0 +1,14 @@
+{
+  OptionParser parser=new OptionParser();
+  parser.accepts("help","Print usage information").withOptionalArg();
+  parser.accepts("url","bootstrapUrl").withRequiredArg().describedAs("bootstrap url");
+  parser.accepts("zone","Zone id").withRequiredArg().describedAs("zone id").ofType(Integer.class).defaultsTo(-1);
+  parser.accepts("stores","store").withRequiredArg().describedAs("stores to delete the key/value from").withValuesSeparatedBy(',').ofType(String.class);
+  parser.accepts("keyfile","key file").withRequiredArg().describedAs("file with keys to be deleted are stored as one per line");
+  parser.accepts("qps","keys to be deleted per store").withRequiredArg().describedAs("number of operations allowed per second per store").ofType(Integer.class).defaultsTo(100);
+  parser.accepts("delete-all-versions","Deletes all versions for a given key").withOptionalArg();
+  parser.accepts("nodeid","Delete keys if it is hosted in a node").withRequiredArg().describedAs("Delete keys belonging to a node").ofType(Integer.class).defaultsTo(-1);
+  parser.accepts("admin-url","admin url").withRequiredArg().describedAs("admin url");
+  parser.accepts("check-keys-exist","Verify if the number of keys exist").withRequiredArg().describedAs("Check if the given number of keys exist in the store").ofType(Integer.class).defaultsTo(100);
+  return parser;
+}

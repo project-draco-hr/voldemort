@@ -1,0 +1,37 @@
+{
+  this.store=store;
+  this.client=client;
+  this.serializerDef=serializerDef;
+  this.keyFileReader=new BufferedReader(new FileReader(keyFile));
+  this.qps=qps;
+  this.nodeid=nodeid;
+  this.adminClient=adminClient;
+  this.deleteAllVersions=deleteAllVersions;
+  this.checkKeysCount=checkKeysCount;
+  DefaultStoreClient<Object,Object> defClient=(DefaultStoreClient<Object,Object>)client;
+  this.getVersionsMethod=DefaultStoreClient.class.getDeclaredMethod("getVersions",Object.class);
+  getVersionsMethod.setAccessible(true);
+  this.errorWriter=new BufferedWriter(new FileWriter(store + "_errors.txt",true));
+  this.successWriter=new BufferedWriter(new FileWriter(store + "_success.txt",true));
+  this.failedKeyWriter=new BufferedWriter(new FileWriter(store + "_failure.txt",true));
+  this.missingKeyWriter=new BufferedWriter(new FileWriter(store + "_missing.txt",true));
+  writers=new ArrayList<BufferedWriter>(Arrays.asList(errorWriter,successWriter,failedKeyWriter,missingKeyWriter));
+  if (this.nodeid != -1) {
+    this.skipKeyWriter=new BufferedWriter(new FileWriter(store + "_skipped.txt",true));
+    writers.add(skipKeyWriter);
+    SerializerFactory serializerFactory=new DefaultSerializerFactory();
+    this.keySerializer=(Serializer<Object>)serializerFactory.getSerializer(serializerDef);
+  }
+ else {
+    this.skipKeyWriter=null;
+    this.keySerializer=null;
+  }
+  if (this.checkKeysCount > 0) {
+    findKeyWriter=new BufferedWriter(new FileWriter(store + "_find_keys.txt",true));
+    writers.add(findKeyWriter);
+  }
+ else {
+    findKeyWriter=null;
+  }
+  this.parseErrorStream=new PrintStream(new FileOutputStream(store + "_parseErrors.txt",true));
+}
