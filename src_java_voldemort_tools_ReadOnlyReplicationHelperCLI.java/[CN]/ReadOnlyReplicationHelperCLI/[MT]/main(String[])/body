@@ -1,0 +1,22 @@
+{
+  setupParser();
+  OptionSet options=getValidOptions(args);
+  String url=(String)options.valueOf(OPT_URL);
+  Integer nodeId=(Integer)options.valueOf(OPT_NODE);
+  PrintStream outputStream;
+  if (options.has(OPT_OUTPUT)) {
+    String output=(String)options.valueOf(OPT_OUTPUT);
+    outputStream=new PrintStream(output);
+  }
+ else {
+    outputStream=System.out;
+  }
+  AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());
+  List<String> infoList=getReadOnlyReplicationInfo(adminClient,nodeId);
+  for (  String info : infoList) {
+    outputStream.println(info);
+  }
+  if (outputStream != System.out) {
+    outputStream.close();
+  }
+}

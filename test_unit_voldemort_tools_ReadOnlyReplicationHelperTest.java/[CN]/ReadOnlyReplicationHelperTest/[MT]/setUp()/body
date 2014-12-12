@@ -1,0 +1,11 @@
+{
+  int numServers=2;
+  servers=new VoldemortServer[numServers];
+  int partitionMap[][]={{0,1,2,3},{4,5,6,7}};
+  Properties serverProperties=new Properties();
+  serverProperties.setProperty("client.max.connections.per.node","20");
+  cluster=ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,false,null,storesXmlfile,serverProperties);
+  Properties adminProperties=new Properties();
+  adminProperties.setProperty("max_connections","20");
+  adminClient=new AdminClient(cluster,new AdminClientConfig(adminProperties),new ClientConfig());
+}

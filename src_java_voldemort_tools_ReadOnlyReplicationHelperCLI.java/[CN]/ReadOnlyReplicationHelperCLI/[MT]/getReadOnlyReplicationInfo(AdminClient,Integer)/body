@@ -1,0 +1,50 @@
+{
+  List<String> infoList=Lists.newArrayList();
+  List<StoreDefinition> storeDefs=adminClient.metadataMgmtOps.getRemoteStoreDefList().getValue();
+  Cluster cluster=adminClient.metadataMgmtOps.getRemoteCluster(nodeId).getValue();
+  for (  StoreDefinition storeDef : storeDefs) {
+    String storeName=storeDef.getName();
+    String storageFormat=null;
+    if (storeDef.getReplicationFactor() <= 1 || !storeDef.getType().equals(ReadOnlyStorageConfiguration.TYPE_NAME) || !(storageFormat=adminClient.readonlyOps.getROStorageFormat(nodeId,storeName)).equals(ReadOnlyStorageFormat.READONLY_V2.getCode())) {
+      logger.error("Unqualified store: " + storeName + ", replication factor = "+ storeDef.getReplicationFactor()+ ", type = "+ storeDef.getType()+ ", ro format = "+ storageFormat);
+      continue;
+    }
+    logger.info("Processing store " + storeName);
+    RoutingStrategy strategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+    for (int masterPartitionId=0; masterPartitionId < cluster.getNumberOfPartitions(); ++masterPartitionId) {
+      List<Integer> naryPartitionIds=strategy.getReplicatingPartitionList(masterPartitionId);
+      int nary=0;
+      Boolean hasPartition=false;
+      for (      int naryPartitionId : naryPartitionIds) {
+        Node naryNode=cluster.getNodeForPartitionId(naryPartitionId);
+        if (naryNode.getId() == nodeId) {
+          hasPartition=true;
+          naryPartitionIds.remove(nary);
+          break;
+        }
+        nary++;
+      }
+      if (!hasPartition) {
+        logger.trace("Node " + nodeId + " doesn't have partition "+ masterPartitionId);
+        continue;
+      }
+      Node sourceNode=cluster.getNodeForPartitionId(naryPartitionIds.get(0));
+      List<String> fileNames=adminClient.readonlyOps.getROStorageFileList(sourceNode.getId(),storeDef.getName());
+      List<String> sourceFileNames=parseAndCompare(fileNames,masterPartitionId);
+      if (sourceFileNames.size() > 0) {
+        for (        String sourceFileName : sourceFileNames) {
+          String[] partitionIdReplicaChunk=sourceFileName.split(SPLIT_LITERAL);
+          String partitionId=partitionIdReplicaChunk[0];
+          String replicaId=String.valueOf(nary);
+          String chunkId=partitionIdReplicaChunk[2];
+          String destFileName=partitionId.concat(SPLIT_LITERAL).concat(replicaId).concat(SPLIT_LITERAL).concat(chunkId);
+          infoList.add(storeName + "," + sourceNode.getId()+ ","+ sourceFileName+ ","+ destFileName);
+        }
+      }
+ else {
+        logger.warn("Cannot find file for partition " + masterPartitionId + " on source node "+ sourceNode.getId());
+      }
+    }
+  }
+  return infoList;
+}
