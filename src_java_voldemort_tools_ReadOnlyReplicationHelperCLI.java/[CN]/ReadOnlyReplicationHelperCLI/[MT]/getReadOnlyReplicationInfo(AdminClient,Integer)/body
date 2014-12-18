@@ -30,10 +30,7 @@
       }
       Node sourceNode=cluster.getNodeForPartitionId(naryPartitionIds.get(0));
       Integer sourceNodeId=sourceNode.getId();
-      Long sourceVersion=adminClient.readonlyOps.getROCurrentVersion(sourceNodeId,Arrays.asList(storeName)).get(storeName);
-      String sourcePath=adminClient.readonlyOps.getROCurrentVersionDir(sourceNodeId,Arrays.asList(storeName)).get(storeName);
-      Long destVersion=adminClient.readonlyOps.getROCurrentVersion(nodeId,Arrays.asList(storeName)).get(storeName);
-      String destPath=adminClient.readonlyOps.getROCurrentVersionDir(nodeId,Arrays.asList(storeName)).get(storeName);
+      Long version=adminClient.readonlyOps.getROCurrentVersion(sourceNodeId,Arrays.asList(storeName)).get(storeName);
       List<String> fileNames=adminClient.readonlyOps.getROStorageFileList(sourceNode.getId(),storeName);
       List<String> sourceFileNames=parseAndCompare(fileNames,masterPartitionId);
       if (sourceFileNames.size() > 0) {
@@ -43,7 +40,9 @@
           String replicaId=String.valueOf(nary);
           String chunkId=partitionIdReplicaChunk[2];
           String destFileName=partitionId.concat(SPLIT_LITERAL).concat(replicaId).concat(SPLIT_LITERAL).concat(chunkId);
-          infoList.add(storeName + "," + sourceNode.getHost()+ ","+ sourceNode.getId()+ ","+ sourceVersion+ ","+ sourcePath+ ","+ sourceFileName+ ","+ destVersion+ ","+ destPath+ ","+ destFileName);
+          String sourceRelPath=storeName + "/version-" + version+ "/"+ sourceFileName;
+          String destRelPath=storeName + "/version-" + version+ "/"+ destFileName;
+          infoList.add(sourceNode.getHost() + "," + sourceNode.getId()+ ","+ sourceRelPath+ ","+ destRelPath);
         }
       }
  else {
