@@ -8,6 +8,10 @@
   while ((keyStr=keyFileReader.readLine()) != null) {
     if (keyStr.length() == 0) {
       System.out.println("Skipping empty line");
+      continue;
+    }
+    if (this.checkKeysCount > 0 && totalKeysFound >= this.checkKeysCount) {
+      break;
     }
     MutableInt nextParsePos=new MutableInt(0);
     Object key=VoldemortClientShell.parseObject(serializerDef,keyStr,nextParsePos,parseErrorStream);
@@ -70,7 +74,7 @@
           continue;
         }
       }
-      boolean isKeyDeleted=true;
+      boolean isKeyPresent=true;
       if (this.checkKeysCount > 0) {
         for (        Version v : versions) {
           updateKeyCounters(v);
@@ -78,21 +82,17 @@
           findKeyWriter.write(message);
         }
         totalKeysFound++;
-        if (totalKeysFound > this.checkKeysCount) {
-          break;
-        }
       }
  else       if (hasFetchedVersions) {
-        isKeyDeleted=true;
         for (        Version v : versions) {
           boolean result=client.delete(key,v);
-          isKeyDeleted=isKeyDeleted && result;
+          isKeyPresent=isKeyPresent && result;
         }
       }
  else {
-        isKeyDeleted=client.delete(key);
+        isKeyPresent=client.delete(key);
       }
-      writeKeyResult(keyStr,isKeyDeleted);
+      writeKeyResult(keyStr,isKeyPresent);
     }
  catch (    Exception e) {
       outputError(failedKeyWriter,errorWriter,"Error during client delete operation",e,keyStr);
