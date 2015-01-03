@@ -8,27 +8,17 @@ case 0:
         if ((operationMode & MODE_ALLOW_PUT) == 0) {
           break;
         }
-      kvUpdateCount.put(k,kvUpdateCount.get(k) + 1);
-    client.put(k,kvMap.get(k) + "_" + kvUpdateCount.get(k).toString());
-  requestCount.put("PUT",requestCount.get("PUT") + 1);
+      int newCount=kvUpdateCount.get(k) + 1;
+    client.put(k,kvMap.get(k) + "_" + newCount);
+  kvUpdateCount.put(k,newCount);
+requestCount.put("PUT",requestCount.get("PUT") + 1);
 break;
 case 1:
 if ((operationMode & MODE_ALLOW_GET) == 0) {
 break;
 }
 Versioned<String> value=client.get(k);
-if (value == null) {
-throw new RuntimeException("Versioned is empty for key [" + k + "]"){
-}
-;
-}
- else {
-if (value.getValue() == null) {
-throw new RuntimeException("Versioned has empty value inside for key [" + k + "]"){
-}
-;
-}
-}
+verifyValue(k,value);
 requestCount.put("GET",requestCount.get("GET") + 1);
 break;
 case 2:
@@ -37,30 +27,8 @@ break;
 }
 String k2=keys.get(r.nextInt(KV_POOL_SIZE));
 Map<String,Versioned<String>> result=client.getAll(Arrays.asList(k,k2));
-if (result.get(k) == null) {
-throw new RuntimeException("Versioned is empty for key [" + k + "]"){
-}
-;
-}
- else {
-if (result.get(k).getValue() == null) {
-throw new RuntimeException("Versioned has empty value inside for key [" + k + "]"){
-}
-;
-}
-}
-if (result.get(k2) == null) {
-throw new RuntimeException("Versioned is empty for key [" + k2 + "]"){
-}
-;
-}
- else {
-if (result.get(k2).getValue() == null) {
-throw new RuntimeException("Versioned has empty value inside for key [" + k2 + "]"){
-}
-;
-}
-}
+verifyValue(k,result.get(k));
+verifyValue(k2,result.get(k2));
 requestCount.put("GETALL",requestCount.get("GETALL") + 1);
 break;
 }
@@ -70,7 +38,7 @@ break;
 catch (Exception e) {
 logger.info("CLIENT EXCEPTION FAILURE on key [" + k + "]"+ e.toString());
 e.printStackTrace();
-String exceptionName=e.getClass().toString();
+String exceptionName="Key " + k + " "+ e.getClass().toString();
 if (exceptionCount.containsKey(exceptionName)) {
 exceptionCount.put(exceptionName,exceptionCount.get(exceptionName) + 1);
 }
