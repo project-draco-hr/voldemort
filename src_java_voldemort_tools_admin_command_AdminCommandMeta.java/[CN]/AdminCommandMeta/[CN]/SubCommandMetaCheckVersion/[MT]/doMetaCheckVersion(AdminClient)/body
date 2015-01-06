@@ -1,13 +1,12 @@
 {
   Map<Properties,Integer> versionsNodeMap=new HashMap<Properties,Integer>();
   for (  Integer nodeId : adminClient.getAdminClientCluster().getNodeIds()) {
-    String valueObject=doMetaGetVersionsForNode(adminClient,nodeId);
-    Properties props=new Properties();
+    Properties props=null;
     try {
-      props.load(new ByteArrayInputStream(valueObject.getBytes()));
+      props=doMetaGetVersionsForNode(adminClient,nodeId);
     }
  catch (    IOException e) {
-      System.err.println("Error while parsing Metadata versions for node : " + nodeId + ". Exception = \n");
+      System.err.println("Error while retrieving Metadata versions from node : " + nodeId + ". Exception = "+ e.getMessage()+ " \n");
       e.printStackTrace();
       System.exit(-1);
     }
@@ -21,6 +20,6 @@
     }
   }
  else {
-    System.err.println("All the nodes have the same metadata versions.");
+    System.err.println("All the nodes have the same metadata versions." + Arrays.toString(versionsNodeMap.keySet().toArray()));
   }
 }
