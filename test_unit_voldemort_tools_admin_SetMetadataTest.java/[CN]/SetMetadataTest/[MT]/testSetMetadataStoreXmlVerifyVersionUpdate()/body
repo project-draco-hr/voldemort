@@ -16,7 +16,7 @@
   fwriter.write(new StoreDefinitionsMapper().writeStoreList(newStores));
   fwriter.close();
   String sysStoreName=SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name();
-  ByteArray metadataKey=new ByteArray(ByteUtils.getBytes(MetadataVersionStoreUtils.VERSIONS_METADATA_KEY,"utf-8"));
+  ByteArray metadataKey=new ByteArray(ByteUtils.getBytes(SystemStoreConstants.VERSIONS_METADATA_KEY,"utf-8"));
   for (  VoldemortServer vs : vservers.values()) {
     List<Versioned<byte[]>> result=vs.getStoreRepository().getLocalStore(sysStoreName).get(metadataKey,null);
     String versionInfo=new String(result.get(0).getValue());

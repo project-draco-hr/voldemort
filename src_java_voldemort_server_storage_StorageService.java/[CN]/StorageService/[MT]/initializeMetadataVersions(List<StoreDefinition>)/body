@@ -2,7 +2,7 @@
   Store<ByteArray,byte[],byte[]> versionStore=storeRepository.getLocalStore(SystemStoreConstants.SystemStoreName.voldsys$_metadata_version_persistence.name());
   Properties props=new Properties();
   try {
-    ByteArray metadataVersionsKey=new ByteArray(VERSIONS_METADATA_STORE.getBytes());
+    ByteArray metadataVersionsKey=new ByteArray(SystemStoreConstants.VERSIONS_METADATA_KEY.getBytes());
     List<Versioned<byte[]>> versionList=versionStore.get(metadataVersionsKey,null);
     VectorClock newClock=null;
     if (versionList != null && versionList.size() > 0) {
@@ -16,11 +16,11 @@
  else {
       newClock=new VectorClock();
     }
-    if (!props.containsKey(CLUSTER_VERSION_KEY)) {
-      props.setProperty(CLUSTER_VERSION_KEY,"0");
+    if (!props.containsKey(SystemStoreConstants.CLUSTER_VERSION_KEY)) {
+      props.setProperty(SystemStoreConstants.CLUSTER_VERSION_KEY,"0");
     }
-    if (!props.containsKey(STORES_VERSION_KEY)) {
-      props.setProperty(STORES_VERSION_KEY,"0");
+    if (!props.containsKey(SystemStoreConstants.STORES_VERSION_KEY)) {
+      props.setProperty(SystemStoreConstants.STORES_VERSION_KEY,"0");
     }
     for (    StoreDefinition def : storeDefs) {
       if (!props.containsKey(def.getName())) {

@@ -1,8 +1,8 @@
 {
-  logger.debug("************* AsyncMetadataVersionManger running. Checking for " + CLUSTER_VERSION_KEY + " and  "+ storesVersionKey+ " *************");
+  logger.debug("************* AsyncMetadataVersionManger running. Checking for " + SystemStoreConstants.CLUSTER_VERSION_KEY + " and  "+ storesVersionKey+ " *************");
   try {
     Properties versionProps=MetadataVersionStoreUtils.getProperties(this.systemStoreRepository.getMetadataVersionStore());
-    Long newClusterVersion=fetchNewVersion(CLUSTER_VERSION_KEY,this.currentClusterVersion,versionProps);
+    Long newClusterVersion=fetchNewVersion(SystemStoreConstants.CLUSTER_VERSION_KEY,this.currentClusterVersion,versionProps);
     Long newStoreVersion=fetchNewVersion(storesVersionKey,this.currentStoreVersion,versionProps);
     if ((newClusterVersion != null) || (newStoreVersion != null)) {
       logger.info("Metadata version mismatch detected. Re-bootstrapping!");
