@@ -1,25 +1,24 @@
 {
-  Map<Properties,Integer> versionsNodeMap=new HashMap<Properties,Integer>();
+  Map<Properties,List<Integer>> versionsNodeMap=new HashMap<Properties,List<Integer>>();
   for (  Integer nodeId : adminClient.getAdminClientCluster().getNodeIds()) {
-    Properties props=null;
-    try {
-      props=doMetaGetVersionsForNode(adminClient,nodeId);
+    Properties props=doMetaGetVersionsForNode_ExitOnError(adminClient,nodeId);
+    if (versionsNodeMap.containsKey(props) == false) {
+      versionsNodeMap.put(props,new ArrayList<Integer>());
     }
- catch (    IOException e) {
-      System.err.println("Error while retrieving Metadata versions from node : " + nodeId + ". Exception = "+ e.getMessage()+ " \n");
-      e.printStackTrace();
-      System.exit(-1);
-    }
-    versionsNodeMap.put(props,nodeId);
+    versionsNodeMap.get(props).add(nodeId);
   }
-  if (versionsNodeMap.keySet().size() > 1) {
-    System.err.println("Mismatching versions detected !!!");
-    for (    Entry<Properties,Integer> entry : versionsNodeMap.entrySet()) {
-      System.out.println("**************************** Node: " + entry.getValue() + " ****************************");
-      System.out.println(entry.getKey());
-    }
+  if (versionsNodeMap.keySet().size() <= 0) {
+    System.err.println("No Versions found in the system store... something seriously wrong");
+  }
+ else   if (versionsNodeMap.keySet().size() == 1) {
+    System.err.println("All the nodes have the same metadata versions.");
+    printProperties(versionsNodeMap.keySet().iterator().next());
   }
  else {
-    System.err.println("All the nodes have the same metadata versions." + Arrays.toString(versionsNodeMap.keySet().toArray()));
+    System.err.println("Mismatching versions detected !!!");
+    for (    Entry<Properties,List<Integer>> entry : versionsNodeMap.entrySet()) {
+      System.out.println("**************************** Node(s): " + Arrays.toString(entry.getValue().toArray()) + " ****************************");
+      printProperties(entry.getKey());
+    }
   }
 }

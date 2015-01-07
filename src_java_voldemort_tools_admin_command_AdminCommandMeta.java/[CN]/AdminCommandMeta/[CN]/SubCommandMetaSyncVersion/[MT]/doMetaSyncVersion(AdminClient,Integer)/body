@@ -1,12 +1,5 @@
 {
-  try {
-    Properties props=doMetaGetVersionsForNode(adminClient,nodeId);
-    adminClient.metadataMgmtOps.setMetadataversion(props);
-    System.out.println("Metadata versions synchronized successfully.");
-  }
- catch (  IOException e) {
-    System.err.println("Error while retrieving Metadata versions from node : " + nodeId + ". Exception = "+ e.getMessage()+ " \n");
-    e.printStackTrace();
-    System.exit(-1);
-  }
+  Properties props=doMetaGetVersionsForNode_ExitOnError(adminClient,nodeId);
+  adminClient.metadataMgmtOps.setMetadataversion(props);
+  System.out.println("Metadata versions synchronized successfully.");
 }
