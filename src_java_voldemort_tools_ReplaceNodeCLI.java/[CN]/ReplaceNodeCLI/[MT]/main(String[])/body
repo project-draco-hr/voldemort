@@ -29,12 +29,5 @@
     Utils.croak(" parallelism " + parallelism + " should be a positive integer ");
   }
   ReplaceNodeCLI nodeReplacer=new ReplaceNodeCLI(url,nodeId,newUrl,skipRestore,parallelism);
-  nodeReplacer.verifyPreConditions();
-  nodeReplacer.makeServersOffline();
-  nodeReplacer.modifyTopology();
-  if (skipRestore == false) {
-    nodeReplacer.restoreFromReplica();
-  }
-  nodeReplacer.enableSlopStreaming();
-  nodeReplacer.updateClusterVersion();
+  nodeReplacer.execute();
 }
