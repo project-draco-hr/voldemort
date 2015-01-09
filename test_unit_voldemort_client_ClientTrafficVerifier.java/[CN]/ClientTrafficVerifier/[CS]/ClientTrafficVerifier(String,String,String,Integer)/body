@@ -1,7 +1,10 @@
 {
-  factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootstrapURL).setClientZoneId(clientZoneId));
+  ClientConfig config=new ClientConfig().setBootstrapUrls(bootstrapURL);
+  if (clientZoneId != Zone.UNSET_ZONE_ID) {
+    config.setClientZoneId(clientZoneId);
+  }
+  factory=new SocketStoreClientFactory(config);
   client=factory.getStoreClient(storeName);
-  thread=new Thread(this);
   this.clientName=clientName;
   int i=0;
   while (i < KV_POOL_SIZE) {

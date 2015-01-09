@@ -8,7 +8,7 @@
     }
  catch (    Exception e) {
       logger.error("error parsing url " + url,e);
-      Utils.croak("error parsing url " + url + "  "+ e.getMessage());
+      throw new VoldemortApplicationException("error parsing url " + url + "  "+ e.getMessage());
     }
     int urlPort=bootstrapUrl.getPort();
     if (urlPort == adminPort) {
@@ -17,6 +17,6 @@
     }
   }
   if (isAdminPortUsed == false) {
-    Utils.croak("The bootstrap URL should point to the admin port as the client port will be made offline ... aborting " + " url " + url);
+    throw new VoldemortApplicationException("The bootstrap URL should point to the admin port as the client port will be made offline ... aborting " + " url " + url);
   }
 }

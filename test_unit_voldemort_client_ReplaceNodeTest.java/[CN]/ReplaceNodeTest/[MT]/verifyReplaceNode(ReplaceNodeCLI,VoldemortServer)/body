@@ -1,0 +1,30 @@
+{
+  try {
+    if (trafficGenerator == null) {
+      Node node=originalCluster.getNodeById(4);
+      String clientBootStrapUrl="tcp://" + node.getHost() + ":"+ node.getSocketPort();
+      List<String> storeNames=Arrays.asList(new String[]{STORE211_NAME,STORE322_NAME});
+      final int numberOfThreads=4;
+      trafficGenerator=new ClientTrafficGenerator(clientBootStrapUrl,storeNames,numberOfThreads);
+    }
+    trafficGenerator.start();
+    Thread.sleep(5000);
+    replacer.execute();
+    Thread.sleep(15000);
+    trafficGenerator.stop();
+    trafficGenerator.verifyIfClientsDetectedNewClusterXMLs();
+    ServerTestUtils.waitForSlopDrain(finalServers,30000L);
+  }
+ catch (  InterruptedException e) {
+    e.printStackTrace();
+    throw e;
+  }
+catch (  Exception e) {
+    e.printStackTrace();
+    throw e;
+  }
+ finally {
+    trafficGenerator.verifyPostConditions();
+  }
+  verifyPostReplacement(replacementServer);
+}

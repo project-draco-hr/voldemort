@@ -29,5 +29,11 @@
     Utils.croak(" parallelism " + parallelism + " should be a positive integer ");
   }
   ReplaceNodeCLI nodeReplacer=new ReplaceNodeCLI(url,nodeId,newUrl,skipRestore,parallelism);
-  nodeReplacer.execute();
+  try {
+    nodeReplacer.execute();
+  }
+ catch (  VoldemortApplicationException e) {
+    logger.error("Error during node replace",e);
+    Utils.croak(e.getMessage());
+  }
 }

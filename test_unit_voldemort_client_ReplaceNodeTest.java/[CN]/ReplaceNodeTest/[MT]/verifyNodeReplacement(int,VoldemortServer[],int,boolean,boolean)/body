@@ -1,0 +1,11 @@
+{
+  if (stopOldNode) {
+    originalServers[originalNode].stop();
+  }
+  VoldemortServer replacementServer=replacementServers[newNode];
+  Node replacementNode=replacementServer.getIdentityNode();
+  String replacementBootstrapUrl=getAdminUrl(replacementNode);
+  ReplaceNodeCLI replacer=new ReplaceNodeCLI(originalBootstrapUrl,originalNode,replacementBootstrapUrl,skipRestore,PARALELLISM);
+  finalServers.put(originalNode,replacementServer);
+  verifyReplaceNode(replacer,replacementServer);
+}

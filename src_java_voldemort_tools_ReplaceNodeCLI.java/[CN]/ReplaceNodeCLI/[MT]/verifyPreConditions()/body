@@ -1,6 +1,6 @@
 {
   if (cluster.hasNodeWithId(nodeId) == false) {
-    Utils.croak(" Node " + nodeId + " could not be found in the existing cluster. Please check the node id ");
+    throw new VoldemortApplicationException(" Node " + nodeId + " could not be found in the existing cluster. Please check the node id ");
   }
   verifyAdminPort(cluster.getNodes(),url);
   verifyAdminPort(Arrays.asList(newCluster.getNodeById(newNodeId)),newUrl);
@@ -11,37 +11,37 @@
     Set<StoreDefinition> newStores=new HashSet<StoreDefinition>();
     newStores.addAll(newStoreDefinitions);
     if (existingStores.equals(newStores) == false) {
-      Utils.croak("Command called with skip data restore, but store definitions do not match... aborting ");
+      throw new VoldemortApplicationException("Command called with skip data restore, but store definitions do not match... aborting ");
     }
     if (newCluster.getNumberOfNodes() > 1) {
       if (cluster.getNumberOfNodes() != newCluster.getNumberOfNodes()) {
-        Utils.croak("number of nodes in new " + newCluster.getNumberOfNodes() + " and old cluster "+ cluster.getNumberOfNodes()+ " not the same. New cluster can have one or equal number of nodes ... aborting");
+        throw new VoldemortApplicationException("number of nodes in new " + newCluster.getNumberOfNodes() + " and old cluster "+ cluster.getNumberOfNodes()+ " not the same. New cluster can have one or equal number of nodes ... aborting");
       }
       for (      Node oldNode : cluster.getNodes()) {
         Node newNode=newCluster.getNodeById(oldNode.getId());
         if (oldNode.getId() == nodeId) {
           if (oldNode.isEqualState(newNode)) {
-            Utils.croak(" node in the new cluster has the same metadata as the node being replaced. \n" + "fix the new cluster to have the correct host and ports... aborting");
+            throw new VoldemortApplicationException(" node in the new cluster has the same metadata as the node being replaced. \n" + "fix the new cluster to have the correct host and ports... aborting");
           }
         }
  else {
           if (oldNode.isEqualState(newNode) == false) {
-            Utils.croak(" node in the old and new cluster should be the same except for the one being replaced. " + "Node id : " + oldNode.getId() + "... aborting");
+            throw new VoldemortApplicationException(" node in the old and new cluster should be the same except for the one being replaced. " + "Node id : " + oldNode.getId() + "... aborting");
           }
         }
         if (oldNode.getPartitionIds().equals(newNode.getPartitionIds()) == false) {
-          Utils.croak("old node and new node has different partition ids, is this a correct replacement for node Id" + oldNode.getId() + " ... aborting");
+          throw new VoldemortApplicationException("old node and new node has different partition ids, is this a correct replacement for node Id" + oldNode.getId() + " ... aborting");
         }
       }
     }
   }
  else {
     if (newCluster.getNumberOfNodes() != 1) {
-      Utils.croak("needs data restore and new cluster has more than one nodes... aborting");
+      throw new VoldemortApplicationException("needs data restore and new cluster has more than one nodes... aborting");
     }
     List<StoreDefinition> readOnlyStoreDefs=StoreDefinitionUtils.filterStores(storeDefinitions,true);
     if (readOnlyStoreDefs.size() > 0) {
-      Utils.croak("data restore not supported for clusters with read only stores. Read only store name " + readOnlyStoreDefs.get(0));
+      throw new VoldemortApplicationException("data restore not supported for clusters with read only stores. Read only store name " + readOnlyStoreDefs.get(0));
     }
   }
 }

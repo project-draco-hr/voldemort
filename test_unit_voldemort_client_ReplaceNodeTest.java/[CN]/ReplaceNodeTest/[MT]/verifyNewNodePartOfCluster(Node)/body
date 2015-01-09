@@ -1,0 +1,11 @@
+{
+  Cluster cluster=new AdminClient(originalBootstrapUrl,new AdminClientConfig(),new ClientConfig()).getAdminClientCluster();
+  boolean isNewNodePresent=false;
+  for (  Node curNode : cluster.getNodes()) {
+    if (curNode.isEqualState(replacementNode)) {
+      isNewNodePresent=true;
+      break;
+    }
+  }
+  assertTrue(isNewNodePresent);
+}
