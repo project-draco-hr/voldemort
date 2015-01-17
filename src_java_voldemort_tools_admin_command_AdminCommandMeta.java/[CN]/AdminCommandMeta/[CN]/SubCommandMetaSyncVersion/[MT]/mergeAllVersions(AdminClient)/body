@@ -1,0 +1,27 @@
+{
+  Properties props=null;
+  VectorClock version=null;
+  for (  Integer nodeId : adminClient.getAdminClientCluster().getNodeIds()) {
+    Versioned<Properties> versionedProp=doMetaGetVersionsForNode_ExitOnError(adminClient,nodeId);
+    Properties newProps=versionedProp.getValue();
+    VectorClock newVersion=(VectorClock)versionedProp.getVersion();
+    if (props == null) {
+      props=newProps;
+      version=newVersion;
+    }
+ else {
+      version=version.merge(newVersion);
+      for (      String propName : props.stringPropertyNames()) {
+        String currValue=props.getProperty(propName);
+        Long currlValue=SubCommandMetaCheckVersion.tryParse(currValue);
+        String newValue=newProps.getProperty(propName);
+        Long lValue=SubCommandMetaCheckVersion.tryParse(newValue);
+        if (lValue > currlValue) {
+          props.setProperty(propName,lValue.toString());
+        }
+      }
+    }
+  }
+  version=version.incremented(version.getVersionMap().firstKey(),System.currentTimeMillis());
+  return new Versioned<Properties>(props,version);
+}

@@ -1,0 +1,13 @@
+{
+  if (props == null || props.getValue() == null) {
+    return;
+  }
+  try {
+    String versionString=getPropertiesString(props.getValue());
+    Versioned<String> versionedString=new Versioned<String>(versionString,props.getVersion());
+    versionStore.putSysStore(SystemStoreConstants.VERSIONS_METADATA_KEY,versionedString);
+  }
+ catch (  Exception e) {
+    logger.debug("Got exception in setting properties : " + e.getMessage());
+  }
+}

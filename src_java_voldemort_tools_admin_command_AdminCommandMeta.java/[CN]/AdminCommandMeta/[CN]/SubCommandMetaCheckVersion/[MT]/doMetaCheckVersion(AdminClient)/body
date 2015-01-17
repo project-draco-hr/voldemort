@@ -1,7 +1,8 @@
 {
   Map<Properties,List<Integer>> versionsNodeMap=new HashMap<Properties,List<Integer>>();
   for (  Integer nodeId : adminClient.getAdminClientCluster().getNodeIds()) {
-    Properties props=doMetaGetVersionsForNode_ExitOnError(adminClient,nodeId);
+    Versioned<Properties> versionedProp=doMetaGetVersionsForNode_ExitOnError(adminClient,nodeId);
+    Properties props=versionedProp.getValue();
     if (versionsNodeMap.containsKey(props) == false) {
       versionsNodeMap.put(props,new ArrayList<Integer>());
     }

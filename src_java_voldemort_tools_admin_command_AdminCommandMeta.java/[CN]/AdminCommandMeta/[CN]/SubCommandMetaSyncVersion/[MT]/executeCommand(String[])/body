@@ -1,6 +1,5 @@
 {
   OptionParser parser=getParser();
-  Integer nodeId=null;
   String url=null;
   Boolean confirm=false;
   OptionSet options=parser.parse(args);
@@ -8,20 +7,19 @@
     printHelp(System.out);
     return;
   }
-  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_NODE);
   AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
-  nodeId=(Integer)options.valueOf(AdminParserUtils.OPT_NODE);
   url=(String)options.valueOf(AdminParserUtils.OPT_URL);
   if (options.has(AdminParserUtils.OPT_CONFIRM)) {
     confirm=true;
   }
   System.out.println("Synchronize metadata versions across all nodes");
-  System.out.println("Base node id = " + nodeId);
   System.out.println("Location:");
   System.out.println("  bootstrap url = " + url);
   System.out.println("  node = all nodes");
-  if (!AdminToolUtils.askConfirm(confirm,"synchronize metadata version"))   return;
   AdminClient adminClient=AdminToolUtils.getAdminClient(url);
   AdminToolUtils.assertServerNotInRebalancingState(adminClient);
-  doMetaSyncVersion(adminClient,nodeId);
+  Versioned<Properties> versionedProps=mergeAllVersions(adminClient);
+  printVersions(versionedProps);
+  if (!AdminToolUtils.askConfirm(confirm,"do you want to synchronize metadata versions to all node"))   return;
+  adminClient.metadataMgmtOps.setMetadataversion(versionedProps);
 }

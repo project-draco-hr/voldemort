@@ -3,16 +3,8 @@
     return;
   }
   try {
-    StringBuilder finalVersionList=new StringBuilder();
-    for (    String propName : props.stringPropertyNames()) {
-      if (finalVersionList.length() == 0) {
-        finalVersionList.append(propName + "=" + props.getProperty(propName));
-      }
- else {
-        finalVersionList.append("\n" + propName + "="+ props.getProperty(propName));
-      }
-    }
-    versionStore.putSysStore(SystemStoreConstants.VERSIONS_METADATA_KEY,finalVersionList.toString());
+    String versionString=getPropertiesString(props);
+    versionStore.putSysStore(SystemStoreConstants.VERSIONS_METADATA_KEY,versionString);
   }
  catch (  Exception e) {
     logger.debug("Got exception in setting properties : " + e.getMessage());
