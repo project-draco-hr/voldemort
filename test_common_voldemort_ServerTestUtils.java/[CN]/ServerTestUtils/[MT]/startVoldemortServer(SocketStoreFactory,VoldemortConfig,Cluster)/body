@@ -1,17 +1,29 @@
 {
-  VoldemortServer server=new VoldemortServer(config,cluster);
-  try {
-    server.start();
-  }
- catch (  VoldemortException ve) {
-    if (ve.getCause() instanceof BindException) {
-      ve.printStackTrace();
-      throw new BindException(ve.getMessage());
-    }
+  final int MAX_ATTEMPTS=3;
+  VoldemortException lastVE=null;
+  for (int i=0; i < MAX_ATTEMPTS; i++) {
+    try {
+      VoldemortServer server=null;
+      if (cluster != null) {
+        server=new VoldemortServer(config,cluster);
+      }
  else {
-      throw ve;
+        server=new VoldemortServer(config);
+      }
+      server.start();
+      ServerTestUtils.waitForServerStart(socketStoreFactory,server.getIdentityNode());
+      return server;
+    }
+ catch (    VoldemortException ve) {
+      if (ve.getCause() instanceof BindException) {
+        ve.printStackTrace();
+        trySleep(100);
+        lastVE=ve;
+      }
+ else {
+        throw ve;
+      }
     }
   }
-  ServerTestUtils.waitForServerStart(socketStoreFactory,server.getIdentityNode());
-  return server;
+  throw new BindException(lastVE.getMessage());
 }
