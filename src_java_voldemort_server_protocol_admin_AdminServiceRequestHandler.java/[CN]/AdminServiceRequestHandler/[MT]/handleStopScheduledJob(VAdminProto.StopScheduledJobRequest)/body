@@ -1,0 +1,14 @@
+{
+  VAdminProto.StopScheduledJobResponse.Builder response=VAdminProto.StopScheduledJobResponse.newBuilder();
+  String jobId=request.getJobId();
+  try {
+    logger.info("Stopping job id " + jobId);
+    scheduler.terminate(jobId);
+    logger.info("Successfully stopped job id " + jobId);
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleStopScheduledJob failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

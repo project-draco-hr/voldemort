@@ -1,0 +1,11 @@
+{
+  for (  Integer nodeId : nodeIds) {
+    System.out.println("Retrieving scheduled jobs from node " + nodeId);
+    List<String> jobIds=adminClient.rpcOps.getScheduledJobsList(nodeId);
+    System.out.println("Scheduled job ids on node " + nodeId + " : "+ jobIds);
+    for (    String jobId : jobIds) {
+      System.out.println("  Scheduled job id " + jobId + " is "+ (adminClient.rpcOps.getScheduledJobStatus(nodeId,jobId) ? "enabled" : "disabled"));
+    }
+    System.out.println();
+  }
+}

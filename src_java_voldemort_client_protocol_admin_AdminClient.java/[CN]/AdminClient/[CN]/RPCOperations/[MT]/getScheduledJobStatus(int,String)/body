@@ -1,0 +1,9 @@
+{
+  VAdminProto.GetScheduledJobStatusRequest getScheduledJobStatusRequest=VAdminProto.GetScheduledJobStatusRequest.newBuilder().setJobId(jobId).build();
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.GET_SCHEDULED_JOB_STATUS).setGetScheduledJobStatus(getScheduledJobStatusRequest).build();
+  VAdminProto.GetScheduledJobStatusResponse.Builder response=rpcOps.sendAndReceive(nodeId,adminRequest,VAdminProto.GetScheduledJobStatusResponse.newBuilder());
+  if (response.hasError()) {
+    helperOps.throwException(response.getError());
+  }
+  return response.getEnabled();
+}

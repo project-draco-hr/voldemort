@@ -1,0 +1,15 @@
+{
+  VAdminProto.GetScheduledJobStatusResponse.Builder response=VAdminProto.GetScheduledJobStatusResponse.newBuilder();
+  try {
+    String jobId=request.getJobId();
+    logger.info("Retrieving scheduled job status");
+    boolean enabled=scheduler.getJobEnabled(jobId);
+    logger.info("Retrieved scheduled job status - " + jobId);
+    response.setEnabled(enabled);
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleGetScheduledJobStatus failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

@@ -1,0 +1,36 @@
+{
+  OptionParser parser=getParser();
+  List<String> jobIds=null;
+  Integer nodeId=null;
+  String url=null;
+  Boolean confirm=false;
+  args=AdminToolUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_SCHEDULED_ENABLE);
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,OPT_HEAD_SCHEDULED_ENABLE);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_NODE);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  jobIds=(List<String>)options.valuesOf(OPT_HEAD_SCHEDULED_ENABLE);
+  if (jobIds.size() < 1) {
+    throw new VoldemortException("Please specify scheduled jobs to enables.");
+  }
+  nodeId=(Integer)options.valueOf(AdminParserUtils.OPT_NODE);
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  if (options.has(AdminParserUtils.OPT_CONFIRM)) {
+    confirm=true;
+  }
+  System.out.println("Enable scheduled jobs");
+  System.out.println("Location:");
+  System.out.println("  bootstrap url = " + url);
+  System.out.println("  node = " + nodeId);
+  System.out.println("Jobs to enable:");
+  System.out.println("  " + Joiner.on(", ").join(jobIds));
+  if (!AdminToolUtils.askConfirm(confirm,"enable scheduled job")) {
+    return;
+  }
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  doEnableScheduledJobs(adminClient,nodeId,jobIds);
+}

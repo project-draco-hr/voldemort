@@ -1,0 +1,14 @@
+{
+  VAdminProto.EnableScheduledJobResponse.Builder response=VAdminProto.EnableScheduledJobResponse.newBuilder();
+  String jobId=request.getJobId();
+  try {
+    logger.info("Enabling job id " + jobId);
+    scheduler.enable(jobId);
+    logger.info("Successfully enabled job id " + jobId);
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleEnableScheduledJob failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

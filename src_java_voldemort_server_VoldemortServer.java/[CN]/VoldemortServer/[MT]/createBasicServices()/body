@@ -14,7 +14,7 @@
       services.add(rebalancerService);
       rebalancer=rebalancerService.getRebalancer();
     }
-    SocketRequestHandlerFactory adminRequestHandlerFactory=new SocketRequestHandlerFactory(storageService,this.storeRepository,this.metadata,this.voldemortConfig,this.asyncService,rebalancer,this);
+    SocketRequestHandlerFactory adminRequestHandlerFactory=new SocketRequestHandlerFactory(storageService,this.storeRepository,this.metadata,this.voldemortConfig,this.asyncService,scheduler,rebalancer,this);
     if (voldemortConfig.getUseNioConnector()) {
       logger.info("Using NIO Connector for Admin Service.");
       services.add(new NioSocketService(adminRequestHandlerFactory,identityNode.getAdminPort(),voldemortConfig.getAdminSocketBufferSize(),voldemortConfig.getNioAdminConnectorSelectors(),"admin-server",voldemortConfig.isJmxEnabled(),voldemortConfig.getNioAcceptorBacklog()));

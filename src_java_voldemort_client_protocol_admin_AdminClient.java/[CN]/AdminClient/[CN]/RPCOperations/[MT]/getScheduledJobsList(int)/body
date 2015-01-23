@@ -1,0 +1,9 @@
+{
+  VAdminProto.ListScheduledJobsRequest listScheduledJobsRequest=VAdminProto.ListScheduledJobsRequest.newBuilder().build();
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.LIST_SCHEDULED_JOBS).setListScheduledJobs(listScheduledJobsRequest).build();
+  VAdminProto.ListScheduledJobsResponse.Builder response=rpcOps.sendAndReceive(nodeId,adminRequest,VAdminProto.ListScheduledJobsResponse.newBuilder());
+  if (response.hasError()) {
+    helperOps.throwException(response.getError());
+  }
+  return response.getJobIdsList();
+}

@@ -1,0 +1,14 @@
+{
+  VAdminProto.ListScheduledJobsResponse.Builder response=VAdminProto.ListScheduledJobsResponse.newBuilder();
+  try {
+    logger.info("Retrieving list of scheduled jobs");
+    List<String> jobIds=scheduler.getAllJobs();
+    logger.info("Retrieved list of scheduled jobs - " + jobIds);
+    response.addAllJobIds(jobIds);
+  }
+ catch (  VoldemortException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("handleListScheduledJobs failed for request(" + request.toString() + ")",e);
+  }
+  return response.build();
+}

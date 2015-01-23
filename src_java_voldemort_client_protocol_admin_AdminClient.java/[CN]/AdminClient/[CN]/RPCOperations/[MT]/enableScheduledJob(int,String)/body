@@ -1,0 +1,8 @@
+{
+  VAdminProto.EnableScheduledJobRequest enableScheduledJobRequest=VAdminProto.EnableScheduledJobRequest.newBuilder().setJobId(jobId).build();
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.ENABLE_SCHEDULED_JOB).setEnableScheduledJob(enableScheduledJobRequest).build();
+  VAdminProto.EnableScheduledJobResponse.Builder response=rpcOps.sendAndReceive(nodeId,adminRequest,VAdminProto.EnableScheduledJobResponse.newBuilder());
+  if (response.hasError()) {
+    helperOps.throwException(response.getError());
+  }
+}

@@ -1,0 +1,8 @@
+{
+  VAdminProto.StopScheduledJobRequest stopScheduledJobRequest=VAdminProto.StopScheduledJobRequest.newBuilder().setJobId(jobId).build();
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.STOP_SCHEDULED_JOB).setStopScheduledJob(stopScheduledJobRequest).build();
+  VAdminProto.StopScheduledJobResponse.Builder response=rpcOps.sendAndReceive(nodeId,adminRequest,VAdminProto.StopScheduledJobResponse.newBuilder());
+  if (response.hasError()) {
+    helperOps.throwException(response.getError());
+  }
+}
