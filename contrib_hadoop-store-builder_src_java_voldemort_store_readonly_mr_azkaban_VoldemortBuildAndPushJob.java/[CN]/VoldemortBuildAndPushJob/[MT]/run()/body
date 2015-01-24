@@ -1,79 +1,104 @@
 {
-  boolean build=props.getBoolean("build",true);
-  boolean push=props.getBoolean("push",true);
-  jsonKeyField=props.getString("key.selection",null);
-  jsonValueField=props.getString("value.selection",null);
-  checkForPreconditions(build,push);
+  invokeHooks(BuildAndPushStatus.STARTING);
+  if (hooks.size() > 0) {
+    Thread t=new Thread(heartBeatHookRunnable);
+    t.setDaemon(true);
+    t.start();
+  }
   try {
-    allClustersEqual(clusterUrl);
-  }
- catch (  VoldemortException e) {
-    log.error("Exception during cluster equality check",e);
-    System.exit(-1);
-  }
-  HashMap<String,Exception> exceptions=Maps.newHashMap();
-  String buildOutputDir=null;
-  for (int index=0; index < clusterUrl.size(); index++) {
-    String url=clusterUrl.get(index);
-    if (isAvroJob) {
-      verifyOrAddStoreAvro(url,isAvroVersioned);
+    boolean build=props.getBoolean("build",true);
+    boolean push=props.getBoolean("push",true);
+    jsonKeyField=props.getString("key.selection",null);
+    jsonValueField=props.getString("value.selection",null);
+    checkForPreconditions(build,push);
+    try {
+      allClustersEqual(clusterUrl);
     }
+ catch (    VoldemortException e) {
+      log.error("Exception during cluster equality check",e);
+      fail("Exception during cluster equality check: " + e.toString());
+      System.exit(-1);
+    }
+    HashMap<String,Exception> exceptions=Maps.newHashMap();
+    String buildOutputDir=null;
+    for (int index=0; index < clusterUrl.size(); index++) {
+      String url=clusterUrl.get(index);
+      if (isAvroJob) {
+        verifyOrAddStoreAvro(url,isAvroVersioned);
+      }
  else {
-      verifyOrAddStore(url);
-    }
-    if (build) {
-      if (!push || buildOutputDir == null) {
+        verifyOrAddStore(url);
+      }
+      if (build) {
+        if (!push || buildOutputDir == null) {
+          try {
+            invokeHooks(BuildAndPushStatus.BUILDING);
+            buildOutputDir=runBuildStore(props,url);
+          }
+ catch (          Exception e) {
+            log.error("Exception during build for url " + url,e);
+            exceptions.put(url,e);
+          }
+        }
+      }
+      if (push) {
+        if (log.isDebugEnabled()) {
+          log.debug("Informing about push start ...");
+        }
+        informedResults.add(this.informedExecutor.submit(new InformedClient(this.props,"Running",this.getId())));
+        log.info("Pushing to clusterURl" + clusterUrl.get(index));
         try {
-          buildOutputDir=runBuildStore(props,url);
+          if (!build) {
+            buildOutputDir=dataDirs.get(index);
+          }
+          if (buildOutputDir == null) {
+            continue;
+          }
+          invokeHooks(BuildAndPushStatus.PUSHING,url);
+          runPushStore(props,url,buildOutputDir);
+          informedResults.add(this.informedExecutor.submit(new InformedClient(this.props,"Finished",this.getId())));
         }
  catch (        Exception e) {
-          log.error("Exception during build for url " + url,e);
+          log.error("Exception during push for url " + url,e);
           exceptions.put(url,e);
         }
       }
     }
-    if (push) {
-      if (log.isDebugEnabled()) {
-        log.debug("Informing about push start ...");
+    if (build && push && buildOutputDir != null && !props.getBoolean("build.output.keep",false)) {
+      JobConf jobConf=new JobConf();
+      if (props.containsKey("hadoop.job.ugi")) {
+        jobConf.set("hadoop.job.ugi",props.getString("hadoop.job.ugi"));
       }
-      informedResults.add(this.informedExecutor.submit(new InformedClient(this.props,"Running",this.getId())));
-      log.info("Pushing to clusterURl" + clusterUrl.get(index));
+      log.info("Informing about delete start ..." + buildOutputDir);
+      HadoopUtils.deletePathIfExists(jobConf,buildOutputDir);
+      log.info("Deleted " + buildOutputDir);
+    }
+    for (    Future result : informedResults) {
       try {
-        if (!build) {
-          buildOutputDir=dataDirs.get(index);
-        }
-        if (buildOutputDir == null) {
-          continue;
-        }
-        runPushStore(props,url,buildOutputDir);
-        informedResults.add(this.informedExecutor.submit(new InformedClient(this.props,"Finished",this.getId())));
+        result.get();
       }
  catch (      Exception e) {
-        log.error("Exception during push for url " + url,e);
-        exceptions.put(url,e);
+        this.log.error("Exception in consumer",e);
       }
     }
-  }
-  if (build && push && buildOutputDir != null && !props.getBoolean("build.output.keep",false)) {
-    JobConf jobConf=new JobConf();
-    if (props.containsKey("hadoop.job.ugi")) {
-      jobConf.set("hadoop.job.ugi",props.getString("hadoop.job.ugi"));
+    this.informedExecutor.shutdownNow();
+    if (exceptions.size() == 0) {
+      invokeHooks(BuildAndPushStatus.FINISHED);
+      cleanUp();
     }
-    log.info("Informing about delete start ..." + buildOutputDir);
-    HadoopUtils.deletePathIfExists(jobConf,buildOutputDir);
-    log.info("Deleted " + buildOutputDir);
-  }
-  for (  Future result : informedResults) {
-    try {
-      result.get();
-    }
- catch (    Exception e) {
-      this.log.error("Exception in consumer",e);
+ else {
+      String errorMessage="Got exceptions while pushing to " + Joiner.on(",").join(exceptions.keySet()) + " => "+ Joiner.on(",").join(exceptions.values());
+      log.error(errorMessage);
+      fail(errorMessage);
+      System.exit(-1);
     }
   }
-  this.informedExecutor.shutdownNow();
-  if (exceptions.size() > 0) {
-    log.error("Got exceptions while pushing to " + Joiner.on(",").join(exceptions.keySet()) + " => "+ Joiner.on(",").join(exceptions.values()));
-    System.exit(-1);
+ catch (  Exception e) {
+    log.error("An exception occurred during Build and Push !!",e);
+    fail(e.toString());
+  }
+catch (  Throwable t) {
+    log.fatal("A non-Exception Throwable was caught! (OMG) We will try to invoke hooks on a best effort basis...",t);
+    fail(t.toString());
   }
 }

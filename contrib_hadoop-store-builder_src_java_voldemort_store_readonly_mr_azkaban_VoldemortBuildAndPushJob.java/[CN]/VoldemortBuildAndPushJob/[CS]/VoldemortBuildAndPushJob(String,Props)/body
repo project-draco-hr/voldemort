@@ -26,4 +26,26 @@
     if (keyField == null)     throw new RuntimeException("The key field must be specified in the properties for the Avro build and push job!");
     if (valueField == null)     throw new RuntimeException("The value field must be specified in the properties for the Avro build and push job!");
   }
+  heartBeatHookIntervalTime=props.getInt("heartbeat.hook.interval.ms",60000);
+  heartBeatHookRunnable=new HeartBeatHookRunnable(heartBeatHookIntervalTime);
+  String hookNamesText=props.getString("hooks");
+  if (hookNamesText != null && !hookNamesText.isEmpty()) {
+    Properties javaProps=props.toProperties();
+    for (    String hookName : Utils.COMMA_SEP.split(hookNamesText.trim())) {
+      try {
+        BuildAndPushHook hook=(BuildAndPushHook)ReflectUtils.callConstructor(Class.forName(hookName));
+        try {
+          hook.init(javaProps);
+          log.info("Initialized BuildAndPushHook [" + hook.getName() + "]");
+          hooks.add(hook);
+        }
+ catch (        Exception e) {
+          log.warn("Failed to initialize BuildAndPushHook [" + hook.getName() + "]. It will not be invoked.",e);
+        }
+      }
+ catch (      ClassNotFoundException e) {
+        log.error("The requested BuildAndPushHook [" + hookName + "] was not found! Check your classpath and config!",e);
+      }
+    }
+  }
 }
