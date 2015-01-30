@@ -1,11 +1,11 @@
 {
-  int httpTimeoutMs=1000 * props.getInt("push.http.timeout.seconds",24 * 60 * 60);
-  long pushVersion=props.getLong("push.version",-1L);
-  if (props.containsKey("push.version.timestamp")) {
+  int httpTimeoutMs=1000 * props.getInt(PUSH_HTTP_TIMEOUT_SECONDS,24 * 60 * 60);
+  long pushVersion=props.getLong(PUSH_VERSION,-1L);
+  if (props.containsKey(PUSH_VERSION_TIMESTAMP)) {
     DateFormat format=new SimpleDateFormat("yyyyMMddHHmmss");
     pushVersion=Long.parseLong(format.format(new Date()));
   }
-  int maxBackoffDelayMs=1000 * props.getInt("push.backoff.delay.seconds",60);
-  boolean rollback=props.getBoolean("push.rollback",true);
+  int maxBackoffDelayMs=1000 * props.getInt(PUSH_BACKOFF_DELAY_SECONDS,60);
+  boolean rollback=props.getBoolean(PUSH_ROLLBACK,true);
   new VoldemortSwapJob(this.getId() + "-push-store",props,new VoldemortSwapConf(cluster,dataDir,storeName,httpTimeoutMs,pushVersion,maxBackoffDelayMs,rollback)).run();
 }

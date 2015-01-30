@@ -6,10 +6,10 @@
     t.start();
   }
   try {
-    boolean build=props.getBoolean("build",true);
-    boolean push=props.getBoolean("push",true);
-    jsonKeyField=props.getString("key.selection",null);
-    jsonValueField=props.getString("value.selection",null);
+    boolean build=props.getBoolean(BUILD,true);
+    boolean push=props.getBoolean(PUSH,true);
+    jsonKeyField=props.getString(KEY_SELECTION,null);
+    jsonValueField=props.getString(VALUE_SELECTION,null);
     checkForPreconditions(build,push);
     try {
       allClustersEqual(clusterUrl);
@@ -64,10 +64,10 @@
         }
       }
     }
-    if (build && push && buildOutputDir != null && !props.getBoolean("build.output.keep",false)) {
+    if (build && push && buildOutputDir != null && !props.getBoolean(BUILD_OUTPUT_KEEP,false)) {
       JobConf jobConf=new JobConf();
-      if (props.containsKey("hadoop.job.ugi")) {
-        jobConf.set("hadoop.job.ugi",props.getString("hadoop.job.ugi"));
+      if (props.containsKey(HADOOP_JOB_UGI)) {
+        jobConf.set(HADOOP_JOB_UGI,props.getString(HADOOP_JOB_UGI));
       }
       log.info("Informing about delete start ..." + buildOutputDir);
       HadoopUtils.deletePathIfExists(jobConf,buildOutputDir);

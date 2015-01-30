@@ -46,7 +46,7 @@
                 valueSerializerStr="\n\t\t<type>" + serializerName + "</type>\n\t\t<schema-info version=\"0\">"+ remoteValueSerializerDef.getCurrentSchemaInfo()+ "</schema-info>"+ compressionPolicy+ "\n\t";
               }
               schemaObj.valSchema=valueSerializerStr;
-              newStoreDefXml=VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,props.containsKey("build.preferred.reads") ? props.getInt("build.preferred.reads") : null,props.containsKey("build.preferred.writes") ? props.getInt("build.preferred.writes") : null,keySerializerStr,valueSerializerStr);
+              newStoreDefXml=VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,props.containsKey(BUILD_PREFERRED_READS) ? props.getInt(BUILD_PREFERRED_READS) : null,props.containsKey(BUILD_PREFERRED_WRITES) ? props.getInt(BUILD_PREFERRED_WRITES) : null,keySerializerStr,valueSerializerStr);
               newStoreDef=VoldemortUtils.getStoreDef(newStoreDefXml);
               if (!remoteStoreDef.equals(newStoreDef)) {
                 throw new RuntimeException("Your store schema is identical, but the store definition does not match. Have: " + newStoreDef + "\nBut expected: "+ remoteStoreDef);

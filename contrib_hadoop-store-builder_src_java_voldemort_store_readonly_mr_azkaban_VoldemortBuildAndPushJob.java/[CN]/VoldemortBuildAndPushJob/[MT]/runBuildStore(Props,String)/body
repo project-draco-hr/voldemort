@@ -1,16 +1,16 @@
 {
-  int replicationFactor=props.getInt("build.replication.factor",2);
-  int chunkSize=props.getInt("build.chunk.size",1024 * 1024 * 1024);
-  Path tempDir=new Path(props.getString("build.temp.dir","/tmp/vold-build-and-push-" + new Random().nextLong()));
+  int replicationFactor=props.getInt(BUILD_REPLICATION_FACTOR,2);
+  int chunkSize=props.getInt(BUILD_CHUNK_SIZE,1024 * 1024 * 1024);
+  Path tempDir=new Path(props.getString(BUILD_TEMP_DIR,"/tmp/vold-build-and-push-" + new Random().nextLong()));
   URI uri=new URI(url);
-  Path outputDir=new Path(props.getString("build.output.dir"),uri.getHost());
+  Path outputDir=new Path(props.getString(BUILD_OUTPUT_DIR),uri.getHost());
   Path inputPath=getInputPath();
-  String keySelection=props.getString("key.selection",null);
-  String valSelection=props.getString("value.selection",null);
-  CheckSumType checkSumType=CheckSum.fromString(props.getString("checksum.type",CheckSum.toString(CheckSumType.MD5)));
-  boolean saveKeys=props.getBoolean("save.keys",true);
-  boolean reducerPerBucket=props.getBoolean("reducer.per.bucket",false);
-  int numChunks=props.getInt("num.chunks",-1);
+  String keySelection=props.getString(KEY_SELECTION,null);
+  String valSelection=props.getString(VALUE_SELECTION,null);
+  CheckSumType checkSumType=CheckSum.fromString(props.getString(CHECKSUM__TYPE,CheckSum.toString(CheckSumType.MD5)));
+  boolean saveKeys=props.getBoolean(SAVE_KEYS,true);
+  boolean reducerPerBucket=props.getBoolean(REDUCER_PER_BUCKET,false);
+  int numChunks=props.getInt(NUM_CHUNKS,-1);
   if (isAvroJob) {
     String recSchema=getRecordSchema();
     String keySchema=getKeySchema();

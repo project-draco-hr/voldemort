@@ -6,10 +6,10 @@
     conn.setDoOutput(true);
     conn.setDoInput(true);
     conn.setRequestProperty("Content-Type","application/json");
-    String storeName=this.props.getString("push.store.name","null");
-    String clusterName=this.props.getString("push.cluster","null");
-    String owners=this.props.getString("push.store.owners","null");
-    String replicationFactor=this.props.getString("build.replication.factor","null");
+    String storeName=this.props.getString(PUSH_STORE_NAME,"null");
+    String clusterName=this.props.getString(PUSH_CLUSTER,"null");
+    String owners=this.props.getString(PUSH_STORE_OWNERS,"null");
+    String replicationFactor=this.props.getString(BUILD_REPLICATION_FACTOR,"null");
     String message="Store : " + storeName.replaceAll("[\'\"]","") + ",  Status : "+ this.status.replaceAll("[\'\"]","")+ ",  URL : "+ clusterName.replaceAll("[\'\"]","")+ ",  owners : "+ owners.replaceAll("[\'\"]","")+ ",  replication : "+ replicationFactor.replaceAll("[\'\"]","");
     String payloadStr="{\"message\":\"" + message + "\",\"topic\":\"build-and-push\",\"source\":\""+ this.source+ "\",\"user\":\"bandp\"}";
     if (log.isDebugEnabled())     log.debug("Payload : " + payloadStr);
