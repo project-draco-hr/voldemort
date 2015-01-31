@@ -23,7 +23,8 @@
   tracker.recordFetch(cn0_3,new ByteArray(value4));
   assertNull(tracker.nextFinished());
   tracker.finishAll();
-  assertEquals(new ByteArray(value3),tracker.nextFinished());
-  assertEquals(new ByteArray(value4),tracker.nextFinished());
+  List<ByteArray> expectedFinished=Arrays.asList(new ByteArray(value3),new ByteArray(value4));
+  List<ByteArray> actualFinished=Arrays.asList(tracker.nextFinished(),tracker.nextFinished());
+  assertTrue(Utils.compareList(expectedFinished,actualFinished));
   assertNull(tracker.nextFinished());
 }
