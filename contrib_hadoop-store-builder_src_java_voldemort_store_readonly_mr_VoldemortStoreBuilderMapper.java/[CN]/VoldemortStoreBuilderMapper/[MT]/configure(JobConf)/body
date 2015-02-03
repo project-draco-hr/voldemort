@@ -5,8 +5,8 @@
   _valSelection=props.getString("value.selection",null);
   _inputKeySerializer=getSchemaFromJob(conf,"mapper.input.key.schema");
   _inputValueSerializer=getSchemaFromJob(conf,"mapper.input.value.schema");
-  String _keyTransClass=props.getString("key.transformation.class",null);
-  String _valueTransClass=props.getString("value.transformation.class",null);
-  if (_keyTransClass != null)   _keyTrans=(StoreBuilderTransformation)Utils.callConstructor(_keyTransClass);
-  if (_valueTransClass != null)   _valTrans=(StoreBuilderTransformation)Utils.callConstructor(_valueTransClass);
+  Class _keyTransClass=props.getClass("key.transformation.class",null);
+  Class _valueTransClass=props.getClass("value.transformation.class",null);
+  if (_keyTransClass != null)   _keyTrans=(StoreBuilderTransformation)ReflectUtils.callConstructor(_keyTransClass);
+  if (_valueTransClass != null)   _valTrans=(StoreBuilderTransformation)ReflectUtils.callConstructor(_valueTransClass);
 }

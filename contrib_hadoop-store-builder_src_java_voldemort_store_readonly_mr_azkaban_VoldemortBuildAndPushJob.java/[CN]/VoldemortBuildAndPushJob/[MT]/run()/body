@@ -45,7 +45,6 @@
         if (log.isDebugEnabled()) {
           log.debug("Informing about push start ...");
         }
-        informedResults.add(this.informedExecutor.submit(new InformedClient(this.props,"Running",this.getId())));
         log.info("Pushing to clusterURl" + clusterUrl.get(index));
         try {
           if (!build) {
@@ -56,7 +55,6 @@
           }
           invokeHooks(BuildAndPushStatus.PUSHING,url);
           runPushStore(props,url,buildOutputDir);
-          informedResults.add(this.informedExecutor.submit(new InformedClient(this.props,"Finished",this.getId())));
         }
  catch (        Exception e) {
           log.error("Exception during push for url " + url,e);
@@ -73,15 +71,6 @@
       HadoopUtils.deletePathIfExists(jobConf,buildOutputDir);
       log.info("Deleted " + buildOutputDir);
     }
-    for (    Future result : informedResults) {
-      try {
-        result.get();
-      }
- catch (      Exception e) {
-        this.log.error("Exception in consumer",e);
-      }
-    }
-    this.informedExecutor.shutdownNow();
     if (exceptions.size() == 0) {
       invokeHooks(BuildAndPushStatus.FINISHED);
       cleanUp();
@@ -96,9 +85,11 @@
  catch (  Exception e) {
     log.error("An exception occurred during Build and Push !!",e);
     fail(e.toString());
+    throw e;
   }
 catch (  Throwable t) {
     log.fatal("A non-Exception Throwable was caught! (OMG) We will try to invoke hooks on a best effort basis...",t);
     fail(t.toString());
+    throw new Exception("A non-Exception Throwable was caught! Bubbling it up as an Exception...",t);
   }
 }

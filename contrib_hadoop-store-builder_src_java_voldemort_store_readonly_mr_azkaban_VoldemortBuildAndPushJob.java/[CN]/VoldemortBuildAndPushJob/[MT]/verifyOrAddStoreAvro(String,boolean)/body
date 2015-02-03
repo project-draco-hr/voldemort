@@ -8,36 +8,74 @@
   String serializerName;
   if (isVersioned)   serializerName=AVRO_GENERIC_VERSIONED_TYPE_NAME;
  else   serializerName=AVRO_GENERIC_TYPE_NAME;
-  String keySchema="\n\t\t<type>" + serializerName + "</type>\n\t\t<schema-info version=\"0\">"+ schema.getField(keyField).schema()+ "</schema-info>\n\t";
-  String valSchema="\n\t\t<type>" + serializerName + "</type>\n\t\t<schema-info version=\"0\">"+ schema.getField(valueField).schema()+ "</schema-info>\n\t";
   boolean hasCompression=false;
   if (props.containsKey(BUILD_COMPRESS_VALUE)) {
     hasCompression=true;
   }
-  if (hasCompression) {
-    valSchema+="\t<compression><type>gzip</type></compression>\n\t";
-  }
-  if (props.containsKey(BUILD_FORCE_SCHEMA_KEY)) {
-    keySchema=props.get(BUILD_FORCE_SCHEMA_KEY);
-  }
-  if (props.containsKey(BUILD_FORCE_SCHEMA_VALUE)) {
-    valSchema=props.get(BUILD_FORCE_SCHEMA_VALUE);
-  }
-  String newStoreDefXml=VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,props.containsKey(BUILD_PREFERRED_READS) ? props.getInt(BUILD_PREFERRED_READS) : null,props.containsKey(BUILD_PREFERRED_WRITES) ? props.getInt(BUILD_PREFERRED_WRITES) : null,(props.containsKey(PUSH_FORCE_SCHEMA_KEY)) ? props.getString(PUSH_FORCE_SCHEMA_KEY) : keySchema,(props.containsKey(PUSH_FORCE_SCHEMA_VALUE)) ? props.getString(PUSH_FORCE_SCHEMA_VALUE) : valSchema,description,owners);
-  KeyValueSchema returnSchemaObj=new KeyValueSchema(keySchema,valSchema);
-  boolean foundStore=findAndVerifyAvro(url,newStoreDefXml,hasCompression,replicationFactor,requiredReads,requiredWrites,serializerName,returnSchemaObj);
-  if (!foundStore) {
-    try {
-      StoreDefinition newStoreDef=VoldemortUtils.getStoreDef(newStoreDefXml);
-      addStore(description,owners,url,newStoreDef);
+  String keySchema, valSchema;
+  try {
+    if (props.containsKey(BUILD_FORCE_SCHEMA_KEY)) {
+      keySchema=props.get(BUILD_FORCE_SCHEMA_KEY);
     }
- catch (    RuntimeException e) {
-      log.error("Error in adding store definition from: " + url,e);
-      System.exit(-1);
+ else {
+      Schema.Field keyField=schema.getField(keyFieldName);
+      if (keyField == null) {
+        throw new VoldemortException("The configured key field (" + keyFieldName + ") was not found in the input data.");
+      }
+ else {
+        keySchema="\n\t\t<type>" + serializerName + "</type>\n\t\t<schema-info version=\"0\">"+ keyField.schema()+ "</schema-info>\n\t";
+      }
     }
   }
-  AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());
-  storeDefs=ImmutableList.of(VoldemortUtils.getStoreDef(VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,props.containsKey(BUILD_PREFERRED_READS) ? props.getInt(BUILD_PREFERRED_READS) : null,props.containsKey(BUILD_PREFERRED_WRITES) ? props.getInt(BUILD_PREFERRED_WRITES) : null,returnSchemaObj.keySchema,returnSchemaObj.valSchema)));
-  cluster=adminClient.getAdminClientCluster();
-  adminClient.close();
+ catch (  VoldemortException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new VoldemortException("Error while trying to extract the key field",e);
+  }
+  try {
+    if (props.containsKey(BUILD_FORCE_SCHEMA_VALUE)) {
+      valSchema=props.get(BUILD_FORCE_SCHEMA_VALUE);
+    }
+ else {
+      Schema.Field valueField=schema.getField(valueFieldName);
+      if (valueField == null) {
+        throw new VoldemortException("The configured value field (" + valueFieldName + ") was not found in the input data.");
+      }
+ else {
+        valSchema="\n\t\t<type>" + serializerName + "</type>\n\t\t<schema-info version=\"0\">"+ valueField.schema()+ "</schema-info>\n\t";
+        if (hasCompression) {
+          valSchema+="\t<compression><type>gzip</type></compression>\n\t";
+        }
+      }
+    }
+  }
+ catch (  VoldemortException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new VoldemortException("Error while trying to extract the value field",e);
+  }
+  if (keySchema == null || valSchema == null) {
+    throw new VoldemortException("There was a problem defining the key or value schema for this job.");
+  }
+ else {
+    String newStoreDefXml=VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,props.containsKey(BUILD_PREFERRED_READS) ? props.getInt(BUILD_PREFERRED_READS) : null,props.containsKey(BUILD_PREFERRED_WRITES) ? props.getInt(BUILD_PREFERRED_WRITES) : null,(props.containsKey(PUSH_FORCE_SCHEMA_KEY)) ? props.getString(PUSH_FORCE_SCHEMA_KEY) : keySchema,(props.containsKey(PUSH_FORCE_SCHEMA_VALUE)) ? props.getString(PUSH_FORCE_SCHEMA_VALUE) : valSchema,description,owners);
+    KeyValueSchema returnSchemaObj=new KeyValueSchema(keySchema,valSchema);
+    boolean foundStore=findAndVerifyAvro(url,newStoreDefXml,hasCompression,replicationFactor,requiredReads,requiredWrites,serializerName,returnSchemaObj);
+    if (!foundStore) {
+      try {
+        StoreDefinition newStoreDef=VoldemortUtils.getStoreDef(newStoreDefXml);
+        addStore(description,owners,url,newStoreDef);
+      }
+ catch (      RuntimeException e) {
+        log.error("Error in adding store definition from: " + url,e);
+        throw new VoldemortException("Error in adding store definition from: " + url,e);
+      }
+    }
+    AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());
+    storeDefs=ImmutableList.of(VoldemortUtils.getStoreDef(VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,props.containsKey(BUILD_PREFERRED_READS) ? props.getInt(BUILD_PREFERRED_READS) : null,props.containsKey(BUILD_PREFERRED_WRITES) ? props.getInt(BUILD_PREFERRED_WRITES) : null,returnSchemaObj.keySchema,returnSchemaObj.valSchema)));
+    cluster=adminClient.getAdminClientCluster();
+    adminClient.close();
+  }
 }

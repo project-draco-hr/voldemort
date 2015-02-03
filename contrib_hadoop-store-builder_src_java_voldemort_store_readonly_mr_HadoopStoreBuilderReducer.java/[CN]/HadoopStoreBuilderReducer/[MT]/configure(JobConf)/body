@@ -1,7 +1,7 @@
 {
   try {
-    keyValueWriterClass=job.get("writer.class");
-    if (keyValueWriterClass != null)     writer=(KeyValueWriter)Utils.callConstructor(keyValueWriterClass);
+    keyValueWriterClass=job.getClass("writer.class",null);
+    if (keyValueWriterClass != null)     writer=(KeyValueWriter)ReflectUtils.callConstructor(keyValueWriterClass);
  else     writer=new HadoopStoreWriter();
     writer.conf(job);
   }
