@@ -1,5 +1,13 @@
 {
   ClientConfig systemStoreConfig=new ClientConfig();
-  systemStoreConfig.setSelectors(1).setBootstrapUrls(clientConfig.getBootstrapUrls()).setMaxConnectionsPerNode(clientConfig.getSysMaxConnectionsPerNode()).setConnectionTimeout(clientConfig.getSysConnectionTimeout(),TimeUnit.MILLISECONDS).setSocketTimeout(clientConfig.getSysSocketTimeout(),TimeUnit.MILLISECONDS).setRoutingTimeout(clientConfig.getSysRoutingTimeout(),TimeUnit.MILLISECONDS).setEnableJmx(clientConfig.getSysEnableJmx()).setClientZoneId(clientConfig.getClientZoneId());
+  String clientIdentifier=clientConfig.getIdentifierString();
+  String identifierString;
+  if (clientIdentifier != null && clientIdentifier.length() > 0) {
+    identifierString=clientIdentifier + "-system";
+  }
+ else {
+    identifierString="system";
+  }
+  systemStoreConfig.setSelectors(1).setBootstrapUrls(clientConfig.getBootstrapUrls()).setMaxConnectionsPerNode(clientConfig.getSysMaxConnectionsPerNode()).setConnectionTimeout(clientConfig.getSysConnectionTimeout(),TimeUnit.MILLISECONDS).setSocketTimeout(clientConfig.getSysSocketTimeout(),TimeUnit.MILLISECONDS).setRoutingTimeout(clientConfig.getSysRoutingTimeout(),TimeUnit.MILLISECONDS).setEnableJmx(clientConfig.getSysEnableJmx()).setClientZoneId(clientConfig.getClientZoneId()).setIdentifierString(identifierString);
   this.socketStoreFactory=new SocketStoreClientFactory(systemStoreConfig);
 }
