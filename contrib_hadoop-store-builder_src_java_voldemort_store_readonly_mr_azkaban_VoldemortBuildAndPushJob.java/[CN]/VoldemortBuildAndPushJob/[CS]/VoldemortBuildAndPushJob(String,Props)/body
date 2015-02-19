@@ -1,5 +1,7 @@
 {
-  super(name,Logger.getLogger(VoldemortBuildAndPushJob.class.getName()));
+  super(name,Logger.getLogger(name));
+  this.log=getLog();
+  log.info("Job props.toString(): " + props.toString());
   this.props=props;
   this.storeName=props.getString(PUSH_STORE_NAME).trim();
   this.clusterUrl=new ArrayList<String>();
@@ -11,7 +13,6 @@
   for (  String dataDir : Utils.COMMA_SEP.split(dataDirText.trim()))   if (dataDir.trim().length() > 0)   this.dataDirs.add(dataDir);
   if (dataDirs.size() <= 0)   throw new RuntimeException("Number of data dirs should be atleast 1");
   this.nodeId=props.getInt(PUSH_NODE,0);
-  this.log=Logger.getLogger(name);
   this.hdfsFetcherProtocol=props.getString(VOLDEMORT_FETCHER_PROTOCOL,"hftp");
   this.hdfsFetcherPort=props.getString(VOLDEMORT_FETCHER_PORT,"50070");
   log.info(VOLDEMORT_FETCHER_PROTOCOL + " is set to : " + hdfsFetcherProtocol);
@@ -24,9 +25,9 @@
     if (keyFieldName == null)     throw new RuntimeException("The key field must be specified in the properties for the Avro build and push job!");
     if (valueFieldName == null)     throw new RuntimeException("The value field must be specified in the properties for the Avro build and push job!");
   }
-  heartBeatHookIntervalTime=props.getInt("heartbeat.hook.interval.ms",60000);
+  heartBeatHookIntervalTime=props.getInt(HEARTBEAT_HOOK_INTERVAL_MS,60000);
   heartBeatHookRunnable=new HeartBeatHookRunnable(heartBeatHookIntervalTime);
-  String hookNamesText=props.getString("hooks",null);
+  String hookNamesText=props.getString(HOOKS,null);
   if (hookNamesText != null && !hookNamesText.isEmpty()) {
     Properties javaProps=props.toProperties();
     for (    String hookName : Utils.COMMA_SEP.split(hookNamesText.trim())) {
