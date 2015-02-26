@@ -2,7 +2,7 @@
   OptionParser parser=getParser();
   Integer nodeId=null;
   String url=null;
-  Integer zoneId=null;
+  Integer zoneId=Zone.UNSET_ZONE_ID;
   Integer parallel=5;
   Boolean confirm=false;
   OptionSet options=parser.parse(args);
@@ -12,7 +12,6 @@
   }
   AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_NODE);
   AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
-  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_ZONE);
   nodeId=(Integer)options.valueOf(AdminParserUtils.OPT_NODE);
   url=(String)options.valueOf(AdminParserUtils.OPT_URL);
   zoneId=(Integer)options.valueOf(AdminParserUtils.OPT_ZONE);
@@ -21,6 +20,9 @@
   }
   if (options.has(AdminParserUtils.OPT_CONFIRM)) {
     confirm=true;
+  }
+  if (options.has(AdminParserUtils.OPT_ZONE)) {
+    zoneId=(Integer)options.valueOf(AdminParserUtils.OPT_ZONE);
   }
   System.out.println("Restore from peer replica");
   System.out.println("Location:");
