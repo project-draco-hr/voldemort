@@ -1,0 +1,16 @@
+{
+  List<Node> nodes=Lists.newArrayList();
+  if (!cluster.hasNodeWithId(nodeId)) {
+    throw new VoldemortException("Node " + nodeId + " doesn't exist in cluster object!");
+  }
+  for (  Node node : cluster.getNodes()) {
+    if (node.getId() != nodeId) {
+      nodes.add(node);
+    }
+ else {
+      int[] freePorts=findFreePorts(3);
+      nodes.add(new Node(nodeId,"localhost",freePorts[0],freePorts[1],freePorts[2],node.getPartitionIds()));
+    }
+  }
+  return new Cluster(cluster.getName(),nodes);
+}

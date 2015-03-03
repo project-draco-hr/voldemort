@@ -1,0 +1,14 @@
+{
+  Cluster oldCluster=cluster;
+  cluster=ServerTestUtils.getLocalClusterWithOneNodeReplaced(cluster,nodeId);
+  metadataStore=ServerTestUtils.createMetadataStore(cluster,new StoreDefinitionsMapper().readStoreList(new File(storesXmlfile)));
+  String newClusterXml=new ClusterMapper().writeCluster(cluster);
+  AdminClient adminClient=ServerTestUtils.getAdminClient(oldCluster);
+  for (  Integer remoteNodeId : oldCluster.getNodeIds()) {
+    try {
+      adminClient.metadataMgmtOps.updateRemoteMetadata(remoteNodeId,MetadataStore.CLUSTER_KEY,newClusterXml);
+    }
+ catch (    UnreachableStoreException e) {
+    }
+  }
+}

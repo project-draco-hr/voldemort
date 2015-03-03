@@ -1,0 +1,25 @@
+{
+  startServers(0,1);
+  StorageEngine<ByteArray,Slop,byte[]> slopStoreNode0=getVoldemortServer(0).getStoreRepository().getSlopStore().asSlopStore();
+  final List<Versioned<Slop>> entrySet=ServerTestUtils.createRandomSlops(1,100,"test-replication-memory","users","test-replication-persistent","test-readrepair-memory","test-consistent","test-consistent-with-pref-list");
+  populateSlops(0,slopStoreNode0,entrySet);
+  FailureDetector failureDetector=new ThresholdFailureDetector(new FailureDetectorConfig().setCluster(cluster).setConnectionVerifier(new AdminSlopStreamingVerifier(cluster)));
+  replaceOneNode(1);
+  stopServersWithoutRemovingVoldemortHome(1);
+  new StreamingSlopPusherJob(getVoldemortServer(0).getStoreRepository(),getVoldemortServer(0).getMetadataStore(),failureDetector,configs[0],new ScanPermitWrapper(1)).run();
+  Thread.sleep(2000);
+  Assert.assertFalse(verifySlopPushResult(entrySet,slopStoreNode0,1));
+  startServers(1);
+  new StreamingSlopPusherJob(getVoldemortServer(0).getStoreRepository(),getVoldemortServer(0).getMetadataStore(),failureDetector,configs[0],new ScanPermitWrapper(1)).run();
+  Thread.sleep(2000);
+  Assert.assertFalse(verifySlopPushResult(entrySet,slopStoreNode0,1));
+  failureDetector.getConfig().setCluster(cluster);
+  new StreamingSlopPusherJob(getVoldemortServer(0).getStoreRepository(),getVoldemortServer(0).getMetadataStore(),new ThresholdFailureDetector(new FailureDetectorConfig().setCluster(cluster).setConnectionVerifier(new AdminSlopStreamingVerifier(cluster))),configs[0],new ScanPermitWrapper(1)).run();
+  Thread.sleep(2000);
+  Assert.assertTrue(verifySlopPushResult(entrySet,slopStoreNode0,1));
+  SlopStorageEngine slopEngine=getVoldemortServer(0).getStoreRepository().getSlopStore();
+  assertEquals(slopEngine.getOutstandingTotal(),0);
+  assertEquals(slopEngine.getOutstandingByNode().get(1),new Long(0));
+  assertEquals(slopEngine.getOutstandingByNode().get(2),new Long(0));
+  stopServers(0,1);
+}
