@@ -1,0 +1,63 @@
+{
+  Set<String> storeNamesUnion=new HashSet<String>();
+  Map<String,StoreDefinition> oldStoreDefinitionMap=new HashMap<String,StoreDefinition>();
+  Map<String,StoreDefinition> newStoreDefinitionMap=new HashMap<String,StoreDefinition>();
+  List<String> newStores=new ArrayList<String>();
+  List<String> deletedStores=new ArrayList<String>();
+  List<String> schemaChangeStores=new ArrayList<String>();
+  List<String> replicationFactorChangeStores=new ArrayList<String>();
+  List<String> allOtherChanges=new ArrayList<String>();
+  List<String> noChanges=new ArrayList<String>();
+  for (  StoreDefinition storeDef : oldStoreDefs) {
+    String storeName=storeDef.getName();
+    storeNamesUnion.add(storeName);
+    oldStoreDefinitionMap.put(storeName,storeDef);
+  }
+  for (  StoreDefinition storeDef : newStoreDefs) {
+    String storeName=storeDef.getName();
+    storeNamesUnion.add(storeName);
+    newStoreDefinitionMap.put(storeName,storeDef);
+  }
+  for (  String storeName : storeNamesUnion) {
+    StoreDefinition oldStoreDef=oldStoreDefinitionMap.get(storeName);
+    StoreDefinition newStoreDef=newStoreDefinitionMap.get(storeName);
+    if (oldStoreDef == null && newStoreDef != null) {
+      newStores.add(newStoreDef.getName());
+    }
+ else     if (oldStoreDef != null && newStoreDef == null) {
+      deletedStores.add(oldStoreDef.getName());
+    }
+ else     if (oldStoreDef.equals(newStoreDef)) {
+      noChanges.add(oldStoreDef.getName());
+    }
+ else {
+      boolean isRecognizedChange=false;
+      if (!oldStoreDef.getKeySerializer().equals(newStoreDef.getKeySerializer()) || !oldStoreDef.getValueSerializer().equals(newStoreDef.getValueSerializer())) {
+        schemaChangeStores.add(newStoreDef.getName());
+        isRecognizedChange=true;
+      }
+      boolean isZoneReplicationChanged=false;
+      Map<Integer,Integer> oldZoneReplication=oldStoreDef.getZoneReplicationFactor();
+      Map<Integer,Integer> newZoneReplication=newStoreDef.getZoneReplicationFactor();
+      if ((oldZoneReplication == null && newZoneReplication != null) || (oldZoneReplication != null && newZoneReplication == null)) {
+        isZoneReplicationChanged=true;
+      }
+ else       if (oldZoneReplication != null && newZoneReplication != null && !oldZoneReplication.equals(newZoneReplication)) {
+        isZoneReplicationChanged=true;
+      }
+      if (oldStoreDef.getReplicationFactor() != newStoreDef.getReplicationFactor() || oldStoreDef.getRequiredReads() != newStoreDef.getRequiredReads() || oldStoreDef.getRequiredWrites() != newStoreDef.getRequiredWrites() || oldStoreDef.getZoneCountReads() != newStoreDef.getZoneCountReads() || oldStoreDef.getZoneCountWrites() != newStoreDef.getZoneCountWrites() || isZoneReplicationChanged) {
+        replicationFactorChangeStores.add(newStoreDef.getName());
+        isRecognizedChange=true;
+      }
+      if (isRecognizedChange == false) {
+        allOtherChanges.add(newStoreDef.getName());
+      }
+    }
+  }
+  printMessage(deletedStores,"***WARNING!!!! Use delete store command, this will leave the cluster in an inconsistent state. Deleted Stores ",stream);
+  printMessage(newStores,"***WARNING!!!! Use add store command, this will leave the cluster in an inconsistent state. Added Stores ",stream);
+  printMessage(noChanges,"Unchanged Stores ",stream);
+  printMessage(schemaChangeStores,"Schema modified stores ",stream);
+  printMessage(replicationFactorChangeStores,"Replication Factor Changed Stores ",stream);
+  printMessage(allOtherChanges,"All Other Changes in Stores ",stream);
+}

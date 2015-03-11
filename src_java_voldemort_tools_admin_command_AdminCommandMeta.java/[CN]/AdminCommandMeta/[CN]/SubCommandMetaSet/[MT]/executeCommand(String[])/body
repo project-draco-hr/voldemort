@@ -39,9 +39,6 @@
  else {
     System.out.println("  node = " + Joiner.on(", ").join(nodeIds));
   }
-  if (!AdminToolUtils.askConfirm(confirm,"set metadata")) {
-    return;
-  }
   AdminClient adminClient=AdminToolUtils.getAdminClient(url);
   if (allNodes) {
     nodeIds=AdminToolUtils.getAllNodeIds(adminClient);
@@ -50,15 +47,7 @@
   if (meta.size() == 2) {
     String metaKey=meta.get(0), metaValue=meta.get(1);
     String metaFile=metaValue.replace("~",System.getProperty("user.home"));
-    if (metaKey.equals(MetadataStore.CLUSTER_KEY) || metaKey.equals(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML)) {
-      if (!Utils.isReadableFile(metaFile)) {
-        throw new VoldemortException("Cluster xml file path incorrect");
-      }
-      ClusterMapper mapper=new ClusterMapper();
-      Cluster newCluster=mapper.readCluster(new File(metaFile));
-      doMetaSet(adminClient,nodeIds,metaKey,mapper.writeCluster(newCluster));
-    }
- else     if (metaKey.equals(MetadataStore.STORES_KEY)) {
+    if (metaKey.equals(MetadataStore.STORES_KEY)) {
       if (!Utils.isReadableFile(metaFile)) {
         throw new VoldemortException("Stores definition xml file path incorrect");
       }
@@ -68,6 +57,10 @@
       Integer nodeIdToGetStoreXMLFrom=nodeIds.iterator().next();
       Versioned<String> storesXML=adminClient.metadataMgmtOps.getRemoteMetadata(nodeIdToGetStoreXMLFrom,MetadataStore.STORES_KEY);
       List<StoreDefinition> oldStoreDefs=mapper.readStoreList(new StringReader(storesXML.getValue()));
+      printChangeStoreSummary(oldStoreDefs,newStoreDefs,System.err);
+      if (!AdminToolUtils.askConfirm(confirm,"set metadata")) {
+        return;
+      }
       doMetaSet(adminClient,nodeIds,metaKey,mapper.writeStoreList(newStoreDefs));
       if (!allNodes) {
         System.err.println("WARNING: Metadata version update of stores goes to all servers, " + "although this set-metadata oprations only goes to node: ");
@@ -77,28 +70,41 @@
       }
       doMetaUpdateVersionsOnStores(adminClient,oldStoreDefs,newStoreDefs);
     }
- else     if (metaKey.equals(MetadataStore.SLOP_STREAMING_ENABLED_KEY) || metaKey.equals(MetadataStore.PARTITION_STREAMING_ENABLED_KEY) || metaKey.equals(MetadataStore.READONLY_FETCH_ENABLED_KEY)) {
-      doMetaSet(adminClient,nodeIds,metaKey,metaValue);
-    }
- else     if (metaKey.equals(KEY_OFFLINE)) {
-      boolean setOffline=Boolean.parseBoolean(metaValue);
-      if (setOffline && nodeIds.size() > 1) {
-        throw new VoldemortException("Setting more than one node to offline is not allowed.");
-      }
-      for (      Integer nodeId : nodeIds) {
-        adminClient.metadataMgmtOps.setRemoteOfflineState(nodeId,setOffline);
-      }
-    }
- else     if (metaKey.equals(MetadataStore.REBALANCING_STEAL_INFO)) {
-      if (!Utils.isReadableFile(metaFile)) {
-        throw new VoldemortException("Rebalancing steal info file path incorrect");
-      }
-      String rebalancingStealInfoJsonString=FileUtils.readFileToString(new File(metaFile));
-      RebalancerState state=RebalancerState.create(rebalancingStealInfoJsonString);
-      doMetaSet(adminClient,nodeIds,metaKey,state.toJsonString());
-    }
  else {
-      throw new VoldemortException("Incorrect metadata key");
+      if (!AdminToolUtils.askConfirm(confirm,"set metadata")) {
+        return;
+      }
+      if (metaKey.equals(MetadataStore.CLUSTER_KEY) || metaKey.equals(MetadataStore.REBALANCING_SOURCE_CLUSTER_XML)) {
+        if (!Utils.isReadableFile(metaFile)) {
+          throw new VoldemortException("Cluster xml file path incorrect");
+        }
+        ClusterMapper mapper=new ClusterMapper();
+        Cluster newCluster=mapper.readCluster(new File(metaFile));
+        doMetaSet(adminClient,nodeIds,metaKey,mapper.writeCluster(newCluster));
+      }
+ else       if (metaKey.equals(MetadataStore.SLOP_STREAMING_ENABLED_KEY) || metaKey.equals(MetadataStore.PARTITION_STREAMING_ENABLED_KEY) || metaKey.equals(MetadataStore.READONLY_FETCH_ENABLED_KEY)) {
+        doMetaSet(adminClient,nodeIds,metaKey,metaValue);
+      }
+ else       if (metaKey.equals(KEY_OFFLINE)) {
+        boolean setOffline=Boolean.parseBoolean(metaValue);
+        if (setOffline && nodeIds.size() > 1) {
+          throw new VoldemortException("Setting more than one node to offline is not allowed.");
+        }
+        for (        Integer nodeId : nodeIds) {
+          adminClient.metadataMgmtOps.setRemoteOfflineState(nodeId,setOffline);
+        }
+      }
+ else       if (metaKey.equals(MetadataStore.REBALANCING_STEAL_INFO)) {
+        if (!Utils.isReadableFile(metaFile)) {
+          throw new VoldemortException("Rebalancing steal info file path incorrect");
+        }
+        String rebalancingStealInfoJsonString=FileUtils.readFileToString(new File(metaFile));
+        RebalancerState state=RebalancerState.create(rebalancingStealInfoJsonString);
+        doMetaSet(adminClient,nodeIds,metaKey,state.toJsonString());
+      }
+ else {
+        throw new VoldemortException("Incorrect metadata key");
+      }
     }
   }
  else   if (meta.size() == 4) {
@@ -130,6 +136,10 @@
     }
     List<StoreDefinition> newStoreDefs=storeDefsMapper.readStoreList(new File(storesFile));
     StoreDefinitionUtils.validateSchemasAsNeeded(newStoreDefs);
+    printChangeStoreSummary(oldStoreDefs,newStoreDefs,System.err);
+    if (!AdminToolUtils.askConfirm(confirm,"set metadata")) {
+      return;
+    }
     doMetaSetPair(adminClient,nodeIds,clusterMapper.writeCluster(cluster),storeDefsMapper.writeStoreList(newStoreDefs));
     if (!allNodes) {
       System.err.println("WARNING: Metadata version update of stores goes to all servers, " + "although this set-metadata oprations only goes to node: ");
