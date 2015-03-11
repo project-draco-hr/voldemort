@@ -1,5 +1,11 @@
 {
   permitStart(nodeId);
-  donorPermit.acquire();
-  permitAcquired(nodeId);
+  boolean isPermitAcquired=false;
+  while (isPermitAcquired == false) {
+    isPermitAcquired=donorPermit.tryAcquire(5,TimeUnit.MINUTES);
+    if (isPermitAcquired == false) {
+      logPermitStatus(nodeId,"Waiting to acquire log ");
+    }
+  }
+  logPermitStatus(nodeId,"Acquired donor permit for node ");
 }
