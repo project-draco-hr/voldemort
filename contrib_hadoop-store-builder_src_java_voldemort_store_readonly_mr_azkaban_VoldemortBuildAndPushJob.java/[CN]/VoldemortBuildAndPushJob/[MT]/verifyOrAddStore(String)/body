@@ -35,7 +35,8 @@
     }
  catch (    RuntimeException e) {
       log.error("Getting store definition from: " + url + " (node id "+ this.nodeId+ ")",e);
-      System.exit(-1);
+      fail("Failed to add store");
+      throw new VoldemortException("Failed to add store",e);
     }
   }
   AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());

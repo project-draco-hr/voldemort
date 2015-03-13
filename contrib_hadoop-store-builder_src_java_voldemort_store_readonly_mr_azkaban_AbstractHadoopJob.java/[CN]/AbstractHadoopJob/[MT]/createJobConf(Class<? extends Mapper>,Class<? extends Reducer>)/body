@@ -3,11 +3,11 @@
   conf.setJobName(getId());
   conf.setMapperClass(mapperClass);
   conf.setReducerClass(reducerClass);
-  String hadoop_ugi=_props.getString("hadoop.job.ugi",null);
+  String hadoop_ugi=props.getString("hadoop.job.ugi",null);
   if (hadoop_ugi != null) {
     conf.set("hadoop.job.ugi",hadoop_ugi);
   }
-  if (_props.getBoolean("is.local",false)) {
+  if (props.getBoolean("is.local",false)) {
     conf.set("mapred.job.tracker","local");
     conf.set("fs.default.name","file:///");
     conf.set("mapred.local.dir","/tmp/map-red");
@@ -20,12 +20,12 @@
     info("          Running on Real Hadoop Cluster(" + conf.get("mapred.job.tracker") + ")           ");
     info("*************************************************************************");
   }
-  if (_props.containsKey("mapred.child.java.opts")) {
-    conf.set("mapred.child.java.opts",_props.getString("mapred.child.java.opts"));
-    info("mapred.child.java.opts set to " + _props.getString("mapred.child.java.opts"));
+  if (props.containsKey("mapred.child.java.opts")) {
+    conf.set("mapred.child.java.opts",props.getString("mapred.child.java.opts"));
+    info("mapred.child.java.opts set to " + props.getString("mapred.child.java.opts"));
   }
-  if (_props.containsKey("input.paths")) {
-    List<String> inputPaths=_props.getStringList("input.paths");
+  if (props.containsKey("input.paths")) {
+    List<String> inputPaths=props.getStringList("input.paths");
     if (inputPaths.size() == 0)     throw new IllegalArgumentException("Must specify at least one value for property 'input.paths'");
     for (    String path : inputPaths) {
       if (path.endsWith(LATEST_SUFFIX)) {
@@ -45,8 +45,8 @@
       HadoopUtils.addAllSubPaths(conf,new Path(path));
     }
   }
-  if (_props.containsKey("output.path")) {
-    String location=_props.get("output.path");
+  if (props.containsKey("output.path")) {
+    String location=props.get("output.path");
     if (location.endsWith("#CURRENT")) {
       DateTimeFormatter format=DateTimeFormat.forPattern(COMMON_FILE_DATE_PATTERN);
       String destPath=format.print(new DateTime());
@@ -54,12 +54,12 @@
       System.out.println("Store location set to " + location);
     }
     FileOutputFormat.setOutputPath(conf,new Path(location));
-    if (_props.getBoolean("force.output.overwrite",false)) {
+    if (props.getBoolean("force.output.overwrite",false)) {
       FileSystem fs=FileOutputFormat.getOutputPath(conf).getFileSystem(conf);
       fs.delete(FileOutputFormat.getOutputPath(conf),true);
     }
   }
-  String externalJarList=_props.getString("hadoop.external.jarFiles",null);
+  String externalJarList=props.getString("hadoop.external.jarFiles",null);
   if (externalJarList != null) {
     String[] jarFiles=externalJarList.split(",");
     for (    String jarFile : jarFiles) {
@@ -67,7 +67,7 @@
       DistributedCache.addFileToClassPath(new Path(jarFile),conf);
     }
   }
-  String cacheFileList=_props.getString("hadoop.cache.files",null);
+  String cacheFileList=props.getString("hadoop.cache.files",null);
   if (cacheFileList != null) {
     String[] cacheFiles=cacheFileList.split(",");
     for (    String cacheFile : cacheFiles) {
@@ -75,7 +75,7 @@
       DistributedCache.addCacheFile(new URI(cacheFile),conf);
     }
   }
-  String archiveFileList=_props.getString("hadoop.cache.archives",null);
+  String archiveFileList=props.getString("hadoop.cache.archives",null);
   if (archiveFileList != null) {
     String[] archiveFiles=archiveFileList.split(",");
     for (    String archiveFile : archiveFiles) {
@@ -84,11 +84,11 @@
     }
   }
   addToDistributedCache(voldemortLibPath,conf);
-  boolean isAddFiles=_props.getBoolean("hdfs.default.classpath.dir.enable",false);
+  boolean isAddFiles=props.getBoolean("hdfs.default.classpath.dir.enable",false);
   if (isAddFiles) {
     addToDistributedCache(hadoopLibPath,conf);
   }
-  for (  String key : getProps().getKeySet()) {
+  for (  String key : getProps().keySet()) {
     String lowerCase=key.toLowerCase();
     if (lowerCase.startsWith(HADOOP_PREFIX)) {
       String newKey=key.substring(HADOOP_PREFIX.length());

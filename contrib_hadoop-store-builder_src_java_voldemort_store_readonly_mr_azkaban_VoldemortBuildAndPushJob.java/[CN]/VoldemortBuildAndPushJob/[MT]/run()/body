@@ -17,7 +17,7 @@
  catch (    VoldemortException e) {
       log.error("Exception during cluster equality check",e);
       fail("Exception during cluster equality check: " + e.toString());
-      System.exit(-1);
+      return;
     }
     HashMap<String,Exception> exceptions=Maps.newHashMap();
     String buildOutputDir=null;
@@ -79,7 +79,7 @@
       String errorMessage="Got exceptions while pushing to " + Joiner.on(",").join(exceptions.keySet()) + " => "+ Joiner.on(",").join(exceptions.values());
       log.error(errorMessage);
       fail(errorMessage);
-      System.exit(-1);
+      return;
     }
   }
  catch (  Exception e) {

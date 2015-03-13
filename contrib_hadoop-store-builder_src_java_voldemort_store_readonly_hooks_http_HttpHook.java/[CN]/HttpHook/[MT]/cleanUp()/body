@@ -1,11 +1,14 @@
 {
-  for (  Future result : httpFutureResults) {
-    try {
-      result.get();
+  if (running.get() == true) {
+    for (    Future result : httpFutureResults) {
+      try {
+        result.get();
+      }
+ catch (      Exception e) {
+        this.log.error("Exception while getting the result of the " + getName() + "'s HTTP request...",e);
+      }
     }
- catch (    Exception e) {
-      this.log.error("Exception while getting the result of the " + getName() + "'s HTTP request...",e);
-    }
+    this.executorService.shutdown();
+    running.set(false);
   }
-  this.executorService.shutdownNow();
 }
