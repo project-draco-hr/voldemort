@@ -1,0 +1,25 @@
+{
+  String key=ByteUtils.getString(keyBytes.get(),"UTF-8");
+  Versioned<String> value=new Versioned<String>(ByteUtils.getString(valueBytes.getValue(),"UTF-8"),valueBytes.getVersion());
+  Versioned<Object> valueObject=convertStringToObject(key,value);
+  if (key.equals(MetadataStore.STORES_KEY)) {
+    List<StoreDefinition> storeDefinitions=(List<StoreDefinition>)valueObject.getValue();
+    Set<String> existingStores=new HashSet<String>(this.storeNames);
+    Set<String> specifiedStoreNames=new HashSet<String>();
+    for (    StoreDefinition storeDef : storeDefinitions) {
+      String storeName=storeDef.getName();
+      if (specifiedStoreNames.contains(storeName)) {
+        throw new VoldemortException(" Duplicate store names in Stores.xml for storeName " + storeName);
+      }
+      specifiedStoreNames.add(storeName);
+    }
+    existingStores.removeAll(specifiedStoreNames);
+    if (existingStores.size() > 0) {
+      logger.warn(" Set metadata does not support store deletion. This will leave the store in an " + "inconsistent state. Stores (Inconsistent) missing in set metadata " + Arrays.toString(existingStores.toArray()));
+    }
+    specifiedStoreNames.removeAll(this.storeNames);
+    if (specifiedStoreNames.size() > 0) {
+      logger.warn(" Set metadata does not support store addition . This will leave the store in an " + "inconsistent state. Stores (Inconsistent) added in set metadata " + Arrays.toString(specifiedStoreNames.toArray()));
+    }
+  }
+}

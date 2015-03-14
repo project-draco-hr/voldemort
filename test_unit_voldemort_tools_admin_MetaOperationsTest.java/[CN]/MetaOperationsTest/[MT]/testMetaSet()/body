@@ -11,7 +11,8 @@
   List<StoreDefinition> newStoresToUpload=new ArrayList<StoreDefinition>();
   for (  StoreDefinition storeDef : stores) {
     StoreDefinitionBuilder sb=AdminToolTestUtils.storeDefToBuilder(storeDef);
-    sb.setName(sb.getName() + "_new");
+    sb.setRoutingPolicy(sb.getRoutingPolicy().equals(RoutingTier.CLIENT) ? RoutingTier.SERVER : RoutingTier.CLIENT);
+    sb.setPreferredReads(sb.getPreferredReads() == null ? sb.getRequiredReads() : null);
     newStoresToUpload.add(sb.build());
   }
   File newStoresXMLFolder=TestUtils.createTempDir();
@@ -21,8 +22,10 @@
   fwriter.close();
   AdminCommand.executeCommand(new String[]{"meta","set",MetadataStore.STORES_KEY + "=" + newStoreXMLFile.getAbsolutePath(),"-u",bsURL,"--confirm"});
   List<StoreDefinition> newStoresToVerify=adminClient.metadataMgmtOps.getRemoteStoreDefList(adminClient.getAdminClientCluster().getNodes().iterator().next().getId()).getValue();
-  assertTrue(!newStoresToVerify.equals(stores));
-  assertTrue(newStoresToVerify.equals(newStoresToUpload));
+  System.out.println("Uploades stores" + new StoreDefinitionsMapper().writeStoreList(newStoresToUpload));
+  System.out.println("Retrieved stores" + new StoreDefinitionsMapper().writeStoreList(newStoresToVerify));
+  assertTrue("Old store should not equal to new stores",!newStoresToVerify.equals(stores));
+  assertTrue("Uploaded stores and retrieved stores are different",newStoresToVerify.equals(newStoresToUpload));
   storesValues.clear();
   for (  Node node : adminClient.getAdminClientCluster().getNodes()) {
     Versioned<String> versioned=adminClient.metadataMgmtOps.getRemoteMetadata(node.getId(),MetadataStore.STORES_KEY);
