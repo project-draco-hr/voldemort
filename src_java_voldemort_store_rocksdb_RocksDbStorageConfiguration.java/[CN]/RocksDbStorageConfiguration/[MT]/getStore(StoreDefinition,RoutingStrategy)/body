@@ -10,11 +10,11 @@
       if (this.voldemortconfig.getRocksdbPrefixKeysWithPartitionId()) {
         rdbOptions.useFixedLengthPrefixExtractor(StoreBinaryFormat.PARTITIONID_PREFIX_SIZE);
         rdbStore=RocksDB.open(rdbOptions,dataDir);
-        rdbStorageEngine=new PartitionPrefixedRocksDbStorageEngine(storeName,rdbStore,lockStripes,strategy);
+        rdbStorageEngine=new PartitionPrefixedRocksDbStorageEngine(storeName,rdbStore,lockStripes,strategy,voldemortconfig.isRocksdbEnableReadLocks());
       }
  else {
         rdbStore=RocksDB.open(rdbOptions,dataDir);
-        rdbStorageEngine=new RocksDbStorageEngine(storeName,rdbStore,lockStripes);
+        rdbStorageEngine=new RocksDbStorageEngine(storeName,rdbStore,lockStripes,voldemortconfig.isRocksdbEnableReadLocks());
       }
       stores.put(storeName,rdbStorageEngine);
     }
