@@ -9,15 +9,15 @@
     onlineServices.add(restService);
   }
   if (voldemortConfig.isSocketServerEnabled()) {
-    RequestHandlerFactory socketRequestHandlerFactory=new SocketRequestHandlerFactory(storageService,this.storeRepository,this.metadata,this.voldemortConfig,this.asyncService,null,null);
+    RequestHandlerFactory clientRequestHandlerFactory=new ClientRequestHandlerFactory(this.storeRepository);
     if (voldemortConfig.getUseNioConnector()) {
       logger.info("Using NIO Connector.");
-      NioSocketService nioSocketService=new NioSocketService(socketRequestHandlerFactory,identityNode.getSocketPort(),voldemortConfig.getSocketBufferSize(),voldemortConfig.getNioConnectorSelectors(),"nio-socket-server",voldemortConfig.isJmxEnabled(),voldemortConfig.getNioAcceptorBacklog());
+      NioSocketService nioSocketService=new NioSocketService(clientRequestHandlerFactory,identityNode.getSocketPort(),voldemortConfig.getSocketBufferSize(),voldemortConfig.getNioConnectorSelectors(),"nio-socket-server",voldemortConfig.isJmxEnabled(),voldemortConfig.getNioAcceptorBacklog());
       onlineServices.add(nioSocketService);
     }
  else {
       logger.info("Using BIO Connector.");
-      SocketService socketService=new SocketService(socketRequestHandlerFactory,identityNode.getSocketPort(),voldemortConfig.getCoreThreads(),voldemortConfig.getMaxThreads(),voldemortConfig.getSocketBufferSize(),"socket-server",voldemortConfig.isJmxEnabled());
+      SocketService socketService=new SocketService(clientRequestHandlerFactory,identityNode.getSocketPort(),voldemortConfig.getCoreThreads(),voldemortConfig.getMaxThreads(),voldemortConfig.getSocketBufferSize(),"socket-server",voldemortConfig.isJmxEnabled());
       onlineServices.add(socketService);
     }
   }
