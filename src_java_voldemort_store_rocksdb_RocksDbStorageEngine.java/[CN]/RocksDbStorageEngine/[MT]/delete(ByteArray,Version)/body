@@ -1,0 +1,48 @@
+{
+  StoreUtils.assertValidKey(key);
+  long startTimeNs=-1;
+  if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
+synchronized (this.locks.lockFor(key.get())) {
+    try {
+      byte[] value=getRocksDB().get(key.get());
+      if (value == null) {
+        return false;
+      }
+      if (version == null) {
+        getRocksDB().remove(key.get());
+        return true;
+      }
+ else {
+        List<Versioned<byte[]>> vals=StoreBinaryFormat.fromByteArray(value);
+        Iterator<Versioned<byte[]>> iter=vals.iterator();
+        int numVersions=vals.size();
+        int numDeletedVersions=0;
+        while (iter.hasNext()) {
+          Versioned<byte[]> curr=iter.next();
+          Version currentVersion=curr.getVersion();
+          if (currentVersion.compare(version) == Occurred.BEFORE) {
+            iter.remove();
+            numDeletedVersions++;
+          }
+        }
+        if (numDeletedVersions < numVersions) {
+          value=StoreBinaryFormat.toByteArray(vals);
+          getRocksDB().put(key.get(),value);
+        }
+ else {
+          getRocksDB().remove(key.get());
+        }
+        return numDeletedVersions > 0;
+      }
+    }
+ catch (    RocksDBException e) {
+      logger.error(e);
+      throw new PersistenceFailureException(e);
+    }
+ finally {
+      if (logger.isTraceEnabled()) {
+        logger.trace("Completed DELETE (" + getName() + ") of key "+ ByteUtils.toHexString(key.get())+ " (keyRef: "+ System.identityHashCode(key)+ ") in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
+      }
+    }
+  }
+}

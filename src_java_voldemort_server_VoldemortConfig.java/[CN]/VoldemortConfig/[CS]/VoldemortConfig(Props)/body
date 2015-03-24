@@ -140,7 +140,7 @@
   this.schedulerThreads=props.getInt("scheduler.threads",6);
   this.mayInterruptService=props.getBoolean("service.interruptible",true);
   this.numScanPermits=props.getInt("num.scan.permits",1);
-  this.storageConfigurations=props.getList("storage.configs",ImmutableList.of(BdbStorageConfiguration.class.getName(),MysqlStorageConfiguration.class.getName(),InMemoryStorageConfiguration.class.getName(),CacheStorageConfiguration.class.getName(),ReadOnlyStorageConfiguration.class.getName()));
+  this.storageConfigurations=props.getList("storage.configs",ImmutableList.of(BdbStorageConfiguration.class.getName(),MysqlStorageConfiguration.class.getName(),InMemoryStorageConfiguration.class.getName(),CacheStorageConfiguration.class.getName(),ReadOnlyStorageConfiguration.class.getName(),RocksDbStorageConfiguration.class.getName()));
   this.retentionCleanupFirstStartTimeInHour=props.getInt("retention.cleanup.first.start.hour",0);
   this.retentionCleanupFirstStartDayOfWeek=props.getInt("retention.cleanup.first.start.day",Utils.getDayOfTheWeekFromNow(1));
   this.retentionCleanupScheduledPeriodInHour=props.getInt("retention.cleanup.period.hours",24);
@@ -176,5 +176,8 @@
   this.repairJobMaxKeysScannedPerSec=props.getInt("repairjob.max.keys.scanned.per.sec",Integer.MAX_VALUE);
   this.pruneJobMaxKeysScannedPerSec=props.getInt("prunejob.max.keys.scanned.per.sec",Integer.MAX_VALUE);
   this.slopPurgeJobMaxKeysScannedPerSec=props.getInt("slop.purgejob.max.keys.scanned.per.sec",10000);
+  this.rocksdbDataDirectory=props.getString("rocksdb.data.dir",this.dataDirectory + File.separator + "rocksdb");
+  this.rocksdbPrefixKeysWithPartitionId=props.getBoolean("rocksdb.prefix.keys.with.partitionid",true);
+  this.rocksdbEnableReadLocks=props.getBoolean("rocksdb.enable.read.locks",false);
   validateParams();
 }

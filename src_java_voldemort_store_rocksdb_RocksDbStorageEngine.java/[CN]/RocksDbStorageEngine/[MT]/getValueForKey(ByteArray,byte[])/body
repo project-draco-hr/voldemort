@@ -1,0 +1,24 @@
+{
+  long startTimeNs=-1;
+  if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
+  List<Versioned<byte[]>> value=null;
+  try {
+    byte[] result=getRocksDB().get(key.get());
+    if (result != null) {
+      value=StoreBinaryFormat.fromByteArray(result);
+    }
+ else {
+      return Collections.emptyList();
+    }
+  }
+ catch (  RocksDBException e) {
+    logger.error(e);
+    throw new PersistenceFailureException(e);
+  }
+ finally {
+    if (logger.isTraceEnabled()) {
+      logger.trace("Completed GET (" + getName() + ") from key "+ key+ " (keyRef: "+ System.identityHashCode(key)+ ") in "+ (System.nanoTime() - startTimeNs)+ " ns at "+ System.currentTimeMillis());
+    }
+  }
+  return value;
+}
