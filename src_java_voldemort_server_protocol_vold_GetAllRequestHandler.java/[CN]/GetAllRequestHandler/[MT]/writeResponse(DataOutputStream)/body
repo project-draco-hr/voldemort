@@ -1,0 +1,9 @@
+{
+  outputStream.writeShort(0);
+  outputStream.writeInt(results.size());
+  for (  Map.Entry<ByteArray,List<Versioned<byte[]>>> entry : results.entrySet()) {
+    outputStream.writeInt(entry.getKey().length());
+    outputStream.write(entry.getKey().get());
+    ClientRequestHandler.writeResults(outputStream,entry.getValue());
+  }
+}

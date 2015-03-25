@@ -1,32 +1,3 @@
 {
-  byte opCode=inputStream.readByte();
-  String storeName=inputStream.readUTF();
-  RequestRoutingType routingType=getRoutingType(inputStream);
-  Store<ByteArray,byte[],byte[]> store=getStore(storeName,routingType);
-  if (store == null) {
-    writeException(outputStream,new VoldemortException("No store named '" + storeName + "'."));
-  }
- else {
-switch (opCode) {
-case VoldemortOpCode.GET_OP_CODE:
-      handleGet(inputStream,outputStream,store);
-    break;
-case VoldemortOpCode.GET_ALL_OP_CODE:
-  handleGetAll(inputStream,outputStream,store);
-break;
-case VoldemortOpCode.PUT_OP_CODE:
-handlePut(inputStream,outputStream,store);
-break;
-case VoldemortOpCode.DELETE_OP_CODE:
-handleDelete(inputStream,outputStream,store);
-break;
-case VoldemortOpCode.GET_VERSION_OP_CODE:
-handleGetVersion(inputStream,outputStream,store);
-break;
-default :
-throw new IOException("Unknown op code: " + opCode);
-}
-}
-outputStream.flush();
-return null;
+  return handleRequest(inputStream,outputStream,null);
 }

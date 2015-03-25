@@ -1,0 +1,17 @@
+{
+  int numKeys=inputStream.readInt();
+  for (int i=0; i < numKeys; i++) {
+    if (!ClientRequestHandler.skipByteArray(inputStream,buffer))     return false;
+  }
+  if (protocolVersion > 2) {
+    boolean hasTransform=inputStream.readBoolean();
+    if (hasTransform) {
+      int numTrans=inputStream.readInt();
+      for (int i=0; i < numTrans; i++) {
+        if (!ClientRequestHandler.skipByteArray(inputStream,buffer))         return false;
+        ClientRequestHandler.readTransforms(inputStream);
+      }
+    }
+  }
+  return true;
+}

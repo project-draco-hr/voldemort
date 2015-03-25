@@ -1,4 +1,8 @@
 {
-  super(selector,socketChannel,socketBufferSize,new CommBufferSizeStats());
+  super(selector,socketChannel,socketBufferSize);
   isExpired=false;
+  initializeStreams(socketBufferSize,new CommBufferSizeStats());
+  if (this.inputStream == null || this.outputStream == null) {
+    throw new VoldemortApplicationException("InputStream or OuputStream is null after initialization");
+  }
 }

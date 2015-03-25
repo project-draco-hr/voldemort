@@ -1,37 +1,3 @@
 {
-  VoldemortRequest.Builder request=ProtoUtils.readToBuilder(inputStream,VoldemortRequest.newBuilder());
-  boolean shouldRoute=request.getShouldRoute();
-  RequestRoutingType type=RequestRoutingType.getRequestRoutingType(shouldRoute,false);
-  if (request.hasRequestRouteType()) {
-    type=RequestRoutingType.getRequestRoutingType(request.getRequestRouteType());
-  }
-  String storeName=request.getStore();
-  Store<ByteArray,byte[],byte[]> store=getStore(storeName,type);
-  Message response;
-  if (store == null) {
-    response=unknownStore(storeName,request.getType());
-  }
- else {
-switch (request.getType()) {
-case GET:
-      response=handleGet(request.getGet(),store);
-    break;
-case GET_ALL:
-  response=handleGetAll(request.getGetAll(),store);
-break;
-case PUT:
-response=handlePut(request.getPut(),store);
-break;
-case DELETE:
-response=handleDelete(request.getDelete(),store);
-break;
-case GET_VERSION:
-response=handleGetVersion(request.getGet(),store);
-break;
-default :
-throw new VoldemortException("Unknown operation " + request.getType());
-}
-}
-ProtoUtils.writeMessage(outputStream,response);
-return null;
+  return handleRequest(inputStream,outputStream,null);
 }

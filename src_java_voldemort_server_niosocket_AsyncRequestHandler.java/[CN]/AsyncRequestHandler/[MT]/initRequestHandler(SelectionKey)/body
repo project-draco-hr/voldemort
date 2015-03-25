@@ -5,6 +5,7 @@
   byte[] protoBytes={inputBuffer.get(0),inputBuffer.get(1),inputBuffer.get(2)};
   try {
     String proto=ByteUtils.getString(protoBytes,"UTF-8");
+    inputBuffer.clear();
     RequestFormatType requestFormatType=RequestFormatType.fromCode(proto);
     requestHandler=requestHandlerFactory.getRequestHandler(requestFormatType);
     if (logger.isInfoEnabled())     logger.info("Protocol negotiated for " + socketChannel.socket() + ": "+ requestFormatType.getDisplayName());

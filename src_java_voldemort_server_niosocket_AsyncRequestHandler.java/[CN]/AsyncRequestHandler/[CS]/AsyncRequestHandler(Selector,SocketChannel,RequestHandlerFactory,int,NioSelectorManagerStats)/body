@@ -1,5 +1,9 @@
 {
-  super(selector,socketChannel,socketBufferSize,nioStats.getServerCommBufferStats());
+  super(selector,socketChannel,socketBufferSize);
   this.requestHandlerFactory=requestHandlerFactory;
   this.nioStats=nioStats;
+  initializeStreams(socketBufferSize,nioStats.getServerCommBufferStats());
+  if (this.inputStream == null || this.outputStream == null) {
+    throw new VoldemortApplicationException("InputStream or OuputStream is null after initialization");
+  }
 }

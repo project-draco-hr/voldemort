@@ -3,74 +3,36 @@
   try {
     byte opCode=inputStream.readByte();
     inputStream.readUTF();
-    if (protocolVersion > 0) {
-      boolean routed=inputStream.readBoolean();
-      if (logger.isDebugEnabled()) {
-        logger.debug("isRouted=" + routed);
-      }
-    }
-    if (protocolVersion > 1) {
-      int routingTypeCode=inputStream.readByte();
-      if (logger.isDebugEnabled()) {
-        logger.debug("routingTypeCode=" + routingTypeCode);
-      }
-    }
+    getRoutingType(inputStream);
 switch (opCode) {
 case VoldemortOpCode.GET_VERSION_OP_CODE:
-      readKey(inputStream);
+      if (!GetVersionRequestHandler.isCompleteRequest(inputStream,buffer))       return false;
     break;
 case VoldemortOpCode.GET_OP_CODE:
-  readKey(inputStream);
-if (protocolVersion > 2) {
-  boolean hasTransform=inputStream.readBoolean();
-  if (hasTransform) {
-    readTransforms(inputStream);
-  }
-}
+  if (!GetRequestHandler.isCompleteRequest(inputStream,buffer,protocolVersion))   return false;
 break;
 case VoldemortOpCode.GET_ALL_OP_CODE:
-int numKeys=inputStream.readInt();
-for (int i=0; i < numKeys; i++) readKey(inputStream);
-if (protocolVersion > 2) {
-boolean hasTransform=inputStream.readBoolean();
-if (hasTransform) {
-int numTrans=inputStream.readInt();
-for (int i=0; i < numTrans; i++) {
-readKey(inputStream);
-readTransforms(inputStream);
-}
-}
-}
+if (!GetAllRequestHandler.isCompleteRequest(inputStream,buffer,protocolVersion)) return false;
 break;
 case VoldemortOpCode.PUT_OP_CODE:
 {
-readKey(inputStream);
-int dataSize=inputStream.readInt();
-int newPosition=buffer.position() + dataSize;
-if (newPosition > buffer.limit() || newPosition < 0) throw new Exception("Data inconsistency on put - dataSize: " + dataSize + ", position: "+ buffer.position()+ ", limit: "+ buffer.limit());
-buffer.position(newPosition);
-if (protocolVersion > 2) {
-boolean hasTransform=inputStream.readBoolean();
-if (hasTransform) {
-readTransforms(inputStream);
-}
-}
+if (!PutRequestHandler.isCompleteRequest(inputStream,buffer,protocolVersion)) return false;
 break;
 }
 case VoldemortOpCode.DELETE_OP_CODE:
 {
-readKey(inputStream);
-int versionSize=inputStream.readShort();
-int newPosition=buffer.position() + versionSize;
-if (newPosition > buffer.limit() || newPosition < 0) throw new Exception("Data inconsistency on delete - versionSize: " + versionSize + ", position: "+ buffer.position()+ ", limit: "+ buffer.limit());
-buffer.position(newPosition);
+if (!DeleteRequestHandler.isCompleteRequest(inputStream,buffer)) return false;
 break;
 }
 default :
+throw new VoldemortException(" Unrecognized Voldemort OpCode " + opCode);
 }
-return !buffer.hasRemaining();
+if (buffer.hasRemaining()) {
+logger.info(" Probably a client bug, Discarding additional bytes in isCompleteRequest. Opcode " + opCode + " remaining bytes "+ buffer.remaining());
 }
- catch (Exception e) {
+return true;
+}
+ catch (IOException e) {
 if (logger.isDebugEnabled()) logger.debug("Probable partial read occurred causing exception",e);
 return false;
 }

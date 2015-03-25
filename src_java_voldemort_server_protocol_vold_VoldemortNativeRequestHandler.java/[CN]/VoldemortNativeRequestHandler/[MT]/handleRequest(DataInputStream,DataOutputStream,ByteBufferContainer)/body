@@ -1,0 +1,40 @@
+{
+  long startTimeMs=-1;
+  long startTimeNs=-1;
+  if (logger.isDebugEnabled()) {
+    startTimeMs=System.currentTimeMillis();
+    startTimeNs=System.nanoTime();
+  }
+  byte opCode=inputStream.readByte();
+  String storeName=inputStream.readUTF();
+  RequestRoutingType routingType=getRoutingType(inputStream);
+  Store<ByteArray,byte[],byte[]> store=getStore(storeName,routingType);
+  if (store == null) {
+    clearBuffer(outputContainer);
+    writeException(outputStream,new VoldemortException("No store named '" + storeName + "'."));
+    return null;
+  }
+  ClientRequestHandler requestHandler=getClientRequestHanlder(opCode,store);
+  try {
+    requestHandler.parseRequest(inputStream);
+    requestHandler.processRequest();
+  }
+ catch (  VoldemortException e) {
+    clearBuffer(outputContainer);
+    logger.error(e.getMessage());
+    writeException(outputStream,e);
+    return null;
+  }
+  clearBuffer(outputContainer);
+  int size=requestHandler.getResponseSize();
+  if (outputContainer != null) {
+    outputContainer.growBuffer(size);
+  }
+  requestHandler.writeResponse(outputStream);
+  outputStream.flush();
+  if (logger.isDebugEnabled()) {
+    String debugPrefix="OpCode " + opCode + " started at: "+ startTimeMs+ " handlerRef: "+ System.identityHashCode(inputStream)+ " Elapsed : "+ (System.nanoTime() - startTimeNs)+ " ns, ";
+    logger.debug(debugPrefix + requestHandler.getDebugMessage());
+  }
+  return null;
+}

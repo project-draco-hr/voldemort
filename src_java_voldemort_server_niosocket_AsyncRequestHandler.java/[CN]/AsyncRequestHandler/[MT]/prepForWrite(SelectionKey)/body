@@ -1,6 +1,8 @@
 {
   if (logger.isTraceEnabled())   traceInputBufferState("About to clear read buffer");
-  inputStream.clear();
+  if (requestHandlerFactory.shareReadWriteBuffer() == false) {
+    inputStream.clear();
+  }
   if (logger.isTraceEnabled())   traceInputBufferState("Cleared read buffer");
   outputStream.getBuffer().flip();
   selectionKey.interestOps(SelectionKey.OP_WRITE);
