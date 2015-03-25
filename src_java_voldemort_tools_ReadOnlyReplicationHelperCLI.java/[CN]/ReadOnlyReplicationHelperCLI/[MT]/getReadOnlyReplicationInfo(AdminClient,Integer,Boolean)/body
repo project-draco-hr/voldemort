@@ -31,7 +31,15 @@
       Node sourceNode=cluster.getNodeForPartitionId(naryPartitionIds.get(0));
       Integer sourceNodeId=sourceNode.getId();
       Long version=adminClient.readonlyOps.getROCurrentVersion(sourceNodeId,Arrays.asList(storeName)).get(storeName);
-      List<String> fileNames=adminClient.readonlyOps.getROStorageFileList(sourceNode.getId(),storeName);
+      List<String> fileNames=null;
+      if (local) {
+        List<Integer> srcPartitionIds=Lists.newArrayList();
+        srcPartitionIds.addAll(sourceNode.getPartitionIds());
+        fileNames=getROStorageFileListLocally(srcPartitionIds,strategy);
+      }
+ else {
+        fileNames=adminClient.readonlyOps.getROStorageFileList(sourceNode.getId(),storeName);
+      }
       List<String> sourceFileNames=parseAndCompare(fileNames,masterPartitionId);
       if (sourceFileNames.size() > 0) {
         for (        String sourceFileName : sourceFileNames) {

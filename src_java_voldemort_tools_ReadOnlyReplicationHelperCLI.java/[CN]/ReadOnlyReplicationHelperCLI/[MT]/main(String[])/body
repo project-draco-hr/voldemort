@@ -11,9 +11,10 @@
  else {
     outputStream=System.out;
   }
+  Boolean local=options.has(OPT_LOCAL);
   AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());
   outputStream.println("src_host_name,src_node_id,src_rel_path,dest_rel_path");
-  List<String> infoList=getReadOnlyReplicationInfo(adminClient,nodeId);
+  List<String> infoList=getReadOnlyReplicationInfo(adminClient,nodeId,local);
   for (  String info : infoList) {
     outputStream.println(info);
   }

@@ -1,0 +1,15 @@
+{
+  List<String> fileList=Lists.newArrayList();
+  for (  Node node : routingStrategy.getNodes()) {
+    for (    int partitionId : node.getPartitionIds()) {
+      List<Integer> routingPartitionList=routingStrategy.getReplicatingPartitionList(partitionId);
+      for (int replicatingPartition=0; replicatingPartition < routingPartitionList.size(); replicatingPartition++) {
+        if (nodePartitionIds.contains(routingPartitionList.get(replicatingPartition))) {
+          fileList.add(Integer.toString(routingPartitionList.get(0)) + "_" + Integer.toString(replicatingPartition)+ "_"+ "*");
+          break;
+        }
+      }
+    }
+  }
+  return fileList;
+}

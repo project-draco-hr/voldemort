@@ -1,0 +1,18 @@
+{
+  String storeName="test-readonly-fetchfiles";
+  List<String> fileList0=adminClient.readonlyOps.getROStorageFileList(0,storeName);
+  List<String> fileList1=adminClient.readonlyOps.getROStorageFileList(1,storeName);
+  List<String> infoList0=ReadOnlyReplicationHelperCLI.getReadOnlyReplicationInfo(adminClient,0,true);
+  List<String> infoList1=ReadOnlyReplicationHelperCLI.getReadOnlyReplicationInfo(adminClient,1,true);
+  List<String> srcList0=getSourceFileList(infoList0,storeName,1);
+  List<String> dstList0=getDestFileList(infoList0,storeName,1);
+  List<String> srcList1=getSourceFileList(infoList1,storeName,0);
+  List<String> dstList1=getDestFileList(infoList1,storeName,0);
+  assertTrue(fileList0.size() > 0);
+  assertTrue(fileList1.size() > 0);
+  assertTrue(isMatch("0_1_0","0_1_*"));
+  assertTrue(compareWildcardStringLists(fileList1,srcList0));
+  assertTrue(compareWildcardStringLists(fileList0,dstList0));
+  assertTrue(compareWildcardStringLists(fileList0,srcList1));
+  assertTrue(compareWildcardStringLists(fileList1,dstList1));
+}
