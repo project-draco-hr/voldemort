@@ -3,4 +3,7 @@
   VectorClock clock=getClock(1,1,2,3,4,4,6);
   byte[] knownSerialized={0,5,1,0,1,2,0,2,1,0,3,1,0,4,2,0,6,1,0,0,1,0x3e,0x7b,(byte)0x8c,(byte)0x9d,0x19};
   assertEquals("vector clock does not deserialize correctly on given byte array",clock,new VectorClock(knownSerialized));
+  DataInputStream ds=new DataInputStream(new ByteArrayInputStream(knownSerialized));
+  VectorClock clock2=VectorClock.createVectorClock(ds);
+  assertEquals("vector clock does not deserialize correctly on given input stream",clock,clock2);
 }

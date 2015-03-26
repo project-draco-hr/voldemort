@@ -1,10 +1,10 @@
 {
   key=ClientRequestHandler.readKey(inputStream);
   int valueSize=inputStream.readInt();
-  byte[] bytes=new byte[valueSize];
-  ByteUtils.read(inputStream,bytes);
-  clock=new VectorClock(bytes);
-  value=ByteUtils.copy(bytes,clock.sizeInBytes(),bytes.length);
+  clock=VectorClock.createVectorClock(inputStream);
+  int vectorClockSize=clock.sizeInBytes();
+  value=new byte[valueSize - vectorClockSize];
+  ByteUtils.read(inputStream,value);
   transforms=ClientRequestHandler.readSingleTransform(inputStream,protocolVersion);
   return false;
 }
