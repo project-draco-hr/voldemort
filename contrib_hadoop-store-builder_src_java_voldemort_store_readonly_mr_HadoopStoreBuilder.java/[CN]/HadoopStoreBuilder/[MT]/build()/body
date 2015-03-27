@@ -90,6 +90,10 @@
     logger.info("Building store...");
     RunningJob job=JobClient.runJob(conf);
     Counters counters=job.getCounters();
+    long numberOfRecords=counters.getCounter(Task.Counter.REDUCE_INPUT_GROUPS);
+    if (numberOfRecords < minNumberOfRecords) {
+      throw new VoldemortException("The number of records in the data set (" + numberOfRecords + ") is lower than the minimum required ("+ minNumberOfRecords+ "). Aborting.");
+    }
     if (saveKeys) {
       logger.info("Number of collisions in the job - " + counters.getCounter(KeyValueWriter.CollisionCounter.NUM_COLLISIONS));
       logger.info("Maximum number of collisions for one entry - " + counters.getCounter(KeyValueWriter.CollisionCounter.MAX_COLLISIONS));

@@ -76,10 +76,11 @@
       cleanUp();
     }
  else {
-      String errorMessage="Got exceptions while pushing to " + Joiner.on(",").join(exceptions.keySet()) + " => "+ Joiner.on(",").join(exceptions.values());
-      log.error(errorMessage);
-      fail(errorMessage);
-      return;
+      log.error("Got exceptions during Build and Push:");
+      for (      Map.Entry<String,Exception> entry : exceptions.entrySet()) {
+        log.error("Exception for cluster: " + entry.getKey(),entry.getValue());
+      }
+      throw new VoldemortException("Got exceptions during Build and Push");
     }
   }
  catch (  Exception e) {
