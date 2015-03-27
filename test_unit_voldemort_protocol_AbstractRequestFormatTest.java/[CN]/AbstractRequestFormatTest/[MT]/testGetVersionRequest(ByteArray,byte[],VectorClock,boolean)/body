@@ -1,0 +1,24 @@
+{
+  try {
+    if (isPresent) {
+      testPutRequest(key,value,null,version,null,false);
+    }
+    ByteArrayOutputStream getVersionRequest=new ByteArrayOutputStream();
+    this.clientWireFormat.writeGetVersionRequest(new DataOutputStream(getVersionRequest),storeName,key,RequestRoutingType.NORMAL);
+    testIsCompleteRequest(getVersionRequest);
+    ByteArrayOutputStream getVersionResponse=handleRequest(getVersionRequest);
+    List<Version> values=this.clientWireFormat.readGetVersionResponse(inputStream(getVersionResponse));
+    if (isPresent) {
+      assertEquals(1,values.size());
+      VectorClock returnValue=(VectorClock)values.get(0);
+      assertEquals(version,returnValue);
+      assertEquals(version.getTimestamp(),returnValue.getTimestamp());
+    }
+ else {
+      assertEquals(0,values.size());
+    }
+  }
+  finally {
+    this.store.deleteAll();
+  }
+}

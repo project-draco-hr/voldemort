@@ -1,10 +1,12 @@
 {
   try {
-    if (isPresent)     store.put(key,Versioned.value(value,version),null);
+    if (isPresent) {
+      testPutRequest(key,value,null,version,null,false);
+    }
     ByteArrayOutputStream getRequest=new ByteArrayOutputStream();
     this.clientWireFormat.writeGetRequest(new DataOutputStream(getRequest),storeName,key,transforms,RequestRoutingType.NORMAL);
-    ByteArrayOutputStream getResponse=new ByteArrayOutputStream();
-    this.serverWireFormat.handleRequest(inputStream(getRequest),new DataOutputStream(getResponse));
+    testIsCompleteRequest(getRequest);
+    ByteArrayOutputStream getResponse=handleRequest(getRequest);
     List<Versioned<byte[]>> values=this.clientWireFormat.readGetResponse(inputStream(getResponse));
     if (isPresent) {
       assertEquals(1,values.size());

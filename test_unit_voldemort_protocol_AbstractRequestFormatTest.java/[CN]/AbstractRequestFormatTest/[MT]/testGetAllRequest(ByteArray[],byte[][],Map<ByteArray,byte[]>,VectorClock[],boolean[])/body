@@ -1,12 +1,12 @@
 {
   try {
     for (int i=0; i < keys.length; i++) {
-      if (isFound[i])       store.put(keys[i],Versioned.value(values[i],versions[i]),null);
+      if (isFound[i])       testPutRequest(keys[i],values[i],null,versions[i],null,false);
     }
     ByteArrayOutputStream getAllRequest=new ByteArrayOutputStream();
     this.clientWireFormat.writeGetAllRequest(new DataOutputStream(getAllRequest),storeName,Arrays.asList(keys),transforms,RequestRoutingType.NORMAL);
-    ByteArrayOutputStream getAllResponse=new ByteArrayOutputStream();
-    this.serverWireFormat.handleRequest(inputStream(getAllRequest),new DataOutputStream(getAllResponse));
+    testIsCompleteRequest(getAllRequest);
+    ByteArrayOutputStream getAllResponse=handleRequest(getAllRequest);
     Map<ByteArray,List<Versioned<byte[]>>> found=this.clientWireFormat.readGetAllResponse(inputStream(getAllResponse));
     for (int i=0; i < keys.length; i++) {
       if (isFound[i]) {

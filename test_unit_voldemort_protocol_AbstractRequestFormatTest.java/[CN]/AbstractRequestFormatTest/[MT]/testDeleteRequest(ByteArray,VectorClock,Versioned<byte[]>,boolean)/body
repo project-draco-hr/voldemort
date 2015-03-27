@@ -1,10 +1,12 @@
 {
   try {
-    if (existingValue != null)     this.store.put(key,existingValue,null);
+    if (existingValue != null) {
+      testPutRequest(key,existingValue.getValue(),null,(VectorClock)existingValue.getVersion(),null,false);
+    }
     ByteArrayOutputStream delRequest=new ByteArrayOutputStream();
     this.clientWireFormat.writeDeleteRequest(new DataOutputStream(delRequest),storeName,key,version,RequestRoutingType.NORMAL);
-    ByteArrayOutputStream delResponse=new ByteArrayOutputStream();
-    this.serverWireFormat.handleRequest(inputStream(delRequest),new DataOutputStream(delResponse));
+    testIsCompleteRequest(delRequest);
+    ByteArrayOutputStream delResponse=handleRequest(delRequest);
     boolean wasDeleted=this.clientWireFormat.readDeleteResponse(inputStream(delResponse));
     assertEquals(isDeleted,wasDeleted);
   }
