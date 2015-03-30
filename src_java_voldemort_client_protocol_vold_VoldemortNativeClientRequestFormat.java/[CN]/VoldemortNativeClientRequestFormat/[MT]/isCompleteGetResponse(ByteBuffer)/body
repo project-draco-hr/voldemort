@@ -1,3 +1,15 @@
 {
-  return isCompleteResponse(buffer,VoldemortOpCode.GET_OP_CODE);
+  try {
+    DataInputStream inputStream=new DataInputStream(new ByteBufferBackedInputStream(buffer));
+    checkException(inputStream);
+    if (!skipeResults(inputStream,buffer)) {
+      return false;
+    }
+  }
+ catch (  VoldemortException e) {
+  }
+catch (  IOException e) {
+    return false;
+  }
+  return !buffer.hasRemaining();
 }

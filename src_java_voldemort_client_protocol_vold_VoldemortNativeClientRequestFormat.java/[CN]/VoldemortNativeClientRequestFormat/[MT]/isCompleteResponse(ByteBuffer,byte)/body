@@ -3,21 +3,17 @@
   try {
     try {
 switch (opCode) {
-case VoldemortOpCode.GET_OP_CODE:
-        readGetResponse(inputStream);
-      break;
 case VoldemortOpCode.GET_VERSION_OP_CODE:
-    readGetVersionResponse(inputStream);
-  break;
-case VoldemortOpCode.GET_ALL_OP_CODE:
-readGetAllResponse(inputStream);
-break;
+        readGetVersionResponse(inputStream);
+      break;
 case VoldemortOpCode.DELETE_OP_CODE:
-readDeleteResponse(inputStream);
-break;
+    readDeleteResponse(inputStream);
+  break;
 case VoldemortOpCode.PUT_OP_CODE:
 readPutResponse(inputStream);
 break;
+default :
+throw new VoldemortException("Unrecognized OpCode is inCompleteResponse " + opCode);
 }
 }
  catch (VoldemortException e) {
