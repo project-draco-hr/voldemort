@@ -65,6 +65,12 @@
       }
     }
   }
+ else   if (allowFetchOfFiles) {
+    Utils.mkdirs(dest);
+    File copyLocation=new File(dest,source.getName());
+    copyFileWithCheckSum(fs,source,copyLocation,stats,CheckSumType.NONE);
+    return true;
+  }
   logger.error("Source " + source.toString() + " should be a directory");
   return false;
 }
