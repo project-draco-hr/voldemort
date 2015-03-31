@@ -5,8 +5,8 @@
     }
     ByteArrayOutputStream delRequest=new ByteArrayOutputStream();
     this.clientWireFormat.writeDeleteRequest(new DataOutputStream(delRequest),storeName,key,version,RequestRoutingType.NORMAL);
-    testIsCompleteRequest(delRequest);
     ByteArrayOutputStream delResponse=handleRequest(delRequest);
+    testIsCompleteDeleteResponse(delResponse);
     boolean wasDeleted=this.clientWireFormat.readDeleteResponse(inputStream(delResponse));
     assertEquals(isDeleted,wasDeleted);
   }

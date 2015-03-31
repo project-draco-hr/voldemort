@@ -5,8 +5,8 @@
     }
     ByteArrayOutputStream getVersionRequest=new ByteArrayOutputStream();
     this.clientWireFormat.writeGetVersionRequest(new DataOutputStream(getVersionRequest),storeName,key,RequestRoutingType.NORMAL);
-    testIsCompleteRequest(getVersionRequest);
     ByteArrayOutputStream getVersionResponse=handleRequest(getVersionRequest);
+    testIsCompleteGetVersionResponse(getVersionResponse);
     List<Version> values=this.clientWireFormat.readGetVersionResponse(inputStream(getVersionResponse));
     if (isPresent) {
       assertEquals(1,values.size());

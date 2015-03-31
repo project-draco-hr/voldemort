@@ -1,0 +1,14 @@
+{
+  ByteBuffer buffer=ByteBuffer.wrap(response.toByteArray());
+  int entryPosition=buffer.position();
+  int limit=buffer.limit();
+  for (int i=0; i < limit; i++) {
+    positionBuffer(buffer,entryPosition,i);
+    boolean isCompleteResponse=this.clientWireFormat.isCompleteGetResponse(buffer);
+    assertFalse(" Partial response should be inComplete",isCompleteResponse);
+  }
+  positionBuffer(buffer,entryPosition,limit);
+  boolean isCompleteResponse=this.clientWireFormat.isCompleteGetResponse(buffer);
+  assertTrue(" Full response should be complete",isCompleteResponse);
+  positionBuffer(buffer,entryPosition,limit);
+}

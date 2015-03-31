@@ -5,8 +5,8 @@
     }
     ByteArrayOutputStream getRequest=new ByteArrayOutputStream();
     this.clientWireFormat.writeGetRequest(new DataOutputStream(getRequest),storeName,key,transforms,RequestRoutingType.NORMAL);
-    testIsCompleteRequest(getRequest);
     ByteArrayOutputStream getResponse=handleRequest(getRequest);
+    testIsCompleteGetResponse(getResponse);
     List<Versioned<byte[]>> values=this.clientWireFormat.readGetResponse(inputStream(getResponse));
     if (isPresent) {
       assertEquals(1,values.size());

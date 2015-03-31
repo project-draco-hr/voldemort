@@ -2,8 +2,8 @@
   try {
     ByteArrayOutputStream putRequest=new ByteArrayOutputStream();
     this.clientWireFormat.writePutRequest(new DataOutputStream(putRequest),storeName,key,value,transforms,version,RequestRoutingType.NORMAL);
-    testIsCompleteRequest(putRequest);
     ByteArrayOutputStream putResponse=handleRequest(putRequest);
+    testIsCompletePutResponse(putResponse);
     this.clientWireFormat.readPutResponse(inputStream(putResponse));
     TestUtils.assertContains(this.store,key,value);
   }
