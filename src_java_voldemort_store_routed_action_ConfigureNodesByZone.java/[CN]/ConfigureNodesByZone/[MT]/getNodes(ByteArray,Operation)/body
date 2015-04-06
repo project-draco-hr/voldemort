@@ -8,12 +8,12 @@
     return null;
   }
   if (logger.isDebugEnabled())   logger.debug("Adding " + nodes.size() + " node(s) to preference list");
-  validateZonesRequired(this.clientZone,pipelineData.getZonesRequired());
+  validateZonesRequired(this.clientZone,zoneRequiredReads);
   Map<Integer,List<Node>> zoneIdToNode=convertToZoneNodeMap(nodes);
   nodes=new ArrayList<Node>();
   List<Integer> zoneProximityList=this.clientZone.getProximityList();
   if (op != Operation.PUT) {
-    for (int index=0; index < pipelineData.getZonesRequired(); index++) {
+    for (int index=0; index < zoneRequiredReads; index++) {
       List<Node> zoneNodes=zoneIdToNode.get(zoneProximityList.get(index));
       if (zoneNodes != null && zoneNodes.size() > 0) {
         nodes.add(zoneNodes.remove(0));

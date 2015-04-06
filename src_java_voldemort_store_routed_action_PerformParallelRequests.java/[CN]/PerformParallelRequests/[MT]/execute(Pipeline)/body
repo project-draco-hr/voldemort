@@ -30,6 +30,7 @@
 ;
     if (logger.isTraceEnabled())     logger.trace("Submitting " + pipeline.getOperation().getSimpleName() + " request on node "+ node.getId()+ " for key "+ key);
     NonblockingStore store=nonblockingStores.get(node.getId());
+    logger.info(" Sending Operation " + pipeline.getOperation() + " for key "+ key+ " String(Value) "+ ByteUtils.getString(key.get(),"UTF-8")+ " to node "+ node.getId());
     if (pipeline.getOperation() == Operation.GET)     store.submitGetRequest(key,transforms,callback,timeoutMs);
  else     if (pipeline.getOperation() == Operation.GET_VERSIONS)     store.submitGetVersionsRequest(key,callback,timeoutMs);
  else     throw new IllegalStateException(getClass().getName() + " does not support pipeline operation " + pipeline.getOperation());
