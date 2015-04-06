@@ -1,6 +1,6 @@
 {
   for (  Node node : cluster.getNodes())   failureDetector.recordException(node,0,new UnreachableStoreException("Test for " + getClass().getName()));
-  RoutingStrategy routingStrategy=new RouteToAllStrategy(cluster.getNodes());
+  RoutingStrategy routingStrategy=new RouteToAllStrategy(cluster.getNodesShuffled());
   GetAllPipelineData pipelineData=new GetAllPipelineData();
   GetAllConfigureNodes action=new GetAllConfigureNodes(pipelineData,Event.COMPLETED,failureDetector,1,1,routingStrategy,Arrays.asList(aKey),null,null,null);
   Pipeline pipeline=new Pipeline(Operation.GET,10000,TimeUnit.MILLISECONDS);
