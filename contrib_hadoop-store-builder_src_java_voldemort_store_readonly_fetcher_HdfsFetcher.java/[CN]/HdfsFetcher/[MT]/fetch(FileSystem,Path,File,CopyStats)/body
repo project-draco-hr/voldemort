@@ -3,6 +3,7 @@
     Utils.mkdirs(dest);
     FileStatus[] statuses=fs.listStatus(source);
     if (statuses != null) {
+      byte[] buffer=new byte[bufferSize];
       Arrays.sort(statuses,new IndexFileLastComparator());
       byte[] origCheckSum=null;
       CheckSumType checkSumType=CheckSumType.NONE;
@@ -14,7 +15,7 @@
  else         if (status.getPath().getName().contains(".metadata")) {
           logger.debug("Reading .metadata");
           File copyLocation=new File(dest,status.getPath().getName());
-          copyFileWithCheckSum(fs,status.getPath(),copyLocation,stats,null);
+          copyFileWithCheckSum(fs,status.getPath(),copyLocation,stats,null,buffer);
           ReadOnlyStorageMetadata metadata;
           try {
             metadata=new ReadOnlyStorageMetadata(copyLocation);
@@ -40,7 +41,7 @@
         }
  else         if (!status.getPath().getName().startsWith(".")) {
           File copyLocation=new File(dest,status.getPath().getName());
-          fileCheckSumGenerator=copyFileWithCheckSum(fs,status.getPath(),copyLocation,stats,checkSumType);
+          fileCheckSumGenerator=copyFileWithCheckSum(fs,status.getPath(),copyLocation,stats,checkSumType,buffer);
           if (fileCheckSumGenerator != null && checkSumGenerator != null) {
             byte[] checkSum=fileCheckSumGenerator.getCheckSum();
             if (logger.isDebugEnabled()) {
@@ -67,8 +68,9 @@
   }
  else   if (allowFetchOfFiles) {
     Utils.mkdirs(dest);
+    byte[] buffer=new byte[bufferSize];
     File copyLocation=new File(dest,source.getName());
-    copyFileWithCheckSum(fs,source,copyLocation,stats,CheckSumType.NONE);
+    copyFileWithCheckSum(fs,source,copyLocation,stats,CheckSumType.NONE,buffer);
     return true;
   }
   logger.error("Source " + source.toString() + " should be a directory");

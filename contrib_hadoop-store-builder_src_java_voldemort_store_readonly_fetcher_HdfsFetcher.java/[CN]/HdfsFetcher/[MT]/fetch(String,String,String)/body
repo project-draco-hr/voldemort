@@ -5,73 +5,8 @@
   }
   ObjectName jmxName=null;
   try {
-    final Configuration config=new Configuration();
-    FileSystem fs=null;
-    config.setInt("io.socket.receive.buffer",bufferSize);
-    config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
-    config.set("hadoop.security.group.mapping","org.apache.hadoop.security.ShellBasedUnixGroupsMapping");
+    final FileSystem fs=getHadoopFileSystem(sourceFileUrl,hadoopConfigPath);
     final Path path=new Path(sourceFileUrl);
-    boolean isHftpBasedFetch=sourceFileUrl.length() > 4 && sourceFileUrl.substring(0,4).equals("hftp");
-    logger.info("URL : " + sourceFileUrl + " and hftp protocol enabled = "+ isHftpBasedFetch);
-    logger.info("Hadoop path = " + hadoopConfigPath + " , keytab path = "+ HdfsFetcher.keytabPath+ " , kerberos principal = "+ HdfsFetcher.kerberosPrincipal);
-    if (hadoopConfigPath.length() > 0 && !isHftpBasedFetch) {
-      config.addResource(new Path(hadoopConfigPath + "/core-site.xml"));
-      config.addResource(new Path(hadoopConfigPath + "/hdfs-site.xml"));
-      String security=config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION);
-      if (security == null || !security.equals("kerberos")) {
-        logger.error("Security isn't turned on in the conf: " + CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION + " = "+ config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION));
-        logger.error("Please make sure that the Hadoop config directory path is valid.");
-        throw new VoldemortException("Error in getting Hadoop filesystem. Invalid Hadoop config directory path.");
-      }
- else {
-        logger.info("Security is turned on in the conf. Trying to authenticate ...");
-      }
-    }
-    if (HdfsFetcher.keytabPath.length() > 0 && !isHftpBasedFetch) {
-      for (int attempt=0; attempt < maxAttempts; attempt++) {
-        boolean isValidFilesystem=false;
-        if (!new File(HdfsFetcher.keytabPath).exists()) {
-          logger.error("Invalid keytab file path. Please provide a valid keytab path");
-          throw new VoldemortException("Error in getting Hadoop filesystem. Invalid keytab file path.");
-        }
-synchronized (this) {
-          UserGroupInformation.setConfiguration(config);
-          UserGroupInformation.loginUserFromKeytab(HdfsFetcher.kerberosPrincipal,HdfsFetcher.keytabPath);
-          try {
-            logger.info("I've logged in and am now Doasing as " + UserGroupInformation.getCurrentUser().getUserName());
-            fs=UserGroupInformation.getCurrentUser().doAs(new PrivilegedExceptionAction<FileSystem>(){
-              @Override public FileSystem run() throws Exception {
-                FileSystem fs=path.getFileSystem(config);
-                return fs;
-              }
-            }
-);
-            isValidFilesystem=true;
-          }
- catch (          InterruptedException e) {
-            logger.error(e.getMessage(),e);
-          }
-catch (          Exception e) {
-            logger.error("Got an exception while getting the filesystem object: ");
-            logger.error("Exception class : " + e.getClass());
-            e.printStackTrace();
-            for (            StackTraceElement et : e.getStackTrace()) {
-              logger.error(et.toString());
-            }
-          }
-        }
-        if (isValidFilesystem) {
-          break;
-        }
- else         if (attempt < maxAttempts - 1) {
-          logger.error("Attempt#" + attempt + " Could not get a valid Filesystem object. Trying again in "+ retryDelayMs+ " ms");
-          sleepForRetryDelayMs();
-        }
-      }
-    }
- else {
-      fs=path.getFileSystem(config);
-    }
     CopyStats stats=new CopyStats(sourceFileUrl,sizeOfPath(fs,path));
     jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
     File destination=new File(destinationFile);

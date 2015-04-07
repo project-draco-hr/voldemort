@@ -1,0 +1,23 @@
+{
+  final Configuration config=new Configuration();
+  config.setInt("io.socket.receive.buffer",bufferSize);
+  config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
+  config.set("hadoop.security.group.mapping","org.apache.hadoop.security.ShellBasedUnixGroupsMapping");
+  boolean isHftpBasedFetch=isHftpBasedPath(sourceFileUrl);
+  logger.info("URL : " + sourceFileUrl + " and hftp protocol enabled = "+ isHftpBasedFetch);
+  logger.info("Hadoop path = " + hadoopConfigPath + " , keytab path = "+ HdfsFetcher.keytabPath+ " , kerberos principal = "+ HdfsFetcher.kerberosPrincipal);
+  if (hadoopConfigPath.length() > 0 && !isHftpBasedFetch) {
+    config.addResource(new Path(hadoopConfigPath + "/core-site.xml"));
+    config.addResource(new Path(hadoopConfigPath + "/hdfs-site.xml"));
+    String security=config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION);
+    if (security == null || !security.equals("kerberos")) {
+      logger.error("Security isn't turned on in the conf: " + CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION + " = "+ config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION));
+      logger.error("Please make sure that the Hadoop config directory path is valid.");
+      throw new VoldemortException("Error in getting Hadoop filesystem. Invalid Hadoop config directory path.");
+    }
+ else {
+      logger.info("Security is turned on in the conf.");
+    }
+  }
+  return config;
+}
