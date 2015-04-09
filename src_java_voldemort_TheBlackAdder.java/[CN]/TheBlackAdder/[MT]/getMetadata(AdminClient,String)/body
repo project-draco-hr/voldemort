@@ -1,0 +1,11 @@
+{
+  int nodeId=0;
+  for (  Node node : adminClient.getAdminClientCluster().getNodes()) {
+    nodeId=node.getId();
+    break;
+  }
+  Versioned<String> versioned=null;
+  versioned=adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,key);
+  if (versioned == null)   return null;
+  return versioned.getValue();
+}
