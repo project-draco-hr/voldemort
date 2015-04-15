@@ -1,0 +1,27 @@
+{
+  init();
+  generateUnCompressedFiles(saveKeys,numChunks);
+  conf.setBoolean("save.keys",saveKeys);
+  conf.setBoolean("reducer.output.compress",true);
+  conf.setStrings("reducer.output.compress.codec",KeyValueWriter.COMPRESSION_CODEC);
+  hadoopStoreWriterPerBucket=new HadoopStoreWriterPerBucket(conf);
+  for (int i=0; i < numChunks; i++) {
+    String key="test_key_" + i;
+    String value="test_value_" + i;
+    Key1=generateKey(key,i);
+    valueList1=ReadOnlyTestUtils.generateValues(key,value,saveKeys);
+    hadoopStoreWriterPerBucket.write(Key1,valueList1.iterator(),null);
+  }
+  hadoopStoreWriterPerBucket.close();
+  for (int i=0; i < numChunks; i++) {
+    generateExpectedDataAndIndexFileNames(true,i);
+    String decompressedDataFile=dataFile.getAbsolutePath() + "_decompressed";
+    ReadOnlyTestUtils.unGunzipFile(dataFile.getAbsolutePath(),decompressedDataFile);
+    String decompressedIndexFile=indexFile.getAbsolutePath() + "_decompressed";
+    ReadOnlyTestUtils.unGunzipFile(indexFile.getAbsolutePath(),decompressedIndexFile);
+    generateExpectedDataAndIndexFileNames(false,i);
+    Assert.assertTrue(ReadOnlyTestUtils.areTwoBinaryFilesEqual(dataFile,new File(decompressedDataFile)));
+    Assert.assertTrue(ReadOnlyTestUtils.areTwoBinaryFilesEqual(indexFile,new File(decompressedIndexFile)));
+  }
+  cleanUp();
+}

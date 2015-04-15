@@ -1,0 +1,12 @@
+{
+  byte[] buffer=new byte[1024];
+  FileOutputStream fileOutputStream=new FileOutputStream(destPath);
+  DataOutputStream out=new DataOutputStream(new BufferedOutputStream(new GZIPOutputStream(fileOutputStream)));
+  FileInputStream fileInput=new FileInputStream(srcPath);
+  int bytes_read;
+  while ((bytes_read=fileInput.read(buffer)) > 0) {
+    out.write(buffer,0,bytes_read);
+  }
+  fileInput.close();
+  out.close();
+}

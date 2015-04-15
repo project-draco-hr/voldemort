@@ -1,0 +1,9 @@
+{
+  VAdminProto.GetROStorageCompressionCodecListRequest.Builder getRORequest=VAdminProto.GetROStorageCompressionCodecListRequest.newBuilder();
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setGetRoCompressionCodecList(getRORequest).setType(VAdminProto.AdminRequestType.GET_RO_COMPRESSION_CODEC_LIST).build();
+  VAdminProto.GetROStorageCompressionCodecListResponse.Builder response=rpcOps.sendAndReceive(nodeId,adminRequest,VAdminProto.GetROStorageCompressionCodecListResponse.newBuilder());
+  if (response.hasError()) {
+    helperOps.throwException(response.getError());
+  }
+  return response.getCompressionCodecsList();
+}

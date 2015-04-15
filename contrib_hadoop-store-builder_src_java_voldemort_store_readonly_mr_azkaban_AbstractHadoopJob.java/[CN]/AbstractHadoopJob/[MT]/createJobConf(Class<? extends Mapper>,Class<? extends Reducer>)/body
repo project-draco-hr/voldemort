@@ -95,6 +95,10 @@
       conf.set(newKey,getProps().get(key));
     }
   }
+  conf.setBoolean(VoldemortBuildAndPushJob.REDUCER_OUTPUT_COMPRESS,props.getBoolean(VoldemortBuildAndPushJob.REDUCER_OUTPUT_COMPRESS,false));
+  if (props.containsKey(VoldemortBuildAndPushJob.REDUCER_OUTPUT_COMPRESS_CODEC)) {
+    conf.set(VoldemortBuildAndPushJob.REDUCER_OUTPUT_COMPRESS_CODEC,props.get(VoldemortBuildAndPushJob.REDUCER_OUTPUT_COMPRESS_CODEC));
+  }
   HadoopUtils.setPropsInJob(conf,getProps());
   if (System.getenv("HADOOP_TOKEN_FILE_LOCATION") != null) {
     conf.set("mapreduce.job.credentials.binary",System.getenv("HADOOP_TOKEN_FILE_LOCATION"));

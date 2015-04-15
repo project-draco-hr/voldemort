@@ -1,0 +1,12 @@
+{
+  tmpOutPutDirectory=TestUtils.createTempDir();
+  conf=new JobConf();
+  conf.setInt("num.chunks",1);
+  conf.set("final.output.dir",tmpOutPutDirectory.getAbsolutePath());
+  conf.set("mapred.output.dir",tmpOutPutDirectory.getAbsolutePath());
+  conf.set("mapred.task.id","1234");
+  conf.set("checksum.type","NONE");
+  List<StoreDefinition> storeDefList=ServerTestUtils.getStoreDefs(1);
+  String storesXML=new StoreDefinitionsMapper().writeStoreList(storeDefList);
+  conf.set("stores.xml",storesXML);
+}

@@ -1,0 +1,32 @@
+{
+  byte[] value_1;
+  int currentOffset=0;
+  if (saveKeys) {
+    value_1=new byte[4 * ByteUtils.SIZE_OF_INT + ByteUtils.SIZE_OF_BYTE + key.length() + value.length()];
+    byte[] randBytes=TestUtils.randomBytes(2 * ByteUtils.SIZE_OF_INT + ByteUtils.SIZE_OF_BYTE);
+    System.arraycopy(randBytes,0,value_1,currentOffset,randBytes.length);
+    currentOffset+=randBytes.length;
+    int keyLength=key.length();
+    ByteUtils.writeInt(value_1,keyLength,currentOffset);
+    currentOffset+=ByteUtils.SIZE_OF_INT;
+    int valueLength=value.length();
+    ByteUtils.writeInt(value_1,valueLength,currentOffset);
+    currentOffset+=ByteUtils.SIZE_OF_INT;
+    System.arraycopy(key.getBytes(),0,value_1,currentOffset,keyLength);
+    currentOffset+=keyLength;
+    System.arraycopy(value.getBytes(),0,value_1,currentOffset,valueLength);
+    currentOffset+=valueLength;
+  }
+ else {
+    value_1=new byte[2 * ByteUtils.SIZE_OF_INT + value.length()];
+    byte[] randBytes=TestUtils.randomBytes(2 * ByteUtils.SIZE_OF_INT);
+    System.arraycopy(randBytes,0,value_1,currentOffset,randBytes.length);
+    currentOffset+=randBytes.length;
+    System.arraycopy(value.getBytes(),0,value_1,currentOffset,value.length());
+    currentOffset+=value.length();
+  }
+  BytesWritable valueBytes=new BytesWritable(value_1);
+  ArrayList<BytesWritable> result=new ArrayList<BytesWritable>();
+  result.add(valueBytes);
+  return result;
+}

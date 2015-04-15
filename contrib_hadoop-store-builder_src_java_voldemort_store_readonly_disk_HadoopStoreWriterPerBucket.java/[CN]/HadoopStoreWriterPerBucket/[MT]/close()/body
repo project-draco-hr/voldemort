@@ -25,8 +25,8 @@
     String chunkFileName=fileNamePrefix + Integer.toString(chunkId);
     if (this.checkSumType != CheckSumType.NONE) {
       if (this.checkSumDigestIndex[chunkId] != null && this.checkSumDigestValue[chunkId] != null) {
-        Path checkSumIndexFile=new Path(nodeDir,chunkFileName + ".index.checksum");
-        Path checkSumValueFile=new Path(nodeDir,chunkFileName + ".data.checksum");
+        Path checkSumIndexFile=new Path(nodeDir,chunkFileName + INDEX_FILE_EXTENSION + CHECKSUM_FILE_EXTENSION);
+        Path checkSumValueFile=new Path(nodeDir,chunkFileName + DATA_FILE_EXTENSION + CHECKSUM_FILE_EXTENSION);
         if (outputFs.exists(checkSumIndexFile)) {
           outputFs.delete(checkSumIndexFile);
         }
@@ -46,8 +46,8 @@
         throw new RuntimeException("Failed to open checksum digest for node " + nodeId + " ( partition - "+ this.partitionId+ ", chunk - "+ chunkId+ " )");
       }
     }
-    Path indexFile=new Path(nodeDir,chunkFileName + ".index");
-    Path valueFile=new Path(nodeDir,chunkFileName + ".data");
+    Path indexFile=new Path(nodeDir,chunkFileName + INDEX_FILE_EXTENSION + fileExtension);
+    Path valueFile=new Path(nodeDir,chunkFileName + DATA_FILE_EXTENSION + fileExtension);
     logger.info("Moving " + this.taskIndexFileName[chunkId] + " to "+ indexFile);
     if (outputFs.exists(indexFile)) {
       outputFs.delete(indexFile);

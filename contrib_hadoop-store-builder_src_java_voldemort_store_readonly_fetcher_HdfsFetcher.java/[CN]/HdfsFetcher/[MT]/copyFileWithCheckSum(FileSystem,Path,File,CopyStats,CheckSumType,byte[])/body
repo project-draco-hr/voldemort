@@ -1,7 +1,11 @@
 {
   CheckSum fileCheckSumGenerator=null;
   logger.debug("Starting copy of " + source + " to "+ dest);
-  FSDataInputStream input=null;
+  boolean isCompressed=false;
+  FilterInputStream input=null;
+  if (source.getName().endsWith(GZIP_FILE_EXTENSION)) {
+    isCompressed=true;
+  }
   OutputStream output=null;
   for (int attempt=0; attempt < maxAttempts; attempt++) {
     boolean success=true;
@@ -12,7 +16,12 @@
         fileCheckSumGenerator=CheckSum.getInstance(checkSumType);
       }
       logger.info("Attempt " + attempt + " at copy of "+ source+ " to "+ dest);
-      input=fs.open(source);
+      if (!isCompressed) {
+        input=fs.open(source);
+      }
+ else {
+        input=new GZIPInputStream(fs.open(source));
+      }
       fsOpened=true;
       output=new BufferedOutputStream(new FileOutputStream(dest));
       while (true) {

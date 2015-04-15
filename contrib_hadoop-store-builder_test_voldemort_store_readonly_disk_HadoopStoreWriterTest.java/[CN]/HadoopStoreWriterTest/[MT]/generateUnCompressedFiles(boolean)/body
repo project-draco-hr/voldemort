@@ -1,0 +1,11 @@
+{
+  conf.setBoolean("save.keys",saveKeys);
+  conf.setBoolean("reducer.output.compress",false);
+  hadoopStoreWriter=new HadoopStoreWriter(conf);
+  String key="test_key_1";
+  String value="test_value_1";
+  globalKey=generateKey(key);
+  globalValueList=ReadOnlyTestUtils.generateValues(key,value,saveKeys);
+  hadoopStoreWriter.write(globalKey,globalValueList.iterator(),null);
+  hadoopStoreWriter.close();
+}

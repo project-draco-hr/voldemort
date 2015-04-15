@@ -1,0 +1,18 @@
+{
+  byte[] buffer=new byte[1024];
+  try {
+    FileSystem fs=FileSystem.getLocal(new Configuration());
+    FSDataInputStream fileIn=fs.open(new Path(compressedFile));
+    FilterInputStream gZIPInputStream=new GZIPInputStream(fileIn);
+    FileOutputStream fileOutputStream=new FileOutputStream(decompressedFile);
+    int bytes_read;
+    while ((bytes_read=gZIPInputStream.read(buffer)) > 0) {
+      fileOutputStream.write(buffer,0,bytes_read);
+    }
+    gZIPInputStream.close();
+    fileOutputStream.close();
+  }
+ catch (  IOException ex) {
+    ex.printStackTrace();
+  }
+}

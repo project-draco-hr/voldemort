@@ -1,0 +1,19 @@
+{
+  fileExtension=(isCompressionEnabled && compressionCodec.toUpperCase(Locale.ENGLISH).equals(COMPRESSION_CODEC)) ? GZIP_FILE_EXTENSION : "";
+  this.taskIndexFileName=new Path(FileOutputFormat.getOutputPath(conf),getStoreName() + "." + this.taskId+ INDEX_FILE_EXTENSION+ fileExtension);
+  this.taskValueFileName=new Path(FileOutputFormat.getOutputPath(conf),getStoreName() + "." + this.taskId+ DATA_FILE_EXTENSION+ fileExtension);
+  if (this.fs == null)   this.fs=this.taskIndexFileName.getFileSystem(conf);
+  if (isCompressionEnabled && compressionCodec.toUpperCase(Locale.ENGLISH).equals(COMPRESSION_CODEC)) {
+    this.indexFileStream=new DataOutputStream(new BufferedOutputStream(new GZIPOutputStream(fs.create(this.taskIndexFileName))));
+    this.valueFileStream=new DataOutputStream(new BufferedOutputStream(new GZIPOutputStream(fs.create(this.taskValueFileName))));
+  }
+ else {
+    this.indexFileStream=fs.create(this.taskIndexFileName);
+    this.valueFileStream=fs.create(this.taskValueFileName);
+  }
+  fs.setPermission(this.taskIndexFileName,new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
+  logger.info("Setting permission to 755 for " + this.taskIndexFileName);
+  fs.setPermission(this.taskValueFileName,new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
+  logger.info("Setting permission to 755 for " + this.taskValueFileName);
+  logger.info("Opening " + this.taskIndexFileName + " and "+ this.taskValueFileName+ " for writing.");
+}

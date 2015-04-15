@@ -1,0 +1,11 @@
+{
+  File tempDir=createTempDir(new File("/tmp/bla-1"));
+  indexFileName="0_0.index";
+  File indexFile=new File(tempDir,indexFileName);
+  byte[] indexBytes=TestUtils.randomBytes(100 * 3);
+  FileUtils.writeByteArrayToFile(indexFile,indexBytes);
+  String compressedFile=indexFile.getAbsolutePath() + "_compressed.gz";
+  String decompressedFile=indexFile.getAbsolutePath() + "_decompressed";
+  gzipFile(indexFile.getAbsolutePath(),compressedFile);
+  unGunzipFile(compressedFile,decompressedFile);
+}

@@ -4,10 +4,12 @@
   String f1=fs1.getPath().getName(), f2=fs2.getPath().getName();
   if (f1.endsWith("metadata"))   return -1;
   if (f2.endsWith("metadata"))   return 1;
-  if ((f1.endsWith(".index") && f2.endsWith(".index")) || (f1.endsWith(".data") && f2.endsWith(".data"))) {
-    return f1.compareToIgnoreCase(f2);
+  for (  String extension : validExtensions) {
+    if (f1.endsWith(extension) && f2.endsWith(extension)) {
+      return f1.compareToIgnoreCase(f2);
+    }
   }
-  if (f1.endsWith(".index")) {
+  if (f1.endsWith(INDEX_FILE_EXTENSION) || f1.endsWith(COMPRESSED_INDEX_FILE_EXTENSION)) {
     return 1;
   }
  else {

@@ -21,8 +21,8 @@
   logger.info("Setting permission to 755 for " + nodeDir);
   if (this.checkSumType != CheckSumType.NONE) {
     if (this.checkSumDigestIndex != null && this.checkSumDigestValue != null) {
-      Path checkSumIndexFile=new Path(nodeDir,fileNamePrefix + ".index.checksum");
-      Path checkSumValueFile=new Path(nodeDir,fileNamePrefix + ".data.checksum");
+      Path checkSumIndexFile=new Path(nodeDir,fileNamePrefix + INDEX_FILE_EXTENSION + CHECKSUM_FILE_EXTENSION);
+      Path checkSumValueFile=new Path(nodeDir,fileNamePrefix + DATA_FILE_EXTENSION + CHECKSUM_FILE_EXTENSION);
       if (outputFs.exists(checkSumIndexFile)) {
         outputFs.delete(checkSumIndexFile);
       }
@@ -42,8 +42,8 @@
       throw new RuntimeException("Failed to open checksum digest for node " + nodeId + " ( partition - "+ this.partitionId+ ", chunk - "+ chunkId+ " )");
     }
   }
-  Path indexFile=new Path(nodeDir,fileNamePrefix + ".index");
-  Path valueFile=new Path(nodeDir,fileNamePrefix + ".data");
+  Path indexFile=new Path(nodeDir,fileNamePrefix + INDEX_FILE_EXTENSION + fileExtension);
+  Path valueFile=new Path(nodeDir,fileNamePrefix + DATA_FILE_EXTENSION + fileExtension);
   logger.info("Moving " + this.taskIndexFileName + " to "+ indexFile);
   if (outputFs.exists(indexFile)) {
     outputFs.delete(indexFile);

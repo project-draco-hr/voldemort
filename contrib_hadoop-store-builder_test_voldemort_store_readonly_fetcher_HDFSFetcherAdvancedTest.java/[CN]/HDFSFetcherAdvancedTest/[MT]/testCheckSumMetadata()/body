@@ -1,26 +1,44 @@
 {
-  File testSourceDirectory=createTempDir();
-  File testDestinationDirectory=testSourceDirectory;
-  File indexFile=new File(testSourceDirectory,"0_0.index");
+  testSourceDir=createTempDir();
+  File testUncompressedSourceDir=null;
+  File indexFile=new File(testSourceDir,"0_0.index");
   FileUtils.writeByteArrayToFile(indexFile,TestUtils.randomBytes(100));
-  File dataFile=new File(testSourceDirectory,"0_0.data");
+  File dataFile=new File(testSourceDir,"0_0.data");
   FileUtils.writeByteArrayToFile(dataFile,TestUtils.randomBytes(400));
   HdfsFetcher fetcher=new HdfsFetcher();
-  File metadataFile=new File(testSourceDirectory,".metadata");
+  File metadataFile=new File(testSourceDir,".metadata");
   ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
   metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode());
   metadata.add(ReadOnlyStorageMetadata.CHECKSUM_TYPE,CheckSum.toString(CheckSumType.MD5));
-  metadata.add(ReadOnlyStorageMetadata.CHECKSUM,new String(Hex.encodeHex(CheckSumTests.calculateCheckSum(testSourceDirectory.listFiles(),CheckSumType.MD5))));
+  metadata.add(ReadOnlyStorageMetadata.CHECKSUM,new String(Hex.encodeHex(CheckSumTests.calculateCheckSum(testSourceDir.listFiles(),CheckSumType.MD5))));
   FileUtils.writeStringToFile(metadataFile,metadata.toJsonString());
-  File tempDest=new File(testDestinationDirectory.getAbsolutePath() + "1");
-  if (tempDest.exists()) {
-    deleteDir(tempDest);
+  if (isCompressed) {
+    String destIndexPath=indexFile.getAbsolutePath() + ".gz";
+    gzipFile(indexFile.getAbsolutePath(),destIndexPath);
+    String destDataPath=dataFile.getAbsolutePath() + ".gz";
+    gzipFile(dataFile.getAbsolutePath(),destDataPath);
+    testUncompressedSourceDir=new File(testSourceDir.getAbsolutePath() + "-uncompressed");
+    testUncompressedSourceDir.delete();
+    testUncompressedSourceDir.mkdir();
+    if (!indexFile.renameTo(new File(testUncompressedSourceDir,indexFile.getName())) || !dataFile.renameTo(new File(testUncompressedSourceDir,dataFile.getName()))) {
+      throw new Exception("cannot move irrelevant files");
+    }
   }
-  File fetchedFile=fetcher.fetch(testSourceDirectory.getAbsolutePath(),testDestinationDirectory.getAbsolutePath() + "1");
+  testDestDir=new File(testSourceDir.getAbsolutePath() + "1");
+  if (testDestDir.exists()) {
+    deleteDir(testDestDir);
+  }
+  File fetchedFile=fetcher.fetch(testSourceDir.getAbsolutePath(),testDestDir.getAbsolutePath());
   assertNotNull(fetchedFile);
-  assertEquals(fetchedFile.getAbsolutePath(),testDestinationDirectory.getAbsolutePath() + "1");
-  tempDest=new File(testDestinationDirectory.getAbsolutePath() + "1");
-  if (tempDest.exists()) {
-    deleteDir(tempDest);
+  assertEquals(fetchedFile.getAbsolutePath(),testDestDir.getAbsolutePath());
+  if (isCompressed) {
+    for (    File file : testUncompressedSourceDir.listFiles()) {
+      if (file.isFile()) {
+        Assert.assertTrue(ReadOnlyTestUtils.areTwoBinaryFilesEqual(file,new File(testDestDir,file.getName())));
+      }
+    }
+  }
+  if (testDestDir.exists()) {
+    deleteDir(testDestDir);
   }
 }

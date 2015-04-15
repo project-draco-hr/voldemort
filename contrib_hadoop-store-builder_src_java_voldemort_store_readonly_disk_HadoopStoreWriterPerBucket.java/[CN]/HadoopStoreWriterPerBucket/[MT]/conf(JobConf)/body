@@ -1,42 +1,22 @@
 {
-  JobConf conf=job;
+  this.conf=job;
   try {
-    this.cluster=new ClusterMapper().readCluster(new StringReader(conf.get("cluster.xml")));
     List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new StringReader(conf.get("stores.xml")));
     if (storeDefs.size() != 1)     throw new IllegalStateException("Expected to find only a single store, but found multiple!");
     this.storeDef=storeDefs.get(0);
     this.numChunks=conf.getInt("num.chunks",-1);
     if (this.numChunks < 1)     throw new VoldemortException("num.chunks not specified in the job conf.");
     this.saveKeys=conf.getBoolean("save.keys",false);
+    this.position=new int[getNumChunks()];
     this.reducerPerBucket=conf.getBoolean("reducer.per.bucket",false);
-    this.conf=job;
     this.outputDir=job.get("final.output.dir");
     this.taskId=job.get("mapred.task.id");
     this.checkSumType=CheckSum.fromString(job.get("checksum.type"));
     this.checkSumDigestIndex=new CheckSum[getNumChunks()];
     this.checkSumDigestValue=new CheckSum[getNumChunks()];
-    this.position=new int[getNumChunks()];
-    this.taskIndexFileName=new Path[getNumChunks()];
-    this.taskValueFileName=new Path[getNumChunks()];
-    this.indexFileStream=new DataOutputStream[getNumChunks()];
-    this.valueFileStream=new DataOutputStream[getNumChunks()];
-    for (int chunkId=0; chunkId < getNumChunks(); chunkId++) {
-      this.checkSumDigestIndex[chunkId]=CheckSum.getInstance(checkSumType);
-      this.checkSumDigestValue[chunkId]=CheckSum.getInstance(checkSumType);
-      this.position[chunkId]=0;
-      this.taskIndexFileName[chunkId]=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + Integer.toString(chunkId)+ "_"+ this.taskId+ ".index");
-      this.taskValueFileName[chunkId]=new Path(FileOutputFormat.getOutputPath(job),getStoreName() + "." + Integer.toString(chunkId)+ "_"+ this.taskId+ ".data");
-      if (this.fs == null)       this.fs=this.taskIndexFileName[chunkId].getFileSystem(job);
-      this.indexFileStream[chunkId]=fs.create(this.taskIndexFileName[chunkId]);
-      fs.setPermission(this.taskIndexFileName[chunkId],new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
-      logger.info("Setting permission to 755 for " + this.taskIndexFileName[chunkId]);
-      this.valueFileStream[chunkId]=fs.create(this.taskValueFileName[chunkId]);
-      fs.setPermission(this.taskValueFileName[chunkId],new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
-      logger.info("Setting permission to 755 for " + this.taskValueFileName[chunkId]);
-      logger.info("Opening " + this.taskIndexFileName[chunkId] + " and "+ this.taskValueFileName[chunkId]+ " for writing.");
-    }
+    initFileStreams(conf.getBoolean("reducer.output.compress",false),conf.get("reducer.output.compress.codec",NO_COMPRESSION_CODEC));
   }
  catch (  IOException e) {
-    e.printStackTrace();
+    throw new RuntimeException("Failed to open Input/OutputStream",e);
   }
 }
