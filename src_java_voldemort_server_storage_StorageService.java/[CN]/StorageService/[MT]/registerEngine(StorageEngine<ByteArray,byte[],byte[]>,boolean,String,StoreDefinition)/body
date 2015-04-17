@@ -52,7 +52,7 @@ synchronized (mbeanServer) {
       StoreStats currentStoreStats=statStore.getStats();
       FileBackedCachingStorageEngine quotaStore=(FileBackedCachingStorageEngine)storeRepository.getStorageEngine(SystemStoreConstants.SystemStoreName.voldsys$_store_quotas.toString());
       QuotaLimitStats quotaStats=new QuotaLimitStats(this.aggregatedQuotaStats);
-      QuotaLimitingStore rateLimitingStore=new QuotaLimitingStore(store,currentStoreStats,quotaStats,quotaStore);
+      QuotaLimitingStore rateLimitingStore=new QuotaLimitingStore(store,currentStoreStats,quotaStats,quotaStore,metadata);
       if (voldemortConfig.isJmxEnabled()) {
         JmxUtils.registerMbean(quotaStats,JmxUtils.createObjectName("voldemort.store.quota",store.getName() + "-quota-limit-stats"));
       }

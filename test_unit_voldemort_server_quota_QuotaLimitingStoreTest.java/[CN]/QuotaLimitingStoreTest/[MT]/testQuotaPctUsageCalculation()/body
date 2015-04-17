@@ -4,7 +4,7 @@
   InMemoryStorageEngine<ByteArray,byte[],byte[]> inMemoryEngine=new InMemoryStorageEngine<ByteArray,byte[],byte[]>("inMemoryBackingStore");
   QuotaLimitStats quotaStats=new QuotaLimitStats(null,1000);
   StatTrackingStore statTrackingStore=new StatTrackingStore(inMemoryEngine,null);
-  QuotaLimitingStore quotaLimitingStore=new QuotaLimitingStore(statTrackingStore,statTrackingStore.getStats(),quotaStats,quotaStore);
+  QuotaLimitingStore quotaLimitingStore=new QuotaLimitingStore(statTrackingStore,statTrackingStore.getStats(),quotaStats,quotaStore,server.getMetadataStore());
   int targetRate=50;
   quotaStore.put(new ByteArray(QuotaUtils.makeQuotaKey(statTrackingStore.getName(),QuotaType.GET_THROUGHPUT).getBytes()),new Versioned<byte[]>("100.0".getBytes()),null);
   long testIntervalMs=5000;
