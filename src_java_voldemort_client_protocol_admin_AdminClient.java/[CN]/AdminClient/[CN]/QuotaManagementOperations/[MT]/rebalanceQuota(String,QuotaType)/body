@@ -1,0 +1,22 @@
+{
+  Integer totalQuota=null;
+  Set<Integer> nodeIds=currentCluster.getNodeIds();
+  for (  Integer nodeId : nodeIds) {
+    Versioned<String> quotaValue=getQuotaForNode(storeName,quotaType,nodeId);
+    if (quotaValue != null) {
+      Integer quota=Integer.parseInt(quotaValue.getValue());
+      if (totalQuota == null) {
+        totalQuota=0;
+      }
+      totalQuota+=quota;
+    }
+  }
+  if (totalQuota == null) {
+    logger.info("No quota set for " + quotaType.toString() + " of store "+ storeName+ " ");
+  }
+ else {
+    Integer averageQuota=totalQuota / nodeIds.size();
+    logger.info("Resetting quota: Store: " + storeName + ", Quota: "+ quotaType.toString()+ ", Total: "+ totalQuota.toString()+ ", Average: "+ averageQuota.toString());
+    setQuota(storeName,quotaType.toString(),averageQuota.toString());
+  }
+}

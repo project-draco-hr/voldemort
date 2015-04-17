@@ -1,0 +1,34 @@
+{
+  for (  String storeName : storeNames) {
+    if (!adminClient.helperOps.checkStoreExistsInCluster(storeName)) {
+      System.out.println("Store " + storeName + " not in cluster.");
+    }
+ else {
+      System.out.println("Store " + storeName);
+      for (      String quotaType : quotaTypes) {
+        Versioned<String> quotaVal=null;
+        if (nodeIds == null) {
+          quotaVal=adminClient.quotaMgmtOps.getQuota(storeName,quotaType);
+          if (quotaVal == null) {
+            System.out.println("No quota set for " + quotaType);
+          }
+ else {
+            System.out.println("Quota value for " + quotaType + " : "+ quotaVal.getValue());
+          }
+        }
+ else {
+          for (          Integer nodeId : nodeIds) {
+            quotaVal=null;
+            quotaVal=adminClient.quotaMgmtOps.getQuotaForNode(storeName,QuotaType.valueOf(quotaType),nodeId);
+            if (quotaVal == null) {
+              System.out.println("No quota set for " + quotaType + " on node "+ nodeId);
+            }
+ else {
+              System.out.println("Quota value for " + quotaType + " on node "+ nodeId+ " : "+ quotaVal.getValue());
+            }
+          }
+        }
+      }
+    }
+  }
+}

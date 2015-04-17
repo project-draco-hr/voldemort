@@ -1,0 +1,14 @@
+{
+  AdminClient client=getAdminClient();
+  String storeName=storeDefs.get(0).getName();
+  QuotaType quotaType=QuotaType.GET_THROUGHPUT;
+  Integer nodeId=0;
+  Integer quota=1000;
+  client.quotaMgmtOps.setQuotaForNode(storeName,quotaType,nodeId,quota);
+  Integer getQuota=Integer.parseInt(client.quotaMgmtOps.getQuotaForNode(storeName,quotaType,nodeId).getValue());
+  assertEquals(quota,getQuota);
+  quota=0;
+  client.quotaMgmtOps.setQuotaForNode(storeName,quotaType,nodeId,quota);
+  getQuota=Integer.parseInt(client.quotaMgmtOps.getQuotaForNode(storeName,quotaType,nodeId).getValue());
+  assertEquals(quota,getQuota);
+}
