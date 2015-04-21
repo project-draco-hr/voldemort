@@ -28,5 +28,27 @@
   if (options.has("output-dir")) {
     outputDir=(String)options.valueOf("output-dir");
   }
-  rebalanceController.rebalance(new RebalancePlan(currentCluster,currentStoreDefs,finalCluster,finalStoreDefs,batchSize,outputDir));
+  RebalancePlan rebalancePlan=new RebalancePlan(currentCluster,currentStoreDefs,finalCluster,finalStoreDefs,batchSize,outputDir);
+  boolean resetQuota=options.has("reset-quota");
+  Map<Integer,Boolean> mapNodeToQuotaEnforcingEnabled=Maps.newHashMap();
+  AdminClient adminClient=AdminToolUtils.getAdminClient(bootstrapURL);
+  final Set<Integer> nodeIds=rebalancePlan.getFinalCluster().getNodeIds();
+  if (resetQuota) {
+    for (    Integer nodeId : nodeIds) {
+      boolean quotaEnforcement=Boolean.parseBoolean(adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,MetadataStore.QUOTA_ENFORCEMENT_ENABLED_KEY).getValue());
+      mapNodeToQuotaEnforcingEnabled.put(nodeId,quotaEnforcement);
+    }
+    adminClient.metadataMgmtOps.updateRemoteMetadata(nodeIds,MetadataStore.QUOTA_ENFORCEMENT_ENABLED_KEY,Boolean.toString(false));
+  }
+  rebalanceController.rebalance(rebalancePlan);
+  if (resetQuota) {
+    for (    Integer nodeId : nodeIds) {
+      boolean quotaEnforcement=mapNodeToQuotaEnforcingEnabled.get(nodeId);
+      adminClient.metadataMgmtOps.updateRemoteMetadata(Arrays.asList(nodeId),MetadataStore.QUOTA_ENFORCEMENT_ENABLED_KEY,Boolean.toString(quotaEnforcement));
+    }
+    for (    StoreDefinition storeDef : finalStoreDefs) {
+      String storeName=storeDef.getName();
+      adminClient.quotaMgmtOps.rebalanceQuota(storeName);
+    }
+  }
 }
