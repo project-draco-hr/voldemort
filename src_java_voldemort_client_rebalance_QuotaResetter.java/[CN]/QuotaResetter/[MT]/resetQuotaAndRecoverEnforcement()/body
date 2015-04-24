@@ -1,0 +1,9 @@
+{
+  for (  Integer nodeId : nodeIds) {
+    boolean quotaEnforcement=mapNodeToQuotaEnforcingEnabled.get(nodeId);
+    adminClient.metadataMgmtOps.updateRemoteMetadata(Arrays.asList(nodeId),MetadataStore.QUOTA_ENFORCEMENT_ENABLED_KEY,Boolean.toString(quotaEnforcement));
+  }
+  for (  String storeName : storeNames) {
+    adminClient.quotaMgmtOps.rebalanceQuota(storeName);
+  }
+}

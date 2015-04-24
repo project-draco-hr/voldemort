@@ -1,0 +1,17 @@
+{
+  int numServers=2;
+  servers=new VoldemortServer[numServers];
+  int partitionMap[][]={{0,1,2,3},{4,5,6,7}};
+  Properties serverProperties=new Properties();
+  serverProperties.setProperty("client.max.connections.per.node","20");
+  serverProperties.setProperty("enforce.retention.policy.on.read",Boolean.toString(false));
+  cluster=ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,true,null,storesXmlfile,serverProperties);
+  List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new File(storesXmlfile));
+  this.storeNames=Sets.newHashSet();
+  for (  StoreDefinition storeDef : storeDefs) {
+    storeNames.add(storeDef.getName());
+  }
+  Properties adminProperties=new Properties();
+  adminProperties.setProperty("max_connections","20");
+  adminClient=new AdminClient(cluster,new AdminClientConfig(adminProperties),new ClientConfig());
+}

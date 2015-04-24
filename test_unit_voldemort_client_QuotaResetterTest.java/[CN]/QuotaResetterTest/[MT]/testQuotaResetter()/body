@@ -1,0 +1,20 @@
+{
+  adminClient.quotaMgmtOps.setQuotaForNode(STORE_NAME,QuotaType.GET_THROUGHPUT,0,1000);
+  assertEquals(Integer.parseInt(adminClient.quotaMgmtOps.getQuotaForNode(STORE_NAME,QuotaType.GET_THROUGHPUT,0).getValue()),1000);
+  assertEquals(adminClient.quotaMgmtOps.getQuotaForNode(STORE_NAME,QuotaType.GET_THROUGHPUT,1),null);
+  adminClient.metadataMgmtOps.updateRemoteMetadata(0,MetadataStore.QUOTA_ENFORCEMENT_ENABLED_KEY,Boolean.toString(true));
+  adminClient.metadataMgmtOps.updateRemoteMetadata(1,MetadataStore.QUOTA_ENFORCEMENT_ENABLED_KEY,Boolean.toString(false));
+  assertEquals(adminClient.metadataMgmtOps.getRemoteMetadata(0,MetadataStore.QUOTA_ENFORCEMENT_ENABLED_KEY).getValue(),Boolean.toString(true));
+  assertEquals(adminClient.metadataMgmtOps.getRemoteMetadata(1,MetadataStore.QUOTA_ENFORCEMENT_ENABLED_KEY).getValue(),Boolean.toString(false));
+  QuotaResetter quotaResetter=new QuotaResetter(adminClient,storeNames,cluster.getNodeIds());
+  quotaResetter.rememberAndDisableQuota();
+  assertEquals(Integer.parseInt(adminClient.quotaMgmtOps.getQuotaForNode(STORE_NAME,QuotaType.GET_THROUGHPUT,0).getValue()),1000);
+  assertEquals(adminClient.quotaMgmtOps.getQuotaForNode(STORE_NAME,QuotaType.GET_THROUGHPUT,1),null);
+  assertEquals(adminClient.metadataMgmtOps.getRemoteMetadata(0,MetadataStore.QUOTA_ENFORCEMENT_ENABLED_KEY).getValue(),Boolean.toString(false));
+  assertEquals(adminClient.metadataMgmtOps.getRemoteMetadata(1,MetadataStore.QUOTA_ENFORCEMENT_ENABLED_KEY).getValue(),Boolean.toString(false));
+  quotaResetter.resetQuotaAndRecoverEnforcement();
+  assertEquals(Integer.parseInt(adminClient.quotaMgmtOps.getQuotaForNode(STORE_NAME,QuotaType.GET_THROUGHPUT,0).getValue()),500);
+  assertEquals(Integer.parseInt(adminClient.quotaMgmtOps.getQuotaForNode(STORE_NAME,QuotaType.GET_THROUGHPUT,1).getValue()),500);
+  assertEquals(adminClient.metadataMgmtOps.getRemoteMetadata(0,MetadataStore.QUOTA_ENFORCEMENT_ENABLED_KEY).getValue(),Boolean.toString(true));
+  assertEquals(adminClient.metadataMgmtOps.getRemoteMetadata(1,MetadataStore.QUOTA_ENFORCEMENT_ENABLED_KEY).getValue(),Boolean.toString(false));
+}
