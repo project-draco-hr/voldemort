@@ -1,0 +1,39 @@
+{
+  if (!isCompressed) {
+    return;
+  }
+  testSourceDir=createTempDir();
+  File testUncompressedSourceDir=null;
+  File indexFile=new File(testSourceDir,"0_0.index");
+  FileUtils.writeByteArrayToFile(indexFile,TestUtils.randomBytes(100));
+  File dataFile=new File(testSourceDir,"0_0.data");
+  FileUtils.writeByteArrayToFile(dataFile,TestUtils.randomBytes(400));
+  HdfsFetcher fetcher=new HdfsFetcher();
+  File metadataFile=new File(testSourceDir,".metadata");
+  ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
+  metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode());
+  metadata.add(ReadOnlyStorageMetadata.CHECKSUM_TYPE,CheckSum.toString(CheckSumType.MD5));
+  metadata.add(ReadOnlyStorageMetadata.CHECKSUM,new String(Hex.encodeHex(CheckSumTests.calculateCheckSum(testSourceDir.listFiles(),CheckSumType.MD5))));
+  FileUtils.writeStringToFile(metadataFile,metadata.toJsonString());
+  if (!indexFile.renameTo(new File(testSourceDir,indexFile.getName() + ".gz")) || !dataFile.renameTo(new File(testSourceDir,dataFile.getName() + ".gz"))) {
+    Assert.fail("cannot rename files as desired");
+  }
+  testDestDir=new File(testSourceDir.getAbsolutePath() + "1");
+  if (testDestDir.exists()) {
+    deleteDir(testDestDir);
+  }
+  File fetchedFile;
+  try {
+    fetchedFile=fetcher.fetch(testSourceDir.getAbsolutePath(),testDestDir.getAbsolutePath());
+  }
+ catch (  VoldemortException ex) {
+    cleanUp();
+    return;
+  }
+catch (  Exception ex) {
+    cleanUp();
+    Assert.fail("Unexpected Exception thrown!");
+  }
+  cleanUp();
+  Assert.fail("Unexpected behavior!");
+}

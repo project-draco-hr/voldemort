@@ -1,4 +1,5 @@
 {
+  cleanUp();
   testSourceDir=createTempDir();
   testDestDir=testSourceDir;
   indexFileName="0_0.index";
@@ -16,14 +17,15 @@
   }
   fetcher=new HdfsFetcher();
   fs=source.getFileSystem(new Configuration());
+  File destination=new File(testDestDir.getAbsolutePath() + "1");
   if (isCompressed) {
     stats=new CopyStats(testCompressedSourceDir.getAbsolutePath(),sizeOfPath(fs,source));
+    copyLocation=new File(destination,indexFileName + ".gz");
   }
  else {
     stats=new CopyStats(testSourceDir.getAbsolutePath(),sizeOfPath(fs,source));
+    copyLocation=new File(destination,indexFileName);
   }
-  File destination=new File(testDestDir.getAbsolutePath() + "1");
   Utils.mkdirs(destination);
-  copyLocation=new File(destination,indexFileName);
   buffer=new byte[VoldemortConfig.DEFAULT_BUFFER_SIZE];
 }

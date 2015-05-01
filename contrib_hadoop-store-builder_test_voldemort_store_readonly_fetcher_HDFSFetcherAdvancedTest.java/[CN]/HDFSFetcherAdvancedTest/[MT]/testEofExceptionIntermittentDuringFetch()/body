@@ -3,14 +3,20 @@
   input=fs.open(source);
   FileSystem spyfs=Mockito.spy(fs);
   FSDataInputStream spyinput=Mockito.spy(input);
-  if (isCompressed) {
-    cleanUp();
-    return;
-  }
   Mockito.doAnswer(Mockito.CALLS_REAL_METHODS).doThrow(new EofException()).when(spyinput).read();
   Mockito.doReturn(spyinput).doReturn(input).when(spyfs).open(source);
   Object[] params={spyfs,source,copyLocation,stats,CheckSumType.MD5,buffer};
-  CheckSum ckSum=(CheckSum)this.invokePrivateMethod(fetcher,"copyFileWithCheckSum",params);
+  CheckSum ckSum=null;
+  try {
+    ckSum=(CheckSum)this.invokePrivateMethod(fetcher,"copyFileWithCheckSum",params);
+  }
+ catch (  Exception ex) {
+    if (isCompressed) {
+      return;
+    }
+ else {
+      Assert.fail("Unexpected exption thrown : " + ex.getMessage());
+    }
+  }
   assertEquals(Arrays.equals(ckSum.getCheckSum(),checksumCalculated),true);
-  cleanUp();
 }
