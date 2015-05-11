@@ -1,0 +1,19 @@
+{
+  if (checkSumType == CheckSumType.NONE) {
+    logger.info("No check-sum verification required");
+    return true;
+  }
+  CheckSum checkSumGenerator=CheckSum.getInstance(checkSumType);
+  for (  HdfsFile file : allFiles) {
+    byte[] fileCheckSum=fileCheckSumMap.get(file);
+    if (fileCheckSum != null) {
+      checkSumGenerator.update(fileCheckSum);
+    }
+  }
+  byte[] computedCheckSum=checkSumGenerator.getCheckSum();
+  boolean checkSumComparison=(ByteUtils.compare(expectedCheckSum,computedCheckSum) == 0);
+  logger.info("Checksum generated from streaming - " + new String(Hex.encodeHex(computedCheckSum)));
+  logger.info("Checksum on file - " + new String(Hex.encodeHex(expectedCheckSum)));
+  logger.info("Check-sum verification - " + checkSumComparison);
+  return checkSumComparison;
+}

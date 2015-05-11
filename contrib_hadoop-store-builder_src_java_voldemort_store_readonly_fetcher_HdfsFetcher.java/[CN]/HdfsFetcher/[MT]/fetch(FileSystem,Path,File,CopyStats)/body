@@ -1,84 +1,33 @@
 {
   if (!fs.isFile(source)) {
     Utils.mkdirs(dest);
-    FileStatus[] statuses=fs.listStatus(source);
-    if (statuses != null) {
-      byte[] buffer=new byte[bufferSize];
-      Arrays.sort(statuses,new IndexFileLastComparator());
-      byte[] origCheckSum=null;
-      CheckSumType checkSumType=CheckSumType.NONE;
-      CheckSum checkSumGenerator=null;
-      CheckSum fileCheckSumGenerator=null;
-      for (      FileStatus status : statuses) {
-        if (status.getPath().getName().contains("checkSum.txt")) {
-        }
- else         if (status.getPath().getName().contains(".metadata")) {
-          logger.debug("Reading .metadata");
-          File copyLocation=new File(dest,status.getPath().getName());
-          copyFileWithCheckSum(fs,status.getPath(),copyLocation,stats,null,buffer);
-          ReadOnlyStorageMetadata metadata;
-          try {
-            metadata=new ReadOnlyStorageMetadata(copyLocation);
-          }
- catch (          IOException e) {
-            logger.error("Error reading metadata file ",e);
-            throw new VoldemortException(e);
-          }
-          String checkSumTypeString=(String)metadata.get(ReadOnlyStorageMetadata.CHECKSUM_TYPE);
-          String checkSumString=(String)metadata.get(ReadOnlyStorageMetadata.CHECKSUM);
-          if (checkSumTypeString != null && checkSumString != null) {
-            try {
-              origCheckSum=Hex.decodeHex(checkSumString.toCharArray());
-            }
- catch (            DecoderException e) {
-              logger.error("Exception reading checksum file. Ignoring checksum ",e);
-              continue;
-            }
-            logger.debug("Checksum from .metadata " + new String(Hex.encodeHex(origCheckSum)));
-            checkSumType=CheckSum.fromString(checkSumTypeString);
-            checkSumGenerator=CheckSum.getInstance(checkSumType);
-          }
-        }
- else         if (!status.getPath().getName().startsWith(".")) {
-          String fileName=status.getPath().getName();
-          if (fileName.endsWith(GZIP_FILE_EXTENSION)) {
-            fileName=fileName.split(GZIP_FILE_EXTENSION)[0];
-          }
-          File copyLocation=new File(dest,fileName);
-          fileCheckSumGenerator=copyFileWithCheckSum(fs,status.getPath(),copyLocation,stats,checkSumType,buffer);
-          if (fileCheckSumGenerator != null && checkSumGenerator != null) {
-            byte[] checkSum=fileCheckSumGenerator.getCheckSum();
-            if (logger.isDebugEnabled()) {
-              logger.debug("Checksum for " + status.getPath() + " - "+ new String(Hex.encodeHex(checkSum)));
-            }
-            checkSumGenerator.update(checkSum);
-          }
-        }
-      }
-      logger.info("Completed reading all files from " + source.toString() + " to "+ dest.getAbsolutePath());
-      if (checkSumType != CheckSumType.NONE) {
-        byte[] newCheckSum=checkSumGenerator.getCheckSum();
-        boolean checkSumComparison=(ByteUtils.compare(newCheckSum,origCheckSum) == 0);
-        logger.info("Checksum generated from streaming - " + new String(Hex.encodeHex(newCheckSum)));
-        logger.info("Checksum on file - " + new String(Hex.encodeHex(origCheckSum)));
-        logger.info("Check-sum verification - " + checkSumComparison);
-        return checkSumComparison;
-      }
- else {
-        logger.info("No check-sum verification required");
-        return true;
+    HdfsDirectory directory=new HdfsDirectory(fs,source);
+    byte[] buffer=new byte[bufferSize];
+    HdfsFile metadataFile=directory.getMetadataFile();
+    if (metadataFile != null) {
+      File copyLocation=new File(dest,metadataFile.getPath().getName());
+      copyFileWithCheckSum(fs,metadataFile,copyLocation,stats,null,buffer);
+      directory.initializeMetadata(copyLocation);
+    }
+    Map<HdfsFile,byte[]> fileCheckSumMap=new HashMap<HdfsFile,byte[]>(directory.getFiles().size());
+    CheckSumType checkSumType=directory.getCheckSumType();
+    for (    HdfsFile file : directory.getFiles()) {
+      String fileName=file.getDiskFileName();
+      File copyLocation=new File(dest,fileName);
+      CheckSum fileCheckSumGenerator=copyFileWithCheckSum(fs,file,copyLocation,stats,checkSumType,buffer);
+      if (fileCheckSumGenerator != null) {
+        fileCheckSumMap.put(file,fileCheckSumGenerator.getCheckSum());
       }
     }
+    return directory.validateCheckSum(fileCheckSumMap);
   }
  else   if (allowFetchOfFiles) {
     Utils.mkdirs(dest);
     byte[] buffer=new byte[bufferSize];
-    String fileName=source.getName();
-    if (fileName.endsWith(GZIP_FILE_EXTENSION)) {
-      fileName=fileName.split(GZIP_FILE_EXTENSION)[0];
-    }
+    HdfsFile file=new HdfsFile(fs.getFileStatus(source));
+    String fileName=file.getDiskFileName();
     File copyLocation=new File(dest,fileName);
-    copyFileWithCheckSum(fs,source,copyLocation,stats,CheckSumType.NONE,buffer);
+    copyFileWithCheckSum(fs,file,copyLocation,stats,CheckSumType.NONE,buffer);
     return true;
   }
   logger.error("Source " + source.toString() + " should be a directory");
