@@ -20,8 +20,10 @@
     requestHandler.processRequest();
   }
  catch (  VoldemortException e) {
+    if (!(e instanceof ObsoleteVersionException)) {
+      logger.error("Store" + storeName + ". Error: "+ e.getMessage());
+    }
     clearBuffer(outputContainer);
-    logger.error(e.getMessage());
     writeException(outputStream,e);
     return null;
   }
