@@ -1,0 +1,10 @@
+{
+  SocketStore socketStore=adminStoreClient.getSocketStore(nodeId,storeName);
+  List<Versioned<byte[]>> values=getNodeKey(storeName,nodeId,key);
+  boolean result=true;
+  for (  Versioned<byte[]> value : values) {
+    Version version=value.getVersion();
+    result=result && socketStore.delete(key,version);
+  }
+  return result;
+}

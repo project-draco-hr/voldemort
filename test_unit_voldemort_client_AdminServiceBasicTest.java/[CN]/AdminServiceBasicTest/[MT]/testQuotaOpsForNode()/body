@@ -7,9 +7,14 @@
   client.quotaMgmtOps.setQuotaForNode(storeName,quotaType,nodeId,quota);
   Integer getQuota=Integer.parseInt(client.quotaMgmtOps.getQuotaForNode(storeName,quotaType,nodeId).getValue());
   assertEquals(quota,getQuota);
-  quota=0;
   Thread.sleep(5);
+  quota=10;
   client.quotaMgmtOps.setQuotaForNode(storeName,quotaType,nodeId,quota);
   getQuota=Integer.parseInt(client.quotaMgmtOps.getQuotaForNode(storeName,quotaType,nodeId).getValue());
   assertEquals(quota,getQuota);
+  Thread.sleep(5);
+  assertTrue(client.quotaMgmtOps.deleteQuotaForNode(storeName,quotaType,nodeId));
+  Versioned<String> quotaVal=client.quotaMgmtOps.getQuotaForNode(storeName,quotaType,nodeId);
+  assertEquals(null,quotaVal);
+  Thread.sleep(5);
 }

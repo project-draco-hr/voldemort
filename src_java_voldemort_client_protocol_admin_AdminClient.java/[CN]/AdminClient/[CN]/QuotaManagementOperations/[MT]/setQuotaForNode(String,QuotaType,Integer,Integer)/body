@@ -4,6 +4,7 @@
     ByteArray keyArray=new ByteArray(quotaKey.getBytes("UTF8"));
     VectorClock clock=VectorClockUtils.makeClockWithCurrentTime(currentCluster.getNodeIds());
     NodeValue<ByteArray,byte[]> nodeKeyValue=new NodeValue<ByteArray,byte[]>(nodeId,keyArray,new Versioned<byte[]>(ByteUtils.getBytes(quota.toString(),"UTF8"),clock));
+    storeOps.deleteNodeKeyValue(storeName,nodeId,keyArray);
     storeOps.putNodeKeyValue(SystemStoreConstants.SystemStoreName.voldsys$_store_quotas.name(),nodeKeyValue);
   }
  catch (  UnsupportedEncodingException e) {
