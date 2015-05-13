@@ -1,0 +1,33 @@
+{
+  for (  String key : metaKeys) {
+    System.out.println("Metadata: " + key);
+    if (!key.equals(KEY_MAX_VERSION) && !key.equals(KEY_CURRENT_VERSION) && !key.equals(KEY_STORAGE_FORMAT)) {
+      System.out.println("  Invalid read-only metadata key: " + key);
+    }
+ else {
+      for (      Integer nodeId : nodeIds) {
+        String hostName=adminClient.getAdminClientCluster().getNodeById(nodeId).getHost();
+        System.out.println("  Node: " + hostName + ":"+ nodeId);
+        if (key.equals(KEY_MAX_VERSION)) {
+          Map<String,Long> mapStoreToROVersion=adminClient.readonlyOps.getROMaxVersion(nodeId,storeNames);
+          for (          String storeName : mapStoreToROVersion.keySet()) {
+            System.out.println("    " + storeName + ":"+ mapStoreToROVersion.get(storeName));
+          }
+        }
+ else         if (key.equals(KEY_CURRENT_VERSION)) {
+          Map<String,Long> mapStoreToROVersion=adminClient.readonlyOps.getROCurrentVersion(nodeId,storeNames);
+          for (          String storeName : mapStoreToROVersion.keySet()) {
+            System.out.println("    " + storeName + ":"+ mapStoreToROVersion.get(storeName));
+          }
+        }
+ else         if (key.equals(KEY_STORAGE_FORMAT)) {
+          Map<String,String> mapStoreToROFormat=adminClient.readonlyOps.getROStorageFormat(nodeId,storeNames);
+          for (          String storeName : mapStoreToROFormat.keySet()) {
+            System.out.println("    " + storeName + ":"+ mapStoreToROFormat.get(storeName));
+          }
+        }
+      }
+    }
+    System.out.println();
+  }
+}

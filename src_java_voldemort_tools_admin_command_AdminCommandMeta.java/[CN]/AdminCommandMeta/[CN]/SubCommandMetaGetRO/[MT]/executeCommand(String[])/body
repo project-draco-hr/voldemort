@@ -1,0 +1,36 @@
+{
+  OptionParser parser=getParser();
+  List<String> metaKeys=null;
+  String url=null;
+  List<Integer> nodeIds=null;
+  Boolean allNodes=true;
+  List<String> storeNames=null;
+  args=AdminToolUtils.copyArrayAddFirst(args,"--" + OPT_HEAD_META_GET_RO);
+  OptionSet options=parser.parse(args);
+  if (options.has(AdminParserUtils.OPT_HELP)) {
+    printHelp(System.out);
+    return;
+  }
+  AdminParserUtils.checkRequired(options,OPT_HEAD_META_GET_RO);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
+  AdminParserUtils.checkOptional(options,AdminParserUtils.OPT_NODE,AdminParserUtils.OPT_ALL_NODES);
+  AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_STORE);
+  metaKeys=(List<String>)options.valuesOf(OPT_HEAD_META_GET_RO);
+  url=(String)options.valueOf(AdminParserUtils.OPT_URL);
+  if (options.has(AdminParserUtils.OPT_NODE)) {
+    nodeIds=(List<Integer>)options.valuesOf(AdminParserUtils.OPT_NODE);
+    allNodes=false;
+  }
+  storeNames=(List<String>)options.valuesOf(AdminParserUtils.OPT_STORE);
+  AdminClient adminClient=AdminToolUtils.getAdminClient(url);
+  if (allNodes) {
+    nodeIds=AdminToolUtils.getAllNodeIds(adminClient);
+  }
+  if (metaKeys.size() == 1 && metaKeys.get(0).equals(METAKEY_ALL)) {
+    metaKeys=Lists.newArrayList();
+    metaKeys.add(KEY_MAX_VERSION);
+    metaKeys.add(KEY_CURRENT_VERSION);
+    metaKeys.add(KEY_STORAGE_FORMAT);
+  }
+  doMetaGetRO(adminClient,nodeIds,storeNames,metaKeys);
+}
