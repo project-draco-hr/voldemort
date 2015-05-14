@@ -4,15 +4,17 @@
     this.globalThrottleLimit.incrementNumJobs();
   }
   ObjectName jmxName=null;
+  HdfsCopyStats stats=null;
   try {
     final FileSystem fs=getHadoopFileSystem(sourceFileUrl,hadoopConfigPath);
     final Path path=new Path(sourceFileUrl);
-    CopyStats stats=new CopyStats(sourceFileUrl,sizeOfPath(fs,path));
-    jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
     File destination=new File(destinationFile);
     if (destination.exists()) {
       throw new VoldemortException("Version directory " + destination.getAbsolutePath() + " already exists");
     }
+    boolean isFile=fs.isFile(path);
+    stats=new HdfsCopyStats(sourceFileUrl,destination,enableStatsFile,maxVersionsStatsFile,isFile,sizeOfPath(fs,path));
+    jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
     logger.info("Starting fetch for : " + sourceFileUrl);
     boolean result=fetch(fs,path,destination,stats);
     logger.info("Completed fetch : " + sourceFileUrl);
@@ -25,8 +27,10 @@
     }
   }
  catch (  Throwable te) {
-    te.printStackTrace();
     logger.error("Error thrown while trying to get data from Hadoop filesystem",te);
+    if (stats != null) {
+      stats.reportError("File fetcher failed for destination " + destinationFile,te);
+    }
     throw new VoldemortException("Error thrown while trying to get data from Hadoop filesystem : " + te);
   }
  finally {
@@ -34,5 +38,8 @@
       this.globalThrottleLimit.decrementNumJobs();
     }
     if (jmxName != null)     JmxUtils.unregisterMbean(jmxName);
+    if (stats != null) {
+      stats.complete();
+    }
   }
 }

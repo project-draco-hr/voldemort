@@ -1,0 +1,24 @@
+{
+  if (maxStatsFile <= 0) {
+    return;
+  }
+  try {
+    File[] files=statsDirectory.listFiles();
+    int allowedStatsFile=maxStatsFile - 1;
+    if (files.length <= allowedStatsFile) {
+      return;
+    }
+    Arrays.sort(files,new Comparator<File>(){
+      @Override public int compare(      File f1,      File f2){
+        return Long.valueOf(f2.lastModified()).compareTo(f1.lastModified());
+      }
+    }
+);
+    for (int i=allowedStatsFile; i < files.length; i++) {
+      files[i].delete();
+    }
+  }
+ catch (  Exception e) {
+    logger.error("Error during cleanup of stats file directory",e);
+  }
+}

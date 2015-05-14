@@ -1,0 +1,35 @@
+{
+  if (enableStatsFile == false) {
+    return;
+  }
+  if (isFileCopy) {
+    return;
+  }
+  File statsDirectory=getStatDir(destination);
+  if (statsDirectory == null) {
+    return;
+  }
+  try {
+    if (statsDirectory.exists() == false) {
+      statsDirectory.mkdirs();
+    }
+    if (statsDirectory.exists() == false) {
+      logger.info("Could not create stats directory for destination " + destination);
+      return;
+    }
+    deleteExtraStatsFiles(statsDirectory,maxVersionsStatsFile);
+    String destName=destination.getName();
+    File statsFile=new File(statsDirectory,destName);
+    statsFile.createNewFile();
+    statsFileWriter=new BufferedWriter(new FileWriter(statsFile));
+    statsFileWriter.write("Starting fetch at " + startTimeMS + "MS from "+ sourceFile);
+    statsFileWriter.newLine();
+    statsFileWriter.write("Time, FileName, StartTime(MS), Size, TimeTaken(MS), Attempts #, TotalBytes");
+    statsFileWriter.newLine();
+  }
+ catch (  Exception e) {
+    statsFileWriter=null;
+    logger.error("Error during stats directory for destination " + destination,e);
+    return;
+  }
+}
