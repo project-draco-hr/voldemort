@@ -1,0 +1,16 @@
+{
+  String jsonSchema="\"string\"";
+  AvroVersionedGenericSerializer serializer=new AvroVersionedGenericSerializer(jsonSchema);
+  String jsonSchema2="{\"name\": \"Str\", \"type\": \"string\"}";
+  AvroVersionedGenericSerializer serializer2=new AvroVersionedGenericSerializer(jsonSchema2);
+  Utf8 sample=new Utf8("abc");
+  byte[] byte1=serializer.toBytes(sample);
+  byte[] byte2=serializer.toBytes("abc");
+  assertArrayEquals(" should serialize to same value",byte1,byte2);
+  byte[] byte3=serializer2.toBytes("abc");
+  assertArrayEquals(" should serialize to same value",byte1,byte3);
+  assertEquals("Expected Utf8 Class",Utf8.class,serializer.toObject(byte1).getClass());
+  assertEquals("Expected Utf8 Class",Utf8.class,serializer2.toObject(byte1).getClass());
+  assertEquals("Value got after serializing and deserailizing is not the same",sample,serializer.toObject(byte1));
+  assertEquals("Value got after serializing and deserailizing is not the same",sample,serializer2.toObject(byte3));
+}

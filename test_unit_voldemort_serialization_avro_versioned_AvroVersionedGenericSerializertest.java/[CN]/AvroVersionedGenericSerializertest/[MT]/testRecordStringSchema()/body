@@ -1,0 +1,10 @@
+{
+  String stringSchema="\"string\"";
+  AvroVersionedGenericSerializer stringSerializer=new AvroVersionedGenericSerializer(stringSchema);
+  String recordSchema="{\"type\": \"record\", \"name\": \"myrec\",\"fields\": [{ \"name\": \"original\", \"type\": \"string\" }]}";
+  AvroVersionedGenericSerializer recordSerializer=new AvroVersionedGenericSerializer(recordSchema);
+  Utf8 sample=new Utf8("abc");
+  byte[] byte1=stringSerializer.toBytes(sample);
+  Object obj=recordSerializer.toObject(byte1);
+  assertEquals(" should serialize to same value",Record.class,obj.getClass());
+}

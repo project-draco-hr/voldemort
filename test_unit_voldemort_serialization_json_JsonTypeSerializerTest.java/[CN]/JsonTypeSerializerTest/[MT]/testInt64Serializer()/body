@@ -1,0 +1,25 @@
+{
+  String serializer=quote("int64");
+  byte b=123;
+  short s=123;
+  int i=123;
+  long l=123;
+  assertInverse(serializer,null);
+  assertInverse(serializer,Long.MAX_VALUE);
+  byte[][] arrays=new byte[4][];
+  arrays[0]=toBytes(serializer,b);
+  arrays[1]=toBytes(serializer,s);
+  arrays[2]=toBytes(serializer,i);
+  arrays[3]=toBytes(serializer,l);
+  for (int k=1; k < arrays.length; k++) {
+    assertArrayEquals("serialized value should be the same",arrays[0],arrays[k]);
+  }
+  for (int k=0; k < arrays.length; k++) {
+    Object obj=toObject(serializer,arrays[k]);
+    assertEquals("Return type should be int32",Long.class,obj.getClass());
+    assertEquals("Value should be equals",123L,obj);
+  }
+  char c='1';
+  assertToBytesFails(serializer,c);
+  assertToBytesFails(serializer,Long.MIN_VALUE);
+}

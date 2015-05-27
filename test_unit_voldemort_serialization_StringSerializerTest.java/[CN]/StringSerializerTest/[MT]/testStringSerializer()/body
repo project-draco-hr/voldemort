@@ -1,0 +1,13 @@
+{
+  String[] schemaInfos={"utf8","utf-8","UTF8","UTF-8",null};
+  for (  String schemaInfo : schemaInfos) {
+    Serializer<Object> ser=getStringSerializer(schemaInfo);
+    assertInverse(ser,"abc");
+    assertInverse(ser,null);
+    assertSerializationFails(ser,new Utf8("foobar"));
+    assertSerializationFails(ser,'C');
+    assertSerializationFails(ser,123);
+    assertSerializationFails(ser,new Integer(123));
+    assertSerializationFails(ser,new byte[5]);
+  }
+}

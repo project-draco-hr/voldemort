@@ -1,0 +1,15 @@
+{
+  String serializer=quote("string");
+  assertInverse(serializer,"asdfasdf d");
+  JsonTypeSerializer jsonSerializer=getSerializer(serializer);
+  Object val=doubleInvert(jsonSerializer,"asdf");
+  assertEquals("Return type should be string",String.class,val.getClass());
+  assertInverse(serializer,null);
+  assertToBytesFails(serializer,123);
+  assertToBytesFails(serializer,new Utf8("avro utf8"));
+  assertToBytesFails(serializer,'C');
+  assertToBytesFails(serializer,Arrays.asList(new String[]{"a","b"}));
+  assertToBytesFails(serializer,Arrays.asList(new char[]{'a','b'}));
+  assertToBytesFails(serializer,"abc".getBytes());
+  assertToBytesFails(serializer,"abc".toCharArray());
+}
