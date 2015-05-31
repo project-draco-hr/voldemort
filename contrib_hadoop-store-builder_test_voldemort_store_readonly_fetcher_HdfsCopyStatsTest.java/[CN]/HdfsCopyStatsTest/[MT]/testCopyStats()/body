@@ -25,7 +25,7 @@
     assertTrue("stats dir exists",statsDir.exists());
     File[] statsFiles=statsDir.listFiles();
     assertEquals("Number of files should be equal to the maxStatsFiles",maxStatsFile,statsFiles.length);
-    List<String> actualStatsFile=new ArrayList<String>();
+    Set<String> actualStatsFile=new HashSet<String>();
     for (    File statFile : statsFiles) {
       assertTrue("Size of the stat file should be greater than zero",statFile.length() > 0);
       actualStatsFile.add(statFile.getName());
@@ -33,7 +33,7 @@
     while (expectedStatsFile.size() > maxStatsFile) {
       expectedStatsFile.remove(0);
     }
-    assertEquals("Expected and actual files are different",expectedStatsFile,actualStatsFile);
+    assertEquals("Expected and actual files are different",new HashSet<String>(expectedStatsFile),actualStatsFile);
   }
  else {
     assertFalse("statsDir " + statsDir + " should not exist",statsDir.exists());
