@@ -18,14 +18,18 @@
     }
     ClientRequestSelectorManager selectorManager=selectorManagers[counter.getAndIncrement() % selectorManagers.length];
     Selector selector=selectorManager.getSelector();
-    clientRequestExecutor=new ClientRequestExecutor(selector,socketChannel,socketBufferSize);
+    clientRequestExecutor=new ClientRequestExecutor(selector,socketChannel,socketBufferSize,dest);
     int timeoutMs=this.getTimeout();
     ProtocolNegotiatorClientRequest protocolRequest=new ProtocolNegotiatorClientRequest(dest.getRequestFormatType());
     NonblockingStoreCallback callback=new NonblockingStoreCallback(){
       @Override public void requestComplete(      Object result,      long requestTime){
         if (result instanceof Exception) {
-          logger.info("Reporting exception to pool " + result.getClass());
-          pool.reportException(dest,(Exception)result);
+          Exception e=(Exception)result;
+          if (e instanceof StoreTimeoutException) {
+            e=new UnreachableStoreException("Error establishing connection for destination " + dest,new ConnectException(e.getMessage()));
+          }
+          logger.info("Reporting exception to pool " + e.getClass() + " for destination "+ dest);
+          pool.reportException(dest,e);
         }
       }
     }
@@ -44,7 +48,7 @@
         if (logger.isEnabledFor(Level.WARN))         logger.warn(ex,ex);
       }
     }
-    throw e;
+    throw UnreachableStoreException.wrap("Error establishing connection for destination " + dest,e);
   }
   if (stats != null) {
     stats.incrementCount(dest,ClientSocketStats.Tracked.CONNECTION_CREATED_EVENT);

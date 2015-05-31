@@ -1,14 +1,19 @@
 {
   Pair<Long,Exception> entry;
+  int skippedExceptionCount=0;
   while (true) {
     entry=asyncExceptions.poll();
     if (entry == null) {
+      if (skippedExceptionCount > 0) {
+        logger.info(" All Exceptions were expired exceptions. Count " + skippedExceptionCount);
+      }
       return;
     }
     long elapsedTime=System.currentTimeMillis() - entry.getFirst();
-    if (elapsedTime <= EXCEPTION_REPORT_TIME_MS) {
+    skippedExceptionCount++;
+    if (elapsedTime <= excpetionReportTimeMS) {
       Exception e=entry.getSecond();
-      logger.info(" Throwing remembered exception. time elapsed (ms) " + elapsedTime + "Exception "+ e.getMessage());
+      logger.info(" Throwing remembered exception. time elapsed (ms) " + elapsedTime + ". Exception : "+ e.getMessage());
       throw e;
     }
   }

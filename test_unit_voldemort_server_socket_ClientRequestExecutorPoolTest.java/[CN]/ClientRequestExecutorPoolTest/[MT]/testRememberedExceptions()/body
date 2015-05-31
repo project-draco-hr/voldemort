@@ -1,0 +1,21 @@
+{
+  ConnectException connectEx=new ConnectException("Connect exception");
+  UnreachableStoreException unreachableEx=new UnreachableStoreException("test Exception",connectEx);
+  final int COUNT=10;
+  for (int i=0; i < COUNT; i++) {
+    this.pool.internalGetQueuedPool().reportException(dest1,unreachableEx);
+  }
+  for (int i=0; i < COUNT; i++) {
+    try {
+      this.pool.internalGetQueuedPool().checkout(dest1);
+      fail("should have thrown an exception");
+    }
+ catch (    Exception ex) {
+      assertEquals("Expected Unreachable Store Exception",unreachableEx.getClass(),ex.getClass());
+      assertEquals("Expected Unreachable Store Exception",unreachableEx.getMessage(),ex.getMessage());
+      assertEquals("InnerException is connect Exception",connectEx.getClass(),ex.getCause().getClass());
+      assertEquals("InnerException is connect Exception",connectEx.getMessage(),ex.getCause().getMessage());
+    }
+  }
+  this.pool.checkout(dest1);
+}

@@ -2,4 +2,7 @@
   this.maxPoolSize=resourcePoolConfig.getMaxPoolSize();
   queue=new ArrayBlockingQueue<V>(this.maxPoolSize,resourcePoolConfig.isFair());
   this.asyncExceptions=new ArrayBlockingQueue<Pair<Long,Exception>>(EXCEPTION_COUNT_MAX);
+  long configExceptionReportTime=resourcePoolConfig.getTimeout(TimeUnit.MILLISECONDS) * 2;
+  long MAX_EXCEPTION_REPORT_TIME=TimeUnit.MILLISECONDS.convert(30,TimeUnit.SECONDS);
+  excpetionReportTimeMS=Math.min(configExceptionReportTime,MAX_EXCEPTION_REPORT_TIME);
 }

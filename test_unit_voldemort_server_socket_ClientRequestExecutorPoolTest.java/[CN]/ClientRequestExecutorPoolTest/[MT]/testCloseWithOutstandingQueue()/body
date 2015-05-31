@@ -1,0 +1,28 @@
+{
+  final int MAX_CONNECTIONS=2;
+  ClientRequestExecutorPool execPool=new ClientRequestExecutorPool(2,MAX_CONNECTIONS,CONNECTION_TIMEOUT_MS,SOCKET_TIMEOUT_MS,32 * 1024,false,true,new String());
+  for (int i=0; i < MAX_CONNECTIONS; i++) {
+    execPool.checkout(dest1);
+  }
+  for (int j=0; j < 2; j++) {
+    GetClientRequest clientRequest=new GetClientRequest("sampleStore",new RequestFormatFactory().getRequestFormat(dest1.getRequestFormatType()),RequestRoutingType.ROUTED,new ByteArray(new byte[]{1,2,3}),null);
+    final AtomicInteger cancelledEvents=new AtomicInteger(0);
+    NonblockingStoreCallback callback=new NonblockingStoreCallback(){
+      @Override public void requestComplete(      Object result,      long requestTime){
+        if (result instanceof UnreachableStoreException)         cancelledEvents.incrementAndGet();
+ else         fail("The request must have failed with UnreachableException" + result);
+      }
+    }
+;
+    int queuedRequestCount=20;
+    for (int i=0; i < queuedRequestCount; i++) {
+      execPool.submitAsync(dest1,clientRequest,callback,5000,"get");
+    }
+    int outstandingQueue=execPool.internalGetQueuedPool().getRegisteredResourceRequestCount(dest1);
+    assertEquals("Queued request count should match",queuedRequestCount,outstandingQueue);
+    execPool.close(dest1);
+    outstandingQueue=execPool.internalGetQueuedPool().getRegisteredResourceRequestCount(dest1);
+    assertEquals("Queued request should have been cleared",0,outstandingQueue);
+    assertEquals("All Queuedrequest must have been cancelled.",queuedRequestCount,cancelledEvents.get());
+  }
+}

@@ -1,0 +1,21 @@
+{
+  final int CURRENT_CONNECTION_TIMEOUT=50;
+  ClientRequestExecutorPool timeoutPool=new ClientRequestExecutorPool(2,maxConnectionsPerNode,CURRENT_CONNECTION_TIMEOUT,CURRENT_CONNECTION_TIMEOUT,32 * 1024,false,true,new String());
+  ConnectException connectEx=new ConnectException("Connect exception");
+  UnreachableStoreException unreachableEx=new UnreachableStoreException("test Exception",connectEx);
+  final int COUNT=10;
+  for (int i=0; i < COUNT; i++) {
+    timeoutPool.internalGetQueuedPool().reportException(dest1,unreachableEx);
+  }
+  Thread.sleep(CURRENT_CONNECTION_TIMEOUT);
+  for (int i=0; i < COUNT - 1; i++) {
+    try {
+      timeoutPool.internalGetQueuedPool().checkout(dest1);
+      fail("should have thrown an exception");
+    }
+ catch (    Exception ex) {
+    }
+  }
+  Thread.sleep(CURRENT_CONNECTION_TIMEOUT + 1);
+  timeoutPool.checkout(dest1);
+}
