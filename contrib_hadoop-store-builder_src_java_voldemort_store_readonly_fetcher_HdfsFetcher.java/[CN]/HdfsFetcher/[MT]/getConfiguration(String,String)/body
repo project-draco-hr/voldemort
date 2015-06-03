@@ -1,6 +1,7 @@
 {
   final Configuration config=new Configuration();
-  config.setInt("io.socket.receive.buffer",bufferSize);
+  config.setInt(ConfigurableSocketFactory.SO_RCVBUF,bufferSize);
+  config.setInt(ConfigurableSocketFactory.SO_TIMEOUT,socketTimeout);
   config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
   config.set("hadoop.security.group.mapping","org.apache.hadoop.security.ShellBasedUnixGroupsMapping");
   boolean isHftpBasedFetch=isHftpBasedPath(sourceFileUrl);
