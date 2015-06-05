@@ -19,11 +19,11 @@
   fs=source.getFileSystem(new Configuration());
   File destination=new File(testDestDir.getAbsolutePath() + "1");
   if (isCompressed) {
-    stats=new HdfsCopyStats(testCompressedSourceDir.getAbsolutePath(),destination,enableStatsFile,5,false,sizeOfPath(fs,source));
+    stats=new HdfsCopyStats(testCompressedSourceDir.getAbsolutePath(),destination,enableStatsFile,5,false,new HdfsPathInfo(fs,source));
     copyLocation=new File(destination,indexFileName + ".gz");
   }
  else {
-    stats=new HdfsCopyStats(testSourceDir.getAbsolutePath(),destination,enableStatsFile,5,false,sizeOfPath(fs,source));
+    stats=new HdfsCopyStats(testSourceDir.getAbsolutePath(),destination,enableStatsFile,5,false,new HdfsPathInfo(fs,source));
     copyLocation=new File(destination,indexFileName);
   }
   Utils.mkdirs(destination);

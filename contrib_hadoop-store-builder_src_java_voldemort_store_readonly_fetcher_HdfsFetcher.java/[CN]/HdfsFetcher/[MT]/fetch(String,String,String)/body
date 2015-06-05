@@ -13,7 +13,7 @@
       throw new VoldemortException("Version directory " + destination.getAbsolutePath() + " already exists");
     }
     boolean isFile=fs.isFile(path);
-    stats=new HdfsCopyStats(sourceFileUrl,destination,enableStatsFile,maxVersionsStatsFile,isFile,sizeOfPath(fs,path));
+    stats=new HdfsCopyStats(sourceFileUrl,destination,enableStatsFile,maxVersionsStatsFile,isFile,new HdfsPathInfo(fs,path));
     jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
     logger.info("Starting fetch for : " + sourceFileUrl);
     boolean result=fetch(fs,path,destination,stats);

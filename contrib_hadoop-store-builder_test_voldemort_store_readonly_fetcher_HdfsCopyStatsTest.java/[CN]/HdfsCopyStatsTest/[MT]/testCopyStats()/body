@@ -1,14 +1,14 @@
 {
   destination=new File(testSourceDir.getAbsolutePath() + "_dest");
   statsDir=HdfsCopyStats.getStatDir(destination);
-  if (statsDir != null)   HDFSFetcherAdvancedTest.deleteDir(statsDir);
+  if (statsDir != null)   HdfsFetcherAdvancedTest.deleteDir(statsDir);
   List<String> expectedStatsFile=new ArrayList<String>();
   for (int i=0; i < maxStatsFile + 2; i++) {
     destination=new File(testSourceDir.getAbsolutePath() + "_dest" + i);
     String destName=destination.getName();
     expectedStatsFile.add(destName);
     Thread.sleep(1000);
-    HdfsCopyStats stats=new HdfsCopyStats(testSourceDir.getAbsolutePath(),destination,enableStatsFile,maxStatsFile,isFileCopy,1000);
+    HdfsCopyStats stats=new HdfsCopyStats(testSourceDir.getAbsolutePath(),destination,enableStatsFile,maxStatsFile,isFileCopy,HdfsPathInfo.getTestObject(1000));
     Random r=new Random();
     for (int j=0; j < 10; j++) {
       File file=new File(destination,"file" + i);
@@ -18,7 +18,7 @@
     stats.reportFileError(new File(destination,"error"),r.nextInt(),r.nextLong(),e);
     stats.reportError("MyMessage",e);
     stats.complete();
-    if (destination != null)     HDFSFetcherAdvancedTest.deleteDir(destination);
+    if (destination != null)     HdfsFetcherAdvancedTest.deleteDir(destination);
   }
   statsDir=HdfsCopyStats.getStatDir(destination);
   if (enableStatsFile && isFileCopy == false) {
