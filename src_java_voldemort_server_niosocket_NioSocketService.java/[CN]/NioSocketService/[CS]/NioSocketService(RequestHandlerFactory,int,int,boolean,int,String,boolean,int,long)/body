@@ -1,0 +1,20 @@
+{
+  super(ServiceType.SOCKET,port,serviceName,enableJmx);
+  this.requestHandlerFactory=requestHandlerFactory;
+  this.socketBufferSize=socketBufferSize;
+  this.socketKeepAlive=socketKeepAlive;
+  this.acceptorBacklog=acceptorBacklog;
+  this.selectorMaxHeartBeatTimeMs=selectorMaxHeartBeatTimeMs;
+  try {
+    this.serverSocketChannel=ServerSocketChannel.open();
+  }
+ catch (  IOException e) {
+    throw new VoldemortException(e);
+  }
+  this.endpoint=new InetSocketAddress(port);
+  this.selectorManagers=new NioSelectorManager[selectors];
+  String threadFactoryPrefix="voldemort-" + serviceName;
+  this.selectorManagerThreadPool=Executors.newFixedThreadPool(selectorManagers.length,new DaemonThreadFactory(threadFactoryPrefix));
+  this.statusManager=new StatusManager((ThreadPoolExecutor)this.selectorManagerThreadPool);
+  this.acceptorThread=new Thread(new Acceptor(),threadFactoryPrefix + ".Acceptor");
+}

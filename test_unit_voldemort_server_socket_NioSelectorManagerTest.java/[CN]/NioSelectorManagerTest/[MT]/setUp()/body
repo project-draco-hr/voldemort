@@ -1,0 +1,13 @@
+{
+  this.port=ServerTestUtils.findFreePort();
+  StoreRepository repository=new StoreRepository();
+  sleepyStore=new SleepyStore<ByteArray,byte[],byte[]>(Long.MAX_VALUE,new InMemoryStorageEngine<ByteArray,byte[],byte[]>(STORE_NAME));
+  repository.addLocalStore(sleepyStore);
+  repository.addRoutedStore(sleepyStore);
+  this.pool=new ClientRequestExecutorPool(50,300,250,32 * 1024);
+  this.dest1=new SocketDestination("localhost",port,RequestFormatType.VOLDEMORT_V1);
+  final Store<ByteArray,byte[],byte[]> socketStore=pool.create(STORE_NAME,"localhost",port,RequestFormatType.VOLDEMORT_V1,RequestRoutingType.NORMAL);
+  factory=ServerTestUtils.getSocketRequestHandlerFactory(repository);
+  socketService=ServerTestUtils.getSocketService(true,factory,port,numSelectors,10,1000,MAX_HEART_BEAT_MS);
+  socketService.start();
+}

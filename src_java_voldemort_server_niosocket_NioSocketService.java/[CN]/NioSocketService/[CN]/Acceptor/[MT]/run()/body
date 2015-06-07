@@ -6,20 +6,39 @@
       if (logger.isInfoEnabled())       logger.info("Acceptor thread interrupted");
       break;
     }
+    SocketChannel socketChannel=null;
     try {
-      SocketChannel socketChannel=serverSocketChannel.accept();
+      socketChannel=serverSocketChannel.accept();
       if (socketChannel == null) {
         if (logger.isEnabledFor(Level.WARN))         logger.warn("Claimed accept but nothing to select");
         continue;
       }
-      NioSelectorManager selectorManager=selectorManagers[counter.getAndIncrement() % selectorManagers.length];
-      selectorManager.accept(socketChannel);
+      int totalSelectors=selectorManagers.length;
+      boolean isChannelRegistered=false;
+      for (int i=0; i < totalSelectors; i++) {
+        NioSelectorManager selectorManager=selectorManagers[counter.getAndIncrement() % selectorManagers.length];
+        if (selectorManager.isHealthy()) {
+          selectorManager.accept(socketChannel);
+          isChannelRegistered=true;
+          break;
+        }
+      }
+      if (isChannelRegistered == false) {
+        logger.error("No healthy selector could be found for channel " + socketChannel + " number of selectors "+ totalSelectors+ " closing the socket. ");
+        IOUtils.closeQuietly(socketChannel);
+      }
     }
  catch (    ClosedByInterruptException e) {
+      if (socketChannel != null) {
+        IOUtils.closeQuietly(socketChannel);
+      }
       if (logger.isTraceEnabled())       logger.trace("Acceptor thread interrupted, closing");
       break;
     }
 catch (    Exception e) {
+      if (socketChannel != null) {
+        IOUtils.closeQuietly(socketChannel);
+      }
       if (logger.isEnabledFor(Level.WARN))       logger.warn(e.getMessage(),e);
     }
   }

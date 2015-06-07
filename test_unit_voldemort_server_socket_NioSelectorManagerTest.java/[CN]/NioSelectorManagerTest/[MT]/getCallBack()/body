@@ -1,0 +1,11 @@
+{
+  final AtomicInteger cancelledEvents=new AtomicInteger(0);
+  NonblockingStoreCallback callback=new NonblockingStoreCallback(){
+    @Override public void requestComplete(    Object result,    long requestTime){
+      if (result instanceof UnreachableStoreException)       cancelledEvents.incrementAndGet();
+ else       fail("The request must have failed with UnreachableException" + result);
+    }
+  }
+;
+  return callback;
+}

@@ -1,0 +1,10 @@
+{
+  AbstractSocketService socketService=null;
+  if (useNio) {
+    socketService=new NioSocketService(requestHandlerFactory,port,bufferSize,false,coreConnections,"client-request-service",false,-1,maxHeartBeatTimeMs);
+  }
+ else {
+    socketService=new SocketService(requestHandlerFactory,port,coreConnections,maxConnections,bufferSize,"client-request-service",false);
+  }
+  return socketService;
+}

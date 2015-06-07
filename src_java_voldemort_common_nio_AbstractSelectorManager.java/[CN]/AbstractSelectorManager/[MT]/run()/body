@@ -1,0 +1,54 @@
+{
+  threadName=Thread.currentThread().getName();
+  try {
+    while (true) {
+      if (isClosed.get()) {
+        logger.debug("SelectorManager is closed, exiting");
+        break;
+      }
+      lastHeartBeatTimeMs=System.currentTimeMillis();
+      processEvents();
+      try {
+        selectTimeMs=System.currentTimeMillis();
+        int selected=selector.select(SELECTOR_POLL_MS);
+        selectTimeMs=System.currentTimeMillis() - selectTimeMs;
+        selectCount=selected;
+        if (isClosed.get()) {
+          logger.debug("SelectorManager is closed, exiting");
+          break;
+        }
+        if (selected > 0) {
+          processingTimeMs=System.currentTimeMillis();
+          Iterator<SelectionKey> i=selector.selectedKeys().iterator();
+          while (i.hasNext()) {
+            SelectionKey selectionKey=i.next();
+            i.remove();
+            if (selectionKey.isValid() && (selectionKey.isConnectable() || selectionKey.isReadable() || selectionKey.isWritable())) {
+              Runnable worker=(Runnable)selectionKey.attachment();
+              worker.run();
+            }
+          }
+          processingTimeMs=System.currentTimeMillis() - processingTimeMs;
+        }
+      }
+ catch (      ClosedSelectorException e) {
+        logger.debug("SelectorManager is closed, exiting");
+        break;
+      }
+catch (      Throwable t) {
+        if (logger.isEnabledFor(Level.ERROR))         logger.error(t.getMessage(),t);
+      }
+    }
+  }
+ catch (  Throwable t) {
+    if (logger.isEnabledFor(Level.ERROR))     logger.error(t.getMessage(),t);
+  }
+ finally {
+    try {
+      close();
+    }
+ catch (    Exception e) {
+      if (logger.isEnabledFor(Level.ERROR))       logger.error(e.getMessage(),e);
+    }
+  }
+}

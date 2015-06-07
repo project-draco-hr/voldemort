@@ -1,0 +1,29 @@
+{
+  pool.submitAsync(dest1,getClientRequest(),getCallBack(),250,"get");
+  Thread.sleep(MAX_HEART_BEAT_MS + 50);
+  try {
+    pool.checkout(dest1);
+  }
+ catch (  Exception ex) {
+  }
+  for (int i=0; i < 20; i++) {
+    try {
+      ClientRequestExecutor executor=pool.checkout(dest1);
+      if (numSelectors == 1) {
+        fail("Single selector expected an exception");
+      }
+ else {
+        assertNotNull("multiple selector should have valid executor",executor);
+      }
+    }
+ catch (    UnreachableStoreException ex) {
+      if (numSelectors > 1) {
+        fail("more than one selector, no exception should be observed" + ex);
+      }
+ else {
+        assertTrue("inner exception should be instance of IOException",ex.getCause() instanceof IOException);
+      }
+    }
+  }
+  sleepyStore.releaseThreads();
+}
