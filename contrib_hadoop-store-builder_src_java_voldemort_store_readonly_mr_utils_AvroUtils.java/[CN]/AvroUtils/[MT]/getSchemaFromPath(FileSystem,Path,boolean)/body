@@ -6,7 +6,7 @@
         inStream=new BufferedInputStream(fs.open(path));
       }
  catch (      IOException e1) {
-        e1.printStackTrace();
+        throw new RuntimeException("Unable to open " + path,e1);
       }
       GenericDatumReader datum=new GenericDatumReader();
       DataFileStream reader=null;
@@ -14,7 +14,7 @@
         reader=new DataFileStream(inStream,datum);
       }
  catch (      IOException e) {
-        e.printStackTrace();
+        throw new RuntimeException("Invalid avro format, path " + path,e);
       }
       return reader.getSchema();
     }
@@ -22,11 +22,12 @@
       FileStatus[] statuses=null;
       if (fs.isDirectory(path)) {
         statuses=fs.listStatus(path);
+        if (statuses == null || statuses.length == 0)         throw new IllegalArgumentException("No files in directory " + path);
       }
  else {
         statuses=fs.globStatus(path);
+        if (statuses == null || statuses.length == 0)         throw new IllegalArgumentException("No matches for path pattern " + path);
       }
-      if (statuses == null || statuses.length == 0)       throw new IllegalArgumentException("No files found in path pattern " + path.toUri().getPath());
       List<Schema> schemas=new ArrayList<Schema>();
       for (      FileStatus status : statuses) {
         if (!HadoopUtils.shouldPathBeIgnored(status.getPath())) {
@@ -38,15 +39,15 @@
       }
       if (schemas.size() > 0) {
         Schema schema=schemas.get(0);
-        for (int i=1; i < schemas.size(); i++)         if (!schema.equals(schemas.get(i)))         throw new IllegalArgumentException("The directory " + path.toString() + " contains heterogenous schemas: found both '"+ schema.toString()+ "' and '"+ schemas.get(i).toString()+ "'.");
+        for (int i=1; i < schemas.size(); i++)         if (!schema.equals(schemas.get(i)))         throw new IllegalArgumentException("The directory " + path + " contains heterogenous schemas: found both '"+ schema+ "' and '"+ schemas.get(i)+ "'.");
         return schema;
       }
  else {
-        throw new IllegalArgumentException("No Valid metadata file found for Path:" + path.toString());
+        throw new IllegalArgumentException("No valid metadata file found for path " + path);
       }
     }
   }
  catch (  Exception e) {
-    throw new RuntimeException(e);
+    throw new RuntimeException("Error getting schema for path " + path,e);
   }
 }
