@@ -31,10 +31,7 @@
       List<Schema> schemas=new ArrayList<Schema>();
       for (      FileStatus status : statuses) {
         if (!HadoopUtils.shouldPathBeIgnored(status.getPath())) {
-          if (!checkSameSchema) {
-            return getSchemaFromPath(fs,status.getPath(),checkSameSchema);
-          }
-          schemas.add(getSchemaFromPath(fs,status.getPath(),checkSameSchema));
+          schemas.add(getSchemaFromPath(fs,status.getPath()));
         }
       }
       if (schemas.size() > 0) {
