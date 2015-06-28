@@ -16,7 +16,7 @@
     stats=new HdfsCopyStats(sourceFileUrl,destination,enableStatsFile,maxVersionsStatsFile,isFile,new HdfsPathInfo(fs,path));
     jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
     logger.info("Starting fetch for : " + sourceFileUrl);
-    boolean result=fetch(fs,path,destination,stats);
+    boolean result=fetch(fs,path,destination,status,stats,storeName,pushVersion,metadataStore);
     logger.info("Completed fetch : " + sourceFileUrl);
     fs.close();
     if (result) {
