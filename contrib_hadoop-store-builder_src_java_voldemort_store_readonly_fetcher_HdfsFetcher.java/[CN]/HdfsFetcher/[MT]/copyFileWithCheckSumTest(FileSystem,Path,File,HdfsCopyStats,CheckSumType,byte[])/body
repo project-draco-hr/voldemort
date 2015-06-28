@@ -1,3 +1,4 @@
 {
-  return copyFileWithCheckSum(fs,new HdfsFile(fs.getFileStatus(source)),dest,stats,checkSumType,buffer);
+  FetchStrategy fetchStrategy=new BasicFetchStrategy(this,fs,stats,status,bufferSize);
+  return fetchStrategy.fetch(new HdfsFile(fs.getFileStatus(source)),dest,checkSumType);
 }

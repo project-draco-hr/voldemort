@@ -5,7 +5,7 @@
   FilterInputStream input=null;
   OutputStream output=null;
   long startTimeMS=System.currentTimeMillis();
-  for (int attempt=0; attempt < maxAttempts; attempt++) {
+  for (int attempt=0; attempt < fetcher.getMaxAttempts(); attempt++) {
     boolean success=true;
     long totalBytesRead=0;
     boolean fsOpened=false;
@@ -33,12 +33,12 @@
         if (fileCheckSumGenerator != null) {
           fileCheckSumGenerator.update(buffer,0,read);
         }
-        if (throttler != null) {
-          throttler.maybeThrottle(read);
+        if (fetcher.getThrottler() != null) {
+          fetcher.getThrottler().maybeThrottle(read);
         }
         stats.recordBytes(read);
         totalBytesRead+=read;
-        if (stats.getBytesSinceLastReport() > reportingIntervalBytes) {
+        if (stats.getBytesSinceLastReport() > fetcher.getReportingIntervalBytes()) {
           NumberFormat format=NumberFormat.getNumberInstance();
           format.setMaximumFractionDigits(2);
           logger.info(stats.getTotalBytesCopied() / (1024 * 1024) + " MB copied at " + format.format(stats.getBytesPerSecond() / (1024 * 1024)) + " MB/sec - " + format.format(stats.getPercentCopied()) + " % complete, destination:" + dest);
@@ -62,13 +62,13 @@
       if (te.getCause() != null) {
         logger.error("Cause of error ",te.getCause());
       }
-      if (attempt < maxAttempts - 1) {
-        logger.info("Will retry copying after " + retryDelayMs + " ms");
+      if (attempt < fetcher.getMaxAttempts() - 1) {
+        logger.info("Will retry copying after " + fetcher.getRetryDelayMs() + " ms");
         sleepForRetryDelayMs();
       }
  else {
-        stats.reportFileError(dest,maxAttempts,startTimeMS,te);
-        logger.info("Fetcher giving up copy after " + maxAttempts + " attempts");
+        stats.reportFileError(dest,fetcher.getMaxAttempts(),startTimeMS,te);
+        logger.info("Fetcher giving up copy after " + fetcher.getMaxAttempts() + " attempts");
         throw te;
       }
     }

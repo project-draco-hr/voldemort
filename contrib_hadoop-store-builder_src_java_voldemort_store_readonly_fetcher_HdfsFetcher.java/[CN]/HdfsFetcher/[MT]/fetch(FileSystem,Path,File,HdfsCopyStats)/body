@@ -1,33 +1,23 @@
 {
+  FetchStrategy fetchStrategy=new BasicFetchStrategy(this,fs,stats,status,bufferSize);
   if (!fs.isFile(source)) {
     Utils.mkdirs(dest);
     HdfsDirectory directory=new HdfsDirectory(fs,source);
-    byte[] buffer=new byte[bufferSize];
     HdfsFile metadataFile=directory.getMetadataFile();
     if (metadataFile != null) {
       File copyLocation=new File(dest,metadataFile.getPath().getName());
-      copyFileWithCheckSum(fs,metadataFile,copyLocation,stats,null,buffer);
+      fetchStrategy.fetch(metadataFile,copyLocation,null);
       directory.initializeMetadata(copyLocation);
     }
-    Map<HdfsFile,byte[]> fileCheckSumMap=new HashMap<HdfsFile,byte[]>(directory.getFiles().size());
-    CheckSumType checkSumType=directory.getCheckSumType();
-    for (    HdfsFile file : directory.getFiles()) {
-      String fileName=file.getDiskFileName();
-      File copyLocation=new File(dest,fileName);
-      CheckSum fileCheckSumGenerator=copyFileWithCheckSum(fs,file,copyLocation,stats,checkSumType,buffer);
-      if (fileCheckSumGenerator != null) {
-        fileCheckSumMap.put(file,fileCheckSumGenerator.getCheckSum());
-      }
-    }
+    Map<HdfsFile,byte[]> fileCheckSumMap=fetchStrategy.fetch(directory,dest);
     return directory.validateCheckSum(fileCheckSumMap);
   }
  else   if (allowFetchOfFiles) {
     Utils.mkdirs(dest);
-    byte[] buffer=new byte[bufferSize];
     HdfsFile file=new HdfsFile(fs.getFileStatus(source));
     String fileName=file.getDiskFileName();
     File copyLocation=new File(dest,fileName);
-    copyFileWithCheckSum(fs,file,copyLocation,stats,CheckSumType.NONE,buffer);
+    fetchStrategy.fetch(file,copyLocation,CheckSumType.NONE);
     return true;
   }
   logger.error("Source " + source.toString() + " should be a directory");

@@ -1,0 +1,13 @@
+{
+  Map<HdfsFile,byte[]> fileCheckSumMap=new HashMap<HdfsFile,byte[]>(directory.getFiles().size());
+  CheckSumType checkSumType=directory.getCheckSumType();
+  for (  HdfsFile file : directory.getFiles()) {
+    String fileName=file.getDiskFileName();
+    File copyLocation=new File(dest,fileName);
+    CheckSum fileCheckSumGenerator=copyFileWithCheckSum(file,copyLocation,checkSumType);
+    if (fileCheckSumGenerator != null) {
+      fileCheckSumMap.put(file,fileCheckSumGenerator.getCheckSum());
+    }
+  }
+  return fileCheckSumMap;
+}
