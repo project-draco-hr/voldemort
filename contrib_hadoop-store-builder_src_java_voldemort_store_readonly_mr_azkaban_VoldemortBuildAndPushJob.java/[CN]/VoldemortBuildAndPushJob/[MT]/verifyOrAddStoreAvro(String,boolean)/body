@@ -6,8 +6,8 @@
   String description=props.getString(PUSH_STORE_DESCRIPTION,"");
   String owners=props.getString(PUSH_STORE_OWNERS,"");
   String serializerName;
-  if (isVersioned)   serializerName=AVRO_GENERIC_VERSIONED_TYPE_NAME;
- else   serializerName=AVRO_GENERIC_TYPE_NAME;
+  if (isVersioned)   serializerName=DefaultSerializerFactory.AVRO_GENERIC_VERSIONED_TYPE_NAME;
+ else   serializerName=DefaultSerializerFactory.AVRO_GENERIC_TYPE_NAME;
   boolean hasCompression=false;
   if (props.containsKey(BUILD_COMPRESS_VALUE)) {
     hasCompression=true;
@@ -73,9 +73,7 @@ catch (  Exception e) {
         throw new VoldemortException("Error in adding store definition from: " + url,e);
       }
     }
-    AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());
     storeDefs=ImmutableList.of(VoldemortUtils.getStoreDef(VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,props.containsKey(BUILD_PREFERRED_READS) ? props.getInt(BUILD_PREFERRED_READS) : null,props.containsKey(BUILD_PREFERRED_WRITES) ? props.getInt(BUILD_PREFERRED_WRITES) : null,returnSchemaObj.keySchema,returnSchemaObj.valSchema)));
-    cluster=adminClient.getAdminClientCluster();
-    adminClient.close();
+    cluster=adminClientPerCluster.get(url).getAdminClientCluster();
   }
 }

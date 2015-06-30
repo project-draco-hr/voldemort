@@ -1,16 +1,3 @@
 {
-  Map<String,Long> storeToMaxVersion=Maps.newHashMapWithExpectedSize(storeNames.size());
-  for (  String storeName : storeNames) {
-    storeToMaxVersion.put(storeName,0L);
-  }
-  for (  Node node : currentCluster.getNodes()) {
-    Map<String,Long> currentNodeVersions=getROMaxVersion(node.getId(),storeNames);
-    for (    String storeName : currentNodeVersions.keySet()) {
-      Long maxVersion=storeToMaxVersion.get(storeName);
-      if (maxVersion != null && maxVersion < currentNodeVersions.get(storeName)) {
-        storeToMaxVersion.put(storeName,currentNodeVersions.get(storeName));
-      }
-    }
-  }
-  return storeToMaxVersion;
+  return getROMaxVersion(storeNames,0);
 }

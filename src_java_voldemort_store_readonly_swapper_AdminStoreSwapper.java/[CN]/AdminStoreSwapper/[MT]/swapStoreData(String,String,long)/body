@@ -1,0 +1,9 @@
+{
+  Map<Integer,Response> fetchResponseMap=invokeFetch(storeName,basePath,pushVersion);
+  invokeSwap(storeName,fetchResponseMap);
+  for (  AdminStoreSwapper.Response response : fetchResponseMap.values()) {
+    if (!response.isSuccessful()) {
+      throw new RecoverableFailedFetchException("Swap succeeded in under-replicated mode. Rethrowing original fetch exception.",response.getException());
+    }
+  }
+}

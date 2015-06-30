@@ -2,10 +2,22 @@
   JNAUtils.tryMlockall();
   logger.info("Starting " + basicServices.size() + " services.");
   long start=System.currentTimeMillis();
+  boolean goOnline=true;
   for (  VoldemortService service : basicServices) {
-    service.start();
+    try {
+      service.start();
+    }
+ catch (    DisabledStoreException e) {
+      logger.error("Got a DisabledStoreException from " + service.getType().getDisplayName(),e);
+      goOnline=false;
+    }
   }
-  startOnlineServices();
+  if (goOnline) {
+    startOnlineServices();
+  }
+ else {
+    goOffline();
+  }
   long end=System.currentTimeMillis();
   logger.info("Startup completed in " + (end - start) + " ms.");
 }

@@ -3,13 +3,11 @@
   try {
     Boolean setToOffline=request.getOfflineMode();
     logger.info("Setting OFFLINE_SERVER state to " + setToOffline.toString());
-    metadataStore.setOfflineState(setToOffline);
     if (setToOffline) {
-      server.stopOnlineServices();
+      server.goOffline();
     }
  else {
-      server.createOnlineServices();
-      server.startOnlineServices();
+      server.goOnline();
     }
   }
  catch (  VoldemortException e) {

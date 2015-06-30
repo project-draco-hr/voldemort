@@ -3,17 +3,13 @@
     throw new RuntimeException("Description field missing in store definition. " + "Please add \"" + PUSH_STORE_DESCRIPTION + "\" with a line describing your store");
   }
   if (owners.length() == 0) {
-    throw new RuntimeException("Owner field missing in store definition. " + "Please add \"" + PUSH_STORE_OWNERS + "\" with value being comma-separated list of LinkedIn email ids");
+    throw new RuntimeException("Owner field missing in store definition. " + "Please add \"" + PUSH_STORE_OWNERS + "\" with value being a comma-separated list of email addresses.");
   }
   log.info("Could not find store " + storeName + " on Voldemort. Adding it to all nodes ");
-  AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());
   try {
-    adminClient.storeMgmtOps.addStore(newStoreDef);
+    adminClientPerCluster.get(url).storeMgmtOps.addStore(newStoreDef);
   }
  catch (  VoldemortException ve) {
-    throw new RuntimeException("Exception during adding store" + ve.getMessage());
-  }
- finally {
-    adminClient.close();
+    throw new RuntimeException("Exception while adding store",ve);
   }
 }

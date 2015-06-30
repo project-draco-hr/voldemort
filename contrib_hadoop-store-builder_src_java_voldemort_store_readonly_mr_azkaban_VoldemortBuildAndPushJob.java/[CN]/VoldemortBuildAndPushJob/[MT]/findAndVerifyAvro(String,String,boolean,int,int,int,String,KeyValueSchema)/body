@@ -2,71 +2,65 @@
   log.info("Verifying store: \n" + newStoreDefXml.toString());
   StoreDefinition newStoreDef=VoldemortUtils.getStoreDef(newStoreDefXml);
   log.info("Getting store definition from: " + url + " (node id "+ this.nodeId+ ")");
-  AdminClient adminClient=new AdminClient(url,new AdminClientConfig(),new ClientConfig());
-  try {
-    List<StoreDefinition> remoteStoreDefs=adminClient.metadataMgmtOps.getRemoteStoreDefList(this.nodeId).getValue();
-    boolean foundStore=false;
-    for (    StoreDefinition remoteStoreDef : remoteStoreDefs) {
-      if (remoteStoreDef.getName().equals(storeName)) {
-        if (!remoteStoreDef.equals(newStoreDef)) {
-          SerializerDefinition localKeySerializerDef=newStoreDef.getKeySerializer();
-          SerializerDefinition localValueSerializerDef=newStoreDef.getValueSerializer();
-          SerializerDefinition remoteKeySerializerDef=remoteStoreDef.getKeySerializer();
-          SerializerDefinition remoteValueSerializerDef=remoteStoreDef.getValueSerializer();
-          if (remoteKeySerializerDef.getName().equals(serializerName) && remoteValueSerializerDef.getName().equals(serializerName)) {
-            Schema remoteKeyDef=Schema.parse(remoteKeySerializerDef.getCurrentSchemaInfo());
-            Schema remoteValDef=Schema.parse(remoteValueSerializerDef.getCurrentSchemaInfo());
-            Schema localKeyDef=Schema.parse(localKeySerializerDef.getCurrentSchemaInfo());
-            Schema localValDef=Schema.parse(localValueSerializerDef.getCurrentSchemaInfo());
-            if (remoteKeyDef.equals(localKeyDef) && remoteValDef.equals(localValDef)) {
-              String compressionPolicy="";
-              if (hasCompression) {
-                compressionPolicy="\n\t\t<compression><type>gzip</type></compression>";
-              }
-              String keySerializerStr="\n\t\t<type>" + remoteKeySerializerDef.getName() + "</type>";
-              if (remoteKeySerializerDef.hasVersion()) {
-                Map<Integer,String> versions=new HashMap<Integer,String>();
-                for (                Map.Entry<Integer,String> entry : remoteKeySerializerDef.getAllSchemaInfoVersions().entrySet()) {
-                  keySerializerStr+="\n\t\t <schema-info version=\"" + entry.getKey() + "\">"+ entry.getValue()+ "</schema-info>\n\t";
-                }
-              }
- else {
-                keySerializerStr="\n\t\t<type>" + serializerName + "</type>\n\t\t<schema-info version=\"0\">"+ remoteKeySerializerDef.getCurrentSchemaInfo()+ "</schema-info>\n\t";
-              }
-              schemaObj.keySchema=keySerializerStr;
-              String valueSerializerStr="\n\t\t<type>" + remoteValueSerializerDef.getName() + "</type>";
-              if (remoteValueSerializerDef.hasVersion()) {
-                Map<Integer,String> versions=new HashMap<Integer,String>();
-                for (                Map.Entry<Integer,String> entry : remoteValueSerializerDef.getAllSchemaInfoVersions().entrySet()) {
-                  valueSerializerStr+="\n\t\t <schema-info version=\"" + entry.getKey() + "\">"+ entry.getValue()+ "</schema-info>\n\t";
-                }
-                valueSerializerStr+=compressionPolicy + "\n\t";
-              }
- else {
-                valueSerializerStr="\n\t\t<type>" + serializerName + "</type>\n\t\t<schema-info version=\"0\">"+ remoteValueSerializerDef.getCurrentSchemaInfo()+ "</schema-info>"+ compressionPolicy+ "\n\t";
-              }
-              schemaObj.valSchema=valueSerializerStr;
-              newStoreDefXml=VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,props.containsKey(BUILD_PREFERRED_READS) ? props.getInt(BUILD_PREFERRED_READS) : null,props.containsKey(BUILD_PREFERRED_WRITES) ? props.getInt(BUILD_PREFERRED_WRITES) : null,keySerializerStr,valueSerializerStr);
-              newStoreDef=VoldemortUtils.getStoreDef(newStoreDefXml);
-              if (!remoteStoreDef.equals(newStoreDef)) {
-                throw new RuntimeException("Your store schema is identical, but the store definition does not match. Have: " + newStoreDef + "\nBut expected: "+ remoteStoreDef);
+  List<StoreDefinition> remoteStoreDefs=adminClientPerCluster.get(url).metadataMgmtOps.getRemoteStoreDefList(this.nodeId).getValue();
+  boolean foundStore=false;
+  for (  StoreDefinition remoteStoreDef : remoteStoreDefs) {
+    if (remoteStoreDef.getName().equals(storeName)) {
+      if (!remoteStoreDef.equals(newStoreDef)) {
+        SerializerDefinition localKeySerializerDef=newStoreDef.getKeySerializer();
+        SerializerDefinition localValueSerializerDef=newStoreDef.getValueSerializer();
+        SerializerDefinition remoteKeySerializerDef=remoteStoreDef.getKeySerializer();
+        SerializerDefinition remoteValueSerializerDef=remoteStoreDef.getValueSerializer();
+        if (remoteKeySerializerDef.getName().equals(serializerName) && remoteValueSerializerDef.getName().equals(serializerName)) {
+          Schema remoteKeyDef=Schema.parse(remoteKeySerializerDef.getCurrentSchemaInfo());
+          Schema remoteValDef=Schema.parse(remoteValueSerializerDef.getCurrentSchemaInfo());
+          Schema localKeyDef=Schema.parse(localKeySerializerDef.getCurrentSchemaInfo());
+          Schema localValDef=Schema.parse(localValueSerializerDef.getCurrentSchemaInfo());
+          if (remoteKeyDef.equals(localKeyDef) && remoteValDef.equals(localValDef)) {
+            String compressionPolicy="";
+            if (hasCompression) {
+              compressionPolicy="\n\t\t<compression><type>gzip</type></compression>";
+            }
+            String keySerializerStr="\n\t\t<type>" + remoteKeySerializerDef.getName() + "</type>";
+            if (remoteKeySerializerDef.hasVersion()) {
+              Map<Integer,String> versions=new HashMap<Integer,String>();
+              for (              Map.Entry<Integer,String> entry : remoteKeySerializerDef.getAllSchemaInfoVersions().entrySet()) {
+                keySerializerStr+="\n\t\t <schema-info version=\"" + entry.getKey() + "\">"+ entry.getValue()+ "</schema-info>\n\t";
               }
             }
  else {
-              throw new RuntimeException("Your store definition does not match the store definition that is already in the cluster. Tried to resolve identical schemas between local and remote, but failed. Have: " + newStoreDef + "\nBut expected: "+ remoteStoreDef);
+              keySerializerStr="\n\t\t<type>" + serializerName + "</type>\n\t\t<schema-info version=\"0\">"+ remoteKeySerializerDef.getCurrentSchemaInfo()+ "</schema-info>\n\t";
+            }
+            schemaObj.keySchema=keySerializerStr;
+            String valueSerializerStr="\n\t\t<type>" + remoteValueSerializerDef.getName() + "</type>";
+            if (remoteValueSerializerDef.hasVersion()) {
+              Map<Integer,String> versions=new HashMap<Integer,String>();
+              for (              Map.Entry<Integer,String> entry : remoteValueSerializerDef.getAllSchemaInfoVersions().entrySet()) {
+                valueSerializerStr+="\n\t\t <schema-info version=\"" + entry.getKey() + "\">"+ entry.getValue()+ "</schema-info>\n\t";
+              }
+              valueSerializerStr+=compressionPolicy + "\n\t";
+            }
+ else {
+              valueSerializerStr="\n\t\t<type>" + serializerName + "</type>\n\t\t<schema-info version=\"0\">"+ remoteValueSerializerDef.getCurrentSchemaInfo()+ "</schema-info>"+ compressionPolicy+ "\n\t";
+            }
+            schemaObj.valSchema=valueSerializerStr;
+            newStoreDefXml=VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,props.containsKey(BUILD_PREFERRED_READS) ? props.getInt(BUILD_PREFERRED_READS) : null,props.containsKey(BUILD_PREFERRED_WRITES) ? props.getInt(BUILD_PREFERRED_WRITES) : null,keySerializerStr,valueSerializerStr);
+            newStoreDef=VoldemortUtils.getStoreDef(newStoreDefXml);
+            if (!remoteStoreDef.equals(newStoreDef)) {
+              throw new RuntimeException("Your store schema is identical, but the store definition does not match. Have: " + newStoreDef + "\nBut expected: "+ remoteStoreDef);
             }
           }
  else {
-            throw new RuntimeException("Your store definition does not match the store definition that is already in the cluster. Have: " + newStoreDef + "\nBut expected: "+ remoteStoreDef);
+            throw new RuntimeException("Your store definition does not match the store definition that is already in the cluster. Tried to resolve identical schemas between local and remote, but failed. Have: " + newStoreDef + "\nBut expected: "+ remoteStoreDef);
           }
         }
-        foundStore=true;
-        break;
+ else {
+          throw new RuntimeException("Your store definition does not match the store definition that is already in the cluster. Have: " + newStoreDef + "\nBut expected: "+ remoteStoreDef);
+        }
       }
+      foundStore=true;
+      break;
     }
-    return foundStore;
   }
-  finally {
-    adminClient.close();
-  }
+  return foundStore;
 }

@@ -1,14 +1,18 @@
 {
   if (running.get() == true) {
-    for (    Future result : httpFutureResults) {
-      try {
-        result.get();
-      }
- catch (      Exception e) {
-        this.log.error("Exception while getting the result of the " + getName() + "'s HTTP request...",e);
+    this.executorService.shutdown();
+    try {
+      if (!this.executorService.awaitTermination(60,TimeUnit.SECONDS)) {
+        this.executorService.shutdownNow();
+        if (!this.executorService.awaitTermination(60,TimeUnit.SECONDS))         this.log.error("HttpHook [" + getName() + "] did not terminate cleanly.");
       }
     }
-    this.executorService.shutdown();
-    running.set(false);
+ catch (    InterruptedException ie) {
+      this.executorService.shutdownNow();
+      Thread.currentThread().interrupt();
+    }
+ finally {
+      running.set(false);
+    }
   }
 }

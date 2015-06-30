@@ -1,0 +1,51 @@
+{
+  OptionParser parser=new OptionParser();
+  parser.accepts("help","print usage information");
+  parser.accepts("cluster","[REQUIRED] the voldemort cluster.xml file ").withRequiredArg().describedAs("cluster.xml");
+  parser.accepts("name","[REQUIRED] the name of the store to swap").withRequiredArg().describedAs("store-name");
+  parser.accepts("file","[REQUIRED] uri of a directory containing the new store files").withRequiredArg().describedAs("uri");
+  parser.accepts("timeout","http timeout for the fetch in ms").withRequiredArg().describedAs("timeout ms").ofType(Integer.class);
+  parser.accepts("rollback","Rollback store to older version");
+  parser.accepts("push-version","[REQUIRED] Version of push to fetch / rollback-to").withRequiredArg().ofType(Long.class);
+  OptionSet options=parser.parse(args);
+  if (options.has("help")) {
+    parser.printHelpOn(System.out);
+    System.exit(0);
+  }
+  Set<String> missing=CmdUtils.missing(options,"cluster","name","file","push-version");
+  if (missing.size() > 0) {
+    if (!(missing.equals(ImmutableSet.of("file")) && (options.has("rollback")))) {
+      System.err.println("Missing required arguments: " + Joiner.on(", ").join(missing));
+      parser.printHelpOn(System.err);
+      System.exit(1);
+    }
+  }
+  String clusterXml=(String)options.valueOf("cluster");
+  String storeName=(String)options.valueOf("name");
+  String filePath=(String)options.valueOf("file");
+  int timeoutMs=CmdUtils.valueOf(options,"timeout",(int)(3 * Time.SECONDS_PER_HOUR * Time.MS_PER_SECOND));
+  boolean rollbackStore=options.has("rollback");
+  Long pushVersion=(Long)options.valueOf("push-version");
+  String clusterStr=FileUtils.readFileToString(new File(clusterXml));
+  Cluster cluster=new ClusterMapper().readCluster(new StringReader(clusterStr));
+  ExecutorService executor=Executors.newFixedThreadPool(cluster.getNumberOfNodes());
+  AdminClient adminClient=new AdminClient(cluster,new AdminClientConfig(),new ClientConfig());
+  AdminStoreSwapper swapper=new AdminStoreSwapper(cluster,executor,adminClient,timeoutMs);
+  try {
+    long start=System.currentTimeMillis();
+    if (rollbackStore) {
+      swapper.invokeRollback(storeName,pushVersion.longValue());
+    }
+ else {
+      swapper.swapStoreData(storeName,filePath,pushVersion.longValue());
+    }
+    long end=System.currentTimeMillis();
+    logger.info("Succeeded on all nodes in " + ((end - start) / Time.MS_PER_SECOND) + " seconds.");
+  }
+  finally {
+    if (adminClient != null)     adminClient.close();
+    executor.shutdownNow();
+    executor.awaitTermination(1,TimeUnit.SECONDS);
+  }
+  System.exit(0);
+}

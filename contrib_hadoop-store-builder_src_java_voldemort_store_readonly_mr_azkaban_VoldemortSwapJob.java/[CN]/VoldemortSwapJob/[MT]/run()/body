@@ -1,9 +1,4 @@
 {
-  String dataDir=swapConf.getDataDir();
-  String storeName=swapConf.getStoreName();
-  int httpTimeoutMs=swapConf.getHttpTimeoutMs();
-  long pushVersion=swapConf.getPushVersion();
-  Cluster cluster=swapConf.getCluster();
   ExecutorService executor=Executors.newCachedThreadPool();
   JobConf conf=new JobConf();
   Path dataPath=new Path(dataDir);
@@ -17,14 +12,14 @@
   }
   info("Existing protocol = " + existingProtocol + " and port = "+ existingPort);
   if (hdfsFetcherProtocol.length() > 0 && hdfsFetcherPort.length() > 0) {
-    dataDir=dataDir.replaceFirst(existingProtocol,this.hdfsFetcherProtocol);
-    dataDir=dataDir.replaceFirst(existingPort,this.hdfsFetcherPort);
+    dataDir=dataDir.replaceFirst(existingProtocol,hdfsFetcherProtocol);
+    dataDir=dataDir.replaceFirst(existingPort,hdfsFetcherPort);
   }
-  AdminClient client=new AdminClient(cluster,new AdminClientConfig().setMaxConnectionsPerNode(cluster.getNumberOfNodes()).setAdminConnectionTimeoutSec(httpTimeoutMs / 1000).setMaxBackoffDelayMs(swapConf.getMaxBackoffDelayMs()),new ClientConfig());
+  AdminClient client=new AdminClient(cluster,new AdminClientConfig().setMaxConnectionsPerNode(cluster.getNumberOfNodes()).setAdminConnectionTimeoutSec(httpTimeoutMs / 1000).setMaxBackoffDelayMs(maxBackoffDelayMs),new ClientConfig());
   if (pushVersion == -1L) {
     ArrayList<String> stores=new ArrayList<String>();
     stores.add(storeName);
-    Map<String,Long> pushVersions=client.readonlyOps.getROMaxVersion(stores);
+    Map<String,Long> pushVersions=client.readonlyOps.getROMaxVersion(stores,maxNodeFailures);
     if (pushVersions == null || !pushVersions.containsKey(storeName)) {
       throw new RuntimeException("Push version could not be determined for store " + storeName);
     }
@@ -32,7 +27,7 @@
     pushVersion++;
   }
   info("Initiating swap of " + storeName + " with dataDir:"+ dataDir);
-  AdminStoreSwapper swapper=new AdminStoreSwapper(cluster,executor,client,httpTimeoutMs,swapConf.getRollback(),swapConf.getRollback());
+  AdminStoreSwapper swapper=new AdminStoreSwapper(cluster,executor,client,httpTimeoutMs,rollbackFailedSwap,failedFetchStrategyList);
   swapper.swapStoreData(storeName,dataDir,pushVersion);
   info("Swap complete.");
   executor.shutdownNow();

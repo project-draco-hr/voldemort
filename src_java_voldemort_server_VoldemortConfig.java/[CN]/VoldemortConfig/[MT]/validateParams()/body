@@ -14,4 +14,10 @@
   if (numRestServiceNettyServerBacklog < 0)   throw new ConfigurationException("num.rest.service.netty.server.backlog cannot be negative");
   if (restServiceStorageThreadPoolQueueSize < 0)   throw new ConfigurationException("rest.service.storage.thread.pool.queue.size cannot be negative.");
   if (maxHttpAggregatedContentLength <= 0)   throw new ConfigurationException("max.http.aggregated.content.length must be positive");
+  if (this.highAvailabilityPushEnabled) {
+    if (this.highAvailabilityPushClusterId == null)     throw new ConfigurationException(PUSH_HA_CLUSTER_ID + " must be set if " + PUSH_HA_ENABLED+ "=true");
+    if (this.highAvailabilityPushLockPath == null)     throw new ConfigurationException(PUSH_HA_LOCK_PATH + " must be set if " + PUSH_HA_ENABLED+ "=true");
+    if (this.highAvailabilityPushLockImplementation == null)     throw new ConfigurationException(PUSH_HA_LOCK_IMPLEMENTATION + " must be set if " + PUSH_HA_ENABLED+ "=true");
+    if (this.highAvailabilityPushMaxNodeFailures < 1)     throw new ConfigurationException(PUSH_HA_MAX_NODE_FAILURES + " must be 1 or more if " + PUSH_HA_ENABLED+ "=true");
+  }
 }

@@ -1,0 +1,12 @@
+{
+  VAdminProto.DisableStoreVersionRequest request=VAdminProto.DisableStoreVersionRequest.newBuilder().setStoreName(storeName).setPushVersion(storeVersion).setInfo(info).build();
+  VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setDisableStoreVersion(request).setType(VAdminProto.AdminRequestType.DISABLE_STORE_VERSION).build();
+  VAdminProto.DisableStoreVersionResponse.Builder response=rpcOps.sendAndReceive(nodeId,adminRequest,VAdminProto.DisableStoreVersionResponse.newBuilder());
+  if (response.getDisableSuccess()) {
+    logger.info(response.getInfo());
+  }
+ else {
+    logger.error(response.getInfo());
+  }
+  return response.getDisableSuccess();
+}

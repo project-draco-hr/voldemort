@@ -1,7 +1,6 @@
 {
-  super(cluster,executor);
-  this.adminClient=adminClient;
-  this.timeoutMs=timeoutMs;
-  this.deleteFailedFetch=deleteFailedFetch;
-  this.rollbackFailedSwap=rollbackFailedSwap;
+  this(cluster,executor,adminClient,timeoutMs,rollbackFailedSwap,new ArrayList<FailedFetchStrategy>());
+  if (deleteFailedFetch) {
+    failedFetchStrategyList.add(new DeleteAllFailedFetchStrategy(adminClient));
+  }
 }

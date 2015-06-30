@@ -1,0 +1,28 @@
+{
+  Set<Integer> disabledNodes=null;
+  int attempts=1;
+  while (disabledNodes == null && attempts <= maxAttempts) {
+    try {
+      FileStatus[] fileStatusArray=this.fileSystem.listStatus(clusterPath);
+      disabledNodes=Sets.newHashSet();
+      for (      FileStatus fileStatus : fileStatusArray) {
+        String fileName=fileStatus.getPath().getName();
+        if (fileName.startsWith(NODE_ID_DIR_PREFIX)) {
+          Integer nodeId=Integer.parseInt(fileName.substring(NODE_ID_DIR_PREFIX.length()));
+          disabledNodes.add(nodeId);
+        }
+      }
+    }
+ catch (    IOException e) {
+      handleIOException(e,GET_DISABLED_NODES,attempts);
+      wait(waitBetweenRetries);
+      attempts++;
+    }
+  }
+  if (disabledNodes == null) {
+    throw new VoldemortException(exceptionMessage(GET_DISABLED_NODES));
+  }
+ else {
+    return disabledNodes;
+  }
+}

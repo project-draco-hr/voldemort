@@ -1,0 +1,24 @@
+{
+  for (  Long version : versionToEnabledMap.keySet()) {
+    File[] existingVersionDirs=ReadOnlyUtils.getVersionDirs(rootDir,version,version);
+    if (existingVersionDirs.length == 0) {
+      removeVersion(version);
+    }
+  }
+  File[] versionDirs=ReadOnlyUtils.getVersionDirs(rootDir);
+  if (versionDirs != null) {
+    for (    File versionDir : versionDirs) {
+      long versionNumber=ReadOnlyUtils.getVersionId(versionDir);
+      boolean versionEnabled=isVersionEnabled(versionDir);
+      versionToEnabledMap.put(versionNumber,versionEnabled);
+    }
+  }
+  File currentVersionDir=ReadOnlyUtils.getCurrentVersion(rootDir);
+  if (currentVersionDir != null) {
+    currentVersion=ReadOnlyUtils.getVersionId(currentVersionDir);
+  }
+ else {
+    currentVersion=-1;
+  }
+  logger.info("Successfully synced internal state from file-system: " + this.toString());
+}

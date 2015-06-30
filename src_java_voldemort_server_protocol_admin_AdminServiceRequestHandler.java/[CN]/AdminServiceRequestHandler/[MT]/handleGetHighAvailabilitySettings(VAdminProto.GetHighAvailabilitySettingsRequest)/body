@@ -1,0 +1,13 @@
+{
+  logger.info("Received GetHighAvailabilitySettingsRequest");
+  VAdminProto.GetHighAvailabilitySettingsResponse.Builder response=VAdminProto.GetHighAvailabilitySettingsResponse.newBuilder();
+  boolean highAvailabilityPushEnabled=voldemortConfig.isHighAvailabilityPushEnabled();
+  response.setEnabled(highAvailabilityPushEnabled);
+  if (highAvailabilityPushEnabled) {
+    response.setClusterId(voldemortConfig.getHighAvailabilityPushClusterId());
+    response.setMaxNodeFailure(voldemortConfig.getHighAvailabilityPushMaxNodeFailures());
+    response.setLockPath(voldemortConfig.getHighAvailabilityPushLockPath());
+    response.setLockImplementation(voldemortConfig.getHighAvailabilityPushLockImplementation());
+  }
+  return response.build();
+}

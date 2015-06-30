@@ -117,8 +117,14 @@ break;
 case RESERVE_MEMORY:
 ProtoUtils.writeMessage(outputStream,handleReserveMemory(request.getReserveMemory()));
 break;
+case GET_HA_SETTINGS:
+ProtoUtils.writeMessage(outputStream,handleGetHighAvailabilitySettings(request.getGetHaSettings()));
+break;
+case DISABLE_STORE_VERSION:
+ProtoUtils.writeMessage(outputStream,handleDisableStoreVersion(request.getDisableStoreVersion()));
+break;
 default :
-throw new VoldemortException("Unkown operation " + request.getType());
+throw new VoldemortException("Unknown operation: " + request.getType());
 }
 return null;
 }

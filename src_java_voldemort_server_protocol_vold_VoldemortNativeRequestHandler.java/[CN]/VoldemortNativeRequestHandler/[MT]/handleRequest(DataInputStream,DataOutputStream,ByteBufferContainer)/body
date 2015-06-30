@@ -11,7 +11,7 @@
   Store<ByteArray,byte[],byte[]> store=getStore(storeName,routingType);
   if (store == null) {
     clearBuffer(outputContainer);
-    writeException(outputStream,new VoldemortException("No store named '" + storeName + "'."));
+    writeException(outputStream,new VoldemortException("No store named: '" + storeName + "'."));
     return null;
   }
   ClientRequestHandler requestHandler=getClientRequestHanlder(opCode,store);
@@ -21,7 +21,7 @@
   }
  catch (  VoldemortException e) {
     if (!(e instanceof ObsoleteVersionException)) {
-      logger.error("Store" + storeName + ". Error: "+ e.getMessage());
+      logger.error("Store: " + storeName + ". Error: "+ e.getMessage());
     }
     clearBuffer(outputContainer);
     writeException(outputStream,e);
@@ -35,7 +35,7 @@
   requestHandler.writeResponse(outputStream);
   outputStream.flush();
   if (logger.isDebugEnabled()) {
-    String debugPrefix="OpCode " + opCode + " started at: "+ startTimeMs+ " handlerRef: "+ System.identityHashCode(inputStream)+ " Elapsed : "+ (System.nanoTime() - startTimeNs)+ " ns, ";
+    String debugPrefix="OpCode: " + opCode + ", started at: "+ startTimeMs+ ", handlerRef: "+ System.identityHashCode(inputStream)+ ", Elapsed : "+ (System.nanoTime() - startTimeNs)+ " ns, ";
     logger.debug(debugPrefix + requestHandler.getDebugMessage());
   }
   return null;

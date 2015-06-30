@@ -13,33 +13,48 @@
     }
 ));
   }
-  TreeMap<Integer,String> results=Maps.newTreeMap();
-  HashMap<Integer,Exception> exceptions=Maps.newHashMap();
-  for (int nodeId=0; nodeId < cluster.getNumberOfNodes(); nodeId++) {
+  Map<Integer,Response> fetchResponseMap=Maps.newTreeMap();
+  boolean fetchErrors=false;
+  for (  final Node node : cluster.getNodes()) {
+    Integer nodeId=node.getId();
     Future<String> val=fetchDirs.get(nodeId);
     try {
-      results.put(nodeId,val.get());
+      String response=val.get();
+      fetchResponseMap.put(nodeId,new Response(response));
     }
  catch (    Exception e) {
-      exceptions.put(nodeId,new VoldemortException(e));
+      fetchErrors=true;
+      fetchResponseMap.put(nodeId,new Response(e));
     }
   }
-  if (!exceptions.isEmpty()) {
-    if (deleteFailedFetch) {
-      for (      int successfulNodeId : results.keySet()) {
-        try {
-          logger.info("Deleting fetched data from node " + successfulNodeId);
-          adminClient.readonlyOps.failedFetchStore(successfulNodeId,storeName,results.get(successfulNodeId));
+  if (fetchErrors) {
+    for (    Map.Entry<Integer,Response> entry : fetchResponseMap.entrySet()) {
+      if (!entry.getValue().isSuccessful()) {
+        logger.error("Error on node " + entry.getKey() + " during push : ",entry.getValue().getException());
+      }
+    }
+    Iterator<FailedFetchStrategy> strategyIterator=failedFetchStrategyList.iterator();
+    boolean swapIsPossible=false;
+    FailedFetchStrategy strategy=null;
+    while (strategyIterator.hasNext() && !swapIsPossible) {
+      strategy=strategyIterator.next();
+      try {
+        swapIsPossible=strategy.dealWithIt(storeName,pushVersion,fetchResponseMap);
+      }
+ catch (      Exception e) {
+        if (strategyIterator.hasNext()) {
+          logger.error("Got an exception while trying to execute: " + strategy.toString() + ". Continuing with next strategy.",e);
         }
- catch (        Exception e) {
-          logger.error("Exception thrown during delete operation on node " + successfulNodeId + " : ",e);
+ else {
+          logger.error("Got an exception while trying to execute the last remaining strategy: " + strategy.toString() + ". Swap will be aborted.",e);
         }
       }
     }
-    for (    int failedNodeId : exceptions.keySet()) {
-      logger.error("Error on node " + failedNodeId + " during push : ",exceptions.get(failedNodeId));
+    if (swapIsPossible) {
     }
-    throw new VoldemortException("Exception during pushes to nodes " + Joiner.on(",").join(exceptions.keySet()) + " failed");
+ else {
+      throw new VoldemortException("Exception during push. Swap will be aborted.");
+    }
   }
-  return Lists.newArrayList(results.values());
+  return fetchResponseMap;
 }
