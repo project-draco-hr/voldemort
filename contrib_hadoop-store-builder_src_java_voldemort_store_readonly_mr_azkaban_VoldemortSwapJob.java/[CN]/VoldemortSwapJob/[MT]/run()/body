@@ -2,18 +2,26 @@
   ExecutorService executor=Executors.newCachedThreadPool();
   JobConf conf=new JobConf();
   Path dataPath=new Path(dataDir);
-  dataDir=dataPath.makeQualified(FileSystem.get(conf)).toString();
-  String existingProtocol="";
-  String existingPort="";
-  String[] pathComponents=dataDir.split(":");
+  String modifiedDataDir=dataPath.makeQualified(FileSystem.get(conf)).toString();
+  String[] pathComponents=modifiedDataDir.split(":");
   if (pathComponents.length >= 3) {
-    existingProtocol=pathComponents[0];
-    existingPort=pathComponents[2].split("/")[0];
+    String existingProtocol=pathComponents[0];
+    String existingPort=pathComponents[2].split("/")[0];
+    info("Existing protocol = " + existingProtocol + " and port = "+ existingPort);
+    if (hdfsFetcherProtocol.length() > 0 && hdfsFetcherPort.length() > 0) {
+      info("New protocol = " + hdfsFetcherProtocol + " and port = "+ hdfsFetcherPort);
+      modifiedDataDir=modifiedDataDir.replaceFirst(existingProtocol,hdfsFetcherProtocol);
+      modifiedDataDir=modifiedDataDir.replaceFirst(existingPort,hdfsFetcherPort);
+    }
   }
-  info("Existing protocol = " + existingProtocol + " and port = "+ existingPort);
-  if (hdfsFetcherProtocol.length() > 0 && hdfsFetcherPort.length() > 0) {
-    dataDir=dataDir.replaceFirst(existingProtocol,hdfsFetcherProtocol);
-    dataDir=dataDir.replaceFirst(existingPort,hdfsFetcherPort);
+ else {
+    info("The dataDir will not be modified, since it does not contain the expected " + "structure of protocol:hostname:port/some_path");
+  }
+  try {
+    new Path(modifiedDataDir);
+  }
+ catch (  IllegalArgumentException e) {
+    throw new VoldemortException("Could not create a valid data path out of the supplied dataDir: " + dataDir,e);
   }
   AdminClient client=new AdminClient(cluster,new AdminClientConfig().setMaxConnectionsPerNode(cluster.getNumberOfNodes()).setAdminConnectionTimeoutSec(httpTimeoutMs / 1000).setMaxBackoffDelayMs(maxBackoffDelayMs),new ClientConfig());
   if (pushVersion == -1L) {
@@ -26,9 +34,9 @@
     pushVersion=pushVersions.get(storeName);
     pushVersion++;
   }
-  info("Initiating swap of " + storeName + " with dataDir:"+ dataDir);
+  info("Initiating swap of " + storeName + " with dataDir: "+ dataDir);
   AdminStoreSwapper swapper=new AdminStoreSwapper(cluster,executor,client,httpTimeoutMs,rollbackFailedSwap,failedFetchStrategyList);
-  swapper.swapStoreData(storeName,dataDir,pushVersion);
+  swapper.swapStoreData(storeName,modifiedDataDir,pushVersion);
   info("Swap complete.");
   executor.shutdownNow();
   executor.awaitTermination(10,TimeUnit.SECONDS);
