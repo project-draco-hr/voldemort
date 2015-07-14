@@ -1,26 +1,25 @@
 {
-  long rateLimit=getRate();
-  if (logger.isDebugEnabled())   logger.debug("Rate = " + rateLimit);
-  eventsSeenInLastInterval+=eventsSeen;
-  long now=time.getNanoseconds();
-  long ellapsedNs=now - startTime;
-  if (ellapsedNs > intervalMs * Time.NS_PER_MS && eventsSeenInLastInterval > 0) {
-    long eventsPerSec=(eventsSeenInLastInterval * Time.NS_PER_SECOND) / ellapsedNs;
-    if (eventsPerSec > rateLimit) {
-      double maxEventsPerMs=rateLimit / (double)Time.MS_PER_SECOND;
-      long ellapsedMs=ellapsedNs / Time.NS_PER_MS;
-      long sleepTime=Math.round(eventsSeenInLastInterval / maxEventsPerMs - ellapsedMs);
-      if (logger.isDebugEnabled())       logger.debug("Natural rate is " + eventsPerSec + " events/sec max allowed rate is "+ rateLimit+ " events/sec, sleeping for "+ sleepTime+ " ms to compensate.");
-      if (sleepTime > 0) {
-        try {
-          time.sleep(sleepTime);
+  if (maxRatePerSecond > 0) {
+    long now=time.milliseconds();
+    try {
+      rateSensor.record(eventsSeen,now);
+    }
+ catch (    QuotaViolationException e) {
+      double currentRate=e.getValue();
+      if (currentRate > this.maxRatePerSecond) {
+        double excessRate=currentRate - this.maxRatePerSecond;
+        long sleepTimeMs=Math.round(excessRate / this.maxRatePerSecond * voldemort.utils.Time.MS_PER_SECOND);
+        if (logger.isDebugEnabled()) {
+          logger.debug("Throttler quota exceeded:\n" + "eventsSeen \t= " + eventsSeen + " in this call of maybeThrotte(),\n"+ "currentRate \t= "+ currentRate+ " events/sec,\n"+ "maxRatePerSecond \t= "+ this.maxRatePerSecond+ " events/sec,\n"+ "excessRate \t= "+ excessRate+ " events/sec,\n"+ "sleeping for \t"+ sleepTimeMs+ " ms to compensate.\n"+ "rateConfig.timeWindowMs() = "+ rateConfig.timeWindowMs());
         }
- catch (        InterruptedException e) {
-          throw new VoldemortException(e);
+        if (sleepTimeMs > rateConfig.timeWindowMs()) {
+          logger.warn("Throttler sleep time (" + sleepTimeMs + " ms) exceeds "+ "window size ("+ rateConfig.timeWindowMs()+ " ms). This will likely "+ "result in not being able to honor the rate limit accurately.");
         }
+        time.sleep(sleepTimeMs);
+      }
+ else       if (logger.isDebugEnabled()) {
+        logger.debug("Weird. Got QuotaValidationException but measured rate not over rateLimit: " + "currentRate = " + currentRate + " , rateLimit = "+ this.maxRatePerSecond);
       }
     }
-    startTime=now;
-    eventsSeenInLastInterval=0;
   }
 }

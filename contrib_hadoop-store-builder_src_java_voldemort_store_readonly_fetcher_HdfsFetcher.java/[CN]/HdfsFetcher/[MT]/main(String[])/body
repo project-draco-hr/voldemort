@@ -13,14 +13,12 @@
   if (args.length >= 5)   destDir=args[4];
   allowFetchOfFiles=true;
   long maxBytesPerSec=1024 * 1024 * 1024;
-  Path p=new Path(url);
   final Configuration config=new Configuration();
-  final URI uri=new URI(url);
   config.setInt("io.file.buffer.size",VoldemortConfig.DEFAULT_FETCHER_BUFFER_SIZE);
   config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
   config.setInt("io.socket.receive.buffer",1 * 1024 * 1024 - 10000);
   FileSystem fs=null;
-  p=new Path(url);
+  Path p=new Path(url);
   HdfsFetcher.keytabPath=keytabLocation;
   HdfsFetcher.kerberosPrincipal=kerberosUser;
   boolean isHftpBasedFetch=url.length() > 4 && url.substring(0,4).equals("hftp");
@@ -82,7 +80,7 @@ catch (  Throwable te) {
   }
   FileStatus status=fs.listStatus(p)[0];
   long size=status.getLen();
-  HdfsFetcher fetcher=new HdfsFetcher(null,maxBytesPerSec,VoldemortConfig.REPORTING_INTERVAL_BYTES,VoldemortConfig.DEFAULT_FETCHER_BUFFER_SIZE,0,keytabLocation,kerberosUser,5,5000,true,50,VoldemortConfig.DEFAULT_FETCHER_SOCKET_TIMEOUT);
+  HdfsFetcher fetcher=new HdfsFetcher(maxBytesPerSec,VoldemortConfig.REPORTING_INTERVAL_BYTES,VoldemortConfig.DEFAULT_FETCHER_THROTTLE_INTERVAL_WINDOW_MS,VoldemortConfig.DEFAULT_FETCHER_BUFFER_SIZE,keytabLocation,kerberosUser,5,5000,true,50,VoldemortConfig.DEFAULT_FETCHER_SOCKET_TIMEOUT);
   long start=System.currentTimeMillis();
   if (destDir == null)   destDir=System.getProperty("java.io.tmpdir") + File.separator + start;
   File location=fetcher.fetch(url,destDir,null,null,-1,null,hadoopPath);

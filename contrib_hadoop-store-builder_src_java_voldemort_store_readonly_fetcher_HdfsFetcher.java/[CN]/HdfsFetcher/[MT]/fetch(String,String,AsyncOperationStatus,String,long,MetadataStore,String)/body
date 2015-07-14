@@ -1,8 +1,4 @@
 {
-  if (this.globalThrottleLimit != null) {
-    if (this.globalThrottleLimit.getSpeculativeRate() < this.minBytesPerSecond)     throw new VoldemortException("Too many push jobs.");
-    this.globalThrottleLimit.incrementNumJobs();
-  }
   ObjectName jmxName=null;
   HdfsCopyStats stats=null;
   try {
@@ -34,9 +30,6 @@
     throw new VoldemortException("Error thrown while trying to get data from Hadoop filesystem : " + te);
   }
  finally {
-    if (this.globalThrottleLimit != null) {
-      this.globalThrottleLimit.decrementNumJobs();
-    }
     if (jmxName != null)     JmxUtils.unregisterMbean(jmxName);
     if (stats != null) {
       stats.complete();
