@@ -29,16 +29,18 @@
     }
   }
   temporaryDir=createTempROFolder();
-  TreeMap<Integer,AdminStoreSwapper.Response> toSwap=Maps.newTreeMap();
+  TreeMap<Node,AdminStoreSwapper.Response> toSwap=Maps.newTreeMap();
   for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
     if (nodeId != 1) {
+      Node node=cluster.getNodeById(nodeId);
       File versionPlusTwo=new File(baseDirs[nodeId],"version-" + Long.toString(currentVersion + 2));
       Utils.mkdirs(versionPlusTwo);
-      toSwap.put(nodeId,new AdminStoreSwapper.Response(versionPlusTwo.getAbsolutePath()));
+      toSwap.put(node,new AdminStoreSwapper.Response(versionPlusTwo.getAbsolutePath()));
     }
   }
   File versionPlusThree=new File(baseDirs[1],"version-" + Long.toString(currentVersion + 3));
-  toSwap.put(1,new AdminStoreSwapper.Response(versionPlusThree.getAbsolutePath()));
+  Node nodeWithId1=cluster.getNodeById(1);
+  toSwap.put(nodeWithId1,new AdminStoreSwapper.Response(versionPlusThree.getAbsolutePath()));
   swapper.invokeSwap(STORE_NAME,toSwap);
   try {
     swapper.swapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 2);

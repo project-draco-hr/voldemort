@@ -2,13 +2,13 @@
   Exception exception=null;
   for (  Node node : cluster.getNodes()) {
     try {
-      logger.info("Attempting rollback for node " + node.getId() + " storeName = "+ storeName);
+      logger.info("Attempting rollback for " + node.briefToString() + ", storeName = "+ storeName);
       adminClient.readonlyOps.rollbackStore(node.getId(),storeName,pushVersion);
-      logger.info("Rollback succeeded for node " + node.getId());
+      logger.info("Rollback succeeded for " + node.briefToString());
     }
  catch (    Exception e) {
       exception=e;
-      logger.error("Exception thrown during rollback operation on node " + node.getId() + ": ",e);
+      logger.error("Exception thrown during rollback operation on " + node.briefToString() + ": ",e);
     }
   }
   if (exception != null)   throw new VoldemortException(exception);

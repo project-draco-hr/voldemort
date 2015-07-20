@@ -16,28 +16,33 @@
       this.closeables.add(adminClient);
     }
   }
-  if (clusterURLs.size() <= 0)   throw new RuntimeException("Number of urls should be atleast 1");
+  int numberOfClusters=this.clusterURLs.size();
+  if (numberOfClusters <= 0) {
+    throw new RuntimeException("Number of URLs should be at least 1");
+  }
   String dataDirText=props.getString(BUILD_OUTPUT_DIR);
   for (  String dataDir : Utils.COMMA_SEP.split(dataDirText.trim()))   if (dataDir.trim().length() > 0)   this.dataDirs.add(dataDir);
-  if (dataDirs.size() <= 0)   throw new RuntimeException("Number of data dirs should be atleast 1");
+  if (this.dataDirs.size() <= 0)   throw new RuntimeException("Number of data dirs should be at least 1");
   this.nodeId=props.getInt(PUSH_NODE,0);
   this.hdfsFetcherProtocol=props.getString(VOLDEMORT_FETCHER_PROTOCOL,"hftp");
   this.hdfsFetcherPort=props.getString(VOLDEMORT_FETCHER_PORT,"50070");
   log.info(VOLDEMORT_FETCHER_PROTOCOL + " is set to : " + hdfsFetcherProtocol);
   log.info(VOLDEMORT_FETCHER_PORT + " is set to : " + hdfsFetcherPort);
   isAvroJob=props.getBoolean(BUILD_TYPE_AVRO,false);
-  isAvroVersioned=props.getBoolean(AVRO_SERIALIZER_VERSIONED,false);
-  keyFieldName=props.getString(AVRO_KEY_FIELD,null);
-  valueFieldName=props.getString(AVRO_VALUE_FIELD,null);
-  if (isAvroJob) {
-    if (keyFieldName == null)     throw new RuntimeException("The key field must be specified in the properties for the Avro build and push job!");
-    if (valueFieldName == null)     throw new RuntimeException("The value field must be specified in the properties for the Avro build and push job!");
+  this.isAvroVersioned=props.getBoolean(AVRO_SERIALIZER_VERSIONED,false);
+  this.keyFieldName=props.getString(AVRO_KEY_FIELD,null);
+  this.valueFieldName=props.getString(AVRO_VALUE_FIELD,null);
+  if (this.isAvroJob) {
+    if (this.keyFieldName == null)     throw new RuntimeException("The key field must be specified in the properties for the Avro build and push job!");
+    if (this.valueFieldName == null)     throw new RuntimeException("The value field must be specified in the properties for the Avro build and push job!");
   }
-  minNumberOfRecords=props.getLong(MIN_NUMBER_OF_RECORDS,1);
-  pushHighAvailability=props.getBoolean(VoldemortConfig.PUSH_HA_ENABLED,true);
-  heartBeatHookIntervalTime=props.getInt(HEARTBEAT_HOOK_INTERVAL_MS,60000);
-  heartBeatHookRunnable=new HeartBeatHookRunnable(heartBeatHookIntervalTime);
-  String hookNamesText=props.getString(HOOKS,null);
+  this.jsonKeyField=props.getString(KEY_SELECTION,null);
+  this.jsonValueField=props.getString(VALUE_SELECTION,null);
+  this.minNumberOfRecords=props.getLong(MIN_NUMBER_OF_RECORDS,1);
+  this.pushHighAvailability=props.getBoolean(VoldemortConfig.PUSH_HA_ENABLED,true);
+  this.heartBeatHookIntervalTime=props.getInt(HEARTBEAT_HOOK_INTERVAL_MS,60000);
+  this.heartBeatHookRunnable=new HeartBeatHookRunnable(heartBeatHookIntervalTime);
+  String hookNamesText=this.props.getString(HOOKS,null);
   if (hookNamesText != null && !hookNamesText.isEmpty()) {
     for (    String hookName : Utils.COMMA_SEP.split(hookNamesText.trim())) {
       try {
@@ -45,7 +50,7 @@
         try {
           hook.init(props);
           log.info("Initialized BuildAndPushHook [" + hook.getName() + "]");
-          hooks.add(hook);
+          this.hooks.add(hook);
         }
  catch (        Exception e) {
           log.warn("Failed to initialize BuildAndPushHook [" + hook.getName() + "]. It will not be invoked.",e);
@@ -56,4 +61,6 @@
       }
     }
   }
+  this.executorService=Executors.newFixedThreadPool(numberOfClusters);
+  log.info("Build and Push Job constructed for " + numberOfClusters + " cluster(s).");
 }

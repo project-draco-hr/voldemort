@@ -17,6 +17,7 @@
     keySchema=getKeySchema();
     valSchema=getValueSchema();
   }
+  Cluster cluster=adminClientPerCluster.get(url).getAdminClientCluster();
   new VoldemortStoreBuilderJob(this.getId() + "-build-store",props,new VoldemortStoreBuilderConf(replicationFactor,chunkSize,tempDir,outputDir,inputPath,cluster,storeDefs,storeName,checkSumType,saveKeys,reducerPerBucket,numChunks,keyFieldName,valueFieldName,recSchema,keySchema,valSchema,isAvroJob,minNumberOfRecords)).run();
   return outputDir.toString();
 }

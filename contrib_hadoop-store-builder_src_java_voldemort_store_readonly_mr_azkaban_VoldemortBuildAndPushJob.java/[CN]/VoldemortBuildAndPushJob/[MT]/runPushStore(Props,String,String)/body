@@ -40,6 +40,7 @@ catch (    Exception e) {
   if (rollback) {
     failedFetchStrategyList.add(new DeleteAllFailedFetchStrategy(adminClientPerCluster.get(url)));
   }
+  Cluster cluster=adminClientPerCluster.get(url).getAdminClientCluster();
   log.info("Push starting for cluster: " + url);
-  new VoldemortSwapJob(this.getId() + "-push-store",cluster,dataDir,storeName,httpTimeoutMs,pushVersion,maxBackoffDelayMs,rollback,hdfsFetcherProtocol,hdfsFetcherPort,maxNodeFailures,failedFetchStrategyList).run();
+  new VoldemortSwapJob(this.getId() + "-push-store",cluster,dataDir,storeName,httpTimeoutMs,pushVersion,maxBackoffDelayMs,rollback,hdfsFetcherProtocol,hdfsFetcherPort,maxNodeFailures,failedFetchStrategyList,url).run();
 }

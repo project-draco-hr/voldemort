@@ -8,8 +8,6 @@
   try {
     boolean build=props.getBoolean(BUILD,true);
     boolean push=props.getBoolean(PUSH,true);
-    jsonKeyField=props.getString(KEY_SELECTION,null);
-    jsonValueField=props.getString(VALUE_SELECTION,null);
     checkForPreconditions(build,push);
     try {
       allClustersEqual(clusterURLs);
@@ -19,7 +17,7 @@
       fail("Exception during cluster equality check: " + e.toString());
       return;
     }
-    reducerOutputCompressionCodec=getMatchingServerSupportedCompressionCodec(nodeId);
+    String reducerOutputCompressionCodec=getMatchingServerSupportedCompressionCodec(nodeId);
     if (reducerOutputCompressionCodec != null) {
       log.info("Using compression codec: " + reducerOutputCompressionCodec);
       props.put(REDUCER_OUTPUT_COMPRESS,"true");
@@ -30,6 +28,7 @@
     }
     HashMap<String,Exception> exceptions=Maps.newHashMap();
     String buildOutputDir=null;
+    Map<String,Future<Boolean>> tasks=Maps.newHashMap();
     for (int index=0; index < clusterURLs.size(); index++) {
       String url=clusterURLs.get(index);
       if (isAvroJob) {
@@ -45,35 +44,38 @@
             buildOutputDir=runBuildStore(props,url);
           }
  catch (          Exception e) {
-            log.error("Exception during build for url " + url,e);
+            log.error("Exception during build for URL: " + url,e);
             exceptions.put(url,e);
           }
         }
       }
       if (push) {
-        if (log.isDebugEnabled()) {
-          log.debug("Informing about push start ...");
+        log.info("Pushing to cluster URL: " + clusterURLs.get(index));
+        if (!build) {
+          buildOutputDir=dataDirs.get(index);
         }
-        log.info("Pushing to cluster url " + clusterURLs.get(index));
-        try {
-          if (!build) {
-            buildOutputDir=dataDirs.get(index);
-          }
-          if (buildOutputDir == null) {
-            continue;
-          }
-          invokeHooks(BuildAndPushStatus.PUSHING,url);
-          runPushStore(props,url,buildOutputDir);
-          invokeHooks(BuildAndPushStatus.SWAPPED,url);
+        if (buildOutputDir == null) {
+          continue;
         }
- catch (        RecoverableFailedFetchException e) {
-          log.warn("There was a problem with some of the fetches, but a swap was still able to go through!",e);
-          invokeHooks(BuildAndPushStatus.SWAPPED_WITH_FAILURES,url);
-        }
-catch (        Exception e) {
-          log.error("Exception during push for url " + url,e);
-          exceptions.put(url,e);
-        }
+        tasks.put(url,executorService.submit(new StorePushTask(props,url,buildOutputDir)));
+      }
+    }
+    for (    Map.Entry<String,Future<Boolean>> task : tasks.entrySet()) {
+      String url=task.getKey();
+      Boolean success=false;
+      try {
+        success=task.getValue().get();
+      }
+ catch (      RecoverableFailedFetchException e) {
+        log.warn("There was a problem with some of the fetches, " + "but a swap was still able to go through for URL: " + url,e);
+        invokeHooks(BuildAndPushStatus.SWAPPED_WITH_FAILURES,url);
+      }
+catch (      Exception e) {
+        log.error("Exception during push for URL: " + url,e);
+        exceptions.put(url,e);
+      }
+      if (success) {
+        log.info("Successfully pushed to URL: " + url);
       }
     }
     if (build && push && buildOutputDir != null && !props.getBoolean(BUILD_OUTPUT_KEEP,false)) {

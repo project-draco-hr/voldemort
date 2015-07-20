@@ -4,33 +4,32 @@
     fetchDirs.put(node.getId(),executor.submit(new Callable<String>(){
       public String call() throws Exception {
         String storeDir=basePath + "/node-" + node.getId();
-        logger.info("Invoking fetch for node " + node.getId() + " for "+ storeDir);
+        logger.info("Invoking fetch for " + node.briefToString() + " for "+ storeDir);
         String response=adminClient.readonlyOps.fetchStore(node.getId(),storeName,storeDir,pushVersion,timeoutMs);
-        if (response == null)         throw new VoldemortException("Fetch request on node " + node.getId() + " ("+ node.getHost()+ ") failed");
-        logger.info("Fetch succeeded on node " + node.getId());
+        if (response == null)         throw new VoldemortException("Fetch request on " + node.briefToString() + " failed");
+        logger.info("Fetch succeeded on " + node.briefToString());
         return response.trim();
       }
     }
 ));
   }
-  Map<Integer,Response> fetchResponseMap=Maps.newTreeMap();
+  Map<Node,Response> fetchResponseMap=Maps.newTreeMap();
   boolean fetchErrors=false;
   for (  final Node node : cluster.getNodes()) {
-    Integer nodeId=node.getId();
-    Future<String> val=fetchDirs.get(nodeId);
+    Future<String> val=fetchDirs.get(node.getId());
     try {
       String response=val.get();
-      fetchResponseMap.put(nodeId,new Response(response));
+      fetchResponseMap.put(node,new Response(response));
     }
  catch (    Exception e) {
       fetchErrors=true;
-      fetchResponseMap.put(nodeId,new Response(e));
+      fetchResponseMap.put(node,new Response(e));
     }
   }
   if (fetchErrors) {
-    for (    Map.Entry<Integer,Response> entry : fetchResponseMap.entrySet()) {
+    for (    Map.Entry<Node,Response> entry : fetchResponseMap.entrySet()) {
       if (!entry.getValue().isSuccessful()) {
-        logger.error("Error on node " + entry.getKey() + " during push : ",entry.getValue().getException());
+        logger.error("Error on " + entry.getKey().briefToString() + " during push : ",entry.getValue().getException());
       }
     }
     Iterator<FailedFetchStrategy> strategyIterator=failedFetchStrategyList.iterator();

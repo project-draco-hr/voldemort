@@ -1,0 +1,39 @@
+{
+  Map<Node,String> previousDirs=Maps.newHashMap();
+  HashMap<Node,Exception> exceptions=Maps.newHashMap();
+  for (  Map.Entry<Node,Response> entry : fetchResponseMap.entrySet()) {
+    Response response=entry.getValue();
+    if (response.isSuccessful()) {
+      Node node=entry.getKey();
+      Integer nodeId=node.getId();
+      String dir=response.getResponse();
+      try {
+        logger.info("Attempting swap for " + node.briefToString() + ", dir = "+ dir);
+        previousDirs.put(node,adminClient.readonlyOps.swapStore(nodeId,storeName,dir));
+        logger.info("Swap succeeded for " + node.briefToString());
+      }
+ catch (      Exception e) {
+        exceptions.put(node,e);
+      }
+    }
+  }
+  if (!exceptions.isEmpty()) {
+    if (rollbackFailedSwap) {
+      for (      Node node : previousDirs.keySet()) {
+        try {
+          int successfulNodeId=node.getId();
+          logger.info("Rolling back data on successful " + node.briefToString());
+          adminClient.readonlyOps.rollbackStore(successfulNodeId,storeName,ReadOnlyUtils.getVersionId(new File(previousDirs.get(node))));
+          logger.info("Rollback succeeded for " + node.briefToString());
+        }
+ catch (        Exception e) {
+          logger.error("Exception thrown during rollback ( after swap ) operation on " + node.briefToString() + ": ",e);
+        }
+      }
+    }
+    for (    Node node : exceptions.keySet()) {
+      logger.error("Error on " + node.briefToString() + " during swap : ",exceptions.get(node));
+    }
+    throw new VoldemortException("Exception during swaps on nodes " + Joiner.on(",").join(exceptions.keySet()) + " failed");
+  }
+}

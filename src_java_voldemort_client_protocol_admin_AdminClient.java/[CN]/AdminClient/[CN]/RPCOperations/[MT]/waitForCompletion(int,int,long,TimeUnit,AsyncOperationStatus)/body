@@ -6,6 +6,7 @@
   }
   String description=null;
   String oldStatus="";
+  String nodeName=currentCluster.getNodeById(nodeId).briefToString();
   long oldStatusTime=-1;
   long lastStatusReportTime=-1;
   final long maxUnchangingStatusDelay=adminClientConfig.getMaxBackoffDelayMs() * 10;
@@ -14,25 +15,25 @@
       AsyncOperationStatus status=getAsyncRequestStatus(nodeId,requestId);
       long statusResponseTime=System.currentTimeMillis();
       if (!status.getStatus().equalsIgnoreCase(oldStatus)) {
-        logger.info("Status from node [" + nodeId + "] "+ status);
+        logger.info(nodeName + " : " + status);
         oldStatusTime=statusResponseTime;
         lastStatusReportTime=oldStatusTime;
       }
  else       if (statusResponseTime - lastStatusReportTime > maxUnchangingStatusDelay) {
-        logger.warn("Async Task ID " + requestId + " on node ["+ nodeId+ "] has not progressed for "+ ((statusResponseTime - oldStatusTime) / 1000)+ " seconds.");
+        logger.warn("Async Task ID " + requestId + " on "+ nodeName+ " has not progressed for "+ ((statusResponseTime - oldStatusTime) / 1000)+ " seconds.");
         lastStatusReportTime=statusResponseTime;
       }
       oldStatus=status.getStatus();
       if (higherStatus != null) {
-        higherStatus.setStatus("Status from node " + nodeId + " ("+ status.getDescription()+ ") - "+ status.getStatus());
+        higherStatus.setStatus("Status from " + nodeName + " ("+ status.getDescription()+ ") - "+ status.getStatus());
       }
       description=status.getDescription();
       if (status.hasException()) {
-        logger.error("Error waiting for completion of status " + status,status.getException());
+        logger.error("Error waiting for completion of status on " + nodeName + " : "+ status,status.getException());
         throw status.getException();
       }
       if (status.isComplete()) {
-        logger.info(status.toString() + " Completed.");
+        logger.info(nodeName + " : " + status);
         return status.getStatus();
       }
       if (delay < adminClientConfig.getMaxBackoffDelayMs())       delay<<=1;
@@ -44,8 +45,8 @@
       }
     }
  catch (    Exception e) {
-      throw new VoldemortException("Failed while waiting for async task (" + description + ") at node "+ nodeId+ " to finish",e);
+      throw new VoldemortException("Failed while waiting for async task (" + description + ") at "+ nodeName+ " to finish",e);
     }
   }
-  throw new VoldemortException("Failed to finish task requestId: " + requestId + " in maxWait "+ maxWait+ " "+ timeUnit.toString());
+  throw new VoldemortException("Failed to finish task requestId: " + requestId + " in maxWait "+ maxWait+ " "+ timeUnit.toString()+ " on "+ nodeName);
 }
