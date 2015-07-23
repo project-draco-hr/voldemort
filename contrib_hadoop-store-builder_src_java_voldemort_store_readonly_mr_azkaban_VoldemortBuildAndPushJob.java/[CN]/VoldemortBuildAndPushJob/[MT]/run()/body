@@ -19,12 +19,12 @@
     }
     String reducerOutputCompressionCodec=getMatchingServerSupportedCompressionCodec(nodeId);
     if (reducerOutputCompressionCodec != null) {
-      log.info("Using compression codec: " + reducerOutputCompressionCodec);
+      log.info("Using block-level compression codec: " + reducerOutputCompressionCodec);
       props.put(REDUCER_OUTPUT_COMPRESS,"true");
       props.put(REDUCER_OUTPUT_COMPRESS_CODEC,reducerOutputCompressionCodec);
     }
  else {
-      log.info("Using no compression");
+      log.info("Using no block-level compression");
     }
     HashMap<String,Exception> exceptions=Maps.newHashMap();
     String buildOutputDir=null;
@@ -66,12 +66,7 @@
       try {
         success=task.getValue().get();
       }
- catch (      RecoverableFailedFetchException e) {
-        log.warn("There was a problem with some of the fetches, " + "but a swap was still able to go through for URL: " + url,e);
-        invokeHooks(BuildAndPushStatus.SWAPPED_WITH_FAILURES,url);
-      }
-catch (      Exception e) {
-        log.error("Exception during push for URL: " + url,e);
+ catch (      Exception e) {
         exceptions.put(url,e);
       }
       if (success) {
@@ -100,12 +95,10 @@ catch (      Exception e) {
     }
   }
  catch (  Exception e) {
-    log.error("An exception occurred during Build and Push !!",e);
     fail(e.toString());
-    throw e;
+    throw new VoldemortException("An exception occurred during Build and Push !!",e);
   }
 catch (  Throwable t) {
-    log.fatal("A non-Exception Throwable was caught! (OMG) We will try to invoke hooks on a best effort basis...",t);
     fail(t.toString());
     throw new Exception("A non-Exception Throwable was caught! Bubbling it up as an Exception...",t);
   }

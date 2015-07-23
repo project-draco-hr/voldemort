@@ -1,11 +1,11 @@
 {
-  log.info("Requesting Compression Codec expected by Server");
+  log.info("Requesting block-level compression codec expected by Server");
   List<String> supportedCodecs;
   try {
     supportedCodecs=adminClientPerCluster.get(clusterURLs.get(0)).readonlyOps.getSupportedROStorageCompressionCodecs(nodeId);
   }
  catch (  Exception e) {
-    log.error("Exception thrown when requesting for supported compression codecs. Server might be running in a older version. Exception: " + e.getMessage());
+    log.error("Exception thrown when requesting for supported block-level compression codecs. " + "Server might be running in a older version. Exception: " + e.getMessage());
     return null;
   }
   String codecList="[ ";
@@ -13,7 +13,7 @@
     codecList+=str + " ";
   }
   codecList+="]";
-  log.info("Server responded with compression codecs: " + codecList);
+  log.info("Server responded with block-level compression codecs: " + codecList);
   for (  String codecStr : supportedCodecs) {
     if (codecStr.toUpperCase(Locale.ENGLISH).equals(KeyValueWriter.COMPRESSION_CODEC)) {
       return codecStr;
