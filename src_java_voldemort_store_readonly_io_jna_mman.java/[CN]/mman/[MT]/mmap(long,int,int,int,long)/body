@@ -3,6 +3,7 @@
   Pointer result=Delegate.mmap(addr,new NativeLong(len),prot,flags,fildes,new NativeLong(off));
   if (Pointer.nativeValue(result) == -1) {
     if (logger.isDebugEnabled())     logger.debug(errno.strerror());
+    throw new IOException("mmap failed: " + errno.strerror());
   }
   return result;
 }

@@ -1,5 +1,9 @@
 {
-  mman.munlock(pa,length);
-  mman.munmap(pa,length);
   if (logger.isDebugEnabled())   logger.debug("munlocking " + file + " with length "+ length);
+  if (pa != null) {
+    Pointer xpa=pa;
+    pa=null;
+    mman.munlock(xpa,length);
+    mman.munmap(xpa,length);
+  }
 }
