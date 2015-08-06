@@ -1,11 +1,17 @@
 {
+  long length=-1;
   try {
     if (mappedByteBuffer == null) {
+      length=file.length();
+      FileInputStream in=new FileInputStream(file);
+      FileChannel channel=in.getChannel();
       if (setAutoLock) {
         closer.add(new MemLock(file,in.getFD(),0,length));
       }
       mappedByteBuffer=channel.map(FileChannel.MapMode.READ_ONLY,0,length);
       closer.add(new MappedByteBufferCloser(mappedByteBuffer));
+      channel.close();
+      in.close();
     }
     return mappedByteBuffer;
   }
