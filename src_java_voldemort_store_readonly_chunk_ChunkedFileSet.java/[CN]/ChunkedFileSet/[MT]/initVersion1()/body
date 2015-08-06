@@ -33,15 +33,7 @@
         dataFileSizes.add((int)dataLength);
         fileNames.add(fileName);
         dataFiles.add(openChannel(data));
-        MappedFileReader idxFileReader=null;
-        try {
-          idxFileReader=new MappedFileReader(index);
-          mappedIndexFileReader.add(idxFileReader);
-          indexFiles.add(idxFileReader.map(enforceMlock));
-        }
- catch (        IOException e) {
-          logger.error("Error in mlock",e);
-        }
+        mapAndRememberIndexFile(index);
         chunkId++;
         globalChunkId++;
       }
