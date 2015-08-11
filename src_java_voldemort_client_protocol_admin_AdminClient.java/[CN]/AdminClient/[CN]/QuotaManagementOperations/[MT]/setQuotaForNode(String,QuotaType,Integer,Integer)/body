@@ -2,10 +2,22 @@
   try {
     String quotaKey=QuotaUtils.makeQuotaKey(storeName,quotaType);
     ByteArray keyArray=new ByteArray(quotaKey.getBytes("UTF8"));
-    VectorClock clock=VectorClockUtils.makeClockWithCurrentTime(currentCluster.getNodeIds());
-    NodeValue<ByteArray,byte[]> nodeKeyValue=new NodeValue<ByteArray,byte[]>(nodeId,keyArray,new Versioned<byte[]>(ByteUtils.getBytes(quota.toString(),"UTF8"),clock));
-    storeOps.deleteNodeKeyValue(storeName,nodeId,keyArray);
-    storeOps.putNodeKeyValue(SystemStoreConstants.SystemStoreName.voldsys$_store_quotas.name(),nodeKeyValue);
+    Versioned<String> quotaForNode=getQuotaForNode(storeName,quotaType,nodeId);
+    VectorClock newClock=new VectorClock();
+    if (quotaForNode != null) {
+      VectorClock existingClock=(VectorClock)quotaForNode.getVersion();
+      if (existingClock.getVersionMap().size() > 1) {
+        storeOps.deleteNodeKeyValue(storeName,nodeId,keyArray);
+      }
+ else {
+        newClock=existingClock;
+      }
+    }
+    newClock.incremented(nodeId,System.currentTimeMillis());
+    byte[] value=ByteUtils.getBytes(quota.toString(),"UTF8");
+    Versioned<byte[]> versionedValue=new Versioned<byte[]>(value,newClock);
+    NodeValue<ByteArray,byte[]> nodeKeyValue=new NodeValue<ByteArray,byte[]>(nodeId,keyArray,versionedValue);
+    storeOps.putNodeKeyValue(SystemStoreConstants.QUOTA_STORE_NAME,nodeKeyValue);
   }
  catch (  UnsupportedEncodingException e) {
     throw new VoldemortException(e);
