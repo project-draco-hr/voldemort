@@ -1,8 +1,9 @@
 {
   ObjectName jmxName=null;
   HdfsCopyStats stats=null;
+  FileSystem fs=null;
   try {
-    final FileSystem fs=getHadoopFileSystem(sourceFileUrl,hadoopConfigPath);
+    fs=getHadoopFileSystem(sourceFileUrl,hadoopConfigPath);
     final Path path=new Path(sourceFileUrl);
     File destination=new File(destinationFile);
     if (destination.exists()) {
@@ -14,7 +15,6 @@
     logger.info("Starting fetch for : " + sourceFileUrl);
     boolean result=fetch(fs,path,destination,status,stats,storeName,pushVersion,metadataStore);
     logger.info("Completed fetch : " + sourceFileUrl);
-    fs.close();
     if (result) {
       return destination;
     }
@@ -22,17 +22,28 @@
       return null;
     }
   }
- catch (  Throwable te) {
-    logger.error("Error thrown while trying to get data from Hadoop filesystem",te);
+ catch (  Exception e) {
     if (stats != null) {
-      stats.reportError("File fetcher failed for destination " + destinationFile,te);
+      stats.reportError("File fetcher failed for destination " + destinationFile,e);
     }
-    throw new VoldemortException("Error thrown while trying to get data from Hadoop filesystem : " + te);
+    throw new VoldemortException("Error thrown while trying to get data from Hadoop filesystem : ",e);
   }
  finally {
     if (jmxName != null)     JmxUtils.unregisterMbean(jmxName);
     if (stats != null) {
       stats.complete();
+    }
+    if (fs != null) {
+      try {
+        fs.close();
+      }
+ catch (      IOException e) {
+        String errorMessage="Got IOException while trying to close the filesystem instance (harmless).";
+        if (stats != null) {
+          stats.reportError(errorMessage,e);
+        }
+        logger.info(errorMessage,e);
+      }
     }
   }
 }
