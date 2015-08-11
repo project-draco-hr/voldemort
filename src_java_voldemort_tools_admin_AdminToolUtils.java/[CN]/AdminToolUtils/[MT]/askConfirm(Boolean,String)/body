@@ -6,7 +6,11 @@
  else {
     System.out.println("Are you sure you want to " + opDesc + "? (yes/no)");
     BufferedReader buffer=new BufferedReader(new InputStreamReader(System.in));
-    String text=buffer.readLine();
-    return text.equals("yes");
+    String text=buffer.readLine().toLowerCase(Locale.ENGLISH);
+    boolean go=text.equals("yes") || text.equals("y");
+    if (!go) {
+      System.out.println("Did not confirm; " + opDesc + " aborted.");
+    }
+    return go;
   }
 }

@@ -13,7 +13,13 @@
   AdminParserUtils.checkRequired(options,OPT_HEAD_QUOTA_UNSET);
   AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_STORE);
   AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
-  quotaTypes=AdminToolUtils.getQuotaTypes((List<String>)options.valuesOf(OPT_HEAD_QUOTA_UNSET));
+  try {
+    quotaTypes=AdminToolUtils.getQuotaTypes((List<String>)options.valuesOf(OPT_HEAD_QUOTA_UNSET));
+  }
+ catch (  VoldemortException e) {
+    printHelp(System.out);
+    throw e;
+  }
   storeNames=(List<String>)options.valuesOf(AdminParserUtils.OPT_STORE);
   url=(String)options.valueOf(AdminParserUtils.OPT_URL);
   if (options.has(AdminParserUtils.OPT_CONFIRM)) {

@@ -16,9 +16,20 @@
   AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_STORE);
   AdminParserUtils.checkRequired(options,AdminParserUtils.OPT_URL);
   AdminParserUtils.checkOptional(options,AdminParserUtils.OPT_NODE,AdminParserUtils.OPT_ALL_NODES);
-  quota=AdminToolUtils.getValueList((List<String>)options.valuesOf(OPT_HEAD_QUOTA_SET),"=");
+  try {
+    quota=AdminToolUtils.getValueList((List<String>)options.valuesOf(OPT_HEAD_QUOTA_SET),"=");
+  }
+ catch (  VoldemortException e) {
+    printHelp(System.out);
+    throw e;
+  }
   if (quota.size() % 2 != 0) {
+    printHelp(System.out);
     throw new VoldemortException("Invalid quota type-value pair.");
+  }
+ else   if (quota.size() == 0) {
+    printHelp(System.out);
+    throw new VoldemortException("You must specify at least one type/value pair in order to set a quota.");
   }
   Set<String> validQuotaTypes=QuotaUtils.validQuotaTypes();
   for (Integer i=0; i < quota.size(); i+=2) {
