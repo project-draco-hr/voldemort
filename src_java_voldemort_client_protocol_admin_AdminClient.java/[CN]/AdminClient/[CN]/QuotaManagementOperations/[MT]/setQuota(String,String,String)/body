@@ -6,9 +6,8 @@
  catch (  IllegalArgumentException e) {
     throw new VoldemortException("'" + quotaTypeStr + "' is not a supported quota type. "+ "The following types are supported: "+ Lists.newArrayList(QuotaType.values()),e);
   }
-  Integer quota=Integer.parseInt(quotaValue);
-  for (  Integer nodeId : currentCluster.getNodeIds()) {
-    setQuotaForNode(storeName,quotaType,nodeId,quota);
-  }
+  VectorClock denseClock=VectorClockUtils.makeClockWithCurrentTime(currentCluster.getNodeIds());
+  String quotaKey=QuotaUtils.makeQuotaKey(storeName,quotaType);
+  quotaSysStoreClient.putSysStore(quotaKey,new Versioned<String>(quotaValue,denseClock));
   logger.info("Set quota " + quotaTypeStr + " to "+ quotaValue+ " for store "+ storeName);
 }
