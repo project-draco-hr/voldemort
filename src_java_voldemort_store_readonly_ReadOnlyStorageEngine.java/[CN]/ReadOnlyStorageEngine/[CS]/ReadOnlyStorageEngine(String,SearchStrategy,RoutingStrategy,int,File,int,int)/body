@@ -1,4 +1,14 @@
 {
-  this(name,searchStrategy,routingStrategy,nodeId,storeDir,numBackups);
+  super(name);
   this.deleteBackupMs=deleteBackupMs;
+  this.storeDir=storeDir;
+  this.numBackups=numBackups;
+  this.searchStrategy=searchStrategy;
+  this.routingStrategy=Utils.notNull(routingStrategy);
+  this.nodeId=nodeId;
+  this.fileSet=null;
+  this.fileModificationLock=new ReentrantReadWriteLock();
+  this.isOpen=false;
+  storeVersionManager=new StoreVersionManager(storeDir);
+  open(null);
 }

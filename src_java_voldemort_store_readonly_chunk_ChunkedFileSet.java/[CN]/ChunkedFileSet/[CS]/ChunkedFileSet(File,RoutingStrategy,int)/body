@@ -1,3 +1,52 @@
 {
-  this(directory,routingStrategy,nodeId,false);
+  this.baseDir=directory;
+  if (!Utils.isReadableDir(directory)) {
+    throw new VoldemortException(directory.getAbsolutePath() + " is not a readable directory.");
+  }
+  File metadataFile=new File(baseDir,".metadata");
+  ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
+  if (!metadataFile.exists()) {
+    metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode());
+    try {
+      FileUtils.writeStringToFile(metadataFile,metadata.toJsonString());
+    }
+ catch (    IOException e) {
+      logger.error("Cannot create metadata file ",e);
+      throw new IOException("Unable to create metadata file " + metadataFile);
+    }
+  }
+  if (Utils.isReadableFile(metadataFile)) {
+    try {
+      metadata=new ReadOnlyStorageMetadata(metadataFile);
+    }
+ catch (    IOException e) {
+      logger.warn("Cannot read metadata file, assuming default values");
+    }
+  }
+  this.storageFormat=ReadOnlyStorageFormat.fromCode((String)metadata.get(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode()));
+  this.indexFileSizes=new ArrayList<Integer>();
+  this.dataFileSizes=new ArrayList<Integer>();
+  this.fileNames=new ArrayList<String>();
+  this.indexFiles=new ArrayList<MappedByteBuffer>();
+  this.mappedIndexFileReader=new ArrayList<MappedFileReader>();
+  this.dataFiles=new ArrayList<FileChannel>();
+  this.chunkIdToChunkStart=new HashMap<Object,Integer>();
+  this.chunkIdToNumChunks=new HashMap<Object,Integer>();
+  this.nodeId=nodeId;
+  setRoutingStrategy(routingStrategy);
+switch (storageFormat) {
+case READONLY_V0:
+    initVersion0();
+  break;
+case READONLY_V1:
+initVersion1();
+break;
+case READONLY_V2:
+initVersion2();
+break;
+default :
+throw new VoldemortException("Invalid chunked storage format type " + storageFormat);
+}
+this.numChunks=indexFileSizes.size();
+logger.trace("Opened chunked file set for " + baseDir + " with "+ indexFileSizes.size()+ " chunks and format  "+ storageFormat);
 }
