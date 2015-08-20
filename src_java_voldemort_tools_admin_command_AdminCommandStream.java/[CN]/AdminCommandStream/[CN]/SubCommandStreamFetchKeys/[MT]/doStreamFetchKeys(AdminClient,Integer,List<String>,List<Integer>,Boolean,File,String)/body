@@ -57,6 +57,19 @@
       }
 );
     }
+ else     if (format.equals(AdminParserUtils.ARG_FORMAT_BINARY)) {
+      writeBinary(outFile,new Printable(){
+        @Override public void printTo(        DataOutputStream out) throws IOException {
+          while (keyIterator.hasNext()) {
+            byte[] keyBytes=keyIterator.next().get();
+            out.writeInt(keyBytes.length);
+            out.write(keyBytes);
+            out.writeChars(ByteUtils.toHexString(keyBytes) + "\n");
+          }
+        }
+      }
+);
+    }
  else {
       throw new VoldemortException("Invalid format \'" + format + "\'.");
     }
