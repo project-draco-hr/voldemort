@@ -5,10 +5,9 @@
   FSDataInputStream spyinput=Mockito.spy(input);
   Mockito.doAnswer(Mockito.CALLS_REAL_METHODS).doThrow(new EofException()).when(spyinput).read();
   Mockito.doReturn(spyinput).doReturn(input).when(spyfs).open(source);
-  Object[] params={spyfs,source,copyLocation,stats,CheckSumType.MD5,buffer};
   CheckSum ckSum=null;
   try {
-    ckSum=(CheckSum)this.invokePrivateMethod(fetcher,"copyFileWithCheckSumTest",params);
+    ckSum=copyFileWithCheckSumTest(fetcher,spyfs,source,copyLocation,stats,CheckSumType.MD5,buffer);
   }
  catch (  Exception ex) {
     if (isCompressed) {
