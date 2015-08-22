@@ -14,8 +14,8 @@
     parser.printHelpOn(System.out);
     return;
   }
-  if (!options.has("src-url") || !options.has("dst-url")) {
-    logger.error("Both 'src-url' and 'dst-url' options are mandatory");
+  if (!options.has("src-url") || !options.has("dst-url") || !options.has("stores")) {
+    logger.error("'src-url' 'dst-url' and 'stores' are mandatory parameters ");
     parser.printHelpOn(System.out);
     return;
   }
@@ -44,19 +44,9 @@
     mode=ForkLiftTaskMode.valueOf((String)options.valueOf("mode"));
     if (mode == null)     mode=ForkLiftTaskMode.primary_resolution;
   }
-  Boolean overwrite=false;
-  if (options.has(OVERWRITE_OPTION)) {
-    if (options.hasArgument(OVERWRITE_OPTION)) {
-      overwrite=(Boolean)options.valueOf(OVERWRITE_OPTION);
-    }
- else {
-      overwrite=true;
-    }
-  }
-  if (overwrite) {
-    logger.warn(OVERWRITE_WARNING_MESSAGE);
-  }
-  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootstrapUrl,dstBootstrapUrl,overwrite,maxPutsPerSecond,partitionParallelism,progressOps,storesList,partitions,mode);
+  Boolean overwrite=extractBoolOption(options,OVERWRITE_OPTION);
+  boolean ignoreSchemaMismatch=extractBoolOption(options,IGNORE_SCHEMA_MISMATCH);
+  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootstrapUrl,dstBootstrapUrl,overwrite,ignoreSchemaMismatch,maxPutsPerSecond,partitionParallelism,progressOps,storesList,partitions,mode);
   forkLiftTool.run();
   System.exit(0);
 }

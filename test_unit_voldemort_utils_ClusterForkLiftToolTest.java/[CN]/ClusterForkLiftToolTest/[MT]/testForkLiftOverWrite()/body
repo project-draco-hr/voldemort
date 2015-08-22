@@ -10,7 +10,7 @@
   srcAdminClient.storeOps.putNodeKeyValue(GLOBALLY_RESOLVING_STORE_NAME,new NodeValue<ByteArray,byte[]>(nodeList.get(1),new ByteArray(conflictKey.getBytes("UTF-8")),new Versioned<byte[]>("winning value".getBytes("UTF-8"),winningClock)));
   dstGloballyResolvingStoreClient.put(firstKey,"before forklift");
   Thread.sleep(2);
-  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootStrapUrl,dstBootStrapUrl,true,10000,1,1000,Lists.newArrayList(GLOBALLY_RESOLVING_STORE_NAME),null,ClusterForkLiftTool.ForkLiftTaskMode.global_resolution);
+  ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootStrapUrl,dstBootStrapUrl,true,false,10000,1,1000,Lists.newArrayList(GLOBALLY_RESOLVING_STORE_NAME),null,ClusterForkLiftTool.ForkLiftTaskMode.global_resolution);
   forkLiftTool.run();
   dstGloballyResolvingStoreClient.put(lastKey,"after forklift");
   for (  Map.Entry<String,String> entry : kvPairs.entrySet()) {

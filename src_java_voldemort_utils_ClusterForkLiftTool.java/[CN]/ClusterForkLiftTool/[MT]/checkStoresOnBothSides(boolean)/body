@@ -1,0 +1,42 @@
+{
+  List<StoreDefinition> srcStoreDefs=getStoreDefinitions(srcAdminClient);
+  HashMap<String,StoreDefinition> srcStoreDefMap=StoreUtils.getStoreDefsAsMap(srcStoreDefs);
+  List<StoreDefinition> dstStoreDefs=getStoreDefinitions(dstStreamingClient.getAdminClient());
+  HashMap<String,StoreDefinition> dstStoreDefMap=StoreUtils.getStoreDefsAsMap(dstStoreDefs);
+  Set<String> storesToSkip=new HashSet<String>();
+  for (  String store : storesList) {
+    if (!srcStoreDefMap.containsKey(store)) {
+      String message="Store " + store + " does not exist in source cluster ";
+      logger.warn(message);
+      throw new VoldemortApplicationException(message);
+    }
+    StoreDefinition srcStoreDef=srcStoreDefMap.get(store);
+    if (!dstStoreDefMap.containsKey(store)) {
+      String message="Store " + store + " does not exist in destination cluster ";
+      logger.warn(message);
+      throw new VoldemortApplicationException(message);
+    }
+    StoreDefinition dstStoreDef=dstStoreDefMap.get(store);
+    if (!ignoreSchemaMismatch) {
+      SerializerDefinition srcKeySerializer=srcStoreDef.getKeySerializer();
+      SerializerDefinition dstKeySerializer=dstStoreDef.getKeySerializer();
+      if (srcKeySerializer.equals(dstKeySerializer) == false) {
+        String message="Store " + store + " Key schema does not match between Source and destination \n";
+        message+="Source : " + srcKeySerializer.getFormattedString() + "\n";
+        message+="Destination : " + dstKeySerializer.getFormattedString() + "\n";
+        logger.warn(message);
+        throw new VoldemortApplicationException(message);
+      }
+      SerializerDefinition srcValueSerializer=srcStoreDef.getValueSerializer();
+      SerializerDefinition dstValueSerializer=dstStoreDef.getValueSerializer();
+      if (srcValueSerializer.equals(dstValueSerializer) == false) {
+        String message="Store " + store + " Value schema does not match between Source and destination \n";
+        message+="Source : " + srcValueSerializer.getFormattedString() + "\n";
+        message+="Destination : " + dstValueSerializer.getFormattedString() + "\n";
+        logger.warn(message);
+        throw new VoldemortApplicationException(message);
+      }
+    }
+  }
+  return srcStoreDefMap;
+}
