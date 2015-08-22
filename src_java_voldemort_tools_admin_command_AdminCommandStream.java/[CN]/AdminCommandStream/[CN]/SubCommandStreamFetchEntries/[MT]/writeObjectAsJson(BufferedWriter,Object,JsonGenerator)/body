@@ -1,0 +1,15 @@
+{
+  if (object instanceof GenericRecord) {
+    out.write(object.toString());
+  }
+ else   if (object instanceof Utf8) {
+    out.write(object.toString());
+  }
+ else   if (object instanceof ByteBuffer) {
+    ByteBuffer buffer=(ByteBuffer)object;
+    out.write(ByteUtils.toHexString(buffer.array()));
+  }
+ else {
+    generator.writeObject(object);
+  }
+}

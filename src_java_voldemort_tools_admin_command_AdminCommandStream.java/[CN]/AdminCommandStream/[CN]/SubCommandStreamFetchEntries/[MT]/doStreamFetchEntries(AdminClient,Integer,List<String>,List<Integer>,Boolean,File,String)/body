@@ -52,19 +52,9 @@
             VectorClock version=(VectorClock)kvPair.getSecond().getVersion();
             Object keyObject=keySerializer.toObject((null == keyCompressionStrategy) ? keyBytes : keyCompressionStrategy.inflate(keyBytes));
             Object valueObject=valueSerializer.toObject((null == valueCompressionStrategy) ? valueBytes : valueCompressionStrategy.inflate(valueBytes));
-            if (keyObject instanceof GenericRecord) {
-              out.write(keyObject.toString());
-            }
- else {
-              generator.writeObject(keyObject);
-            }
+            writeObjectAsJson(out,keyObject,generator);
             out.write(' ' + version.toString() + ' ');
-            if (valueObject instanceof GenericRecord) {
-              out.write(valueObject.toString());
-            }
- else {
-              generator.writeObject(valueObject);
-            }
+            writeObjectAsJson(out,valueObject,generator);
             out.write('\n');
           }
         }

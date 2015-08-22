@@ -39,12 +39,7 @@
             final JsonGenerator generator=new JsonFactory(new ObjectMapper()).createJsonGenerator(out);
             byte[] keyBytes=keyIterator.next().get();
             Object keyObject=serializer.toObject((null == keysCompressionStrategy) ? keyBytes : keysCompressionStrategy.inflate(keyBytes));
-            if (keyObject instanceof GenericRecord) {
-              out.write(keyObject.toString());
-            }
- else {
-              generator.writeObject(keyObject);
-            }
+            SubCommandStreamFetchEntries.writeObjectAsJson(out,keyObject,generator);
             out.write('\n');
           }
         }
