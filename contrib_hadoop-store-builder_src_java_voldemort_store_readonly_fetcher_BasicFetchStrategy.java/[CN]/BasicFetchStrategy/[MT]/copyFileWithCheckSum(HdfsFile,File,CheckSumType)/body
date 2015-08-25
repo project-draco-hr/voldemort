@@ -41,8 +41,13 @@
           NumberFormat format=NumberFormat.getNumberInstance();
           format.setMaximumFractionDigits(2);
           String message=stats.getTotalBytesTransferred() / (1024 * 1024) + " MB copied at " + format.format(stats.getBytesTransferredPerSecond() / (1024 * 1024)) + " MB/sec" + ", " + format.format(stats.getPercentCopied()) + " % complete" + ", attempt: #" + attempt + "/" + fetcher.getMaxAttempts() + ", current file: " + dest.getName();
-          this.status.setStatus(message);
-          logger.info(this.status.toString());
+          if (this.status == null) {
+            logger.info(message);
+          }
+ else {
+            this.status.setStatus(message);
+            logger.info(this.status.toString());
+          }
           if (reportIntervalPassed) {
             stats.reset();
           }
