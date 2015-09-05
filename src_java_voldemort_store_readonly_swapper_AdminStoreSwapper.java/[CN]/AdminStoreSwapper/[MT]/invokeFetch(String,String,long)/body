@@ -15,13 +15,24 @@
   }
   Map<Node,Response> fetchResponseMap=Maps.newTreeMap();
   boolean fetchErrors=false;
+  int numQuotaExceededException=0;
   for (  final Node node : cluster.getNodes()) {
     Future<String> val=fetchDirs.get(node.getId());
     try {
       String response=val.get();
       fetchResponseMap.put(node,new Response(response));
     }
- catch (    Exception e) {
+ catch (    ExecutionException e) {
+      fetchErrors=true;
+      if (e.getCause() instanceof QuotaExceededException) {
+        numQuotaExceededException++;
+        fetchResponseMap.put(node,new Response((QuotaExceededException)e.getCause()));
+      }
+ else {
+        fetchResponseMap.put(node,new Response(e));
+      }
+    }
+catch (    Exception e) {
       fetchErrors=true;
       fetchResponseMap.put(node,new Response(e));
     }
@@ -54,7 +65,14 @@
     if (swapIsPossible) {
     }
  else {
-      throw new VoldemortException("Exception during push. Swap will be aborted.");
+      String errorMessage="";
+      if (numQuotaExceededException > 0) {
+        errorMessage="Disk Quota exceeded. Swap will be aborted.";
+      }
+ else {
+        errorMessage="Exception during push. Swap will be aborted.";
+      }
+      throw new VoldemortException(errorMessage);
     }
   }
   return fetchResponseMap;

@@ -1,9 +1,20 @@
 {
+  int numQuotaExceptions=0;
   List<Integer> failedNodes=Lists.newArrayList();
   for (  Map.Entry<Node,AdminStoreSwapper.Response> entry : fetchResponseMap.entrySet()) {
-    if (!entry.getValue().isSuccessful()) {
-      failedNodes.add(entry.getKey().getId());
+    Response response=entry.getValue();
+    if (!response.isSuccessful()) {
+      if (response.getException() instanceof QuotaExceededException) {
+        numQuotaExceptions++;
+      }
+ else {
+        failedNodes.add(entry.getKey().getId());
+      }
     }
+  }
+  if (numQuotaExceptions > 0) {
+    logger.error("We cannot use " + getClass().getSimpleName() + " because there are QuotaExceededExceptions that caused fetch failures...");
+    return false;
   }
   return adminClient.readonlyOps.handleFailedFetch(failedNodes,storeName,pushVersion,extraInfo);
 }

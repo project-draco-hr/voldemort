@@ -8,9 +8,22 @@
     response.setComplete(requestComplete);
     response.setStatus(operationStatus.getStatus());
     response.setRequestId(requestId);
-    if (operationStatus.hasException())     throw new VoldemortException(operationStatus.getException());
+    if (operationStatus.hasException()) {
+      String erroMessage="HandleAsyncStatus received Exception: " + operationStatus.getException().getMessage();
+      Exception exception=operationStatus.getException();
+      if (exception instanceof QuotaExceededException) {
+        throw (QuotaExceededException)exception;
+      }
+ else {
+        throw new VoldemortException(erroMessage,exception);
+      }
+    }
   }
- catch (  VoldemortException e) {
+ catch (  QuotaExceededException e) {
+    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
+    logger.error("Quota Exceeded. handleAsyncStatus failed for request(" + request.toString().trim() + ")",e);
+  }
+catch (  VoldemortException e) {
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
     logger.error("handleAsyncStatus failed for request(" + request.toString().trim() + ")",e);
   }

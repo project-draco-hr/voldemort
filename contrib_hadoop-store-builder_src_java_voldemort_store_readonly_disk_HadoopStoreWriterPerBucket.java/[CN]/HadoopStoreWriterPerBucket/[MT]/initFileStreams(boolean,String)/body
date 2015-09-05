@@ -3,6 +3,8 @@
   this.taskValueFileName=new Path[getNumChunks()];
   this.indexFileStream=new DataOutputStream[getNumChunks()];
   this.valueFileStream=new DataOutputStream[getNumChunks()];
+  this.indexFileSizeInBytes=new long[getNumChunks()];
+  this.valueFileSizeInBytes=new long[getNumChunks()];
   boolean isValidCompressionEnabled=false;
   if (isCompressionEnabled && compressionCodec.toUpperCase(Locale.ENGLISH).equals(this.COMPRESSION_CODEC)) {
     fileExtension=GZIP_FILE_EXTENSION;
@@ -12,6 +14,8 @@
     fileExtension="";
   }
   for (int chunkId=0; chunkId < getNumChunks(); chunkId++) {
+    this.indexFileSizeInBytes[chunkId]=0L;
+    this.valueFileSizeInBytes[chunkId]=0L;
     this.checkSumDigestIndex[chunkId]=CheckSum.getInstance(checkSumType);
     this.checkSumDigestValue[chunkId]=CheckSum.getInstance(checkSumType);
     this.position[chunkId]=0;

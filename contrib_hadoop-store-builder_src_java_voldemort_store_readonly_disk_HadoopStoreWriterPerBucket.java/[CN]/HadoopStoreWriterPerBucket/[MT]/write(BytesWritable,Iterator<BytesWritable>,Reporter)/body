@@ -1,7 +1,9 @@
 {
   int chunkId=ReadOnlyUtils.chunk(key.get(),getNumChunks());
   this.indexFileStream[chunkId].write(key.get(),0,key.getSize());
+  this.indexFileSizeInBytes[chunkId]+=key.getSize();
   this.indexFileStream[chunkId].writeInt(this.position[chunkId]);
+  this.indexFileSizeInBytes[chunkId]+=ByteUtils.SIZE_OF_INT;
   if (this.checkSumDigestIndex[chunkId] != null) {
     this.checkSumDigestIndex[chunkId].update(key.get(),0,key.getSize());
     this.checkSumDigestIndex[chunkId].update(this.position[chunkId]);
@@ -46,12 +48,14 @@
   byte[] value=stream.toByteArray();
   if (getSaveKeys()) {
     this.valueFileStream[chunkId].writeShort(numTuples);
+    this.valueFileSizeInBytes[chunkId]+=ByteUtils.SIZE_OF_SHORT;
     this.position[chunkId]+=ByteUtils.SIZE_OF_SHORT;
     if (this.checkSumDigestValue[chunkId] != null) {
       this.checkSumDigestValue[chunkId].update(numTuples);
     }
   }
   this.valueFileStream[chunkId].write(value);
+  this.valueFileSizeInBytes[chunkId]+=value.length;
   this.position[chunkId]+=value.length;
   if (this.checkSumDigestValue[chunkId] != null) {
     this.checkSumDigestValue[chunkId].update(value);

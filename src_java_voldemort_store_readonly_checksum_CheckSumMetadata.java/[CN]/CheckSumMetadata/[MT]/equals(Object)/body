@@ -1,0 +1,17 @@
+{
+  if (this == o)   return true;
+  if (o == null || getClass() != o.getClass())   return false;
+  CheckSumMetadata that=(CheckSumMetadata)o;
+  Map<String,Object> thisMap=this.getAll();
+  Map<String,Object> thatMap=that.getAll();
+  if (thisMap == null && thatMap == null)   return true;
+ else   if (thisMap == null || thatMap == null)   return false;
+  for (  String key : thisMap.keySet()) {
+    Object thisValue=thisMap.get(key);
+    Object thatValue=thatMap.get(key);
+    if (thisValue == null && thatValue == null)     continue;
+ else     if (thisValue == null || thatValue == null)     return false;
+    if (!thisValue.equals(thatValue))     return false;
+  }
+  return true;
+}

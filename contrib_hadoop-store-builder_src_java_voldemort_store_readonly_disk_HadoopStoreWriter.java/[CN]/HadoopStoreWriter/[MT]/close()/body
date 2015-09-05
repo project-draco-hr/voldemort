@@ -19,29 +19,35 @@
   outputFs.mkdirs(nodeDir);
   outputFs.setPermission(nodeDir,new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
   logger.info("Setting permission to 755 for " + nodeDir);
+  CheckSumMetadata indexCheckSum=new CheckSumMetadata();
+  CheckSumMetadata valueCheckSum=new CheckSumMetadata();
   if (this.checkSumType != CheckSumType.NONE) {
     if (this.checkSumDigestIndex != null && this.checkSumDigestValue != null) {
-      Path checkSumIndexFile=new Path(nodeDir,fileNamePrefix + INDEX_FILE_EXTENSION + CHECKSUM_FILE_EXTENSION);
-      Path checkSumValueFile=new Path(nodeDir,fileNamePrefix + DATA_FILE_EXTENSION + CHECKSUM_FILE_EXTENSION);
-      if (outputFs.exists(checkSumIndexFile)) {
-        outputFs.delete(checkSumIndexFile);
-      }
-      FSDataOutputStream output=outputFs.create(checkSumIndexFile);
-      outputFs.setPermission(checkSumIndexFile,new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
-      output.write(this.checkSumDigestIndex.getCheckSum());
-      output.close();
-      if (outputFs.exists(checkSumValueFile)) {
-        outputFs.delete(checkSumValueFile);
-      }
-      output=outputFs.create(checkSumValueFile);
-      outputFs.setPermission(checkSumValueFile,new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
-      output.write(this.checkSumDigestValue.getCheckSum());
-      output.close();
+      indexCheckSum.add(ReadOnlyStorageMetadata.CHECKSUM,new String(Hex.encodeHex(this.checkSumDigestIndex.getCheckSum())));
+      valueCheckSum.add(ReadOnlyStorageMetadata.CHECKSUM,new String(Hex.encodeHex(this.checkSumDigestValue.getCheckSum())));
     }
  else {
       throw new RuntimeException("Failed to open checksum digest for node " + nodeId + " ( partition - "+ this.partitionId+ ", chunk - "+ chunkId+ " )");
     }
   }
+  Path checkSumIndexFile=new Path(nodeDir,fileNamePrefix + INDEX_FILE_EXTENSION + CHECKSUM_FILE_EXTENSION);
+  Path checkSumValueFile=new Path(nodeDir,fileNamePrefix + DATA_FILE_EXTENSION + CHECKSUM_FILE_EXTENSION);
+  if (outputFs.exists(checkSumIndexFile)) {
+    outputFs.delete(checkSumIndexFile);
+  }
+  FSDataOutputStream output=outputFs.create(checkSumIndexFile);
+  outputFs.setPermission(checkSumIndexFile,new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
+  indexCheckSum.add(CheckSumMetadata.INDEX_FILE_SIZE_IN_BYTES,Long.toString(this.indexFileSizeInBytes));
+  output.write(indexCheckSum.toJsonString().getBytes());
+  output.close();
+  if (outputFs.exists(checkSumValueFile)) {
+    outputFs.delete(checkSumValueFile);
+  }
+  output=outputFs.create(checkSumValueFile);
+  outputFs.setPermission(checkSumValueFile,new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
+  valueCheckSum.add(CheckSumMetadata.DATA_FILE_SIZE_IN_BYTES,Long.toString(this.valueFileSizeInBytes));
+  output.write(valueCheckSum.toJsonString().getBytes());
+  output.close();
   Path indexFile=new Path(nodeDir,fileNamePrefix + INDEX_FILE_EXTENSION + fileExtension);
   Path valueFile=new Path(nodeDir,fileNamePrefix + DATA_FILE_EXTENSION + fileExtension);
   logger.info("Moving " + this.taskIndexFileName + " to "+ indexFile);

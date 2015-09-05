@@ -1,6 +1,8 @@
 {
   this.indexFileStream.write(key.get(),0,key.getSize());
+  this.indexFileSizeInBytes+=key.getSize();
   this.indexFileStream.writeInt(this.position);
+  this.indexFileSizeInBytes+=ByteUtils.SIZE_OF_INT;
   if (this.checkSumDigestIndex != null) {
     this.checkSumDigestIndex.update(key.get(),0,key.getSize());
     this.checkSumDigestIndex.update(this.position);
@@ -46,12 +48,14 @@
   byte[] value=stream.toByteArray();
   if (getSaveKeys()) {
     this.valueFileStream.writeShort(numTuples);
+    this.valueFileSizeInBytes+=ByteUtils.SIZE_OF_SHORT;
     this.position+=ByteUtils.SIZE_OF_SHORT;
     if (this.checkSumDigestValue != null) {
       this.checkSumDigestValue.update(numTuples);
     }
   }
   this.valueFileStream.write(value);
+  this.valueFileSizeInBytes+=value.length;
   this.position+=value.length;
   if (this.checkSumDigestValue != null) {
     this.checkSumDigestValue.update(value);

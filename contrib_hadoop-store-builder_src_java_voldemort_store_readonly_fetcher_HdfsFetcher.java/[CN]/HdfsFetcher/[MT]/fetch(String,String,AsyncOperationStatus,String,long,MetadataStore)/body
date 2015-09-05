@@ -22,11 +22,24 @@
       return null;
     }
   }
- catch (  Exception e) {
+ catch (  QuotaExceededException e) {
+    if (stats != null) {
+      stats.reportError("File fetcher failed for due to QuotaExceededException for destination " + destinationFile,e);
+    }
+    throw e;
+  }
+catch (  Exception e) {
     if (stats != null) {
       stats.reportError("File fetcher failed for destination " + destinationFile,e);
     }
-    throw new VoldemortException("Error thrown while trying to get data from Hadoop filesystem : ",e);
+    String errorMessage="Error thrown while trying to get data from Hadoop filesystem : ";
+    logger.error(errorMessage);
+    if (e instanceof VoldemortException) {
+      throw (VoldemortException)e;
+    }
+ else {
+      throw new VoldemortException(errorMessage,e);
+    }
   }
  finally {
     if (jmxName != null)     JmxUtils.unregisterMbean(jmxName);
