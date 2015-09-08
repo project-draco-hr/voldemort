@@ -1,0 +1,25 @@
+{
+  JsonSchema schema=HadoopUtils.getSchemaFromPath(getInputPath());
+  String keySchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + schema.getKeyType() + "</schema-info>\n\t";
+  if (jsonKeyField != null && jsonKeyField.length() > 0) {
+    keySchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + schema.getKeyType().subtype(jsonKeyField) + "</schema-info>\n\t";
+  }
+  String valSchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + schema.getValueType() + "</schema-info>\n\t";
+  if (jsonValueField != null && jsonValueField.length() > 0) {
+    valSchema="\n\t\t<type>json</type>\n\t\t<schema-info version=\"0\">" + schema.getValueType().subtype(jsonValueField) + "</schema-info>\n\t";
+  }
+  boolean hasCompression=false;
+  if (props.containsKey(BUILD_COMPRESS_VALUE)) {
+    hasCompression=true;
+  }
+  if (hasCompression) {
+    valSchema+="\t<compression><type>gzip</type></compression>\n\t";
+  }
+  if (props.containsKey(BUILD_FORCE_SCHEMA_KEY)) {
+    keySchema=props.get(BUILD_FORCE_SCHEMA_KEY);
+  }
+  if (props.containsKey(BUILD_FORCE_SCHEMA_VALUE)) {
+    valSchema=props.get(BUILD_FORCE_SCHEMA_VALUE);
+  }
+  verifyOrAddStore(url,props.getString(PUSH_FORCE_SCHEMA_KEY,keySchema),props.getString(PUSH_FORCE_SCHEMA_VALUE,valSchema),hasCompression,"json");
+}

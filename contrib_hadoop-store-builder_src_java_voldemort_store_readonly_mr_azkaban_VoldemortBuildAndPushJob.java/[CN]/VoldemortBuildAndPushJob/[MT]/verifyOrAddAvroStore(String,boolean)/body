@@ -1,10 +1,5 @@
 {
   Schema schema=getInputPathSchema();
-  int replicationFactor=props.getInt(BUILD_REPLICATION_FACTOR,2);
-  int requiredReads=props.getInt(BUILD_REQUIRED_READS,1);
-  int requiredWrites=props.getInt(BUILD_REQUIRED_WRITES,1);
-  String description=props.getString(PUSH_STORE_DESCRIPTION,"");
-  String owners=props.getString(PUSH_STORE_OWNERS,"");
   String serializerName;
   if (isVersioned)   serializerName=DefaultSerializerFactory.AVRO_GENERIC_VERSIONED_TYPE_NAME;
  else   serializerName=DefaultSerializerFactory.AVRO_GENERIC_TYPE_NAME;
@@ -60,19 +55,6 @@ catch (  Exception e) {
     throw new VoldemortException("There was a problem defining the key or value schema for this job.");
   }
  else {
-    String newStoreDefXml=VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,props.containsKey(BUILD_PREFERRED_READS) ? props.getInt(BUILD_PREFERRED_READS) : null,props.containsKey(BUILD_PREFERRED_WRITES) ? props.getInt(BUILD_PREFERRED_WRITES) : null,(props.containsKey(PUSH_FORCE_SCHEMA_KEY)) ? props.getString(PUSH_FORCE_SCHEMA_KEY) : keySchema,(props.containsKey(PUSH_FORCE_SCHEMA_VALUE)) ? props.getString(PUSH_FORCE_SCHEMA_VALUE) : valSchema,description,owners);
-    KeyValueSchema returnSchemaObj=new KeyValueSchema(keySchema,valSchema);
-    boolean foundStore=findAndVerifyAvro(url,newStoreDefXml,hasCompression,replicationFactor,requiredReads,requiredWrites,serializerName,returnSchemaObj);
-    if (!foundStore) {
-      try {
-        StoreDefinition newStoreDef=VoldemortUtils.getStoreDef(newStoreDefXml);
-        addStore(description,owners,url,newStoreDef);
-      }
- catch (      RuntimeException e) {
-        log.error("Error in adding store definition from: " + url,e);
-        throw new VoldemortException("Error in adding store definition from: " + url,e);
-      }
-    }
-    storeDefs=ImmutableList.of(VoldemortUtils.getStoreDef(VoldemortUtils.getStoreDefXml(storeName,replicationFactor,requiredReads,requiredWrites,props.containsKey(BUILD_PREFERRED_READS) ? props.getInt(BUILD_PREFERRED_READS) : null,props.containsKey(BUILD_PREFERRED_WRITES) ? props.getInt(BUILD_PREFERRED_WRITES) : null,returnSchemaObj.keySchema,returnSchemaObj.valSchema)));
+    verifyOrAddStore(url,props.getString(PUSH_FORCE_SCHEMA_KEY,keySchema),props.getString(PUSH_FORCE_SCHEMA_VALUE,valSchema),hasCompression,serializerName);
   }
 }

@@ -5,11 +5,10 @@
   if (owners.length() == 0) {
     throw new RuntimeException("Owner field missing in store definition. " + "Please add \"" + PUSH_STORE_OWNERS + "\" with value being a comma-separated list of email addresses.");
   }
-  log.info("Could not find store " + storeName + " on Voldemort. Adding it to all nodes in cluster URL "+ url);
   try {
-    adminClientPerCluster.get(url).storeMgmtOps.addStore(newStoreDef);
+    adminClientPerCluster.get(url).storeMgmtOps.addStore(newStoreDef,nodeIDs);
   }
  catch (  VoldemortException ve) {
-    throw new RuntimeException("Exception while adding store to cluster URL" + url,ve);
+    throw new RuntimeException("Exception while adding store to nodes in cluster URL" + url,ve);
   }
 }

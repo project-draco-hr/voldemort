@@ -1,12 +1,3 @@
 {
-  StoreDefinitionUtils.validateSchemasAsNeeded(Arrays.asList(def));
-  String value=storeMapper.writeStore(def);
-  VAdminProto.AddStoreRequest.Builder addStoreRequest=VAdminProto.AddStoreRequest.newBuilder().setStoreDefinition(value);
-  VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.ADD_STORE).setAddStore(addStoreRequest).build();
-  Node node=currentCluster.getNodeById(nodeId);
-  if (null == node)   throw new VoldemortException("Invalid node id (" + nodeId + ") specified");
-  logger.info("Adding store " + def.getName() + " on node "+ node.getHost()+ ":"+ node.getId());
-  VAdminProto.AddStoreResponse.Builder response=rpcOps.sendAndReceive(nodeId,request,VAdminProto.AddStoreResponse.newBuilder());
-  if (response.hasError())   helperOps.throwException(response.getError());
-  logger.info("Succesfully added " + def.getName() + " on node "+ node.getHost()+ ":"+ node.getId());
+  addStore(def,Lists.newArrayList(nodeId));
 }

@@ -8,11 +8,11 @@
     if (null == node) {
       throw new VoldemortException("Invalid node id (" + nodeId + ") specified");
     }
-    logger.info("Adding store " + def.getName() + " on node "+ node.getHost()+ ":"+ nodeId);
+    logger.info("Adding store " + def.getName() + " on "+ node.briefToString());
     VAdminProto.AddStoreResponse.Builder response=rpcOps.sendAndReceive(nodeId,request,VAdminProto.AddStoreResponse.newBuilder());
     if (response.hasError()) {
       helperOps.throwException(response.getError());
     }
-    logger.info("Succesfully added " + def.getName() + " on node "+ node.getHost()+ ":"+ nodeId);
+    logger.info("Successfully added " + def.getName() + " on "+ node.briefToString());
   }
 }
