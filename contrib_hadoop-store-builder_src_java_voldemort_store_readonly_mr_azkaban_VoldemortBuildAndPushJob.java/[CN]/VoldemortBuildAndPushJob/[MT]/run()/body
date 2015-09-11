@@ -17,7 +17,7 @@
       fail("Exception during cluster equality check: " + e.toString());
       return;
     }
-    String reducerOutputCompressionCodec=getMatchingServerSupportedCompressionCodec(nodeId);
+    String reducerOutputCompressionCodec=getMatchingServerSupportedCompressionCodec();
     if (reducerOutputCompressionCodec != null) {
       log.info("Using block-level compression codec: " + reducerOutputCompressionCodec);
       props.put(REDUCER_OUTPUT_COMPRESS,"true");
@@ -70,7 +70,7 @@
         exceptions.put(url,e);
       }
       if (success) {
-        log.info("Successfully pushed to URL: " + url);
+        log.info("Successfully pushed to cluster URL: " + url);
       }
     }
     if (build && push && buildOutputDir != null && !props.getBoolean(BUILD_OUTPUT_KEEP,false)) {

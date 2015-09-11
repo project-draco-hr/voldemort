@@ -19,8 +19,6 @@
   config.setInt("io.socket.receive.buffer",1 * 1024 * 1024 - 10000);
   FileSystem fs=null;
   Path p=new Path(url);
-  HdfsFetcher.keytabPath=keytabLocation;
-  HdfsFetcher.kerberosPrincipal=kerberosUser;
   boolean isHftpBasedFetch=url.length() > 4 && url.substring(0,4).equals("hftp");
   logger.info("URL : " + url + " and hftp protocol enabled = "+ isHftpBasedFetch);
   if (hadoopPath.length() > 0 && !isHftpBasedFetch) {
@@ -80,7 +78,7 @@ catch (  Throwable te) {
   }
   FileStatus status=fs.listStatus(p)[0];
   long size=status.getLen();
-  HdfsFetcher fetcher=new HdfsFetcher(maxBytesPerSec,VoldemortConfig.REPORTING_INTERVAL_BYTES,VoldemortConfig.DEFAULT_FETCHER_THROTTLE_INTERVAL_WINDOW_MS,VoldemortConfig.DEFAULT_FETCHER_BUFFER_SIZE,keytabLocation,kerberosUser,5,5000,true,50,VoldemortConfig.DEFAULT_FETCHER_SOCKET_TIMEOUT);
+  HdfsFetcher fetcher=new HdfsFetcher(maxBytesPerSec,VoldemortConfig.REPORTING_INTERVAL_BYTES,VoldemortConfig.DEFAULT_FETCHER_THROTTLE_INTERVAL_WINDOW_MS,VoldemortConfig.DEFAULT_FETCHER_BUFFER_SIZE,5,5000,true,50,VoldemortConfig.DEFAULT_FETCHER_SOCKET_TIMEOUT);
   long start=System.currentTimeMillis();
   if (destDir == null)   destDir=System.getProperty("java.io.tmpdir") + File.separator + start;
   File location=fetcher.fetch(url,destDir,null,null,-1,null,hadoopPath);

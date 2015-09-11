@@ -1,0 +1,60 @@
+{
+  final Configuration config=getConfiguration(voldemortConfig,sourceFileUrl);
+  final Path path=new Path(sourceFileUrl);
+  final int maxAttempts=voldemortConfig.getReadOnlyFetchRetryCount() + 1;
+  final String keytabPath=voldemortConfig.getReadOnlyKeytabPath();
+  FileSystem fs=null;
+  for (int attempt=1; attempt <= maxAttempts; attempt++) {
+    try {
+      if (keytabPath.length() > 0) {
+synchronized (HadoopUtils.class) {
+          if (currentHadoopUser == null) {
+            if (!new File(keytabPath).exists()) {
+              logger.error("Invalid keytab file path. Please provide a valid keytab path");
+              throw new VoldemortException("Error in getting Hadoop filesystem. Invalid keytab file path.");
+            }
+            UserGroupInformation.setConfiguration(config);
+            UserGroupInformation.loginUserFromKeytab(voldemortConfig.getReadOnlyKerberosUser(),keytabPath);
+            currentHadoopUser=UserGroupInformation.getCurrentUser();
+            logger.info("I have logged in as " + currentHadoopUser.getUserName());
+          }
+ else {
+            currentHadoopUser.reloginFromKeytab();
+          }
+        }
+      }
+      fs=path.getFileSystem(config);
+      fs.exists(path);
+      break;
+    }
+ catch (    VoldemortException e) {
+      throw e;
+    }
+catch (    Exception e) {
+      if (ExceptionUtils.recursiveClassEquals(e,AuthenticationException.class)) {
+        logger.info("Got an AuthenticationException from HDFS. " + "Will retry to login from scratch, on next attempt.",e);
+synchronized (HadoopUtils.class) {
+          currentHadoopUser=null;
+        }
+      }
+      if (attempt < maxAttempts) {
+        long retryDelayMs=voldemortConfig.getReadOnlyFetchRetryDelayMs();
+        if (retryDelayMs > 0) {
+          long randomDelay=(long)(Math.random() * retryDelayMs + retryDelayMs);
+          logger.error("Could not get a valid Filesystem object on attempt # " + attempt + " / "+ maxAttempts+ ". Trying again in "+ randomDelay+ " ms.");
+          try {
+            Thread.sleep(retryDelayMs);
+          }
+ catch (          InterruptedException ie) {
+            logger.error("Fetcher interrupted while waiting to retry",ie);
+            Thread.currentThread().interrupt();
+          }
+        }
+      }
+ else {
+        throw e;
+      }
+    }
+  }
+  return fs;
+}

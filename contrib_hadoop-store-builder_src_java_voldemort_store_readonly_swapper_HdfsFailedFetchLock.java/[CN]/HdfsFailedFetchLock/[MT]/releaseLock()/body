@@ -1,0 +1,25 @@
+{
+  if (!lockAcquired) {
+    logger.info("HdfsFailedFetchLock.releaseLock() called while it is already released!");
+    return;
+  }
+  int attempts=1;
+  while (this.lockAcquired && attempts <= maxAttempts) {
+    try {
+      Path releasedLockFile=new Path(afterLockDir,getUniqueFileName());
+      this.lockAcquired=!(this.fileSystem.rename(this.lockFile,releasedLockFile));
+      if (this.lockAcquired) {
+        logFailureAndWait(RELEASE_LOCK,UNKNOWN_REASONS,attempts);
+      }
+    }
+ catch (    IOException e) {
+      handleIOException(e,RELEASE_LOCK,attempts);
+    }
+    if (this.lockAcquired) {
+      attempts++;
+    }
+  }
+  if (this.lockAcquired) {
+    throw new VoldemortException(exceptionMessage(RELEASE_LOCK));
+  }
+}

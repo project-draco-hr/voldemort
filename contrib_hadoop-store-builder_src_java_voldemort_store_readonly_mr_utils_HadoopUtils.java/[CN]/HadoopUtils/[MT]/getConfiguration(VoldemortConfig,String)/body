@@ -1,0 +1,26 @@
+{
+  final Configuration hadoopConfig=new Configuration();
+  hadoopConfig.setInt(ConfigurableSocketFactory.SO_RCVBUF,voldemortConfig.getFetcherBufferSize());
+  hadoopConfig.setInt(ConfigurableSocketFactory.SO_TIMEOUT,voldemortConfig.getFetcherSocketTimeout());
+  hadoopConfig.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
+  hadoopConfig.set("hadoop.security.group.mapping","org.apache.hadoop.security.ShellBasedUnixGroupsMapping");
+  String hadoopConfigPath=voldemortConfig.getHadoopConfigPath();
+  boolean isHftpBasedFetch=sourceFileUrl.length() > 4 && sourceFileUrl.substring(0,4).equals("hftp");
+  logger.info("URL : " + sourceFileUrl + " and hftp protocol enabled = "+ isHftpBasedFetch);
+  logger.info("Hadoop path = " + hadoopConfigPath + " , keytab path = "+ voldemortConfig.getReadOnlyKeytabPath()+ " , kerberos principal = "+ voldemortConfig.getReadOnlyKerberosUser());
+  if (hadoopConfigPath.length() > 0) {
+    hadoopConfig.addResource(new Path(hadoopConfigPath + "/core-site.xml"));
+    hadoopConfig.addResource(new Path(hadoopConfigPath + "/hdfs-site.xml"));
+    String security=hadoopConfig.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION);
+    if (security != null && security.equals("kerberos")) {
+      logger.info("Kerberos authentication is turned on in the Hadoop conf.");
+    }
+ else     if (security != null && security.equals("simple")) {
+      logger.info("Authentication is explicitly disabled in the Hadoop conf.");
+    }
+ else {
+      throw new VoldemortException("Error in getting a valid Hadoop Configuration. " + "Make sure the Hadoop config directory path is correct via" + VoldemortConfig.HADOOP_CONFIG_PATH + " and that the "+ CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION+ " property in the Hadoop config is set to either 'kerberos' or 'simple'. "+ "That property is currently set to '"+ security+ "'.");
+    }
+  }
+  return hadoopConfig;
+}

@@ -1,0 +1,36 @@
+{
+  VAdminProto.HandleFetchFailureRequest handleFetchFailureRequest=VAdminProto.HandleFetchFailureRequest.newBuilder().setStoreName(storeName).setPushVersion(storeVersion).setInfo(info).addAllFailedNodes(failedNodes).build();
+  List<Integer> liveNodes=Lists.newArrayList(currentCluster.getNodeIds());
+  liveNodes.removeAll(failedNodes);
+  Integer randomIndex=(int)(Math.random() * liveNodes.size());
+  Integer randomNodeId=liveNodes.get(randomIndex);
+  try {
+    VAdminProto.VoldemortAdminRequest adminRequest=VAdminProto.VoldemortAdminRequest.newBuilder().setHandleFetchFailure(handleFetchFailureRequest).setType(VAdminProto.AdminRequestType.HANDLE_FETCH_FAILURE).build();
+    VAdminProto.HandleFetchFailureResponse response=rpcOps.sendAndReceive(randomNodeId,adminRequest,VAdminProto.HandleFetchFailureResponse.newBuilder()).build();
+    if (response.getSwapIsPossible()) {
+      logger.info("Server returned successful HandleFetchFailureResponse: " + response.getInfo());
+    }
+ else {
+      logger.error("Server returned failed HandleFetchFailureResponse: " + response.getInfo());
+    }
+    for (    VAdminProto.DisableStoreVersionResponse disableStoreVersionResponse : response.getDisableStoreResponsesList()) {
+      Node node=currentCluster.getNodeById(disableStoreVersionResponse.getNodeId());
+      String message=node.briefToString() + ": " + disableStoreVersionResponse.getInfo();
+      if (disableStoreVersionResponse.getDisableSuccess()) {
+        logger.info(message);
+      }
+ else {
+        logger.error(message);
+      }
+    }
+    return response.getSwapIsPossible();
+  }
+ catch (  UninitializedMessageException e) {
+    logger.error("The server does not support HA (introduced in release 1.9.20), so " + "pushHighAvailability will be DISABLED on cluster: " + currentCluster.getName());
+    return false;
+  }
+catch (  Exception e) {
+    logger.error("Unexpected error while asking server to HandleFetchFailureRequest.",e);
+    return false;
+  }
+}

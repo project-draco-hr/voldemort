@@ -1,0 +1,22 @@
+{
+  Iterator<Node> nodesIterator=currentCluster.getNodes().iterator();
+  VoldemortException lastException=null;
+  while (nodesIterator.hasNext()) {
+    Node node=nodesIterator.next();
+    try {
+      return getSupportedROStorageCompressionCodecs(node.getId());
+    }
+ catch (    VoldemortException e) {
+      String nextNodeMessage="";
+      if (nodesIterator.hasNext()) {
+        nextNodeMessage=" Will try next node.";
+      }
+ else {
+        nextNodeMessage=" Will abort, as all nodes failed.";
+      }
+      logger.error("Error while trying to ask " + node.briefToString() + " for its supported compression codec."+ nextNodeMessage+ " Exception message: "+ e.getMessage());
+      lastException=e;
+    }
+  }
+  throw new VoldemortException("Error while trying to ask the cluster for its compression settings. All nodes failed.",lastException);
+}

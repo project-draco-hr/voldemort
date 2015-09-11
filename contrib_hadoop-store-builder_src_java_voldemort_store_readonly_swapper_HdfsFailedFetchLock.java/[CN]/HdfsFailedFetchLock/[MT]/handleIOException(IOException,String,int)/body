@@ -1,0 +1,8 @@
+{
+  if (e.getMessage().contains("Filesystem closed")) {
+    throw new VoldemortException("Got an IOException we cannot recover from while trying to " + action + ". Attempt # "+ attempt+ "/"+ maxAttempts+ ". Will not try again.",e);
+  }
+ else {
+    logFailureAndWait(action,IO_EXCEPTION,attempt,e);
+  }
+}

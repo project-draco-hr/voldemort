@@ -1,0 +1,17 @@
+{
+  String retryMessage;
+  if (attempt < maxAttempts) {
+    retryMessage=", will wait " + waitBetweenRetries + " ms until next retry.";
+  }
+ else {
+    retryMessage=", no further attempts will be performed.";
+  }
+  String fullMessage="Failed to " + action + " because "+ cause+ ". Attempt #"+ attempt+ "/"+ maxAttempts+ retryMessage;
+  if (e == null) {
+    logger.warn(fullMessage);
+  }
+ else {
+    logger.error(fullMessage,e);
+  }
+  Thread.sleep(waitBetweenRetries);
+}
