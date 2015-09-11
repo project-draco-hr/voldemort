@@ -39,10 +39,9 @@
     this.handoffStrategy=null;
   }
   this.jmxEnabled=isJmxEnabled;
-  this.identifierString=identifierString;
+  this.stats=stats;
   if (this.jmxEnabled) {
-    stats=new PipelineRoutedStats();
-    JmxUtils.registerMbean(stats,JmxUtils.createObjectName(JmxUtils.getPackageName(stats.getClass()),getName() + identifierString));
+    this.stats.registerJmxIfRequired();
   }
   if (zoneAffinity != null) {
     this.zoneAffinity=zoneAffinity;

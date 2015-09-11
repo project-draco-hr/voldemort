@@ -1,0 +1,14 @@
+{
+  if (cachedStats == null) {
+    throw new IllegalArgumentException("cachedStats is null");
+  }
+synchronized (cachedStats) {
+    String storeName=getName();
+    if (cachedStats.containsKey(storeName)) {
+      return cachedStats.get(storeName);
+    }
+    StoreStats storeStats=new StoreStats(getName(),parentStats);
+    cachedStats.put(storeName,storeStats);
+    return storeStats;
+  }
+}

@@ -1,0 +1,10 @@
+{
+  if (isJmxRegistered == false) {
+    StoreStatsJmx statsJmx=new StoreStatsJmx(this);
+    String domain=JmxUtils.getPackageName(this.getClass());
+    String type=this.storeName + identifierString;
+    this.jmxObjectName=JmxUtils.createObjectName(domain,type);
+    JmxUtils.registerMbean(statsJmx,jmxObjectName);
+    isJmxRegistered=true;
+  }
+}

@@ -12,6 +12,9 @@
       JmxUtils.unregisterMbean(JmxUtils.createObjectName(JmxUtils.getPackageName(failureDetector.getClass()),JmxUtils.getClassName(failureDetector.getClass()) + identifierString));
       JmxUtils.unregisterMbean(JmxUtils.createObjectName(JmxUtils.getPackageName(threadPool.getClass()),JmxUtils.getClassName(threadPool.getClass()) + identifierString));
       JmxUtils.unregisterMbean(JmxUtils.createObjectName("voldemort.store.stats.aggregate","aggregate-perf" + identifierString));
+      for (      StoreStats stats : this.cachedStoreStats.values()) {
+        stats.unregisterJmx();
+      }
     }
   }
   releaseZenStoreResources();
