@@ -1,87 +1,22 @@
 {
   if (args.length < 1)   Utils.croak("USAGE: java " + HdfsFetcher.class.getName() + " url [keytab-location kerberos-username hadoop-config-path [destDir]]");
   String url=args[0];
-  String keytabLocation="";
-  String kerberosUser="";
-  String hadoopPath="";
+  HdfsFetcher fetcher=new HdfsFetcher();
   String destDir=null;
   if (args.length >= 4) {
-    keytabLocation=args[1];
-    kerberosUser=args[2];
-    hadoopPath=args[3];
+    fetcher.voldemortConfig.setReadOnlyKeytabPath(args[1]);
+    fetcher.voldemortConfig.setReadOnlyKerberosUser(args[2]);
+    fetcher.voldemortConfig.setHadoopConfigPath(args[3]);
   }
   if (args.length >= 5)   destDir=args[4];
   allowFetchOfFiles=true;
-  long maxBytesPerSec=1024 * 1024 * 1024;
-  final Configuration config=new Configuration();
-  config.setInt("io.file.buffer.size",VoldemortConfig.DEFAULT_FETCHER_BUFFER_SIZE);
-  config.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
-  config.setInt("io.socket.receive.buffer",1 * 1024 * 1024 - 10000);
-  FileSystem fs=null;
+  FileSystem fs=HadoopUtils.getHadoopFileSystem(fetcher.voldemortConfig,url);
   Path p=new Path(url);
-  boolean isHftpBasedFetch=url.length() > 4 && url.substring(0,4).equals("hftp");
-  logger.info("URL : " + url + " and hftp protocol enabled = "+ isHftpBasedFetch);
-  if (hadoopPath.length() > 0 && !isHftpBasedFetch) {
-    config.set("hadoop.security.group.mapping","org.apache.hadoop.security.ShellBasedUnixGroupsMapping");
-    config.addResource(new Path(hadoopPath + "/core-site.xml"));
-    config.addResource(new Path(hadoopPath + "/hdfs-site.xml"));
-    String security=config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION);
-    if (security == null || !security.equals("kerberos")) {
-      logger.info("Security isn't turned on in the conf: " + CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION + " = "+ config.get(CommonConfigurationKeys.HADOOP_SECURITY_AUTHENTICATION));
-      logger.info("Fix that.  Exiting.");
-      return;
-    }
- else {
-      logger.info("Security is turned on in the conf. Trying to authenticate ...");
-    }
-  }
-  try {
-    if (keytabLocation.length() > 0 && !isHftpBasedFetch) {
-      UserGroupInformation.setConfiguration(config);
-      UserGroupInformation.loginUserFromKeytab(kerberosUser,keytabLocation);
-      final Path path=p;
-      try {
-        logger.debug("I've logged in and am now Doasing as " + UserGroupInformation.getCurrentUser().getUserName());
-        fs=UserGroupInformation.getCurrentUser().doAs(new PrivilegedExceptionAction<FileSystem>(){
-          public FileSystem run() throws Exception {
-            FileSystem fs=path.getFileSystem(config);
-            return fs;
-          }
-        }
-);
-      }
- catch (      InterruptedException e) {
-        logger.error(e.getMessage());
-      }
-catch (      Exception e) {
-        logger.error("Got an exception while getting the filesystem object: ");
-        logger.error("Exception class : " + e.getClass());
-        e.printStackTrace();
-        for (        StackTraceElement et : e.getStackTrace()) {
-          logger.error(et.toString());
-        }
-      }
-    }
- else {
-      fs=p.getFileSystem(config);
-    }
-  }
- catch (  IOException e) {
-    e.printStackTrace();
-    System.err.println("IOException in getting Hadoop filesystem object !!! Exiting !!!");
-    System.exit(-1);
-  }
-catch (  Throwable te) {
-    te.printStackTrace();
-    logger.error("Error thrown while trying to get Hadoop filesystem");
-    System.exit(-1);
-  }
   FileStatus status=fs.listStatus(p)[0];
   long size=status.getLen();
-  HdfsFetcher fetcher=new HdfsFetcher(maxBytesPerSec,VoldemortConfig.REPORTING_INTERVAL_BYTES,VoldemortConfig.DEFAULT_FETCHER_THROTTLE_INTERVAL_WINDOW_MS,VoldemortConfig.DEFAULT_FETCHER_BUFFER_SIZE,5,5000,true,50,VoldemortConfig.DEFAULT_FETCHER_SOCKET_TIMEOUT);
   long start=System.currentTimeMillis();
   if (destDir == null)   destDir=System.getProperty("java.io.tmpdir") + File.separator + start;
-  File location=fetcher.fetch(url,destDir,null,null,-1,null,hadoopPath);
+  File location=fetcher.fetch(url,destDir,null,null,-1,null);
   double rate=size * Time.MS_PER_SECOND / (double)(System.currentTimeMillis() - start);
   NumberFormat nf=NumberFormat.getInstance();
   nf.setMaximumFractionDigits(2);
