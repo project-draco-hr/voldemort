@@ -3,6 +3,9 @@
     byte[] keyEntry=innerIterator.key();
     byte[] valueEntry=innerIterator.value();
     innerIterator.next();
+    if (RocksDbStorageEngine.this.isPartitionScanSupported()) {
+      keyEntry=StoreBinaryFormat.extractKey(keyEntry);
+    }
     ByteArray key=new ByteArray(keyEntry);
     for (    Versioned<byte[]> val : StoreBinaryFormat.fromByteArray(valueEntry)) {
       cache.add(new Pair<ByteArray,Versioned<byte[]>>(key,val));

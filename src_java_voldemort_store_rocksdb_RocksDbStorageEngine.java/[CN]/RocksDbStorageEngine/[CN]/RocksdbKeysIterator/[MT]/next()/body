@@ -1,8 +1,11 @@
 {
-  if (cache != null) {
-    if (!fetchnextKey()) {
-      throw new NoSuchElementException("Iterate to end");
-    }
+  if (!this.innerIterator.isValid()) {
+    throw new NoSuchElementException("Iterate to end");
   }
-  return cache;
+  byte[] keyEntry=this.innerIterator.key();
+  this.innerIterator.next();
+  if (RocksDbStorageEngine.this.isPartitionScanSupported()) {
+    keyEntry=StoreBinaryFormat.extractKey(keyEntry);
+  }
+  return new ByteArray(keyEntry);
 }
