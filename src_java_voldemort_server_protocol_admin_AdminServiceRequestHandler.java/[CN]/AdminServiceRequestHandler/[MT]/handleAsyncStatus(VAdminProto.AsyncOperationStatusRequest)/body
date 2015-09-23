@@ -11,19 +11,15 @@
     if (operationStatus.hasException()) {
       String erroMessage="HandleAsyncStatus received Exception: " + operationStatus.getException().getMessage();
       Exception exception=operationStatus.getException();
-      if (exception instanceof QuotaExceededException) {
-        throw (QuotaExceededException)exception;
+      if (exception instanceof VoldemortException) {
+        throw (VoldemortException)exception;
       }
  else {
         throw new VoldemortException(erroMessage,exception);
       }
     }
   }
- catch (  QuotaExceededException e) {
-    response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
-    logger.error("Quota Exceeded. handleAsyncStatus failed for request(" + request.toString().trim() + ")",e);
-  }
-catch (  VoldemortException e) {
+ catch (  VoldemortException e) {
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
     logger.error("handleAsyncStatus failed for request(" + request.toString().trim() + ")",e);
   }

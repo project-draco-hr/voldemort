@@ -7,8 +7,11 @@
   }
   try {
     adminClientPerCluster.get(url).storeMgmtOps.addStore(newStoreDef,nodeIDs);
-    Long quotaValue=0L;
-    adminClientPerCluster.get(url).quotaMgmtOps.setQuota(storeName,QuotaType.STORAGE_SPACE.toString(),quotaValue.toString());
+    if (!nodeIDs.isEmpty()) {
+      Long quotaValue=0L;
+      log.info("New incoming push for Store: " + storeName + " .Setting quota for this new store to 0.");
+      adminClientPerCluster.get(url).quotaMgmtOps.setQuota(storeName,QuotaType.STORAGE_SPACE.toString(),quotaValue.toString());
+    }
   }
  catch (  VoldemortException ve) {
     throw new RuntimeException("Exception while adding store to nodes in cluster URL" + url,ve);

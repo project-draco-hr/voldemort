@@ -60,17 +60,11 @@
               logger.info(message);
             }
           }
- catch (          QuotaExceededException e) {
-            String errorMessage="Quota exceeded. File fetcher failed for " + fetchUrl + " and store '"+ storeName+ "' Reason: \n"+ e.getMessage();
-            updateStatus(errorMessage);
-            logger.error(errorMessage,e);
-            throw e;
-          }
-catch (          VoldemortException ve) {
+ catch (          VoldemortException ve) {
             String errorMessage="File fetcher failed for " + fetchUrl + " and store '"+ storeName+ "' Reason: \n"+ ve.getMessage();
             updateStatus(errorMessage);
             logger.error(errorMessage,ve);
-            throw new VoldemortException(errorMessage,ve);
+            throw ve;
           }
 catch (          Exception e) {
             throw new VoldemortException("Exception in Fetcher = " + e.getMessage(),e);

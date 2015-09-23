@@ -45,9 +45,8 @@
     }
  catch (    Exception e) {
       String errorMessage="Failed while waiting for async task (" + description + ") at "+ nodeName+ " to finish";
-      if (e instanceof QuotaExceededException) {
-        String reason=((QuotaExceededException)e).getMessage();
-        throw new QuotaExceededException(errorMessage + "Reason: " + reason);
+      if (e instanceof VoldemortException) {
+        throw (VoldemortException)e;
       }
  else {
         throw new VoldemortException(errorMessage,e);

@@ -22,20 +22,14 @@
       return null;
     }
   }
- catch (  QuotaExceededException e) {
-    if (stats != null) {
-      stats.reportError("File fetcher failed for due to QuotaExceededException for destination " + destinationFile,e);
-    }
-    throw e;
-  }
-catch (  Exception e) {
+ catch (  Exception e) {
     if (stats != null) {
       stats.reportError("File fetcher failed for destination " + destinationFile,e);
     }
     String errorMessage="Error thrown while trying to get data from Hadoop filesystem : ";
-    logger.error(errorMessage);
+    logger.error(errorMessage,e);
     if (e instanceof VoldemortException) {
-      throw (VoldemortException)e;
+      throw e;
     }
  else {
       throw new VoldemortException(errorMessage,e);
