@@ -3,17 +3,33 @@
   if (!stores.containsKey(storeName)) {
     String dataDir=this.voldemortconfig.getRdbDataDirectory() + "/" + storeName;
     new File(dataDir).mkdirs();
+    Properties dbProperties=parseProperties(VoldemortConfig.ROCKSDB_DB_OPTIONS);
+    DBOptions dbOptions=(dbProperties.size() > 0) ? DBOptions.getDBOptionsFromProps(dbProperties) : new DBOptions();
+    if (dbOptions == null) {
+      throw new StorageInitializationException("Unable to parse Data Base Options.");
+    }
+    dbOptions.setCreateIfMissing(true);
+    dbOptions.createStatistics();
+    Properties cfProperties=parseProperties(VoldemortConfig.ROCKSDB_CF_OPTIONS);
+    if (this.voldemortconfig.getRocksdbPrefixKeysWithPartitionId()) {
+      cfProperties.setProperty("prefix_extractor","fixed:" + StoreBinaryFormat.PARTITIONID_PREFIX_SIZE);
+    }
+    ColumnFamilyOptions cfOptions=(cfProperties.size() > 0) ? ColumnFamilyOptions.getColumnFamilyOptionsFromProps(cfProperties) : new ColumnFamilyOptions();
+    if (cfOptions == null) {
+      throw new StorageInitializationException("Unable to parse Column Family Options.");
+    }
+    List<ColumnFamilyDescriptor> cfdList=new ArrayList<ColumnFamilyDescriptor>();
+    cfdList.add(new ColumnFamilyDescriptor("default".getBytes(),cfOptions));
+    List<ColumnFamilyHandle> cfhList=new ArrayList<ColumnFamilyHandle>();
     try {
-      Options rdbOptions=new Options().setCreateIfMissing(true).createStatistics().setWriteBufferSize(8 * SizeUnit.KB).setMaxWriteBufferNumber(3).setMaxBackgroundCompactions(10).setCompressionType(org.rocksdb.CompressionType.SNAPPY_COMPRESSION);
-      RocksDB rdbStore=null;
+      RocksDB rdbStore;
       RocksDbStorageEngine rdbStorageEngine;
       if (this.voldemortconfig.getRocksdbPrefixKeysWithPartitionId()) {
-        rdbOptions.useFixedLengthPrefixExtractor(StoreBinaryFormat.PARTITIONID_PREFIX_SIZE);
-        rdbStore=RocksDB.open(rdbOptions,dataDir);
+        rdbStore=RocksDB.open(dbOptions,dataDir,cfdList,cfhList);
         rdbStorageEngine=new PartitionPrefixedRocksDbStorageEngine(storeName,rdbStore,lockStripes,strategy,voldemortconfig.isRocksdbEnableReadLocks());
       }
  else {
-        rdbStore=RocksDB.open(rdbOptions,dataDir);
+        rdbStore=RocksDB.open(dbOptions,dataDir,cfdList,cfhList);
         rdbStorageEngine=new RocksDbStorageEngine(storeName,rdbStore,lockStripes,voldemortconfig.isRocksdbEnableReadLocks());
       }
       stores.put(storeName,rdbStorageEngine);

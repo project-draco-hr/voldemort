@@ -25,11 +25,23 @@
     this.factory=socketFactory;
   }
  else {
+    localMode=true;
     String storageEngineClass=benchmarkProps.getString(STORAGE_CONFIGURATION_CLASS);
     this.keyType=benchmarkProps.getString(KEY_TYPE,STRING_KEY_TYPE);
     Serializer serializer=findKeyType(this.keyType);
     Store<Object,Object,Object> store=null;
-    StorageConfiguration conf=(StorageConfiguration)ReflectUtils.callConstructor(ReflectUtils.loadClass(storageEngineClass),new Object[]{ServerTestUtils.getVoldemortConfig()});
+    VoldemortConfig voldemortConfig;
+    if (benchmarkProps.containsKey(LOCAL_SERVER_PROPERTIES)) {
+      File homeDir=TestUtils.createTempDir();
+      File configDir=new File(homeDir,"config");
+      configDir.mkdir();
+      FileUtils.copyFile(new File(benchmarkProps.get(LOCAL_SERVER_PROPERTIES)),new File(configDir,"server.properties"));
+      voldemortConfig=VoldemortConfig.loadFromVoldemortHome(homeDir.getAbsolutePath());
+    }
+ else {
+      voldemortConfig=ServerTestUtils.getVoldemortConfig();
+    }
+    StorageConfiguration conf=(StorageConfiguration)ReflectUtils.callConstructor(ReflectUtils.loadClass(storageEngineClass),new Object[]{voldemortConfig});
     StorageEngine<ByteArray,byte[],byte[]> engine=conf.getStore(TestUtils.makeStoreDefinition(DUMMY_DB),TestUtils.makeSingleNodeRoutingStrategy());
     if (conf.getType().compareTo(ViewStorageConfiguration.TYPE_NAME) == 0) {
       engine=new ViewStorageEngine(STORE_NAME,engine,new StringSerializer(),new StringSerializer(),serializer,new StringSerializer(),null,BenchmarkViews.loadTransformation(benchmarkProps.getString(VIEW_CLASS).trim()));
