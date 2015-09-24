@@ -8,7 +8,8 @@
     try {
       if (keytabPath.length() > 0) {
 synchronized (HadoopUtils.class) {
-          if (currentHadoopUser == null) {
+          long timeSinceLastLogin=System.currentTimeMillis() - lastLoginTime;
+          if (currentHadoopUser == null || timeSinceLastLogin > voldemortConfig.getReadOnlyLoginIntervalMs()) {
             if (!new File(keytabPath).exists()) {
               logger.error("Invalid keytab file path. Please provide a valid keytab path");
               throw new VoldemortException("Error in getting Hadoop filesystem. Invalid keytab file path.");
@@ -16,6 +17,7 @@ synchronized (HadoopUtils.class) {
             UserGroupInformation.setConfiguration(config);
             UserGroupInformation.loginUserFromKeytab(voldemortConfig.getReadOnlyKerberosUser(),keytabPath);
             currentHadoopUser=UserGroupInformation.getCurrentUser();
+            lastLoginTime=System.currentTimeMillis();
             logger.info("I have logged in as " + currentHadoopUser.getUserName());
           }
  else {
