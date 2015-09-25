@@ -1,9 +1,7 @@
 {
   invokeHooks(BuildAndPushStatus.STARTING);
   if (hooks.size() > 0) {
-    Thread t=new Thread(heartBeatHookRunnable);
-    t.setDaemon(true);
-    t.start();
+    heartBeatHookFuture=executorService.submit(heartBeatHookRunnable);
   }
   try {
     boolean build=props.getBoolean(BUILD,true);

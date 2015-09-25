@@ -1,5 +1,7 @@
 {
-  heartBeatHookRunnable.stop();
+  if (heartBeatHookFuture != null) {
+    heartBeatHookFuture.cancel(true);
+  }
   for (  Closeable closeable : this.closeables) {
     try {
       log.info("Closing " + closeable.toString());

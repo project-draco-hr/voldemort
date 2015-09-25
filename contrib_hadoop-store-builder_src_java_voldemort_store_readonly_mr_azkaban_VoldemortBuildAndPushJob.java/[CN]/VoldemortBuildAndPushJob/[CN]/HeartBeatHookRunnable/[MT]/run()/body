@@ -1,11 +1,12 @@
 {
-  while (keepRunning) {
+  while (!Thread.currentThread().isInterrupted()) {
     try {
       Thread.sleep(sleepTimeMs);
       invokeHooks(BuildAndPushStatus.HEARTBEAT);
     }
  catch (    InterruptedException e) {
-      keepRunning=false;
+      Thread.currentThread().interrupt();
+      return;
     }
   }
 }

@@ -63,6 +63,10 @@
       }
     }
   }
-  this.executorService=Executors.newFixedThreadPool(numberOfClusters);
+  int requiredNumberOfThreads=numberOfClusters;
+  if (hooks.size() > 0) {
+    requiredNumberOfThreads++;
+  }
+  this.executorService=Executors.newFixedThreadPool(requiredNumberOfThreads);
   log.info("Build and Push Job constructed for " + numberOfClusters + " cluster(s).");
 }
