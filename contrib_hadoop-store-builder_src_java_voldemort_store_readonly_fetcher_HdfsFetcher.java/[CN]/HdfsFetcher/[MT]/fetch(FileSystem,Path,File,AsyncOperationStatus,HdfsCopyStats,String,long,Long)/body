@@ -1,7 +1,5 @@
 {
-  AdminClient adminClient=null;
   try {
-    adminClient=new AdminClient(metadataStore.getCluster(),new AdminClientConfig(),new ClientConfig());
     FetchStrategy fetchStrategy=new BasicFetchStrategy(this,fs,stats,status,bufferSize);
     if (!fs.isFile(source)) {
       Utils.mkdirs(dest);
@@ -15,8 +13,7 @@
         String diskSizeInBytes=(String)directory.getMetadata().get(ReadOnlyStorageMetadata.DISK_SIZE_IN_BYTES);
         estimatedDiskSize=(diskSizeInBytes != null && diskSizeInBytes != "") ? (Long.parseLong(diskSizeInBytes)) : -1L;
       }
-      Versioned<String> diskQuotaSizeInKB=adminClient.quotaMgmtOps.getQuotaForNode(storeName,QuotaType.STORAGE_SPACE,metadataStore.getNodeId());
-      if (diskQuotaSizeInKB != null) {
+      if (diskQuotaSizeInKB != null && diskQuotaSizeInKB != VoldemortConfig.DEFAULT_STORAGE_SPACE_QUOTA_IN_KB) {
         checkIfQuotaExceeded(diskQuotaSizeInKB,storeName,dest,estimatedDiskSize);
       }
  else {
@@ -39,8 +36,5 @@
     return false;
   }
   finally {
-    if (adminClient != null) {
-      adminClient.close();
-    }
   }
 }

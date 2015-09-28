@@ -2,23 +2,19 @@
   ObjectName jmxName=null;
   HdfsCopyStats stats=null;
   FileSystem fs=null;
-  AdminClient adminClient=null;
   try {
-    fs=HadoopUtils.getHadoopFileSystem(voldemortConfig,sourceFileUrl);
-    final Path path=new Path(sourceFileUrl);
-    File destination=new File(destinationFile);
+    fs=HadoopUtils.getHadoopFileSystem(voldemortConfig,source);
+    final Path path=new Path(source);
+    File destination=new File(dest);
     if (destination.exists()) {
       throw new VoldemortException("Version directory " + destination.getAbsolutePath() + " already exists");
     }
     boolean isFile=fs.isFile(path);
-    stats=new HdfsCopyStats(sourceFileUrl,destination,enableStatsFile,maxVersionsStatsFile,isFile,new HdfsPathInfo(fs,path));
+    stats=new HdfsCopyStats(source,destination,enableStatsFile,maxVersionsStatsFile,isFile,new HdfsPathInfo(fs,path));
     jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
-    adminClient=new AdminClient(metadataStore.getCluster(),new AdminClientConfig(),new ClientConfig());
-    Versioned<String> diskQuotaSize=adminClient.quotaMgmtOps.getQuotaForNode(storeName,QuotaType.STORAGE_SPACE,metadataStore.getNodeId());
-    Long diskQuoataSizeInKB=(diskQuotaSize == null) ? null : (Long.parseLong(diskQuotaSize.getValue()));
-    logger.info("Starting fetch for : " + sourceFileUrl);
-    boolean result=fetch(fs,path,destination,status,stats,storeName,pushVersion,diskQuoataSizeInKB);
-    logger.info("Completed fetch : " + sourceFileUrl);
+    logger.info("Starting fetch for : " + source);
+    boolean result=fetch(fs,path,destination,null,stats,null,-1,diskQuotaSizeInKB);
+    logger.info("Completed fetch : " + source);
     if (result) {
       return destination;
     }
@@ -28,7 +24,7 @@
   }
  catch (  Exception e) {
     if (stats != null) {
-      stats.reportError("File fetcher failed for destination " + destinationFile,e);
+      stats.reportError("File fetcher failed for destination " + dest,e);
     }
     String errorMessage="Error thrown while trying to get data from Hadoop filesystem : ";
     logger.error(errorMessage,e);
@@ -55,9 +51,6 @@
         }
         logger.info(errorMessage,e);
       }
-    }
-    if (adminClient != null) {
-      adminClient.close();
     }
   }
 }

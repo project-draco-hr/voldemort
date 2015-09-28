@@ -4,9 +4,11 @@
     response.setError(ProtoUtils.encodeError(errorCodeMapper,new VoldemortException("Voldemort server is neither in normal state nor in offline state")));
     return response.build();
   }
+  AdminClient adminClient=null;
   try {
     StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
     StoreDefinition def=mapper.readStore(new StringReader(request.getStoreDefinition()));
+    adminClient=new AdminClient(metadataStore.getCluster(),new AdminClientConfig(),new ClientConfig());
 synchronized (lock) {
       if (!storeRepository.hasLocalStore(def.getName())) {
         if (def.getReplicationFactor() > metadataStore.getCluster().getNumberOfNodes()) {
@@ -16,6 +18,7 @@ synchronized (lock) {
         StorageEngine<ByteArray,byte[],byte[]> engine=storageService.openStore(def);
         try {
           metadataStore.addStoreDefinition(def);
+          adminClient.quotaMgmtOps.setQuotaForNode(def.getName(),QuotaType.STORAGE_SPACE,metadataStore.getNodeId(),voldemortConfig.getDefaultStorageSpaceQuotaInKB());
         }
  catch (        Exception e) {
           boolean isReadOnly=ReadOnlyStorageConfiguration.TYPE_NAME.equals(def.getType());
@@ -33,6 +36,11 @@ synchronized (lock) {
  catch (  VoldemortException e) {
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
     logger.error("handleAddStore failed for request(" + request.toString() + ")",e);
+  }
+ finally {
+    if (adminClient != null) {
+      adminClient.close();
+    }
   }
   return response.build();
 }

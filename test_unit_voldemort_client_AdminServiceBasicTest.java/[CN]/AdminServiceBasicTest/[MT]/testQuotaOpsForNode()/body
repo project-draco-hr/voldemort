@@ -3,14 +3,14 @@
   String storeName=storeDefs.get(0).getName();
   QuotaType quotaType=QuotaType.GET_THROUGHPUT;
   Integer nodeId=0;
-  Integer quota=1000;
+  Long quota=1000L;
   client.quotaMgmtOps.setQuotaForNode(storeName,quotaType,nodeId,quota);
-  Integer getQuota=Integer.parseInt(client.quotaMgmtOps.getQuotaForNode(storeName,quotaType,nodeId).getValue());
+  Long getQuota=Long.parseLong(client.quotaMgmtOps.getQuotaForNode(storeName,quotaType,nodeId).getValue());
   assertEquals(quota,getQuota);
   Thread.sleep(5);
-  quota=10;
+  quota=10L;
   client.quotaMgmtOps.setQuotaForNode(storeName,quotaType,nodeId,quota);
-  getQuota=Integer.parseInt(client.quotaMgmtOps.getQuotaForNode(storeName,quotaType,nodeId).getValue());
+  getQuota=Long.parseLong(client.quotaMgmtOps.getQuotaForNode(storeName,quotaType,nodeId).getValue());
   assertEquals(quota,getQuota);
   Thread.sleep(5);
   assertTrue(client.quotaMgmtOps.deleteQuotaForNode(storeName,quotaType,nodeId));
