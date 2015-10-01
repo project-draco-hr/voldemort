@@ -2,7 +2,7 @@
   if (logger.isEnabledFor(Level.INFO))   logger.info("Starting Voldemort NIO socket server (" + serviceName + ") on port "+ port);
   try {
     for (int i=0; i < selectorManagers.length; i++) {
-      selectorManagers[i]=new NioSelectorManager(endpoint,requestHandlerFactory,socketBufferSize);
+      selectorManagers[i]=new NioSelectorManager(endpoint,requestHandlerFactory,socketBufferSize,socketKeepAlive);
       selectorManagerThreadPool.execute(selectorManagers[i]);
     }
     serverSocketChannel.socket().bind(endpoint,acceptorBacklog);

@@ -12,7 +12,7 @@
     RequestHandlerFactory clientRequestHandlerFactory=new ClientRequestHandlerFactory(this.storeRepository);
     if (voldemortConfig.getUseNioConnector()) {
       logger.info("Using NIO Connector.");
-      NioSocketService nioSocketService=new NioSocketService(clientRequestHandlerFactory,identityNode.getSocketPort(),voldemortConfig.getSocketBufferSize(),voldemortConfig.getNioConnectorSelectors(),"nio-socket-server",voldemortConfig.isJmxEnabled(),voldemortConfig.getNioAcceptorBacklog());
+      NioSocketService nioSocketService=new NioSocketService(clientRequestHandlerFactory,identityNode.getSocketPort(),voldemortConfig.getSocketBufferSize(),voldemortConfig.isNioConnectorKeepAlive(),voldemortConfig.getNioConnectorSelectors(),"nio-socket-server",voldemortConfig.isJmxEnabled(),voldemortConfig.getNioAcceptorBacklog());
       onlineServices.add(nioSocketService);
     }
  else {

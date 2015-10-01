@@ -11,6 +11,7 @@
         if (logger.isDebugEnabled())         logger.debug("Registering connection from " + socketChannel.socket().getPort());
         socketChannel.socket().setTcpNoDelay(true);
         socketChannel.socket().setReuseAddress(true);
+        socketChannel.socket().setKeepAlive(socketKeepAlive);
         socketChannel.socket().setSendBufferSize(socketBufferSize);
         if (socketChannel.socket().getReceiveBufferSize() != this.socketBufferSize)         if (logger.isDebugEnabled())         logger.debug("Requested socket receive buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getReceiveBufferSize()+ " bytes.");
         if (socketChannel.socket().getSendBufferSize() != this.socketBufferSize)         if (logger.isDebugEnabled())         logger.debug("Requested socket send buffer size was " + this.socketBufferSize + " bytes but actual size is "+ socketChannel.socket().getSendBufferSize()+ " bytes.");
