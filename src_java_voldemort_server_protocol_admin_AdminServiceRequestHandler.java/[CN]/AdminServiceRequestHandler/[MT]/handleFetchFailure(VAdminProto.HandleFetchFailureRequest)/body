@@ -33,7 +33,11 @@
         logger.error(responseMessage);
       }
  else {
-        String nodesString="[";
+        String nodesString="node";
+        if (nodesFailedInThisFetch.size() > 1) {
+          nodesString+="s";
+        }
+        nodesString+=" [";
         boolean firstNode=true;
         for (        Integer nodeId : nodesFailedInThisFetch) {
           logger.warn("Will disable store '" + storeName + "' on node "+ nodeId);
@@ -47,20 +51,21 @@
           nodesString+=nodeId;
           response.addDisableStoreResponses(adminClient.readonlyOps.disableStoreVersion(nodeId,storeName,pushVersion,extraInfo));
         }
+        nodesString+="]";
         swapIsPossible=true;
-        responseMessage="Swap will be possible even though nodes " + nodesString + " have failed their fetch.";
+        responseMessage="Swap will be possible even though " + nodesString + " failed to fetch.";
         logger.info(responseMessage);
       }
     }
  catch (    ClassNotFoundException e) {
       String logMessage="Failed to find requested FailedFetchLock implementation while setting up pushHighAvailability. ";
       logger.error(responseMessage,e);
-      responseMessage=logMessage + e.getMessage();
+      responseMessage=logMessage + "\n" + ExceptionUtils.stackTraceToString(e);
     }
 catch (    Exception e) {
       String logMessage="Got exception while trying to execute pushHighAvailability. ";
       logger.error(responseMessage,e);
-      responseMessage=logMessage + e.getMessage();
+      responseMessage=logMessage + "\n" + ExceptionUtils.stackTraceToString(e);
     }
  finally {
       if (distributedLock != null) {

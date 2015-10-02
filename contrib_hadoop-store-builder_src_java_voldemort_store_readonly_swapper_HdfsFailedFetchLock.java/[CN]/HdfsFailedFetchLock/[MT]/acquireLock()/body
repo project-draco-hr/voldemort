@@ -11,7 +11,6 @@
       outputStream=this.fileSystem.create(temporaryLockFile,false);
       props.storeFlattened(outputStream);
       outputStream.flush();
-      outputStream.close();
       this.lockAcquired=this.fileSystem.rename(temporaryLockFile,this.lockFile);
       if (!this.lockAcquired) {
         logFailureAndWait(ACQUIRE_LOCK,ALREADY_EXISTS,attempts);
@@ -22,9 +21,7 @@
       handleIOException(e,ACQUIRE_LOCK,attempts);
     }
  finally {
-      if (outputStream != null) {
-        outputStream.close();
-      }
+      IOUtils.closeQuietly(outputStream);
     }
     if (!this.lockAcquired) {
       attempts++;
