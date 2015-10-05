@@ -1,0 +1,19 @@
+{
+  AdminClient client=getAdminClient();
+  String storeName=storeDefs.get(0).getName();
+  Integer nodeId=0;
+  Long quota=1000L;
+  client.quotaMgmtOps.setQuotaForNode(storeName,quotaType,nodeId,quota);
+  Long getQuota=Long.parseLong(client.quotaMgmtOps.getQuotaForNode(storeName,quotaType,nodeId).getValue());
+  assertEquals(quota,getQuota);
+  Thread.sleep(5);
+  quota=10L;
+  client.quotaMgmtOps.setQuotaForNode(storeName,quotaType,nodeId,quota);
+  getQuota=Long.parseLong(client.quotaMgmtOps.getQuotaForNode(storeName,quotaType,nodeId).getValue());
+  assertEquals(quota,getQuota);
+  Thread.sleep(5);
+  assertTrue(client.quotaMgmtOps.deleteQuotaForNode(storeName,quotaType,nodeId));
+  Versioned<String> quotaVal=client.quotaMgmtOps.getQuotaForNode(storeName,quotaType,nodeId);
+  assertEquals(null,quotaVal);
+  Thread.sleep(5);
+}

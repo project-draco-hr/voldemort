@@ -1,0 +1,40 @@
+{
+  try {
+    testForDiskQuota((int)VoldemortConfig.DEFAULT_STORAGE_SPACE_QUOTA_IN_KB,2048);
+  }
+ catch (  Exception e) {
+    Assert.fail("testDiskForQuota(" + VoldemortConfig.DEFAULT_STORAGE_SPACE_QUOTA_IN_KB + ", 2048) failed with Exception: "+ e);
+  }
+  boolean testhasErrors=false;
+  try {
+    testForDiskQuota(0,2048);
+  }
+ catch (  InvalidBootstrapURLException e) {
+    testhasErrors=true;
+  }
+catch (  Exception e) {
+    Assert.fail("testForDiskQuota(0, 2048) failed with Exception: " + e);
+  }
+  if (!testhasErrors) {
+    Assert.fail("testForDiskQuota(0, 2048) should have failed with InvalidBootstrapURLException.");
+  }
+  testhasErrors=false;
+  try {
+    testForDiskQuota(2,3000);
+  }
+ catch (  QuotaExceededException e) {
+    testhasErrors=true;
+  }
+catch (  Exception e) {
+    Assert.fail("testForDiskQuota(2, 3000) failed with Exception: " + e);
+  }
+  if (!testhasErrors) {
+    Assert.fail("testForDiskQuota(2, 3000) should have failed with QuotaExceededException.");
+  }
+  try {
+    testForDiskQuota(2,1000);
+  }
+ catch (  Exception e) {
+    Assert.fail("testForDiskQuota(2, 1000) failed with Exception: " + e);
+  }
+}

@@ -1,63 +1,15 @@
 {
-  ObjectName jmxName=null;
-  HdfsCopyStats stats=null;
-  FileSystem fs=null;
   AdminClient adminClient=null;
   try {
-    fs=HadoopUtils.getHadoopFileSystem(voldemortConfig,sourceFileUrl);
-    final Path path=new Path(sourceFileUrl);
-    File destination=new File(destinationFile);
-    if (destination.exists()) {
-      throw new VoldemortException("Version directory " + destination.getAbsolutePath() + " already exists");
-    }
-    boolean isFile=fs.isFile(path);
-    stats=new HdfsCopyStats(sourceFileUrl,destination,enableStatsFile,maxVersionsStatsFile,isFile,new HdfsPathInfo(fs,path));
-    jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
     adminClient=new AdminClient(metadataStore.getCluster(),new AdminClientConfig(),new ClientConfig());
     Versioned<String> diskQuotaSize=adminClient.quotaMgmtOps.getQuotaForNode(storeName,QuotaType.STORAGE_SPACE,metadataStore.getNodeId());
     Long diskQuoataSizeInKB=(diskQuotaSize == null) ? null : (Long.parseLong(diskQuotaSize.getValue()));
     logger.info("Starting fetch for : " + sourceFileUrl);
-    boolean result=fetch(fs,path,destination,status,stats,storeName,pushVersion,diskQuoataSizeInKB);
-    logger.info("Completed fetch : " + sourceFileUrl);
-    if (result) {
-      return destination;
-    }
- else {
-      return null;
-    }
+    return fetchFromSource(sourceFileUrl,destinationFile,status,storeName,pushVersion,diskQuoataSizeInKB);
   }
- catch (  Exception e) {
-    if (stats != null) {
-      stats.reportError("File fetcher failed for destination " + destinationFile,e);
-    }
-    String errorMessage="Error thrown while trying to get data from Hadoop filesystem : ";
-    logger.error(errorMessage,e);
-    if (e instanceof VoldemortException) {
-      throw e;
-    }
- else {
-      throw new VoldemortException(errorMessage,e);
-    }
-  }
- finally {
-    if (jmxName != null)     JmxUtils.unregisterMbean(jmxName);
-    if (stats != null) {
-      stats.complete();
-    }
-    if (fs != null) {
-      try {
-        fs.close();
-      }
- catch (      IOException e) {
-        String errorMessage="Got IOException while trying to close the filesystem instance (harmless).";
-        if (stats != null) {
-          stats.reportError(errorMessage,e);
-        }
-        logger.info(errorMessage,e);
-      }
-    }
+  finally {
     if (adminClient != null) {
-      adminClient.close();
+      IOUtils.closeQuietly(adminClient);
     }
   }
 }
