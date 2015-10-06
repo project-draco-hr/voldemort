@@ -39,6 +39,10 @@
         logger.info("Completed fetch : " + sourceFileUrl);
         return destination;
       }
+ else {
+        logger.error("Checksum did not match!");
+        return null;
+      }
     }
  else     if (allowFetchOfFiles) {
       Utils.mkdirs(destination);
@@ -49,8 +53,10 @@
       logger.info("Completed fetch : " + sourceFileUrl);
       return destination;
     }
-    logger.error("Source " + path.toString() + " should be a directory");
-    return null;
+ else {
+      logger.error("Source " + path.toString() + " should be a directory");
+      return null;
+    }
   }
  catch (  Exception e) {
     if (stats != null) {
