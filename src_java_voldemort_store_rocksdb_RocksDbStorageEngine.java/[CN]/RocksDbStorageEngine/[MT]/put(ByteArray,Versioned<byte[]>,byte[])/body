@@ -5,7 +5,7 @@
 synchronized (this.locks.lockFor(key.get())) {
     List<Versioned<byte[]>> currentValues;
     try {
-      byte[] result=getRocksDB().get(key.get());
+      byte[] result=getRocksDB().get(storeHandle,key.get());
       if (result != null) {
         currentValues=StoreBinaryFormat.fromByteArray(result);
       }
@@ -35,7 +35,7 @@ synchronized (this.locks.lockFor(key.get())) {
     }
     currentValues.add(value);
     try {
-      getRocksDB().put(key.get(),StoreBinaryFormat.toByteArray(currentValues));
+      getRocksDB().put(storeHandle,key.get(),StoreBinaryFormat.toByteArray(currentValues));
     }
  catch (    RocksDBException e) {
       logger.error(e);

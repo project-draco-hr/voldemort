@@ -4,12 +4,12 @@
   if (logger.isTraceEnabled())   startTimeNs=System.nanoTime();
 synchronized (this.locks.lockFor(key.get())) {
     try {
-      byte[] value=getRocksDB().get(key.get());
+      byte[] value=getRocksDB().get(storeHandle,key.get());
       if (value == null) {
         return false;
       }
       if (version == null) {
-        getRocksDB().remove(key.get());
+        getRocksDB().remove(storeHandle,key.get());
         return true;
       }
  else {
@@ -27,10 +27,10 @@ synchronized (this.locks.lockFor(key.get())) {
         }
         if (numDeletedVersions < numVersions) {
           value=StoreBinaryFormat.toByteArray(vals);
-          getRocksDB().put(key.get(),value);
+          getRocksDB().put(storeHandle,key.get(),value);
         }
  else {
-          getRocksDB().remove(key.get());
+          getRocksDB().remove(storeHandle,key.get());
         }
         return numDeletedVersions > 0;
       }

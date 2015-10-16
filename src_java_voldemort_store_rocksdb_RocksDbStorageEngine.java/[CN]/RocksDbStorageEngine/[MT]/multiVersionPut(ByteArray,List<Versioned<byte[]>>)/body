@@ -6,7 +6,7 @@
   List<Versioned<byte[]>> obsoleteVals=null;
 synchronized (this.locks.lockFor(key.get())) {
     try {
-      byte[] result=getRocksDB().get(key.get());
+      byte[] result=getRocksDB().get(storeHandle,key.get());
       if (result != null) {
         currentValues=StoreBinaryFormat.fromByteArray(result);
       }
@@ -20,7 +20,7 @@ synchronized (this.locks.lockFor(key.get())) {
     }
     obsoleteVals=resolveAndConstructVersionsToPersist(currentValues,values);
     try {
-      getRocksDB().put(key.get(),StoreBinaryFormat.toByteArray(currentValues));
+      getRocksDB().put(storeHandle,key.get(),StoreBinaryFormat.toByteArray(currentValues));
     }
  catch (    RocksDBException e) {
       logger.error(e);

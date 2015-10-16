@@ -1,3 +1,10 @@
 {
-  throw new UnsupportedOperationException("truncate not suppported for this storage type");
+  try {
+    rocksDB.dropColumnFamily(storeHandle);
+    storeHandle.dispose();
+    storeHandle=rocksDB.createColumnFamily(new ColumnFamilyDescriptor(getName().getBytes(),storeOptions));
+  }
+ catch (  RocksDBException e) {
+    throw new VoldemortException("Failed to truncate DB",e);
+  }
 }
