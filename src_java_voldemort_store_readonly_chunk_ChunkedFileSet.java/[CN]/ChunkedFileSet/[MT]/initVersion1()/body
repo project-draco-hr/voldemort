@@ -5,13 +5,13 @@
       int chunkId=0;
       while (true) {
         String fileName=Integer.toString(partitionId) + "_" + Integer.toString(chunkId);
-        File index=new File(baseDir,fileName + ".index");
-        File data=new File(baseDir,fileName + ".data");
+        File index=getIndexFile(fileName);
+        File data=getDataFile(fileName);
         if (!index.exists() && !data.exists()) {
           if (chunkId == 0) {
             try {
-              new File(baseDir,fileName + ".index").createNewFile();
-              new File(baseDir,fileName + ".data").createNewFile();
+              index.createNewFile();
+              data.createNewFile();
               logger.info("No index or data files found, creating empty chunk files for partition " + partitionId);
             }
  catch (            IOException e) {

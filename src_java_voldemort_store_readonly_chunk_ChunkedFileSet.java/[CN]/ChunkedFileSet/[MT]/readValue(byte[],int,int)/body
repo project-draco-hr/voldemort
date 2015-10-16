@@ -15,24 +15,42 @@ case READONLY_V1:
 case READONLY_V2:
 {
       int headerSize=ByteUtils.SIZE_OF_SHORT + (2 * ByteUtils.SIZE_OF_INT);
-      ByteBuffer sizeBuffer=ByteBuffer.allocate(headerSize);
-      dataFile.read(sizeBuffer,valueLocation);
+      int fileSize=getDataFileSize(chunk);
+      ByteBuffer headerBuffer, keyBuffer, valueBuffer;
+      headerBuffer=ByteBuffer.allocate(headerSize);
+      dataFile.read(headerBuffer,valueLocation);
       valueLocation+=headerSize;
-      short numKeyValues=sizeBuffer.getShort(0);
-      int keySize=sizeBuffer.getInt(ByteUtils.SIZE_OF_SHORT);
-      int valueSize=sizeBuffer.getInt(ByteUtils.SIZE_OF_SHORT + ByteUtils.SIZE_OF_INT);
+      short numKeyValues=headerBuffer.getShort(0);
+      int keySize=headerBuffer.getInt(ByteUtils.SIZE_OF_SHORT);
+      int valueSize=headerBuffer.getInt(ByteUtils.SIZE_OF_SHORT + ByteUtils.SIZE_OF_INT);
       do {
         if (keySize == -1 && valueSize == -1) {
-          sizeBuffer.clear();
-          dataFile.read(sizeBuffer,valueLocation);
-          keySize=sizeBuffer.getInt(0);
-          valueSize=sizeBuffer.getInt(ByteUtils.SIZE_OF_INT);
+          if (valueLocation > (fileSize - headerSize)) {
+            logger.error("Data file " + getDataFile(chunk) + " claims there are "+ numKeyValues+ " more records to be read for our key hash, but this brings us over the "+ "limit of the data file size ("+ fileSize+ " bytes). "+ scaryMessage(key));
+            throw new VoldemortException("The data cannot be read because of an internal Voldemort server error.");
+          }
+          headerBuffer.clear();
+          dataFile.read(headerBuffer,valueLocation);
+          keySize=headerBuffer.getInt(0);
+          valueSize=headerBuffer.getInt(ByteUtils.SIZE_OF_INT);
           valueLocation+=(2 * ByteUtils.SIZE_OF_INT);
         }
-        ByteBuffer buffer=ByteBuffer.allocate(keySize + valueSize);
-        dataFile.read(buffer,valueLocation);
-        if (ByteUtils.compare(key,buffer.array(),0,keySize) == 0) {
-          return ByteUtils.copy(buffer.array(),keySize,keySize + valueSize);
+        if (keySize < 0 || valueSize < 0) {
+          logger.error("Data file " + getDataFile(chunk) + " claims the key or value size of a "+ "record is negative. "+ scaryMessage(key));
+          throw new VoldemortException("The data cannot be read because of an internal Voldemort server error.");
+        }
+ else         if (valueSize > maxValueBufferAllocationSize) {
+          logger.error("Data file " + getDataFile(chunk) + " claims the value size is greater than "+ "the max value buffer allocation size ("+ maxValueBufferAllocationSize+ "). "+ "The actual values may be too big or... "+ scaryMessage(key));
+          throw new VoldemortException("The data cannot be read because of an internal Voldemort server error.");
+        }
+        if (keySize == key.length) {
+          keyBuffer=ByteBuffer.allocate(keySize);
+          dataFile.read(keyBuffer,valueLocation);
+          if (ByteUtils.compare(key,keyBuffer.array(),0,keySize) == 0) {
+            valueBuffer=ByteBuffer.allocate(valueSize);
+            dataFile.read(valueBuffer,valueLocation + keySize);
+            return valueBuffer.array();
+          }
         }
         valueLocation+=(keySize + valueSize);
         keySize=valueSize=-1;

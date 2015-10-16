@@ -12,8 +12,8 @@
   int chunkId=0;
   while (true) {
     String fileName=Integer.toString(chunkId);
-    File index=new File(baseDir,fileName + ".index");
-    File data=new File(baseDir,fileName + ".data");
+    File index=getIndexFile(fileName);
+    File data=getDataFile(fileName);
     if (!index.exists() && !data.exists())     break;
  else     if (index.exists() ^ data.exists())     throw new VoldemortException("One of the following does not exist: " + index.toString() + " and "+ data.toString()+ ".");
     long indexLength=index.length();
