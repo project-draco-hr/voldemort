@@ -5,6 +5,10 @@
       try {
         if (logger.isTraceEnabled())         logger.trace("Closing SelectionKey's channel");
         sk.channel().close();
+        Object attachment=sk.attachment();
+        if (attachment instanceof Closeable) {
+          IOUtils.closeQuietly((Closeable)attachment);
+        }
       }
  catch (      Exception e) {
         if (logger.isEnabledFor(Level.WARN))         logger.warn(e.getMessage(),e);

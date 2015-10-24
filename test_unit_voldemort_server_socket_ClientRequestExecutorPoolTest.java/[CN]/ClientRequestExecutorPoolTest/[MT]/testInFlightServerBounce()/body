@@ -1,0 +1,9 @@
+{
+  ClientRequestExecutor sas1=pool.checkout(dest1);
+  ClientRequestExecutor sas2=pool.checkout(dest1);
+  stopServer();
+  Thread.sleep(5);
+  pool.checkin(dest1,sas1);
+  pool.checkin(dest1,sas2);
+  validateResourceCount("Dead connections should have been cleared on checkin",0);
+}

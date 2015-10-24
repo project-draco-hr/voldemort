@@ -2,9 +2,7 @@
   this.port=ServerTestUtils.findFreePort();
   this.pool=new ClientRequestExecutorPool(2,maxConnectionsPerNode,CONNECTION_TIMEOUT_MS,SOCKET_TIMEOUT_MS,32 * 1024,false,true,new String());
   this.dest1=new SocketDestination("localhost",port,RequestFormatType.VOLDEMORT_V1);
-  RequestHandlerFactory handlerFactory=ServerTestUtils.getSocketRequestHandlerFactory(new StoreRepository());
-  this.server=ServerTestUtils.getSocketService(useNio,handlerFactory,port,10,10 + 3,10000);
-  this.server.start();
+  startServer();
   this.nonRespondingPort=ServerTestUtils.findFreePort();
   this.nonRespondingDest=new SocketDestination("localhost",nonRespondingPort,RequestFormatType.VOLDEMORT_V1);
   this.nonRespondingServer=new NonRespondingSocketService(nonRespondingPort);

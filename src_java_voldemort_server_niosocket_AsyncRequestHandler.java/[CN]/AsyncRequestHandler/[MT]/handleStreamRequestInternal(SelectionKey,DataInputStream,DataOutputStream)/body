@@ -14,7 +14,7 @@
     if (logger.isEnabledFor(Level.WARN))     logger.warn(e.getMessage(),e);
     VoldemortException error=e instanceof VoldemortException ? (VoldemortException)e : new VoldemortException(e);
     streamRequestHandler.handleError(dataOutputStream,error);
-    streamRequestHandler.close(dataOutputStream);
+    closeStreamRequestHandler(dataOutputStream);
     streamRequestHandler=null;
     prepForWrite(selectionKey);
     close();

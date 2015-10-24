@@ -2,4 +2,10 @@
   if (!isClosed.compareAndSet(false,true))   return;
   nioStats.removeConnection();
   closeInternal();
+  try {
+    DataOutputStream dataOutputStream=new DataOutputStream(outputStream);
+    closeStreamRequestHandler(dataOutputStream);
+  }
+ catch (  IOException ignore) {
+  }
 }

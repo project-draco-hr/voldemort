@@ -14,11 +14,15 @@
       selector.wakeup();
     }
  else {
-      if (logger.isDebugEnabled())       logger.debug("Client associated with " + socketChannel.socket() + " was not registered with Selector "+ selector+ ", assuming initial protocol negotiation");
+      String message="Client associated with " + socketChannel.socket() + " was not registered with Selector "+ selector+ ", it could have been closed due to server restarts ";
+      logger.warn(message);
+      IOException ex=new IOException(message);
+      reportException(ex);
+      completeClientRequest();
     }
   }
  else {
-    if (logger.isEnabledFor(Level.WARN))     logger.warn("Client associated with " + socketChannel.socket() + " did not successfully buffer output for request");
+    logger.warn("Client associated with " + socketChannel.socket() + " did not successfully buffer output for request");
     completeClientRequest();
   }
 }
