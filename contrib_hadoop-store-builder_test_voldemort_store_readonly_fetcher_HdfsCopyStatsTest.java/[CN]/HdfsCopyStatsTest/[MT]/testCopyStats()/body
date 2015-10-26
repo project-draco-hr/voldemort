@@ -6,13 +6,15 @@
   for (int i=0; i < maxStatsFile + 2; i++) {
     destination=new File(testSourceDir.getAbsolutePath() + "_dest" + i);
     String destName=destination.getName();
-    expectedStatsFile.add(destName);
     Thread.sleep(1000);
     HdfsCopyStats stats=new HdfsCopyStats(testSourceDir.getAbsolutePath(),destination,enableStatsFile,maxStatsFile,isFileCopy,HdfsPathInfo.getTestObject(1000));
+    if (stats.getStatsFile() != null) {
+      expectedStatsFile.add(stats.getStatsFile().getName());
+    }
     Random r=new Random();
     for (int j=0; j < 10; j++) {
       File file=new File(destination,"file" + i);
-      stats.reportFileDownloaded(file,System.currentTimeMillis(),r.nextInt(),r.nextLong(),r.nextInt(),r.nextLong());
+      stats.reportFileDownloaded(file,System.currentTimeMillis(),r.nextInt(),r.nextLong(),r.nextInt(),r.nextLong(),null);
     }
     Exception e=r.nextBoolean() ? null : new Exception();
     stats.reportFileError(new File(destination,"error"),r.nextInt(),r.nextLong(),e);
