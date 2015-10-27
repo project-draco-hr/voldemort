@@ -62,13 +62,11 @@
     if (stats != null) {
       stats.reportError("File fetcher failed for destination " + destinationFile,e);
     }
-    String errorMessage="Error thrown while trying to get data from Hadoop filesystem : ";
-    logger.error(errorMessage,e);
     if (e instanceof VoldemortException) {
       throw e;
     }
  else {
-      throw new VoldemortException(errorMessage,e);
+      throw new VoldemortException("Error thrown while trying to get data from Hadoop filesystem: " + e.getMessage(),e);
     }
   }
  finally {
