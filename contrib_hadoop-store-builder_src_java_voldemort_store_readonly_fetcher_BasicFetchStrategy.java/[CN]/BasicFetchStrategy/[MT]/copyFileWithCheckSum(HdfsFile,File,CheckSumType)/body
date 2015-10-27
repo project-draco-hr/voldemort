@@ -1,5 +1,5 @@
 {
-  CheckSum fileCheckSumGenerator=null;
+  byte[] checkSum=null;
   logger.debug("Starting copy of " + source + " to "+ dest);
   boolean isCompressed=source.isCompressed();
   FilterInputStream input=null;
@@ -11,6 +11,7 @@
     long totalBytesRead=0;
     boolean fsOpened=false;
     try {
+      CheckSum fileCheckSumGenerator=null;
       if (checkSumType != null) {
         fileCheckSumGenerator=CheckSum.getInstance(checkSumType);
       }
@@ -53,7 +54,10 @@
           }
         }
       }
-      stats.reportFileDownloaded(dest,startTimeMS,source.getSize(),System.currentTimeMillis() - startTimeMS,attempt,totalBytesRead,fileCheckSumGenerator);
+      if (fileCheckSumGenerator != null) {
+        checkSum=fileCheckSumGenerator.getCheckSum();
+      }
+      stats.reportFileDownloaded(dest,startTimeMS,source.getSize(),System.currentTimeMillis() - startTimeMS,attempt,totalBytesRead,checkSum);
       logger.info("Completed copy of " + source + " to "+ dest);
       success=true;
     }
@@ -85,5 +89,5 @@
       }
     }
   }
-  return fileCheckSumGenerator;
+  return checkSum;
 }

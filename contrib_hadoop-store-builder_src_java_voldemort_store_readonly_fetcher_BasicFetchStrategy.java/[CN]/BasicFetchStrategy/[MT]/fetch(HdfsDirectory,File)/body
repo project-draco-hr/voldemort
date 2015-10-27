@@ -4,9 +4,9 @@
   for (  HdfsFile file : directory.getFiles()) {
     String fileName=file.getDiskFileName();
     File copyLocation=new File(dest,fileName);
-    CheckSum fileCheckSumGenerator=copyFileWithCheckSum(file,copyLocation,checkSumType);
-    if (fileCheckSumGenerator != null) {
-      fileCheckSumMap.put(file,fileCheckSumGenerator.getCheckSum());
+    byte[] fileCheckSum=copyFileWithCheckSum(file,copyLocation,checkSumType);
+    if (fileCheckSum != null) {
+      fileCheckSumMap.put(file,fileCheckSum);
     }
   }
   return fileCheckSumMap;

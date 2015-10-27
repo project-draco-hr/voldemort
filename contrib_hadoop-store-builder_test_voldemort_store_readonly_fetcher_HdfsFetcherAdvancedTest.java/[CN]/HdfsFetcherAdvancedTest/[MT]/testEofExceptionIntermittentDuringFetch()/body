@@ -5,9 +5,9 @@
   FSDataInputStream spyinput=Mockito.spy(input);
   Mockito.doAnswer(Mockito.CALLS_REAL_METHODS).doThrow(new EofException()).when(spyinput).read();
   Mockito.doReturn(spyinput).doReturn(input).when(spyfs).open(source);
-  CheckSum ckSum=null;
+  byte[] actualCheckSum=null;
   try {
-    ckSum=copyFileWithCheckSumTest(fetcher,spyfs,source,copyLocation,stats,CheckSumType.MD5,buffer);
+    actualCheckSum=copyFileWithCheckSumTest(fetcher,spyfs,source,copyLocation,stats,CheckSumType.MD5,buffer);
   }
  catch (  Exception ex) {
     if (isCompressed) {
@@ -17,5 +17,5 @@
       Assert.fail("Unexpected exption thrown : " + ex.getMessage());
     }
   }
-  assertEquals(Arrays.equals(ckSum.getCheckSum(),checksumCalculated),true);
+  assertEquals(Arrays.equals(actualCheckSum,checksumCalculated),true);
 }

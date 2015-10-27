@@ -2,6 +2,6 @@
   setUp();
   FileSystem spyfs=Mockito.spy(fs);
   Mockito.doThrow(new RuntimeException()).doAnswer(Mockito.CALLS_REAL_METHODS).when(spyfs).open(source);
-  CheckSum ckSum=copyFileWithCheckSumTest(fetcher,spyfs,source,copyLocation,stats,CheckSumType.MD5,buffer);
-  assertEquals(Arrays.equals(ckSum.getCheckSum(),checksumCalculated),true);
+  byte[] actualCheckSum=copyFileWithCheckSumTest(fetcher,spyfs,source,copyLocation,stats,CheckSumType.MD5,buffer);
+  assertEquals(Arrays.equals(actualCheckSum,checksumCalculated),true);
 }
