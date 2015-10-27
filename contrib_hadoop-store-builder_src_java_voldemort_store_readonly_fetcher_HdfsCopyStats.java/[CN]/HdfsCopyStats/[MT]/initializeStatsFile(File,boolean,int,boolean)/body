@@ -18,13 +18,13 @@
       return;
     }
     deleteExtraStatsFiles(statsDirectory,maxVersionsStatsFile);
-    String destName=destination.getName();
-    File statsFile=new File(statsDirectory,destName);
+    String destName=destination.getName() + ".stats-v" + STATS_VERSION;
+    this.statsFile=new File(statsDirectory,destName);
     statsFile.createNewFile();
-    statsFileWriter=new BufferedWriter(new FileWriter(statsFile));
+    statsFileWriter=new BufferedWriter(new FileWriter(statsFile,true));
     statsFileWriter.write("Starting fetch at " + startTimeMS + "MS from "+ sourceFile+ " . Info: "+ pathInfo);
     statsFileWriter.newLine();
-    statsFileWriter.write("Time, FileName, StartTime(MS), Size, TimeTaken(MS), Attempts #, TotalBytesTransferred, TotalBytesWritten");
+    statsFileWriter.write("Time, FileName, StartTime(MS), Size, TimeTaken(MS), Attempts #, TotalBytesTransferred, TotalBytesWritten, CheckSum");
     statsFileWriter.newLine();
     statsFileWriter.flush();
   }
