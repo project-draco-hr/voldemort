@@ -1,0 +1,31 @@
+{
+  File[] files=path.listFiles();
+  Arrays.sort(files);
+  int problemsDetectedInIndexFiles=0, problemsDetectedInDataFiles=0, problemsDetectedInIndexAndDataFilesMatch=0;
+  for (  File file : files) {
+    if (file.length() == 0) {
+      if (verbose) {
+        printInfo("Skipping empty file: " + file.getName());
+      }
+    }
+ else     if (file.getName().endsWith(ReadOnlyUtils.INDEX_FILE_EXTENSION)) {
+      problemsDetectedInIndexFiles+=validateIndexFile(file,verbose);
+      problemsDetectedInIndexAndDataFilesMatch+=validateIndexAndDataFileMatch(file,verbose);
+    }
+ else     if (file.getName().endsWith(ReadOnlyUtils.DATA_FILE_EXTENSION)) {
+      problemsDetectedInDataFiles+=validateDataFile(file,verbose);
+    }
+ else {
+      printInfo("Skipping file: " + file.getName());
+    }
+  }
+  printInfo("");
+  if (problemsDetectedInIndexFiles == 0 && problemsDetectedInDataFiles == 0 && problemsDetectedInIndexAndDataFilesMatch == 0) {
+    printInfo("No problems detected in any of the files in this directory.");
+  }
+ else {
+    printError("Number of problems detected in index files: " + problemsDetectedInIndexFiles);
+    printError("Number of problems detected in data files: " + problemsDetectedInDataFiles);
+    printError("Number of problems detected in the matching of index and data files: " + problemsDetectedInIndexAndDataFilesMatch);
+  }
+}

@@ -1,0 +1,43 @@
+{
+  if (args.length < 1) {
+    printInfo("Please include the following parameters: data_path [-v]");
+    printInfo("");
+    printInfo("data_path: Data directory for a store/version, or individual index or data file.");
+    printInfo("-v:        Activates the verbose mode (optional, default: off).");
+    printInfo("");
+    printDisclaimers();
+    System.exit(1);
+  }
+  String pathString=args[0];
+  boolean verbose=(args.length > 1 && args[1].equals("-v"));
+  File path=new File(pathString);
+  ReadOnlyFileValidator validator=new ReadOnlyFileValidator();
+  try {
+    if (path.isDirectory()) {
+      printInfo("Running in directory mode.");
+      validator.validateDirectory(path,verbose);
+    }
+ else     if (path.getName().endsWith(ReadOnlyUtils.INDEX_FILE_EXTENSION)) {
+      printInfo("Running in single index file mode.");
+      validator.validateIndexFile(path,verbose);
+    }
+ else     if (path.getName().endsWith(ReadOnlyUtils.DATA_FILE_EXTENSION)) {
+      printInfo("Running in single data file mode.");
+      validator.validateDataFile(path,verbose);
+    }
+ else {
+      printInfo("The path specified must be a directory OR a file with either a " + ReadOnlyUtils.INDEX_FILE_EXTENSION + " or "+ ReadOnlyUtils.DATA_FILE_EXTENSION+ " extension.");
+      System.exit(1);
+    }
+  }
+ catch (  Exception e) {
+    printError("ReadOnlyFileValidator threw an exception!");
+    e.printStackTrace(System.err);
+    System.exit(1);
+  }
+  printInfo("");
+  printDisclaimers();
+  printInfo("");
+  printInfo("ReadOnlyFileValidator finished running successfully.");
+  System.exit(0);
+}

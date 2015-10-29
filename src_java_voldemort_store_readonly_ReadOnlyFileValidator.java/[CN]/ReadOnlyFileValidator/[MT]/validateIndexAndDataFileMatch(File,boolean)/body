@@ -1,0 +1,56 @@
+{
+  String partitionAndChunkName=indexFile.getName().substring(0,indexFile.getName().indexOf('.'));
+  File dataFile=new File(indexFile.getParent(),partitionAndChunkName + ReadOnlyUtils.DATA_FILE_EXTENSION);
+  System.out.print("Examining that " + partitionAndChunkName + " matches");
+  printInfo(verbose,"");
+  FileInputStream indexFileInputStream=new FileInputStream(indexFile);
+  FileChannel dataFileChannel=new FileInputStream(dataFile).getChannel();
+  byte[] currentKeyHashFromIndexFile=new byte[8], currentKeyHashFromDataFile=new byte[8], currentKeyOffsetArray=new byte[ReadOnlyUtils.POSITION_SIZE], currentKey, currentValue;
+  ByteBuffer currentNumberOfKeysBuffer=ByteBuffer.allocate(ByteUtils.SIZE_OF_SHORT), currentKeySizeBuffer=ByteBuffer.allocate(ByteUtils.SIZE_OF_INT), currentValueSizeBuffer=ByteBuffer.allocate(ByteUtils.SIZE_OF_INT), currentKeyBuffer, currentValueBuffer;
+  int keysHashRead=0, keysRead=0, problemsDetected=0, currentKeyHashOffset, currentNumberOfKeys, currentKeySize, currentValueSize;
+  long currentPositionInDataFile=0;
+  while (indexFileInputStream.available() > 0) {
+    keysHashRead++;
+    indexFileInputStream.read(currentKeyHashFromIndexFile);
+    indexFileInputStream.read(currentKeyOffsetArray);
+    currentKeyHashOffset=ByteBuffer.wrap(currentKeyOffsetArray).getInt();
+    if (currentKeyHashOffset != currentPositionInDataFile) {
+      printError(verbose,"There seems to be a gap in the data file. " + "Key Hash #" + keysHashRead + ", Offset from index file: "+ currentKeyHashOffset+ ", Current position in data file: "+ currentPositionInDataFile);
+      problemsDetected++;
+      currentPositionInDataFile=currentKeyHashOffset;
+    }
+    try {
+      currentPositionInDataFile+=read(dataFileChannel,currentNumberOfKeysBuffer,currentPositionInDataFile);
+      currentNumberOfKeys=currentNumberOfKeysBuffer.getShort(0);
+      while (currentNumberOfKeys > 0) {
+        keysRead++;
+        currentPositionInDataFile+=read(dataFileChannel,currentKeySizeBuffer,currentPositionInDataFile);
+        currentKeySize=currentKeySizeBuffer.getInt(0);
+        currentPositionInDataFile+=read(dataFileChannel,currentValueSizeBuffer,currentPositionInDataFile);
+        currentValueSize=currentValueSizeBuffer.getInt(0);
+        currentKeyBuffer=ByteBuffer.allocate(currentKeySize);
+        currentPositionInDataFile+=read(dataFileChannel,currentKeyBuffer,currentPositionInDataFile);
+        currentKey=currentKeyBuffer.array();
+        currentValueBuffer=ByteBuffer.allocate(currentValueSize);
+        currentPositionInDataFile+=read(dataFileChannel,currentValueBuffer,currentPositionInDataFile);
+        currentValue=currentValueBuffer.array();
+        currentKeyHashFromDataFile=ByteUtils.copy(ByteUtils.md5(currentKey),0,2 * ByteUtils.SIZE_OF_INT);
+        if (ByteUtils.compare(currentKeyHashFromIndexFile,currentKeyHashFromDataFile) != 0) {
+          printError(verbose,"Key hash found in index file (" + ByteUtils.toHexString(currentKeyHashFromIndexFile) + ") does not match the hash of the key found in the data file ("+ ByteUtils.toHexString(currentKeyHashFromIndexFile)+ ")");
+          problemsDetected++;
+        }
+        currentNumberOfKeys--;
+        printInfo(verbose,"Key Hash #" + keysHashRead + ", Key Hash: "+ ByteUtils.toHexString(currentKeyHashFromIndexFile)+ ", Keys remaining for this hash: "+ currentNumberOfKeys+ ", Key #"+ keysRead+ ", Key Size: "+ currentKeySize+ ", Value Size: "+ currentValueSize+ ", Data File Offset: "+ currentKeyHashOffset);
+      }
+    }
+ catch (    Exception e) {
+      problemsDetected++;
+      if (verbose) {
+        printError(verbose,"Caught an exception while trying to read a data file.");
+        e.printStackTrace(System.err);
+      }
+    }
+  }
+  printProblemsDetected(problemsDetected);
+  return problemsDetected;
+}

@@ -1,0 +1,47 @@
+{
+  System.out.print("Examining: " + dataFile.getName() + "    ");
+  printInfo(verbose,"");
+  FileInputStream fileInputStream=new FileInputStream(dataFile);
+  byte[] currentNumberOfKeys=new byte[2], currentKeySize=new byte[ByteUtils.SIZE_OF_INT], currentValueSize=new byte[ByteUtils.SIZE_OF_INT];
+  int keysRead=0, problemsDetected=0, keySize, valueSize;
+  short numberOfKeys=0;
+  while (fileInputStream.available() > 0) {
+    keysRead++;
+    if (numberOfKeys == 0) {
+      fileInputStream.read(currentNumberOfKeys);
+      numberOfKeys=ByteBuffer.wrap(currentNumberOfKeys).getShort();
+      if (numberOfKeys > 1) {
+        printInfo(verbose,"Hash collision: " + numberOfKeys + " with the same hash.");
+      }
+ else       if (numberOfKeys < 1) {
+        printError(verbose,"Bad number of keys (" + numberOfKeys + ") found in data file entry!");
+        problemsDetected++;
+      }
+    }
+    numberOfKeys--;
+    fileInputStream.read(currentKeySize);
+    fileInputStream.read(currentValueSize);
+    keySize=ByteBuffer.wrap(currentKeySize).getInt();
+    valueSize=ByteBuffer.wrap(currentValueSize).getInt();
+    printInfo(verbose,"Key #" + keysRead + ", Key Size: "+ keySize+ ", Value Size: "+ valueSize);
+    if (keySize == 0) {
+      printError(verbose,"Key size 0!");
+      problemsDetected++;
+    }
+ else     if (keySize < 0) {
+      printError(verbose,"Key size is negative!");
+      problemsDetected++;
+    }
+    if (valueSize == 0) {
+      printError(verbose,"Value size 0!");
+      problemsDetected++;
+    }
+ else     if (valueSize < 0) {
+      printError(verbose,"Value size is negative!");
+      problemsDetected++;
+    }
+    fileInputStream.skip(keySize + valueSize);
+  }
+  printProblemsDetected(problemsDetected);
+  return problemsDetected;
+}

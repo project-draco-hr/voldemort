@@ -1,0 +1,26 @@
+{
+  System.out.print("Examining: " + indexFile.getName() + "   ");
+  printInfo(verbose,"");
+  FileInputStream fileInputStream=new FileInputStream(indexFile);
+  byte[] currentKeyHash=new byte[8], currentKeyOffset=new byte[ReadOnlyUtils.POSITION_SIZE], previousKeyHash=null, previousKeyOffset=null;
+  int keysRead=0, keyOffset, problemsDetected=0;
+  while (fileInputStream.available() > 0) {
+    keysRead++;
+    fileInputStream.read(currentKeyHash);
+    fileInputStream.read(currentKeyOffset);
+    printInfo(verbose,"Key #" + keysRead + ", Hash: "+ ByteUtils.toHexString(currentKeyHash)+ ", Offset: "+ ByteBuffer.wrap(currentKeyOffset).getInt());
+    keyOffset=ByteBuffer.wrap(currentKeyOffset).getInt();
+    if (keyOffset < 0) {
+      printError(verbose,"Key #" + keysRead + " has a negative offset ( "+ keyOffset+ ").");
+      problemsDetected++;
+    }
+    if (previousKeyHash != null) {
+      problemsDetected+=verifyByteArraysAreStrictlyIncreasing(previousKeyHash,currentKeyHash,"hashes",keysRead,verbose);
+      problemsDetected+=verifyByteArraysAreStrictlyIncreasing(previousKeyOffset,currentKeyOffset,"offsets",keysRead,verbose);
+    }
+    previousKeyHash=ByteUtils.copy(currentKeyHash,0,currentKeyHash.length);
+    previousKeyOffset=ByteUtils.copy(currentKeyOffset,0,currentKeyOffset.length);
+  }
+  printProblemsDetected(problemsDetected);
+  return problemsDetected;
+}

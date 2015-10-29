@@ -1,0 +1,14 @@
+{
+  int expectedNumberOfBytesRead=byteBuffer.array().length;
+  if (fileChannel.size() < currentPosition + expectedNumberOfBytesRead) {
+    throw new IOException("Cannot attempt to read a fileChannel at a position (" + currentPosition + ") beyond the end-of-stream.");
+  }
+  int bytesRead=fileChannel.read(byteBuffer,currentPosition);
+  if (bytesRead < 0) {
+    throw new IOException("Attempted to read a fileChannel at a position (" + currentPosition + ") beyond the end-of-stream.");
+  }
+ else   if (bytesRead != expectedNumberOfBytesRead) {
+    throw new IOException("Expected to read " + expectedNumberOfBytesRead + " bytes from a FileChannel but was only able to read "+ bytesRead+ " bytes.");
+  }
+  return bytesRead;
+}
