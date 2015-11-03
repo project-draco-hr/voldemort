@@ -1,0 +1,11 @@
+{
+  String newStoreDefXml=VoldemortUtils.getStoreDefXml(storeName,props.getInt(BUILD_REPLICATION_FACTOR,2),props.getInt(BUILD_REQUIRED_READS,1),props.getInt(BUILD_REQUIRED_WRITES,1),props.getNullableInt(BUILD_PREFERRED_READS),props.getNullableInt(BUILD_PREFERRED_WRITES),props.getString(PUSH_FORCE_SCHEMA_KEY,keySchema),props.getString(PUSH_FORCE_SCHEMA_VALUE,valueSchema),description,owners);
+  log.info("Verifying store against cluster URL: " + clusterURL + "\n"+ newStoreDefXml.toString());
+  StoreDefinition newStoreDef=VoldemortUtils.getStoreDef(newStoreDefXml);
+  try {
+    adminClientPerCluster.get(clusterURL).storeMgmtOps.verifyOrAddStore(newStoreDef,"BnP config/data");
+  }
+ catch (  UnreachableStoreException e) {
+  }
+  storeDefs=ImmutableList.of(newStoreDef);
+}

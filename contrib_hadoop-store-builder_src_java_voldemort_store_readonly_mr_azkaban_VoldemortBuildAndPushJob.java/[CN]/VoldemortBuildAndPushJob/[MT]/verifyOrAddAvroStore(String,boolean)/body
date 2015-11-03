@@ -1,25 +1,16 @@
 {
-  Schema schema=getInputPathSchema();
+  Schema schema=getInputPathAvroSchema();
   String serializerName;
   if (isVersioned)   serializerName=DefaultSerializerFactory.AVRO_GENERIC_VERSIONED_TYPE_NAME;
  else   serializerName=DefaultSerializerFactory.AVRO_GENERIC_TYPE_NAME;
-  boolean hasCompression=false;
-  if (props.containsKey(BUILD_COMPRESS_VALUE)) {
-    hasCompression=true;
-  }
   String keySchema, valSchema;
   try {
-    if (props.containsKey(BUILD_FORCE_SCHEMA_KEY)) {
-      keySchema=props.get(BUILD_FORCE_SCHEMA_KEY);
+    Schema.Field keyField=schema.getField(keyFieldName);
+    if (keyField == null) {
+      throw new VoldemortException("The configured key field (" + keyFieldName + ") was not found in the input data.");
     }
  else {
-      Schema.Field keyField=schema.getField(keyFieldName);
-      if (keyField == null) {
-        throw new VoldemortException("The configured key field (" + keyFieldName + ") was not found in the input data.");
-      }
- else {
-        keySchema="\n\t\t<type>" + serializerName + "</type>\n\t\t<schema-info version=\"0\">"+ keyField.schema()+ "</schema-info>\n\t";
-      }
+      keySchema="\n\t\t<type>" + serializerName + "</type>\n\t\t<schema-info version=\"0\">"+ keyField.schema()+ "</schema-info>\n\t";
     }
   }
  catch (  VoldemortException e) {
@@ -29,19 +20,14 @@ catch (  Exception e) {
     throw new VoldemortException("Error while trying to extract the key field",e);
   }
   try {
-    if (props.containsKey(BUILD_FORCE_SCHEMA_VALUE)) {
-      valSchema=props.get(BUILD_FORCE_SCHEMA_VALUE);
+    Schema.Field valueField=schema.getField(valueFieldName);
+    if (valueField == null) {
+      throw new VoldemortException("The configured value field (" + valueFieldName + ") was not found in the input data.");
     }
  else {
-      Schema.Field valueField=schema.getField(valueFieldName);
-      if (valueField == null) {
-        throw new VoldemortException("The configured value field (" + valueFieldName + ") was not found in the input data.");
-      }
- else {
-        valSchema="\n\t\t<type>" + serializerName + "</type>\n\t\t<schema-info version=\"0\">"+ valueField.schema()+ "</schema-info>\n\t";
-        if (hasCompression) {
-          valSchema+="\t<compression><type>gzip</type></compression>\n\t";
-        }
+      valSchema="\n\t\t<type>" + serializerName + "</type>\n\t\t<schema-info version=\"0\">"+ valueField.schema()+ "</schema-info>\n\t";
+      if (props.getBoolean(BUILD_COMPRESS_VALUE,false)) {
+        valSchema+="\t<compression><type>gzip</type></compression>\n\t";
       }
     }
   }
@@ -51,10 +37,5 @@ catch (  Exception e) {
 catch (  Exception e) {
     throw new VoldemortException("Error while trying to extract the value field",e);
   }
-  if (keySchema == null || valSchema == null) {
-    throw new VoldemortException("There was a problem defining the key or value schema for this job.");
-  }
- else {
-    verifyOrAddStore(url,props.getString(PUSH_FORCE_SCHEMA_KEY,keySchema),props.getString(PUSH_FORCE_SCHEMA_VALUE,valSchema),hasCompression,serializerName);
-  }
+  verifyOrAddStore(url,props.getString(BUILD_FORCE_SCHEMA_KEY,keySchema),props.getString(BUILD_FORCE_SCHEMA_VALUE,valSchema));
 }
