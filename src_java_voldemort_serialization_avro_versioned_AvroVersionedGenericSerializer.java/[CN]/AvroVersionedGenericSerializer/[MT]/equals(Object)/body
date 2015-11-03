@@ -1,0 +1,30 @@
+{
+  if (this == obj)   return true;
+  if (obj == null)   return false;
+  if (getClass() != obj.getClass())   return false;
+  AvroVersionedGenericSerializer other=(AvroVersionedGenericSerializer)obj;
+  if (newestVersion == null) {
+    if (other.newestVersion != null)     return false;
+  }
+ else   if (!newestVersion.equals(other.newestVersion))   return false;
+  if (typeDefVersions == null) {
+    if (other.typeDefVersions != null)     return false;
+  }
+ else   if (typeDefVersions.size() != other.typeDefVersions.size()) {
+    return false;
+  }
+ else {
+    for (    Map.Entry<Integer,String> versionedSchema : typeDefVersions.entrySet()) {
+      Schema schema=Schema.parse(versionedSchema.getValue());
+      String otherTypeDef=other.typeDefVersions.get(versionedSchema.getKey());
+      if (otherTypeDef == null) {
+        return false;
+      }
+      Schema otherSchema=Schema.parse(otherTypeDef);
+      if (!schema.equals(otherSchema)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}

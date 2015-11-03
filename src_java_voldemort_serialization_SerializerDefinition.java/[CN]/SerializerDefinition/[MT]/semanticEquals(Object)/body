@@ -1,0 +1,11 @@
+{
+  boolean isEqual=commonEquals(obj);
+  if (!isEqual) {
+    return false;
+  }
+  SerializerDefinition other=(SerializerDefinition)obj;
+  if (Objects.equal(this.schemaInfoByVersion,other.schemaInfoByVersion))   return true;
+  Serializer serializer=new DefaultSerializerFactory().getSerializer(this);
+  Serializer otherSerializer=new DefaultSerializerFactory().getSerializer(other);
+  return Objects.equal(serializer,otherSerializer);
+}
