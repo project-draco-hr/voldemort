@@ -1,22 +1,22 @@
 {
   try {
-    JobConf conf=new JobConf(config);
+    JobConf conf=prepareJobConf(baseJobConf);
+    FileSystem fs=outputDir.getFileSystem(conf);
+    if (fs.exists(outputDir)) {
+      info("Deleting previous output in " + outputDir + " for building store "+ this.storeDef.getName());
+      fs.delete(outputDir,true);
+    }
     conf.setInt("io.file.buffer.size",DEFAULT_BUFFER_SIZE);
     conf.set("cluster.xml",new ClusterMapper().writeCluster(cluster));
     conf.set("stores.xml",new StoreDefinitionsMapper().writeStoreList(Collections.singletonList(storeDef)));
-    conf.setBoolean("save.keys",saveKeys);
-    conf.setBoolean("reducer.per.bucket",reducerPerBucket);
+    conf.setBoolean(VoldemortBuildAndPushJob.SAVE_KEYS,saveKeys);
+    conf.setBoolean(VoldemortBuildAndPushJob.REDUCER_PER_BUCKET,reducerPerBucket);
     if (!isAvro) {
       conf.setPartitionerClass(HadoopStoreBuilderPartitioner.class);
       conf.setMapperClass(mapperClass);
       conf.setMapOutputKeyClass(BytesWritable.class);
       conf.setMapOutputValueClass(BytesWritable.class);
-      if (reducerPerBucket) {
-        conf.setReducerClass(HadoopStoreBuilderReducerPerBucket.class);
-      }
- else {
-        conf.setReducerClass(HadoopStoreBuilderReducer.class);
-      }
+      conf.setReducerClass(HadoopStoreBuilderReducer.class);
     }
     conf.setInputFormat(inputFormatClass);
     conf.setOutputFormat(SequenceFileOutputFormat.class);
@@ -26,7 +26,7 @@
     conf.setReduceSpeculativeExecution(false);
     FileInputFormat.setInputPaths(conf,inputPath);
     conf.set("final.output.dir",outputDir.toString());
-    conf.set("checksum.type",CheckSum.toString(checkSumType));
+    conf.set(VoldemortBuildAndPushJob.CHECKSUM_TYPE,CheckSum.toString(checkSumType));
     conf.set("dfs.umaskmode","002");
     FileOutputFormat.setOutputPath(conf,tempDir);
     FileSystem outputFs=outputDir.getFileSystem(conf);
@@ -66,7 +66,7 @@
         numReducers=cluster.getNumberOfPartitions() * numChunks;
       }
     }
-    conf.setInt("num.chunks",numChunks);
+    conf.setInt(VoldemortBuildAndPushJob.NUM_CHUNKS,numChunks);
     conf.setNumReduceTasks(numReducers);
     if (isAvro) {
       conf.setPartitionerClass(AvroStoreBuilderPartitioner.class);
@@ -76,15 +76,10 @@
       conf.setOutputFormat((Class<? extends OutputFormat>)AvroOutputFormat.class);
       conf.setOutputKeyClass(ByteBuffer.class);
       conf.setOutputValueClass(ByteBuffer.class);
-      AvroJob.setInputSchema(conf,Schema.parse(config.get("avro.rec.schema")));
+      AvroJob.setInputSchema(conf,Schema.parse(baseJobConf.get("avro.rec.schema")));
       AvroJob.setOutputSchema(conf,Pair.getPairSchema(Schema.create(Schema.Type.BYTES),Schema.create(Schema.Type.BYTES)));
       AvroJob.setMapperClass(conf,mapperClass);
-      if (reducerPerBucket) {
-        conf.setReducerClass(AvroStoreBuilderReducerPerBucket.class);
-      }
- else {
-        conf.setReducerClass(AvroStoreBuilderReducer.class);
-      }
+      conf.setReducerClass(AvroStoreBuilderReducer.class);
     }
     logger.info("Number of chunks: " + numChunks + ", number of reducers: "+ numReducers+ ", save keys: "+ saveKeys+ ", reducerPerBucket: "+ reducerPerBucket);
     logger.info("Building store...");

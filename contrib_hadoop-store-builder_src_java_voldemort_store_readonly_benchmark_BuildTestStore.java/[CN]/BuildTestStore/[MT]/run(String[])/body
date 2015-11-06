@@ -9,9 +9,10 @@
   StoreDefinition def=null;
   for (  StoreDefinition d : storeDefs)   if (d.getName().equals(storeName))   def=d;
   Cluster cluster=new ClusterMapper().readCluster(new File(configDir,"cluster.xml"));
-  Configuration config=this.getConf();
-  config.set("mapred.job.name","test-store-builder");
-  HadoopStoreBuilder builder=new HadoopStoreBuilder(config,BuildTestStoreMapper.class,SequenceFileInputFormat.class,cluster,def,new Path(tempDir),new Path(outputDir),new Path(inputDir),CheckSum.CheckSumType.NONE,false,false,(long)(1.5 * 1024 * 1024* 1024),-1,false,null);
+  JobConf config=new JobConf();
+  String jobName="test-store-builder";
+  config.set("mapred.job.name",jobName);
+  HadoopStoreBuilder builder=new HadoopStoreBuilder(jobName,new Props(),config,BuildTestStoreMapper.class,SequenceFileInputFormat.class,cluster,def,new Path(tempDir),new Path(outputDir),new Path(inputDir),CheckSum.CheckSumType.NONE,false,false,(long)(1.5 * 1024 * 1024* 1024),-1,false,null);
   builder.build();
   return 0;
 }

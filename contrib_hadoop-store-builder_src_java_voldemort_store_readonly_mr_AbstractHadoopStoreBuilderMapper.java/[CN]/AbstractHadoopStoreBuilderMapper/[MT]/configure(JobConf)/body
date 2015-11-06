@@ -1,6 +1,6 @@
 {
   super.configure(conf);
-  md5er=ByteUtils.getDigest("md5");
+  mapper.configure(conf);
   keySerializerDefinition=getStoreDef().getKeySerializer();
   valueSerializerDefinition=getStoreDef().getValueSerializer();
   try {
@@ -14,7 +14,4 @@
  catch (  Exception e) {
     throw new RuntimeException(e);
   }
-  keyCompressor=new CompressionStrategyFactory().get(keySerializerDefinition.getCompression());
-  valueCompressor=new CompressionStrategyFactory().get(valueSerializerDefinition.getCompression());
-  routingStrategy=new ConsistentRoutingStrategy(getCluster(),getStoreDef().getReplicationFactor());
 }

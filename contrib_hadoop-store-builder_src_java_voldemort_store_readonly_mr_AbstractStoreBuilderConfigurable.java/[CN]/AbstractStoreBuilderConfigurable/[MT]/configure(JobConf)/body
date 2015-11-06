@@ -3,8 +3,8 @@
   List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new StringReader(conf.get("stores.xml")));
   if (storeDefs.size() != 1)   throw new IllegalStateException("Expected to find only a single store, but found multiple!");
   this.storeDef=storeDefs.get(0);
-  this.numChunks=conf.getInt("num.chunks",-1);
-  if (this.numChunks < 1)   throw new VoldemortException("num.chunks not specified in the job conf.");
-  this.saveKeys=conf.getBoolean("save.keys",false);
-  this.reducerPerBucket=conf.getBoolean("reducer.per.bucket",false);
+  this.numChunks=conf.getInt(VoldemortBuildAndPushJob.NUM_CHUNKS,-1);
+  if (this.numChunks < 1)   throw new VoldemortException(VoldemortBuildAndPushJob.NUM_CHUNKS + " not specified in the job conf.");
+  this.saveKeys=conf.getBoolean(VoldemortBuildAndPushJob.SAVE_KEYS,false);
+  this.reducerPerBucket=conf.getBoolean(VoldemortBuildAndPushJob.REDUCER_PER_BUCKET,false);
 }

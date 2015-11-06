@@ -1,0 +1,22 @@
+{
+  if (!MINIMIZE_ALLOCATIONS || keyBB == null || keyBB.capacity() < key.length) {
+    keyBB=ByteBuffer.wrap(key);
+  }
+ else {
+    keyBB.position(0);
+    keyBB.limit(key.length);
+    keyBB.put(key);
+    keyBB.position(0);
+  }
+  if (!MINIMIZE_ALLOCATIONS || valueBB == null || valueBB.capacity() < value.length) {
+    valueBB=ByteBuffer.wrap(value);
+  }
+ else {
+    valueBB.position(0);
+    valueBB.limit(value.length);
+    valueBB.put(value);
+    valueBB.position(0);
+  }
+  pairToCollect.set(keyBB,valueBB);
+  getCollector().collect(pairToCollect);
+}

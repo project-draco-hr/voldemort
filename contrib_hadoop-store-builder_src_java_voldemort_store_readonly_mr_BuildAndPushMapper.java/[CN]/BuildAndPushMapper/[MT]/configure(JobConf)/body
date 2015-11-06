@@ -1,0 +1,9 @@
+{
+  super.configure(conf);
+  md5er=ByteUtils.getDigest("md5");
+  keySerializerDefinition=getStoreDef().getKeySerializer();
+  valueSerializerDefinition=getStoreDef().getValueSerializer();
+  keyCompressor=new CompressionStrategyFactory().get(keySerializerDefinition.getCompression());
+  valueCompressor=new CompressionStrategyFactory().get(valueSerializerDefinition.getCompression());
+  routingStrategy=new ConsistentRoutingStrategy(getCluster(),getStoreDef().getReplicationFactor());
+}

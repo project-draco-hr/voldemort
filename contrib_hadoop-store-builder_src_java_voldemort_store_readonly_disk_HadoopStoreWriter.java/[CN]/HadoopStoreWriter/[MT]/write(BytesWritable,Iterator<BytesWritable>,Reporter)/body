@@ -1,11 +1,12 @@
 {
-  this.indexFileStream.write(key.get(),0,key.getSize());
-  this.indexFileSizeInBytes+=key.getSize();
-  this.indexFileStream.writeInt(this.position);
-  this.indexFileSizeInBytes+=ByteUtils.SIZE_OF_INT;
-  if (this.checkSumDigestIndex != null) {
-    this.checkSumDigestIndex.update(key.get(),0,key.getSize());
-    this.checkSumDigestIndex.update(this.position);
+  int chunkId=ReadOnlyUtils.chunk(key.get(),getNumChunks());
+  this.indexFileStream[chunkId].write(key.get(),0,key.getSize());
+  this.indexFileSizeInBytes[chunkId]+=key.getSize();
+  this.indexFileStream[chunkId].writeInt(this.position[chunkId]);
+  this.indexFileSizeInBytes[chunkId]+=ByteUtils.SIZE_OF_INT;
+  if (this.checkSumDigestIndex[chunkId] != null) {
+    this.checkSumDigestIndex[chunkId].update(key.get(),0,key.getSize());
+    this.checkSumDigestIndex[chunkId].update(this.position[chunkId]);
   }
   short numTuples=0;
   ByteArrayOutputStream stream=new ByteArrayOutputStream();
@@ -18,7 +19,6 @@
     offsetTillNow+=ByteUtils.SIZE_OF_INT;
     if (this.partitionId == -1)     this.partitionId=ByteUtils.readInt(valueBytes,offsetTillNow);
     offsetTillNow+=ByteUtils.SIZE_OF_INT;
-    if (this.chunkId == -1)     this.chunkId=ReadOnlyUtils.chunk(key.get(),getNumChunks());
     if (getSaveKeys()) {
       if (this.replicaType == -1)       this.replicaType=(int)ByteUtils.readBytes(valueBytes,offsetTillNow,ByteUtils.SIZE_OF_BYTE);
       offsetTillNow+=ByteUtils.SIZE_OF_BYTE;
@@ -47,18 +47,18 @@
   valueStream.flush();
   byte[] value=stream.toByteArray();
   if (getSaveKeys()) {
-    this.valueFileStream.writeShort(numTuples);
-    this.valueFileSizeInBytes+=ByteUtils.SIZE_OF_SHORT;
-    this.position+=ByteUtils.SIZE_OF_SHORT;
-    if (this.checkSumDigestValue != null) {
-      this.checkSumDigestValue.update(numTuples);
+    this.valueFileStream[chunkId].writeShort(numTuples);
+    this.valueFileSizeInBytes[chunkId]+=ByteUtils.SIZE_OF_SHORT;
+    this.position[chunkId]+=ByteUtils.SIZE_OF_SHORT;
+    if (this.checkSumDigestValue[chunkId] != null) {
+      this.checkSumDigestValue[chunkId].update(numTuples);
     }
   }
-  this.valueFileStream.write(value);
-  this.valueFileSizeInBytes+=value.length;
-  this.position+=value.length;
-  if (this.checkSumDigestValue != null) {
-    this.checkSumDigestValue.update(value);
+  this.valueFileStream[chunkId].write(value);
+  this.valueFileSizeInBytes[chunkId]+=value.length;
+  this.position[chunkId]+=value.length;
+  if (this.checkSumDigestValue[chunkId] != null) {
+    this.checkSumDigestValue[chunkId].update(value);
   }
-  if (this.position < 0)   throw new VoldemortException("Chunk overflow exception: chunk " + chunkId + " has exceeded "+ Integer.MAX_VALUE+ " bytes.");
+  if (this.position[chunkId] < 0)   throw new VoldemortException("Chunk overflow exception: chunk " + chunkId + " has exceeded "+ Integer.MAX_VALUE+ " bytes.");
 }

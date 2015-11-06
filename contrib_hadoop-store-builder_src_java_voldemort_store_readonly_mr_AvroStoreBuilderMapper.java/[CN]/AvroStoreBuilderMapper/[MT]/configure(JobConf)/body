@@ -1,14 +1,9 @@
 {
   super.setConf(conf);
-  md5er=ByteUtils.getDigest("md5");
-  this.cluster=new ClusterMapper().readCluster(new StringReader(conf.get("cluster.xml")));
+  this.mapper.configure(conf);
   List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new StringReader(conf.get("stores.xml")));
   if (storeDefs.size() != 1)   throw new IllegalStateException("Expected to find only a single store, but found multiple!");
   this.storeDef=storeDefs.get(0);
-  this.numChunks=conf.getInt("num.chunks",-1);
-  if (this.numChunks < 1)   throw new VoldemortException("num.chunks not specified in the job conf.");
-  this.saveKeys=conf.getBoolean("save.keys",true);
-  this.reducerPerBucket=conf.getBoolean("reducer.per.bucket",false);
   keySerializerDefinition=getStoreDef().getKeySerializer();
   valueSerializerDefinition=getStoreDef().getValueSerializer();
   try {
@@ -18,11 +13,11 @@
     }
     keySerializer=factory.getSerializer(keySerializerDefinition);
     valueSerializer=factory.getSerializer(valueSerializerDefinition);
-    keyField=conf.get("avro.key.field");
-    valField=conf.get("avro.value.field");
+    keyField=conf.get(VoldemortBuildAndPushJob.AVRO_KEY_FIELD);
+    valField=conf.get(VoldemortBuildAndPushJob.AVRO_VALUE_FIELD);
     keySchema=conf.get("avro.key.schema");
     valSchema=conf.get("avro.val.schema");
-    if (keySerializerDefinition.getName().equals("avro-generic")) {
+    if (keySerializerDefinition.getName().equals(DefaultSerializerFactory.AVRO_GENERIC_TYPE_NAME)) {
       keySerializer=new AvroGenericSerializer(keySchema);
       valueSerializer=new AvroGenericSerializer(valSchema);
     }
@@ -44,7 +39,4 @@
  catch (  Exception e) {
     throw new RuntimeException(e);
   }
-  keyCompressor=new CompressionStrategyFactory().get(keySerializerDefinition.getCompression());
-  valueCompressor=new CompressionStrategyFactory().get(valueSerializerDefinition.getCompression());
-  routingStrategy=new ConsistentRoutingStrategy(getCluster(),getStoreDef().getReplicationFactor());
 }
