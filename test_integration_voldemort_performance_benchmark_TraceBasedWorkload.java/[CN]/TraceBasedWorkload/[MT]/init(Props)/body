@@ -1,0 +1,27 @@
+{
+  this.sampleSize=props.getInt(Benchmark.SAMPLE_SIZE,0);
+  double readProportion=(double)props.getInt(Benchmark.READS,0) / (double)100;
+  double writeProportion=(double)props.getInt(Benchmark.WRITES,0) / (double)100;
+  double deleteProportion=(double)props.getInt(Benchmark.DELETES,0) / (double)100;
+  double mixedProportion=(double)props.getInt(Benchmark.MIXED,0) / (double)100;
+  operationChooser=new DiscreteGenerator();
+  if (readProportion > 0) {
+    operationChooser.addValue(readProportion,Benchmark.READS);
+  }
+  if (mixedProportion > 0) {
+    operationChooser.addValue(mixedProportion,Benchmark.MIXED);
+  }
+  if (writeProportion > 0) {
+    operationChooser.addValue(writeProportion,Benchmark.WRITES);
+  }
+  if (deleteProportion > 0) {
+    operationChooser.addValue(deleteProportion,Benchmark.DELETES);
+  }
+  String workloadFile=props.getString(Benchmark.KEY_VALUE_FILE);
+  this.kvProvider=new StringKeyValueProvider(workloadFile);
+  System.out.println("Finished loading " + workloadFile);
+  String keySeqFile=props.getString(Benchmark.KEY_SEQUENCE_FILE);
+  this.keySequence=new StringKeySequence(keySeqFile);
+  System.out.println("Finished loading " + keySeqFile);
+  this.randomSampler=new Random(System.currentTimeMillis());
+}

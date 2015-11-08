@@ -1,0 +1,14 @@
+{
+  if (this.sampleSize > 0) {
+    sampleValues=Lists.newArrayList();
+    for (int i=0; i < sampleSize; i++) {
+      int index=keySequence.randomIndex();
+      String key=kvProvider.getKey(index);
+      Versioned<Object> versioned=client.get(key);
+      if (null == versioned) {
+        System.err.println("NULL is sampled for key " + key);
+      }
+      sampleValues.add(versioned);
+    }
+  }
+}

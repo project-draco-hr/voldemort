@@ -1,0 +1,28 @@
+{
+  BufferedReader reader=null;
+  try {
+    reader=new BufferedReader(new FileReader(workloadFile));
+    String line=null;
+    while ((line=reader.readLine()) != null) {
+      String[] items=line.trim().split("\\s+");
+      if (items.length == 2) {
+        String curKey=items[0];
+        int valueSize=Integer.parseInt(items[1]);
+        keys.add(curKey);
+        valueSizes.add(valueSize);
+      }
+    }
+  }
+ catch (  Exception ex) {
+    throw new RuntimeException(ex);
+  }
+ finally {
+    if (reader != null) {
+      try {
+        reader.close();
+      }
+ catch (      IOException e) {
+      }
+    }
+  }
+}

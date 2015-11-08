@@ -29,6 +29,9 @@
   parser.accepts(PLUGIN_CLASS,"classname of implementation of WorkloadPlugin; used to run customized operations ").withRequiredArg().describedAs("class-name");
   parser.accepts(CLIENT_ZONE_ID,"zone id for client; enables zone routing").withRequiredArg().describedAs("zone-id").ofType(Integer.class);
   parser.accepts(LOCAL_SERVER_PROPERTIES,"path to a server properties file (local mode only)").withRequiredArg().describedAs(LOCAL_SERVER_PROPERTIES).ofType(String.class);
+  parser.accepts(WORKLOAD_TYPE,"workload type; type to support; [ " + TRACE_WORKLOAD_TYPE + " | "+ DEFAULT_WORKLOAD_TYPE+ " <default> ]").withRequiredArg().describedAs(WORKLOAD_TYPE).ofType(String.class);
+  parser.accepts(KEY_VALUE_FILE,"path to a file with keys and value sizes").withRequiredArg().describedAs(KEY_VALUE_FILE).ofType(String.class);
+  parser.accepts(KEY_SEQUENCE_FILE,"path to a file with key access sequence").withRequiredArg().describedAs(KEY_SEQUENCE_FILE).ofType(String.class);
   parser.accepts(HELP);
   OptionSet options=parser.parse(args);
   if (options.has(HELP)) {
@@ -83,6 +86,14 @@
     }
     if (options.has(LOCAL_SERVER_PROPERTIES)) {
       mainProps.put(LOCAL_SERVER_PROPERTIES,(String)options.valueOf(LOCAL_SERVER_PROPERTIES));
+    }
+    if (options.has(WORKLOAD_TYPE)) {
+      mainProps.put(WORKLOAD_TYPE,(String)options.valueOf(WORKLOAD_TYPE));
+      if (((String)options.valueOf(WORKLOAD_TYPE)).equals(TRACE_WORKLOAD_TYPE)) {
+        CmdUtils.croakIfMissing(parser,options,KEY_VALUE_FILE,KEY_SEQUENCE_FILE);
+        mainProps.put(KEY_VALUE_FILE,(String)options.valueOf(KEY_VALUE_FILE));
+        mainProps.put(KEY_SEQUENCE_FILE,(String)options.valueOf(KEY_SEQUENCE_FILE));
+      }
     }
     mainProps.put(VERBOSE,getCmdBoolean(options,VERBOSE));
     mainProps.put(VERIFY,getCmdBoolean(options,VERIFY));
