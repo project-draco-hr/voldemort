@@ -1,5 +1,15 @@
 {
-  logger.info("Received HandleFetchFailureRequest");
+  String storeName=handleFetchFailure.getStoreName();
+  long pushVersion=handleFetchFailure.getPushVersion();
+  String extraInfo=handleFetchFailure.getInfo();
+  Properties extraInfoProperties=new Properties();
+  try {
+    extraInfoProperties.load(new StringReader(extraInfo));
+  }
+ catch (  IOException e) {
+    logger.error("Got IOException while trying to decipher a HandleFetchFailureRequest's info.",e);
+  }
+  logger.info("Received HandleFetchFailureRequest:\n" + "\tstore_name: " + storeName + "\n"+ "\tpush_version: "+ pushVersion+ "\n"+ "\tinfo: "+ extraInfoProperties.toString());
   VAdminProto.HandleFetchFailureResponse.Builder response=VAdminProto.HandleFetchFailureResponse.newBuilder();
   AdminClient adminClient=AdminClient.createTempAdminClient(voldemortConfig,metadataStore.getCluster(),1);
   int maxNodeFailure=voldemortConfig.getHighAvailabilityPushMaxNodeFailures();
@@ -12,15 +22,10 @@
     logger.error(responseMessage);
   }
  else {
-    String storeName=handleFetchFailure.getStoreName();
-    long pushVersion=handleFetchFailure.getPushVersion();
-    String extraInfo=handleFetchFailure.getInfo();
     FailedFetchLock distributedLock=null;
     try {
       Class<? extends FailedFetchLock> failedFetchLockClass=(Class<? extends FailedFetchLock>)Class.forName(voldemortConfig.getHighAvailabilityPushLockImplementation());
-      Properties javaProperties=new Properties();
-      javaProperties.load(new ByteArrayInputStream(extraInfo.getBytes()));
-      Props props=new Props(javaProperties);
+      Props props=new Props(extraInfoProperties);
       Object[] failedFetchLockParams=new Object[]{voldemortConfig,props};
       distributedLock=ReflectUtils.callConstructor(failedFetchLockClass,failedFetchLockParams);
       distributedLock.acquireLock();
