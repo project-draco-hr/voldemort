@@ -1,0 +1,15 @@
+{
+  Assert.assertFalse("Did not expect to have any store version disabled.",storeVersionManager.hasAnyDisabledVersion());
+  version0.setReadOnly();
+  try {
+    storeVersionManager.disableStoreVersion(0);
+    Assert.fail("Did not get a PersistenceFailureException when trying to disableStoreVersion on a read-only filesystem.");
+  }
+ catch (  PersistenceFailureException e) {
+  }
+  Assert.assertTrue("Expected in-memory state to have some store version disabled.",storeVersionManager.hasAnyDisabledVersion());
+  Assert.assertTrue("Expected in-memory state to have store version 1 enabled.",storeVersionManager.isCurrentVersionEnabled());
+  StoreVersionManager storeVersionManager2=new StoreVersionManager(rootDir);
+  storeVersionManager2.syncInternalStateFromFileSystem();
+  Assert.assertFalse("Expected persistent state to have no version disabled.",storeVersionManager2.hasAnyDisabledVersion());
+}

@@ -1,9 +1,17 @@
 {
-  logger.info("Received DisableStoreVersionRequest: " + disableStoreVersion.toString());
-  VAdminProto.DisableStoreVersionResponse.Builder response=VAdminProto.DisableStoreVersionResponse.newBuilder();
-  response.setNodeId(server.getMetadataStore().getNodeId());
   String storeName=disableStoreVersion.getStoreName();
   Long version=disableStoreVersion.getPushVersion();
+  Properties properties=new Properties();
+  try {
+    properties.load(new StringReader(disableStoreVersion.getInfo()));
+  }
+ catch (  IOException e) {
+    logger.error("Got IOException while trying to decipher a DisableStoreVersionRequest's info.",e);
+  }
+  logger.info("Received DisableStoreVersionRequest:\n" + "\tstore_name: " + storeName + "\n"+ "\tpush_version: "+ version+ "\n"+ "\tinfo: "+ properties.toString());
+  VAdminProto.DisableStoreVersionResponse.Builder response=VAdminProto.DisableStoreVersionResponse.newBuilder();
+  response.setNodeId(server.getMetadataStore().getNodeId());
+  final String logMessagePrefix="handleDisableStoreVersion returning response: ";
   try {
     StorageEngine storeToDisable=storeRepository.getStorageEngine(storeName);
     if (storeToDisable == null) {
@@ -14,18 +22,23 @@
       storeVersionManager.disableStoreVersion(version);
       response.setDisableSuccess(true).setDisablePersistenceSuccess(true).setInfo("The store '" + storeName + "' version "+ version+ " was successfully disabled.");
     }
+    logger.info(logMessagePrefix + response.getInfo());
   }
  catch (  PersistenceFailureException e) {
-    response.setDisableSuccess(true).setDisablePersistenceSuccess(false).setInfo("The store '" + storeName + "' version "+ version+ " was disabled"+ " but the change could not be persisted and will thus remain in effect only"+ " until the next server restart. This is likely caused by the IO subsystem"+ " becoming read-only.");
+    String message="The store '" + storeName + "' version "+ version+ " was disabled"+ " but the change could not be persisted and will thus remain in effect only"+ " until the next server restart. This is likely caused by the IO subsystem"+ " becoming read-only.";
+    logger.error(logMessagePrefix + message,e);
+    response.setDisableSuccess(true).setDisablePersistenceSuccess(false).setInfo(message);
   }
 catch (  NoSuchCapabilityException e) {
-    response.setDisableSuccess(false).setInfo("The store '" + storeName + "' does not support disabling versions!");
+    String message="The store '" + storeName + "' does not support disabling versions!";
+    logger.error(logMessagePrefix + message,e);
+    response.setDisableSuccess(false).setInfo(message);
   }
 catch (  Exception e) {
-    logger.error("Got an unexpected exception while trying to disable store '" + storeName + "' version "+ version+ ".",e);
-    response.setDisableSuccess(false).setInfo("The store '" + storeName + "' version "+ version+ " was not disabled because of an unexpected exception.");
+    String message="The store '" + storeName + "' version "+ version+ " was not disabled because of an unexpected exception.";
+    logger.error(logMessagePrefix + message,e);
+    response.setDisableSuccess(false).setInfo(message);
   }
-  logger.info("handleDisableStoreVersion returning response: " + response.getInfo());
   if (response.getDisableSuccess()) {
     VAdminProto.SetOfflineStateRequest offlineStateRequest=VAdminProto.SetOfflineStateRequest.newBuilder().setOfflineMode(true).build();
     handleSetOfflineState(offlineStateRequest);
