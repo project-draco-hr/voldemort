@@ -1,0 +1,21 @@
+{
+  List<StoreDefinition> storeDefs=null;
+  for (  Node node : cluster.getNodes()) {
+    if (node.getId() == nodeId)     continue;
+    List<StoreDefinition> storeDefList=metadataMgmtOps.getRemoteStoreDefList(node.getId()).getValue();
+    if (storeDefs == null) {
+      storeDefs=storeDefList;
+    }
+ else {
+      if (!Utils.compareList(storeDefs,storeDefList)) {
+        throw new VoldemortException("Store definitions on node " + node.getId() + " does not match those on other nodes");
+      }
+    }
+  }
+  if (storeDefs == null) {
+    throw new VoldemortException("Could not retrieve list of store definitions correctly");
+  }
+ else {
+    return storeDefs;
+  }
+}

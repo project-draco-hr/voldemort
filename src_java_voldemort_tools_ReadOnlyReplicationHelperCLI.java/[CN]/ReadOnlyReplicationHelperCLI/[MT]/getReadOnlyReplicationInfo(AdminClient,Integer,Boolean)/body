@@ -1,7 +1,7 @@
 {
   List<String> infoList=Lists.newArrayList();
-  List<StoreDefinition> storeDefs=adminClient.metadataMgmtOps.getRemoteStoreDefList().getValue();
-  Cluster cluster=adminClient.metadataMgmtOps.getRemoteCluster(nodeId).getValue();
+  Cluster cluster=adminClient.getAdminClientCluster();
+  List<StoreDefinition> storeDefs=adminClient.rebalanceOps.getCurrentStoreDefinitionsExcept(cluster,nodeId);
   for (  StoreDefinition storeDef : storeDefs) {
     String storeName=storeDef.getName();
     String storageFormat=null;
@@ -11,11 +11,6 @@
     }
     if (!storeDef.getType().equals(ReadOnlyStorageConfiguration.TYPE_NAME)) {
       logger.error("Store " + storeName + " cannot be restored, as it has type = "+ storeDef.getType()+ " instead of "+ ReadOnlyStorageConfiguration.TYPE_NAME);
-      continue;
-    }
-    storageFormat=adminClient.readonlyOps.getROStorageFormat(nodeId,storeName);
-    if (!storageFormat.equals(ReadOnlyStorageFormat.READONLY_V2.getCode())) {
-      logger.error("Store " + storeName + " cannot be restored, as it has storage format = "+ storageFormat+ " instead of "+ ReadOnlyStorageFormat.READONLY_V2.getCode());
       continue;
     }
     logger.info("Processing store " + storeName);
