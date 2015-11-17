@@ -1,5 +1,7 @@
 {
   MutableInt parsePos=new MutableInt(0);
   Object key=parseKey(preflistArgStr,parsePos);
-  printNodeList(client.getResponsibleNodes(key),factory.getFailureDetector());
+  byte[] serializedKey=serializeKey(key);
+  printPartitionList(routingStrategy.getPartitionList(serializedKey));
+  printNodeList(routingStrategy.routeRequest(serializedKey),factory.getFailureDetector());
 }
