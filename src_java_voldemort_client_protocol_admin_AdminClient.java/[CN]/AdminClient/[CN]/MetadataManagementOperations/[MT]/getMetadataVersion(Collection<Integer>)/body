@@ -1,0 +1,22 @@
+{
+  VectorClock version=new VectorClock();
+  Properties props=new Properties();
+  boolean atLeastOneSuccess=false;
+  for (  Integer nodeId : nodeIds) {
+    try {
+      Versioned<Properties> versionedProps=getMetadataVersion(nodeId);
+      VectorClock curVersion=(VectorClock)versionedProps.getVersion();
+      Properties curProps=versionedProps.getValue();
+      version=version.merge(curVersion);
+      props=MetadataVersionStoreUtils.mergeVersions(props,curProps);
+      atLeastOneSuccess=true;
+    }
+ catch (    Exception e) {
+      logger.error("Error retrieving metadata versions for node " + nodeId,e);
+    }
+  }
+  if (atLeastOneSuccess == false) {
+    throw new VoldemortApplicationException("Metadata version retrieval failed on all nodes" + Arrays.toString(nodeIds.toArray()));
+  }
+  return new Versioned<Properties>(props,version);
+}

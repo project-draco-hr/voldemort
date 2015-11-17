@@ -1,0 +1,18 @@
+{
+  if (prop1 == null) {
+    return prop2;
+  }
+  if (prop2 == null) {
+    return prop1;
+  }
+  Properties result=new Properties(prop1);
+  for (  String propName : prop2.stringPropertyNames()) {
+    String currValue=result.getProperty(propName);
+    long currlValue=tryParse(currValue);
+    String newValue=prop2.getProperty(propName);
+    long lValue=tryParse(newValue);
+    long maxlValue=Math.max(currlValue,lValue);
+    result.setProperty(propName,Long.toString(maxlValue));
+  }
+  return result;
+}

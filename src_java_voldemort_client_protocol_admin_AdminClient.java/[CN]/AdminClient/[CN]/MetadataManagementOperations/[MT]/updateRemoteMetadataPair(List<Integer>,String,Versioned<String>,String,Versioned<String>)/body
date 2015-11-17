@@ -1,16 +1,17 @@
 {
   if (clusterKey.equals(SystemStoreConstants.CLUSTER_VERSION_KEY)) {
-    metadataMgmtOps.updateMetadataversion(clusterKey);
+    metadataMgmtOps.updateMetadataversion(remoteNodeIds,clusterKey);
   }
   if (storesKey.equals(SystemStoreConstants.STORES_VERSION_KEY)) {
     StoreDefinitionsMapper storeDefsMapper=new StoreDefinitionsMapper();
     List<StoreDefinition> storeDefs=storeDefsMapper.readStoreList(new StringReader(storesValue.getValue()));
     if (storeDefs != null) {
+      List<String> storeNames=new ArrayList<String>();
       try {
         for (        StoreDefinition storeDef : storeDefs) {
-          logger.info("Updating metadata version for stores: " + storeDef.getName());
-          metadataMgmtOps.updateMetadataversion(storeDef.getName());
+          storeNames.add(storeDef.getName());
         }
+        metadataMgmtOps.updateMetadataversion(remoteNodeIds,storeNames);
       }
  catch (      Exception e) {
         System.err.println("Error while updating metadata version for the specified store.");

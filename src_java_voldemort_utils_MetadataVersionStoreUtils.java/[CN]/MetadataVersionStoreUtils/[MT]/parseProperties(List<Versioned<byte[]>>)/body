@@ -1,0 +1,24 @@
+{
+  Properties props=new Properties();
+  if (versionProps == null || versionProps.size() == 0) {
+    return new Versioned<Properties>(props);
+  }
+  VectorClock version=new VectorClock();
+  for (int cur=0; cur < versionProps.size(); cur++) {
+    VectorClock curVersion=(VectorClock)versionProps.get(cur).getVersion();
+    version=version.merge(curVersion);
+    byte[] value=versionProps.get(cur).getValue();
+    if (value == null) {
+      continue;
+    }
+    Properties curProps=new Properties();
+    try {
+      curProps.load(new ByteArrayInputStream(value));
+    }
+ catch (    Exception e) {
+      continue;
+    }
+    props=mergeVersions(props,curProps);
+  }
+  return new Versioned<Properties>(props,version);
+}
