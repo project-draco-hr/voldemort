@@ -8,6 +8,8 @@
     client=factory.getStoreClient(storeName);
     adminClient=new AdminClient(bootstrapUrl,new AdminClientConfig(),new ClientConfig());
     storeDef=StoreUtils.getStoreDef(factory.getStoreDefs(),storeName);
+    Cluster cluster=adminClient.getAdminClientCluster();
+    routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
     commandOutput.println("Established connection to " + storeName + " via "+ bootstrapUrl);
     commandOutput.print(PROMPT);
   }
