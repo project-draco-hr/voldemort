@@ -3,18 +3,13 @@
   JobConf conf=new JobConf();
   Path dataPath=new Path(dataDir);
   String modifiedDataDir=dataPath.makeQualified(FileSystem.get(conf)).toString();
-  String[] pathComponents=modifiedDataDir.split(":");
-  if (pathComponents.length >= 3) {
-    String existingProtocol=pathComponents[0];
-    String existingPort=pathComponents[2].split("/")[0];
-    info("Existing protocol = " + existingProtocol + " and port = "+ existingPort);
-    if (hdfsFetcherProtocol.length() > 0 && hdfsFetcherPort.length() > 0) {
-      info("New protocol = " + hdfsFetcherProtocol + " and port = "+ hdfsFetcherPort);
-      modifiedDataDir=modifiedDataDir.replaceFirst(existingProtocol,hdfsFetcherProtocol);
-      modifiedDataDir=modifiedDataDir.replaceFirst(existingPort,hdfsFetcherPort);
-    }
+  try {
+    modifiedDataDir=VoldemortUtils.modifyURL(modifiedDataDir,hdfsFetcherProtocol,Integer.valueOf(hdfsFetcherPort));
   }
- else {
+ catch (  NumberFormatException nfe) {
+    info("The dataDir will not be modified, since hdfsFetcherPort is not a valid port number");
+  }
+catch (  IllegalArgumentException e) {
     info("The dataDir will not be modified, since it does not contain the expected " + "structure of protocol:hostname:port/some_path");
   }
   try {

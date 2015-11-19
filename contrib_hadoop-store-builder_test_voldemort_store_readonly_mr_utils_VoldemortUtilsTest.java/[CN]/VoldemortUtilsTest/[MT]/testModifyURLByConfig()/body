@@ -1,0 +1,38 @@
+{
+  String url="swebhdfs://localhost:50470/user/testpath";
+  Properties properties=new Properties();
+  properties.setProperty("node.id","1");
+  properties.setProperty("voldemort.home","/test");
+  VoldemortConfig config=new VoldemortConfig(properties);
+  HdfsFetcher fetcher=new HdfsFetcher(config);
+  String newUrl=VoldemortUtils.modifyURL(url,config.getModifiedProtocol(),config.getMysqlPort());
+  assertEquals(url,newUrl);
+  properties.setProperty("readonly.modify.protocol","webhdfs");
+  properties.setProperty("readonly.modify.port","50070");
+  config=new VoldemortConfig(properties);
+  newUrl=VoldemortUtils.modifyURL(url,config.getModifiedProtocol(),config.getModifiedPort());
+  assertEquals("webhdfs://localhost:50070/user/testpath",newUrl);
+  properties.remove("readonly.modify.protocol");
+  config=new VoldemortConfig(properties);
+  newUrl=VoldemortUtils.modifyURL(url,config.getModifiedProtocol(),config.getModifiedPort());
+  assertEquals(url,newUrl);
+  properties.remove("readonly.modify.port");
+  properties.setProperty("readonly.modify.protocol","testprotocol");
+  config=new VoldemortConfig(properties);
+  newUrl=VoldemortUtils.modifyURL(url,config.getModifiedProtocol(),config.getModifiedPort());
+  assertEquals(url,newUrl);
+  url="/testpath/file";
+  properties.setProperty("readonly.modify.protocol","webhdfs");
+  properties.setProperty("readonly.modify.port","50070");
+  config=new VoldemortConfig(properties);
+  try {
+    VoldemortUtils.modifyURL(url,config.getModifiedProtocol(),config.getModifiedPort());
+  }
+ catch (  IllegalArgumentException iae) {
+    return;
+  }
+catch (  Exception e) {
+    fail("Should met IAE. URL is not valid.");
+  }
+  fail("Should met IAE. URL is not valid.");
+}
