@@ -1,0 +1,16 @@
+{
+  Set<StoreCapabilityType> supportedCapabilities=EnumSet.of(StoreCapabilityType.VIEW_TARGET);
+  for (  StoreCapabilityType capabilityType : StoreCapabilityType.values()) {
+    if (supportedCapabilities.contains(capabilityType)) {
+      assertNotNull("unexpected null value returned for StoreCapabilityType." + capabilityType,view.getCapability(capabilityType));
+    }
+ else {
+      try {
+        view.getCapability(StoreCapabilityType.DISABLE_STORE_VERSION);
+        fail("Expected NoSuchCapabilityException to be thrown for StoreCapabilityType." + capabilityType);
+      }
+ catch (      NoSuchCapabilityException e) {
+      }
+    }
+  }
+}
