@@ -1,0 +1,20 @@
+{
+  Properties properties=new Properties();
+  properties.setProperty("node.id","1");
+  properties.setProperty("voldemort.home","/test");
+  VoldemortConfig config=new VoldemortConfig(properties);
+  try {
+    VoldemortServer server=new VoldemortServer(config,null);
+  }
+ catch (  Throwable e) {
+  }
+  assertNull(Security.getProvider(BouncyCastleProvider.PROVIDER_NAME));
+  properties.setProperty("use.bouncycastle.for.ssl","true");
+  config=new VoldemortConfig(properties);
+  try {
+    VoldemortServer server=new VoldemortServer(config,null);
+  }
+ catch (  Throwable e) {
+  }
+  assertEquals(BouncyCastleProvider.PROVIDER_NAME,Security.getProviders()[0].getName());
+}
