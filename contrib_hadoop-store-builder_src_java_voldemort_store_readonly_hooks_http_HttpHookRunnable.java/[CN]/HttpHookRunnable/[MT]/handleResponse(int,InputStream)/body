@@ -1,25 +1,23 @@
 {
-  if (log.isDebugEnabled()) {
-    BufferedReader rd=null;
-    try {
-      rd=new BufferedReader(new InputStreamReader(inputStream));
-      StringBuilder sb=new StringBuilder();
-      String line;
-      while ((line=rd.readLine()) != null) {
-        sb.append(line);
-      }
-      log.debug("HttpHook [" + hookName + "] received "+ responseCode+ " response: "+ sb);
+  BufferedReader rd=null;
+  try {
+    rd=new BufferedReader(new InputStreamReader(inputStream));
+    StringBuilder sb=new StringBuilder();
+    String line;
+    while ((line=rd.readLine()) != null) {
+      sb.append(line);
     }
- catch (    IOException e) {
-      log.debug("Error while reading response for HttpHook [" + hookName + "]",e);
-    }
+    log.info("HttpHook [" + hookName + "] received "+ responseCode+ " response: "+ sb);
+  }
+ catch (  IOException e) {
+    log.error("Error while reading response for HttpHook [" + hookName + "]",e);
+  }
  finally {
-      if (rd != null) {
-        try {
-          rd.close();
-        }
- catch (        IOException e) {
-        }
+    if (rd != null) {
+      try {
+        rd.close();
+      }
+ catch (      IOException e) {
       }
     }
   }
