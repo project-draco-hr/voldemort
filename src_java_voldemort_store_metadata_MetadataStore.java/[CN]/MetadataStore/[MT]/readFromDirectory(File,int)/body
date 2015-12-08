@@ -30,5 +30,8 @@
   }
   StorageEngine<String,String,String> storesEngine=new ConfigurationStorageEngine(MetadataStore.STORE_DEFINITIONS_STORE_NAME,storeDefDirPath);
   Store<String,String,String> innerStore=new ConfigurationStorageEngine(MetadataStore.METADATA_STORE_NAME,dir.getAbsolutePath());
-  return new MetadataStore(innerStore,storesEngine,nodeId);
+  MetadataStore store=new MetadataStore(innerStore,storesEngine,nodeId);
+  ServerState state=new ServerState(store);
+  JmxUtils.registerMbean(state.getClass().getCanonicalName(),state);
+  return store;
 }
