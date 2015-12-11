@@ -3,6 +3,9 @@
   try {
     ByteArray key=ProtoUtils.decodeBytes(request.getKey());
     String keyString=ByteUtils.getString(key.get(),"UTF-8");
+    if (keyString.isEmpty()) {
+      throw new VoldemortException("Received admin operation which got interpreted as a " + "GetMetadataRequest with an empty metadata key. This " + "typically means that the requested admin operation is not "+ "supported on this version of the Voldemort server.");
+    }
     if (MetadataStore.METADATA_KEYS.contains(keyString) || metadataStore.isValidStore(keyString)) {
       List<Versioned<byte[]>> versionedList=metadataStore.get(key,null);
       int size=(versionedList.size() > 0) ? 1 : 0;
