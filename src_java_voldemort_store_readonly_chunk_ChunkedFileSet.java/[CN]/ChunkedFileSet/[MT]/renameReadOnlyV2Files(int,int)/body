@@ -1,0 +1,27 @@
+{
+  for (int replica=0; replica < routingStrategy.getNumReplicas(); replica++) {
+    if (replica != correctReplicaType) {
+      int chunkId=0;
+      while (true) {
+        String fileName=Integer.toString(masterPartitionId) + "_" + Integer.toString(replica)+ "_"+ Integer.toString(chunkId);
+        File index=getIndexFile(fileName);
+        File data=getDataFile(fileName);
+        if (index.exists() && data.exists()) {
+          String correctFileName=Integer.toString(masterPartitionId) + "_" + Integer.toString(correctReplicaType)+ "_"+ Integer.toString(chunkId);
+          File indexWithCorrectReplicaType=getIndexFile(correctFileName);
+          File dataWithCorrectReplicaType=getDataFile(correctFileName);
+          Utils.move(index,indexWithCorrectReplicaType);
+          Utils.move(data,dataWithCorrectReplicaType);
+          logger.info("Renamed files with wrong replica type: " + index.getAbsolutePath() + "|data -> "+ indexWithCorrectReplicaType.getName()+ "|data");
+        }
+ else         if (index.exists() ^ data.exists()) {
+          throw new VoldemortException("One of the following does not exist: " + index.toString() + " or "+ data.toString()+ ".");
+        }
+ else {
+          break;
+        }
+        chunkId++;
+      }
+    }
+  }
+}

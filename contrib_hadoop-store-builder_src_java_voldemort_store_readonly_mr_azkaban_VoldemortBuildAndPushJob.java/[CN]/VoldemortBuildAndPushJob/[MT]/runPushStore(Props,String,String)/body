@@ -8,30 +8,19 @@
   int maxBackoffDelayMs=1000 * props.getInt(PUSH_BACKOFF_DELAY_SECONDS,60);
   List<FailedFetchStrategy> failedFetchStrategyList=Lists.newArrayList();
   int maxNodeFailures=0;
-  if (!pushHighAvailability) {
-    log.info("pushHighAvailability is disabled by the job config.");
-  }
- else {
-    try {
-      VAdminProto.GetHighAvailabilitySettingsResponse serverSettings=adminClientPerCluster.get(url).readonlyOps.getHighAvailabilitySettings();
-      if (!serverSettings.getEnabled()) {
-        log.warn("The server requested pushHighAvailability to be DISABLED on cluster: " + url);
-      }
- else {
-        maxNodeFailures=serverSettings.getMaxNodeFailure();
-        OutputStream outputStream=new ByteArrayOutputStream();
-        props.storeFlattened(outputStream);
-        outputStream.flush();
-        String jobInfoString=outputStream.toString();
-        failedFetchStrategyList.add(new DisableStoreOnFailedNodeFailedFetchStrategy(adminClientPerCluster.get(url),jobInfoString));
-        log.info("pushHighAvailability is enabled for cluster URL: " + url + " with cluster ID: "+ serverSettings.getClusterId());
-      }
+  if (pushHighAvailability) {
+    VAdminProto.GetHighAvailabilitySettingsResponse serverSettings=haSettingsPerCluster.get(url);
+    if (serverSettings == null || !serverSettings.getEnabled()) {
+      log.warn("pushHighAvailability is DISABLED on cluster: " + url);
     }
- catch (    UninitializedMessageException e) {
-      log.error("The server does not support HA (introduced in release 1.9.20), so " + "pushHighAvailability will be DISABLED on cluster: " + url);
-    }
-catch (    Exception e) {
-      log.error("Got exception while trying to determine pushHighAvailability settings on cluster: " + url,e);
+ else {
+      maxNodeFailures=serverSettings.getMaxNodeFailure();
+      OutputStream outputStream=new ByteArrayOutputStream();
+      props.storeFlattened(outputStream);
+      outputStream.flush();
+      String jobInfoString=outputStream.toString();
+      failedFetchStrategyList.add(new DisableStoreOnFailedNodeFailedFetchStrategy(adminClientPerCluster.get(url),jobInfoString));
+      log.info("pushHighAvailability is enabled for cluster URL: " + url + " with cluster ID: "+ serverSettings.getClusterId());
     }
   }
   boolean rollback=props.getBoolean(PUSH_ROLLBACK,true);
@@ -40,5 +29,5 @@ catch (    Exception e) {
   }
   Cluster cluster=adminClientPerCluster.get(url).getAdminClientCluster();
   log.info("Push starting for cluster: " + url);
-  new VoldemortSwapJob(this.getId() + "-push-store",cluster,dataDir,storeName,httpTimeoutMs,pushVersion,maxBackoffDelayMs,rollback,hdfsFetcherProtocol,hdfsFetcherPort,maxNodeFailures,failedFetchStrategyList,url).run();
+  new VoldemortSwapJob(this.getId() + "-push-store",cluster,dataDir,storeName,httpTimeoutMs,pushVersion,maxBackoffDelayMs,rollback,hdfsFetcherProtocol,hdfsFetcherPort,maxNodeFailures,failedFetchStrategyList,url,buildPrimaryReplicasOnly).run();
 }

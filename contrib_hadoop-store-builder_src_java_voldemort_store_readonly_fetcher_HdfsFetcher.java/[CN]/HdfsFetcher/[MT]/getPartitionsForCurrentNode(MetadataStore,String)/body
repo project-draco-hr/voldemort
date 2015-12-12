@@ -1,0 +1,23 @@
+{
+  Set<Integer> partitions=Sets.newHashSet();
+  StoreDefinition storeDefinition=metadataStore.getStoreDef(storeName);
+  Cluster cluster=metadataStore.getCluster();
+  List<Integer> partitionsMasteredByCurrentNode=cluster.getNodeById(metadataStore.getNodeId()).getPartitionIds();
+  RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDefinition,cluster);
+  for (int partitionId=0; partitionId < cluster.getNumberOfPartitions(); partitionId++) {
+    boolean partitionIdIsServedByCurrentNode=false;
+    for (    Integer replicatingPartition : routingStrategy.getReplicatingPartitionList(partitionId)) {
+      if (partitionsMasteredByCurrentNode.contains(replicatingPartition)) {
+        partitionIdIsServedByCurrentNode=true;
+        break;
+      }
+    }
+    if (partitionIdIsServedByCurrentNode) {
+      partitions.add(partitionId);
+    }
+ else {
+      logger.debug("Partition " + partitionId + " is not served by this node, so it will be skipped.");
+    }
+  }
+  return partitions;
+}

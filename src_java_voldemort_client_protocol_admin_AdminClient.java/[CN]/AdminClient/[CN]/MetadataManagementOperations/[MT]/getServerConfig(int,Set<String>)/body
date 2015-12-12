@@ -1,0 +1,15 @@
+{
+  VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.GET_CONFIG).setGetConfig(VAdminProto.GetConfigRequest.newBuilder().addAllConfigKey(configKeys)).build();
+  VAdminProto.GetConfigResponse.Builder response=rpcOps.sendAndReceive(nodeId,request,VAdminProto.GetConfigResponse.newBuilder());
+  if (response.getInvalidConfigMapCount() > 0) {
+    String nodeName=currentCluster.getNodeById(nodeId).briefToString();
+    for (    VAdminProto.MapFieldEntry entry : response.getInvalidConfigMapList()) {
+      logger.error(nodeName + " responded with an error to our GetConfigRequest for key '" + entry.getKey()+ "': "+ entry.getValue());
+    }
+  }
+  Map<String,String> serverConfig=Maps.newHashMap();
+  for (  VAdminProto.MapFieldEntry entry : response.getConfigMapList()) {
+    serverConfig.put(entry.getKey(),entry.getValue());
+  }
+  return serverConfig;
+}

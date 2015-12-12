@@ -7,4 +7,8 @@
   if (this.numChunks < 1)   throw new VoldemortException(VoldemortBuildAndPushJob.NUM_CHUNKS + " not specified in the job conf.");
   this.saveKeys=conf.getBoolean(VoldemortBuildAndPushJob.SAVE_KEYS,false);
   this.reducerPerBucket=conf.getBoolean(VoldemortBuildAndPushJob.REDUCER_PER_BUCKET,false);
+  this.buildPrimaryReplicasOnly=conf.getBoolean(VoldemortBuildAndPushJob.BUILD_PRIMARY_REPLICAS_ONLY,false);
+  if (buildPrimaryReplicasOnly && !saveKeys) {
+    throw new IllegalStateException(VoldemortBuildAndPushJob.BUILD_PRIMARY_REPLICAS_ONLY + " can only be true if " + VoldemortBuildAndPushJob.SAVE_KEYS+ " is also true.");
+  }
 }

@@ -1,0 +1,116 @@
+{
+  ObjectName jmxName=null;
+  HdfsCopyStats stats=null;
+  FileSystem fs=null;
+  sourceFileUrl=VoldemortUtils.modifyURL(sourceFileUrl,voldemortConfig.getModifiedProtocol(),voldemortConfig.getModifiedPort());
+  try {
+    fs=HadoopUtils.getHadoopFileSystem(voldemortConfig,sourceFileUrl);
+    final Path rootPath=new Path(sourceFileUrl);
+    File destination=new File(destinationFile);
+    if (destination.exists()) {
+      throw new VoldemortException("Version directory " + destination.getAbsolutePath() + " already exists");
+    }
+    boolean isFile=fs.isFile(rootPath);
+    stats=new HdfsCopyStats(sourceFileUrl,destination,enableStatsFile,maxVersionsStatsFile,isFile,new HdfsPathInfo(fs,rootPath));
+    jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
+    logger.info("Starting fetch for : " + sourceFileUrl);
+    FetchStrategy fetchStrategy=new BasicFetchStrategy(this,fs,stats,status,bufferSize);
+    if (!fs.isFile(rootPath)) {
+      Utils.mkdirs(destination);
+      HdfsDirectory rootDirectory=new HdfsDirectory(fs,rootPath);
+      List<HdfsDirectory> directoriesToFetch=Lists.newArrayList();
+      HdfsFile metadataFile=rootDirectory.getMetadataFile();
+      Long expectedDiskSize=-1L;
+      if (metadataFile != null) {
+        File copyLocation=new File(destination,metadataFile.getPath().getName());
+        fetchStrategy.fetch(metadataFile,copyLocation,null);
+        rootDirectory.initializeMetadata(copyLocation);
+        if (metadataFile.getDiskFileName().equals(ReadOnlyUtils.FULL_STORE_METADATA_FILE)) {
+          Set<Integer> partitions=getPartitionsForCurrentNode(metadataStore,storeName);
+          for (          int partitionId : partitions) {
+            String partitionKey=ReadOnlyUtils.PARTITION_DIRECTORY_PREFIX + partitionId;
+            ReadOnlyStorageMetadata partitionMetadata=rootDirectory.getMetadata().getNestedMetadata(partitionKey);
+            String diskSizeInBytes=(String)partitionMetadata.get(ReadOnlyStorageMetadata.DISK_SIZE_IN_BYTES);
+            if (diskSizeInBytes != null && diskSizeInBytes != "") {
+              logger.debug("Partition " + partitionId + " is served by this node and is not empty, so it will be downloaded.");
+              if (expectedDiskSize == -1) {
+                expectedDiskSize=Long.parseLong(diskSizeInBytes);
+              }
+ else {
+                expectedDiskSize+=Long.parseLong(diskSizeInBytes);
+              }
+              HdfsDirectory partitionDirectory=new HdfsDirectory(fs,new Path(rootPath,partitionKey));
+              partitionDirectory.initializeMetadata(partitionMetadata);
+              directoriesToFetch.add(partitionDirectory);
+            }
+ else {
+              logger.debug("Partition " + partitionId + " is served by this node but it is empty, so it will be skipped.");
+            }
+          }
+        }
+ else {
+          String diskSizeInBytes=(String)rootDirectory.getMetadata().get(ReadOnlyStorageMetadata.DISK_SIZE_IN_BYTES);
+          if (diskSizeInBytes != null && diskSizeInBytes != "") {
+            expectedDiskSize=Long.parseLong(diskSizeInBytes);
+          }
+          directoriesToFetch.add(rootDirectory);
+        }
+      }
+      checkIfQuotaExceeded(diskQuotaSizeInKB,storeName,destination,expectedDiskSize);
+      logger.debug("directoriesToFetch for store '" + storeName + "': "+ Arrays.toString(directoriesToFetch.toArray()));
+      for (      HdfsDirectory directoryToFetch : directoriesToFetch) {
+        Map<HdfsFile,byte[]> fileCheckSumMap=fetchStrategy.fetch(directoryToFetch,destination);
+        if (directoryToFetch.validateCheckSum(fileCheckSumMap)) {
+          logger.info("Completed fetch: " + sourceFileUrl);
+        }
+ else {
+          logger.error("Checksum did not match for " + directoryToFetch.toString() + " !");
+          return null;
+        }
+      }
+      return destination;
+    }
+ else     if (allowFetchingOfSingleFile) {
+      Utils.mkdirs(destination);
+      HdfsFile file=new HdfsFile(fs.getFileStatus(rootPath));
+      String fileName=file.getDiskFileName();
+      File copyLocation=new File(destination,fileName);
+      fetchStrategy.fetch(file,copyLocation,CheckSumType.NONE);
+      logger.info("Completed fetch : " + sourceFileUrl);
+      return destination;
+    }
+ else {
+      logger.error("Source " + rootPath.toString() + " should be a directory");
+      return null;
+    }
+  }
+ catch (  Exception e) {
+    if (stats != null) {
+      stats.reportError("File fetcher failed for destination " + destinationFile,e);
+    }
+    if (e instanceof VoldemortException) {
+      throw e;
+    }
+ else {
+      throw new VoldemortException("Error thrown while trying to get data from Hadoop filesystem: " + e.getMessage(),e);
+    }
+  }
+ finally {
+    if (jmxName != null)     JmxUtils.unregisterMbean(jmxName);
+    if (stats != null) {
+      stats.complete();
+    }
+    if (fs != null) {
+      try {
+        fs.close();
+      }
+ catch (      IOException e) {
+        String errorMessage="Got IOException while trying to close the filesystem instance (harmless).";
+        if (stats != null) {
+          stats.reportError(errorMessage,e);
+        }
+        logger.info(errorMessage,e);
+      }
+    }
+  }
+}

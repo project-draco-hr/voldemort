@@ -1,11 +1,11 @@
 {
-  int chunkId=ReadOnlyUtils.chunk(key.get(),getNumChunks());
-  this.indexFileStream[chunkId].write(key.get(),0,key.getSize());
-  this.indexFileSizeInBytes[chunkId]+=key.getSize();
+  int chunkId=ReadOnlyUtils.chunk(key.getBytes(),getNumChunks());
+  this.indexFileStream[chunkId].write(key.getBytes(),0,key.getLength());
+  this.indexFileSizeInBytes[chunkId]+=key.getLength();
   this.indexFileStream[chunkId].writeInt(this.position[chunkId]);
   this.indexFileSizeInBytes[chunkId]+=ByteUtils.SIZE_OF_INT;
   if (this.checkSumDigestIndex[chunkId] != null) {
-    this.checkSumDigestIndex[chunkId].update(key.get(),0,key.getSize());
+    this.checkSumDigestIndex[chunkId].update(key.getBytes(),0,key.getLength());
     this.checkSumDigestIndex[chunkId].update(this.position[chunkId]);
   }
   short numTuples=0;
@@ -13,17 +13,22 @@
   DataOutputStream valueStream=new DataOutputStream(stream);
   while (iterator.hasNext()) {
     BytesWritable writable=iterator.next();
-    byte[] valueBytes=writable.get();
+    byte[] valueBytes=writable.getBytes();
     int offsetTillNow=0;
     if (this.nodeId == -1)     this.nodeId=ByteUtils.readInt(valueBytes,offsetTillNow);
     offsetTillNow+=ByteUtils.SIZE_OF_INT;
     if (this.partitionId == -1)     this.partitionId=ByteUtils.readInt(valueBytes,offsetTillNow);
     offsetTillNow+=ByteUtils.SIZE_OF_INT;
     if (getSaveKeys()) {
-      if (this.replicaType == -1)       this.replicaType=(int)ByteUtils.readBytes(valueBytes,offsetTillNow,ByteUtils.SIZE_OF_BYTE);
+      if (this.replicaType == -1) {
+        this.replicaType=(int)ByteUtils.readBytes(valueBytes,offsetTillNow,ByteUtils.SIZE_OF_BYTE);
+        if (getBuildPrimaryReplicasOnly() && this.replicaType > 0) {
+          throw new IllegalArgumentException("Should not get any replicaType > 0 shuffled to us" + " when buildPrimaryReplicasOnly mode is enabled!");
+        }
+      }
       offsetTillNow+=ByteUtils.SIZE_OF_BYTE;
     }
-    int valueLength=writable.getSize() - offsetTillNow;
+    int valueLength=writable.getLength() - offsetTillNow;
     if (getSaveKeys()) {
       valueStream.write(valueBytes,offsetTillNow,valueLength);
     }
@@ -32,7 +37,7 @@
       valueStream.write(valueBytes,offsetTillNow,valueLength);
     }
     numTuples++;
-    if (!getSaveKeys() && numTuples > 1)     throw new VoldemortException("Duplicate keys detected for md5 sum " + ByteUtils.toHexString(ByteUtils.copy(key.get(),0,key.getSize())));
+    if (!getSaveKeys() && numTuples > 1)     throw new VoldemortException("Duplicate keys detected for md5 sum " + ByteUtils.toHexString(ByteUtils.copy(key.getBytes(),0,key.getLength())));
   }
   if (numTuples < 0) {
     throw new VoldemortException("Found too many collisions: chunk " + chunkId + " has exceeded "+ Short.MAX_VALUE+ " collisions.");

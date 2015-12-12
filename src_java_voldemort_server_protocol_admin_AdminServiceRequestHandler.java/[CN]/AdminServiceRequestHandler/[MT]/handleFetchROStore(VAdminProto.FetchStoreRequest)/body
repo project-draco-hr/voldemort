@@ -8,6 +8,7 @@
       throw new VoldemortException("Read-only fetcher is disabled in " + metadataStore.getServerStateUnlocked() + " state on node "+ metadataStore.getNodeId());
     }
     final ReadOnlyStorageEngine store=getReadOnlyStorageEngine(metadataStore,storeRepository,storeName);
+    final long currentVersion=store.getCurrentVersionId();
     final long pushVersion;
     if (request.hasPushVersion()) {
       pushVersion=request.getPushVersion();

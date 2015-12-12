@@ -2,57 +2,51 @@
   int globalChunkId=0;
   if (this.nodePartitionIds != null) {
     for (    Node node : routingStrategy.getNodes()) {
-      for (      int partitionId : node.getPartitionIds()) {
-        List<Integer> routingPartitionList=routingStrategy.getReplicatingPartitionList(partitionId);
-        Pair<Integer,Integer> bucket=null;
-        for (int replicatingPartition=0; replicatingPartition < routingPartitionList.size(); replicatingPartition++) {
-          if (nodePartitionIds.contains(routingPartitionList.get(replicatingPartition))) {
-            if (bucket == null) {
-              bucket=Pair.create(routingPartitionList.get(0),replicatingPartition);
-              int chunkId=0;
-              while (true) {
-                String fileName=Integer.toString(bucket.getFirst()) + "_" + Integer.toString(bucket.getSecond())+ "_"+ Integer.toString(chunkId);
-                File index=getIndexFile(fileName);
-                File data=getDataFile(fileName);
-                if (!index.exists() && !data.exists()) {
-                  if (chunkId == 0) {
-                    try {
-                      index.createNewFile();
-                      data.createNewFile();
-                      logger.info("No index or data files found, creating empty files for partition " + routingPartitionList.get(0) + " and replicating partition "+ replicatingPartition);
-                    }
- catch (                    IOException e) {
-                      throw new VoldemortException("Error creating empty read-only files for partition " + routingPartitionList.get(0) + " and replicating partition "+ replicatingPartition,e);
-                    }
-                  }
- else {
-                    break;
-                  }
-                }
- else                 if (index.exists() ^ data.exists()) {
-                  throw new VoldemortException("One of the following does not exist: " + index.toString() + " or "+ data.toString()+ ".");
-                }
-                if (chunkId == 0) {
-                  chunkIdToChunkStart.put(bucket,globalChunkId);
-                }
-                long indexLength=index.length();
-                long dataLength=data.length();
-                validateFileSizes(indexLength,dataLength);
-                indexFileSizes.add((int)indexLength);
-                dataFileSizes.add((int)dataLength);
-                fileNames.add(fileName);
-                dataFiles.add(openChannel(data));
-                mapAndRememberIndexFile(index);
-                chunkId++;
-                globalChunkId++;
+      for (      int masterPartitionId : node.getPartitionIds()) {
+        int correctReplicaType=getReplicaTypeForPartition(masterPartitionId);
+        if (correctReplicaType == -1) {
+          break;
+        }
+        renameReadOnlyV2Files(masterPartitionId,correctReplicaType);
+        Pair<Integer,Integer> bucket=Pair.create(masterPartitionId,correctReplicaType);
+        int chunkId=0;
+        while (true) {
+          String fileName=Integer.toString(bucket.getFirst()) + "_" + Integer.toString(bucket.getSecond())+ "_"+ Integer.toString(chunkId);
+          File index=getIndexFile(fileName);
+          File data=getDataFile(fileName);
+          if (!index.exists() && !data.exists()) {
+            if (chunkId == 0) {
+              try {
+                index.createNewFile();
+                data.createNewFile();
+                logger.info("No index or data files found, creating empty files for partition " + masterPartitionId + " and replicating partition "+ correctReplicaType);
               }
-              chunkIdToNumChunks.put(bucket,chunkId);
+ catch (              IOException e) {
+                throw new VoldemortException("Error creating empty read-only files for partition " + masterPartitionId + " and replicating partition "+ correctReplicaType,e);
+              }
             }
  else {
-              throw new VoldemortException("Found a collision for master partition for bucket named " + bucket);
+              break;
             }
           }
+ else           if (index.exists() ^ data.exists()) {
+            throw new VoldemortException("One of the following does not exist: " + index.toString() + " or "+ data.toString()+ ".");
+          }
+          if (chunkId == 0) {
+            chunkIdToChunkStart.put(bucket,globalChunkId);
+          }
+          long indexLength=index.length();
+          long dataLength=data.length();
+          validateFileSizes(indexLength,dataLength);
+          indexFileSizes.add((int)indexLength);
+          dataFileSizes.add((int)dataLength);
+          fileNames.add(fileName);
+          dataFiles.add(openChannel(data));
+          mapAndRememberIndexFile(index);
+          chunkId++;
+          globalChunkId++;
         }
+        chunkIdToNumChunks.put(bucket,chunkId);
       }
     }
     if (indexFileSizes.size() == 0)     throw new VoldemortException("No chunk files found in directory " + baseDir.toString());

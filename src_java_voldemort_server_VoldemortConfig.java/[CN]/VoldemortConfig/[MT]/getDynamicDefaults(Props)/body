@@ -1,0 +1,33 @@
+{
+  Props combinedConfigs=new Props(userSuppliedConfig,defaultConfig);
+  Props dynamicDefaults=new Props();
+  try {
+    combinedConfigs.getInt(NODE_ID);
+  }
+ catch (  UndefinedPropertyException e) {
+    dynamicDefaults.put(NODE_ID,getIntEnvVariable(VOLDEMORT_NODE_ID_VAR_NAME));
+  }
+  String dataDirectory=combinedConfigs.getString(VOLDEMORT_HOME) + File.separator + "data";
+  dynamicDefaults.put(DATA_DIRECTORY,dataDirectory);
+  dynamicDefaults.put(BDB_DATA_DIRECTORY,dataDirectory + File.separator + "bdb");
+  dynamicDefaults.put(READONLY_DATA_DIRECTORY,dataDirectory + File.separator + "read-only");
+  dynamicDefaults.put(ROCKSDB_DATA_DIR,dataDirectory + File.separator + "rocksdb");
+  String metadataDirectory=combinedConfigs.getString(VOLDEMORT_HOME) + File.separator + "config";
+  dynamicDefaults.put(METADATA_DIRECTORY,metadataDirectory);
+  dynamicDefaults.put(READONLY_KEYTAB_PATH,metadataDirectory + File.separator + "voldemrt.headless.keytab");
+  dynamicDefaults.put(READONLY_HADOOP_CONFIG_PATH,metadataDirectory + File.separator + "hadoop-conf");
+  dynamicDefaults.put(CORE_THREADS,Math.max(1,combinedConfigs.getInt(MAX_THREADS) / 2));
+  dynamicDefaults.put(ADMIN_CORE_THREADS,Math.max(1,combinedConfigs.getInt(ADMIN_MAX_THREADS) / 2));
+  dynamicDefaults.put(CLIENT_ROUTING_GET_TIMEOUT_MS,combinedConfigs.getInt(CLIENT_ROUTING_TIMEOUT_MS));
+  dynamicDefaults.put(CLIENT_ROUTING_GETALL_TIMEOUT_MS,combinedConfigs.getInt(CLIENT_ROUTING_TIMEOUT_MS));
+  int clientRoutingPutTimeoutMs=combinedConfigs.getInt(CLIENT_ROUTING_TIMEOUT_MS);
+  dynamicDefaults.put(CLIENT_ROUTING_PUT_TIMEOUT_MS,clientRoutingPutTimeoutMs);
+  dynamicDefaults.put(CLIENT_ROUTING_GETVERSIONS_TIMEOUT_MS,combinedConfigs.getInt(CLIENT_ROUTING_PUT_TIMEOUT_MS,clientRoutingPutTimeoutMs));
+  dynamicDefaults.put(CLIENT_ROUTING_DELETE_TIMEOUT_MS,combinedConfigs.getInt(CLIENT_ROUTING_TIMEOUT_MS));
+  dynamicDefaults.put(FAILUREDETECTOR_REQUEST_LENGTH_THRESHOLD,combinedConfigs.getInt(SOCKET_TIMEOUT_MS));
+  dynamicDefaults.put(REST_SERVICE_STORAGE_THREAD_POOL_QUEUE_SIZE,combinedConfigs.getInt(NUM_REST_SERVICE_STORAGE_THREADS));
+  if (userSuppliedConfig.containsKey(CLIENT_NODE_BANNAGE_MS) && !userSuppliedConfig.containsKey(FAILUREDETECTOR_BANNAGE_PERIOD)) {
+    dynamicDefaults.put(FAILUREDETECTOR_BANNAGE_PERIOD,userSuppliedConfig.getInt(CLIENT_NODE_BANNAGE_MS));
+  }
+  return dynamicDefaults;
+}

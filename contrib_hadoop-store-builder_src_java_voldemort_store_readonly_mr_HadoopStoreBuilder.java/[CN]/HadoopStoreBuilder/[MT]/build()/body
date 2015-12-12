@@ -11,6 +11,7 @@
     conf.set("stores.xml",new StoreDefinitionsMapper().writeStoreList(Collections.singletonList(storeDef)));
     conf.setBoolean(VoldemortBuildAndPushJob.SAVE_KEYS,saveKeys);
     conf.setBoolean(VoldemortBuildAndPushJob.REDUCER_PER_BUCKET,reducerPerBucket);
+    conf.setBoolean(VoldemortBuildAndPushJob.BUILD_PRIMARY_REPLICAS_ONLY,buildPrimaryReplicasOnly);
     if (!isAvro) {
       conf.setPartitionerClass(HadoopStoreBuilderPartitioner.class);
       conf.setMapperClass(mapperClass);
@@ -37,34 +38,27 @@
     tempFs.delete(tempDir,true);
     long size=sizeOfPath(tempFs,inputPath);
     logger.info("Data size = " + size + ", replication factor = "+ storeDef.getReplicationFactor()+ ", numNodes = "+ cluster.getNumberOfNodes()+ ", numPartitions = "+ cluster.getNumberOfPartitions()+ ", chunk size = "+ chunkSizeBytes);
-    int numReducers;
+    int numChunks=(int)(size / cluster.getNumberOfPartitions() / chunkSizeBytes);
+    int numReducers=cluster.getNumberOfPartitions();
     if (saveKeys) {
-      if (this.numChunks == -1) {
-        this.numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfPartitions() / storeDef.getReplicationFactor() / chunkSizeBytes),1);
+      if (buildPrimaryReplicasOnly) {
       }
  else {
-        logger.info("Overriding chunk size byte and taking num chunks (" + this.numChunks + ") directly");
-      }
-      if (reducerPerBucket) {
-        numReducers=cluster.getNumberOfPartitions() * storeDef.getReplicationFactor();
-      }
- else {
-        numReducers=cluster.getNumberOfPartitions() * storeDef.getReplicationFactor() * numChunks;
+        numReducers=numReducers * storeDef.getReplicationFactor();
       }
     }
  else {
-      if (this.numChunks == -1) {
-        this.numChunks=Math.max((int)(storeDef.getReplicationFactor() * size / cluster.getNumberOfPartitions() / chunkSizeBytes),1);
-      }
+      numChunks=numChunks * storeDef.getReplicationFactor();
+    }
+    numChunks=Math.max(numChunks,1);
+    if (reducerPerBucket) {
+    }
  else {
-        logger.info("Overriding chunk size byte and taking num chunks (" + this.numChunks + ") directly");
-      }
-      if (reducerPerBucket) {
-        numReducers=cluster.getNumberOfPartitions();
-      }
- else {
-        numReducers=cluster.getNumberOfPartitions() * numChunks;
-      }
+      numReducers=numReducers * numChunks;
+    }
+    if (this.numChunksOverride > 0) {
+      logger.info("The " + VoldemortBuildAndPushJob.NUM_CHUNKS + " setting is overridden "+ "by config, so we'll use the override ("+ this.numChunksOverride+ ") "+ "and discard the dynamically computed value ("+ numChunks+ ").");
+      numChunks=this.numChunksOverride;
     }
     conf.setInt(VoldemortBuildAndPushJob.NUM_CHUNKS,numChunks);
     conf.setNumReduceTasks(numReducers);
@@ -81,7 +75,7 @@
       AvroJob.setMapperClass(conf,mapperClass);
       conf.setReducerClass(AvroStoreBuilderReducer.class);
     }
-    logger.info("Number of chunks: " + numChunks + ", number of reducers: "+ numReducers+ ", save keys: "+ saveKeys+ ", reducerPerBucket: "+ reducerPerBucket);
+    logger.info("Number of chunks: " + numChunks + ", number of reducers: "+ numReducers+ ", save keys: "+ saveKeys+ ", reducerPerBucket: "+ reducerPerBucket+ ", buildPrimaryReplicasOnly: "+ buildPrimaryReplicasOnly);
     logger.info("Building store...");
     RunningJob job=JobClient.runJob(conf);
     Counters counters=job.getCounters();
@@ -97,7 +91,19 @@
     if (!this.checkSumType.equals(CheckSumType.NONE) && checkSumGenerator == null) {
       throw new VoldemortException("Could not generate checksum digest for type " + this.checkSumType);
     }
-    for (    Node node : cluster.getNodes()) {
+    List<String> directories=Lists.newArrayList();
+    if (buildPrimaryReplicasOnly) {
+      for (int partitionId=0; partitionId < cluster.getNumberOfPartitions(); partitionId++) {
+        directories.add(ReadOnlyUtils.PARTITION_DIRECTORY_PREFIX + partitionId);
+      }
+    }
+ else {
+      for (      Node node : cluster.getNodes()) {
+        directories.add(ReadOnlyUtils.NODE_DIRECTORY_PREFIX + node.getId());
+      }
+    }
+    ReadOnlyStorageMetadata fullStoreMetadata=new ReadOnlyStorageMetadata();
+    for (    String directoryName : directories) {
       ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
       if (saveKeys) {
         metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode());
@@ -105,22 +111,22 @@
  else {
         metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V1.getCode());
       }
-      Path nodePath=new Path(outputDir.toString(),"node-" + node.getId());
-      if (!outputFs.exists(nodePath)) {
-        logger.info("No data generated for node " + node.getId() + ". Generating empty folder");
-        outputFs.mkdirs(nodePath);
-        outputFs.setPermission(nodePath,new FsPermission(HADOOP_FILE_PERMISSION));
-        logger.info("Setting permission to 755 for " + nodePath);
+      Path directoryPath=new Path(outputDir.toString(),directoryName);
+      if (!outputFs.exists(directoryPath)) {
+        logger.info("No data generated for " + directoryName + ". Generating empty folder");
+        outputFs.mkdirs(directoryPath);
+        outputFs.setPermission(directoryPath,new FsPermission(HADOOP_FILE_PERMISSION));
+        logger.info("Setting permission to 755 for " + directoryPath);
       }
-      processCheckSumMetadataFile(node,outputFs,checkSumGenerator,nodePath,metadata);
-      Path metadataPath=new Path(nodePath,".metadata");
-      FSDataOutputStream metadataStream=outputFs.create(metadataPath);
-      outputFs.setPermission(metadataPath,new FsPermission(HADOOP_FILE_PERMISSION));
-      logger.info("Setting permission to 755 for " + metadataPath);
-      metadataStream.write(metadata.toJsonString().getBytes());
-      metadataStream.flush();
-      metadataStream.close();
+      processCheckSumMetadataFile(directoryName,outputFs,checkSumGenerator,directoryPath,metadata);
+      if (buildPrimaryReplicasOnly) {
+      }
+ else {
+        writeMetadataFile(directoryPath,outputFs,ReadOnlyUtils.METADATA_FILE_EXTENSION,metadata);
+      }
+      fullStoreMetadata.addNestedMetadata(directoryName,metadata);
     }
+    writeMetadataFile(outputDir,outputFs,ReadOnlyUtils.FULL_STORE_METADATA_FILE,fullStoreMetadata);
   }
  catch (  Exception e) {
     logger.error("Error in Store builder",e);

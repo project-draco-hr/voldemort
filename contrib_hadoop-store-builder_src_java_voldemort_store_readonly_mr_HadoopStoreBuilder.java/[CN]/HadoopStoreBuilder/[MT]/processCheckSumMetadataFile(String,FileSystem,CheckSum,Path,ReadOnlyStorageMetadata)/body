@@ -1,0 +1,68 @@
+{
+  long dataSizeInBytes=0L;
+  long indexSizeInBytes=0L;
+  FileStatus[] storeFiles=outputFs.listStatus(nodePath,new PathFilter(){
+    @Override public boolean accept(    Path arg0){
+      if (arg0.getName().endsWith("checksum") && !arg0.getName().startsWith(".")) {
+        return true;
+      }
+      return false;
+    }
+  }
+);
+  if (storeFiles != null && storeFiles.length > 0) {
+    Arrays.sort(storeFiles,new IndexFileLastComparator());
+    FSDataInputStream input=null;
+    CheckSumMetadata checksumMetadata;
+    for (    FileStatus file : storeFiles) {
+      try {
+        int totalAttempts=4;
+        int attemptsRemaining=totalAttempts;
+        while (attemptsRemaining > 0) {
+          try {
+            attemptsRemaining--;
+            input=outputFs.open(file.getPath());
+          }
+ catch (          Exception e) {
+            if (attemptsRemaining < 1) {
+              throw e;
+            }
+            int sleepTime=((totalAttempts - attemptsRemaining) ^ 2) * 5;
+            logger.error("Error getting checksum file from HDFS. Retries left: " + attemptsRemaining + ". Back-off until next retry: "+ sleepTime+ " seconds.",e);
+            Thread.sleep(sleepTime * 1000);
+          }
+        }
+        checksumMetadata=new CheckSumMetadata(input);
+        if (checkSumType != CheckSumType.NONE) {
+          byte[] fileChecksum=checksumMetadata.getCheckSum();
+          logger.debug("Checksum for file " + file.toString() + " - "+ new String(Hex.encodeHex(fileChecksum)));
+          checkSumGenerator.update(fileChecksum);
+        }
+        String dataFileSizeInBytes=(String)checksumMetadata.get(CheckSumMetadata.DATA_FILE_SIZE_IN_BYTES);
+        if (dataFileSizeInBytes != null) {
+          dataSizeInBytes+=Long.parseLong(dataFileSizeInBytes);
+        }
+        String indexFileSizeInBytes=(String)checksumMetadata.get(CheckSumMetadata.INDEX_FILE_SIZE_IN_BYTES);
+        if (indexFileSizeInBytes != null) {
+          indexSizeInBytes+=Long.parseLong(indexFileSizeInBytes);
+        }
+      }
+ catch (      Exception e) {
+        logger.error("Error getting checksum file from HDFS",e);
+      }
+ finally {
+        if (input != null)         input.close();
+      }
+      outputFs.delete(file.getPath(),false);
+    }
+    long diskSizeForNodeInBytes=dataSizeInBytes + indexSizeInBytes;
+    logger.info("Estimated disk size for store " + this.storeDef.getName() + " in "+ directoryName+ " in KB: "+ (diskSizeForNodeInBytes / ByteUtils.BYTES_PER_KB));
+    metadata.add(ReadOnlyStorageMetadata.DISK_SIZE_IN_BYTES,Long.toString(diskSizeForNodeInBytes));
+    if (checkSumType != CheckSumType.NONE) {
+      metadata.add(ReadOnlyStorageMetadata.CHECKSUM_TYPE,CheckSum.toString(checkSumType));
+      String checkSum=new String(Hex.encodeHex(checkSumGenerator.getCheckSum()));
+      logger.info("Checksum for node " + directoryName + " - "+ checkSum);
+      metadata.add(ReadOnlyStorageMetadata.CHECKSUM,checkSum);
+    }
+  }
+}

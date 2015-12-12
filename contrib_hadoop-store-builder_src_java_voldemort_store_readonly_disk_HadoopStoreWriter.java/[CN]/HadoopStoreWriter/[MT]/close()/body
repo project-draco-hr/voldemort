@@ -16,11 +16,18 @@
  else {
     fileNamePrefix=new String(Integer.toString(this.partitionId) + "_");
   }
-  Path nodeDir=new Path(this.outputDir,"node-" + this.nodeId);
-  FileSystem outputFs=nodeDir.getFileSystem(this.conf);
-  outputFs.mkdirs(nodeDir);
-  outputFs.setPermission(nodeDir,new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
-  logger.info("Setting permission to 755 for " + nodeDir);
+  String outputDirName;
+  if (getBuildPrimaryReplicasOnly()) {
+    outputDirName="partition-" + this.partitionId;
+  }
+ else {
+    outputDirName="node-" + this.nodeId;
+  }
+  Path outputDir=new Path(this.outputDir,outputDirName);
+  FileSystem outputFs=outputDir.getFileSystem(this.conf);
+  outputFs.mkdirs(outputDir);
+  outputFs.setPermission(outputDir,new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
+  logger.info("Setting permission to 755 for " + outputDir);
   for (int chunkId=0; chunkId < getNumChunks(); chunkId++) {
     String chunkFileName=fileNamePrefix + Integer.toString(chunkId);
     CheckSumMetadata indexCheckSum=new CheckSumMetadata();
@@ -34,10 +41,10 @@
         throw new RuntimeException("Failed to open checksum digest for node " + nodeId + " ( partition - "+ this.partitionId+ ", chunk - "+ chunkId+ " )");
       }
     }
-    Path checkSumIndexFile=new Path(nodeDir,chunkFileName + INDEX_FILE_EXTENSION + CHECKSUM_FILE_EXTENSION);
-    Path checkSumValueFile=new Path(nodeDir,chunkFileName + DATA_FILE_EXTENSION + CHECKSUM_FILE_EXTENSION);
+    Path checkSumIndexFile=new Path(outputDir,chunkFileName + INDEX_FILE_EXTENSION + CHECKSUM_FILE_EXTENSION);
+    Path checkSumValueFile=new Path(outputDir,chunkFileName + DATA_FILE_EXTENSION + CHECKSUM_FILE_EXTENSION);
     if (outputFs.exists(checkSumIndexFile)) {
-      outputFs.delete(checkSumIndexFile);
+      outputFs.delete(checkSumIndexFile,true);
     }
     FSDataOutputStream output=outputFs.create(checkSumIndexFile);
     outputFs.setPermission(checkSumIndexFile,new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
@@ -45,23 +52,23 @@
     output.write(indexCheckSum.toJsonString().getBytes());
     output.close();
     if (outputFs.exists(checkSumValueFile)) {
-      outputFs.delete(checkSumValueFile);
+      outputFs.delete(checkSumValueFile,true);
     }
     output=outputFs.create(checkSumValueFile);
     outputFs.setPermission(checkSumValueFile,new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
     valueCheckSum.add(CheckSumMetadata.DATA_FILE_SIZE_IN_BYTES,Long.toString(this.valueFileSizeInBytes[chunkId]));
     output.write(valueCheckSum.toJsonString().getBytes());
     output.close();
-    Path indexFile=new Path(nodeDir,chunkFileName + INDEX_FILE_EXTENSION + fileExtension);
-    Path valueFile=new Path(nodeDir,chunkFileName + DATA_FILE_EXTENSION + fileExtension);
+    Path indexFile=new Path(outputDir,chunkFileName + INDEX_FILE_EXTENSION + fileExtension);
+    Path valueFile=new Path(outputDir,chunkFileName + DATA_FILE_EXTENSION + fileExtension);
     logger.info("Moving " + this.taskIndexFileName[chunkId] + " to "+ indexFile);
     if (outputFs.exists(indexFile)) {
-      outputFs.delete(indexFile);
+      outputFs.delete(indexFile,true);
     }
     fs.rename(taskIndexFileName[chunkId],indexFile);
     logger.info("Moving " + this.taskValueFileName[chunkId] + " to "+ valueFile);
     if (outputFs.exists(valueFile)) {
-      outputFs.delete(valueFile);
+      outputFs.delete(valueFile,true);
     }
     fs.rename(this.taskValueFileName[chunkId],valueFile);
   }

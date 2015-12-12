@@ -7,6 +7,7 @@
     boolean build=props.getBoolean(BUILD,true);
     boolean push=props.getBoolean(PUSH,true);
     checkForPreconditions(build,push);
+    negotiateJobSettingsWithServers();
     try {
       allClustersEqual(clusterURLs);
     }
@@ -14,15 +15,6 @@
       log.error("Exception during cluster equality check",e);
       fail("Exception during cluster equality check: " + e.toString());
       throw e;
-    }
-    String reducerOutputCompressionCodec=getMatchingServerSupportedCompressionCodec();
-    if (reducerOutputCompressionCodec != null) {
-      log.info("Using block-level compression codec: " + reducerOutputCompressionCodec);
-      props.put(REDUCER_OUTPUT_COMPRESS,"true");
-      props.put(REDUCER_OUTPUT_COMPRESS_CODEC,reducerOutputCompressionCodec);
-    }
- else {
-      log.info("Using no block-level compression");
     }
     HashMap<String,Exception> exceptions=Maps.newHashMap();
     String buildOutputDir=null;

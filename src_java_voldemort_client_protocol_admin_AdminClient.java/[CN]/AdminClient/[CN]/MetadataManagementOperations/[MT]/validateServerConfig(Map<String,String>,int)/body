@@ -1,0 +1,33 @@
+{
+  Set<String> configKeysToRequest=expectedConfigMap.keySet();
+  boolean configIsValid=true;
+  int currentAmountOfUnreachableNodes=0;
+  for (  Node node : currentCluster.getNodes()) {
+    try {
+      Map<String,String> serverConfigs=getServerConfig(node.getId(),configKeysToRequest);
+      for (      Entry expectedConfig : expectedConfigMap.entrySet()) {
+        String serverConfigValue=serverConfigs.get(expectedConfig.getKey());
+        if (serverConfigValue == null) {
+          logger.error(node.briefToString() + " does not contain config key '" + expectedConfig.getKey()+ "'.");
+          configIsValid=false;
+        }
+ else         if (!serverConfigValue.equals(expectedConfig.getValue())) {
+          logger.error(node.briefToString() + " contains the wrong value for config key '" + expectedConfig.getKey()+ "'. Expected: '"+ expectedConfig.getValue()+ "'. Actual: '"+ serverConfigValue+ "'.");
+          configIsValid=false;
+        }
+      }
+    }
+ catch (    UnreachableStoreException e) {
+      currentAmountOfUnreachableNodes++;
+      logger.error(node.briefToString() + " is unreachable!",e);
+    }
+catch (    Exception e) {
+      logger.error("Got an exception when trying to validateServerConfig() against " + node.briefToString() + ". The server may be running an old version.",e);
+      return false;
+    }
+  }
+  if (currentAmountOfUnreachableNodes > maxAmountOfUnreachableNodes) {
+    throw new UnreachableStoreException("As part of validateServerConfig(), " + currentAmountOfUnreachableNodes + " nodes were unreachable which exceeds the maximum ("+ maxAmountOfUnreachableNodes+ ").");
+  }
+  return configIsValid;
+}

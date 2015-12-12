@@ -1,14 +1,23 @@
 {
-  Map<Integer,Future<String>> fetchDirs=new HashMap<Integer,Future<String>>();
+  final Map<Integer,Future<String>> fetchDirs=new HashMap<Integer,Future<String>>();
   for (  final Node node : cluster.getNodes()) {
     fetchDirs.put(node.getId(),executor.submit(new Callable<String>(){
       public String call() throws Exception {
-        String storeDir=basePath + "/node-" + node.getId();
-        logger.info("Invoking fetch for " + node.briefToString() + " for "+ storeDir);
-        String response=adminClient.readonlyOps.fetchStore(node.getId(),storeName,storeDir,pushVersion,timeoutMs);
+        String response=null;
+        if (buildPrimaryReplicasOnly) {
+          response=fetch(basePath);
+        }
+ else {
+          String storeDir=basePath + "/" + ReadOnlyUtils.NODE_DIRECTORY_PREFIX+ node.getId();
+          response=fetch(storeDir);
+        }
         if (response == null)         throw new VoldemortException("Fetch request on " + node.briefToString() + " failed");
         logger.info("Fetch succeeded on " + node.briefToString());
         return response.trim();
+      }
+      private String fetch(      String storeDir){
+        logger.info("Invoking fetch for " + node.briefToString() + " for "+ storeDir);
+        return adminClient.readonlyOps.fetchStore(node.getId(),storeName,storeDir,pushVersion,timeoutMs);
       }
     }
 ));

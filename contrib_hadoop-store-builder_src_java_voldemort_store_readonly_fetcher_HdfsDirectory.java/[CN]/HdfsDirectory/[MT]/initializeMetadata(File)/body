@@ -6,14 +6,5 @@
     logger.error("Error reading metadata file ",e);
     throw new VoldemortApplicationException(e);
   }
-  checkSumType=metadata.getCheckSumType();
-  if (checkSumType != CheckSumType.NONE) {
-    try {
-      expectedCheckSum=metadata.getCheckSum();
-    }
- catch (    DecoderException e) {
-      logger.error("Error decoding checksum",e);
-      throw new VoldemortApplicationException(e);
-    }
-  }
+  initializeMetadata(metadata);
 }
