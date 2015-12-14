@@ -1,7 +1,7 @@
 {
   super(ServiceType.VOLDEMORT);
   this.voldemortConfig=config;
-  this.enableBouncyCastleForSSL();
+  this.setupSSLProvider();
   this.storeRepository=new StoreRepository(config.isJmxEnabled());
   this.metadata=MetadataStore.readFromDirectory(new File(this.voldemortConfig.getMetadataDirectory()),voldemortConfig.getNodeId());
   this.identityNode=metadata.getCluster().getNodeById(voldemortConfig.getNodeId());
