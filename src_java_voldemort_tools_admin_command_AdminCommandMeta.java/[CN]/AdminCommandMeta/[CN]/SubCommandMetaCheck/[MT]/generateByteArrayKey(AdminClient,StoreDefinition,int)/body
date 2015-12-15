@@ -1,0 +1,15 @@
+{
+  Cluster cluster=adminClient.getAdminClientCluster();
+  RoutingStrategy routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+  final int MAX_NUM_TO_SEARCH=10000000;
+  for (int i=0; i < MAX_NUM_TO_SEARCH; i++) {
+    byte[] serializedKey=toBytes(i);
+    List<Node> nodesServingKey=routingStrategy.routeRequest(serializedKey);
+    for (    Node node : nodesServingKey) {
+      if (node.getId() == nodeId) {
+        return new ByteArray(serializedKey);
+      }
+    }
+  }
+  throw new VoldemortException("Could not find a key that maps to the node in the range 0.." + MAX_NUM_TO_SEARCH);
+}

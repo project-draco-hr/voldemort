@@ -23,7 +23,8 @@
           Map<Object,List<String>> storeDefMap=storeNodeValueMap.get(storeName);
           addMetadataValue(storeDefMap,storeDef,nodeName);
           try {
-            adminClient.storeOps.getNodeKey(storeName,node.getId(),new ByteArray((byte)0));
+            ByteArray randomKey=generateByteArrayKey(adminClient,storeDef,node.getId());
+            adminClient.storeOps.getNodeKey(storeName,node.getId(),randomKey);
           }
  catch (          Exception e) {
             System.out.println(" Error doing sample key get from Store " + storeName + " Node "+ nodeName+ " Error "+ e.getMessage());
