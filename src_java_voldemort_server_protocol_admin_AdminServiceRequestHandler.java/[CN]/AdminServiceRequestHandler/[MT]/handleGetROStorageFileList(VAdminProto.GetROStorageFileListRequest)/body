@@ -5,6 +5,8 @@
     ReadOnlyStorageEngine store=getReadOnlyStorageEngine(metadataStore,storeRepository,storeName);
     ChunkedFileSet chunkedFileSet=store.getChunkedFileSet();
     response.addAllFileName(chunkedFileSet.getFileNames());
+    response.addAllIndexFileSize(chunkedFileSet.getIndexFileSizes());
+    response.addAllDataFileSize(chunkedFileSet.getDataFileSizes());
   }
  catch (  VoldemortException e) {
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
