@@ -24,6 +24,12 @@
       output=new BufferedOutputStream(new FileOutputStream(dest));
       int read;
       while (true) {
+        if (status.hasException()) {
+          Exception ex=status.getException();
+          if (ex instanceof AsyncOperationStoppedException) {
+            throw (AsyncOperationStoppedException)ex;
+          }
+        }
         read=input.read(buffer);
         if (read < 0) {
           break;
