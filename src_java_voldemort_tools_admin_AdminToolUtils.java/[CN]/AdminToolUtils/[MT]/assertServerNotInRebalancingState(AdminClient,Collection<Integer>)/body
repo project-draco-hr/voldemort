@@ -1,9 +1,3 @@
 {
-  for (  Integer nodeId : nodeIds) {
-    Versioned<String> versioned=adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,MetadataStore.SERVER_STATE_KEY);
-    VoldemortState state=VoldemortState.valueOf(versioned.getValue());
-    if (state.equals(VoldemortState.REBALANCING_MASTER_SERVER)) {
-      throw new VoldemortException("Cannot execute admin operation: " + nodeId + " ("+ adminClient.getAdminClientCluster().getNodeById(nodeId).getHost()+ ") is in rebalancing state.");
-    }
-  }
+  assertServerState(adminClient,nodeIds,VoldemortState.REBALANCING_MASTER_SERVER,false);
 }

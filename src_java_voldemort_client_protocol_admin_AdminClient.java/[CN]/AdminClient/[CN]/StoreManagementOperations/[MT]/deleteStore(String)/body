@@ -1,5 +1,7 @@
 {
-  for (  Node node : currentCluster.getNodes()) {
-    deleteStore(storeName,node.getId());
+  List<Integer> nodeIds=Lists.newArrayList(currentCluster.getNodeIds());
+  Map<Integer,VoldemortException> exceptionMap=deleteStore(storeName,nodeIds);
+  if (!exceptionMap.isEmpty()) {
+    throw exceptionMap.values().iterator().next();
   }
 }

@@ -1,0 +1,15 @@
+{
+  for (  Integer nodeId : nodeIds) {
+    String nodeName=adminClient.getAdminClientCluster().getNodeById(nodeId).briefToString();
+    try {
+      Versioned<String> versioned=adminClient.metadataMgmtOps.getRemoteMetadata(nodeId,MetadataStore.SERVER_STATE_KEY);
+      VoldemortState state=VoldemortState.valueOf(versioned.getValue());
+      if (state.equals(stateToCheck) != serverMustBeInThisState) {
+        throw new VoldemortException("Cannot execute admin operation: " + nodeName + " is "+ (serverMustBeInThisState ? "not in " : "in ")+ stateToCheck.name()+ " state.");
+      }
+    }
+ catch (    UnreachableStoreException e) {
+      System.err.println("Cannot verify the server state of " + nodeName + " because it is unreachable. Skipping.");
+    }
+  }
+}
