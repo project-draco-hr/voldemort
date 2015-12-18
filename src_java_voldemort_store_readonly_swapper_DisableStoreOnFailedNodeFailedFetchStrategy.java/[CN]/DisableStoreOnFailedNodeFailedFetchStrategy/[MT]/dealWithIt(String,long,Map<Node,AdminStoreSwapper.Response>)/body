@@ -1,25 +1,31 @@
 {
-  List<String> nonConnectionErrors=new ArrayList<String>();
+  List<String> hardFailures=new ArrayList<String>();
   List<Integer> failedNodes=Lists.newArrayList();
   for (  Map.Entry<Node,AdminStoreSwapper.Response> entry : fetchResponseMap.entrySet()) {
     Response response=entry.getValue();
     if (!response.isSuccessful()) {
       Exception ex=response.getException();
-      boolean connectionFailure=ExceptionUtils.recursiveClassEquals(ex,UnreachableStoreException.class);
-      boolean ioError=ExceptionUtils.recursiveClassEquals(ex,IOException.class);
+      Class[] softErrors={UnreachableStoreException.class,IOException.class,ReadOnlyFetchDisabledException.class};
+      boolean isSoftError=false;
+      for (      Class softError : softErrors) {
+        if (ExceptionUtils.recursiveClassEquals(ex,softError)) {
+          isSoftError=true;
+          break;
+        }
+      }
       Node node=entry.getKey();
-      if (connectionFailure || ioError) {
+      if (isSoftError) {
         int nodeId=node.getId();
         failedNodes.add(nodeId);
       }
  else {
         String nodeErrorMessage=node.briefToString() + " threw exception " + ex.getClass().getName()+ ". ";
-        nonConnectionErrors.add(nodeErrorMessage);
+        hardFailures.add(nodeErrorMessage);
       }
     }
   }
-  if (nonConnectionErrors.size() > 0) {
-    String errorMessage=Arrays.toString(nonConnectionErrors.toArray());
+  if (hardFailures.size() > 0) {
+    String errorMessage=Arrays.toString(hardFailures.toArray());
     logger.error("There were non connection related errors. Details " + errorMessage);
     return false;
   }
