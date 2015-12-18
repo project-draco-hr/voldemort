@@ -1,0 +1,13 @@
+{
+  String storeName=storeDef.getName();
+  try {
+    ByteArray randomKey=generateByteArrayKey(adminClient,storeDef,node.getId());
+    adminClient.storeOps.getNodeKey(storeName,node.getId(),randomKey);
+  }
+ catch (  Exception e) {
+    System.out.println(" Error doing sample key get from Store " + storeName + node.briefToString()+ " Error "+ e.getMessage());
+    e.printStackTrace();
+    return false;
+  }
+  return true;
+}

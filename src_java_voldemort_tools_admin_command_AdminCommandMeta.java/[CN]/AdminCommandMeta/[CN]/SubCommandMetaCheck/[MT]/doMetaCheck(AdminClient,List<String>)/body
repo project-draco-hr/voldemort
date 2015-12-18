@@ -1,14 +1,14 @@
 {
+  Map<String,Integer> roStoreToReplicationFactorMap=new HashMap<String,Integer>();
+  Collection<Node> allNodes=adminClient.getAdminClientCluster().getNodes();
   for (  String key : metaKeys) {
-    Map<String,Map<Object,List<String>>> storeNodeValueMap=new HashMap<String,Map<Object,List<String>>>();
+    Map<String,Map<Object,List<String>>> storeDefToNodeMap=new HashMap<String,Map<Object,List<String>>>();
     Map<Object,List<String>> metadataNodeValueMap=new HashMap<Object,List<String>>();
-    Collection<Node> allNodes=adminClient.getAdminClientCluster().getNodes();
     Collection<String> allNodeNames=new ArrayList<String>();
     Boolean checkResult=true;
     for (    Node node : allNodes) {
       String nodeName="Host '" + node.getHost() + "' : ID "+ node.getId();
       allNodeNames.add(nodeName);
-      System.out.println("processing " + nodeName);
       Versioned<String> versioned=adminClient.metadataMgmtOps.getRemoteMetadata(node.getId(),key);
       if (versioned == null || versioned.getValue() == null) {
         throw new VoldemortException("Value returned from node " + node.getId() + " was null");
@@ -17,20 +17,15 @@
         List<StoreDefinition> storeDefinitions=new StoreDefinitionsMapper().readStoreList(new StringReader(versioned.getValue()));
         for (        StoreDefinition storeDef : storeDefinitions) {
           String storeName=storeDef.getName();
-          if (storeNodeValueMap.containsKey(storeName) == false) {
-            storeNodeValueMap.put(storeName,new HashMap<Object,List<String>>());
+          if (storeDef.getType().compareTo(ReadOnlyStorageConfiguration.TYPE_NAME) == 0) {
+            roStoreToReplicationFactorMap.put(storeName,storeDef.getReplicationFactor());
           }
-          Map<Object,List<String>> storeDefMap=storeNodeValueMap.get(storeName);
+          if (storeDefToNodeMap.containsKey(storeName) == false) {
+            storeDefToNodeMap.put(storeName,new HashMap<Object,List<String>>());
+          }
+          Map<Object,List<String>> storeDefMap=storeDefToNodeMap.get(storeName);
           addMetadataValue(storeDefMap,storeDef,nodeName);
-          try {
-            ByteArray randomKey=generateByteArrayKey(adminClient,storeDef,node.getId());
-            adminClient.storeOps.getNodeKey(storeName,node.getId(),randomKey);
-          }
- catch (          Exception e) {
-            System.out.println(" Error doing sample key get from Store " + storeName + " Node "+ nodeName+ " Error "+ e.getMessage());
-            e.printStackTrace();
-            checkResult=false;
-          }
+          checkGetStore(adminClient,storeDef,node);
         }
       }
  else {
@@ -48,15 +43,16 @@
       }
     }
     if (metadataNodeValueMap.size() > 0) {
-      checkResult&=checkDiagnostics(key,metadataNodeValueMap,allNodeNames);
+      checkResult&=checkDiagnostics("Key " + key,metadataNodeValueMap,allNodeNames);
     }
-    if (storeNodeValueMap.size() > 0) {
-      for (      Map.Entry<String,Map<Object,List<String>>> storeNodeValueEntry : storeNodeValueMap.entrySet()) {
+    if (storeDefToNodeMap.size() > 0) {
+      for (      Map.Entry<String,Map<Object,List<String>>> storeNodeValueEntry : storeDefToNodeMap.entrySet()) {
         String storeName=storeNodeValueEntry.getKey();
         Map<Object,List<String>> storeDefMap=storeNodeValueEntry.getValue();
-        checkResult&=checkDiagnostics(storeName,storeDefMap,allNodeNames);
+        checkResult&=checkDiagnostics("Store " + storeName,storeDefMap,allNodeNames);
       }
     }
     System.out.println(key + " metadata check : " + (checkResult ? "PASSED" : "FAILED"));
   }
+  validateROFiles(adminClient,allNodes,roStoreToReplicationFactorMap);
 }

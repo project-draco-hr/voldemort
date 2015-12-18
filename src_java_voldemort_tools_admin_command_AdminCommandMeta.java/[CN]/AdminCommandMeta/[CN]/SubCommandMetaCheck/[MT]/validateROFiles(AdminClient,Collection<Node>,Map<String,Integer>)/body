@@ -1,0 +1,43 @@
+{
+  if (roStoreToReplicationFactorMap.size() == 0)   return;
+  boolean checkResult=true;
+  for (  Map.Entry<String,Integer> storeAndReplicationFactor : roStoreToReplicationFactorMap.entrySet()) {
+    String storeName=storeAndReplicationFactor.getKey();
+    Integer replicationFactor=storeAndReplicationFactor.getValue();
+    if (replicationFactor == 1) {
+      System.out.println(" Store " + storeName + " has replication factor of 1, skipping consistency check across nodes");
+      continue;
+    }
+    Map<ReadOnlyFileEntry,List<String>> fileToNodesMap=new TreeMap<ReadOnlyFileEntry,List<String>>();
+    for (    Node node : allNodes) {
+      List<ReadOnlyFileEntry> fileEntries=null;
+      try {
+        fileEntries=adminClient.readonlyOps.getROStorageFileMetadata(node.getId(),storeName);
+      }
+ catch (      Exception e) {
+        System.out.println(" Error retrieving files for ReadOnly Store " + storeName + node.briefToString()+ " Error "+ e.getMessage());
+        e.printStackTrace();
+        checkResult=false;
+        break;
+      }
+      for (      ReadOnlyFileEntry entry : fileEntries) {
+        if (fileToNodesMap.containsKey(entry) == false) {
+          fileToNodesMap.put(entry,new ArrayList<String>());
+        }
+        fileToNodesMap.get(entry).add(node.briefToString());
+      }
+    }
+    for (    Map.Entry<ReadOnlyFileEntry,List<String>> fileToNodes : fileToNodesMap.entrySet()) {
+      ReadOnlyFileEntry entry=fileToNodes.getKey();
+      List<String> nodes=fileToNodes.getValue();
+      if (nodes.size() == replicationFactor) {
+        continue;
+      }
+ else {
+        System.out.println("    Store " + storeName + " File "+ entry+ " is expected in "+ replicationFactor+ " nodes, but present only in "+ Arrays.toString(nodes.toArray()));
+        checkResult=false;
+      }
+    }
+  }
+  System.out.println("RO File Validation check : " + (checkResult ? "PASSED" : "FAILED"));
+}

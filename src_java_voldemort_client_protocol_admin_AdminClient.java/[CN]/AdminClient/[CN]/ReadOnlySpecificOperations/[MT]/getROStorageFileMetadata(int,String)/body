@@ -1,0 +1,37 @@
+{
+  VAdminProto.GetROStorageFileListResponse.Builder response=getROMetadata(nodeId,storeName);
+  List<String> fileNames=response.getFileNameList();
+  List<Integer> indexSizes=response.getIndexFileSizeList();
+  List<Integer> dataSizes=response.getDataFileSizeList();
+  List<ReadOnlyFileEntry> files=Lists.newArrayList();
+  if (indexSizes.size() != dataSizes.size()) {
+    String errorMessage=" Node returned different counts for data and index" + nodeId + " dataSize count "+ dataSizes.size()+ " indexSize count "+ indexSizes.size();
+    logger.error(errorMessage);
+    throw new VoldemortApplicationException(errorMessage);
+  }
+  if (indexSizes.size() == 0) {
+    for (    String file : fileNames) {
+      ReadOnlyFileEntry dataFile=new ReadOnlyFileEntry(file,FileType.DATA);
+      ReadOnlyFileEntry indexFile=new ReadOnlyFileEntry(file,FileType.INDEX);
+      files.add(dataFile);
+      files.add(indexFile);
+    }
+  }
+ else {
+    if (indexSizes.size() != fileNames.size()) {
+      String errorMessage=" Node returned different counts for fileNames and fileSize" + nodeId + " fileNames count "+ fileNames.size()+ " fileSizes count "+ indexSizes.size();
+      logger.error(errorMessage);
+      throw new VoldemortApplicationException(errorMessage);
+    }
+    for (int i=0; i < fileNames.size(); i++) {
+      String fileName=fileNames.get(i);
+      int dataFileSize=dataSizes.get(i);
+      int indexFileSize=indexSizes.get(i);
+      ReadOnlyFileEntry dataFile=new ReadOnlyFileEntry(fileName,FileType.DATA,dataFileSize);
+      ReadOnlyFileEntry indexFile=new ReadOnlyFileEntry(fileName,FileType.INDEX,indexFileSize);
+      files.add(dataFile);
+      files.add(indexFile);
+    }
+  }
+  return files;
+}
