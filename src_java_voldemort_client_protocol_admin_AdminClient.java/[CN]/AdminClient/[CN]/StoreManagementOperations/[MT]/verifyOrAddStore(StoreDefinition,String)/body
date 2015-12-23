@@ -26,9 +26,8 @@
           SerializerDefinition newValueSerializerDef=newStoreDef.getValueSerializer();
           SerializerDefinition remoteKeySerializerDef=remoteStoreDef.getKeySerializer();
           SerializerDefinition remoteValueSerializerDef=remoteStoreDef.getValueSerializer();
-          String newKeySerDeName=newKeySerializerDef.getName();
           String newValSerDeName=newValueSerializerDef.getName();
-          if (remoteKeySerializerDef.getName().equals(newKeySerDeName) && remoteValueSerializerDef.getName().equals(newValSerDeName)) {
+          if (seriailizerMetadataEquals(remoteKeySerializerDef,newKeySerializerDef) && seriailizerMetadataEquals(remoteValueSerializerDef,newValueSerializerDef)) {
             Object remoteKeyDef, remoteValDef, localKeyDef, localValDef;
             if (newValSerDeName.equals(DefaultSerializerFactory.AVRO_GENERIC_VERSIONED_TYPE_NAME) || newValSerDeName.equals(DefaultSerializerFactory.AVRO_GENERIC_TYPE_NAME)) {
               remoteKeyDef=Schema.parse(remoteKeySerializerDef.getCurrentSchemaInfo());
