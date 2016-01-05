@@ -1,4 +1,9 @@
 {
   SocketDestination nonExistentHost=new SocketDestination("unknown.host",port,RequestFormatType.VOLDEMORT_V1);
-  testConnectionFailure(pool,nonExistentHost,UnresolvedAddressException.class);
+  try {
+    testConnectionFailure(pool,nonExistentHost,ConnectException.class);
+  }
+ catch (  Exception e) {
+    testConnectionFailure(pool,nonExistentHost,UnresolvedAddressException.class);
+  }
 }
