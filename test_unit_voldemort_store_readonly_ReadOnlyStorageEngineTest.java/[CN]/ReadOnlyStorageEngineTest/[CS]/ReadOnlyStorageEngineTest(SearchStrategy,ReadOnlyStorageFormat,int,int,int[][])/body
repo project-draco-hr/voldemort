@@ -1,0 +1,36 @@
+{
+  this.strategy=strategy;
+  this.replicationFactor=replicationFactor;
+  this.numberOfNodes=numberOfNodes;
+  this.dir=TestUtils.createTempDir();
+  logger.info("temp dir: " + dir);
+  this.serDef=new SerializerDefinition("json","'string'");
+  this.lzfSerDef=new SerializerDefinition("json",ImmutableMap.of(0,"'string'"),true,new Compression("lzf",null));
+  this.storeDef=ServerTestUtils.getStoreDef("test",replicationFactor,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY);
+  if (partitionMap == null) {
+    this.partitionMap=new int[numberOfNodes][PARTITIONS_PER_NODE];
+    for (int nodeId=0; nodeId < numberOfNodes; nodeId++) {
+      for (int partition=0; partition < PARTITIONS_PER_NODE; partition++) {
+        this.partitionMap[nodeId][partition]=nodeId + numberOfNodes * partition;
+      }
+    }
+  }
+ else {
+    this.partitionMap=partitionMap;
+  }
+  Cluster cluster=ServerTestUtils.getLocalCluster(numberOfNodes,this.partitionMap);
+  this.node=cluster.getNodeById(0);
+  this.storageType=storageType;
+switch (this.storageType) {
+case READONLY_V0:
+case READONLY_V1:
+    this.indexEntrySize=20;
+  break;
+case READONLY_V2:
+this.indexEntrySize=12;
+break;
+default :
+throw new VoldemortException("Unsupported storage format type");
+}
+this.routingStrategy=new RoutingStrategyFactory().updateRoutingStrategy(storeDef,cluster);
+}

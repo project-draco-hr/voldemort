@@ -1,6 +1,6 @@
 {
   if (numChunks == 0) {
-    return -1;
+    throw new IllegalStateException("The ChunkedFileSet is closed.");
   }
 switch (storageFormat) {
 case READONLY_V0:
@@ -10,12 +10,12 @@ case READONLY_V0:
 case READONLY_V1:
 {
     if (nodePartitionIds == null) {
-      return -1;
+      throw new IllegalStateException("nodePartitionIds is null.");
     }
     List<Integer> routingPartitionList=routingStrategy.getPartitionList(key);
     routingPartitionList.retainAll(nodePartitionIds);
     if (routingPartitionList.size() != 1) {
-      return -1;
+      throw new IllegalStateException("The key does not belong on this node.");
     }
     return chunkIdToChunkStart.get(routingPartitionList.get(0)) + ReadOnlyUtils.chunk(ByteUtils.md5(key),chunkIdToNumChunks.get(routingPartitionList.get(0)));
   }
@@ -25,23 +25,29 @@ case READONLY_V2:
   Pair<Integer,Integer> bucket=null;
   for (int replicaType=0; replicaType < routingPartitionList.size(); replicaType++) {
     if (nodePartitionIds == null) {
-      return -1;
+      throw new IllegalStateException("nodePartitionIds is null.");
     }
     if (nodePartitionIds.contains(routingPartitionList.get(replicaType))) {
       if (bucket == null) {
         bucket=Pair.create(routingPartitionList.get(0),replicaType);
       }
  else {
-        return -1;
+        throw new IllegalStateException("Found more than one replica for a given partition on the current node!");
       }
     }
   }
-  if (bucket == null)   return -1;
-  return chunkIdToChunkStart.get(bucket) + ReadOnlyUtils.chunk(ByteUtils.md5(key),chunkIdToNumChunks.get(bucket));
+  if (bucket == null) {
+    throw new IllegalStateException("The key does not belong on this node.");
+  }
+  Integer chunkStart=chunkIdToChunkStart.get(bucket);
+  if (chunkStart == null) {
+    throw new IllegalStateException("chunkStart is null.");
+  }
+  return chunkStart + ReadOnlyUtils.chunk(ByteUtils.md5(key),chunkIdToNumChunks.get(bucket));
 }
 default :
 {
-return -1;
+throw new IllegalStateException("Unsupported storageFormat: " + storageFormat);
 }
 }
 }

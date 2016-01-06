@@ -6,13 +6,18 @@
     fileModificationLock.readLock().lock();
     List<KeyValueLocation> keysAndValueLocations=Lists.newArrayList();
     for (    ByteArray key : keys) {
-      int chunk=fileSet.getChunkForKey(key.get());
-      if (chunk < 0) {
-        logger.warn("Invalid chunk id returned. ignoring");
+      try {
+        int chunk=fileSet.getChunkForKey(key.get());
+        if (chunk < 0) {
+          throw new IllegalStateException("Invalid chunk id returned: " + chunk);
+        }
+        int valueLocation=searchStrategy.indexOf(fileSet.indexFileFor(chunk),fileSet.keyToStorageFormat(key.get()),fileSet.getIndexFileSize(chunk));
+        if (valueLocation >= 0)         keysAndValueLocations.add(new KeyValueLocation(chunk,key,valueLocation));
+      }
+ catch (      IllegalStateException e) {
+        logger.warn("ChunkedFileSet.getChunkForKey() did not execute successfully for store '" + getName() + "'. Skipping key in getAll: "+ ByteUtils.toHexString(key.get()),e);
         continue;
       }
-      int valueLocation=searchStrategy.indexOf(fileSet.indexFileFor(chunk),fileSet.keyToStorageFormat(key.get()),fileSet.getIndexFileSize(chunk));
-      if (valueLocation >= 0)       keysAndValueLocations.add(new KeyValueLocation(chunk,key,valueLocation));
     }
     Collections.sort(keysAndValueLocations);
     for (    KeyValueLocation keyVal : keysAndValueLocations) {
