@@ -4,7 +4,7 @@
   setup();
   String[] argv=("--url " + bsURL + " --drop-zoneid 0 --real-run").split(" ");
   ZoneShrinkageCLI.main(argv);
-  AdminClient adminClient=new AdminClient(bsURL,new AdminClientConfig(),new ClientConfig());
+  AdminClient adminClient=new AdminClient(bsURL);
   assertEquals(2,adminClient.getAdminClientCluster().getZoneIds().size());
   String bootstrapUrl=adminClient.getAdminClientCluster().getNodes().iterator().next().getSocketUrl().toString();
   StoreClientFactory factory=new SocketStoreClientFactory(new ClientConfig().setBootstrapUrls(bootstrapUrl));

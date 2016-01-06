@@ -1,11 +1,8 @@
 {
-  String[] bootstrapUrls=new String[1];
-  bootstrapUrls[0]=bootstrapURL;
+  String originalIdString=null;
   try {
     if (systemStoreFactory == null) {
-      ClientConfig clientConfig=new ClientConfig();
-      clientConfig.setBootstrapUrls(bootstrapUrls);
-      clientConfig.setClientZoneId(zoneId);
+      originalIdString=clientConfig.getIdentifierString();
       clientConfig.setIdentifierString("admin");
       systemStoreFactory=new SystemStoreClientFactory<String,String>(clientConfig);
     }
@@ -15,6 +12,11 @@
     quotaSysStoreClient=systemStoreFactory.createSystemStore(quotaStoreName,null,null);
   }
  catch (  Exception e) {
-    logger.debug("Error while creating a system store client for metadata version store/quota store.");
+    logger.info("Error while creating a system store client for metadata version store/quota store.",e);
+  }
+ finally {
+    if (originalIdString != null) {
+      clientConfig.setIdentifierString(originalIdString);
+    }
   }
 }

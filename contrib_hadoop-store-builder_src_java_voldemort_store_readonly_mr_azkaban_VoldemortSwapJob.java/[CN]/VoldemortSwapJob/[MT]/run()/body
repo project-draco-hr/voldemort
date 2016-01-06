@@ -18,7 +18,9 @@ catch (  IllegalArgumentException e) {
  catch (  IllegalArgumentException e) {
     throw new VoldemortException("Could not create a valid data path out of the supplied dataDir: " + dataDir,e);
   }
-  AdminClient client=new AdminClient(cluster,new AdminClientConfig().setMaxConnectionsPerNode(cluster.getNumberOfNodes()).setAdminConnectionTimeoutSec(httpTimeoutMs / 1000).setMaxBackoffDelayMs(maxBackoffDelayMs),new ClientConfig());
+  AdminClientConfig adminConfig=new AdminClientConfig().setMaxConnectionsPerNode(cluster.getNumberOfNodes()).setAdminConnectionTimeoutSec(httpTimeoutMs / 1000).setMaxBackoffDelayMs(maxBackoffDelayMs);
+  ClientConfig clientConfig=new ClientConfig().setBootstrapUrls(cluster.getBootStrapUrls()).setConnectionTimeout(httpTimeoutMs,TimeUnit.MILLISECONDS);
+  AdminClient client=new AdminClient(cluster,adminConfig,clientConfig);
   if (pushVersion == -1L) {
     ArrayList<String> stores=new ArrayList<String>();
     stores.add(storeName);

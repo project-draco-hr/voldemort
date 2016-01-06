@@ -2,7 +2,8 @@
   try {
     sanityTestClientOps();
     String bootstrapTime=getPropertyFromClientInfo("bootstrapTime");
-    AdminClient adminClient=new AdminClient(bootStrapUrls[0],new AdminClientConfig(),new ClientConfig(),CLIENT_ZONE_ID);
+    ClientConfig clientConfig=new ClientConfig().setBootstrapUrls(bootStrapUrls).setClientZoneId(CLIENT_ZONE_ID);
+    AdminClient adminClient=new AdminClient(clientConfig);
     for (    Node node : cluster.getNodes()) {
       VoldemortAdminTool.executeSetMetadata(node.getId(),adminClient,CLUSTER_KEY,new ClusterMapper().writeCluster(cluster));
     }

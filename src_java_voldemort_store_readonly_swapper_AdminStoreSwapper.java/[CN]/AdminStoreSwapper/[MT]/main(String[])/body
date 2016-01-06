@@ -29,7 +29,7 @@
   String clusterStr=FileUtils.readFileToString(new File(clusterXml));
   Cluster cluster=new ClusterMapper().readCluster(new StringReader(clusterStr));
   ExecutorService executor=Executors.newFixedThreadPool(cluster.getNumberOfNodes());
-  AdminClient adminClient=new AdminClient(cluster,new AdminClientConfig(),new ClientConfig());
+  AdminClient adminClient=new AdminClient(cluster);
   AdminStoreSwapper swapper=new AdminStoreSwapper(cluster,executor,adminClient,timeoutMs);
   try {
     long start=System.currentTimeMillis();

@@ -8,7 +8,7 @@
   srcAdminClient.storeOps.putNodeKeyValue(MULTIPLE_VERSIONS_STORE_NAME,new NodeValue<ByteArray,byte[]>(masterNode,new ByteArray(conflictKey.getBytes("UTF-8")),new Versioned<byte[]>("winning value".getBytes("UTF-8"),winningClock)));
   ClusterForkLiftTool forkLiftTool=new ClusterForkLiftTool(srcBootStrapUrl,dstBootStrapUrl,false,false,10000,1,1000,Lists.newArrayList(MULTIPLE_VERSIONS_STORE_NAME),null,ClusterForkLiftTool.ForkLiftTaskMode.no_resolution);
   forkLiftTool.run();
-  AdminClient dstAdminClient=new AdminClient(dstBootStrapUrl,new AdminClientConfig(),new ClientConfig());
+  AdminClient dstAdminClient=new AdminClient(dstBootStrapUrl);
   for (  Node node : dstAdminClient.getAdminClientCluster().getNodes()) {
     Iterator<Pair<ByteArray,Versioned<byte[]>>> entryItr=dstAdminClient.bulkFetchOps.fetchEntries(node.getId(),MULTIPLE_VERSIONS_STORE_NAME,node.getPartitionIds(),null,true);
     while (entryItr.hasNext()) {

@@ -8,7 +8,7 @@
   try {
     StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
     StoreDefinition def=mapper.readStore(new StringReader(request.getStoreDefinition()));
-    adminClient=new AdminClient(metadataStore.getCluster(),new AdminClientConfig(),new ClientConfig());
+    adminClient=new AdminClient(metadataStore.getCluster());
 synchronized (lock) {
       if (!storeRepository.hasLocalStore(def.getName())) {
         if (def.getReplicationFactor() > metadataStore.getCluster().getNumberOfNodes()) {
