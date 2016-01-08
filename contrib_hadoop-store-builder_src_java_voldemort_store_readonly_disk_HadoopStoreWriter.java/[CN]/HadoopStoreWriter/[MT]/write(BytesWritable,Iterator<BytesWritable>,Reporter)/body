@@ -1,5 +1,6 @@
 {
   int chunkId=ReadOnlyUtils.chunk(key.getBytes(),getNumChunks());
+  initFileStreams(chunkId);
   this.indexFileStream[chunkId].write(key.getBytes(),0,key.getLength());
   this.indexFileSizeInBytes[chunkId]+=key.getLength();
   this.indexFileStream[chunkId].writeInt(this.position[chunkId]);
@@ -15,16 +16,32 @@
     BytesWritable writable=iterator.next();
     byte[] valueBytes=writable.getBytes();
     int offsetTillNow=0;
-    if (this.nodeId == -1)     this.nodeId=ByteUtils.readInt(valueBytes,offsetTillNow);
+    int currentNodeId=ByteUtils.readInt(valueBytes,offsetTillNow);
+    if (this.nodeId == -1) {
+      this.nodeId=currentNodeId;
+    }
+ else     if (this.nodeId != currentNodeId) {
+      throw new IllegalArgumentException("Should not get various nodeId shuffled to us! " + "First nodeId seen: " + this.nodeId + ", currentNodeId: "+ currentNodeId);
+    }
     offsetTillNow+=ByteUtils.SIZE_OF_INT;
-    if (this.partitionId == -1)     this.partitionId=ByteUtils.readInt(valueBytes,offsetTillNow);
+    int currentPartitionId=ByteUtils.readInt(valueBytes,offsetTillNow);
+    if (this.partitionId == -1) {
+      this.partitionId=currentPartitionId;
+    }
+ else     if (this.partitionId != currentPartitionId) {
+      throw new IllegalArgumentException("Should not get various partitionId shuffled to us! " + "First partitionId seen: " + this.partitionId + ", currentPartitionId: "+ currentPartitionId);
+    }
     offsetTillNow+=ByteUtils.SIZE_OF_INT;
     if (getSaveKeys()) {
+      int currentReplicaType=(int)ByteUtils.readBytes(valueBytes,offsetTillNow,ByteUtils.SIZE_OF_BYTE);
       if (this.replicaType == -1) {
-        this.replicaType=(int)ByteUtils.readBytes(valueBytes,offsetTillNow,ByteUtils.SIZE_OF_BYTE);
-        if (getBuildPrimaryReplicasOnly() && this.replicaType > 0) {
-          throw new IllegalArgumentException("Should not get any replicaType > 0 shuffled to us" + " when buildPrimaryReplicasOnly mode is enabled!");
-        }
+        this.replicaType=currentReplicaType;
+      }
+ else       if (this.replicaType != currentReplicaType) {
+        throw new IllegalArgumentException("Should not get various replicaType shuffled to us! " + "First replicaType seen: " + this.replicaType + ", currentReplicaType: "+ currentReplicaType);
+      }
+      if (getBuildPrimaryReplicasOnly() && this.replicaType > 0) {
+        throw new IllegalArgumentException("Should not get any replicaType > 0 shuffled to us" + " when buildPrimaryReplicasOnly mode is enabled!");
       }
       offsetTillNow+=ByteUtils.SIZE_OF_BYTE;
     }

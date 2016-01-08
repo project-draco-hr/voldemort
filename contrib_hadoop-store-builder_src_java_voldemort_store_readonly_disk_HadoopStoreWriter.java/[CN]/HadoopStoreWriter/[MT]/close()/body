@@ -1,5 +1,5 @@
 {
-  for (int chunkId=0; chunkId < getNumChunks(); chunkId++) {
+  for (  int chunkId : chunksHandled) {
     this.indexFileStream[chunkId].close();
     this.valueFileStream[chunkId].close();
   }
@@ -28,7 +28,7 @@
   outputFs.mkdirs(outputDir);
   outputFs.setPermission(outputDir,new FsPermission(HadoopStoreBuilder.HADOOP_FILE_PERMISSION));
   logger.info("Setting permission to 755 for " + outputDir);
-  for (int chunkId=0; chunkId < getNumChunks(); chunkId++) {
+  for (  int chunkId : chunksHandled) {
     String chunkFileName=fileNamePrefix + Integer.toString(chunkId);
     CheckSumMetadata indexCheckSum=new CheckSumMetadata();
     CheckSumMetadata valueCheckSum=new CheckSumMetadata();

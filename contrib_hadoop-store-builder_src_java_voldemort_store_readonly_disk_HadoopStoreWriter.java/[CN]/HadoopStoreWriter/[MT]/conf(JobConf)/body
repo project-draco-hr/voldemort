@@ -1,16 +1,25 @@
 {
   super.configure(job);
   this.conf=job;
-  try {
-    this.position=new int[getNumChunks()];
-    this.outputDir=job.get("final.output.dir");
-    this.taskId=job.get("mapred.task.id");
-    this.checkSumType=CheckSum.fromString(job.get(VoldemortBuildAndPushJob.CHECKSUM_TYPE));
-    this.checkSumDigestIndex=new CheckSum[getNumChunks()];
-    this.checkSumDigestValue=new CheckSum[getNumChunks()];
-    initFileStreams(conf.getBoolean(VoldemortBuildAndPushJob.REDUCER_OUTPUT_COMPRESS,false),conf.get(VoldemortBuildAndPushJob.REDUCER_OUTPUT_COMPRESS_CODEC,NO_COMPRESSION_CODEC));
+  this.position=new int[getNumChunks()];
+  this.outputDir=job.get("final.output.dir");
+  this.taskId=job.get("mapred.task.id");
+  this.checkSumType=CheckSum.fromString(job.get(VoldemortBuildAndPushJob.CHECKSUM_TYPE));
+  this.checkSumDigestIndex=new CheckSum[getNumChunks()];
+  this.checkSumDigestValue=new CheckSum[getNumChunks()];
+  this.taskIndexFileName=new Path[getNumChunks()];
+  this.taskValueFileName=new Path[getNumChunks()];
+  this.indexFileStream=new DataOutputStream[getNumChunks()];
+  this.valueFileStream=new DataOutputStream[getNumChunks()];
+  this.indexFileSizeInBytes=new long[getNumChunks()];
+  this.valueFileSizeInBytes=new long[getNumChunks()];
+  String compressionCodec=conf.get(VoldemortBuildAndPushJob.REDUCER_OUTPUT_COMPRESS_CODEC,NO_COMPRESSION_CODEC);
+  if (conf.getBoolean(VoldemortBuildAndPushJob.REDUCER_OUTPUT_COMPRESS,false) && compressionCodec.toUpperCase(Locale.ENGLISH).equals(this.COMPRESSION_CODEC)) {
+    this.fileExtension=GZIP_FILE_EXTENSION;
+    this.isValidCompressionEnabled=true;
   }
- catch (  IOException e) {
-    throw new RuntimeException("Failed to open Input/OutputStream",e);
+ else {
+    this.fileExtension="";
+    this.isValidCompressionEnabled=false;
   }
 }
