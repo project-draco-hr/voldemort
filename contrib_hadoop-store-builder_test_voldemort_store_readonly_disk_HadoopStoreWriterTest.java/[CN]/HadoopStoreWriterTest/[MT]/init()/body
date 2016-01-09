@@ -6,9 +6,14 @@
   conf.set("mapred.output.dir",tmpOutPutDirectory.getAbsolutePath());
   conf.set("mapred.task.id","1234");
   conf.set(VoldemortBuildAndPushJob.CHECKSUM_TYPE,CheckSum.CheckSumType.NONE.name());
-  List<StoreDefinition> storeDefList=ServerTestUtils.getStoreDefs(1);
+  List<StoreDefinition> storeDefList=Lists.newArrayList(ServerTestUtils.getStoreDef("test",1,1,1,1,1,RoutingStrategyType.CONSISTENT_STRATEGY.toString()));
   String storesXML=new StoreDefinitionsMapper().writeStoreList(storeDefList);
   conf.set("stores.xml",storesXML);
   String clusterXML=new ClusterMapper().writeCluster(ServerTestUtils.getLocalCluster(1));
   conf.set("cluster.xml",clusterXML);
+  mapper=new BuildAndPushMapper();
+  mapper.configure(conf);
+  testCollector=new TestCollector();
+  testCollectorWrapper=new TestCollectorWrapper();
+  testCollectorWrapper.setCollector(testCollector);
 }

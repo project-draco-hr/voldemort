@@ -1,16 +1,16 @@
 {
   init();
-  generateUnCompressedFiles(saveKeys,numChunks);
+  generateUnCompressedFiles(saveKeys);
   conf.setBoolean(VoldemortBuildAndPushJob.SAVE_KEYS,saveKeys);
   conf.setBoolean(VoldemortBuildAndPushJob.REDUCER_OUTPUT_COMPRESS,true);
   conf.setStrings(VoldemortBuildAndPushJob.REDUCER_OUTPUT_COMPRESS_CODEC,KeyValueWriter.COMPRESSION_CODEC);
-  hadoopStoreWriterPerBucket=new HadoopStoreWriter(conf);
-  for (int i=0; i < numChunks; i++) {
+  hadoopStoreWriterPerBucket=new HadoopStoreWriter();
+  hadoopStoreWriterPerBucket.conf(conf);
+  for (int i=0; i < numKeys; i++) {
     String key="test_key_" + i;
     String value="test_value_" + i;
-    Key1=generateKey(key,i);
-    valueList1=ReadOnlyTestUtils.generateValues(key,value,saveKeys);
-    hadoopStoreWriterPerBucket.write(Key1,valueList1.iterator(),null);
+    mapper.map(key.getBytes(),value.getBytes(),testCollectorWrapper);
+    hadoopStoreWriterPerBucket.write(testCollector.key,testCollector.values.iterator(),null);
   }
   hadoopStoreWriterPerBucket.close();
   for (int i=0; i < numChunks; i++) {
