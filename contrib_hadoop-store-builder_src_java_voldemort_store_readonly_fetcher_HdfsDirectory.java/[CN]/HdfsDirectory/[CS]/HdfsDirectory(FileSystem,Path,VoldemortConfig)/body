@@ -1,0 +1,54 @@
+{
+  this.source=source;
+  FileStatus[] files=null;
+  int maxAttempts=voldemortConfig.getReadOnlyFetchRetryCount();
+  for (int attempt=1; attempt <= maxAttempts && files == null; attempt++) {
+    try {
+      files=fs.listStatus(source);
+      break;
+    }
+ catch (    Exception e) {
+      if (attempt < maxAttempts) {
+        long retryDelayMs=voldemortConfig.getReadOnlyFetchRetryDelayMs();
+        if (retryDelayMs > 0) {
+          long randomDelay=(long)(Math.random() * retryDelayMs + retryDelayMs);
+          logger.error("Could not execute listStatus operation on attempt # " + attempt + " / "+ maxAttempts+ ". Trying again in "+ randomDelay+ " ms.");
+          try {
+            Thread.sleep(randomDelay);
+          }
+ catch (          InterruptedException ie) {
+            logger.error("Fetcher interrupted while waiting to retry",ie);
+            Thread.currentThread().interrupt();
+          }
+        }
+      }
+ else {
+        throw new VoldemortException("Failed " + maxAttempts + " times attempting listStatus operations for path: "+ source,e);
+      }
+    }
+  }
+  if (files == null) {
+    throw new VoldemortApplicationException(source + " is empty");
+  }
+  for (  FileStatus file : files) {
+    totalSizeOfChildren+=file.getLen();
+    if (file.isDirectory()) {
+      numberOfSubDirectories++;
+    }
+ else {
+      numberOfFiles++;
+    }
+    String fileName=file.getPath().getName();
+    if (fileName.contains(CHECKSUM_FILE) || (!fileName.contains(ReadOnlyUtils.METADATA_FILE_EXTENSION) && fileName.startsWith("."))) {
+      continue;
+    }
+    HdfsFile hdfsFile=new HdfsFile(file);
+    if (hdfsFile.getFileType() == FileType.METADATA) {
+      setMetadataFile(hdfsFile);
+    }
+ else {
+      allFiles.add(hdfsFile);
+    }
+  }
+  Collections.sort(allFiles);
+}

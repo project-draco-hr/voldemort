@@ -1,7 +1,8 @@
 {
   if (args.length < 1)   Utils.croak("USAGE: java " + HdfsFetcher.class.getName() + " url [keytab-location kerberos-username hadoop-config-path [destDir]]");
   String url=args[0];
-  HdfsFetcher fetcher=new HdfsFetcher();
+  VoldemortConfig config=new VoldemortConfig(-1,"");
+  HdfsFetcher fetcher=new HdfsFetcher(config);
   String destDir=null;
   if (args.length >= 4) {
     fetcher.voldemortConfig.setReadOnlyKeytabPath(args[1]);

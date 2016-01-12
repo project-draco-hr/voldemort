@@ -1,6 +1,10 @@
 {
   long nowMS=System.currentTimeMillis();
-  reportStats(" Completed at " + nowMS + " MS. Total bytes transferred "+ totalBytesTransferred+ " . Expected total bytes transferred "+ pathInfo.getTotalSize()+ " . Total bytes written "+ totalBytesWritten+ " . Time taken(MS) "+ (nowMS - startTimeMS));
+  String expectedTotalBytesTransferred="unavailable";
+  if (pathInfo != null) {
+    expectedTotalBytesTransferred=String.valueOf(pathInfo.getTotalSize());
+  }
+  reportStats(" Completed at " + nowMS + " MS. Total bytes transferred: "+ totalBytesTransferred+ " . Expected total bytes transferred: "+ expectedTotalBytesTransferred+ " . Total bytes written: "+ totalBytesWritten+ " . Time taken(MS): "+ (nowMS - startTimeMS));
   if (statsFileWriter != null) {
     IOUtils.closeQuietly(statsFileWriter);
   }

@@ -1,7 +1,7 @@
 {
   final Configuration config=getConfiguration(voldemortConfig,sourceFileUrl);
   final Path path=new Path(sourceFileUrl);
-  final int maxAttempts=voldemortConfig.getReadOnlyFetchRetryCount() + 1;
+  final int maxAttempts=voldemortConfig.getReadOnlyFetchRetryCount();
   final String keytabPath=voldemortConfig.getReadOnlyKeytabPath();
   FileSystem fs=null;
   for (int attempt=1; attempt <= maxAttempts; attempt++) {
@@ -45,7 +45,7 @@ synchronized (HadoopUtils.class) {
           long randomDelay=(long)(Math.random() * retryDelayMs + retryDelayMs);
           logger.error("Could not get a valid Filesystem object on attempt # " + attempt + " / "+ maxAttempts+ ". Trying again in "+ randomDelay+ " ms.");
           try {
-            Thread.sleep(retryDelayMs);
+            Thread.sleep(randomDelay);
           }
  catch (          InterruptedException ie) {
             logger.error("Fetcher interrupted while waiting to retry",ie);

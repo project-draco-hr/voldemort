@@ -11,13 +11,13 @@
       throw new VoldemortException("Version directory " + destination.getAbsolutePath() + " already exists");
     }
     boolean isFile=fs.isFile(rootPath);
-    stats=new HdfsCopyStats(sourceFileUrl,destination,enableStatsFile,maxVersionsStatsFile,isFile,new HdfsPathInfo(fs,rootPath));
+    stats=new HdfsCopyStats(sourceFileUrl,destination,false,maxVersionsStatsFile,isFile,null);
     jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
     logger.info("Starting fetch for : " + sourceFileUrl);
     FetchStrategy fetchStrategy=new BasicFetchStrategy(this,fs,stats,status,bufferSize);
     if (!fs.isFile(rootPath)) {
       Utils.mkdirs(destination);
-      HdfsDirectory rootDirectory=new HdfsDirectory(fs,rootPath);
+      HdfsDirectory rootDirectory=new HdfsDirectory(fs,rootPath,this.voldemortConfig);
       List<HdfsDirectory> directoriesToFetch=Lists.newArrayList();
       HdfsFile metadataFile=rootDirectory.getMetadataFile();
       Long expectedDiskSize=-1L;
@@ -39,7 +39,7 @@
  else {
                 expectedDiskSize+=Long.parseLong(diskSizeInBytes);
               }
-              HdfsDirectory partitionDirectory=new HdfsDirectory(fs,new Path(rootPath,partitionKey));
+              HdfsDirectory partitionDirectory=new HdfsDirectory(fs,new Path(rootPath,partitionKey),this.voldemortConfig);
               partitionDirectory.initializeMetadata(partitionMetadata);
               directoriesToFetch.add(partitionDirectory);
             }
@@ -57,6 +57,8 @@
         }
       }
       checkIfQuotaExceeded(diskQuotaSizeInKB,storeName,destination,expectedDiskSize);
+      stats=new HdfsCopyStats(sourceFileUrl,destination,enableStatsFile,maxVersionsStatsFile,isFile,new HdfsPathInfo(directoriesToFetch));
+      fetchStrategy=new BasicFetchStrategy(this,fs,stats,status,bufferSize);
       logger.debug("directoriesToFetch for store '" + storeName + "': "+ Arrays.toString(directoriesToFetch.toArray()));
       for (      HdfsDirectory directoryToFetch : directoriesToFetch) {
         Map<HdfsFile,byte[]> fileCheckSumMap=fetchStrategy.fetch(directoryToFetch,destination);

@@ -8,24 +8,28 @@
   FileUtils.writeByteArrayToFile(indexFile,indexBytes);
   source=new Path(indexFile.getAbsolutePath());
   checksumCalculated=calculateCheckSumForFile(source);
+  String sourceString=testSourceDir.getAbsolutePath();
+  String finalIndexFileName=indexFileName;
   if (isCompressed) {
     testCompressedSourceDir=new File(testSourceDir.getAbsolutePath() + "_compressed");
     Utils.mkdirs(testCompressedSourceDir);
     File compressedIndexFile=new File(testCompressedSourceDir,indexFileName + ".gz");
     gzipFile(indexFile.getAbsolutePath(),compressedIndexFile.getAbsolutePath());
     source=new Path(compressedIndexFile.getAbsolutePath());
+    sourceString=testCompressedSourceDir.getAbsolutePath();
+    finalIndexFileName+=".gz";
   }
-  fetcher=new HdfsFetcher();
+  VoldemortConfig config=new VoldemortConfig(-1,"");
+  config.setReadOnlyFetchRetryCount(3);
+  config.setReadOnlyFetchRetryDelayMs(1000);
+  config.setReadOnlyStatsFileEnabled(true);
+  config.setReadOnlyMaxVersionsStatsFile(50);
+  fetcher=new HdfsFetcher(config);
   fs=source.getFileSystem(new Configuration());
+  HdfsPathInfo hdfsPathInfo=new HdfsPathInfo(Lists.newArrayList(new HdfsDirectory(fs,source,config)));
   File destination=new File(testDestDir.getAbsolutePath() + "1");
-  if (isCompressed) {
-    stats=new HdfsCopyStats(testCompressedSourceDir.getAbsolutePath(),destination,enableStatsFile,5,false,new HdfsPathInfo(fs,source));
-    copyLocation=new File(destination,indexFileName + ".gz");
-  }
- else {
-    stats=new HdfsCopyStats(testSourceDir.getAbsolutePath(),destination,enableStatsFile,5,false,new HdfsPathInfo(fs,source));
-    copyLocation=new File(destination,indexFileName);
-  }
+  stats=new HdfsCopyStats(sourceString,destination,enableStatsFile,5,false,hdfsPathInfo);
+  copyLocation=new File(destination,finalIndexFileName);
   Utils.mkdirs(destination);
   buffer=new byte[VoldemortConfig.DEFAULT_FETCHER_BUFFER_SIZE];
 }
