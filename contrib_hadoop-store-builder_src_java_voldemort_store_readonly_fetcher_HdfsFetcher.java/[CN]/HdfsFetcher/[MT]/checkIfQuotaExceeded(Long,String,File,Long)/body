@@ -3,9 +3,9 @@
     String logMessage="Store: " + storeName + ", Destination: "+ dest.getAbsolutePath()+ ", Expected disk size in KB: "+ (expectedDiskSize / ByteUtils.BYTES_PER_KB)+ ", Disk quota size in KB: "+ diskQuotaSizeInKB;
     logger.debug(logMessage);
     if (diskQuotaSizeInKB == 0L) {
-      String errorMessage="This store: \'" + storeName + "\' does not belong to this Voldemort cluster. Please use a valid bootstrap url.";
+      String errorMessage="Not able to find store (" + storeName + ") in this cluster according to the push URL. BnP job is not able to create new stores now."+ "Please reach out to a Voldemort admin if you think this is the correct cluster you want to push.";
       logger.error(errorMessage);
-      throw new InvalidBootstrapURLException(errorMessage);
+      throw new UnauthorizedStoreException(errorMessage);
     }
     Long estimatedDiskSizeNeeded=(expectedDiskSize / ByteUtils.BYTES_PER_KB);
     if (estimatedDiskSizeNeeded >= diskQuotaSizeInKB) {
