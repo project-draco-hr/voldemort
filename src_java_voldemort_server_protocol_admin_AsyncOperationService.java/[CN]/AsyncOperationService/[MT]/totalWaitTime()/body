@@ -1,0 +1,11 @@
+{
+  long totalWaitTimeMs=0;
+  Set<Integer> keySet=ImmutableSet.copyOf(operations.keySet());
+  for (  int key : keySet) {
+    AsyncOperation operation=operations.get(key);
+    if (operation != null && !operation.getStatus().isComplete()) {
+      totalWaitTimeMs+=operation.getWaitTimeMs();
+    }
+  }
+  return TimeUnit.SECONDS.convert(totalWaitTimeMs,TimeUnit.MILLISECONDS);
+}

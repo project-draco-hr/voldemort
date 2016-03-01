@@ -1,0 +1,11 @@
+{
+  long waitingTasks=0;
+  Set<Integer> keySet=ImmutableSet.copyOf(operations.keySet());
+  for (  int key : keySet) {
+    AsyncOperation operation=operations.get(key);
+    if (operation != null && !operation.getStatus().isComplete()) {
+      if (operation.isWaiting())       waitingTasks++;
+    }
+  }
+  return waitingTasks;
+}
