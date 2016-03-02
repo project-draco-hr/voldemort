@@ -4,12 +4,15 @@
   VoldemortConfig config=new VoldemortConfig(-1,"");
   HdfsFetcher fetcher=new HdfsFetcher(config);
   String destDir=null;
+  Long diskQuotaSizeInKB;
   if (args.length >= 4) {
     fetcher.voldemortConfig.setReadOnlyKeytabPath(args[1]);
     fetcher.voldemortConfig.setReadOnlyKerberosUser(args[2]);
     fetcher.voldemortConfig.setHadoopConfigPath(args[3]);
   }
   if (args.length >= 5)   destDir=args[4];
+  if (args.length >= 6)   diskQuotaSizeInKB=Long.parseLong(args[5]);
+ else   diskQuotaSizeInKB=null;
   allowFetchingOfSingleFile=true;
   FileSystem fs=HadoopUtils.getHadoopFileSystem(fetcher.voldemortConfig,url);
   Path p=new Path(url);
@@ -17,7 +20,7 @@
   long size=status.getLen();
   long start=System.currentTimeMillis();
   if (destDir == null)   destDir=System.getProperty("java.io.tmpdir") + File.separator + start;
-  File location=fetcher.fetch(url,destDir,null,null,-1,null);
+  File location=fetcher.fetch(url,destDir,null,null,-1,null,diskQuotaSizeInKB);
   double rate=size * Time.MS_PER_SECOND / (double)(System.currentTimeMillis() - start);
   NumberFormat nf=NumberFormat.getInstance();
   nf.setMaximumFractionDigits(2);

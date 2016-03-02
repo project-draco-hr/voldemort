@@ -1,0 +1,18 @@
+{
+  MockFetcher.setSleepTime(5);
+  int pushNums=4;
+  final ExecutorService executor=Executors.newCachedThreadPool();
+  List<Future<RuntimeException>> results=Lists.newArrayList();
+  for (int i=0; i < pushNums; i++) {
+    results.add(executor.submit(new PushWorker(executor)));
+  }
+  int fetchedNode=0;
+  for (  Future<RuntimeException> e : results) {
+    if (e.get() == null)     fetchedNode++;
+ else {
+      assertTrue(e.get() instanceof VoldemortException);
+    }
+  }
+  assertTrue(fetchedNode <= 1);
+  MockFetcher.setSleepTime(0);
+}

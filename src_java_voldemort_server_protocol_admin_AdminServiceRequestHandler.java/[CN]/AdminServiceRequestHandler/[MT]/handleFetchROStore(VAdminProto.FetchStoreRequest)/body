@@ -26,8 +26,30 @@
       pushVersion=maxVersion + 1;
       logger.warn("Push Version is not specified, this might create issues during rebalance/restore. Store" + storeName + " Generated version "+ pushVersion);
     }
-    ReadOnlyStoreFetchOperation operation=new ReadOnlyStoreFetchOperation(requestId,metadataStore,store,fileFetcher,storeName,fetchUrl,pushVersion);
-    asyncService.submitOperation(requestId,operation);
+    FileBackedCachingStorageEngine quotaStore=(FileBackedCachingStorageEngine)storeRepository.getStorageEngine(SystemStoreConstants.SystemStoreName.voldsys$_store_quotas.toString());
+    String quotaKey=QuotaUtils.makeQuotaKey(storeName,QuotaType.STORAGE_SPACE);
+    String diskQuotaSize=quotaStore.cacheGet(quotaKey);
+    Long diskQuotaSizeInKB=(diskQuotaSize == null) ? null : Long.parseLong(diskQuotaSize);
+    ReadOnlyStoreFetchOperation operation=new ReadOnlyStoreFetchOperation(requestId,metadataStore,store,fileFetcher,storeName,fetchUrl,pushVersion,diskQuotaSizeInKB);
+    AdminServiceRequestHandler.storeLock.lock();
+    try {
+      boolean complete;
+      int previousRequestId=store.getFetchingRequest();
+      if (previousRequestId != ReadOnlyStorageEngine.NO_FETCH_IN_PROGRESS) {
+        try {
+          complete=asyncService.isComplete(store.getFetchingRequest(),false);
+        }
+ catch (        VoldemortException e) {
+          complete=true;
+        }
+        if (!complete)         throw new VoldemortException("The store: " + storeName + " is currently blocked since it is fetching data "+ "(existing operation request ID: "+ previousRequestId+ ")");
+      }
+      store.setFetchingRequest(requestId);
+      asyncService.submitOperation(requestId,operation);
+    }
+  finally {
+      AdminServiceRequestHandler.storeLock.unlock();
+    }
   }
  catch (  VoldemortException e) {
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
