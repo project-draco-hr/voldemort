@@ -1,0 +1,99 @@
+{
+  if (!newStoreDef.getType().equals(ReadOnlyStorageConfiguration.TYPE_NAME)) {
+    throw new VoldemortException("verifyOrAddStore() is intended only for Read-Only stores!");
+  }
+  List<Integer> nodesMissingNewStore=Lists.newArrayList();
+  List<Node> unreachableNodes=Lists.newArrayList();
+  for (  Node node : currentCluster.getNodes()) {
+    boolean addStoreToCurrentNode=true;
+    int nodeId=node.getId();
+    List<StoreDefinition> remoteStoreDefs=Lists.newArrayList();
+    try {
+      remoteStoreDefs=metadataMgmtOps.getRemoteStoreDefList(nodeId).getValue();
+    }
+ catch (    UnreachableStoreException e) {
+      logger.warn("Failed to contact " + node.briefToString() + " in order to validate the StoreDefinition.");
+      unreachableNodes.add(node);
+      continue;
+    }
+    for (    StoreDefinition remoteStoreDef : remoteStoreDefs) {
+      if (remoteStoreDef.getName().equals(newStoreDef.getName())) {
+        if (remoteStoreDef.equals(newStoreDef)) {
+          addStoreToCurrentNode=false;
+        }
+ else {
+          SerializerDefinition newKeySerializerDef=newStoreDef.getKeySerializer();
+          SerializerDefinition newValueSerializerDef=newStoreDef.getValueSerializer();
+          SerializerDefinition remoteKeySerializerDef=remoteStoreDef.getKeySerializer();
+          SerializerDefinition remoteValueSerializerDef=remoteStoreDef.getValueSerializer();
+          String newValSerDeName=newValueSerializerDef.getName();
+          if (seriailizerMetadataEquals(remoteKeySerializerDef,newKeySerializerDef) && seriailizerMetadataEquals(remoteValueSerializerDef,newValueSerializerDef)) {
+            Object remoteKeyDef, remoteValDef, localKeyDef, localValDef;
+            if (newValSerDeName.equals(DefaultSerializerFactory.AVRO_GENERIC_VERSIONED_TYPE_NAME) || newValSerDeName.equals(DefaultSerializerFactory.AVRO_GENERIC_TYPE_NAME)) {
+              remoteKeyDef=Schema.parse(remoteKeySerializerDef.getCurrentSchemaInfo());
+              remoteValDef=Schema.parse(remoteValueSerializerDef.getCurrentSchemaInfo());
+              localKeyDef=Schema.parse(newKeySerializerDef.getCurrentSchemaInfo());
+              localValDef=Schema.parse(newValueSerializerDef.getCurrentSchemaInfo());
+            }
+ else             if (newValSerDeName.equals(DefaultSerializerFactory.JSON_SERIALIZER_TYPE_NAME)) {
+              remoteKeyDef=JsonTypeDefinition.fromJson(remoteKeySerializerDef.getCurrentSchemaInfo());
+              remoteValDef=JsonTypeDefinition.fromJson(remoteValueSerializerDef.getCurrentSchemaInfo());
+              localKeyDef=JsonTypeDefinition.fromJson(newKeySerializerDef.getCurrentSchemaInfo());
+              localValDef=JsonTypeDefinition.fromJson(newValueSerializerDef.getCurrentSchemaInfo());
+            }
+ else {
+              throw new VoldemortException("verifyOrAddStore() only works with Avro Generic and JSON serialized stores!");
+            }
+            boolean serializerDefinitionsAreEqual=remoteKeyDef.equals(localKeyDef) && remoteValDef.equals(localValDef);
+            if (serializerDefinitionsAreEqual) {
+              StoreDefinition newStoreDefWithRemoteSerializer=new StoreDefinition(newStoreDef.getName(),newStoreDef.getType(),newStoreDef.getDescription(),remoteKeySerializerDef,remoteValueSerializerDef,newStoreDef.getTransformsSerializer(),newStoreDef.getRoutingPolicy(),newStoreDef.getRoutingStrategyType(),newStoreDef.getReplicationFactor(),newStoreDef.getPreferredReads(),newStoreDef.getRequiredReads(),newStoreDef.getPreferredWrites(),newStoreDef.getRequiredWrites(),newStoreDef.getViewTargetStoreName(),newStoreDef.getValueTransformation(),newStoreDef.getZoneReplicationFactor(),newStoreDef.getZoneCountReads(),newStoreDef.getZoneCountWrites(),newStoreDef.getRetentionDays(),newStoreDef.getRetentionScanThrottleRate(),newStoreDef.getRetentionFrequencyDays(),newStoreDef.getSerializerFactory(),newStoreDef.getHintedHandoffStrategyType(),newStoreDef.getHintPrefListSize(),newStoreDef.getOwners(),newStoreDef.getMemoryFootprintMB());
+              if (remoteStoreDef.equals(newStoreDefWithRemoteSerializer)) {
+                addStoreToCurrentNode=false;
+              }
+ else {
+                String errorMessage="Your store schema is identical, " + "but the store definition does not match on " + node.briefToString();
+                logger.error(errorMessage + diffMessage(newStoreDefWithRemoteSerializer,remoteStoreDef,localProcessName));
+                throw new VoldemortException(errorMessage);
+              }
+            }
+ else {
+              String errorMessage="Your data schema does not match the schema which is already " + "defined on " + node.briefToString();
+              logger.error(errorMessage + diffMessage(newStoreDef,remoteStoreDef,localProcessName));
+              throw new VoldemortException(errorMessage);
+            }
+          }
+ else {
+            String errorMessage="Your store definition does not match the store definition that is " + "already defined on " + node.briefToString();
+            logger.error(errorMessage + diffMessage(newStoreDef,remoteStoreDef,localProcessName));
+            throw new VoldemortException(errorMessage);
+          }
+        }
+        if (!addStoreToCurrentNode) {
+          break;
+        }
+ else {
+          throw new VoldemortException("Unexpected code path! At this point, we should either have found " + "a matching store or already thrown another exception. " + "Current remoteStoreDef: '" + remoteStoreDef.getName() + "'. "+ "Current node: "+ node.briefToString());
+        }
+      }
+    }
+    if (addStoreToCurrentNode) {
+      nodesMissingNewStore.add(nodeId);
+    }
+  }
+  if (!createStore && !nodesMissingNewStore.isEmpty())   throw new VoldemortException("Store: " + newStoreDef.getName() + " is not found in the current cluster.");
+  storeMgmtOps.addStore(newStoreDef,nodesMissingNewStore);
+  if (unreachableNodes.size() > 0) {
+    String errorMessage="verifyOrAddStore() failed against the following nodes: ";
+    boolean first=true;
+    for (    Node node : unreachableNodes) {
+      if (first) {
+        first=false;
+      }
+ else {
+        errorMessage+=", ";
+      }
+      errorMessage+=node.briefToString();
+    }
+    throw new UnreachableStoreException(errorMessage);
+  }
+}
