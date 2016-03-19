@@ -1,9 +1,9 @@
 {
-  if (key.equals(SystemStoreConstants.CLUSTER_VERSION_KEY) || key.equals(SystemStoreConstants.STORES_VERSION_KEY)) {
-    metadataMgmtOps.updateMetadataversion(remoteNodeIds,key);
-  }
   for (  Integer currentNodeId : remoteNodeIds) {
     logger.info("Setting " + key + " for "+ getAdminClientCluster().getNodeById(currentNodeId).getHost()+ ":"+ getAdminClientCluster().getNodeById(currentNodeId).getId());
     updateRemoteMetadata(currentNodeId,key,value);
+  }
+  if (key.equals(SystemStoreConstants.CLUSTER_VERSION_KEY) || key.equals(SystemStoreConstants.STORES_VERSION_KEY)) {
+    metadataMgmtOps.updateMetadataversion(remoteNodeIds,key);
   }
 }
