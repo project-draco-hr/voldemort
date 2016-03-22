@@ -1,0 +1,18 @@
+{
+  String baseDirPath=originalServer.getVoldemortConfig().getVoldemortHome();
+  String parentDirPath=Paths.get(baseDirPath).getParent().toString();
+  List<StoreDefinition> storeDefs=originalServer.getMetadataStore().getStoreDefList();
+  VoldemortServer newServer=null;
+  try {
+    VoldemortConfig config=ServerTestUtils.createServerConfigWithDefs(useNio,0,parentDirPath,cluster,storeDefs,new Properties());
+    newServer=ServerTestUtils.startVoldemortServer(socketStoreFactory,config,cluster,false);
+    ServerTestUtils.waitForServerStart(socketStoreFactory,newServer.getIdentityNode());
+    fail("should have thrown an connection exception");
+  }
+ catch (  UnreachableStoreException e) {
+    assertEquals(ConnectException.class,e.getCause().getClass());
+  }
+  newServer.goOnline();
+  servers[0]=newServer;
+  assertTrue(testOnlineTraffic());
+}

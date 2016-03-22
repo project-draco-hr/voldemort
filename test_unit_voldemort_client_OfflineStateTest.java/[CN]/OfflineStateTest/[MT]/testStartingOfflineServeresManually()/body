@@ -1,0 +1,14 @@
+{
+  VoldemortServer server=getVoldemortServer(0);
+  server.stop();
+  String[] metadatafileNames={"partition.streaming.enabled","readonly.fetch.enabled","server.state","slop.streaming.enabled"};
+  PrintWriter writer=null;
+  for (  String fileName : metadatafileNames) {
+    writer=new PrintWriter(new File(server.getVoldemortConfig().getVoldemortHome() + "/config/.temp/" + fileName));
+    if (fileName != "server.state")     writer.print("false");
+ else     writer.print("OFFLINE_SERVER");
+    writer.close();
+    Files.delete(Paths.get(server.getVoldemortConfig().getVoldemortHome() + "/config/.version/" + fileName));
+  }
+  verifyNewServer(server);
+}

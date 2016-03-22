@@ -1,5 +1,6 @@
 {
   boolean success=false;
+  UnreachableStoreException exception=null;
   int retries=10;
   Store<ByteArray,?,?> store=null;
   while (retries-- > 0 && !success) {
@@ -9,16 +10,18 @@
       success=true;
     }
  catch (    UnreachableStoreException e) {
-      store.close();
-      store=null;
       System.out.println("UnreachableSocketStore sleeping will try again " + retries + " times.");
+      exception=e;
       try {
         Thread.sleep(1000);
       }
  catch (      InterruptedException e1) {
       }
     }
+ finally {
+      store.close();
+      store=null;
+    }
   }
-  store.close();
-  if (!success)   throw new RuntimeException("Failed to connect with server:" + node);
+  if (!success)   throw exception;
 }
