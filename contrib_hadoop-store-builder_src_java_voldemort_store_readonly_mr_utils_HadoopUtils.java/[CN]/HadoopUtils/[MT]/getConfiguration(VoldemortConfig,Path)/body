@@ -1,12 +1,17 @@
 {
+  String sourceScheme=source.toUri().getScheme();
   final Configuration hadoopConfig=new Configuration();
   hadoopConfig.setInt(ConfigurableSocketFactory.SO_RCVBUF,voldemortConfig.getFetcherBufferSize());
   hadoopConfig.setInt(ConfigurableSocketFactory.SO_TIMEOUT,voldemortConfig.getFetcherSocketTimeout());
   hadoopConfig.set("hadoop.rpc.socket.factory.class.ClientProtocol",ConfigurableSocketFactory.class.getName());
   hadoopConfig.set("hadoop.security.group.mapping","org.apache.hadoop.security.ShellBasedUnixGroupsMapping");
+  if (sourceScheme != null) {
+    String disableCacheName=String.format("fs.%s.impl.disable.cache",sourceScheme);
+    hadoopConfig.setBoolean(disableCacheName,true);
+  }
   String hadoopConfigPath=voldemortConfig.getHadoopConfigPath();
-  boolean isHftpBasedFetch=sourceFileUrl.length() > 4 && sourceFileUrl.substring(0,4).equals("hftp");
-  logger.info("URL : " + sourceFileUrl + " and hftp protocol enabled = "+ isHftpBasedFetch);
+  boolean isHftpBasedFetch=HftpFileSystem.SCHEME.equals(sourceScheme);
+  logger.info("URL : " + source + " and hftp protocol enabled = "+ isHftpBasedFetch);
   logger.info("Hadoop path = " + hadoopConfigPath + " , keytab path = "+ voldemortConfig.getReadOnlyKeytabPath()+ " , kerberos principal = "+ voldemortConfig.getReadOnlyKerberosUser());
   if (hadoopConfigPath.length() > 0) {
     hadoopConfig.addResource(new Path(hadoopConfigPath + "/core-site.xml"));

@@ -1,6 +1,6 @@
 {
-  final Configuration config=getConfiguration(voldemortConfig,sourceFileUrl);
-  final Path path=new Path(sourceFileUrl);
+  final Path source=new Path(sourceFileUrl);
+  final Configuration config=getConfiguration(voldemortConfig,source);
   final int maxAttempts=voldemortConfig.getReadOnlyFetchRetryCount();
   final String keytabPath=voldemortConfig.getReadOnlyKeytabPath();
   FileSystem fs=null;
@@ -25,14 +25,16 @@ synchronized (HadoopUtils.class) {
           }
         }
       }
-      fs=path.getFileSystem(config);
-      fs.exists(path);
+      fs=source.getFileSystem(config);
+      fs.exists(source);
       break;
     }
  catch (    VoldemortException e) {
+      IOUtils.closeQuietly(fs);
       throw e;
     }
 catch (    Exception e) {
+      IOUtils.closeQuietly(fs);
       if (ExceptionUtils.recursiveClassEquals(e,AuthenticationException.class)) {
         logger.info("Got an AuthenticationException from HDFS. " + "Will retry to login from scratch, on next attempt.",e);
 synchronized (HadoopUtils.class) {

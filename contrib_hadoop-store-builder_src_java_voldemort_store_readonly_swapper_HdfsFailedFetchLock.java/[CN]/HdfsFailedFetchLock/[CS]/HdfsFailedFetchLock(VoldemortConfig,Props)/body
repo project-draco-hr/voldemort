@@ -1,5 +1,11 @@
 {
   super(config,props);
   fileSystem=HadoopUtils.getHadoopFileSystem(config,clusterDir);
-  initDirs();
+  try {
+    initDirs();
+  }
+ catch (  Exception ex) {
+    IOUtils.closeQuietly(this.fileSystem);
+    throw ex;
+  }
 }
