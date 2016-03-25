@@ -2,9 +2,10 @@
   MockFetcher.setSleepTime(5);
   int pushNums=4;
   final ExecutorService executor=Executors.newCachedThreadPool();
+  File tempDir=createTempROFolder();
   List<Future<RuntimeException>> results=Lists.newArrayList();
   for (int i=0; i < pushNums; i++) {
-    results.add(executor.submit(new PushWorker(executor)));
+    results.add(executor.submit(new PushWorker(executor,tempDir)));
   }
   int fetchedNode=0;
   for (  Future<RuntimeException> e : results) {

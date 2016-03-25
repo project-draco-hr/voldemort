@@ -1,10 +1,9 @@
 {
   AdminStoreSwapper swapper=new AdminStoreSwapper(cluster,executor,adminClient,1000000,false,false);
   long currentVersion=adminClient.readonlyOps.getROCurrentVersion(0,Lists.newArrayList(STORE_NAME)).get(STORE_NAME);
-  File temporaryDir=createTempROFolder();
   RuntimeException result=null;
   try {
-    swapper.swapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 1);
+    swapper.swapStoreData(STORE_NAME,tempDir.getAbsolutePath(),currentVersion + 1);
   }
  catch (  RuntimeException e) {
     result=e;
