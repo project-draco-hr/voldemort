@@ -1,0 +1,17 @@
+{
+  if (ExceptionUtils.recursiveClassEquals(e,AuthenticationException.class)) {
+    aggStats.authenticateFailed();
+  }
+ else   if (e instanceof QuotaExceededException) {
+    aggStats.quotaCheckFailed();
+  }
+ else   if (e instanceof UnauthorizedStoreException) {
+    aggStats.unauthorizedStorePush();
+  }
+ else   if (e instanceof FileNotFoundException) {
+    aggStats.fileNotFound();
+  }
+ else {
+    aggStats.fileReadFailed();
+  }
+}

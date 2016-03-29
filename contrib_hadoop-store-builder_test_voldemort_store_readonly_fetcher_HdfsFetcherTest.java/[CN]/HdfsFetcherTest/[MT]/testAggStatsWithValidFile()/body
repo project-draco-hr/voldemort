@@ -1,0 +1,24 @@
+{
+  HdfsFetcherAggStats stats=HdfsFetcherAggStats.getStats();
+  long totalBytesFetchedBefore=stats.getTotalBytesFetched();
+  long totalFetchesBefore=stats.getTotalFetches();
+  double totalDataFetchRateBefore=stats.getTotalDataFetchRate();
+  File testSourceDirectory=TestUtils.createTempDir();
+  File testDestinationDirectory=TestUtils.createTempDir();
+  File indexFile=new File(testSourceDirectory,"0_0.index");
+  FileUtils.writeByteArrayToFile(indexFile,TestUtils.randomBytes(100));
+  File dataFile=new File(testSourceDirectory,"0_0.data");
+  FileUtils.writeByteArrayToFile(dataFile,TestUtils.randomBytes(400));
+  File metadataFile=new File(testSourceDirectory,".metadata");
+  ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
+  metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode());
+  metadata.add(ReadOnlyStorageMetadata.CHECKSUM,new String(Hex.encodeHex(CheckSumTests.calculateCheckSum(testSourceDirectory.listFiles(),CheckSumType.MD5))));
+  FileUtils.writeStringToFile(metadataFile,metadata.toJsonString());
+  HdfsFetcher fetcher=new HdfsFetcher();
+  File fetchedFile=fetcher.fetch(testSourceDirectory.getAbsolutePath(),testDestinationDirectory.getAbsolutePath() + "1");
+  assertNotNull(fetchedFile);
+  assertEquals(fetchedFile.getAbsolutePath(),testDestinationDirectory.getAbsolutePath() + "1");
+  assertEquals(totalBytesFetchedBefore + 500 + metadata.toJsonString().length(),stats.getTotalBytesFetched());
+  assertEquals(totalFetchesBefore + 1,stats.getTotalFetches());
+  assertTrue(stats.getTotalDataFetchRate() > totalDataFetchRateBefore);
+}

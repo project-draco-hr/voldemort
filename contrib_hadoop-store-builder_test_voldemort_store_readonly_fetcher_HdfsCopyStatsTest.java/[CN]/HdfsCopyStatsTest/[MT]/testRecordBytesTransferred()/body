@@ -1,0 +1,10 @@
+{
+  HdfsCopyStats stats=new HdfsCopyStats(null,null,false,3,false,null);
+  long totalAggBytesFetchedBefore=HdfsFetcherAggStats.getStats().getTotalBytesFetched();
+  stats.recordBytesTransferred(100);
+  stats.complete();
+  assertEquals(100,stats.getBytesTransferredSinceLastReport(),0);
+  assertEquals(100,stats.getBytesTransferredSinceLastReport(),0);
+  assertEquals(100,stats.getTotalBytesTransferred(),0);
+  assertEquals(totalAggBytesFetchedBefore + 100,HdfsFetcherAggStats.getStats().getTotalBytesFetched(),0);
+}

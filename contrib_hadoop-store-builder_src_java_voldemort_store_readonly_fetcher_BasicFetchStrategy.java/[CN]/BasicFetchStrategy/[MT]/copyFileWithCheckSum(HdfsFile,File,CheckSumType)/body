@@ -12,6 +12,7 @@
     long totalBytesRead=0;
     boolean fsOpened=false;
     bufferCheckSumGenerator=null;
+    stats.singleFileFetchStart(attempt != 1);
     try {
       if (checkSumType != null) {
         bufferCheckSumGenerator=CheckSum.getInstance(checkSumType);
@@ -89,6 +90,7 @@
       }
     }
  finally {
+      stats.singleFileFetchEnd();
       IOUtils.closeQuietly(output);
       IOUtils.closeQuietly(input);
       if (success) {
