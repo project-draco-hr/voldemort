@@ -1,0 +1,31 @@
+{
+  HdfsFetcherAggStats stats=HdfsFetcherAggStats.getStats();
+  long totalBytesFetchedBefore=stats.getTotalBytesFetched();
+  long totalCheckSumFailuresBefore=stats.getTotalCheckSumFailures();
+  long totalFetchesBefore=stats.getTotalFetches();
+  long totalIncompleteFetchesBefore=stats.getTotalIncompleteFetches();
+  File testSourceDirectory=TestUtils.createTempDir();
+  File testDestinationDirectory=TestUtils.createTempDir();
+  File indexFile=new File(testSourceDirectory,"0_0.index");
+  FileUtils.writeByteArrayToFile(indexFile,TestUtils.randomBytes(100));
+  File dataFile=new File(testSourceDirectory,"0_0.data");
+  FileUtils.writeByteArrayToFile(dataFile,TestUtils.randomBytes(400));
+  File metadataFile=new File(testSourceDirectory,".metadata");
+  ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
+  metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode());
+  metadata.add(ReadOnlyStorageMetadata.CHECKSUM_TYPE,CheckSum.toString(CheckSumType.MD5));
+  metadata.add(ReadOnlyStorageMetadata.CHECKSUM,"1234");
+  FileUtils.writeStringToFile(metadataFile,metadata.toJsonString());
+  HdfsFetcher fetcher=new HdfsFetcher();
+  File fetchedFile=null;
+  try {
+    fetchedFile=fetcher.fetch(testSourceDirectory.getAbsolutePath(),testDestinationDirectory.getAbsolutePath() + "1");
+  }
+ catch (  Exception e) {
+  }
+  assertNull(fetchedFile);
+  assertEquals(totalBytesFetchedBefore + 500 + metadata.toJsonString().length(),stats.getTotalBytesFetched());
+  assertEquals(totalCheckSumFailuresBefore + 1,stats.getTotalCheckSumFailures());
+  assertEquals(totalFetchesBefore + 1,stats.getTotalFetches());
+  assertEquals(totalIncompleteFetchesBefore + 1,stats.getTotalIncompleteFetches());
+}

@@ -1,0 +1,27 @@
+{
+  HdfsFetcherAggStats stats=HdfsFetcherAggStats.getStats();
+  long totalBytesFetchedBefore=stats.getTotalBytesFetched();
+  long totalFileReadFailuresBefore=stats.getTotalFileReadFailures();
+  long totalFetchesBefore=stats.getTotalFetches();
+  long totalIncompleteFetchesBefore=stats.getTotalIncompleteFetches();
+  File testSourceDirectory=TestUtils.createTempDir();
+  File testDestinationDirectory=TestUtils.createTempDir();
+  File indexFile=new File(testSourceDirectory,"0_0.index");
+  FileUtils.writeByteArrayToFile(indexFile,TestUtils.randomBytes(100));
+  File dataFile=new File(testSourceDirectory,"0_0.data");
+  FileUtils.writeByteArrayToFile(dataFile,TestUtils.randomBytes(400));
+  HdfsFetcher fetcher=new HdfsFetcher();
+  File metadataFile=new File(testSourceDirectory,".metadata");
+  FileUtils.writeByteArrayToFile(metadataFile,TestUtils.randomBytes(100));
+  try {
+    File fetchedFile=fetcher.fetch(testSourceDirectory.getAbsolutePath(),testDestinationDirectory.getAbsolutePath() + "1");
+    fail("Should have thrown an exception since metadata file is corrupt");
+  }
+ catch (  VoldemortException e) {
+  }
+  metadataFile.delete();
+  assertEquals(totalBytesFetchedBefore + 100,stats.getTotalBytesFetched());
+  assertEquals(totalFileReadFailuresBefore + 1,stats.getTotalFileReadFailures());
+  assertEquals(totalFetchesBefore + 1,stats.getTotalFetches());
+  assertEquals(totalIncompleteFetchesBefore + 1,stats.getTotalIncompleteFetches());
+}

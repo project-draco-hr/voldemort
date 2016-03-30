@@ -3,7 +3,9 @@
   HdfsCopyStats stats=null;
   FileSystem fs=null;
   sourceFileUrl=VoldemortUtils.modifyURL(sourceFileUrl,voldemortConfig.getModifiedProtocol(),voldemortConfig.getModifiedPort());
+  boolean isCompleteFetch=false;
   try {
+    HdfsCopyStats.storeFetch();
     fs=HadoopUtils.getHadoopFileSystem(voldemortConfig,sourceFileUrl);
     final Path rootPath=new Path(sourceFileUrl);
     File destination=new File(destinationFile);
@@ -66,10 +68,12 @@
           logger.info("Completed fetch: " + sourceFileUrl);
         }
  else {
+          stats.checkSumFailed();
           logger.error("Checksum did not match for " + directoryToFetch.toString() + " !");
           return null;
         }
       }
+      isCompleteFetch=true;
       return destination;
     }
  else     if (allowFetchingOfSingleFile) {
@@ -79,6 +83,7 @@
       File copyLocation=new File(destination,fileName);
       fetchStrategy.fetch(file,copyLocation,CheckSumType.NONE);
       logger.info("Completed fetch : " + sourceFileUrl);
+      isCompleteFetch=true;
       return destination;
     }
  else {
@@ -90,6 +95,7 @@
     if (stats != null) {
       stats.reportError("File fetcher failed for destination " + destinationFile,e);
     }
+    HdfsCopyStats.reportExceptionForStats(e);
     if (e instanceof VoldemortException) {
       throw e;
     }
@@ -101,6 +107,9 @@
     if (jmxName != null)     JmxUtils.unregisterMbean(jmxName);
     if (stats != null) {
       stats.complete();
+    }
+    if (!isCompleteFetch) {
+      HdfsCopyStats.incompleteFetch();
     }
     if (fs != null) {
       try {

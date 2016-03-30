@@ -1,0 +1,21 @@
+{
+  Map<Exception,Map> config=new HashMap<Exception,Map>();
+  config.put(new Exception(new AuthenticationException("test")),buildMethodResultMap(1,0,0,0,0));
+  config.put(new FileNotFoundException(),buildMethodResultMap(0,1,0,0,0));
+  config.put(new IOException(),buildMethodResultMap(0,0,1,0,0));
+  config.put(new QuotaExceededException("test"),buildMethodResultMap(0,0,0,1,0));
+  config.put(new UnauthorizedStoreException("test"),buildMethodResultMap(0,0,0,0,1));
+  HdfsFetcherAggStats aggStats=HdfsFetcherAggStats.getStats();
+  for (  Map.Entry<Exception,Map> entry : config.entrySet()) {
+    Exception e=entry.getKey();
+    Map<String,Long> methodResMap=entry.getValue();
+    Set<String> methodSet=methodResMap.keySet();
+    Map<String,Long> beforeRes=invokeInternalMethod(aggStats,methodSet);
+    HdfsCopyStats.reportExceptionForStats(e);
+    Map<String,Long> afterRes=invokeInternalMethod(aggStats,methodSet);
+    for (    String methodName : methodSet) {
+      String msg="Method expects " + methodResMap.get(methodName) + " with exception: "+ e.getClass().getName();
+      assertEquals(msg,methodResMap.get(methodName).longValue(),afterRes.get(methodName).longValue() - beforeRes.get(methodName).longValue());
+    }
+  }
+}
