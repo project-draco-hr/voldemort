@@ -11,10 +11,15 @@
     try {
       remoteStoreDefs=metadataMgmtOps.getRemoteStoreDefList(nodeId).getValue();
     }
- catch (    UnreachableStoreException e) {
-      logger.warn("Failed to contact " + node.briefToString() + " in order to validate the StoreDefinition.");
-      unreachableNodes.add(node);
-      continue;
+ catch (    VoldemortException e) {
+      if (ExceptionUtils.recursiveClassEquals(e,UnreachableStoreException.class,IOException.class)) {
+        logger.warn("Failed to contact " + node.briefToString() + " in order to validate the StoreDefinition.");
+        unreachableNodes.add(node);
+        continue;
+      }
+ else {
+        throw e;
+      }
     }
     for (    StoreDefinition remoteStoreDef : remoteStoreDefs) {
       if (remoteStoreDef.getName().equals(newStoreDef.getName())) {
