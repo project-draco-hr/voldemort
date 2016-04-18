@@ -1,0 +1,9 @@
+{
+  StoreDefinition storeDef=getStoreDef(retentionDays);
+  StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
+  String storeStr=mapper.writeStoreList(Arrays.asList(storeDef));
+  VectorClock clock=new VectorClock(System.currentTimeMillis());
+  clock.incrementVersion(0,System.currentTimeMillis());
+  Versioned<byte[]> storeSerialized=new Versioned<byte[]>(ByteUtils.getBytes(storeStr,"UTF-8"),clock);
+  metadataStore.updateStoreDefinitions(storeSerialized);
+}

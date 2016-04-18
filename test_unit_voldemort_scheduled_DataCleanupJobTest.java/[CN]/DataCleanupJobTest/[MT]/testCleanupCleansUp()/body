@@ -1,10 +1,10 @@
 {
   time.setTime(123);
   put("a","b","c");
-  time.setTime(123 + Time.MS_PER_DAY + 1);
+  time.setTime(123 + START_RETENTION * Time.MS_PER_DAY + 1);
   put("d","e","f");
   assertContains("a","b","c","d","e","f");
   put("a");
-  new DataCleanupJob<ByteArray,byte[],byte[]>(engine,new ScanPermitWrapper(1),Time.MS_PER_DAY,time,new EventThrottler(1),null).run();
+  new DataCleanupJob<ByteArray,byte[],byte[]>(engine,new ScanPermitWrapper(1),STORE_NAME,time,metadataStore).run();
   assertContains("a","d","e","f");
 }

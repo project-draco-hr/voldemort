@@ -11,6 +11,13 @@
   voldemortConfig.setBdbDataDirectory(storeDir.toURI().getPath());
   voldemortConfig.setBdbPrefixKeysWithPartitionId(prefixPartitionId);
   bdbStorage=new BdbStorageConfiguration(voldemortConfig);
-  StoreDefinition defA=TestUtils.makeStoreDefinition("cleanupTestStore");
-  engine=bdbStorage.getStore(defA,TestUtils.makeSingleNodeRoutingStrategy());
+  StoreDefinition storeDef=getStoreDef(START_RETENTION);
+  engine=bdbStorage.getStore(storeDef,TestUtils.makeSingleNodeRoutingStrategy());
+  List<Node> nodes=Lists.newArrayList();
+  nodes.add(new Node(0,"test-host",1234,1235,1236,Arrays.asList(0)));
+  Cluster cluster=new Cluster("cluster",nodes);
+  StoreRepository repo=new StoreRepository();
+  repo.setSlopStore(new SlopStorageEngine(new InMemoryStorageEngine<ByteArray,byte[],byte[]>("slop"),cluster));
+  repo.addNodeStore(0,engine);
+  metadataStore=ServerTestUtils.createMetadataStore(cluster,Arrays.asList(storeDef));
 }

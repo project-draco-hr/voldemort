@@ -1,0 +1,22 @@
+{
+  SchedulerService scheduler=new SchedulerService(1,time);
+  String cleanUpJobName="cleanup-freq-test";
+  try {
+    MockTime mockTime=new MockTime(System.currentTimeMillis());
+    ScanPermitWrapper scanWrapper=new ScanPermitWrapper(1);
+    DataCleanupJob cleanupJob=new DataCleanupJob<ByteArray,byte[],byte[]>(engine,new ScanPermitWrapper(1),STORE_NAME,mockTime,metadataStore);
+    scheduler.schedule(cleanUpJobName,cleanupJob,new Date(),1 * Time.MS_PER_SECOND);
+    putWithTimeStamp(0,10,System.currentTimeMillis() - 8 * Time.MS_PER_DAY);
+    Thread.sleep(3 * Time.MS_PER_SECOND);
+    assertAbsence(0,10);
+    metadataStore.deleteStoreDefinition(STORE_NAME);
+    Thread.sleep(2 * Time.MS_PER_SECOND);
+    for (int i=0; i < 1000; i++) {
+      assertEquals("Deleted store should never acquire a scan permit",1,scanWrapper.availablePermits());
+    }
+  }
+  finally {
+    scheduler.terminate(cleanUpJobName);
+    scheduler.stop();
+  }
+}

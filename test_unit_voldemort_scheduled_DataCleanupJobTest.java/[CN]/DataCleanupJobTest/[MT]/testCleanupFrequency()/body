@@ -2,41 +2,33 @@
   SchedulerService scheduler=new SchedulerService(1,time);
   String cleanUpJobName="cleanup-freq-test";
   try {
-    Date beginningOfTest=new Date();
-    Runnable cleanupJob=new DataCleanupJob<ByteArray,byte[],byte[]>(engine,new ScanPermitWrapper(1),2 * Time.MS_PER_SECOND,SystemTime.INSTANCE,new EventThrottler(1000),null);
-    scheduler.schedule(cleanUpJobName,cleanupJob,beginningOfTest,5 * Time.MS_PER_SECOND);
-    for (int i=0; i < 10; i++) {
-      ByteArray b=new ByteArray(Integer.toString(i).getBytes());
-      engine.put(b,new Versioned<byte[]>(b.get()),null);
+    MockTime mockTime=new MockTime(System.currentTimeMillis());
+    DataCleanupJob cleanupJob=new DataCleanupJob<ByteArray,byte[],byte[]>(engine,new ScanPermitWrapper(1),STORE_NAME,mockTime,metadataStore);
+    scheduler.schedule(cleanUpJobName,cleanupJob,new Date(),1 * Time.MS_PER_SECOND);
+    putWithTimeStamp(0,10,System.currentTimeMillis());
+    Thread.sleep(3 * Time.MS_PER_SECOND);
+    assertPresence(0,10);
+    assertEquals("No entries must be deleted now",0,cleanupJob.getEntriesDeleted());
+    assertTrue("Entries are scanned, but not deleted",cleanupJob.getEntriesScanned() > 0);
+    mockTime.setTime(System.currentTimeMillis() + START_RETENTION * Time.MS_PER_DAY + 1);
+    putWithTimeStamp(10,20,mockTime.getMilliseconds());
+    Thread.sleep(3 * Time.MS_PER_SECOND);
+    assertAbsence(0,10);
+    assertPresence(10,20);
+    assertEquals("10 entries should be deleted",10,cleanupJob.getEntriesDeleted());
+    long currentTime=mockTime.getMilliseconds();
+    for (int i=20; i < 30; i++) {
+      currentTime+=Time.MS_PER_DAY + 1;
+      putWithTimeStamp(i,i + 1,currentTime);
     }
-    Thread.sleep(2 * Time.MS_PER_SECOND);
-    for (int i=0; i < 10; i++) {
-      ByteArray b=new ByteArray(Integer.toString(i).getBytes());
-      List<Versioned<byte[]>> found=engine.get(b,null);
-      assertTrue("Did not find key '" + i + "' in store!",found.size() > 0);
-    }
-    Thread.sleep((beginningOfTest.getTime() + 4 * Time.MS_PER_SECOND) - System.currentTimeMillis());
-    for (int i=10; i < 20; i++) {
-      ByteArray b=new ByteArray(Integer.toString(i).getBytes());
-      engine.put(b,new Versioned<byte[]>(b.get()),null);
-    }
-    Thread.sleep((beginningOfTest.getTime() + 6 * Time.MS_PER_SECOND) - System.currentTimeMillis());
-    for (int i=0; i < 10; i++) {
-      ByteArray b=new ByteArray(Integer.toString(i).getBytes());
-      List<Versioned<byte[]>> found=engine.get(b,null);
-      assertTrue("Expected key '" + i + "' to be deleted!",found.size() == 0);
-    }
-    for (int i=10; i < 20; i++) {
-      ByteArray b=new ByteArray(Integer.toString(i).getBytes());
-      List<Versioned<byte[]>> found=engine.get(b,null);
-      assertTrue("Expected key '" + i + "' to be retained!",found.size() > 0);
-    }
+    mockTime.setTime(currentTime);
+    updateStoreDef(REDUCED_RETENTION);
+    Thread.sleep(3 * Time.MS_PER_SECOND);
+    assertAbsence(10,28);
+    assertEquals("28 entries should be deleted",28,cleanupJob.getEntriesDeleted());
+    assertPresence(28,30);
   }
- catch (  Exception e) {
-    logger.error("Got exception in testCleanupFrequency",e);
-    fail("Got exception in testCleanupFrequency");
-  }
- finally {
+  finally {
     scheduler.terminate(cleanUpJobName);
     scheduler.stop();
   }

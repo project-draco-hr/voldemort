@@ -2,10 +2,28 @@
   if (!isServerInNormalState() && !isServerInOfflineState()) {
     return;
   }
+  StoreDefinition storeDef=null;
+  try {
+    storeDef=metadataStore.getStoreDef(storeName);
+  }
+ catch (  VoldemortException ex) {
+    logger.info("Error retrieving store " + storeName + " for data cleanup job ",ex);
+  }
+  if (storeDef == null) {
+    return;
+  }
+  Integer retentionDays=storeDef.getRetentionDays();
+  if (retentionDays != null && retentionDays > 0) {
+    logger.info("Store " + storeName + " does not have retention period set, skipping cleanup job . RetentionDays "+ retentionDays);
+  }
+  long maxAgeMs=retentionDays * Time.MS_PER_DAY;
+  logger.info("Store " + storeName + " cleanup job is starting with RetentionDays "+ retentionDays);
   acquireCleanupPermit(scanProgressThisRun,deleteProgressThisRun);
-  store.beginBatchModifications();
   ClosableIterator<Pair<K,Versioned<V>>> iterator=null;
   try {
+    int maxReadRate=storeDef.hasRetentionScanThrottleRate() ? storeDef.getRetentionScanThrottleRate() : Integer.MAX_VALUE;
+    EventThrottler throttler=new EventThrottler(maxReadRate);
+    store.beginBatchModifications();
     logger.info("Starting data cleanup on store \"" + store.getName() + "\"...");
     long now=time.getMilliseconds();
     iterator=store.entries();
