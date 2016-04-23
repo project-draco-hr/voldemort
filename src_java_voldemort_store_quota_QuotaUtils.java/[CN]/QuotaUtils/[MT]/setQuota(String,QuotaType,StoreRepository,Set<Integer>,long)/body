@@ -1,0 +1,11 @@
+{
+  FileBackedCachingStorageEngine quotaStore=getQuotaStore(repository);
+  String quotaKey=makeQuotaKey(storeName,QuotaType.STORAGE_SPACE);
+  ByteArray keyArray=convertToByteArray(quotaKey);
+  List<Versioned<byte[]>> existingValue=quotaStore.get(keyArray,null);
+  String quotaValue=Long.toString(lquota);
+  ByteArray valueArray=convertToByteArray(quotaValue);
+  VectorClock newClock=VectorClockUtils.makeClockWithCurrentTime(nodeIds);
+  Versioned<byte[]> newValue=new Versioned<byte[]>(valueArray.get(),newClock);
+  quotaStore.put(keyArray,newValue,null);
+}

@@ -5,6 +5,7 @@
   Properties serverProperties=new Properties();
   serverProperties.setProperty("client.max.connections.per.node","20");
   serverProperties.setProperty("enforce.retention.policy.on.read",Boolean.toString(onlineRetention));
+  serverProperties.setProperty(VoldemortConfig.DEFAULT_STORAGE_SPACE_QUOTA_IN_KB,Long.toString(defaultStoreQuota));
   cluster=ServerTestUtils.startVoldemortCluster(numServers,servers,partitionMap,socketStoreFactory,useNio,null,storesXmlfile,serverProperties);
   storeDefs=new StoreDefinitionsMapper().readStoreList(new File(storesXmlfile));
   Properties adminProperties=new Properties();

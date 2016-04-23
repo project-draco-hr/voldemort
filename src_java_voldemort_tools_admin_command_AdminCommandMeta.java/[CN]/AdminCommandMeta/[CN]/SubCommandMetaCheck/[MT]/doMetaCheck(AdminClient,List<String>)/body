@@ -50,6 +50,22 @@
         String storeName=storeNodeValueEntry.getKey();
         Map<Object,List<String>> storeDefMap=storeNodeValueEntry.getValue();
         checkResult&=checkDiagnostics("Store " + storeName,storeDefMap,allNodeNames);
+        for (        QuotaType type : QuotaType.values()) {
+          Map<Object,List<String>> quotaNodeValues=new HashMap<Object,List<String>>();
+          String keyName="Store:" + storeName + "_QuotaType_"+ type;
+          for (          Node node : allNodes) {
+            String nodeName="Host '" + node.getHost() + "' : ID "+ node.getId();
+            Versioned<String> quotaValue=adminClient.quotaMgmtOps.getQuotaForNode(storeName,type,node.getId());
+            if (quotaValue == null || quotaValue.getValue() == null) {
+              continue;
+            }
+            addMetadataValue(quotaNodeValues,quotaValue.getValue(),nodeName);
+          }
+          if (quotaNodeValues.size() > 0) {
+            boolean result=checkDiagnostics(keyName,quotaNodeValues,allNodeNames);
+            checkResult&=result;
+          }
+        }
       }
     }
     System.out.println(key + " metadata check : " + (checkResult ? "PASSED" : "FAILED"));

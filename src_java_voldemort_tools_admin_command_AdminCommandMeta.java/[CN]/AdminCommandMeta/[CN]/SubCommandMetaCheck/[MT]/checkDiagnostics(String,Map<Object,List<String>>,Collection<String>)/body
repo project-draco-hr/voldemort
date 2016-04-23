@@ -10,7 +10,11 @@
     int groupCount=0;
     for (    Map.Entry<Object,List<String>> entry : metadataValues.entrySet()) {
       groupCount++;
-      System.err.println("Nodes with same value for " + keyName + ". Id :"+ groupCount);
+      String keyToPrint=entry.getKey().toString();
+      if (keyToPrint.length() > 50) {
+        keyToPrint=keyToPrint.substring(0,50) + "...truncated";
+      }
+      System.err.println("Nodes with same value " + keyToPrint + " for "+ keyName+ ". Id :"+ groupCount);
       nodesInResult.addAll(entry.getValue());
       for (      String nodeName : entry.getValue()) {
         System.err.println("Node " + nodeName);

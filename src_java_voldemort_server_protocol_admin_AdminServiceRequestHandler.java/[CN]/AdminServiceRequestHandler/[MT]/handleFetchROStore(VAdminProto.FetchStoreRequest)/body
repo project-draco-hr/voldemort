@@ -26,10 +26,7 @@
       pushVersion=maxVersion + 1;
       logger.warn("Push Version is not specified, this might create issues during rebalance/restore. Store" + storeName + " Generated version "+ pushVersion);
     }
-    FileBackedCachingStorageEngine quotaStore=(FileBackedCachingStorageEngine)storeRepository.getStorageEngine(SystemStoreConstants.SystemStoreName.voldsys$_store_quotas.toString());
-    String quotaKey=QuotaUtils.makeQuotaKey(storeName,QuotaType.STORAGE_SPACE);
-    String diskQuotaSize=quotaStore.cacheGet(quotaKey);
-    Long diskQuotaSizeInKB=(diskQuotaSize == null) ? null : Long.parseLong(diskQuotaSize);
+    Long diskQuotaSizeInKB=QuotaUtils.getQuota(storeName,QuotaType.STORAGE_SPACE,storeRepository);
     ReadOnlyStoreFetchOperation operation=new ReadOnlyStoreFetchOperation(requestId,metadataStore,store,fileFetcher,storeName,fetchUrl,pushVersion,diskQuotaSizeInKB);
     AdminServiceRequestHandler.storeLock.lock();
     try {

@@ -1,6 +1,7 @@
 {
   if (roStoreToReplicationFactorMap.size() == 0)   return;
   boolean checkResult=true;
+  boolean isSizePresent=false;
   for (  Map.Entry<String,Integer> storeAndReplicationFactor : roStoreToReplicationFactorMap.entrySet()) {
     String storeName=storeAndReplicationFactor.getKey();
     Integer replicationFactor=storeAndReplicationFactor.getValue();
@@ -21,6 +22,9 @@
         break;
       }
       for (      ReadOnlyFileEntry entry : fileEntries) {
+        if (entry.getSize() > 0) {
+          isSizePresent=true;
+        }
         if (fileToNodesMap.containsKey(entry) == false) {
           fileToNodesMap.put(entry,new ArrayList<String>());
         }
@@ -31,6 +35,9 @@
       ReadOnlyFileEntry entry=fileToNodes.getKey();
       List<String> nodes=fileToNodes.getValue();
       if (nodes.size() == replicationFactor) {
+        continue;
+      }
+ else       if (isSizePresent && entry.getSize() == 0) {
         continue;
       }
  else {

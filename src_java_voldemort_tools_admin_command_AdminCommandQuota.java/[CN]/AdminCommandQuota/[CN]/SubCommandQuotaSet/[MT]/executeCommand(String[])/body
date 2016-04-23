@@ -42,6 +42,7 @@
   allNodes=options.has(AdminParserUtils.OPT_ALL_NODES);
   if (options.has(AdminParserUtils.OPT_NODE)) {
     nodeIds=(List<Integer>)options.valuesOf(AdminParserUtils.OPT_NODE);
+    allNodes=false;
   }
   if (options.has(AdminParserUtils.OPT_CONFIRM)) {
     confirm=true;
@@ -55,7 +56,12 @@
   System.out.println("  " + Joiner.on(", ").join(storeNames));
   System.out.println("Location:");
   System.out.println("  bootstrap url = " + url);
-  System.out.println("  node = all nodes");
+  if (allNodes || nodeIds == null) {
+    System.out.println("  node = all nodes");
+  }
+ else {
+    System.out.println("  node = " + Joiner.on(", ").join(nodeIds));
+  }
   if (!AdminToolUtils.askConfirm(confirm,"set quota")) {
     return;
   }

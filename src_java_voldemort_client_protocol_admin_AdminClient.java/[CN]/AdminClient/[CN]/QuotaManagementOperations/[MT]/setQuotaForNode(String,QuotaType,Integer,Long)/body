@@ -2,9 +2,10 @@
   try {
     String quotaKey=QuotaUtils.makeQuotaKey(storeName,quotaType);
     ByteArray keyArray=new ByteArray(quotaKey.getBytes("UTF8"));
-    VectorClock clock=VectorClockUtils.makeClockWithCurrentTime(currentCluster.getNodeIds());
-    NodeValue<ByteArray,byte[]> nodeKeyValue=new NodeValue<ByteArray,byte[]>(nodeId,keyArray,new Versioned<byte[]>(ByteUtils.getBytes(quota.toString(),"UTF8"),clock));
-    storeOps.deleteNodeKeyValue(SystemStoreConstants.SystemStoreName.voldsys$_store_quotas.name(),nodeId,keyArray);
+    VectorClock clock=makeDenseClock();
+    byte[] valueArray=ByteUtils.getBytes(quota.toString(),"UTF8");
+    Versioned<byte[]> value=new Versioned<byte[]>(valueArray,clock);
+    NodeValue<ByteArray,byte[]> nodeKeyValue=new NodeValue<ByteArray,byte[]>(nodeId,keyArray,value);
     storeOps.putNodeKeyValue(SystemStoreConstants.SystemStoreName.voldsys$_store_quotas.name(),nodeKeyValue);
   }
  catch (  UnsupportedEncodingException e) {

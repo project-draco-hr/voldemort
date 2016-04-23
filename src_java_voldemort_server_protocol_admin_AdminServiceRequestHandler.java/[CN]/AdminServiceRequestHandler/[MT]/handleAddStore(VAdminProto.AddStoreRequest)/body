@@ -18,7 +18,8 @@ synchronized (lock) {
         StorageEngine<ByteArray,byte[],byte[]> engine=storageService.openStore(def);
         try {
           metadataStore.addStoreDefinition(def);
-          adminClient.quotaMgmtOps.setQuotaForNode(def.getName(),QuotaType.STORAGE_SPACE,metadataStore.getNodeId(),voldemortConfig.getDefaultStorageSpaceQuotaInKB());
+          long defaultQuota=voldemortConfig.getDefaultStorageSpaceQuotaInKB();
+          QuotaUtils.setQuota(def.getName(),QuotaType.STORAGE_SPACE,storeRepository,metadataStore.getCluster().getNodeIds(),defaultQuota);
         }
  catch (        Exception e) {
           boolean isReadOnly=ReadOnlyStorageConfiguration.TYPE_NAME.equals(def.getType());
