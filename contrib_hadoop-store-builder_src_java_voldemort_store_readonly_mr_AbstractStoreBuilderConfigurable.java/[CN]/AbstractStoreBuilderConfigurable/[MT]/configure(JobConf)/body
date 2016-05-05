@@ -3,8 +3,10 @@
   List<StoreDefinition> storeDefs=new StoreDefinitionsMapper().readStoreList(new StringReader(conf.get("stores.xml")));
   if (storeDefs.size() != 1)   throw new IllegalStateException("Expected to find only a single store, but found multiple!");
   this.storeDef=storeDefs.get(0);
-  this.numChunks=conf.getInt(VoldemortBuildAndPushJob.NUM_CHUNKS,-1);
-  if (this.numChunks < 1)   throw new VoldemortException(VoldemortBuildAndPushJob.NUM_CHUNKS + " not specified in the job conf.");
+  this.numChunks=conf.getInt(NUM_CHUNKS,-1);
+  if (this.numChunks < 1) {
+    throw new VoldemortException(NUM_CHUNKS + " not specified in the MapReduce JobConf (should NEVER happen)");
+  }
   this.saveKeys=conf.getBoolean(VoldemortBuildAndPushJob.SAVE_KEYS,true);
   this.reducerPerBucket=conf.getBoolean(VoldemortBuildAndPushJob.REDUCER_PER_BUCKET,true);
   this.buildPrimaryReplicasOnly=conf.getBoolean(VoldemortBuildAndPushJob.BUILD_PRIMARY_REPLICAS_ONLY,false);

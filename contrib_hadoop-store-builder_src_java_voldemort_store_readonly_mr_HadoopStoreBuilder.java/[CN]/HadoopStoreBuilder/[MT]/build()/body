@@ -56,11 +56,7 @@
  else {
       numReducers=numReducers * numChunks;
     }
-    if (this.numChunksOverride > 0) {
-      logger.info("The " + VoldemortBuildAndPushJob.NUM_CHUNKS + " setting is overridden "+ "by config, so we'll use the override ("+ this.numChunksOverride+ ") "+ "and discard the dynamically computed value ("+ numChunks+ ").");
-      numChunks=this.numChunksOverride;
-    }
-    conf.setInt(VoldemortBuildAndPushJob.NUM_CHUNKS,numChunks);
+    conf.setInt(AbstractStoreBuilderConfigurable.NUM_CHUNKS,numChunks);
     conf.setNumReduceTasks(numReducers);
     if (isAvro) {
       conf.setPartitionerClass(AvroStoreBuilderPartitioner.class);
