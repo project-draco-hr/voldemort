@@ -31,9 +31,9 @@ catch (  IllegalArgumentException e) {
     pushVersion=pushVersions.get(storeName);
     pushVersion++;
   }
-  info("Initiating swap of " + storeName + " with dataDir: "+ dataDir);
+  info("Initiating fetch of " + storeName + " with dataDir: "+ dataDir);
   AdminStoreSwapper swapper=new AdminStoreSwapper(cluster,executor,client,httpTimeoutMs,rollbackFailedSwap,failedFetchStrategyList,clusterName,buildPrimaryReplicasOnly);
-  swapper.swapStoreData(storeName,modifiedDataDir,pushVersion);
+  swapper.fetchAndSwapStoreData(storeName,modifiedDataDir,pushVersion);
   info("Swap complete.");
   executor.shutdownNow();
   executor.awaitTermination(10,TimeUnit.SECONDS);

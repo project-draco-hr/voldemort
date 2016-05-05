@@ -5,7 +5,7 @@
     long newVersion=adminClient.readonlyOps.getROCurrentVersion(nodeId,Lists.newArrayList(STORE_NAME)).get(STORE_NAME);
     if (newVersion != currentVersion)     fail("Current version (on " + nodeId + ") = "+ newVersion+ " is not equal to others");
   }
-  swapper.swapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 1);
+  swapper.fetchAndSwapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 1);
   for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
     File[] versionDirs=ReadOnlyUtils.getVersionDirs(baseDirs[nodeId]);
     for (    File versionDir : versionDirs) {
@@ -15,7 +15,7 @@
   temporaryDir=createTempROFolder();
   Utils.mkdirs(new File(baseDirs[1],"version-" + Long.toString(currentVersion + 3)));
   try {
-    swapper.swapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 3);
+    swapper.fetchAndSwapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 3);
     fail("Should throw a VoldemortException during pushing to node 0");
   }
  catch (  VoldemortException e) {
@@ -43,7 +43,7 @@
   toSwap.put(nodeWithId1,new AdminStoreSwapper.Response(versionPlusThree.getAbsolutePath()));
   swapper.invokeSwap(STORE_NAME,toSwap);
   try {
-    swapper.swapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 2);
+    swapper.fetchAndSwapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 2);
     fail("Should throw a VoldemortException during pushing to node 0, 1");
   }
  catch (  VoldemortException e) {
@@ -55,7 +55,7 @@
   }
   servers[1].getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.REBALANCING_MASTER_SERVER);
   try {
-    swapper.swapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 4);
+    swapper.fetchAndSwapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 4);
     fail("Should have thrown exception during swapping");
   }
  catch (  VoldemortException e) {
@@ -67,7 +67,7 @@
   }
   temporaryDir=createTempROFolder();
   servers[1].getMetadataStore().put(MetadataStore.SERVER_STATE_KEY,MetadataStore.VoldemortState.NORMAL_SERVER);
-  swapper.swapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 5);
+  swapper.fetchAndSwapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 5);
   for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
     long currentNodeVersion=adminClient.readonlyOps.getROCurrentVersion(nodeId,Lists.newArrayList(STORE_NAME)).get(STORE_NAME);
     assertTrue(currentNodeVersion == (currentVersion + 5));

@@ -5,7 +5,7 @@
     long newVersion=adminClient.readonlyOps.getROCurrentVersion(nodeId,Lists.newArrayList(STORE_NAME)).get(STORE_NAME);
     if (newVersion != currentVersion)     fail("Current version (on " + nodeId + ") = "+ newVersion+ " is not equal to others");
   }
-  swapper.swapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 1);
+  swapper.fetchAndSwapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 1);
   for (int nodeId=0; nodeId < NUM_NODES; nodeId++) {
     File[] versionDirs=ReadOnlyUtils.getVersionDirs(baseDirs[nodeId]);
     for (    File versionDir : versionDirs) {
@@ -15,7 +15,7 @@
   temporaryDir=createTempROFolder();
   Utils.mkdirs(new File(baseDirs[1],"version-" + Long.toString(currentVersion + 3)));
   try {
-    swapper.swapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 3);
+    swapper.fetchAndSwapStoreData(STORE_NAME,temporaryDir.getAbsolutePath(),currentVersion + 3);
     fail("Should throw a VoldemortException during pushing to node 0");
   }
  catch (  VoldemortException e) {
