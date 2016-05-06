@@ -6,9 +6,9 @@
   Class mapperClass;
   Class<? extends InputFormat> inputFormatClass;
   if (this.isAvroJob) {
-    configuration.set("avro.rec.schema",getRecordSchema());
-    configuration.set("avro.key.schema",getKeySchema());
-    configuration.set("avro.val.schema",getValueSchema());
+    configuration.set(HadoopStoreBuilder.AVRO_REC_SCHEMA,getRecordSchema());
+    configuration.set(AvroStoreBuilderMapper.AVRO_KEY_SCHEMA,getKeySchema());
+    configuration.set(AvroStoreBuilderMapper.AVRO_VALUE_SCHEMA,getValueSchema());
     configuration.set(VoldemortBuildAndPushJob.AVRO_KEY_FIELD,this.keyFieldName);
     configuration.set(VoldemortBuildAndPushJob.AVRO_VALUE_FIELD,this.valueFieldName);
     mapperClass=AvroStoreBuilderMapper.class;
@@ -17,6 +17,9 @@
  else {
     mapperClass=JsonStoreBuilderMapper.class;
     inputFormatClass=JsonSequenceFileInputFormat.class;
+  }
+  if (props.containsKey(AbstractStoreBuilderConfigurable.NUM_CHUNKS)) {
+    log.warn("N.B.: The '" + AbstractStoreBuilderConfigurable.NUM_CHUNKS + "' config parameter is now "+ "deprecated and ignored. The BnP job will automatically determine a proper value for this setting.");
   }
   HadoopStoreBuilder builder=new HadoopStoreBuilder(getId() + "-build-store",props,configuration,mapperClass,inputFormatClass,this.adminClientPerCluster.get(url).getAdminClientCluster(),this.storeDef,tempDir,outputDir,getInputPath(),checkSumType,props.getBoolean(SAVE_KEYS,true),props.getBoolean(REDUCER_PER_BUCKET,true),props.getInt(BUILD_CHUNK_SIZE,1024 * 1024 * 1024),this.isAvroJob,this.minNumberOfRecords,this.buildPrimaryReplicasOnly);
   builder.build();
