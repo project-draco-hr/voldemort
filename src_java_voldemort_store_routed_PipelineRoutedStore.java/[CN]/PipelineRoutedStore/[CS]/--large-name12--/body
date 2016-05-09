@@ -9,7 +9,9 @@
     }
   }
   this.nonblockingSlopStores=nonblockingSlopStores;
+  boolean isZonedClient;
   if (clientZoneId == Zone.UNSET_ZONE_ID) {
+    isZonedClient=false;
     Collection<Zone> availableZones=cluster.getZones();
     this.clientZone=availableZones.iterator().next();
     if (availableZones.size() > 1) {
@@ -21,7 +23,18 @@
     }
   }
  else {
+    isZonedClient=true;
     this.clientZone=cluster.getZoneById(clientZoneId);
+  }
+  String storeName=storeDef.getName();
+  boolean isSystemStore=SystemStoreConstants.isSystemStore(storeName);
+  boolean isRouteToAllStrategy=routingStrategy.getType().equals(RoutingStrategyType.TO_ALL_STRATEGY);
+  if (isZonedClient && isSystemStore && isRouteToAllStrategy) {
+    logger.info("Enabling zone routing for Store" + storeName);
+    forceZoneRouting=true;
+  }
+ else {
+    forceZoneRouting=false;
   }
   this.nonblockingStores=new ConcurrentHashMap<Integer,NonblockingStore>(nonblockingStores);
   this.slopStores=slopStores;
