@@ -1,4 +1,7 @@
 {
+  if (remoteNodeIds == null || remoteNodeIds.size() == 0) {
+    throw new IllegalArgumentException("One ore more nodes expected for NodeIds");
+  }
   for (  Integer currentNodeId : remoteNodeIds) {
     logger.info("Setting " + clusterKey + " and "+ storesKey+ " for "+ getAdminClientCluster().getNodeById(currentNodeId).getHost()+ ":"+ getAdminClientCluster().getNodeById(currentNodeId).getId());
     updateRemoteMetadataPair(currentNodeId,clusterKey,clusterValue,storesKey,storesValue);
@@ -6,7 +9,7 @@
   if (clusterKey.equals(SystemStoreConstants.CLUSTER_VERSION_KEY)) {
     metadataMgmtOps.updateMetadataversion(remoteNodeIds,clusterKey);
   }
-  if (storesKey.equals(SystemStoreConstants.STORES_VERSION_KEY)) {
+ else   if (storesKey.equals(SystemStoreConstants.STORES_VERSION_KEY)) {
     StoreDefinitionsMapper storeDefsMapper=new StoreDefinitionsMapper();
     List<StoreDefinition> storeDefs=storeDefsMapper.readStoreList(new StringReader(storesValue.getValue()));
     if (storeDefs != null) {
