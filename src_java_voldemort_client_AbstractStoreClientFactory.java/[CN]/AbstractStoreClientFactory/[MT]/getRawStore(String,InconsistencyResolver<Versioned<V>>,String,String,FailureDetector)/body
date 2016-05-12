@@ -13,8 +13,14 @@
   this.cluster=clusterMapper.readCluster(new StringReader(clusterXml),false);
   String storesXml=customStoresXml;
   if (storesXml == null) {
-    logger.debug("Fetching store definition...");
-    storesXml=bootstrapMetadataWithRetries(MetadataStore.STORES_KEY,bootstrapUrls);
+    String storesKey=storeName;
+    if (config.isFetchAllStoresXmlInBootstrap()) {
+      storesKey=MetadataStore.STORES_KEY;
+    }
+    if (logger.isDebugEnabled()) {
+      logger.debug("Fetching store definition for Store " + storeName + " key "+ storesKey);
+    }
+    storesXml=bootstrapMetadataWithRetries(storesKey,bootstrapUrls);
   }
   if (logger.isDebugEnabled()) {
     logger.debug("Obtained cluster metadata xml" + clusterXml);

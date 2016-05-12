@@ -6,9 +6,9 @@
     }
  catch (    BootstrapFailureException e) {
       storeClientFactoryStats.incrementCount(StoreClientFactoryStats.Tracked.FAILED_BOOTSTRAP_EVENT);
-      logger.warn("Failed to bootstrap store");
+      logger.warn("Failed to bootstrap store . Key " + key + " Urls "+ Arrays.toString(urls));
       if (nTries < this.maxBootstrapRetries) {
-        int backOffTime=5 * nTries;
+        int backOffTime=config.getBootstrapRetryWaitTimeSeconds() * nTries;
         logger.warn("Will try to bootstrap will try again after " + backOffTime + " seconds.");
         try {
           Thread.sleep(backOffTime * 1000);
@@ -22,5 +22,6 @@
       storeClientFactoryStats.incrementCount(StoreClientFactoryStats.Tracked.BOOTSTRAP_EVENT);
     }
   }
-  throw new BootstrapFailureException("No available bootstrap servers found!");
+  String errorMessage="No available bootstrap servers found! Key " + key + " Urls "+ Arrays.toString(urls);
+  throw new BootstrapFailureException(errorMessage);
 }
