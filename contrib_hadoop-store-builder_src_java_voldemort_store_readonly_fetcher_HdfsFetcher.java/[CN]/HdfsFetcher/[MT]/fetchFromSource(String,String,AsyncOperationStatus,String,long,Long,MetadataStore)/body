@@ -12,12 +12,12 @@
     if (destination.exists()) {
       throw new VoldemortException("Version directory " + destination.getAbsolutePath() + " already exists");
     }
-    boolean isFile=fs.isFile(rootPath);
+    boolean isFile=isFile(fs,rootPath);
     stats=new HdfsCopyStats(sourceFileUrl,destination,false,maxVersionsStatsFile,isFile,null);
     jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
     logger.info("Starting fetch for : " + sourceFileUrl);
     FetchStrategy fetchStrategy=new BasicFetchStrategy(this,fs,stats,status,bufferSize);
-    if (!fs.isFile(rootPath)) {
+    if (isFile) {
       Utils.mkdirs(destination);
       HdfsDirectory rootDirectory=new HdfsDirectory(fs,rootPath,this.voldemortConfig);
       List<HdfsDirectory> directoriesToFetch=Lists.newArrayList();

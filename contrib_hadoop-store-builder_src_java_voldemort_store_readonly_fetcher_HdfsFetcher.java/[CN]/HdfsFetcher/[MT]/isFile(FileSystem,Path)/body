@@ -1,0 +1,19 @@
+{
+  for (int attempt=1; attempt <= getMaxAttempts(); attempt++) {
+    try {
+      return fs.isFile(rootPath);
+    }
+ catch (    IOException e) {
+      logger.error("Error while calling isFile for path:" + rootPath.toString() + "  Attempt: #"+ attempt+ "/"+ getMaxAttempts());
+      if (getRetryDelayMs() > 0) {
+        try {
+          Thread.sleep(getRetryDelayMs());
+        }
+ catch (        InterruptedException ie) {
+          logger.error("Fetcher is interrupted while wating to retry.",ie);
+        }
+      }
+    }
+  }
+  throw new VoldemortException("After retrying " + getMaxAttempts() + "times, can not get result from filesystem for isFile.");
+}
