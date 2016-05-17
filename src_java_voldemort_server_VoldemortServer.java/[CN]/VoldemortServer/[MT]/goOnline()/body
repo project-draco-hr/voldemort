@@ -1,5 +1,11 @@
 {
-  getMetadataStore().setOfflineState(false);
-  createOnlineServices();
-  startOnlineServices();
+  ReadOnlyStoreStatusValidation validation=validateReadOnlyStoreStatusBeforeGoingOnline();
+  if (validation.readyToGoOnline) {
+    getMetadataStore().setOfflineState(false);
+    createOnlineServices();
+    startOnlineServices();
+  }
+  if (validation.e != null) {
+    throw new VoldemortException("Problem while going online!",validation.e);
+  }
 }

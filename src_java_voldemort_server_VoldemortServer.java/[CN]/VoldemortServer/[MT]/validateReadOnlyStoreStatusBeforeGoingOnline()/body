@@ -1,0 +1,56 @@
+{
+  List<StorageEngine<ByteArray,byte[],byte[]>> storageEngines=storageService.getStoreRepository().getStorageEnginesByClass(ReadOnlyStorageEngine.class);
+  if (storageEngines.isEmpty()) {
+    logger.debug("There are no Read-Only stores on this node.");
+    return new ReadOnlyStoreStatusValidation(true,null);
+  }
+ else {
+    List<String> storesWithDisabledVersions=Lists.newArrayList();
+    for (    StorageEngine storageEngine : storageEngines) {
+      StoreVersionManager storeVersionManager=(StoreVersionManager)storageEngine.getCapability(StoreCapabilityType.DISABLE_STORE_VERSION);
+      if (storeVersionManager.hasAnyDisabledVersion()) {
+        storesWithDisabledVersions.add(storageEngine.getName());
+      }
+    }
+    if (storesWithDisabledVersions.isEmpty()) {
+      if (voldemortConfig.getHighAvailabilityStateAutoCleanUp()) {
+        logger.info(VoldemortConfig.PUSH_HA_STATE_AUTO_CLEANUP + "=true, so the server will attempt to delete the HA state for this node, if any.");
+        FailedFetchLock failedFetchLock=null;
+        try {
+          failedFetchLock=FailedFetchLock.getLock(getVoldemortConfig(),new Props());
+          failedFetchLock.removeObsoleteStateForNode(getVoldemortConfig().getNodeId());
+          logger.info("Successfully ensured that the BnP HA shared state is cleared for this node.");
+        }
+ catch (        ClassNotFoundException e) {
+          return new ReadOnlyStoreStatusValidation(true,new VoldemortException("Failed to find FailedFetchLock class!",e));
+        }
+catch (        Exception e) {
+          return new ReadOnlyStoreStatusValidation(true,new VoldemortException("Exception while trying to remove obsolete HA state!",e));
+        }
+ finally {
+          IOUtils.closeQuietly(failedFetchLock);
+        }
+      }
+ else {
+        logger.info(VoldemortConfig.PUSH_HA_STATE_AUTO_CLEANUP + "=false, so the server will NOT attempt to delete the HA state for this node, if any.");
+      }
+      logger.info("No Read-Only stores are disabled. Going online as planned.");
+      return new ReadOnlyStoreStatusValidation(true,null);
+    }
+ else {
+      StringBuilder stringBuilder=new StringBuilder();
+      stringBuilder.append("Cannot go online, because the following Read-Only stores have some disabled version(s): ");
+      boolean firstItem=true;
+      for (      String storeName : storesWithDisabledVersions) {
+        if (firstItem) {
+          firstItem=false;
+        }
+ else {
+          stringBuilder.append(", ");
+        }
+        stringBuilder.append(storeName);
+      }
+      return new ReadOnlyStoreStatusValidation(false,new VoldemortException(stringBuilder.toString()));
+    }
+  }
+}

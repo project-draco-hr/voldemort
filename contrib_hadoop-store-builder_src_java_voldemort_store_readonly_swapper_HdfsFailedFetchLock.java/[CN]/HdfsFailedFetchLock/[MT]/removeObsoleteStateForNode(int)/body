@@ -1,0 +1,26 @@
+{
+  int attempts=1;
+  boolean success=false;
+  while (!success && attempts <= maxAttempts) {
+    try {
+      String nodeIdDir=NODE_ID_DIR_PREFIX + nodeId;
+      Path failedNodePath=new Path(clusterDir + "/" + nodeIdDir);
+      ;
+      if (this.fileSystem.exists(failedNodePath)) {
+        this.fileSystem.delete(failedNodePath,true);
+        logger.info("The BnP HA shared state has been cleared for node: " + nodeId);
+      }
+ else {
+        logger.info("No-op. The BnP HA shared state already has no directory for node: " + nodeId);
+      }
+      success=true;
+    }
+ catch (    IOException e) {
+      handleIOException(e,CLEAR_OBSOLETE_STATE,attempts);
+      attempts++;
+    }
+  }
+  if (!success) {
+    throw new VoldemortException(exceptionMessage(CLEAR_OBSOLETE_STATE));
+  }
+}

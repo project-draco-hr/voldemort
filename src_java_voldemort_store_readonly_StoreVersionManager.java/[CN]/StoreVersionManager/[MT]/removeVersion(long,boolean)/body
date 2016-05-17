@@ -1,0 +1,19 @@
+{
+  if (currentVersion == version) {
+    currentVersion=-1;
+  }
+  versionToEnabledMap.remove(version);
+  if (alsoSyncRemoteState && config != null && config.getHighAvailabilityStateAutoCleanUp()) {
+    FailedFetchLock failedFetchLock=null;
+    try {
+      failedFetchLock=FailedFetchLock.getLock(config,new Props());
+      removeRemoteObsoleteState(failedFetchLock);
+    }
+ catch (    Exception e) {
+      logger.error("Failed to execute failedFetchLock.removeObsoleteStateForStore() for store " + storeName,e);
+    }
+ finally {
+      IOUtils.closeQuietly(failedFetchLock);
+    }
+  }
+}

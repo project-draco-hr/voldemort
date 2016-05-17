@@ -1,0 +1,14 @@
+{
+  if (config != null && config.getHighAvailabilityStateAutoCleanUp()) {
+    try {
+      failedFetchLock.removeObsoleteStateForStore(config.getNodeId(),storeName,versionToEnabledMap);
+    }
+ catch (    Exception e) {
+      logger.error("Failed to execute failedFetchLock.removeObsoleteStateForStore() for store " + storeName,e);
+    }
+    logger.info("Successfully synced internal state with remote FailedFetchLock state for store " + storeName);
+  }
+ else {
+    logger.debug("Will not attempt removeRemoteObsoleteState() because it is disabled. " + "This can be enabled with " + VoldemortConfig.PUSH_HA_STATE_AUTO_CLEANUP + "=true");
+  }
+}
