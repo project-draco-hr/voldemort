@@ -17,7 +17,7 @@
     jmxName=JmxUtils.registerMbean("hdfs-copy-" + copyCount.getAndIncrement(),stats);
     logger.info("Starting fetch for : " + sourceFileUrl);
     FetchStrategy fetchStrategy=new BasicFetchStrategy(this,fs,stats,status,bufferSize);
-    if (isFile) {
+    if (!isFile) {
       Utils.mkdirs(destination);
       HdfsDirectory rootDirectory=new HdfsDirectory(fs,rootPath,this.voldemortConfig);
       List<HdfsDirectory> directoriesToFetch=Lists.newArrayList();
