@@ -28,7 +28,9 @@
           if (e instanceof StoreTimeoutException) {
             e=new UnreachableStoreException("Error establishing connection for destination " + dest,new ConnectException(e.getMessage()));
           }
-          logger.info("Reporting exception to pool " + e.getClass() + " for destination "+ dest);
+          if (logger.isDebugEnabled()) {
+            logger.debug("Reporting exception to pool " + e.getClass() + " for destination "+ dest);
+          }
           pool.reportException(dest,e);
         }
       }
