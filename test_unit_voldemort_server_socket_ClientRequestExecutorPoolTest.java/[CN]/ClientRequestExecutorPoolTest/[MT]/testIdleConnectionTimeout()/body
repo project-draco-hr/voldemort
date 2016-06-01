@@ -1,0 +1,19 @@
+{
+  long idleConnectionTimeoutMs=1000;
+  ClientRequestExecutorPool execPool=new ClientRequestExecutorPool(2,maxConnectionsPerNode,CONNECTION_TIMEOUT_MS,SOCKET_TIMEOUT_MS,idleConnectionTimeoutMs,32 * 1024,false,true,new String());
+  List<ClientRequestExecutor> executors=new ArrayList<ClientRequestExecutor>();
+  for (int i=0; i < maxConnectionsPerNode; i++) {
+    executors.add(execPool.checkout(dest1));
+  }
+  for (  ClientRequestExecutor executor : executors) {
+    execPool.checkin(dest1,executor);
+  }
+  validateResourceCount(execPool," checkout should have created " + maxConnectionsPerNode,maxConnectionsPerNode);
+  Thread.sleep(idleConnectionTimeoutMs + 1000);
+  ClientRequestExecutor exec1=execPool.checkout(dest1);
+  for (  ClientRequestExecutor executor : executors) {
+    assertNotSame("Connections should have been destroyed and new one expected",exec1,executor);
+  }
+  execPool.checkin(dest1,exec1);
+  validateResourceCount(execPool," all idle connections should have been destroyed ",1);
+}

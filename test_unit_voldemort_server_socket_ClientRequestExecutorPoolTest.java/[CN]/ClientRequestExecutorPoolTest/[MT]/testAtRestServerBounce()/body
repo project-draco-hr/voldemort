@@ -3,16 +3,16 @@
   ClientRequestExecutor sas2=pool.checkout(dest1);
   pool.checkin(dest1,sas1);
   pool.checkin(dest1,sas2);
-  validateResourceCount("two connections are created ",2);
+  validateResourceCount(pool,"two connections are created ",2);
   stopServer();
-  validateResourceCount("cache should have 2 dead connections ",2);
+  validateResourceCount(pool,"cache should have 2 dead connections ",2);
   Thread.sleep(5);
   testConnectionFailure(pool,dest1,ConnectException.class);
-  validateResourceCount("next checkout should have cleared all dead connections",0);
+  validateResourceCount(pool,"next checkout should have cleared all dead connections",0);
   startServer();
   sas1=pool.checkout(dest1);
   sas2=pool.checkout(dest1);
   pool.checkin(dest1,sas1);
   pool.checkin(dest1,sas2);
-  validateResourceCount("Back to normal 2 connections expected ",2);
+  validateResourceCount(pool,"Back to normal 2 connections expected ",2);
 }

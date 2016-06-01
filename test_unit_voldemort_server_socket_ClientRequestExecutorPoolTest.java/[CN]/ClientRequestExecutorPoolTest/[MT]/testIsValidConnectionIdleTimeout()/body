@@ -1,0 +1,8 @@
+{
+  long idleConnectionTimeoutMs=200;
+  ClientRequestExecutorPool execPool=new ClientRequestExecutorPool(2,maxConnectionsPerNode,CONNECTION_TIMEOUT_MS,SOCKET_TIMEOUT_MS,idleConnectionTimeoutMs,32 * 1024,false,true,new String());
+  ClientRequestExecutor clientRequest=execPool.checkout(dest1);
+  assertTrue("Connection checked out is valid",execPool.getFactory().validate(dest1,clientRequest));
+  Thread.sleep(idleConnectionTimeoutMs);
+  assertFalse("Idle connection will expire",execPool.getFactory().validate(dest1,clientRequest));
+}

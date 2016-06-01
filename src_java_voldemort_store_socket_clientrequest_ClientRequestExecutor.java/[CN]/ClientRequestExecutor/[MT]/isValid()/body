@@ -1,5 +1,12 @@
 {
   if (isClosed())   return false;
   Socket s=socketChannel.socket();
-  return !s.isClosed() && s.isBound() && s.isConnected();
+  boolean isValidSocket=!s.isClosed() && s.isBound() && s.isConnected();
+  if (!isValidSocket) {
+    return false;
+  }
+  if (isIdleConnectionTimeoutExceeded()) {
+    return false;
+  }
+  return true;
 }

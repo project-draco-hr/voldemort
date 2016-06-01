@@ -1,0 +1,10 @@
+{
+  if (idleConnectionTimeoutNs > 0) {
+    long elapsedTime=System.nanoTime() - startTime;
+    if (elapsedTime > idleConnectionTimeoutNs) {
+      logger.warn("Idle connection " + socketChannel.socket() + " exceeded for destination "+ socketDesination+ ". Start time(ns) "+ startTime+ " timeout (ns) "+ idleConnectionTimeoutNs+ " elapsed time(ns) "+ elapsedTime);
+      return true;
+    }
+  }
+  return false;
+}

@@ -18,7 +18,7 @@
     }
     ClientRequestSelectorManager selectorManager=selectorManagers[counter.getAndIncrement() % selectorManagers.length];
     Selector selector=selectorManager.getSelector();
-    clientRequestExecutor=new ClientRequestExecutor(selector,socketChannel,socketBufferSize,dest);
+    clientRequestExecutor=new ClientRequestExecutor(selector,socketChannel,socketBufferSize,idleConnectionTimeoutNs,dest);
     int timeoutMs=this.getTimeout();
     ProtocolNegotiatorClientRequest protocolRequest=new ProtocolNegotiatorClientRequest(dest.getRequestFormatType());
     NonblockingStoreCallback callback=new NonblockingStoreCallback(){

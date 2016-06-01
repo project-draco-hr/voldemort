@@ -1,6 +1,12 @@
 {
   this.connectTimeoutMs=connectTimeoutMs;
   this.soTimeoutMs=soTimeoutMs;
+  if (idleConnectionTimeoutMs > 0) {
+    this.idleConnectionTimeoutNs=TimeUnit.NANOSECONDS.convert(idleConnectionTimeoutMs,TimeUnit.MILLISECONDS);
+  }
+ else {
+    this.idleConnectionTimeoutNs=-1;
+  }
   this.created=new AtomicInteger(0);
   this.destroyed=new AtomicInteger(0);
   this.socketBufferSize=socketBufferSize;

@@ -1,11 +1,17 @@
 {
-  if (expiration <= 0)   return true;
-  long nowNs=System.nanoTime();
-  if (nowNs <= expiration)   return true;
-  if (logger.isEnabledFor(Level.WARN)) {
-    long allowedTime=expiration - startTime;
-    long elapsedTime=nowNs - startTime;
-    logger.warn("Client request associated with " + socketChannel.socket() + " Destination "+ socketDesination+ " timed out. Start time(ns) "+ startTime+ " allowed time(ns) "+ allowedTime+ " elapsed time(ns) "+ elapsedTime);
+  if (expiration <= 0) {
+    if (!isIdleConnectionTimeoutExceeded()) {
+      return true;
+    }
+  }
+ else {
+    long nowNs=System.nanoTime();
+    if (nowNs <= expiration)     return true;
+    if (logger.isEnabledFor(Level.WARN)) {
+      long allowedTime=expiration - startTime;
+      long elapsedTime=nowNs - startTime;
+      logger.warn("Client request associated with " + socketChannel.socket() + " Destination "+ socketDesination+ " timed out. Start time(ns) "+ startTime+ " allowed time(ns) "+ allowedTime+ " elapsed time(ns) "+ elapsedTime);
+    }
   }
   isExpired=true;
   close();
