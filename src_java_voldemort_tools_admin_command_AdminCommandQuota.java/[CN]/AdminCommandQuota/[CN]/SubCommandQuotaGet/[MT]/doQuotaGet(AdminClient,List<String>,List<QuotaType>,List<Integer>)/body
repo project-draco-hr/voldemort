@@ -5,7 +5,7 @@
     }
  else {
       System.out.println("Store " + storeName);
-      for (      String quotaType : quotaTypes) {
+      for (      QuotaType quotaType : quotaTypes) {
         Versioned<String> quotaVal=null;
         if (nodeIds == null) {
           quotaVal=adminClient.quotaMgmtOps.getQuota(storeName,quotaType);
@@ -19,7 +19,7 @@
  else {
           for (          Integer nodeId : nodeIds) {
             quotaVal=null;
-            quotaVal=adminClient.quotaMgmtOps.getQuotaForNode(storeName,QuotaType.valueOf(quotaType),nodeId);
+            quotaVal=adminClient.quotaMgmtOps.getQuotaForNode(storeName,quotaType,nodeId);
             if (quotaVal == null) {
               System.out.println("No quota set for " + quotaType + " on node "+ nodeId);
             }

@@ -1,5 +1,18 @@
 {
+  RuntimeException lastEx=null;
+  List<Integer> failedNodes=new ArrayList<Integer>();
   for (  Integer id : currentCluster.getNodeIds()) {
-    setQuotaForNode(storeName,quotaType,id,quota);
+    try {
+      setQuotaForNode(storeName,quotaType,id,quota);
+    }
+ catch (    RuntimeException ex) {
+      lastEx=ex;
+      failedNodes.add(id);
+      logger.info("Setting Quota on Store " + storeName + " Type "+ quotaType+ " value "+ quota+ " failed. Reason "+ ex.getMessage());
+    }
+  }
+  if (lastEx != null) {
+    logger.info("Setting Quota failed on Nodes " + Arrays.toString(failedNodes.toArray()));
+    throw lastEx;
   }
 }

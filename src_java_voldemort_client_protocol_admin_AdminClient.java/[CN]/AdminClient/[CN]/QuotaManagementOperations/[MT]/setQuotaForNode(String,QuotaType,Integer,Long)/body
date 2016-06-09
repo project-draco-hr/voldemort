@@ -1,14 +1,15 @@
 {
+  String quotaKey=QuotaUtils.makeQuotaKey(storeName,quotaType);
+  ByteArray keyArray;
   try {
-    String quotaKey=QuotaUtils.makeQuotaKey(storeName,quotaType);
-    ByteArray keyArray=new ByteArray(quotaKey.getBytes("UTF8"));
-    VectorClock clock=makeDenseClock();
-    byte[] valueArray=ByteUtils.getBytes(quota.toString(),"UTF8");
-    Versioned<byte[]> value=new Versioned<byte[]>(valueArray,clock);
-    NodeValue<ByteArray,byte[]> nodeKeyValue=new NodeValue<ByteArray,byte[]>(nodeId,keyArray,value);
-    storeOps.putNodeKeyValue(SystemStoreConstants.SystemStoreName.voldsys$_store_quotas.name(),nodeKeyValue);
+    keyArray=new ByteArray(quotaKey.getBytes("UTF8"));
   }
  catch (  UnsupportedEncodingException e) {
     throw new VoldemortException(e);
   }
+  VectorClock clock=makeDenseClock();
+  byte[] valueArray=ByteUtils.getBytes(quota.toString(),"UTF8");
+  Versioned<byte[]> value=new Versioned<byte[]>(valueArray,clock);
+  NodeValue<ByteArray,byte[]> nodeKeyValue=new NodeValue<ByteArray,byte[]>(nodeId,keyArray,value);
+  storeOps.putNodeKeyValue(SystemStoreConstants.SystemStoreName.voldsys$_store_quotas.name(),nodeKeyValue);
 }
