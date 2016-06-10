@@ -38,7 +38,7 @@
     tempFs.delete(tempDir,true);
     long size=sizeOfPath(tempFs,inputPath);
     logger.info("Data size = " + size + ", replication factor = "+ storeDef.getReplicationFactor()+ ", numNodes = "+ cluster.getNumberOfNodes()+ ", numPartitions = "+ cluster.getNumberOfPartitions()+ ", chunk size = "+ chunkSizeBytes);
-    int numChunks=(int)(size / cluster.getNumberOfPartitions() / chunkSizeBytes);
+    int numChunks=(int)(size / cluster.getNumberOfPartitions() / chunkSizeBytes) + 1;
     int numReducers=cluster.getNumberOfPartitions();
     if (saveKeys) {
       if (buildPrimaryReplicasOnly) {
@@ -58,6 +58,7 @@
     }
     conf.setInt(AbstractStoreBuilderConfigurable.NUM_CHUNKS,numChunks);
     conf.setNumReduceTasks(numReducers);
+    logger.info("Number of chunks: " + numChunks + ", number of reducers: "+ numReducers+ ", save keys: "+ saveKeys+ ", reducerPerBucket: "+ reducerPerBucket+ ", buildPrimaryReplicasOnly: "+ buildPrimaryReplicasOnly);
     if (isAvro) {
       conf.setPartitionerClass(AvroStoreBuilderPartitioner.class);
       conf.setMapOutputKeyClass(ByteBuffer.class);
@@ -71,10 +72,28 @@
       AvroJob.setMapperClass(conf,mapperClass);
       conf.setReducerClass(AvroStoreBuilderReducer.class);
     }
-    logger.info("Number of chunks: " + numChunks + ", number of reducers: "+ numReducers+ ", save keys: "+ saveKeys+ ", reducerPerBucket: "+ reducerPerBucket+ ", buildPrimaryReplicasOnly: "+ buildPrimaryReplicasOnly);
     logger.info("Building store...");
-    RunningJob job=JobClient.runJob(conf);
-    Counters counters=job.getCounters();
+    JobClient jc=new JobClient(conf);
+    RunningJob runningJob=jc.submitJob(conf);
+    Counters counters=runningJob.getCounters();
+    try {
+      if (!jc.monitorAndPrintJob(conf,runningJob)) {
+        long mapOutputBytes=counters.getCounter(Task.Counter.MAP_OUTPUT_BYTES);
+        long averageNumberOfBytesPerChunk=mapOutputBytes / numChunks / cluster.getNumberOfPartitions();
+        if (averageNumberOfBytesPerChunk > (HadoopStoreWriter.DEFAULT_CHUNK_SIZE)) {
+          float chunkSizeBloat=averageNumberOfBytesPerChunk / (float)HadoopStoreWriter.DEFAULT_CHUNK_SIZE;
+          long suggestedTargetChunkSize=(long)(HadoopStoreWriter.DEFAULT_CHUNK_SIZE / chunkSizeBloat);
+          logger.error("The number of bytes per chunk may be too high." + " averageNumberOfBytesPerChunk = " + averageNumberOfBytesPerChunk + ". Consider setting "+ VoldemortBuildAndPushJob.BUILD_CHUNK_SIZE+ "="+ suggestedTargetChunkSize);
+        }
+ else {
+          logger.error("Job Failed: " + runningJob.getFailureInfo());
+        }
+        throw new VoldemortException("BnP's MapReduce job failed.");
+      }
+    }
+ catch (    InterruptedException ie) {
+      Thread.currentThread().interrupt();
+    }
     long numberOfRecords=counters.getCounter(Task.Counter.REDUCE_INPUT_GROUPS);
     if (numberOfRecords < minNumberOfRecords) {
       throw new VoldemortException("The number of records in the data set (" + numberOfRecords + ") is lower than the minimum required ("+ minNumberOfRecords+ "). Aborting.");
