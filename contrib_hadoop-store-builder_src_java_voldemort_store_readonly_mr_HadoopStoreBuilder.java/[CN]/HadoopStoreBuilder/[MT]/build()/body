@@ -87,19 +87,35 @@
     if (!this.checkSumType.equals(CheckSumType.NONE) && checkSumGenerator == null) {
       throw new VoldemortException("Could not generate checksum digest for type " + this.checkSumType);
     }
-    List<String> directories=Lists.newArrayList();
+    List<Integer> directorySuffixes=Lists.newArrayList();
     if (buildPrimaryReplicasOnly) {
       for (int partitionId=0; partitionId < cluster.getNumberOfPartitions(); partitionId++) {
-        directories.add(ReadOnlyUtils.PARTITION_DIRECTORY_PREFIX + partitionId);
+        directorySuffixes.add(partitionId);
       }
     }
  else {
       for (      Node node : cluster.getNodes()) {
-        directories.add(ReadOnlyUtils.NODE_DIRECTORY_PREFIX + node.getId());
+        directorySuffixes.add(node.getId());
       }
     }
     ReadOnlyStorageMetadata fullStoreMetadata=new ReadOnlyStorageMetadata();
-    for (    String directoryName : directories) {
+    List<Integer> emptyDirectories=Lists.newArrayList();
+    final String directoryPrefix=buildPrimaryReplicasOnly ? ReadOnlyUtils.PARTITION_DIRECTORY_PREFIX : ReadOnlyUtils.NODE_DIRECTORY_PREFIX;
+    final long LOG_INTERVAL_TIME=TimeUnit.MILLISECONDS.convert(30,TimeUnit.SECONDS);
+    final int LOG_INTERVAL_COUNT=buildPrimaryReplicasOnly ? 100 : 5;
+    int lastLogCount=0;
+    long lastLogTime=0;
+    long startTimeMS=System.currentTimeMillis();
+    for (int index=0; index < directorySuffixes.size(); index++) {
+      int directorySuffix=directorySuffixes.get(index);
+      long elapsedTime=System.currentTimeMillis() - lastLogTime;
+      long elapsedCount=index - lastLogCount;
+      if (elapsedTime >= LOG_INTERVAL_TIME || elapsedCount >= LOG_INTERVAL_COUNT) {
+        lastLogTime=System.currentTimeMillis();
+        lastLogCount=index;
+        logger.info("Processed " + directorySuffix + " out of "+ directorySuffixes.size()+ " directories.");
+      }
+      String directoryName=directoryPrefix + directorySuffix;
       ReadOnlyStorageMetadata metadata=new ReadOnlyStorageMetadata();
       if (saveKeys) {
         metadata.add(ReadOnlyStorageMetadata.FORMAT,ReadOnlyStorageFormat.READONLY_V2.getCode());
@@ -109,10 +125,11 @@
       }
       Path directoryPath=new Path(outputDir.toString(),directoryName);
       if (!outputFs.exists(directoryPath)) {
-        logger.info("No data generated for " + directoryName + ". Generating empty folder");
+        logger.debug("No data generated for " + directoryName + ". Generating empty folder");
+        emptyDirectories.add(directorySuffix);
         outputFs.mkdirs(directoryPath);
         outputFs.setPermission(directoryPath,new FsPermission(HADOOP_FILE_PERMISSION));
-        logger.info("Setting permission to 755 for " + directoryPath);
+        logger.debug("Setting permission to 755 for " + directoryPath);
       }
       processCheckSumMetadataFile(directoryName,outputFs,checkSumGenerator,directoryPath,metadata);
       if (buildPrimaryReplicasOnly) {
@@ -123,6 +140,12 @@
       fullStoreMetadata.addNestedMetadata(directoryName,metadata);
     }
     writeMetadataFile(outputDir,outputFs,ReadOnlyUtils.FULL_STORE_METADATA_FILE,fullStoreMetadata);
+    long elapsedTimeMs=System.currentTimeMillis() - startTimeMS;
+    long elapsedTimeSeconds=TimeUnit.SECONDS.convert(elapsedTimeMs,TimeUnit.MILLISECONDS);
+    logger.info("Total Processed directories: " + directorySuffixes.size() + ". Elapsed Time (Seconds):"+ elapsedTimeSeconds);
+    if (emptyDirectories.size() > 0) {
+      logger.info("Empty directories: " + Arrays.toString(emptyDirectories.toArray()));
+    }
   }
  catch (  Exception e) {
     logger.error("Error in Store builder",e);
