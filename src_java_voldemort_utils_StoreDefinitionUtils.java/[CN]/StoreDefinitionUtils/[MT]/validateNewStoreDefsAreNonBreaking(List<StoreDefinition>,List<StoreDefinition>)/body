@@ -1,0 +1,15 @@
+{
+  Map<String,StoreDefinition> oldStoreMap=new HashMap<String,StoreDefinition>();
+  Map<String,StoreDefinition> newStoreMap=new HashMap<String,StoreDefinition>();
+  for (  StoreDefinition storeDef : oldStoreDefs) {
+    oldStoreMap.put(storeDef.getName(),storeDef);
+  }
+  for (  StoreDefinition storeDef : newStoreDefs) {
+    newStoreMap.put(storeDef.getName(),storeDef);
+  }
+  for (  String storeName : oldStoreMap.keySet()) {
+    if (newStoreMap.containsKey(storeName)) {
+      validateNewStoreDefIsNonBreaking(oldStoreMap.get(storeName),newStoreMap.get(storeName));
+    }
+  }
+}
