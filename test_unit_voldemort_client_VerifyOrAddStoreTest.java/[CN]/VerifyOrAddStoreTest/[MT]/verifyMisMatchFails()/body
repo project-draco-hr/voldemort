@@ -1,0 +1,20 @@
+{
+  StoreDefinition incompatibleDef=getIncompatibleStoreDef();
+  final int NODE_ID=0;
+  adminClient.storeMgmtOps.addStore(incompatibleDef,NODE_ID);
+  try {
+    adminClient.storeMgmtOps.verifyOrAddStore(newStoreDef,PROCESS_NAME,false);
+    Assert.fail("Non existent store create with flag disabled should have thrown error");
+  }
+ catch (  VoldemortException ex) {
+  }
+  for (  Integer nodeId : cluster.getNodeIds()) {
+    StoreDefinition retrieved=retrieveStoreOnNode(newStoreName,nodeId);
+    if (nodeId == NODE_ID) {
+      assertEquals("mismatched store def should be left intact",incompatibleDef,retrieved);
+    }
+ else {
+      assertNull("Store should not exist in this node",retrieved);
+    }
+  }
+}

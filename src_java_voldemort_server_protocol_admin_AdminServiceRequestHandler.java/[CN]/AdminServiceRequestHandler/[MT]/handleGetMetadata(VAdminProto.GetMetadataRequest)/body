@@ -6,16 +6,10 @@
     if (keyString.isEmpty()) {
       throw new VoldemortException("Received admin operation which got interpreted as a " + "GetMetadataRequest with an empty metadata key. This " + "typically means that the requested admin operation is not "+ "supported on this version of the Voldemort server.");
     }
-    if (MetadataStore.METADATA_KEYS.contains(keyString) || metadataStore.isValidStore(keyString)) {
-      List<Versioned<byte[]>> versionedList=metadataStore.get(key,null);
-      int size=(versionedList.size() > 0) ? 1 : 0;
-      if (size > 0) {
-        Versioned<byte[]> versioned=versionedList.get(0);
-        response.setVersion(ProtoUtils.encodeVersioned(versioned));
-      }
-    }
- else {
-      throw new VoldemortException("Metadata Key passed '" + keyString + "' is not handled yet");
+    List<Versioned<byte[]>> versionedList=metadataStore.get(key,null);
+    if (versionedList.size() > 0) {
+      Versioned<byte[]> versioned=versionedList.get(0);
+      response.setVersion(ProtoUtils.encodeVersioned(versioned));
     }
   }
  catch (  VoldemortException e) {

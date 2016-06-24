@@ -1,0 +1,18 @@
+{
+  final int NODE_ID=servers.length - 1;
+  ServerTestUtils.stopVoldemortServer(servers[NODE_ID]);
+  try {
+    adminClient.storeMgmtOps.verifyOrAddStore(newStoreDef,PROCESS_NAME);
+    Assert.fail("Non existent store create with flag disabled should have thrown error");
+  }
+ catch (  VoldemortException ex) {
+  }
+  for (  Integer nodeId : cluster.getNodeIds()) {
+    if (nodeId == NODE_ID) {
+    }
+ else {
+      StoreDefinition retrieved=retrieveStoreOnNode(newStoreName,nodeId);
+      assertEquals("store successfully created on online nodes",newStoreDef,retrieved);
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  AdminClient client=getAdminClient();
+  assertFalse("Newly Created admin client has valid cluster",client.isClusterModified());
+  String clusterXml=new ClusterMapper().writeCluster(cluster);
+  client.metadataMgmtOps.updateRemoteMetadata(cluster.getNodeIds(),MetadataStore.CLUSTER_KEY,clusterXml);
+  assertTrue("After cluster update",client.isClusterModified());
+}

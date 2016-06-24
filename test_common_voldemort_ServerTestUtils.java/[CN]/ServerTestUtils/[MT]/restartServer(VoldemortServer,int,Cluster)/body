@@ -1,0 +1,15 @@
+{
+  ServerTestUtils.stopVoldemortServer(oldServer);
+  String baseDirPath=oldServer.getVoldemortConfig().getVoldemortHome();
+  String parentDirPath=Paths.get(baseDirPath).getParent().toString();
+  List<StoreDefinition> storeDefs=oldServer.getMetadataStore().getStoreDefList();
+  final boolean ENABLE_NIO=true;
+  VoldemortConfig config=ServerTestUtils.createServerConfigWithDefs(ENABLE_NIO,nodeId,parentDirPath,cluster,storeDefs,new Properties());
+  SocketStoreFactory socketStoreFactory=getSocketStoreFactory();
+  try {
+    return startVoldemortServer(socketStoreFactory,config,cluster);
+  }
+  finally {
+    socketStoreFactory.close();
+  }
+}

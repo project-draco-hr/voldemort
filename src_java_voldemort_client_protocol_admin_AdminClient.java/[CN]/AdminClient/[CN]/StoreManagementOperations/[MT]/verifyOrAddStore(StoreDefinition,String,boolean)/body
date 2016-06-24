@@ -9,9 +9,15 @@
     int nodeId=node.getId();
     List<StoreDefinition> remoteStoreDefs=Lists.newArrayList();
     try {
-      remoteStoreDefs=metadataMgmtOps.getRemoteStoreDefList(nodeId).getValue();
+      String metadataKey=fetchSingleStore ? newStoreDef.getName() : MetadataStore.STORES_KEY;
+      remoteStoreDefs=metadataMgmtOps.getRemoteStoreDefList(nodeId,metadataKey).getValue();
     }
- catch (    VoldemortException e) {
+ catch (    StoreNotFoundException ex) {
+      if (logger.isDebugEnabled()) {
+        logger.debug("Store does not exist " + node.briefToString() + " message "+ ex.getMessage());
+      }
+    }
+catch (    VoldemortException e) {
       if (ExceptionUtils.recursiveClassEquals(e,UnreachableStoreException.class,IOException.class)) {
         logger.warn("Failed to contact " + node.briefToString() + " in order to validate the StoreDefinition.");
         unreachableNodes.add(node);
