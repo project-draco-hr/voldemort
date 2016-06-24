@@ -1,0 +1,11 @@
+{
+  try {
+    Properties props=MetadataVersionStoreUtils.getProperties(metadataVersionSysStoreClient);
+    long retrievedVersion=MetadataVersionStoreUtils.getVersion(props,SystemStoreConstants.CLUSTER_VERSION_KEY);
+    return retrievedVersion > this.clusterVersion;
+  }
+ catch (  Exception e) {
+    logger.info("Error retrieving cluster metadata version");
+    return true;
+  }
+}
