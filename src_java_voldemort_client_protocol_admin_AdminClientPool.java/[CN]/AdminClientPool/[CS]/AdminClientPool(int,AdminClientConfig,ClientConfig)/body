@@ -1,0 +1,19 @@
+{
+  if (maxClients <= 0) {
+    throw new IllegalArgumentException("maxClients should be positive");
+  }
+  if (adminConfig == null) {
+    throw new IllegalArgumentException("AdminClientConfig is null");
+  }
+  if (clientConfig == null) {
+    throw new IllegalArgumentException("ClientConfig is null");
+  }
+  String[] bootstrapUrls=clientConfig.getBootstrapUrls();
+  if (bootstrapUrls == null || bootstrapUrls.length == 0) {
+    throw new IllegalArgumentException("ClientConfig has no bootstrap Urls specified");
+  }
+  this.adminConfig=adminConfig;
+  this.clientConfig=clientConfig;
+  this.clientCache=new ArrayBlockingQueue<AdminClient>(maxClients);
+  this.isClosed=new AtomicBoolean(false);
+}

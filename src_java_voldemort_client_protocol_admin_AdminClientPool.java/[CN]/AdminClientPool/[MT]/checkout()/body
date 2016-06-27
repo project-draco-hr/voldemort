@@ -1,0 +1,15 @@
+{
+  if (isClosed.get()) {
+    throw new IllegalStateException("Pool is closing");
+  }
+  AdminClient client;
+  while ((client=clientCache.poll()) != null) {
+    if (!client.isClusterModified()) {
+      return client;
+    }
+ else {
+      client.close();
+    }
+  }
+  return createAdminClient();
+}

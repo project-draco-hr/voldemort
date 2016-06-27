@@ -1,0 +1,12 @@
+{
+  if (isClosed.get()) {
+    throw new IllegalStateException("Pool is closing");
+  }
+  if (client == null) {
+    throw new IllegalArgumentException("client is null");
+  }
+  boolean isCheckedIn=clientCache.offer(client);
+  if (!isCheckedIn) {
+    client.close();
+  }
+}

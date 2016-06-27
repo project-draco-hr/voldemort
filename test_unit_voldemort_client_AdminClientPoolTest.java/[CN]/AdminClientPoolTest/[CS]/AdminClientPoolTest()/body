@@ -1,0 +1,9 @@
+{
+  servers=new VoldemortServer[NUM_SERVERS];
+  int partitionMap[][]={{0,1,2,3}};
+  cluster=ServerTestUtils.startVoldemortCluster(servers,partitionMap,new Properties(),storesXmlfile);
+  Node node=cluster.getNodeById(0);
+  String bootstrapUrl="tcp://" + node.getHost() + ":"+ node.getSocketPort();
+  clientConfig=new ClientConfig().setBootstrapUrls(bootstrapUrl);
+  pool=new AdminClientPool(MAX_CLIENTS,new AdminClientConfig(),clientConfig);
+}

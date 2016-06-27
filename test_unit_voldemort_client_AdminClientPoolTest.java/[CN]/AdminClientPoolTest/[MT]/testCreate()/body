@@ -1,0 +1,9 @@
+{
+  AdminClient client1=pool.checkout();
+  Assert.assertEquals("Nothing should exist in cache",0,pool.size());
+  pool.checkin(client1);
+  Assert.assertEquals("Size should be 1",1,pool.size());
+  AdminClient client2=pool.checkout();
+  Assert.assertSame("CheckOut after checkin is not returning the same",client1,client2);
+  Assert.assertEquals("Size should be 0 again",0,pool.size());
+}

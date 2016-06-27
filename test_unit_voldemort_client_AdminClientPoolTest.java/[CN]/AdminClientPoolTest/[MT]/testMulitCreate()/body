@@ -1,0 +1,16 @@
+{
+  final int SIZE=MAX_CLIENTS + 2;
+  AdminClient[] clients=new AdminClient[SIZE];
+  for (int i=0; i < SIZE; i++) {
+    clients[i]=pool.checkout();
+    Assert.assertEquals("Nothing should exist in cache",0,pool.size());
+  }
+  for (int i=0; i < MAX_CLIENTS; i++) {
+    pool.checkin(clients[i]);
+    Assert.assertEquals("Different size of pool",i + 1,pool.size());
+  }
+  for (int i=MAX_CLIENTS; i < SIZE; i++) {
+    pool.checkin(clients[i]);
+    Assert.assertEquals("No more additional elements",MAX_CLIENTS,pool.size());
+  }
+}

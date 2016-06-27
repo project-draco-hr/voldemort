@@ -1,0 +1,10 @@
+{
+  boolean isPreviouslyClosed=isClosed.getAndSet(true);
+  if (isPreviouslyClosed) {
+    return;
+  }
+  AdminClient client;
+  while ((client=clientCache.poll()) != null) {
+    client.close();
+  }
+}

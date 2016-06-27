@@ -1,0 +1,22 @@
+{
+  AdminClient client=pool.checkout();
+  pool.close();
+  try {
+    pool.checkout();
+    Assert.fail(" checkout should have failed");
+  }
+ catch (  IllegalStateException ex) {
+  }
+  try {
+    pool.checkin(client);
+    Assert.fail(" checkin should have failed");
+  }
+ catch (  IllegalStateException ex) {
+  }
+  try {
+    pool.size();
+    Assert.fail(" size should have failed ");
+  }
+ catch (  IllegalStateException ex) {
+  }
+}
