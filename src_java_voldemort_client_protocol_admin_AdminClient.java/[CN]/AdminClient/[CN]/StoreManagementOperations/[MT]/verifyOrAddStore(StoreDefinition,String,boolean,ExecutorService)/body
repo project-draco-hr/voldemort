@@ -1,0 +1,28 @@
+{
+  if (!newStoreDef.getType().equals(ReadOnlyStorageConfiguration.TYPE_NAME)) {
+    throw new VoldemortException("verifyOrAddStore() is intended only for Read-Only stores!");
+  }
+  List<Node> unreachableNodes=Lists.newArrayList();
+  List<Integer> nodesMissingNewStore=getNodesMissingNewStore(newStoreDef,localProcessName,executor,unreachableNodes);
+  if (!createStore && !nodesMissingNewStore.isEmpty())   throw new VoldemortException("Store: " + newStoreDef.getName() + " is not found in the current cluster.");
+  if (executor == null) {
+    storeMgmtOps.addStore(newStoreDef,nodesMissingNewStore);
+  }
+ else {
+    addStoresViaExecutorService(newStoreDef,nodesMissingNewStore,executor);
+  }
+  if (unreachableNodes.size() > 0) {
+    String errorMessage="verifyOrAddStore() failed against the following nodes: ";
+    boolean first=true;
+    for (    Node node : unreachableNodes) {
+      if (first) {
+        first=false;
+      }
+ else {
+        errorMessage+=", ";
+      }
+      errorMessage+=node.briefToString();
+    }
+    throw new UnreachableStoreException(errorMessage);
+  }
+}

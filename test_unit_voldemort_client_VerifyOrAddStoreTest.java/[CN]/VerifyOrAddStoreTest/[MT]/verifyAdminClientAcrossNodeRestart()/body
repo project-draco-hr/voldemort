@@ -1,5 +1,9 @@
 {
-  adminClient.storeMgmtOps.verifyOrAddStore(newStoreDef,PROCESS_NAME);
+  long newQuota=500000 + new Random().nextInt(10000);
+  adminClient.storeMgmtOps.verifyOrAddStore(newStoreDef,PROCESS_NAME,service);
+  for (  QuotaType quotaType : new QuotaType[]{QuotaType.STORAGE_SPACE,QuotaType.GET_THROUGHPUT}) {
+    adminClient.quotaMgmtOps.setQuota(newStoreName,quotaType,newQuota,service);
+  }
   final int NODE_ID=servers.length - 1;
   ServerTestUtils.stopVoldemortServer(servers[NODE_ID]);
   try {
@@ -9,13 +13,29 @@
  catch (  VoldemortException ex) {
   }
   try {
-    adminClient.storeMgmtOps.verifyOrAddStore(newStoreDef,PROCESS_NAME);
+    adminClient.storeMgmtOps.verifyOrAddStore(newStoreDef,PROCESS_NAME,service);
     Assert.fail("Downed node should have thrown an error");
   }
  catch (  VoldemortException ex) {
   }
-  servers[NODE_ID]=ServerTestUtils.restartServer(servers[NODE_ID],NODE_ID,cluster);
+  for (  QuotaType quotaType : new QuotaType[]{QuotaType.STORAGE_SPACE,QuotaType.GET_THROUGHPUT}) {
+    try {
+      adminClient.quotaMgmtOps.setQuota(newStoreName,quotaType,newQuota,service);
+      Assert.fail("Node failure should have raised an error");
+    }
+ catch (    VoldemortException ex) {
+    }
+  }
+  servers[NODE_ID]=ServerTestUtils.restartServer(servers[NODE_ID],NODE_ID,cluster,serverProps);
   StoreDefinition retrieved=retrieveStoreOnNode(newStoreName,NODE_ID);
   assertEquals("After restart, should retrieve the store",newStoreDef,retrieved);
-  adminClient.storeMgmtOps.verifyOrAddStore(newStoreDef,PROCESS_NAME);
+  adminClient.storeMgmtOps.verifyOrAddStore(newStoreDef,PROCESS_NAME,service);
+  long updatedQuota=newQuota + 100;
+  for (  QuotaType quotaType : new QuotaType[]{QuotaType.STORAGE_SPACE,QuotaType.GET_THROUGHPUT}) {
+    adminClient.quotaMgmtOps.setQuota(newStoreName,quotaType,updatedQuota,service);
+    for (    Integer nodeId : cluster.getNodeIds()) {
+      Long retrievedQuota=getQuotaForNode(newStoreName,quotaType,nodeId);
+      assertEquals("Set and retrieved different quota",updatedQuota,retrievedQuota.longValue());
+    }
+  }
 }

@@ -1,0 +1,36 @@
+{
+  Map<Integer,Future> nodeTasks=new HashMap<Integer,Future>();
+  if (executor != null) {
+    for (    final Integer id : currentCluster.getNodeIds()) {
+      Runnable task=new Runnable(){
+        @Override public void run(){
+          setQuotaForNode(storeName,quotaType,id,quota);
+        }
+      }
+;
+      Future future=executor.submit(task);
+      nodeTasks.put(id,future);
+    }
+  }
+  RuntimeException lastEx=null;
+  List<Integer> failedNodes=new ArrayList<Integer>();
+  for (  Integer nodeId : currentCluster.getNodeIds()) {
+    try {
+      if (executor == null) {
+        setQuotaForNode(storeName,quotaType,nodeId,quota);
+      }
+ else {
+        validateTaskCompleted(nodeId,nodeTasks);
+      }
+    }
+ catch (    RuntimeException ex) {
+      lastEx=ex;
+      failedNodes.add(nodeId);
+      logger.info("Setting Quota on Store " + storeName + " Type "+ quotaType+ " value "+ quota+ " failed. Reason "+ ex.getMessage());
+    }
+  }
+  if (lastEx != null) {
+    logger.info("Setting Quota failed on Nodes " + Arrays.toString(failedNodes.toArray()));
+    throw lastEx;
+  }
+}

@@ -2,8 +2,22 @@
   final int NODE_ID=servers.length - 1;
   ServerTestUtils.stopVoldemortServer(servers[NODE_ID]);
   try {
-    adminClient.storeMgmtOps.verifyOrAddStore(newStoreDef,PROCESS_NAME);
-    Assert.fail("Non existent store create with flag disabled should have thrown error");
+    adminClient.storeMgmtOps.verifyOrAddStore(newStoreDef,PROCESS_NAME,false,service);
+    Assert.fail("Node failure should have raised an error");
+  }
+ catch (  VoldemortException ex) {
+  }
+  for (  Integer nodeId : cluster.getNodeIds()) {
+    if (nodeId == NODE_ID) {
+    }
+ else {
+      StoreDefinition retrieved=retrieveStoreOnNode(newStoreName,nodeId);
+      assertNull("store should not exist",retrieved);
+    }
+  }
+  try {
+    adminClient.storeMgmtOps.verifyOrAddStore(newStoreDef,PROCESS_NAME,service);
+    Assert.fail("Node failure should have raised an error");
   }
  catch (  VoldemortException ex) {
   }
@@ -13,6 +27,23 @@
  else {
       StoreDefinition retrieved=retrieveStoreOnNode(newStoreName,nodeId);
       assertEquals("store successfully created on online nodes",newStoreDef,retrieved);
+    }
+  }
+  for (  QuotaType quotaType : new QuotaType[]{QuotaType.STORAGE_SPACE,QuotaType.GET_THROUGHPUT}) {
+    long newQuota=100000 + new Random().nextInt(10000);
+    try {
+      adminClient.quotaMgmtOps.setQuota(newStoreName,quotaType,newQuota,service);
+      Assert.fail("Node failure should have raised an error");
+    }
+ catch (    VoldemortException ex) {
+    }
+    for (    Integer nodeId : cluster.getNodeIds()) {
+      if (nodeId == NODE_ID) {
+      }
+ else {
+        Long retrievedQuota=getQuotaForNode(newStoreName,quotaType,nodeId);
+        assertEquals("Set and retrieved different quota",newQuota,retrievedQuota.longValue());
+      }
     }
   }
 }

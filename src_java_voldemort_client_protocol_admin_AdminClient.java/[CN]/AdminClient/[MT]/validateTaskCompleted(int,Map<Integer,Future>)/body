@@ -1,0 +1,17 @@
+{
+  try {
+    nodeTasks.get(nodeId).get();
+  }
+ catch (  ExecutionException ex) {
+    Throwable t=ex.getCause();
+    if (t instanceof VoldemortException) {
+      throw (VoldemortException)t;
+    }
+ else {
+      throw new RuntimeException("Unexpected exception from Future",t);
+    }
+  }
+catch (  InterruptedException ex) {
+    throw new VoldemortException("Future task is interrupted for Node" + nodeId,ex);
+  }
+}

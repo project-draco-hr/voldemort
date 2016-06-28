@@ -1,0 +1,27 @@
+{
+  if (executor == null) {
+    throw new IllegalArgumentException("executor is null");
+  }
+  Map<Integer,Future> nodeTasks=new HashMap<Integer,Future>();
+  for (  final Integer nodeId : nodesMissingNewStore) {
+    Future future=executor.submit(new Runnable(){
+      @Override public void run(){
+        storeMgmtOps.addStore(newStoreDef,nodeId);
+      }
+    }
+);
+    nodeTasks.put(nodeId,future);
+  }
+  RuntimeException lastEx=null;
+  for (  final Integer nodeId : nodesMissingNewStore) {
+    try {
+      validateTaskCompleted(nodeId,nodeTasks);
+    }
+ catch (    RuntimeException ex) {
+      lastEx=ex;
+    }
+  }
+  if (lastEx != null) {
+    throw lastEx;
+  }
+}

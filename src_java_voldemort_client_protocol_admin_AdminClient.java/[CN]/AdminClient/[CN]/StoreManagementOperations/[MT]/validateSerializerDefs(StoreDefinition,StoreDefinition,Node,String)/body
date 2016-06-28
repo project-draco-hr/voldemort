@@ -1,0 +1,47 @@
+{
+  SerializerDefinition newKeySerializerDef=newStoreDef.getKeySerializer();
+  SerializerDefinition newValueSerializerDef=newStoreDef.getValueSerializer();
+  SerializerDefinition remoteKeySerializerDef=remoteStoreDef.getKeySerializer();
+  SerializerDefinition remoteValueSerializerDef=remoteStoreDef.getValueSerializer();
+  String newValSerDeName=newValueSerializerDef.getName();
+  if (seriailizerMetadataEquals(remoteKeySerializerDef,newKeySerializerDef) && seriailizerMetadataEquals(remoteValueSerializerDef,newValueSerializerDef)) {
+    Object remoteKeyDef, remoteValDef, localKeyDef, localValDef;
+    if (newValSerDeName.equals(DefaultSerializerFactory.AVRO_GENERIC_VERSIONED_TYPE_NAME) || newValSerDeName.equals(DefaultSerializerFactory.AVRO_GENERIC_TYPE_NAME)) {
+      remoteKeyDef=Schema.parse(remoteKeySerializerDef.getCurrentSchemaInfo());
+      remoteValDef=Schema.parse(remoteValueSerializerDef.getCurrentSchemaInfo());
+      localKeyDef=Schema.parse(newKeySerializerDef.getCurrentSchemaInfo());
+      localValDef=Schema.parse(newValueSerializerDef.getCurrentSchemaInfo());
+    }
+ else     if (newValSerDeName.equals(DefaultSerializerFactory.JSON_SERIALIZER_TYPE_NAME)) {
+      remoteKeyDef=JsonTypeDefinition.fromJson(remoteKeySerializerDef.getCurrentSchemaInfo());
+      remoteValDef=JsonTypeDefinition.fromJson(remoteValueSerializerDef.getCurrentSchemaInfo());
+      localKeyDef=JsonTypeDefinition.fromJson(newKeySerializerDef.getCurrentSchemaInfo());
+      localValDef=JsonTypeDefinition.fromJson(newValueSerializerDef.getCurrentSchemaInfo());
+    }
+ else {
+      throw new VoldemortException("verifyOrAddStore() only works with Avro Generic and JSON serialized stores!");
+    }
+    boolean serializerDefinitionsAreEqual=remoteKeyDef.equals(localKeyDef) && remoteValDef.equals(localValDef);
+    if (serializerDefinitionsAreEqual) {
+      StoreDefinition newStoreDefWithRemoteSerializer=getNewStoreWithRemoteSerializer(remoteStoreDef,newStoreDef);
+      if (remoteStoreDef.equals(newStoreDefWithRemoteSerializer)) {
+        return;
+      }
+ else {
+        String errorMessage="Your store schema is identical, " + "but the store definition does not match on " + node.briefToString();
+        logger.error(errorMessage + diffMessage(newStoreDefWithRemoteSerializer,remoteStoreDef,localProcessName));
+        throw new VoldemortException(errorMessage);
+      }
+    }
+ else {
+      String errorMessage="Your store definition does not match the store definition that is " + "already defined on " + node.briefToString();
+      logger.error(errorMessage + diffMessage(newStoreDef,remoteStoreDef,localProcessName));
+      throw new VoldemortException(errorMessage);
+    }
+  }
+ else {
+    String errorMessage="Your store definition does not match the store definition that is " + "already defined on " + node.briefToString();
+    logger.error(errorMessage + diffMessage(newStoreDef,remoteStoreDef,localProcessName));
+    throw new VoldemortException(errorMessage);
+  }
+}

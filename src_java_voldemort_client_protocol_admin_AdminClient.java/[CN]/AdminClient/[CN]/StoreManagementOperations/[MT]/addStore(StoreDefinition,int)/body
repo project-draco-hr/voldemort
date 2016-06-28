@@ -1,3 +1,16 @@
 {
-  addStore(def,Lists.newArrayList(nodeId));
+  StoreDefinitionUtils.validateSchemasAsNeeded(Arrays.asList(def));
+  String value=storeMapper.writeStore(def);
+  VAdminProto.AddStoreRequest.Builder addStoreRequest=VAdminProto.AddStoreRequest.newBuilder().setStoreDefinition(value);
+  VAdminProto.VoldemortAdminRequest request=VAdminProto.VoldemortAdminRequest.newBuilder().setType(VAdminProto.AdminRequestType.ADD_STORE).setAddStore(addStoreRequest).build();
+  Node node=currentCluster.getNodeById(nodeId);
+  if (null == node) {
+    throw new VoldemortException("Invalid node id (" + nodeId + ") specified");
+  }
+  logger.info("Adding store " + def.getName() + " on "+ node.briefToString());
+  VAdminProto.AddStoreResponse.Builder response=rpcOps.sendAndReceive(nodeId,request,VAdminProto.AddStoreResponse.newBuilder());
+  if (response.hasError()) {
+    helperOps.throwException(response.getError());
+  }
+  logger.info("Successfully added " + def.getName() + " on "+ node.briefToString());
 }

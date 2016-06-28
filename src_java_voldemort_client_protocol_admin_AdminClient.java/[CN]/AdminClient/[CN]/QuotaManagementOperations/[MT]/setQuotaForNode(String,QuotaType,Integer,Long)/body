@@ -1,12 +1,5 @@
 {
-  String quotaKey=QuotaUtils.makeQuotaKey(storeName,quotaType);
-  ByteArray keyArray;
-  try {
-    keyArray=new ByteArray(quotaKey.getBytes("UTF8"));
-  }
- catch (  UnsupportedEncodingException e) {
-    throw new VoldemortException(e);
-  }
+  ByteArray keyArray=QuotaUtils.getByteArrayKey(storeName,quotaType);
   VectorClock clock=makeDenseClock();
   byte[] valueArray=ByteUtils.getBytes(quota.toString(),"UTF8");
   Versioned<byte[]> value=new Versioned<byte[]>(valueArray,clock);

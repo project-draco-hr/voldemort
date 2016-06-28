@@ -1,4 +1,12 @@
 {
-  adminClient.storeMgmtOps.verifyOrAddStore(newStoreDef,PROCESS_NAME);
+  adminClient.storeMgmtOps.verifyOrAddStore(newStoreDef,PROCESS_NAME,service);
   verifyStoreAddedOnAllNodes();
+  for (  QuotaType quotaType : new QuotaType[]{QuotaType.STORAGE_SPACE,QuotaType.GET_THROUGHPUT}) {
+    long newQuota=100000 + new Random().nextInt(10000);
+    adminClient.quotaMgmtOps.setQuota(newStoreName,quotaType,newQuota,service);
+    for (    Integer nodeId : cluster.getNodeIds()) {
+      Long retrievedQuota=getQuotaForNode(newStoreName,quotaType,nodeId);
+      assertEquals("Set and retrieved different quota",newQuota,retrievedQuota.longValue());
+    }
+  }
 }

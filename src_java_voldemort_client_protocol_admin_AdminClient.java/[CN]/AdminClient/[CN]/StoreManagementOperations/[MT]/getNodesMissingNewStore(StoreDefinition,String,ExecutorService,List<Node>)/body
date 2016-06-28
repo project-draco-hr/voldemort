@@ -1,0 +1,56 @@
+{
+  List<Integer> nodesMissingNewStore=Lists.newArrayList();
+  ConcurrentMap<Integer,List<StoreDefinition>> nodeStores=new ConcurrentHashMap<Integer,List<StoreDefinition>>();
+  Map<Integer,Future> nodeTasks=new HashMap<Integer,Future>();
+  String storeKey=fetchSingleStore ? newStoreDef.getName() : MetadataStore.STORES_KEY;
+  if (executor != null) {
+    for (    Node node : currentCluster.getNodes()) {
+      int nodeId=node.getId();
+      NodeStoreRetriever task=new NodeStoreRetriever(nodeId,storeKey,nodeStores);
+      Future future=executor.submit(task);
+      nodeTasks.put(nodeId,future);
+    }
+  }
+  for (  Node node : currentCluster.getNodes()) {
+    int nodeId=node.getId();
+    List<StoreDefinition> retrievedStoreDefs;
+    try {
+      if (executor == null) {
+        retrievedStoreDefs=metadataMgmtOps.getRemoteStoreDefList(nodeId,storeKey).getValue();
+      }
+ else {
+        retrievedStoreDefs=getFutureResult(nodeId,nodeTasks,nodeStores);
+      }
+    }
+ catch (    StoreNotFoundException ex) {
+      if (logger.isDebugEnabled()) {
+        logger.debug("Store does not exist " + node.briefToString() + " message "+ ex.getMessage());
+      }
+      retrievedStoreDefs=Lists.newArrayList();
+    }
+catch (    VoldemortException e) {
+      if (ExceptionUtils.recursiveClassEquals(e,UnreachableStoreException.class,IOException.class)) {
+        logger.warn("Failed to contact " + node.briefToString() + " in order to validate the StoreDefinition.");
+        unreachableNodes.add(node);
+        continue;
+      }
+ else {
+        throw e;
+      }
+    }
+    StoreDefinition remoteStoreDef=null;
+    for (    StoreDefinition retrievedStoreDef : retrievedStoreDefs) {
+      if (retrievedStoreDef.getName().equals(newStoreDef.getName())) {
+        remoteStoreDef=retrievedStoreDef;
+        break;
+      }
+    }
+    if (remoteStoreDef == null) {
+      nodesMissingNewStore.add(nodeId);
+    }
+ else {
+      validateStoreDefinition(remoteStoreDef,newStoreDef,node,localProcessName);
+    }
+  }
+  return nodesMissingNewStore;
+}
