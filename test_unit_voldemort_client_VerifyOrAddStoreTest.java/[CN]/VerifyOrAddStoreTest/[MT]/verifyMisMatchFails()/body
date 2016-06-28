@@ -1,7 +1,6 @@
 {
   StoreDefinition incompatibleDef=getIncompatibleStoreDef();
-  final int NODE_ID=0;
-  adminClient.storeMgmtOps.addStore(incompatibleDef,NODE_ID);
+  adminClient.storeMgmtOps.addStore(incompatibleDef,FAILED_NODE_ID);
   try {
     adminClient.storeMgmtOps.verifyOrAddStore(newStoreDef,PROCESS_NAME,false,service);
     Assert.fail("Non existent store create with flag disabled should have thrown error");
@@ -10,7 +9,7 @@
   }
   for (  Integer nodeId : cluster.getNodeIds()) {
     StoreDefinition retrieved=retrieveStoreOnNode(newStoreName,nodeId);
-    if (nodeId == NODE_ID) {
+    if (nodeId == FAILED_NODE_ID) {
       assertEquals("mismatched store def should be left intact",incompatibleDef,retrieved);
     }
  else {

@@ -4,10 +4,9 @@
   for (  QuotaType quotaType : new QuotaType[]{QuotaType.STORAGE_SPACE,QuotaType.GET_THROUGHPUT}) {
     adminClient.quotaMgmtOps.setQuota(newStoreName,quotaType,newQuota,service);
   }
-  final int NODE_ID=servers.length - 1;
-  ServerTestUtils.stopVoldemortServer(servers[NODE_ID]);
+  ServerTestUtils.stopVoldemortServer(servers[FAILED_NODE_ID]);
   try {
-    retrieveStoreOnNode(newStoreName,NODE_ID);
+    retrieveStoreOnNode(newStoreName,FAILED_NODE_ID);
     Assert.fail("Downed node retrieval should have thrown an error");
   }
  catch (  VoldemortException ex) {
@@ -26,8 +25,8 @@
  catch (    VoldemortException ex) {
     }
   }
-  servers[NODE_ID]=ServerTestUtils.restartServer(servers[NODE_ID],NODE_ID,cluster,serverProps);
-  StoreDefinition retrieved=retrieveStoreOnNode(newStoreName,NODE_ID);
+  servers[FAILED_NODE_ID]=ServerTestUtils.restartServer(servers[FAILED_NODE_ID],FAILED_NODE_ID,cluster,serverProps);
+  StoreDefinition retrieved=retrieveStoreOnNode(newStoreName,FAILED_NODE_ID);
   assertEquals("After restart, should retrieve the store",newStoreDef,retrieved);
   adminClient.storeMgmtOps.verifyOrAddStore(newStoreDef,PROCESS_NAME,service);
   long updatedQuota=newQuota + 100;

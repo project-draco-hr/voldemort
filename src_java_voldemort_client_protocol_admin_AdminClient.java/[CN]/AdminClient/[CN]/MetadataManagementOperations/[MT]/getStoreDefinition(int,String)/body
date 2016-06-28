@@ -1,0 +1,26 @@
+{
+  if (storeName == null || storeName.length() == 0) {
+    throw new IllegalArgumentException("storeName");
+  }
+  String storeKey=fetchSingleStore ? storeName : MetadataStore.STORES_KEY;
+  Versioned<List<StoreDefinition>> storeDef;
+  try {
+    storeDef=getRemoteStoreDefList(nodeId,storeKey);
+  }
+ catch (  StoreNotFoundException ex) {
+    logger.info("Store " + storeName + " is not found in node "+ nodeId+ " key used "+ storeKey);
+    return null;
+  }
+  if (storeDef == null || storeDef.getValue() == null) {
+    logger.warn("Unexpected null returned from getRemoteStoreDefList " + storeDef);
+    return null;
+  }
+  List<StoreDefinition> retrievedStoreDefs=storeDef.getValue();
+  for (  StoreDefinition retrievedStoreDef : retrievedStoreDefs) {
+    if (retrievedStoreDef.getName().equals(storeName)) {
+      return retrievedStoreDef;
+    }
+  }
+  logger.info("Store " + storeName + " is not found in node "+ nodeId+ " Total Store"+ retrievedStoreDefs.size()+ " key used "+ storeKey);
+  return null;
+}
