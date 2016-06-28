@@ -8,13 +8,14 @@
   this.dataDirs=new ArrayList<String>();
   this.adminClientPerCluster=Maps.newHashMap();
   String clusterUrlText=props.getString(PUSH_CLUSTER);
+  boolean fetchAllStoresXml=props.getBoolean(FETCH_ALL_STORES_XML,true);
   for (  String url : Utils.COMMA_SEP.split(clusterUrlText.trim())) {
     if (url.trim().length() > 0) {
-      if (clusterURLs.contains(url))       throw new VoldemortException("the URL: " + url + " is duplicated. Please check it out.");
+      if (clusterURLs.contains(url)) {
+        throw new VoldemortException("the URL: " + url + " is repeated in the "+ PUSH_CLUSTER+ " property ");
+      }
       this.clusterURLs.add(url);
-      ClientConfig config=new ClientConfig().setBootstrapUrls(url).setConnectionTimeout(15,TimeUnit.SECONDS);
-      AdminClientConfig adminConfig=new AdminClientConfig().setAdminSocketTimeoutSec(60);
-      AdminClient adminClient=new AdminClient(adminConfig,config);
+      AdminClient adminClient=createAdminClient(url,fetchAllStoresXml);
       this.adminClientPerCluster.put(url,adminClient);
       this.closeables.add(adminClient);
     }
