@@ -1,0 +1,14 @@
+{
+  String storeName=stores.get(0).getName();
+  for (  QuotaType quotaType : QuotaType.values()) {
+    verifyNoQuota(storeName,quotaType);
+    int newQuota=new Random().nextInt(Integer.MAX_VALUE);
+    adminClient.quotaMgmtOps.setQuota(storeName,quotaType,newQuota);
+    verifyValidQuota(storeName,quotaType,newQuota);
+    newQuota=new Random().nextInt(Integer.MAX_VALUE);
+    adminClient.quotaMgmtOps.setQuota(storeName,quotaType,newQuota);
+    verifyValidQuota(storeName,quotaType,newQuota);
+    adminClient.quotaMgmtOps.unsetQuota(storeName,quotaType);
+    verifyNoQuota(storeName,quotaType);
+  }
+}

@@ -1,0 +1,12 @@
+{
+  cluster=ServerTestUtils.getLocalCluster(4);
+  stores=ServerTestUtils.getStoreDefs(10);
+  ssf=new ClientRequestExecutorPool(2,10000,100000,1024);
+  servers=new VoldemortServer[cluster.getNumberOfNodes()];
+  for (  Node node : cluster.getNodes()) {
+    VoldemortConfig config=ServerTestUtils.createServerConfigWithDefs(true,node.getId(),TestUtils.createTempDir().getAbsolutePath(),cluster,stores,new Properties());
+    VoldemortServer vs=ServerTestUtils.startVoldemortServer(ssf,config,cluster);
+    servers[node.getId()]=vs;
+  }
+  adminClient=new AdminClient(cluster);
+}

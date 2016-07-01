@@ -1,5 +1,15 @@
 {
-  String quotaKey=QuotaUtils.makeQuotaKey(storeName,quotaType);
-  quotaSysStoreClient.deleteSysStore(quotaKey);
-  logger.info("Unset quota " + quotaType + " for store "+ storeName);
+  RuntimeException lastEx=null;
+  for (  Integer nodeId : currentCluster.getNodeIds()) {
+    try {
+      deleteQuotaForNode(storeName,quotaType,nodeId);
+    }
+ catch (    RuntimeException ex) {
+      lastEx=ex;
+      logger.info("Deleting Quota on Store " + storeName + " Type "+ quotaType+ "failed",ex);
+    }
+  }
+  if (lastEx != null) {
+    throw lastEx;
+  }
 }

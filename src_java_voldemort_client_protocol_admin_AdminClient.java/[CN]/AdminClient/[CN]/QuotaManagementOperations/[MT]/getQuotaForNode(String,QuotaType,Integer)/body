@@ -1,16 +1,5 @@
 {
   ByteArray keyArray=QuotaUtils.getByteArrayKey(storeName,quotaType);
   List<Versioned<byte[]>> valueObj=storeOps.getNodeKey(SystemStoreConstants.SystemStoreName.voldsys$_store_quotas.name(),nodeId,keyArray);
-  if (valueObj.size() == 0) {
-    return null;
-  }
-  String quotaValue;
-  try {
-    quotaValue=new String(valueObj.get(0).getValue(),"UTF8");
-  }
- catch (  UnsupportedEncodingException ex) {
-    throw new VoldemortApplicationException("Error converting quota value to String",ex);
-  }
-  Version version=valueObj.get(0).getVersion();
-  return new Versioned<String>(quotaValue,version);
+  return convertToString(valueObj);
 }

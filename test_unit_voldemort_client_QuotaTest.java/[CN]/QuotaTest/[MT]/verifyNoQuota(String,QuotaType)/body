@@ -1,0 +1,8 @@
+{
+  Versioned<String> currentQuota=adminClient.quotaMgmtOps.getQuota(storeName,quotaType);
+  Assert.assertNull("no quota expected for store" + storeName + " type "+ quotaType,currentQuota);
+  for (  Integer nodeId : adminClient.getAdminClientCluster().getNodeIds()) {
+    currentQuota=adminClient.quotaMgmtOps.getQuotaForNode(storeName,quotaType,nodeId);
+    Assert.assertNull("no quota expected for store" + storeName + " type "+ quotaType+ " node "+ nodeId,currentQuota);
+  }
+}

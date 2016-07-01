@@ -1,0 +1,8 @@
+{
+  Map<String,Versioned<String>> retrieved=adminClient.quotaMgmtOps.getQuota(storeNames,quotaType);
+  verifyMultipleQuotas(storeNames,retrieved,storeQuotas,"QuotaType " + quotaType);
+  for (  Integer nodeId : adminClient.getAdminClientCluster().getNodeIds()) {
+    retrieved=adminClient.quotaMgmtOps.getQuotaForNode(storeNames,quotaType,nodeId);
+    verifyMultipleQuotas(storeNames,retrieved,storeQuotas,"QuotaType " + quotaType + " node "+ nodeId);
+  }
+}

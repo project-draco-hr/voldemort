@@ -1,0 +1,16 @@
+{
+  if (retrievedValue == null || retrievedValue.size() == 0) {
+    return null;
+  }
+  if (retrievedValue.size() > 1) {
+    throw new VoldemortApplicationException("More than one value present for same quota " + Arrays.toString(retrievedValue.toArray()));
+  }
+  try {
+    String quotaValue=new String(retrievedValue.get(0).getValue(),"UTF8");
+    Version version=retrievedValue.get(0).getVersion();
+    return new Versioned<String>(quotaValue,version);
+  }
+ catch (  UnsupportedEncodingException ex) {
+    throw new VoldemortApplicationException("Error converting quota value to String",ex);
+  }
+}

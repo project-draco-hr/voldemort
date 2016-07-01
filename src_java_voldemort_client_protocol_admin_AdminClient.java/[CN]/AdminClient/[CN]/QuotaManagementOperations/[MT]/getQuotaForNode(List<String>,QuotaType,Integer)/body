@@ -1,0 +1,22 @@
+{
+  if (storeNames == null || storeNames.size() == 0) {
+    throw new IllegalArgumentException("Storenames is a required parameter");
+  }
+  Map<String,ByteArray> storeToKeysMap=new HashMap<String,ByteArray>();
+  for (  String storeName : storeNames) {
+    ByteArray key=QuotaUtils.getByteArrayKey(storeName,quotaType);
+    storeToKeysMap.put(storeName,key);
+  }
+  Map<ByteArray,List<Versioned<byte[]>>> storeToValueMap=storeOps.getAllNodeKeys(SystemStoreConstants.SystemStoreName.voldsys$_store_quotas.name(),nodeId,storeToKeysMap.values());
+  Map<String,Versioned<String>> results=new HashMap<String,Versioned<String>>();
+  for (  Map.Entry<String,ByteArray> storeToKey : storeToKeysMap.entrySet()) {
+    String storeName=storeToKey.getKey();
+    ByteArray storeKey=storeToKey.getValue();
+    Versioned<String> storeQuota=null;
+    if (storeToValueMap.containsKey(storeKey)) {
+      storeQuota=convertToString(storeToValueMap.get(storeKey));
+    }
+    results.put(storeName,storeQuota);
+  }
+  return results;
+}

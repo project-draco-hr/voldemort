@@ -1,0 +1,25 @@
+{
+  for (  QuotaType quotaType : QuotaType.values()) {
+    List<String> existingStoreNames=new ArrayList<String>();
+    Map<String,Integer> storeQuotas=new HashMap<String,Integer>();
+    for (    StoreDefinition store : stores) {
+      String storeName=store.getName();
+      existingStoreNames.add(storeName);
+      int quota=new Random().nextInt();
+      storeQuotas.put(storeName,quota);
+      adminClient.quotaMgmtOps.setQuota(storeName,quotaType,quota);
+    }
+    Collections.shuffle(existingStoreNames);
+    verifyGetAll(existingStoreNames,storeQuotas,quotaType);
+    final int REQUIRED_ELEMENTS=3;
+    int numElements=REQUIRED_ELEMENTS + new Random().nextInt(existingStoreNames.size() - REQUIRED_ELEMENTS);
+    List<String> fewStores=existingStoreNames.subList(0,numElements);
+    verifyGetAll(fewStores,storeQuotas,quotaType);
+    List<String> mixedStores=new ArrayList<String>();
+    mixedStores.addAll(fewStores);
+    for (int i=0; i < 10; i++) {
+      mixedStores.add("NON_EXISTENT_STORE" + i);
+    }
+    verifyGetAll(mixedStores,storeQuotas,quotaType);
+  }
+}

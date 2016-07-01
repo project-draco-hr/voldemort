@@ -1,0 +1,11 @@
+{
+  String description="Store " + storeName + " type "+ quotaType;
+  Versioned<String> currentQuota=adminClient.quotaMgmtOps.getQuota(storeName,quotaType);
+  verifyValueMatches(description,expected,currentQuota);
+  Long actual=convertToLong(currentQuota);
+  Assert.assertEquals("Quota does not match",new Long(expected),actual);
+  for (  Integer nodeId : adminClient.getAdminClientCluster().getNodeIds()) {
+    currentQuota=adminClient.quotaMgmtOps.getQuotaForNode(storeName,quotaType,nodeId);
+    verifyValueMatches(description + " node " + nodeId,expected,currentQuota);
+  }
+}
