@@ -1,12 +1,7 @@
 {
   Props combinedConfigs=new Props(userSuppliedConfig,defaultConfig);
   Props dynamicDefaults=new Props();
-  try {
-    combinedConfigs.getInt(NODE_ID);
-  }
- catch (  UndefinedPropertyException e) {
-    dynamicDefaults.put(NODE_ID,getIntEnvVariable(VOLDEMORT_NODE_ID_VAR_NAME));
-  }
+  initializeNodeId(combinedConfigs,dynamicDefaults);
   String defaultDataDirectory=combinedConfigs.getString(VOLDEMORT_HOME) + File.separator + "data";
   String dataDirectory=combinedConfigs.getString(DATA_DIRECTORY,defaultDataDirectory);
   dynamicDefaults.put(DATA_DIRECTORY,dataDirectory);

@@ -6,6 +6,6 @@
   innerStore.put(MetadataStore.CLUSTER_KEY,new Versioned<String>(new ClusterMapper().writeCluster(currentCluster)),null);
   innerStore.put(MetadataStore.STORES_KEY,new Versioned<String>(new StoreDefinitionsMapper().writeStoreList(Lists.newArrayList(rwStoreDefWithReplication))),null);
   rwStoreDefWithReplication2=new StoreDefinitionBuilder().setName(testStoreNameRW2).setType(BdbStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.CONSISTENT_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).build();
-  metadataStore=new MetadataStore(innerStore,0);
+  metadataStore=MetadataStore.createInMemoryMetadataStore(innerStore,0);
   rebalancer=new Rebalancer(null,metadataStore,null,null);
 }

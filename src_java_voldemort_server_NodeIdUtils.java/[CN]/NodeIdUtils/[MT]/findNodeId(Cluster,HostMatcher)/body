@@ -1,0 +1,24 @@
+{
+  if (isSingleLocalCluster(cluster,matcher)) {
+    int nodeId=cluster.getNodeIds().iterator().next();
+    logger.info(" Cluster is a single local node cluster. Node Id " + nodeId);
+    return nodeId;
+  }
+  List<Node> matches=Lists.newArrayList();
+  for (  Node node : cluster.getNodes()) {
+    if (matcher.match(node)) {
+      logger.info(node.briefToString() + " matched the current cluster ");
+      matches.add(node);
+    }
+  }
+  if (matches.isEmpty()) {
+    throw new VoldemortApplicationException(" No nodes in the cluster matched the current node " + Arrays.toString(cluster.getNodes().toArray()));
+  }
+ else   if (matches.size() > 1) {
+    throw new VoldemortApplicationException(" More than one node matched " + Arrays.toString(matches.toArray()));
+  }
+ else {
+    logger.info(" computed node Id match successfully " + matches.get(0).briefToString());
+    return matches.get(0).getId();
+  }
+}

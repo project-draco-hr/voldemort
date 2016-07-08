@@ -1,0 +1,14 @@
+{
+  boolean nodeIdExists=combinedConfigs.containsKey(NODE_ID);
+  if (!nodeIdExists) {
+    try {
+      int nodeId=getIntEnvVariable(VOLDEMORT_NODE_ID_VAR_NAME);
+      dynamicDefaults.put(NODE_ID,nodeId);
+    }
+ catch (    ConfigurationException ex) {
+    }
+  }
+ else {
+    combinedConfigs.getInt(NODE_ID);
+  }
+}

@@ -1,0 +1,30 @@
+{
+  if (isSingleLocalCluster(cluster,matcher)) {
+    cluster.getNodeById(nodeId);
+    return;
+  }
+  List<String> errors=Lists.newArrayList();
+  for (  Node node : cluster.getNodes()) {
+    if (nodeId == node.getId()) {
+      if (!matcher.match(node)) {
+        errors.add(node.briefToString() + " selected as current node " + nodeId+ " failed to match");
+      }
+    }
+ else {
+      if (matcher.match(node)) {
+        errors.add(node.briefToString() + " matched, though the expected node is " + nodeId);
+      }
+    }
+  }
+  if (!errors.isEmpty()) {
+    if (errors.size() == 1) {
+      throw new VoldemortApplicationException(errors.get(0));
+    }
+ else {
+      throw new VoldemortApplicationException(" Number of Validation failures " + errors.size() + ". Details : "+ Arrays.toString(errors.toArray()));
+    }
+  }
+ else {
+    logger.info("Node Id Validation succeeded. Node Id " + nodeId);
+  }
+}

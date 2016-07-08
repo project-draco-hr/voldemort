@@ -1,0 +1,16 @@
+{
+  StorageEngine<String,String,String> storesRepo=new InMemoryStorageEngine<String,String,String>("stores-repo");
+  List<Versioned<String>> versionedStoreList=innerStore.get(STORES_KEY,"");
+  if (versionedStoreList != null && versionedStoreList.size() > 0) {
+    String stores=versionedStoreList.get(0).getValue();
+    StoreDefinitionsMapper mapper=new StoreDefinitionsMapper();
+    List<StoreDefinition> storeDefinitions=mapper.readStoreList(new StringReader(stores));
+    for (    StoreDefinition storeDef : storeDefinitions) {
+      Versioned<String> versionedStoreValue=new Versioned<String>(mapper.writeStore(storeDef));
+      storesRepo.put(storeDef.getName(),versionedStoreValue,null);
+    }
+  }
+  MetadataStore store=new MetadataStore(innerStore,storesRepo);
+  store.initNodeId(nodeId);
+  return store;
+}

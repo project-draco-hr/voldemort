@@ -1,0 +1,11 @@
+{
+  String host=node.getHost();
+  InetAddress hostAddress;
+  try {
+    hostAddress=InetAddress.getByName(host);
+  }
+ catch (  UnknownHostException ex) {
+    throw new VoldemortApplicationException("Error retrieving InetAddress for host " + host,ex);
+  }
+  return hostAddress.isAnyLocalAddress() || hostAddress.isLoopbackAddress();
+}

@@ -1,0 +1,11 @@
+{
+  writeLock.lock();
+  try {
+    initCache(NODE_ID_KEY,nodeId);
+    if (getNodeId() != nodeId)     throw new RuntimeException("Attempt to start previous node:" + getNodeId() + " as node:"+ nodeId+ " (Did you copy config directory ? try deleting .temp .version in config dir to force clean) aborting ...");
+    updateRoutingStrategies(getCluster(),getStoreDefList());
+  }
+  finally {
+    writeLock.unlock();
+  }
+}
