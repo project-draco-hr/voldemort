@@ -1,0 +1,49 @@
+{
+  OptionParser parser=null;
+  OptionSet options=null;
+  try {
+    parser=setupParser();
+    options=parser.parse(args);
+  }
+ catch (  OptionException oe) {
+    parser.printHelpOn(System.out);
+    printUsageAndDie("Exception when parsing arguments : " + oe.getMessage());
+    return;
+  }
+  if (options.has("help")) {
+    printUsage();
+    return;
+  }
+  if (!options.hasArgument("url") || !options.hasArgument("script") || !options.hasArgument("output")) {
+    printUsageAndDie("Missing a required argument.");
+    return;
+  }
+  String url=(String)options.valueOf("url");
+  String inputScriptPath=getFilePath(options,"script");
+  String outputScriptPath=getFilePath(options,"output");
+  String scpFilePath=getFilePath(options,"scp");
+  AdminClient client=AdminToolUtils.getAdminClient(url);
+  PrintWriter writer=new PrintWriter(outputScriptPath,"UTF-8");
+  for (  Node node : client.getAdminClientCluster().getNodes()) {
+    FileInputStream fis=new FileInputStream(inputScriptPath);
+    BufferedReader br=new BufferedReader(new InputStreamReader(fis));
+    if (scpFilePath != null && scpFilePath.length() > 0) {
+      writer.println("scp " + scpFilePath + "  "+ node.getHost()+ ":~");
+    }
+    int randomNumber=1000 + new Random().nextInt(100000);
+    String hereDocumentTag="NODE_" + node.getId() + "_"+ randomNumber;
+    writer.println("ssh -T " + node.getHost() + "  << "+ hereDocumentTag);
+    String line=null;
+    while ((line=br.readLine()) != null) {
+      line=line.replace("@@ID@@",Integer.toString(node.getId()));
+      line=line.replace("@@HOST@@",node.getHost());
+      line=line.replace("@@URL@@",node.getSocketUrl().toString());
+      writer.println(line);
+    }
+    writer.println(hereDocumentTag);
+    writer.println("\n\n\n");
+    br.close();
+  }
+  writer.close();
+  System.out.println("Ouput script generated at " + outputScriptPath);
+}

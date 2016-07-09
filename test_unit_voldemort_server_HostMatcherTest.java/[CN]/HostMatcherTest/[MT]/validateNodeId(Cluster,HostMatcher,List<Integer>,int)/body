@@ -1,0 +1,15 @@
+{
+  NodeIdUtils.validateNodeId(cluster,matcher,actualNodeId);
+  for (  Integer nodeId : nodeIdsToValidate) {
+    if (nodeId == actualNodeId) {
+      NodeIdUtils.validateNodeId(cluster,matcher,actualNodeId);
+      continue;
+    }
+    try {
+      NodeIdUtils.validateNodeId(cluster,matcher,nodeId);
+      Assert.fail("Validation should have failed");
+    }
+ catch (    VoldemortException ex) {
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  for (int nodeId=0; nodeId < 5; nodeId++) {
+    Cluster localCluster=singleNodeCluster(nodeId);
+    HostMatcher matcher=new HostMatcher();
+    int actual=NodeIdUtils.findNodeId(localCluster,matcher);
+    Assert.assertEquals("Node Id is different",nodeId,actual);
+    validateNodeId(localCluster,matcher,Arrays.asList(nodeId + 1),nodeId);
+  }
+}

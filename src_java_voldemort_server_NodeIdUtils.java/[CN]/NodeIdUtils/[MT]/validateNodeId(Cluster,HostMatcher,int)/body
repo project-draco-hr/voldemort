@@ -1,6 +1,7 @@
 {
+  logger.info(" Using Matcher " + matcher.getDebugInfo());
+  cluster.getNodeById(nodeId);
   if (isSingleLocalCluster(cluster,matcher)) {
-    cluster.getNodeById(nodeId);
     return;
   }
   List<String> errors=Lists.newArrayList();
@@ -17,11 +18,13 @@
     }
   }
   if (!errors.isEmpty()) {
+    String errorMessage=" Number of Validation failures " + errors.size() + ". Details : "+ Arrays.toString(errors.toArray());
+    logger.error(errorMessage);
     if (errors.size() == 1) {
       throw new VoldemortApplicationException(errors.get(0));
     }
  else {
-      throw new VoldemortApplicationException(" Number of Validation failures " + errors.size() + ". Details : "+ Arrays.toString(errors.toArray()));
+      throw new VoldemortApplicationException(errorMessage);
     }
   }
  else {

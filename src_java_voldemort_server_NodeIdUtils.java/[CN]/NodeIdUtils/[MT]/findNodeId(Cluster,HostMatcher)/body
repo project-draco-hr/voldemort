@@ -1,4 +1,5 @@
 {
+  logger.info(" Using Matcher " + matcher.getDebugInfo());
   if (isSingleLocalCluster(cluster,matcher)) {
     int nodeId=cluster.getNodeIds().iterator().next();
     logger.info(" Cluster is a single local node cluster. Node Id " + nodeId);
@@ -15,7 +16,9 @@
     throw new VoldemortApplicationException(" No nodes in the cluster matched the current node " + Arrays.toString(cluster.getNodes().toArray()));
   }
  else   if (matches.size() > 1) {
-    throw new VoldemortApplicationException(" More than one node matched " + Arrays.toString(matches.toArray()));
+    String errorMessage=" More than one node matched " + Arrays.toString(matches.toArray());
+    logger.error(errorMessage);
+    throw new VoldemortApplicationException(errorMessage);
   }
  else {
     logger.info(" computed node Id match successfully " + matches.get(0).briefToString());

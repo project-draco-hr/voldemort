@@ -1,0 +1,16 @@
+{
+  try {
+    NodeIdUtils.findNodeId(cluster,matcher);
+    Assert.fail("multiple match should have failed");
+  }
+ catch (  VoldemortException ex) {
+  }
+  for (  int nodeId : cluster.getNodeIds()) {
+    try {
+      NodeIdUtils.validateNodeId(cluster,matcher,nodeId);
+      Assert.fail("multiple match should have failed");
+    }
+ catch (    VoldemortException ex) {
+    }
+  }
+}

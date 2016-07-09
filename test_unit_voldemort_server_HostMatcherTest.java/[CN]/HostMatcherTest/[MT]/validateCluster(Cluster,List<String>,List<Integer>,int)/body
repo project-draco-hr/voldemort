@@ -1,0 +1,17 @@
+{
+  HostMatcher invalidMatcher=new MockHostMatcher("invalidHost");
+  try {
+    NodeIdUtils.findNodeId(cluster,invalidMatcher);
+    Assert.fail("None of the hosts should have matched");
+  }
+ catch (  VoldemortException ex) {
+  }
+  for (int i=0; i < NUM_NODES; i++) {
+    String hostName=hostNames.get(i);
+    int expectedNodeId=nodeIds.get(i);
+    HostMatcher matcher=new MockHostMatcher(hostName);
+    int actulaNodeId=NodeIdUtils.findNodeId(cluster,matcher);
+    Assert.assertEquals("Node Id is different",expectedNodeId,actulaNodeId);
+    validateNodeId(cluster,matcher,nodeIds,actulaNodeId);
+  }
+}

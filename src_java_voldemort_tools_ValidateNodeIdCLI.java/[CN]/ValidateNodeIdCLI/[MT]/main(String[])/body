@@ -1,0 +1,51 @@
+{
+  OptionParser parser=null;
+  OptionSet options=null;
+  try {
+    parser=setupParser();
+    options=parser.parse(args);
+  }
+ catch (  OptionException oe) {
+    parser.printHelpOn(System.out);
+    printUsageAndDie("Exception when parsing arguments : " + oe.getMessage());
+    return;
+  }
+  if (options.has("help")) {
+    printUsage();
+    return;
+  }
+  if (!options.hasArgument("id") || !options.hasArgument("path")) {
+    printUsageAndDie("Missing a required argument.");
+    return;
+  }
+  String id=(String)options.valueOf("id");
+  int expectedNodeId=Integer.parseInt(id);
+  String clusterPaths=getFilePath(options,"path");
+  String[] allPaths=clusterPaths.split(",");
+  boolean isMatch=false;
+  for (  String path : allPaths) {
+    path=path.replace("~",System.getProperty("user.home"));
+    File filePath=new File(path);
+    if (filePath.exists()) {
+      isMatch=true;
+      Cluster cluster=getCluster(filePath);
+      Properties properties=new Properties();
+      properties.setProperty(VoldemortConfig.ENABLE_NODE_ID_DETECTION,Boolean.toString(true));
+      properties.setProperty(VoldemortConfig.VOLDEMORT_HOME,getTempDirPath());
+      VoldemortConfig config=new VoldemortConfig(properties);
+      int actualNodeId=VoldemortServer.getNodeId(config,cluster);
+      if (actualNodeId != expectedNodeId) {
+        throw new VoldemortApplicationException(" Mismatch deteced. Computed Node Id " + actualNodeId + " Expected "+ expectedNodeId);
+      }
+ else {
+        System.out.println("Expected and Computed node Id matched " + expectedNodeId);
+      }
+      config.setNodeId(actualNodeId);
+      VoldemortServer.validateNodeId(config,cluster);
+      System.out.println("Validation of node Id passed");
+    }
+  }
+  if (!isMatch) {
+    throw new VoldemortApplicationException("None of the paths matched the cluster.xml");
+  }
+}
