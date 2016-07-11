@@ -1,0 +1,17 @@
+{
+  final int NUM_NODES=10;
+  final int NODE_ID=5;
+  VoldemortConfig config=getVoldemortConfig(new Properties());
+  final String SOMEHOST="host" + NODE_ID;
+  config.setNodeIdImplementation(new MockHostMatcher(SOMEHOST));
+  List<String> hostNames=Lists.newArrayList();
+  for (int i=0; i < NUM_NODES; i++) {
+    hostNames.add("host" + i);
+  }
+  Assert.assertEquals("At first no node Id",-1,config.getNodeId());
+  Cluster cluster=HostMatcherTest.getCluster(hostNames);
+  server=new VoldemortServer(config,cluster);
+  server.start();
+  Assert.assertEquals("Node id is not auto detected",NODE_ID,config.getNodeId());
+  Assert.assertEquals("Node id is not auto detected",NODE_ID,server.getMetadataStore().getNodeId());
+}

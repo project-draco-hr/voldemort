@@ -1,13 +1,11 @@
 {
-  final int NODE_DOWN=0;
   final int REPLACEMENT_NODE=0;
-  Cluster cluster=originalServers[NODE_DOWN].getMetadataStore().getCluster();
-  List<StoreDefinition> storeDefs=originalServers[NODE_DOWN].getMetadataStore().getStoreDefList();
-  Node node=originalServers[NODE_DOWN].getIdentityNode();
+  Cluster cluster=originalServers[nodeToBeReplaced].getMetadataStore().getCluster();
+  List<StoreDefinition> storeDefs=originalServers[nodeToBeReplaced].getMetadataStore().getStoreDefList();
+  Node node=originalServers[nodeToBeReplaced].getIdentityNode();
   final boolean DO_RESTORE=false;
   final boolean STOP_OLD_NODE=true;
-  verifyNodeReplacement(NODE_DOWN,otherServers,REPLACEMENT_NODE,STOP_OLD_NODE,DO_RESTORE);
-  SocketStoreFactory ssf=new TestSocketStoreFactory();
+  verifyNodeReplacement(nodeToBeReplaced,otherServers,REPLACEMENT_NODE,STOP_OLD_NODE,DO_RESTORE);
   String baseDirPath=otherServers[REPLACEMENT_NODE].getVoldemortConfig().getVoldemortHome();
   otherServers[REPLACEMENT_NODE].stop();
   VoldemortConfig config=ServerTestUtils.createServerConfigWithDefs(true,node.getId(),baseDirPath,cluster,storeDefs,new Properties());
@@ -15,9 +13,16 @@
   Assert.assertTrue(config.isSlopPusherJobEnabled());
   Assert.assertTrue(config.getAutoPurgeDeadSlops());
   config.setSlopFrequencyMs(8000L);
+  config.setEnableNodeIdDetection(this.autoDetectNodeId);
+  if (this.autoDetectNodeId) {
+    config.setNodeIdImplementation(new NodeIdHostMatcher(nodeToBeReplaced));
+  }
+  config.setVoldemortHome(baseDirPath);
+  SocketStoreFactory ssf=new TestSocketStoreFactory();
   VoldemortServer hardDiskMovedServer=ServerTestUtils.startVoldemortServer(ssf,config,cluster);
-  VoldemortServer[] newCluster=new VoldemortServer[]{hardDiskMovedServer};
+  ssf.close();
+  otherServers[REPLACEMENT_NODE]=hardDiskMovedServer;
   final boolean SKIP_RESTORE=true;
   final boolean DONOT_STOP_OLD_NODE=true;
-  verifyNodeReplacement(NODE_DOWN,newCluster,REPLACEMENT_NODE,DONOT_STOP_OLD_NODE,SKIP_RESTORE);
+  verifyNodeReplacement(nodeToBeReplaced,otherServers,REPLACEMENT_NODE,DONOT_STOP_OLD_NODE,SKIP_RESTORE);
 }

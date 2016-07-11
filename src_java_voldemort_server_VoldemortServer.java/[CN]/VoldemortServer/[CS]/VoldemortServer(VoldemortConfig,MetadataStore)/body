@@ -4,11 +4,8 @@
   this.setupSSLProvider();
   this.metadata=metadataStore;
   this.storeRepository=new StoreRepository(config.isJmxEnabled());
-  int nodeId=this.metadata.getNodeId();
-  this.voldemortConfig.setNodeId(nodeId);
-  this.identityNode=metadata.getCluster().getNodeById(nodeId);
+  this.refreshNodeIdFromMetadata();
   this.checkHostName();
-  this.validateNodeId();
   this.validateRestServiceConfiguration();
   this.basicServices=createBasicServices();
   createOnlineServices();

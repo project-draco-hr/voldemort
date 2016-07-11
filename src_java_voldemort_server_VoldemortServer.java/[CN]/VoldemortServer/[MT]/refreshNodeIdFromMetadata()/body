@@ -1,0 +1,12 @@
+{
+  int nodeId=this.metadata.getNodeId();
+  voldemortConfig.setNodeId(nodeId);
+  validateNodeId();
+  Node oldNode=this.identityNode;
+  this.identityNode=metadata.getCluster().getNodeById(nodeId);
+  if (oldNode != null) {
+    if (oldNode.getSocketPort() != this.identityNode.getSocketPort() || oldNode.getAdminPort() != this.identityNode.getAdminPort()) {
+      throw new VoldemortApplicationException("Node Id update, changes the Socket And Or Admin Port. " + "The Server will be in an inconsistent state, until the next restart. Old State " + oldNode.getStateString() + "New State "+ this.identityNode.getStateString());
+    }
+  }
+}

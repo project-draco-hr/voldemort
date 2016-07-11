@@ -1,0 +1,25 @@
+{
+  Cluster localCluster=ServerTestUtils.getLocalCluster(1);
+  VoldemortConfig config=getVoldemortConfig(new Properties());
+  server=new VoldemortServer(config,localCluster);
+  server.start();
+  final int UPDATED_NODE_ID=3;
+  Node oldNode=localCluster.getNodes().iterator().next();
+  config.setNodeIdImplementation(new NodeIdHostMatcher(UPDATED_NODE_ID));
+  Cluster updatedCluster=ServerTestUtils.getLocalCluster(UPDATED_NODE_ID + 1);
+  oldAdminClient=new AdminClient(localCluster);
+  List<Node> newNodes=Lists.newArrayList();
+  for (  Node node : updatedCluster.getNodes()) {
+    if (node.getId() != UPDATED_NODE_ID) {
+      newNodes.add(node);
+    }
+  }
+  Node nodeToBeReplaced=updatedCluster.getNodeById(UPDATED_NODE_ID);
+  Node updatedNode=new Node(UPDATED_NODE_ID,oldNode.getHost(),oldNode.getHttpPort(),oldNode.getSocketPort(),oldNode.getAdminPort(),nodeToBeReplaced.getPartitionIds());
+  newNodes.add(updatedNode);
+  Cluster updatedClusterWithCorrectNode=new Cluster("updated-cluster",newNodes);
+  oldAdminClient.metadataMgmtOps.updateRemoteCluster(oldNode.getId(),updatedClusterWithCorrectNode,VectorClockUtils.makeClockWithCurrentTime(localCluster.getNodeIds()));
+  Assert.assertEquals("Identity node is not auto detected",UPDATED_NODE_ID,server.getIdentityNode().getId());
+  Assert.assertEquals("Voldemort config is not updated",UPDATED_NODE_ID,server.getVoldemortConfig().getNodeId());
+  Assert.assertEquals("Metadata store is not updated",UPDATED_NODE_ID,server.getMetadataStore().getNodeId());
+}

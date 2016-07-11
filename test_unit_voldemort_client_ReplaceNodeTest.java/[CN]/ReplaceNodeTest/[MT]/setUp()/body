@@ -3,11 +3,10 @@
   Properties serverProperties=new Properties();
   serverProperties.setProperty("client.max.connections.per.node","20");
   serverProperties.setProperty("slop.frequency.ms","8000");
-  int originalServerCount=6;
   int partitionMap[][]={{0,1,2,3},{4,5,6,7},{8,9,10,11},{12,13,14,15},{16,17,18,19},{20,21,22,23}};
-  originalServers=new VoldemortServer[originalServerCount];
-  originalCluster=ServerTestUtils.startVoldemortCluster(originalServerCount,originalServers,partitionMap,originalSocketStoreFactory,USE_NIO,null,ORIGINAL_STORES_XML,serverProperties);
-  Node node=originalCluster.getNodeById(4);
+  originalServers=new VoldemortServer[TOTAL_SERVERS];
+  originalCluster=ServerTestUtils.startVoldemortCluster(TOTAL_SERVERS,originalServers,partitionMap,originalSocketStoreFactory,USE_NIO,null,ORIGINAL_STORES_XML,serverProperties);
+  Node node=originalCluster.getNodeById(this.healthyNode);
   originalBootstrapUrl=getAdminUrl(node);
   finalServers=new HashMap<Integer,VoldemortServer>();
   for (  VoldemortServer server : originalServers) {
@@ -15,6 +14,12 @@
   }
   int replacementServerCount=1;
   int replacementPartitionMap[][]={{0,1,2,3}};
+  Properties otherServerProperties=new Properties();
+  otherServerProperties.putAll(serverProperties);
+  otherServerProperties.put(VoldemortConfig.ENABLE_NODE_ID_DETECTION,Boolean.toString(this.autoDetectNodeId));
   otherServers=new VoldemortServer[replacementServerCount];
-  ServerTestUtils.startVoldemortCluster(replacementServerCount,otherServers,replacementPartitionMap,replacementSocketStoreFactory,USE_NIO,null,EMPTY_STORES_XML,serverProperties);
+  ServerTestUtils.startVoldemortCluster(replacementServerCount,otherServers,replacementPartitionMap,replacementSocketStoreFactory,USE_NIO,null,EMPTY_STORES_XML,otherServerProperties);
+  if (this.autoDetectNodeId) {
+    setHostMatcher(otherServers[0].getVoldemortConfig());
+  }
 }

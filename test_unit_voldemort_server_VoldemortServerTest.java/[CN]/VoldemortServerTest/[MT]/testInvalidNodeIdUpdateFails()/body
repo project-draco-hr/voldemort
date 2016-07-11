@@ -1,0 +1,16 @@
+{
+  Cluster localCluster=ServerTestUtils.getLocalCluster(1);
+  VoldemortConfig config=getVoldemortConfig(new Properties());
+  server=new VoldemortServer(config,localCluster);
+  server.start();
+  final int UPDATED_NODE_ID=3;
+  Node oldNode=localCluster.getNodes().iterator().next();
+  config.setNodeIdImplementation(new NodeIdHostMatcher(UPDATED_NODE_ID));
+  oldAdminClient=new AdminClient(localCluster);
+  try {
+    oldAdminClient.metadataMgmtOps.updateRemoteMetadata(oldNode.getId(),MetadataStore.NODE_ID_KEY,Integer.toString(UPDATED_NODE_ID));
+    Assert.fail("Invalid node id should have failed");
+  }
+ catch (  VoldemortException ex) {
+  }
+}

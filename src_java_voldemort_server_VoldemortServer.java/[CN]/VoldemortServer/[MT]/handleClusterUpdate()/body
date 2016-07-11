@@ -1,0 +1,9 @@
+{
+  if (!voldemortConfig.isEnableNodeIdDetection()) {
+    logger.info("Auto detection is disabled, returning");
+    return;
+  }
+  int nodeId=computeNodeId(voldemortConfig,metadata.getCluster());
+  metadata.put(MetadataStore.NODE_ID_KEY,new Integer(nodeId));
+  refreshNodeIdFromMetadata();
+}
