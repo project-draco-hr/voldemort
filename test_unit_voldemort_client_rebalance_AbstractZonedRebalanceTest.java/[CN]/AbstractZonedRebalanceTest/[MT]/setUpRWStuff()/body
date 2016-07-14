@@ -5,7 +5,7 @@
   rwStoreDefWithoutReplication=new StoreDefinitionBuilder().setName(testStoreNameRW).setType(BdbStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.ZONE_STRATEGY).setReplicationFactor(2).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).setZoneCountReads(0).setZoneCountWrites(0).setZoneReplicationFactor(zrfRWStoreWithoutReplication).setHintedHandoffStrategy(HintedHandoffStrategyType.PROXIMITY_STRATEGY).build();
   storeDefWithoutReplication=Lists.newArrayList(rwStoreDefWithoutReplication);
   String storeDefWithoutReplicationString=new StoreDefinitionsMapper().writeStoreList(storeDefWithoutReplication);
-  File file=File.createTempFile("two-stores-",".xml");
+  File file=ServerTestUtils.createTempFile("two-stores-",".xml");
   FileUtils.writeStringToFile(file,storeDefWithoutReplicationString);
   storeDefFileWithoutReplication=file.getAbsolutePath();
   HashMap<Integer,Integer> zrfRWStoreWithReplication=new HashMap<Integer,Integer>();
@@ -13,15 +13,15 @@
   zrfRWStoreWithReplication.put(1,2);
   rwStoreDefWithReplication=new StoreDefinitionBuilder().setName(testStoreNameRW).setType(BdbStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.ZONE_STRATEGY).setReplicationFactor(4).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).setZoneCountReads(0).setZoneCountWrites(0).setZoneReplicationFactor(zrfRWStoreWithReplication).setHintedHandoffStrategy(HintedHandoffStrategyType.PROXIMITY_STRATEGY).build();
   rwStoreDefWithReplication2=new StoreDefinitionBuilder().setName(testStoreNameRW2).setType(BdbStorageConfiguration.TYPE_NAME).setKeySerializer(new SerializerDefinition("string")).setValueSerializer(new SerializerDefinition("string")).setRoutingPolicy(RoutingTier.CLIENT).setRoutingStrategyType(RoutingStrategyType.ZONE_STRATEGY).setReplicationFactor(4).setPreferredReads(1).setRequiredReads(1).setPreferredWrites(1).setRequiredWrites(1).setZoneCountReads(0).setZoneCountWrites(0).setZoneReplicationFactor(zrfRWStoreWithReplication).setHintedHandoffStrategy(HintedHandoffStrategyType.PROXIMITY_STRATEGY).build();
-  file=File.createTempFile("rw-stores-",".xml");
+  file=ServerTestUtils.createTempFile("rw-stores-",".xml");
   FileUtils.writeStringToFile(file,new StoreDefinitionsMapper().writeStoreList(Lists.newArrayList(rwStoreDefWithReplication)));
   rwStoreDefFileWithReplication=file.getAbsolutePath();
-  file=File.createTempFile("rw-two-stores-",".xml");
+  file=ServerTestUtils.createTempFile("rw-two-stores-",".xml");
   FileUtils.writeStringToFile(file,new StoreDefinitionsMapper().writeStoreList(Lists.newArrayList(rwStoreDefWithReplication,rwStoreDefWithReplication2)));
   rwTwoStoreDefFileWithReplication=file.getAbsolutePath();
   storeDefWithReplication=Lists.newArrayList(rwStoreDefWithReplication);
   String storeDefWithReplicationString=new StoreDefinitionsMapper().writeStoreList(storeDefWithReplication);
-  file=File.createTempFile("two-stores-",".xml");
+  file=ServerTestUtils.createTempFile("two-stores-",".xml");
   FileUtils.writeStringToFile(file,storeDefWithReplicationString);
   storeDefFileWithReplication=file.getAbsolutePath();
 }
