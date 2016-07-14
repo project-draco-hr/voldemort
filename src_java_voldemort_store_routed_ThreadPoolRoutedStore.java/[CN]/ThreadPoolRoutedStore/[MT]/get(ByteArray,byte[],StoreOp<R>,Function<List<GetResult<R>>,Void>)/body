@@ -4,7 +4,7 @@
   checkRequiredReads(nodes);
   final List<GetResult<R>> retrieved=Lists.newArrayList();
   int successes=0;
-  final List<Throwable> failures=Lists.newArrayListWithCapacity(3);
+  final List<Throwable> failures=new CopyOnWriteArrayList<Throwable>();
   int attempts=Math.min(this.storeDef.getPreferredReads(),nodes.size());
   int nodeIndex=0;
   List<Callable<GetResult<R>>> callables=Lists.newArrayListWithCapacity(attempts);

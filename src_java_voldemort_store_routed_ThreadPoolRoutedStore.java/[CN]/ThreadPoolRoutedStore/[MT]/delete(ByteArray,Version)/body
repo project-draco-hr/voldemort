@@ -5,7 +5,7 @@
   if (numNodes < this.storeDef.getRequiredWrites())   throw new InsufficientOperationalNodesException("Only " + numNodes + " nodes in preference list, but "+ this.storeDef.getRequiredWrites()+ " writes required.");
   final AtomicInteger successes=new AtomicInteger(0);
   final AtomicBoolean deletedSomething=new AtomicBoolean(false);
-  final List<Exception> failures=Collections.synchronizedList(new LinkedList<Exception>());
+  final List<Exception> failures=new CopyOnWriteArrayList<Exception>();
   final Semaphore semaphore=new Semaphore(0,false);
   for (  final Node node : nodes) {
     this.executor.execute(new Runnable(){

@@ -33,7 +33,7 @@
     final Collection<ByteArray> nodeKeys=entry.getValue();
     if (failureDetector.isAvailable(node))     callables.add(new GetAllCallable(node,nodeKeys,transforms));
   }
-  List<Throwable> failures=Lists.newArrayList();
+  List<Throwable> failures=new CopyOnWriteArrayList<Throwable>();
   List<NodeValue<ByteArray,byte[]>> nodeValues=Lists.newArrayList();
   Map<ByteArray,MutableInt> keyToSuccessCount=Maps.newHashMap();
   for (  ByteArray key : keys)   keyToSuccessCount.put(key,new MutableInt(0));

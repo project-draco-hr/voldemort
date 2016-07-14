@@ -5,7 +5,7 @@
   final int numNodes=nodes.size();
   if (numNodes < this.storeDef.getRequiredWrites())   throw new InsufficientOperationalNodesException("Only " + numNodes + " nodes in preference list, but "+ this.storeDef.getRequiredWrites()+ " writes required.");
   final AtomicInteger successes=new AtomicInteger(0);
-  final List<Exception> failures=Collections.synchronizedList(new ArrayList<Exception>(1));
+  final List<Exception> failures=new CopyOnWriteArrayList<Exception>();
   Node master=null;
   int currentNode=0;
   Versioned<byte[]> versionedCopy=null;
@@ -31,7 +31,7 @@ catch (    Exception e) {
       failures.add(e);
     }
   }
-  if (successes.get() < 1)   throw new InsufficientOperationalNodesException("No master node succeeded!",failures.size() > 0 ? failures.get(0) : null);
+  if (successes.get() < 1)   throw new InsufficientOperationalNodesException("No master node succeeded!",failures);
  else   currentNode++;
   final Versioned<byte[]> finalVersionedCopy=versionedCopy;
   final Semaphore semaphore=new Semaphore(0,false);
