@@ -3,7 +3,7 @@
   log.info("Verifying store against cluster URL: " + clusterURL + "\n"+ newStoreDefXml.toString());
   StoreDefinition newStoreDef=VoldemortUtils.getStoreDef(newStoreDefXml);
   try {
-    adminClientPerCluster.get(clusterURL).storeMgmtOps.verifyOrAddStore(newStoreDef,"BnP config/data",enableStoreCreation);
+    adminClientPerCluster.get(clusterURL).storeMgmtOps.verifyOrAddStore(newStoreDef,"BnP config/data",enableStoreCreation,this.storeVerificationExecutorService);
   }
  catch (  UnreachableStoreException e) {
     log.info("verifyOrAddStore() failed on some nodes for clusterURL: " + clusterURL + " (this is harmless).",e);

@@ -81,5 +81,13 @@
     requiredNumberOfThreads++;
   }
   this.executorService=Executors.newFixedThreadPool(requiredNumberOfThreads);
+  this.maxThreadNumForStoreVerification=props.getInt(STORE_VERIFICATION_MAX_THREAD_NUM,DEFAULT_THREAD_NUM_FOR_STORE_VERIFICATION);
+  if (this.maxThreadNumForStoreVerification > 1) {
+    this.storeVerificationExecutorService=Executors.newFixedThreadPool(this.maxThreadNumForStoreVerification);
+    log.info("Build and Push Job will run store verification in parallel, thread num: " + this.maxThreadNumForStoreVerification);
+  }
+ else {
+    log.info("Build and Push Job will run store verification sequentially.");
+  }
   log.info("Build and Push Job constructed for " + numberOfClusters + " cluster(s).");
 }

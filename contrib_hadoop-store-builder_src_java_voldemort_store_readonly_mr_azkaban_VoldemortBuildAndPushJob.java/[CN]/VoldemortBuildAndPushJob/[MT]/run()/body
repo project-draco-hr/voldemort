@@ -50,6 +50,10 @@
         tasks.put(url,executorService.submit(new StorePushTask(props,url,buildOutputDir)));
       }
     }
+    if (null != storeVerificationExecutorService) {
+      storeVerificationExecutorService.shutdownNow();
+      storeVerificationExecutorService=null;
+    }
     for (    Map.Entry<String,Future<Boolean>> task : tasks.entrySet()) {
       String url=task.getKey();
       Boolean success=false;
