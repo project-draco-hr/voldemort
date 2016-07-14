@@ -3,7 +3,7 @@
   pipelineData.setZonesRequired(null);
   pipelineData.setStartTimeNs(System.nanoTime());
   pipelineData.setStoreName(getName());
-  long putOpTimeoutInMs=routingTimeoutInMs;
+  long putOpTimeoutInMs=ROUTING_TIMEOUT_MS;
   Pipeline pipeline=new Pipeline(Operation.PUT,putOpTimeoutInMs,TimeUnit.MILLISECONDS);
   pipeline.setEnableHintedHandoff(true);
   HintedHandoff hintedHandoff=null;
@@ -13,7 +13,7 @@
   pipeline.addEventAction(Event.CONFIGURED,new PerformSerialPutRequests(pipelineData,isHintedHandoffEnabled() ? Event.RESPONSES_RECEIVED : Event.COMPLETED,key,transforms,failureDetector,innerStores,storeDef.getRequiredWrites(),versioned,time,Event.MASTER_DETERMINED));
   pipeline.addEventAction(Event.MASTER_DETERMINED,new PerformParallelPutRequests(pipelineData,Event.RESPONSES_RECEIVED,key,transforms,failureDetector,storeDef.getPreferredWrites(),storeDef.getRequiredWrites(),putOpTimeoutInMs,nonblockingStores,hintedHandoff));
   pipeline.addEventAction(Event.ABORTED,new PerformPutHintedHandoff(pipelineData,Event.ERROR,key,versioned,transforms,hintedHandoff,time));
-  pipeline.addEventAction(Event.RESPONSES_RECEIVED,new DelayAction(pipelineData,Event.INSUFFICIENT_SUCCESSES,delayBeforeHintedHandoff));
+  pipeline.addEventAction(Event.RESPONSES_RECEIVED,new DelayAction(pipelineData,Event.INSUFFICIENT_SUCCESSES,hintDelayTimeMs));
   pipeline.addEventAction(Event.INSUFFICIENT_SUCCESSES,new PerformPutHintedHandoff(pipelineData,Event.HANDOFF_FINISHED,key,versioned,transforms,hintedHandoff,time));
   pipeline.addEventAction(Event.HANDOFF_FINISHED,new IncrementClock(pipelineData,Event.COMPLETED,versioned,time));
   pipeline.addEvent(Event.STARTED);

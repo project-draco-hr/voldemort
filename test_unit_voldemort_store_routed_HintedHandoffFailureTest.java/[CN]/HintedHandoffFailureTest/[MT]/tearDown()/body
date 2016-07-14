@@ -2,7 +2,14 @@
   if (failureDetector != null) {
     failureDetector.destroy();
   }
+  for (  Store subStore : subStores.values()) {
+    subStore.close();
+  }
+  for (  Store subStore : slopStores.values()) {
+    subStore.close();
+  }
   if (routedStoreThreadPool != null) {
     routedStoreThreadPool.shutdown();
+    routedStoreThreadPool.awaitTermination(1,TimeUnit.SECONDS);
   }
 }

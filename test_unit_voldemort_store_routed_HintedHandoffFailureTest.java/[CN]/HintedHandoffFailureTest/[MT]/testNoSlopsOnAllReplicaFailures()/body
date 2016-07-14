@@ -1,29 +1,15 @@
 {
-  String key="a";
+  String key="testNoSlopsOnAllReplicaFailures";
   String val="xyz";
   final Versioned<byte[]> versionedVal=new Versioned<byte[]>(val.getBytes());
   final ByteArray keyByteArray=new ByteArray(key.getBytes());
   List<Integer> failingNodeIdList=null;
-  REPLICATION_FACTOR=3;
-  R_READS=2;
-  R_WRITES=2;
-  sleepBeforeFailingInMs=10000;
-  delayBeforeHintedHandoff=0;
-  try {
-    failingNodeIdList=customSetup(keyByteArray,FAILURE_MODE.FAIL_ALL_REPLICAS);
-  }
- catch (  Exception e) {
-    logger.info(e.getMessage());
-    fail("Error in setup.");
-  }
+  long sleepTime=ROUTING_TIMEOUT_MS + 100;
+  failingNodeIdList=customSetup(keyByteArray,FAILURE_MODE.FAIL_ALL_REPLICAS,get322Replica(),sleepTime,0);
   PerformAsyncPut asyncPutThread=new PerformAsyncPut(this.store,keyByteArray,versionedVal);
   Executors.newFixedThreadPool(1).submit(asyncPutThread);
   try {
-    logger.info("Sleeping for 5 seconds to wait for the put to finish");
-    Thread.sleep(5000);
-    if (!asyncPutThread.isDone) {
-      fail("The main thread for put did not finish.");
-    }
+    Thread.sleep(sleepTime + 100);
   }
  catch (  Exception e) {
     fail("Unknown error while doing a put: " + e);

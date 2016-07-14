@@ -1,26 +1,20 @@
 {
-  String key="a";
+  String key="testSlopViaSerialHint_2_1_1";
   String val="xyz";
   Versioned<byte[]> versionedVal=new Versioned<byte[]>(val.getBytes());
   ByteArray keyByteArray=new ByteArray(key.getBytes());
   List<Integer> failingNodeIdList=null;
-  REPLICATION_FACTOR=2;
-  P_READS=1;
-  R_READS=1;
-  P_WRITES=1;
-  R_WRITES=1;
   try {
-    failingNodeIdList=customSetup(keyByteArray);
+    failingNodeIdList=customSetup(keyByteArray,get211Replica(),0);
   }
  catch (  Exception e) {
     logger.info(e.getMessage());
     fail("Error in setup.");
   }
-  delayBeforeHintedHandoff=0;
   this.store.put(keyByteArray,versionedVal,null);
   try {
     logger.info("Sleeping for 5 seconds to wait for the serial hint to finish");
-    Thread.sleep(5000);
+    Thread.sleep(1000);
   }
  catch (  Exception e) {
   }
