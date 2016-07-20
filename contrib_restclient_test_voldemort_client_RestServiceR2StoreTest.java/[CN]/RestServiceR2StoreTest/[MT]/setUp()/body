@@ -3,16 +3,12 @@
   final int numServers=1;
   this.nodeId=0;
   servers=new VoldemortServer[numServers];
-  try {
-    Properties props=new Properties();
-    props.setProperty("rest.enable","true");
-    props.setProperty("http.enable","true");
-    Cluster customCluster=clusterMapper.readCluster(new FileReader(clusterXmlFile),false);
-    cluster=ServerTestUtils.startVoldemortCluster(servers,null,clusterXmlFile,storesXmlfile,props,customCluster);
-  }
- catch (  IOException e) {
-    fail("Failure to setup the cluster");
-  }
+  Properties props=new Properties();
+  props.setProperty("rest.enable","true");
+  props.setProperty("http.enable","true");
+  Cluster customCluster=clusterMapper.readCluster(new FileReader(clusterXmlFile),false);
+  logger.info(" Node " + customCluster.getNodes().iterator().next().getStateString());
+  cluster=ServerTestUtils.startVoldemortCluster(servers,null,clusterXmlFile,storesXmlfile,props,customCluster);
   RESTClientConfig restClientConfig=new RESTClientConfig();
   restClientConfig.setHttpBootstrapURL("http://localhost:" + cluster.getNodeById(0).getRestPort()).setTimeoutMs(10000,TimeUnit.MILLISECONDS).setMaxR2ConnectionPoolSize(100);
   clientFactory=new HttpClientFactory();
