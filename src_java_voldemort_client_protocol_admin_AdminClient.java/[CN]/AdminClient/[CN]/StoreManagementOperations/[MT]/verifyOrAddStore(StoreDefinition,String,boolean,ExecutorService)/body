@@ -2,15 +2,27 @@
   if (!newStoreDef.getType().equals(ReadOnlyStorageConfiguration.TYPE_NAME)) {
     throw new VoldemortException("verifyOrAddStore() is intended only for Read-Only stores!");
   }
+  long startTime=System.currentTimeMillis();
   List<Node> unreachableNodes=Lists.newArrayList();
   List<Integer> nodesMissingNewStore=getNodesMissingNewStore(newStoreDef,localProcessName,executor,unreachableNodes);
-  if (!createStore && !nodesMissingNewStore.isEmpty())   throw new VoldemortException("Store: " + newStoreDef.getName() + " is not found in the current cluster.");
-  if (executor == null) {
-    storeMgmtOps.addStore(newStoreDef,nodesMissingNewStore);
-  }
+  long verifyCompletionTime=System.currentTimeMillis();
+  long elapsedTime=verifyCompletionTime - startTime;
+  String timingInfo="verifyOrAddStore() " + AdminClient.this.debugInfo + " Store: "+ newStoreDef.getName()+ " Verification Time: "+ elapsedTime+ " ms";
+  if (!nodesMissingNewStore.isEmpty()) {
+    if (!createStore) {
+      throw new VoldemortException("Store: " + newStoreDef.getName() + " is not found in the current cluster.");
+    }
+    if (executor == null) {
+      storeMgmtOps.addStore(newStoreDef,nodesMissingNewStore);
+    }
  else {
-    addStoresViaExecutorService(newStoreDef,nodesMissingNewStore,executor);
+      addStoresViaExecutorService(newStoreDef,nodesMissingNewStore,executor);
+    }
+    long createCompletionTime=System.currentTimeMillis();
+    elapsedTime=createCompletionTime - verifyCompletionTime;
+    timingInfo+=", Creation Time: " + elapsedTime + " ms";
   }
+  logger.info(timingInfo);
   if (unreachableNodes.size() > 0) {
     String errorMessage="verifyOrAddStore() failed against the following nodes: ";
     boolean first=true;
