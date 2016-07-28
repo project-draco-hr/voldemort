@@ -14,7 +14,13 @@
   }
  catch (  VoldemortException e) {
     response.setError(ProtoUtils.encodeError(errorCodeMapper,e));
-    logger.error("handleGetMetadata failed for request(" + request.toString() + ")",e);
+    String errorMessage="handleGetMetadata failed for request(" + request.toString() + ")";
+    if (e instanceof StoreNotFoundException) {
+      logger.info(errorMessage + " with " + StoreNotFoundException.class.getSimpleName());
+    }
+ else {
+      logger.error(errorMessage,e);
+    }
   }
   return response.build();
 }
