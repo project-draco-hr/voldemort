@@ -57,7 +57,7 @@
     if (!getSaveKeys() && numTuples > 1)     throw new VoldemortException("Duplicate keys detected for md5 sum " + ByteUtils.toHexString(ByteUtils.copy(key.getBytes(),0,key.getLength())));
   }
   if (numTuples < 0) {
-    throw new VoldemortException("Found too many collisions: chunk " + chunkId + " has exceeded "+ MAX_HASH_COLLISIONS+ " collisions.");
+    throw new VoldemortException("Found too many collisions: chunk " + chunkId + " has exceeded "+ Short.MAX_VALUE+ " collisions.");
   }
  else   if (numTuples > 1) {
     reporter.incrCounter(CollisionCounter.NUM_COLLISIONS,1);
@@ -82,5 +82,5 @@
   if (this.checkSumDigestValue[chunkId] != null) {
     this.checkSumDigestValue[chunkId].update(value);
   }
-  if (this.position[chunkId] < 0)   throw new VoldemortException("Chunk overflow exception: chunk " + chunkId + " has exceeded "+ MAX_CHUNK_SIZE+ " bytes.");
+  if (this.position[chunkId] < 0)   throw new VoldemortException("Chunk overflow exception: chunk " + chunkId + " has exceeded "+ Integer.MAX_VALUE+ " bytes.");
 }
