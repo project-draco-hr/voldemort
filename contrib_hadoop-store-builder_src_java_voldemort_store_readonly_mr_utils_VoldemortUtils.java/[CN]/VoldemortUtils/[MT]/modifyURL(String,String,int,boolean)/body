@@ -1,5 +1,5 @@
 {
-  if (newProtocol == null || newProtocol.isEmpty() || newPort < 0) {
+  if (newProtocol == null || newProtocol.isEmpty() || (!omitPort && newPort < 0)) {
     return originalUrl;
   }
   try {
@@ -11,6 +11,9 @@
 ;
     URL url=new URL(null,originalUrl,handler);
     logger.info("Existing protocol = " + url.getProtocol() + " and port = "+ url.getPort());
+    if (omitPort) {
+      newPort=-1;
+    }
     URL newUrl=new URL(newProtocol,url.getHost(),newPort,url.getFile(),handler);
     logger.info("New protocol = " + newUrl.getProtocol() + " and port = "+ newUrl.getPort());
     return newUrl.toString();

@@ -1,32 +1,37 @@
 {
-  String url="swebhdfs://localhost:50470/user/testpath";
+  String url="swebhdfs://localhost:50470/" + PATH;
   Properties properties=new Properties();
-  properties.setProperty("node.id","1");
-  properties.setProperty("voldemort.home","/test");
+  properties.setProperty(VoldemortConfig.NODE_ID,"1");
+  properties.setProperty(VoldemortConfig.VOLDEMORT_HOME,"/test");
   VoldemortConfig config=new VoldemortConfig(properties);
-  HdfsFetcher fetcher=new HdfsFetcher(config);
-  String newUrl=VoldemortUtils.modifyURL(url,config.getModifiedProtocol(),config.getMysqlPort());
+  String newUrl=VoldemortUtils.modifyURL(url,config);
   assertEquals(url,newUrl);
-  properties.setProperty("readonly.modify.protocol","webhdfs");
-  properties.setProperty("readonly.modify.port","50070");
+  properties.setProperty(VoldemortConfig.READONLY_MODIFY_PROTOCOL,"webhdfs");
+  properties.setProperty(VoldemortConfig.READONLY_MODIFY_PORT,"50070");
   config=new VoldemortConfig(properties);
-  newUrl=VoldemortUtils.modifyURL(url,config.getModifiedProtocol(),config.getModifiedPort());
-  assertEquals("webhdfs://localhost:50070/user/testpath",newUrl);
-  properties.remove("readonly.modify.protocol");
+  newUrl=VoldemortUtils.modifyURL(url,config);
+  assertEquals("webhdfs://localhost:50070/" + PATH,newUrl);
+  properties.remove(VoldemortConfig.READONLY_MODIFY_PORT);
   config=new VoldemortConfig(properties);
-  newUrl=VoldemortUtils.modifyURL(url,config.getModifiedProtocol(),config.getModifiedPort());
+  newUrl=VoldemortUtils.modifyURL(url,config);
   assertEquals(url,newUrl);
-  properties.remove("readonly.modify.port");
-  properties.setProperty("readonly.modify.protocol","testprotocol");
+  properties.remove(VoldemortConfig.READONLY_MODIFY_PORT);
+  properties.setProperty(VoldemortConfig.READONLY_MODIFY_PROTOCOL,"testprotocol");
   config=new VoldemortConfig(properties);
-  newUrl=VoldemortUtils.modifyURL(url,config.getModifiedProtocol(),config.getModifiedPort());
+  newUrl=VoldemortUtils.modifyURL(url,config);
   assertEquals(url,newUrl);
+  String expectedUrl="testprotocol://localhost/" + PATH;
+  properties.setProperty(VoldemortConfig.READONLY_MODIFY_PROTOCOL,"testprotocol");
+  properties.setProperty(VoldemortConfig.READONLY_OMIT_PORT,"true");
+  config=new VoldemortConfig(properties);
+  newUrl=VoldemortUtils.modifyURL(url,config);
+  assertEquals(expectedUrl,newUrl);
   url="/testpath/file";
-  properties.setProperty("readonly.modify.protocol","webhdfs");
-  properties.setProperty("readonly.modify.port","50070");
+  properties.setProperty(VoldemortConfig.READONLY_MODIFY_PROTOCOL,"webhdfs");
+  properties.setProperty(VoldemortConfig.READONLY_MODIFY_PORT,"50070");
   config=new VoldemortConfig(properties);
   try {
-    VoldemortUtils.modifyURL(url,config.getModifiedProtocol(),config.getModifiedPort());
+    VoldemortUtils.modifyURL(url,config);
   }
  catch (  IllegalArgumentException iae) {
     return;
