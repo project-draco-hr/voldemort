@@ -21,7 +21,7 @@
   if (props.containsKey(AbstractStoreBuilderConfigurable.NUM_CHUNKS)) {
     log.warn("N.B.: The '" + AbstractStoreBuilderConfigurable.NUM_CHUNKS + "' config parameter is now "+ "deprecated and ignored. The BnP job will automatically determine a proper value for this setting.");
   }
-  HadoopStoreBuilder builder=new HadoopStoreBuilder(getId() + "-build-store",props,configuration,mapperClass,inputFormatClass,this.adminClientPerCluster.get(url).getAdminClientCluster(),this.storeDef,tempDir,outputDir,getInputPath(),checkSumType,props.getBoolean(SAVE_KEYS,true),props.getBoolean(REDUCER_PER_BUCKET,true),props.getInt(BUILD_CHUNK_SIZE,1024 * 1024 * 1024),this.isAvroJob,this.minNumberOfRecords,this.buildPrimaryReplicasOnly);
+  HadoopStoreBuilder builder=new HadoopStoreBuilder(getId() + "-build-store",props,configuration,mapperClass,inputFormatClass,this.adminClientPerCluster.get(url).getAdminClientCluster(),this.storeDef,tempDir,outputDir,getInputPath(),checkSumType,props.getBoolean(SAVE_KEYS,true),props.getBoolean(REDUCER_PER_BUCKET,true),props.getInt(BUILD_CHUNK_SIZE,(int)HadoopStoreWriter.DEFAULT_CHUNK_SIZE),this.isAvroJob,this.minNumberOfRecords,this.buildPrimaryReplicasOnly);
   builder.build();
   return outputDir.toString();
 }
